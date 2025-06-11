@@ -1,47 +1,112 @@
 .node {
     position: absolute;
-    width: 220px;
+    min-width: 220px;
     background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border: 1px solid #e0e0e0;
-    font-family: Arial, sans-serif;
-    transition: box-shadow 0.2s ease;
-
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid #d1d5db;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    transition: all 0.2s ease;
     user-select: none;
     -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
 
     &:hover {
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-        border-color: #007bff;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        border-color: #a0a0a0;
     }
 
     &.selected {
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3), 0 8px 24px rgba(0, 0, 0, 0.2);
         border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4), 0 8px 24px rgba(0, 0, 0, 0.2);
     }
 }
 
 .header {
-    background-color: #f7f7f7;
-    padding: 8px 12px;
+    background-color: #f9fafb;
+    padding: 10px 14px;
     font-weight: 600;
     font-size: 0.9rem;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-    border-bottom: 1px solid #e0e0e0;
+    color: #1f2937;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .body {
-    padding: 12px;
+    padding: 4px 0; // 상하 여백 최소화
+}
+
+.ioContainer {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 14px;
+}
+
+.portColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.outputColumn {
+    align-items: flex-end;
+}
+
+.portRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.portLabel {
     font-size: 0.85rem;
+    color: #4b5563;
+}
+
+.port {
+    width: 12px;
+    height: 12px;
+    background-color: #fff;
+    border: 2px solid #9ca3af;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+
+    &:hover {
+        border-color: #3b82f6;
+        transform: scale(1.2);
+    }
+}
+
+// Multi-edge 포트 스타일
+.port.multi {
+    border-radius: 3px; // 사각형 모양으로 변경
+    background-color: #e0e0e0;
+}
+
+.inputPort {
+    // Input은 왼쪽에 위치하므로 portRow에서 순서 변경 불필요
+}
+
+.outputPort {
+    // Output은 오른쪽에 위치하므로 portRow에서 순서 변경
+    order: 1;
+}
+
+.divider {
+    height: 1px;
+    background-color: #e5e7eb;
+    margin: 4px 0;
+}
+
+.paramSection {
+    padding: 8px 14px 12px;
 }
 
 .param {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
     margin-bottom: 6px;
 
     &:last-child {
@@ -50,37 +115,14 @@
 }
 
 .paramKey {
-    color: #555;
+    color: #6b7280;
 }
 
 .paramValue {
-    color: #111;
+    color: #111827;
     font-weight: 500;
-    background-color: #f0f0f0;
-    padding: 2px 6px;
-    border-radius: 4px;
-}
-
-.port {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    background-color: #fff;
-    border: 2px solid #999;
-    border-radius: 50%;
-    top: 50%;
-    transform: translateY(-50%);
-
-    &:hover {
-        background-color: #007bff;
-        border-color: #007bff;
-    }
-}
-
-.inputPort {
-    left: -7px;
-}
-
-.outputPort {
-    right: -7px;
+    background-color: #f3f4f6;
+    padding: 3px 7px;
+    border-radius: 5px;
+    font-size: 0.8rem;
 }

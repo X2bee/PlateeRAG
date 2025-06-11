@@ -2,43 +2,64 @@ export const NODE_DATA = [
     {
         id: 'langchain',
         name: 'LangChain',
-        // 아이콘은 react-icons 라이브러리의 아이콘 이름을 문자열로 저장합니다.
         icon: 'LuBrainCircuit',
         categories: [
             { id: 'agents', name: 'Agents' },
             { id: 'cache', name: 'Cache' },
             { id: 'chains', name: 'Chains' },
-            { 
-                id: 'chat_models', 
+            {
+                id: 'chat_models',
                 name: 'Chat Models',
                 nodes: [
-                    { 
-                        id: 'chat-openai', 
-                        nodeName: 'ChatOpenAI', 
-                        parameters: { model: 'gpt-4o', temperature: 0.7 }, 
-                        additionalParameters: { max_tokens: 1024 } 
+                    {
+                        id: 'chat-openai',
+                        nodeName: 'ChatOpenAI',
+                        inputs: [
+                            { id: 'in-msg', name: 'Messages', multi: true },
+                            { id: 'in-stop', name: 'Stop Sequence', multi: false },
+                        ],
+                        parameters: [
+                            { id: 'p-model', name: 'Model', value: 'gpt-4o' },
+                            { id: 'p-temp', name: 'Temperature', value: 0.7 },
+                        ],
+                        outputs: [
+                            { id: 'out-1', name: 'Output', multi: false },
+                            { id: 'out-2', name: 'Error', multi: false },
+                        ]
                     },
-                    { 
-                        id: 'chat-anthropic', 
-                        nodeName: 'ChatAnthropic', 
-                        parameters: { model: 'claude-3-opus' }, 
-                        additionalParameters: { top_k: 50 } 
+                    {
+                        id: 'chat-anthropic',
+                        nodeName: 'ChatAnthropic',
+                        inputs: [
+                            { id: 'in-anthropic-msg', name: 'Messages', multi: true },
+                        ],
+                        parameters: [
+                            { id: 'p-anthropic-model', name: 'Model', value: 'claude-3-opus' },
+                        ],
+                        outputs: [
+                            { id: 'out-anthropic-1', name: 'Output', multi: false },
+                        ]
                     }
                 ]
             },
             { id: 'document_loaders', name: 'Document Loaders' },
             { id: 'embeddings', name: 'Embeddings' },
             { id: 'graph', name: 'Graph' },
-            { 
-                id: 'llms', 
+            {
+                id: 'llms',
                 name: 'LLMs',
                 nodes: [
-                    { 
-                        id: 'llm-openai', 
-                        nodeName: 'OpenAI', 
-                        parameters: { api_key: '...' }, 
-                        additionalParameters: {} 
-                    },
+                    {
+                        id: 'llm-openai',
+                        nodeName: 'OpenAI',
+                        // 이 노드는 파라미터가 없습니다.
+                        inputs: [
+                            { id: 'in-llm-prompt', name: 'Prompt', multi: false }
+                        ],
+                        outputs: [
+                            { id: 'out-llm-completion', name: 'Completion', multi: false }
+                        ]
+                    }
                 ]
             },
             { id: 'memory', name: 'Memory' },

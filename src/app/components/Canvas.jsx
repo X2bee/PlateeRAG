@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, forwardRef, useState, useImperativeHandle } from 'react';
+import React, { useRef, useEffect, useState, forwardRef, useImperativeHandle, useCallback, memo } from 'react';
 import styles from '@/app/assets/Canvas.module.scss';
 import Node from '@/app/components/Node';
 
@@ -11,11 +11,9 @@ const ZOOM_SENSITIVITY = 0.05;
 const Canvas = forwardRef((props, ref) => {
     const contentRef = useRef(null);
     const containerRef = useRef(null);
-
     const [view, setView] = useState({ x: 0, y: 0, scale: 1 });
     const [nodes, setNodes] = useState([]);
     const [selectedNodeId, setSelectedNodeId] = useState(null);
-
     const [dragState, setDragState] = useState({ type: 'none', startX: 0, startY: 0 });
 
     useImperativeHandle(ref, () => ({
@@ -48,7 +46,7 @@ const Canvas = forwardRef((props, ref) => {
     };
 
     // 노드 클릭 시
-    const handleNodeMouseDown = (e, nodeId) => {
+    const handleNodeMouseDown = useCallback((e, nodeId) => {
         if (e.button !== 0) return;
         setSelectedNodeId(nodeId);
         const node = nodes.find(n => n.id === nodeId);
@@ -60,7 +58,7 @@ const Canvas = forwardRef((props, ref) => {
                 offsetY: (e.clientY / view.scale) - node.position.y,
             });
         }
-    };
+    }, [nodes, view.scale]);
 
     const handleMouseMove = (e) => {
         if (dragState.type === 'none') return;
@@ -103,7 +101,7 @@ const Canvas = forwardRef((props, ref) => {
         };
         container.addEventListener('wheel', handleWheel, { passive: false });
         return () => container.removeEventListener('wheel', handleWheel);
-    }, [view.x, view.y, view.scale]);
+    }, []);
 
     // 초기 중앙 정렬
     useEffect(() => {
