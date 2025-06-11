@@ -1,11 +1,9 @@
-import NodeEditor from '@/app/components/NodeEditor.jsx';
+import Canvas from '@/app/components/Canvas';
 
 export default function Home() {
   return (
     <>
-      <div>
-        <NodeEditor />
-      </div>
+      <Canvas />
     </>
   );
 }
