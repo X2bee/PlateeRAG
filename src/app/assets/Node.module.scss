@@ -1,0 +1,76 @@
+.node {
+    position: absolute;
+    width: 220px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e0e0e0;
+    font-family: Arial, sans-serif;
+    transition: box-shadow 0.2s ease;
+
+    &:hover {
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        border-color: #007bff;
+    }
+}
+
+.header {
+    background-color: #f7f7f7;
+    padding: 8px 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.body {
+    padding: 12px;
+    font-size: 0.85rem;
+}
+
+.param {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.paramKey {
+    color: #555;
+}
+
+.paramValue {
+    color: #111;
+    font-weight: 500;
+    background-color: #f0f0f0;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.port {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background-color: #fff;
+    border: 2px solid #999;
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+
+    &:hover {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+}
+
+.inputPort {
+    left: -7px;
+}
+
+.outputPort {
+    right: -7px;
+}

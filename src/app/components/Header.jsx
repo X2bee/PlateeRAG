@@ -1,8 +1,8 @@
 import React from 'react';
 import styles from '@/app/assets/Header.module.scss';
-import { LuPanelRightOpen } from "react-icons/lu";
+import { LuPanelRightOpen, LuSave } from "react-icons/lu";
 
-const Header = ({onMenuClick}) => {
+const Header = ({ onMenuClick, onSave }) => {
     return (
         <header className={styles.header}>
             <div className={styles.logo}>
@@ -18,6 +18,9 @@ const Header = ({onMenuClick}) => {
                         <li><button type="button">도움말</button></li>
                     </ul>
                 </nav>
+                <button onClick={onSave} className={styles.menuButton} title="Save Canvas">
+                    <LuSave />
+                </button>
                 <button onClick={onMenuClick} className={styles.menuButton}>
                     <LuPanelRightOpen />
                 </button>

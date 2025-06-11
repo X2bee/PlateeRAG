@@ -8,11 +8,39 @@ export const NODE_DATA = [
             { id: 'agents', name: 'Agents' },
             { id: 'cache', name: 'Cache' },
             { id: 'chains', name: 'Chains' },
-            { id: 'chat_models', name: 'Chat Models' },
+            { 
+                id: 'chat_models', 
+                name: 'Chat Models',
+                nodes: [
+                    { 
+                        id: 'chat-openai', 
+                        nodeName: 'ChatOpenAI', 
+                        parameters: { model: 'gpt-4o', temperature: 0.7 }, 
+                        additionalParameters: { max_tokens: 1024 } 
+                    },
+                    { 
+                        id: 'chat-anthropic', 
+                        nodeName: 'ChatAnthropic', 
+                        parameters: { model: 'claude-3-opus' }, 
+                        additionalParameters: { top_k: 50 } 
+                    }
+                ]
+            },
             { id: 'document_loaders', name: 'Document Loaders' },
             { id: 'embeddings', name: 'Embeddings' },
             { id: 'graph', name: 'Graph' },
-            { id: 'llms', name: 'LLMs' },
+            { 
+                id: 'llms', 
+                name: 'LLMs',
+                nodes: [
+                    { 
+                        id: 'llm-openai', 
+                        nodeName: 'OpenAI', 
+                        parameters: { api_key: '...' }, 
+                        additionalParameters: {} 
+                    },
+                ]
+            },
             { id: 'memory', name: 'Memory' },
             { id: 'moderation', name: 'Moderation' },
             { id: 'output_parsers', name: 'Output Parsers' },

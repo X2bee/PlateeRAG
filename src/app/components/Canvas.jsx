@@ -1,18 +1,29 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, forwardRef, useState, useImperativeHandle  } from 'react';
 import styles from '@/app/assets/Canvas.module.scss';
+import Node from '@/app/components/Node';
 
 const MIN_SCALE = 0.6;
 const MAX_SCALE = 3;
 const ZOOM_SENSITIVITY = 0.05;
 
-const Canvas = () => {
+const Canvas = forwardRef((props, ref) => {
     const contentRef = useRef(null)
     const containerRef = useRef(null)
+    const dragStart = useRef({ x: 0, y: 0, viewX: 0, viewY: 0 });
     const [view, setView] = useState({ x: 0, y: 0, scale: 1 });
     const [isDragging, setIsDragging] = useState(false);
-    const dragStart = useRef({ x: 0, y: 0, viewX: 0, viewY: 0 });
+    
+    const [nodes, setNodes] = useState([]);
+    useImperativeHandle(ref, () => ({
+        getCanvasState: () => {
+            return {
+                view,
+                nodes,
+            };
+        }
+    }));
 
     const handleMouseDown = (e) => {
         if (e.button !== 0) return;
@@ -93,6 +104,27 @@ const Canvas = () => {
             setView({ x: initialX, y: initialY, scale: 1 });
         }
     }, [])
+
+    useImperativeHandle(ref, () => ({
+        getCanvasState: () => ({ view, nodes }),
+        addNode: (nodeData, clientX, clientY) => {
+            const container = containerRef.current;
+            if (!container) return;
+
+            const rect = container.getBoundingClientRect();
+            const worldX = (clientX - rect.left - view.x) / view.scale;
+            const worldY = (clientY - rect.top - view.y) / view.scale;
+
+            const newNode = {
+                id: `${nodeData.id}-${Date.now()}`,
+                data: nodeData,
+                position: { x: worldX, y: worldY },
+            };
+
+            setNodes(prevNodes => [...prevNodes, newNode]);
+        }
+    }));
+
     return (
         <div
             ref={containerRef}
@@ -110,18 +142,14 @@ const Canvas = () => {
                     transformOrigin: '0 0',
                 }}
             >
-                <div style={{
-                    "display": "flex",
-                    "justifyContent": "center",
-                    "alignContent": "center",
-                    "height": "100%",
-                    "alignItems": "center",
-                }}>
-                    <div>ababababab</div>
-                </div>
+                {nodes.map(node => (
+                    <Node key={node.id} data={node.data} position={node.position} />
+                ))}
             </div>
         </div>
     );
-};
+});
+
+Canvas.displayName = 'Canvas';
 
 export default Canvas;

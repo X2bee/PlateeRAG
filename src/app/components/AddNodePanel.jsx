@@ -1,9 +1,10 @@
 "use client";
 import React from 'react';
 import styles from '@/app/assets/SideMenu.module.scss';
+import NodeList from '@/app/components/NodeList';
+import DraggableNodeItem from '@/app/components/DraggableNodeItem';
 import { NODE_DATA } from '@/app/constants/nodes';
 import { LuSearch, LuArrowLeft, LuBrainCircuit, LuShare2, LuWrench, LuX } from 'react-icons/lu';
-import NodeList from '@/app/components/NodeList'; 
 
 const iconMap = {
     LuBrainCircuit: <LuBrainCircuit />,
@@ -45,9 +46,11 @@ const AddNodePanel = ({ onBack }) => {
             </div>
 
             <div className={styles.nodeList}>
-                {activeTabData && activeTabData.categories.map(category => (
+                {activeTabData?.categories?.map(category => (
                     <NodeList key={category.id} title={category.name}>
-                        <p style={{ padding: "16px", color: "#888" }}>Nodes for {category.name} will be here.</p>
+                        {category.nodes?.map(node => (
+                            <DraggableNodeItem key={node.id} nodeData={node} />
+                        ))}
                     </NodeList>
                 ))}
             </div>
