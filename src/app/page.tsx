@@ -31,49 +31,40 @@ export default function Home() {
 
     const handleSave = () => {
         if (canvasRef.current) {
-            // 1. Canvas로부터 현재 상태(노드, 뷰)를 가져옴
             const canvasState = canvasRef.current.getCanvasState();
-
-            // 2. 상태 데이터를 JSON 문자열로 변환
             const jsonString = JSON.stringify(canvasState, null, 2);
-
-            // 3. Blob 객체 생성
             const blob = new Blob([jsonString], { type: 'application/json' });
-
-            // 4. 다운로드를 위한 URL 생성
             const url = URL.createObjectURL(blob);
-
-            // 5. 임시 <a> 태그를 만들어 다운로드 실행
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'plateerag-canvas.json'; // 저장될 파일 이름
+            a.download = 'plateerag-canvas.json';
             document.body.appendChild(a);
             a.click();
-
-            // 6. 뒷정리
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
     };
+
     const handleDragOver = (e) => {
         e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
     };
 
     const handleDrop = (e) => {
         e.preventDefault();
-        // canvasRef가 없으면 중단
-        if (!canvasRef.current) return;
-
-        const nodeData = JSON.parse(e.dataTransfer.getData('application/json'));
-        if (!nodeData) return;
-
-        // canvasRef를 통해 setNodes 함수를 호출 (이 부분은 Canvas에 추가 구현 필요)
-        canvasRef.current.addNode(nodeData, e.clientX, e.clientY);
+        if (canvasRef.current) {
+            const nodeData = JSON.parse(e.dataTransfer.getData('application/json'));
+            if (nodeData) {
+                canvasRef.current.addNode(nodeData, e.clientX, e.clientY);
+            }
+        }
     };
 
     return (
-        <div className={styles.pageContainer} onDragOver={handleDragOver} onDrop={handleDrop}>
+        <div
+            className={styles.pageContainer}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+        >
             <Header onMenuClick={() => setIsMenuOpen(prev => !prev)} onSave={handleSave} />
             <main className={styles.mainContent}>
                 <Canvas ref={canvasRef} />
