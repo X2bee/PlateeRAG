@@ -1,0 +1,126 @@
+// 물방울처럼 튀어나오는 애니메이션 정의
+@keyframes pop-in {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+// SideMenu의 전체 컨테이너
+.sideMenuContainer {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 300px; // 콘텐츠에 맞는 적당한 너비
+    background-color: #ffffff;
+    border-radius: 12px; // 둥근 테두리
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); // 입체감을 위한 그림자
+    z-index: 1000; // 다른 요소들 위에 보이도록 z-index 설정
+    overflow: hidden; // 내부 콘텐츠가 테두리를 넘지 않도록 함
+
+    // 애니메이션 적용
+    animation: pop-in 0.2s ease-out forwards;
+    transform-origin: top right; // 오른쪽 위를 기준으로 애니메이션이 발생
+}
+
+
+// --- 아래는 기존 Sidebar.module.scss의 내용을 가져와 일부 수정한 것입니다 ---
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f0;
+
+    h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+}
+
+.backButton {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: #555;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+
+    &:hover {
+        background-color: #f0f0f0;
+    }
+}
+
+.mainMenu {
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.menuItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-align: left;
+    background-color: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #333;
+
+    svg {
+        font-size: 1.1rem;
+        color: #555;
+    }
+
+    &:hover {
+        background-color: #f5f5f5;
+    }
+}
+
+// AddNodePanel에서 사용하는 스타일 (변경 없음)
+.searchBar {
+  position: relative;
+  padding: 16px;
+
+  input {
+    width: 100%;
+    padding: 10px 36px;
+    border-radius: 8px;
+    border: 1px solid #d0d0d0;
+    font-size: 1rem;
+    outline: none;
+
+    &:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+  }
+}
+
+.tabs {
+  display: flex;
+  padding: 0 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.nodeList {
+  flex-grow: 1;
+  overflow-y: auto; // 카테고리가 많아지면 스크롤
+}

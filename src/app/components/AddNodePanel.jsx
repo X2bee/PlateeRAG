@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import styles from '@/app/assets/Sidebar.module.scss';
+import styles from '@/app/assets/SideMenu.module.scss';
 import { NODE_DATA } from '@/app/constants/nodes';
 import { LuSearch, LuArrowLeft, LuBrainCircuit, LuShare2, LuWrench, LuX } from 'react-icons/lu';
 import NodeList from '@/app/components/NodeList'; 
