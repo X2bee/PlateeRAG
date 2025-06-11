@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from 'react';
-import styles from '@/app/assets/Accordion.module.scss';
+import styles from '@/app/assets/NodeList.module.scss';
 import { LuChevronDown } from 'react-icons/lu';
 
-const Accordion = ({ title, children }) => {
+const NodeList = ({ title, children }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -24,4 +24,4 @@ const Accordion = ({ title, children }) => {
   );
 };
 
-export default Accordion;
+export default NodeList;

@@ -9,11 +9,32 @@
 }
 
 .header {
-  padding: 20px 16px;
-  border-bottom: 1px solid #e0e0e0;
+  // padding: 20px 16px;
+  // border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center; // 세로 중앙 정렬
+  gap: 16px; // 버튼과 제목 사이 간격
+
   h3 {
     margin: 0;
     font-size: 1.25rem;
+  }
+}
+
+.backButton {
+  background: none;
+  border: none;
+  font-size: 1.5rem; // 아이콘 크기
+  color: #555;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+
+  &:hover {
+    background-color: #f0f0f0;
   }
 }
 
@@ -28,6 +49,7 @@
     border: 1px solid #d0d0d0;
     font-size: 1rem;
     outline: none;
+
     &:focus {
       border-color: #007bff;
       box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
@@ -35,15 +57,22 @@
   }
 }
 
-.searchIcon, .clearIcon {
+.searchIcon,
+.clearIcon {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   color: #888;
 }
 
-.searchIcon { left: 30px; }
-.clearIcon { right: 30px; cursor: pointer; }
+.searchIcon {
+  left: 30px;
+}
+
+.clearIcon {
+  right: 30px;
+  cursor: pointer;
+}
 
 .tabs {
   display: flex;
@@ -64,7 +93,8 @@
   color: #888;
   font-weight: 500;
   border-bottom: 3px solid transparent;
-  margin-bottom: -1px; /* To align with the parent border */
+  margin-bottom: -1px;
+  /* To align with the parent border */
 
   &.active {
     color: #007bff;
@@ -75,4 +105,36 @@
 .nodeList {
   flex-grow: 1;
   overflow-y: auto; // 카테고리가 많아지면 스크롤
+}
+
+.mainMenu {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: left;
+  background-color: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #333;
+
+  svg {
+    font-size: 1.25rem;
+    color: #555;
+  }
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
 }
