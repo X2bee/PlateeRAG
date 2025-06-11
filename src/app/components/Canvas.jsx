@@ -15,6 +15,7 @@ const Canvas = forwardRef((props, ref) => {
     const [nodes, setNodes] = useState([]);
     const [selectedNodeId, setSelectedNodeId] = useState(null);
     const [dragState, setDragState] = useState({ type: 'none', startX: 0, startY: 0 });
+    const nodesRef = useRef(nodes);
 
     useImperativeHandle(ref, () => ({
         getCanvasState: () => ({ view, nodes }),
@@ -79,7 +80,10 @@ const Canvas = forwardRef((props, ref) => {
         setDragState({ type: 'none' });
     };
 
-    // --- useEffect 훅 ---
+    useEffect(() => {
+        nodesRef.current = nodes;
+    }, [nodes]);
+
     useEffect(() => {
         const container = containerRef.current;
         if (!container) return;
@@ -103,7 +107,6 @@ const Canvas = forwardRef((props, ref) => {
         return () => container.removeEventListener('wheel', handleWheel);
     }, []);
 
-    // 초기 중앙 정렬
     useEffect(() => {
         const container = containerRef.current;
         const content = contentRef.current;
@@ -116,7 +119,6 @@ const Canvas = forwardRef((props, ref) => {
         }
     }, []);
 
-    // 노드 삭제 기능
     useEffect(() => {
         const handleKeyDown = (e) => {
             if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNodeId) {

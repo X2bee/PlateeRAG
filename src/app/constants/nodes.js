@@ -24,7 +24,9 @@ export const NODE_DATA = [
                         ],
                         outputs: [
                             { id: 'out-1', name: 'Output', multi: false },
-                            { id: 'out-2', name: 'Error', multi: false },
+                            { id: 'out-2', name: 'Output2', multi: false },
+                            { id: 'out-3', name: 'Output3', multi: false },
+                            { id: 'out-4', name: 'Output4', multi: false },
                         ]
                     },
                     {

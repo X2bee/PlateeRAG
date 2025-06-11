@@ -18,16 +18,14 @@ export default function Home() {
             }
         };
 
-        // 메뉴가 열려있을 때만 이벤트 리스너 추가
         if (isMenuOpen) {
             document.addEventListener('mousedown', handleClickOutside);
         }
 
-        // cleanup 함수: 컴포넌트가 사라지거나 재렌더링 되기 전에 리스너 제거
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isMenuOpen]); // isMenuOpen 상태가 변경될 때마다 이 훅을 다시 실행
+    }, [isMenuOpen]);
 
     const handleSave = () => {
         if (canvasRef.current) {

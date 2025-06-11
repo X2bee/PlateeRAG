@@ -2,13 +2,17 @@ import React, { memo } from 'react';
 import styles from '@/app/assets/Node.module.scss';
 
 const Node = ({ id, data, position, onNodeMouseDown, isSelected }) => {
-    // 새로운 데이터 구조에 맞게 비구조화 할당
     const { nodeName, inputs, parameters, outputs } = data;
 
     const handleMouseDown = (e) => {
         e.stopPropagation();
         onNodeMouseDown(e, id);
     };
+
+    const hasInputs = inputs?.length > 0;
+    const hasOutputs = outputs?.length > 0;
+    const hasIO = hasInputs || hasOutputs;
+    const hasParams = parameters?.length > 0;
 
     return (
         <div
@@ -21,31 +25,43 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected }) => {
             </div>
 
             <div className={styles.body}>
-                <div className={styles.ioContainer}>
-                    {/* Input Section */}
-                    <div className={styles.portColumn}>
-                        {inputs?.map(input => (
-                            <div key={input.id} className={styles.portRow}>
-                                <div className={`${styles.port} ${styles.inputPort} ${input.multi ? styles.multi : ''}`}></div>
-                                <span className={styles.portLabel}>{input.name}</span>
+                {/* Input/Output 섹션 컨테이너 */}
+                {hasIO && (
+                    <div className={styles.ioContainer}>
+                        {/* Input Column */}
+                        {hasInputs && (
+                            <div className={styles.column}>
+                                <div className={styles.sectionHeader}>INPUT</div>
+                                {inputs.map(input => (
+                                    <div key={input.id} className={styles.portRow}>
+                                        <div className={`${styles.port} ${styles.inputPort} ${input.multi ? styles.multi : ''}`}></div>
+                                        <span className={styles.portLabel}>{input.name}</span>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
-                    {/* Output Section */}
-                    <div className={`${styles.portColumn} ${styles.outputColumn}`}>
-                        {outputs?.map(output => (
-                            <div key={output.id} className={styles.portRow}>
-                                <span className={styles.portLabel}>{output.name}</span>
-                                <div className={`${styles.port} ${styles.outputPort} ${output.multi ? styles.multi : ''}`}></div>
+                        )}
+                        {/* Output Column */}
+                        {hasOutputs && (
+                            <div className={`${styles.column} ${styles.outputColumn}`}>
+                                <div className={styles.sectionHeader}>OUTPUT</div>
+                                {outputs.map(output => (
+                                    <div key={output.id} className={`${styles.portRow} ${styles.outputRow}`}>
+                                        <span className={styles.portLabel}>{output.name}</span>
+                                        <div className={`${styles.port} ${styles.outputPort} ${output.multi ? styles.multi : ''}`}></div>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                        )}
                     </div>
-                </div>
+                )}
 
-                {parameters?.length > 0 && (
+                {/* Parameter Section */}
+                {hasParams && (
                     <>
-                        <div className={styles.divider}></div>
+                        {/* IO 섹션과 파라미터 섹션 사이에만 구분선 표시 */}
+                        {hasIO && <div className={styles.divider}></div>}
                         <div className={styles.paramSection}>
+                            <div className={styles.sectionHeader}>PARAMETER</div>
                             {parameters.map(param => (
                                 <div key={param.id} className={styles.param}>
                                     <span className={styles.paramKey}>{param.name}</span>

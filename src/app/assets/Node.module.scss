@@ -1,18 +1,17 @@
 .node {
     position: absolute;
-    min-width: 220px;
+    min-width: 350px; 
     background-color: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    border: 2px solid #95979c; 
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    transition: all 0.2s ease;
     user-select: none;
     -webkit-user-select: none;
 
     &:hover {
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-        border-color: #a0a0a0;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        border-color: #d1d5db;
     }
 
     &.selected {
@@ -22,34 +21,48 @@
 }
 
 .header {
-    background-color: #f9fafb;
-    padding: 10px 14px;
+    padding: 12px 16px;
     font-weight: 600;
-    font-size: 0.9rem;
-    color: #1f2937;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-    border-bottom: 1px solid #e5e7eb;
+    font-size: 1rem; // 16px
+    color: #111827;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom: 1px solid #f3f4f6; // 매우 옅은 구분선
 }
 
 .body {
-    padding: 4px 0; // 상하 여백 최소화
+    padding: 12px 0;
 }
 
+// --- IO 섹션 스타일 ---
 .ioContainer {
     display: flex;
     justify-content: space-between;
-    padding: 8px 14px;
+    padding: 0 16px;
 }
 
-.portColumn {
+.column {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px; // 포트 간 세로 간격
+    flex-basis: 45%; // 각 컬럼이 차지할 기본 너비
 }
 
 .outputColumn {
     align-items: flex-end;
+
+    .portRow {
+        justify-content: flex-end;
+    }
+}
+
+.sectionHeader {
+    font-size: 0.8rem; // 11.2px
+    font-weight: 700;
+    color: #838a94;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
 }
 
 .portRow {
@@ -59,8 +72,8 @@
 }
 
 .portLabel {
-    font-size: 0.85rem;
-    color: #4b5563;
+    font-size: 0.875rem;
+    color: #374151;
 }
 
 .port {
@@ -70,43 +83,36 @@
     border: 2px solid #9ca3af;
     border-radius: 50%;
     transition: all 0.2s ease;
+    flex-shrink: 0;
 
     &:hover {
         border-color: #3b82f6;
-        transform: scale(1.2);
+        transform: scale(1.1);
     }
 }
 
-// Multi-edge 포트 스타일
 .port.multi {
-    border-radius: 3px; // 사각형 모양으로 변경
-    background-color: #e0e0e0;
+    border-radius: 4px;
+    background-color: #d1d5db;
 }
 
-.inputPort {
-    // Input은 왼쪽에 위치하므로 portRow에서 순서 변경 불필요
-}
-
-.outputPort {
-    // Output은 오른쪽에 위치하므로 portRow에서 순서 변경
-    order: 1;
-}
-
+// --- 구분선 및 파라미터 섹션 ---
 .divider {
-    height: 1px;
-    background-color: #e5e7eb;
-    margin: 4px 0;
+    height: 2px;
+    background-color: #a8abb388;
+    margin: 16px 0;
 }
 
 .paramSection {
-    padding: 8px 14px 12px;
+    padding: 0 16px;
 }
 
 .param {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
+    margin-top: 10px;
     margin-bottom: 6px;
 
     &:last-child {
@@ -122,7 +128,7 @@
     color: #111827;
     font-weight: 500;
     background-color: #f3f4f6;
-    padding: 3px 7px;
-    border-radius: 5px;
+    padding: 4px 8px;
+    border-radius: 6px;
     font-size: 0.8rem;
 }
