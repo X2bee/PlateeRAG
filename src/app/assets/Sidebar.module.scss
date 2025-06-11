@@ -1,0 +1,78 @@
+.sidebar {
+  width: 340px;
+  flex-shrink: 0;
+  background-color: #ffffff;
+  border-left: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header {
+  padding: 20px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  h3 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+}
+
+.searchBar {
+  position: relative;
+  padding: 16px;
+
+  input {
+    width: 100%;
+    padding: 10px 36px;
+    border-radius: 8px;
+    border: 1px solid #d0d0d0;
+    font-size: 1rem;
+    outline: none;
+    &:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+  }
+}
+
+.searchIcon, .clearIcon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+}
+
+.searchIcon { left: 30px; }
+.clearIcon { right: 30px; cursor: pointer; }
+
+.tabs {
+  display: flex;
+  padding: 0 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 0;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  color: #888;
+  font-weight: 500;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px; /* To align with the parent border */
+
+  &.active {
+    color: #007bff;
+    border-bottom-color: #007bff;
+  }
+}
+
+.nodeList {
+  flex-grow: 1;
+  overflow-y: auto; // 카테고리가 많아지면 스크롤
+}
