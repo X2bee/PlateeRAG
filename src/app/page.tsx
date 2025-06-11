@@ -12,7 +12,6 @@ export default function Home() {
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            // menuRef.current가 존재하고, 클릭한 영역이 메뉴 영역에 포함되지 않을 때
             if (menuRef.current && !menuRef.current.contains(event.target)) {
                 setIsMenuOpen(false);
             }

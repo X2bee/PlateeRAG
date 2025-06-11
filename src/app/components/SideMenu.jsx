@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import styles from '@/app/assets/SideMenu.module.scss'; // 새로운 스타일 파일
+import styles from '@/app/assets/SideMenu.module.scss';
 import AddNodePanel from './AddNodePanel';
 import { LuCirclePlus, LuCircleHelp, LuSettings, LuLayoutGrid } from "react-icons/lu";
 
@@ -36,7 +36,7 @@ const SideMenu = ({ menuRef }) => {
 
     return (
         // menuRef를 받아 외부 클릭 감지에 사용
-        <aside ref={menuRef} className={styles.sideMenuContainer}>
+        <aside ref={menuRef} className={styles.sideMenuContainer} data-view={view}>
             {view === 'main' && <MainMenu onNavigate={setView} />}
             {view === 'addNodes' && <AddNodePanel onBack={() => setView('main')} />}
         </aside>

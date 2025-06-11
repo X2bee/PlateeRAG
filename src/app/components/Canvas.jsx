@@ -13,6 +13,7 @@ const Canvas = () => {
     const [view, setView] = useState({ x: 0, y: 0, scale: 1 });
     const [isDragging, setIsDragging] = useState(false);
     const dragStart = useRef({ x: 0, y: 0, viewX: 0, viewY: 0 });
+
     const handleMouseDown = (e) => {
         if (e.button !== 0) return;
         setIsDragging(true);
@@ -83,8 +84,8 @@ const Canvas = () => {
         const content = contentRef.current;
 
         if (container && content) {
-            const scrollableWidth = container.clientWidth - container.scrollWidth;
-            const scrollableHeight = container.clientHeight - container.scrollHeight;
+            const scrollableWidth = container.clientWidth - content.offsetWidth;
+            const scrollableHeight = container.clientHeight - content.offsetHeight;
 
             const initialX = (scrollableWidth) / 2;
             const initialY = (scrollableHeight) / 2;
