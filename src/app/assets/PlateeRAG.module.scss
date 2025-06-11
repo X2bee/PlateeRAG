@@ -1,0 +1,14 @@
+.pageContainer {
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #f8f9fa;
+}
+
+.mainContent {
+    flex-grow: 1; 
+    position: relative;
+    display: flex;
+}
