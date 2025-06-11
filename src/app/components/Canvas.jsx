@@ -13,17 +13,6 @@ const Canvas = () => {
     const [view, setView] = useState({ x: 0, y: 0, scale: 1 });
     const [isDragging, setIsDragging] = useState(false);
     const dragStart = useRef({ x: 0, y: 0, viewX: 0, viewY: 0 });
-
-    // useEffect(() => {
-    //     const container = containerRef.current;
-    //     if (container) {
-    //         const scrollableWidth = container.scrollWidth - container.clientWidth;
-    //         const scrollableHeight = container.scrollHeight - container.clientHeight;
-    //         container.scrollLeft = scrollableWidth / 2;
-    //         container.scrollTop = scrollableHeight / 2;
-    //     }
-    // }, []);
-
     const handleMouseDown = (e) => {
         if (e.button !== 0) return;
         setIsDragging(true);
