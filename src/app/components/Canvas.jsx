@@ -83,9 +83,9 @@ const Canvas = forwardRef((props, ref) => {
 
     const handleMouseUp = () => {
         setDragState({ type: 'none' });
-        if (edgePreview) {
-            setEdgePreview(null);
-        }
+        // if (edgePreview) {
+        //     setEdgePreview(null);
+        // }
     };
 
     const handleNodeMouseDown = useCallback((e, nodeId) => {
