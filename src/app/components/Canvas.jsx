@@ -3,19 +3,32 @@
 import React, { useRef, useEffect, useState, forwardRef, useImperativeHandle, useCallback, memo } from 'react';
 import styles from '@/app/assets/Canvas.module.scss';
 import Node from '@/app/components/Node';
+import Edge from '@/app/components/Edge';
 
 const MIN_SCALE = 0.6;
-const MAX_SCALE = 3;
+const MAX_SCALE = 100;
 const ZOOM_SENSITIVITY = 0.05;
 
 const Canvas = forwardRef((props, ref) => {
-    const contentRef = useRef(null);
-    const containerRef = useRef(null);
     const [view, setView] = useState({ x: 0, y: 0, scale: 1 });
     const [nodes, setNodes] = useState([]);
+    const [edges, setEdges] = useState([]);
     const [selectedNodeId, setSelectedNodeId] = useState(null);
     const [dragState, setDragState] = useState({ type: 'none', startX: 0, startY: 0 });
+    const [edgePreview, setEdgePreview] = useState(null);
+
+    const contentRef = useRef(null);
+    const containerRef = useRef(null);
     const nodesRef = useRef(nodes);
+    const portRefs = useRef(new Map());
+
+    const registerPortRef = useCallback((nodeId, portId, portType, el) => {
+        if (el) {
+            portRefs.current.set(`${nodeId}-${portId}-${portType}`, el);
+        } else {
+            portRefs.current.delete(`${nodeId}-${portId}-${portType}`);
+        }
+    }, []);
 
     useImperativeHandle(ref, () => ({
         getCanvasState: () => ({ view, nodes }),
@@ -39,14 +52,42 @@ const Canvas = forwardRef((props, ref) => {
     const handleCanvasMouseDown = (e) => {
         if (e.button !== 0) return;
         setSelectedNodeId(null);
-        setDragState({
-            type: 'canvas',
-            startX: e.clientX - view.x,
-            startY: e.clientY - view.y,
-        });
+        setDragState({ type: 'canvas', startX: e.clientX - view.x, startY: e.clientY - view.y });
     };
 
-    // 노드 클릭 시
+    const handleMouseMove = (e) => {
+        if (dragState.type === 'none') return;
+        if (dragState.type === 'canvas') {
+            setView(prev => ({ ...prev, x: e.clientX - dragState.startX, y: e.clientY - dragState.startY }));
+        } else if (dragState.type === 'node') {
+            const newX = (e.clientX / view.scale) - dragState.offsetX;
+            const newY = (e.clientY / view.scale) - dragState.offsetY;
+            setNodes(prevNodes =>
+                prevNodes.map(node =>
+                    node.id === dragState.nodeId ? { ...node, position: { x: newX, y: newY } } : node
+                )
+            );
+        } else if (dragState.type === 'edge') {
+            const container = containerRef.current;
+            if (!container) return;
+            const rect = container.getBoundingClientRect();
+            setEdgePreview(prev => ({
+                ...prev,
+                targetPos: {
+                    x: (e.clientX - rect.left - view.x) / view.scale,
+                    y: (e.clientY - rect.top - view.y) / view.scale,
+                }
+            }));
+        }
+    };
+
+    const handleMouseUp = () => {
+        setDragState({ type: 'none' });
+        if (edgePreview) {
+            setEdgePreview(null);
+        }
+    };
+
     const handleNodeMouseDown = useCallback((e, nodeId) => {
         if (e.button !== 0) return;
         setSelectedNodeId(nodeId);
@@ -61,25 +102,37 @@ const Canvas = forwardRef((props, ref) => {
         }
     }, [nodes, view.scale]);
 
-    const handleMouseMove = (e) => {
-        if (dragState.type === 'none') return;
-        if (dragState.type === 'canvas') {
-            setView(prev => ({ ...prev, x: e.clientX - dragState.startX, y: e.clientY - dragState.startY }));
-        } else if (dragState.type === 'node') {
-            const newX = (e.clientX / view.scale) - dragState.offsetX;
-            const newY = (e.clientY / view.scale) - dragState.offsetY;
-            setNodes(prevNodes =>
-                prevNodes.map(node =>
-                    node.id === dragState.nodeId ? { ...node, position: { x: newX, y: newY } } : node
-                )
-            );
+    const handlePortMouseUp = useCallback(({ nodeId, portId, portType }) => {
+        if (!edgePreview || edgePreview.source.portType === portType) {
+            setEdgePreview(null);
+            return;
+        };
+
+        const sourceNodeId = edgePreview.source.nodeId;
+        if (sourceNodeId === nodeId) {
+            setEdgePreview(null);
+            return;
         }
-    };
 
-    const handleMouseUp = () => {
-        setDragState({ type: 'none' });
-    };
+        const newEdge = {
+            id: `edge-${sourceNodeId}:${edgePreview.source.portId}-${nodeId}:${portId}`,
+            source: edgePreview.source,
+            target: { nodeId, portId, portType }
+        };
+        setEdges(prev => [...prev.filter(edge => edge.id !== newEdge.id), newEdge]);
+        setEdgePreview(null);
+    }, [edgePreview]);
 
+    const handlePortMouseDown = useCallback(({ nodeId, portId, portType }) => {
+        setDragState({ type: 'edge' });
+        setEdgePreview({
+            source: { nodeId, portId, portType },
+            targetPos: null
+        });
+    }, []);
+
+
+    // --- Effect ---
     useEffect(() => {
         nodesRef.current = nodes;
     }, [nodes]);
@@ -130,6 +183,18 @@ const Canvas = forwardRef((props, ref) => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [selectedNodeId]);
 
+    const getPortPosition = (nodeId, portId, portType) => {
+        const portEl = portRefs.current.get(`${nodeId}-${portId}-${portType}`);
+        if (!portEl || !contentRef.current) return null;
+
+        const contentRect = contentRef.current.getBoundingClientRect();
+        const portRect = portEl.getBoundingClientRect();
+
+        const x = (portRect.left + portRect.width / 2) - contentRect.left;
+        const y = (portRect.top + portRect.height / 2) - contentRect.top;
+
+        return { x, y };
+    };
     return (
         <div
             ref={containerRef}
@@ -147,6 +212,21 @@ const Canvas = forwardRef((props, ref) => {
                     transformOrigin: '0 0',
                 }}
             >
+                <svg className={styles.svgLayer}>
+                    <g>
+                        {edges.map(edge => {
+                            const sourcePos = getPortPosition(edge.source.nodeId, edge.source.portId, edge.source.portType);
+                            const targetPos = getPortPosition(edge.target.nodeId, edge.target.portId, edge.target.portType);
+                            return <Edge key={edge.id} sourcePos={sourcePos} targetPos={targetPos} />;
+                        })}
+                        {edgePreview?.targetPos && (
+                            <Edge
+                                sourcePos={getPortPosition(edgePreview.source.nodeId, edgePreview.source.portId, edgePreview.source.portType)}
+                                targetPos={edgePreview.targetPos}
+                            />
+                        )}
+                    </g>
+                </svg>
                 {nodes.map(node => (
                     <Node
                         key={node.id}
@@ -155,6 +235,9 @@ const Canvas = forwardRef((props, ref) => {
                         position={node.position}
                         onNodeMouseDown={handleNodeMouseDown}
                         isSelected={node.id === selectedNodeId}
+                        onPortMouseDown={handlePortMouseDown}
+                        onPortMouseUp={handlePortMouseUp}
+                        registerPortRef={registerPortRef}
                     />
                 ))}
             </div>
@@ -163,4 +246,4 @@ const Canvas = forwardRef((props, ref) => {
 });
 
 Canvas.displayName = 'Canvas';
-export default Canvas;
+export default memo(Canvas);

@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import styles from '@/app/assets/Node.module.scss';
 
-const Node = ({ id, data, position, onNodeMouseDown, isSelected }) => {
+const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown, onPortMouseUp, registerPortRef }) => {
     const { nodeName, inputs, parameters, outputs } = data;
 
     const handleMouseDown = (e) => {
@@ -32,10 +32,15 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected }) => {
                         {hasInputs && (
                             <div className={styles.column}>
                                 <div className={styles.sectionHeader}>INPUT</div>
-                                {inputs.map(input => (
-                                    <div key={input.id} className={styles.portRow}>
-                                        <div className={`${styles.port} ${styles.inputPort} ${input.multi ? styles.multi : ''}`}></div>
-                                        <span className={styles.portLabel}>{input.name}</span>
+                                {inputs.map(portData => (
+                                    <div key={portData.id} className={styles.portRow}>
+                                        <div
+                                            ref={(el) => registerPortRef(id, portData.id, 'input', el)}
+                                            className={`${styles.port} ${styles.inputPort} ${portData.multi ? styles.multi : ''}`}
+                                            onMouseDown={(e) => { e.stopPropagation(); onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'input' }) }}
+                                            onMouseUp={(e) => { e.stopPropagation(); onPortMouseUp({ nodeId: id, portId: portData.id, portType: 'input' }) }}
+                                        />
+                                        <span className={styles.portLabel}>{portData.name}</span>
                                     </div>
                                 ))}
                             </div>
@@ -44,10 +49,15 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected }) => {
                         {hasOutputs && (
                             <div className={`${styles.column} ${styles.outputColumn}`}>
                                 <div className={styles.sectionHeader}>OUTPUT</div>
-                                {outputs.map(output => (
-                                    <div key={output.id} className={`${styles.portRow} ${styles.outputRow}`}>
-                                        <span className={styles.portLabel}>{output.name}</span>
-                                        <div className={`${styles.port} ${styles.outputPort} ${output.multi ? styles.multi : ''}`}></div>
+                                {outputs.map(portData => (
+                                    <div key={portData.id} className={`${styles.portRow} ${styles.outputRow}`}>
+                                        <span className={styles.portLabel}>{portData.name}</span>
+                                        <div
+                                            ref={(el) => registerPortRef(id, portData.id, 'output', el)}
+                                            className={`${styles.port} ${styles.outputPort} ${portData.multi ? styles.multi : ''}`}
+                                            onMouseDown={(e) => { e.stopPropagation(); onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'output' }) }}
+                                            onMouseUp={(e) => { e.stopPropagation(); onPortMouseUp({ nodeId: id, portId: portData.id, portType: 'output' }) }}
+                                        />
                                     </div>
                                 ))}
                             </div>

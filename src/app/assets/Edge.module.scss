@@ -1,0 +1,10 @@
+.edgePath {
+    stroke: #adb5bd;
+    stroke-width: 2.5px;
+    fill: none;
+    transition: stroke 0.2s ease;
+
+    &:hover {
+        stroke: #3b82f6;
+    }
+}
