@@ -185,13 +185,15 @@ const Canvas = forwardRef((props, ref) => {
 
     const getPortPosition = (nodeId, portId, portType) => {
         const portEl = portRefs.current.get(`${nodeId}-${portId}-${portType}`);
-        if (!portEl || !contentRef.current) return null;
+        const contentEl = contentRef.current;
+        if (!portEl || !contentEl) return null;
 
-        const contentRect = contentRef.current.getBoundingClientRect();
+        const contentRect = contentEl.getBoundingClientRect();
         const portRect = portEl.getBoundingClientRect();
 
-        const x = (portRect.left + portRect.width / 2) - contentRect.left;
-        const y = (portRect.top + portRect.height / 2) - contentRect.top;
+        // [수정] 줌 레벨(view.scale)을 고려하여 정확한 월드 좌표 계산
+        const x = (portRect.left + portRect.width / 2 - contentRect.left) / view.scale;
+        const y = (portRect.top + portRect.height / 2 - contentRect.top) / view.scale;
 
         return { x, y };
     };
