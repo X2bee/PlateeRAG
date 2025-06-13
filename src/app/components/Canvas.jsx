@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState, forwardRef, useImperativeHandle, useCallback, memo } from 'react';
+import React, { useRef, useEffect, useState, forwardRef, useImperativeHandle, useCallback, memo, useLayoutEffect } from 'react';
 import styles from '@/app/assets/Canvas.module.scss';
 import Node from '@/app/components/Node';
 import Edge from '@/app/components/Edge';
@@ -19,10 +19,31 @@ const Canvas = forwardRef((props, ref) => {
     const [selectedNodeId, setSelectedNodeId] = useState(null);
     const [dragState, setDragState] = useState({ type: 'none', startX: 0, startY: 0 });
     const [edgePreview, setEdgePreview] = useState(null);
+    const [portPositions, setPortPositions] = useState({});
 
     const nodesRef = useRef(nodes);
     const edgePreviewRef = useRef(edgePreview);
     const portRefs = useRef(new Map());
+
+    useLayoutEffect(() => {
+        const newPortPositions = {};
+        const contentEl = contentRef.current;
+        if (!contentEl) return;
+        
+        // getBoundingClientRect는 렌더링 시점에 호출되면 성능 문제를 일으키므로, 여기서만 사용합니다.
+        const contentRect = contentEl.getBoundingClientRect();
+
+        portRefs.current.forEach((portEl, key) => {
+            if (portEl) {
+                const portRect = portEl.getBoundingClientRect();
+                const x = (portRect.left + portRect.width / 2 - contentRect.left) / view.scale;
+                const y = (portRect.top + portRect.height / 2 - contentRect.top) / view.scale;
+                newPortPositions[key] = { x, y };
+            }
+        });
+        setPortPositions(newPortPositions);
+    }, [nodes, view]);
+
 
     const registerPortRef = useCallback((nodeId, portId, portType, el) => {
         if (el) {
@@ -31,6 +52,8 @@ const Canvas = forwardRef((props, ref) => {
             portRefs.current.delete(`${nodeId}-${portId}-${portType}`);
         }
     }, []);
+
+
 
     useImperativeHandle(ref, () => ({
         getCanvasState: () => ({ view, nodes }),
@@ -128,11 +151,12 @@ const Canvas = forwardRef((props, ref) => {
 
     const handlePortMouseDown = useCallback(({ nodeId, portId, portType }) => {
         setDragState({ type: 'edge' });
-        const startPos = getPortPosition(nodeId, portId, portType);
+        // [수정] 시작 좌표를 미리 계산된 portPositions 상태에서 가져옴
+        const startPos = portPositions[`${nodeId}-${portId}-${portType}`];
         if (startPos) {
             setEdgePreview({ source: { nodeId, portId, portType }, startPos, targetPos: startPos });
         }
-    }, []);
+    }, [portPositions]);
 
 
     // --- Effect ---
@@ -222,9 +246,12 @@ const Canvas = forwardRef((props, ref) => {
             >
                 <svg className={styles.svgLayer}>
                     <g>
+                        {/* [수정] 렌더링 시에는 함수 호출 없이 상태에서 바로 좌표를 읽어옴 */}
                         {edges.map(edge => {
-                            const sourcePos = getPortPosition(edge.source.nodeId, edge.source.portId, edge.source.portType);
-                            const targetPos = getPortPosition(edge.target.nodeId, edge.target.portId, edge.target.portType);
+                            const sourceKey = `${edge.source.nodeId}-${edge.source.portId}-${edge.source.portType}`;
+                            const targetKey = `${edge.target.nodeId}-${edge.target.portId}-${edge.target.portType}`;
+                            const sourcePos = portPositions[sourceKey];
+                            const targetPos = portPositions[targetKey];
                             return <Edge key={edge.id} sourcePos={sourcePos} targetPos={targetPos} />;
                         })}
                         {edgePreview?.targetPos && (
