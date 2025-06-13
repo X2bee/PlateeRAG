@@ -1,10 +1,22 @@
-.edgePath {
-    stroke: #adb5bd;
-    stroke-width: 2.5px;
-    fill: none;
-    transition: stroke 0.2s ease;
-
-    &:hover {
+.edgeGroup {
+    cursor: pointer;
+    pointer-events: auto;
+    &:hover .edgePath,
+    &.selected .edgePath {
         stroke: #3b82f6;
     }
+}
+
+.edgePath {
+    stroke: #adb5bd;
+    stroke-width: 2.5;
+    fill: none;
+    transition: stroke 0.2s ease;
+    pointer-events: none;
+}
+
+.edgeHitbox {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 20px;
 }

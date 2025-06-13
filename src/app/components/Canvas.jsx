@@ -6,7 +6,7 @@ import Node from '@/app/components/Node';
 import Edge from '@/app/components/Edge';
 
 const MIN_SCALE = 0.6;
-const MAX_SCALE = 100;
+const MAX_SCALE = 20;
 const ZOOM_SENSITIVITY = 0.05;
 
 const Canvas = forwardRef((props, ref) => {
@@ -17,6 +17,7 @@ const Canvas = forwardRef((props, ref) => {
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
     const [selectedNodeId, setSelectedNodeId] = useState(null);
+    const [selectedEdgeId, setSelectedEdgeId] = useState(null);
     const [dragState, setDragState] = useState({ type: 'none', startX: 0, startY: 0 });
     const [edgePreview, setEdgePreview] = useState(null);
     const [portPositions, setPortPositions] = useState({});
@@ -29,8 +30,7 @@ const Canvas = forwardRef((props, ref) => {
         const newPortPositions = {};
         const contentEl = contentRef.current;
         if (!contentEl) return;
-        
-        // getBoundingClientRect는 렌더링 시점에 호출되면 성능 문제를 일으키므로, 여기서만 사용합니다.
+
         const contentRect = contentEl.getBoundingClientRect();
 
         portRefs.current.forEach((portEl, key) => {
@@ -42,7 +42,7 @@ const Canvas = forwardRef((props, ref) => {
             }
         });
         setPortPositions(newPortPositions);
-    }, [nodes, view]);
+    }, [nodes, view.scale]);
 
 
     const registerPortRef = useCallback((nodeId, portId, portType, el) => {
@@ -56,7 +56,7 @@ const Canvas = forwardRef((props, ref) => {
 
 
     useImperativeHandle(ref, () => ({
-        getCanvasState: () => ({ view, nodes }),
+        getCanvasState: () => ({ view, nodes, edges }),
         addNode: (nodeData, clientX, clientY) => {
             const container = containerRef.current;
             if (!container) return;
@@ -77,6 +77,7 @@ const Canvas = forwardRef((props, ref) => {
     const handleCanvasMouseDown = (e) => {
         if (e.button !== 0) return;
         setSelectedNodeId(null);
+        setSelectedEdgeId(null);
         setDragState({ type: 'canvas', startX: e.clientX - view.x, startY: e.clientY - view.y });
     };
 
@@ -116,6 +117,7 @@ const Canvas = forwardRef((props, ref) => {
     const handleNodeMouseDown = useCallback((e, nodeId) => {
         if (e.button !== 0) return;
         setSelectedNodeId(nodeId);
+        setSelectedEdgeId(null);
         const node = nodes.find(n => n.id === nodeId);
         if (node) {
             setDragState({
@@ -126,6 +128,11 @@ const Canvas = forwardRef((props, ref) => {
             });
         }
     }, [nodes, view.scale]);
+
+    const handleEdgeClick = useCallback((edgeId) => {
+        setSelectedEdgeId(edgeId);
+        setSelectedNodeId(null); // 노드 선택 해제
+    }, []);
 
     const handlePortMouseUp = useCallback(({ nodeId, portId, portType }) => {
         const currentEdgePreview = edgePreviewRef.current;
@@ -140,29 +147,60 @@ const Canvas = forwardRef((props, ref) => {
             return;
         }
 
+        const newEdges = edges.filter(edge => {
+            const targetPort = findPortData(nodeId, portId, 'input');
+            if (targetPort && !targetPort.multi && edge.target.nodeId === nodeId && edge.target.portId === portId) {
+                return false;
+            }
+            return true;
+        });
+
         const newEdge = {
-            id: `edge-${currentEdgePreview.source.nodeId}:${currentEdgePreview.source.portId}-${nodeId}:${portId}`,
+            id: `edge-${currentEdgePreview.source.nodeId}:${currentEdgePreview.source.portId}-${nodeId}:${portId}-${Date.now()}`,
             source: currentEdgePreview.source,
             target: { nodeId, portId, portType }
         };
-        setEdges(prev => [...prev.filter(edge => edge.target.portId !== portId || edge.target.nodeId !== nodeId), newEdge]);
+        setEdges([...newEdges, newEdge]);
         setEdgePreview(null);
-    }, [edgePreview]);
+    }, [edges, nodes]);
 
-    const handlePortMouseDown = useCallback(({ nodeId, portId, portType }) => {
+
+    const handlePortMouseDown = useCallback(({ nodeId, portId, portType, isMulti }) => {
         setDragState({ type: 'edge' });
-        // [수정] 시작 좌표를 미리 계산된 portPositions 상태에서 가져옴
+
+        // [수정] Re-editing 로직 추가
+        // 단일 연결만 허용하는 입력 포트이고, 이미 연결된 엣지가 있을 경우
+        if (portType === 'input' && !isMulti) {
+            const existingEdge = edges.find(e => e.target.nodeId === nodeId && e.target.portId === portId);
+            if (existingEdge) {
+                // 기존 엣지를 제거
+                setEdges(prevEdges => prevEdges.filter(e => e.id !== existingEdge.id));
+
+                // 기존 엣지의 'source'를 새로운 'edgePreview'의 시작점으로 설정
+                const sourcePos = portPositions[`${existingEdge.source.nodeId}-${existingEdge.source.portId}-${existingEdge.source.portType}`];
+                if (sourcePos) {
+                    setEdgePreview({
+                        source: existingEdge.source,
+                        startPos: sourcePos,
+                        targetPos: sourcePos // 마우스 이동 전까지 시작점과 동일
+                    });
+                }
+                return; // Re-editing 시작 후 함수 종료
+            }
+        }
+
+        // 기본 로직: 새로운 엣지 생성 시작
         const startPos = portPositions[`${nodeId}-${portId}-${portType}`];
         if (startPos) {
             setEdgePreview({ source: { nodeId, portId, portType }, startPos, targetPos: startPos });
         }
-    }, [portPositions]);
+    }, [edges, portPositions]);
 
 
     // --- Effect ---
-    useEffect(() => { 
-        nodesRef.current = nodes; 
-        edgePreviewRef.current = edgePreview; 
+    useEffect(() => {
+        nodesRef.current = nodes;
+        edgePreviewRef.current = edgePreview;
     }, [nodes, edgePreview]);
 
     useEffect(() => { edgePreviewRef.current = edgePreview; }, [edgePreview]);
@@ -205,28 +243,29 @@ const Canvas = forwardRef((props, ref) => {
 
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNodeId) {
-                setNodes(prev => prev.filter(node => node.id !== selectedNodeId));
-                setSelectedNodeId(null);
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                if (selectedNodeId) {
+                    setNodes(prev => prev.filter(node => node.id !== selectedNodeId));
+                    setEdges(prev => prev.filter(edge => edge.source.nodeId !== selectedNodeId && edge.target.nodeId !== selectedNodeId));
+                    setSelectedNodeId(null);
+                } else if (selectedEdgeId) {
+                    setEdges(prev => prev.filter(edge => edge.id !== selectedEdgeId));
+                    setSelectedEdgeId(null);
+                }
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [selectedNodeId]);
+    }, [selectedNodeId, selectedEdgeId]);
 
-    const getPortPosition = (nodeId, portId, portType) => {
-        const portEl = portRefs.current.get(`${nodeId}-${portId}-${portType}`);
-        const contentEl = contentRef.current;
-        if (!portEl || !contentEl) return null;
-
-        const contentRect = contentEl.getBoundingClientRect();
-        const portRect = portEl.getBoundingClientRect();
-
-        const x = (portRect.left + portRect.width / 2 - contentRect.left) / view.scale;
-        const y = (portRect.top + portRect.height / 2 - contentRect.top) / view.scale;
-
-        return { x, y };
+    // --- Helper Function ---
+    const findPortData = (nodeId, portId, portType) => {
+        const node = nodes.find(n => n.id === nodeId);
+        if (!node) return null;
+        const portList = portType === 'input' ? node.data.inputs : node.data.outputs;
+        return portList?.find(p => p.id === portId) || null;
     };
+
     return (
         <div
             ref={containerRef}
@@ -246,14 +285,21 @@ const Canvas = forwardRef((props, ref) => {
             >
                 <svg className={styles.svgLayer}>
                     <g>
-                        {/* [수정] 렌더링 시에는 함수 호출 없이 상태에서 바로 좌표를 읽어옴 */}
                         {edges.map(edge => {
                             const sourceKey = `${edge.source.nodeId}-${edge.source.portId}-${edge.source.portType}`;
                             const targetKey = `${edge.target.nodeId}-${edge.target.portId}-${edge.target.portType}`;
                             const sourcePos = portPositions[sourceKey];
                             const targetPos = portPositions[targetKey];
-                            return <Edge key={edge.id} sourcePos={sourcePos} targetPos={targetPos} />;
+                            return <Edge
+                                key={edge.id}
+                                id={edge.id}
+                                sourcePos={sourcePos}
+                                targetPos={targetPos}
+                                onEdgeClick={handleEdgeClick}
+                                isSelected={edge.id === selectedEdgeId}
+                            />;
                         })}
+
                         {edgePreview?.targetPos && (
                             <Edge
                                 sourcePos={edgePreview.startPos}

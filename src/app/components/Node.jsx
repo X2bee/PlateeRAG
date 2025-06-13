@@ -37,7 +37,11 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                                         <div
                                             ref={(el) => registerPortRef(id, portData.id, 'input', el)}
                                             className={`${styles.port} ${styles.inputPort} ${portData.multi ? styles.multi : ''}`}
-                                            onMouseDown={(e) => { e.stopPropagation(); onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'input' }) }}
+                                            onMouseDown={(e) => {
+                                                e.stopPropagation();
+                                                // [수정] isMulti 프로퍼티를 이벤트 객체에 추가하여 전달합니다.
+                                                onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'input', isMulti: !!portData.multi });
+                                            }}
                                             onMouseUp={(e) => { e.stopPropagation(); onPortMouseUp({ nodeId: id, portId: portData.id, portType: 'input' }) }}
                                         />
                                         <span className={styles.portLabel}>{portData.name}</span>
@@ -55,7 +59,11 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                                         <div
                                             ref={(el) => registerPortRef(id, portData.id, 'output', el)}
                                             className={`${styles.port} ${styles.outputPort} ${portData.multi ? styles.multi : ''}`}
-                                            onMouseDown={(e) => { e.stopPropagation(); onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'output' }) }}
+                                            onMouseDown={(e) => {
+                                                e.stopPropagation();
+                                                 // [수정] 출력 포트는 항상 새로운 엣지를 생성하므로 isMulti는 false로 처리해도 무방합니다.
+                                                onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'output', isMulti: false });
+                                            }}
                                             onMouseUp={(e) => { e.stopPropagation(); onPortMouseUp({ nodeId: id, portId: portData.id, portType: 'output' }) }}
                                         />
                                     </div>
@@ -68,7 +76,6 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                 {/* Parameter Section */}
                 {hasParams && (
                     <>
-                        {/* IO 섹션과 파라미터 섹션 사이에만 구분선 표시 */}
                         {hasIO && <div className={styles.divider}></div>}
                         <div className={styles.paramSection}>
                             <div className={styles.sectionHeader}>PARAMETER</div>

@@ -12,8 +12,8 @@ export default function Home() {
     const canvasRef = useRef(null);
 
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (menuRef.current && !menuRef.current.contains(event.target)) {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !(menuRef.current as any).contains(event.target)) {
                 setIsMenuOpen(false);
             }
         };
@@ -29,7 +29,7 @@ export default function Home() {
 
     const handleSave = () => {
         if (canvasRef.current) {
-            const canvasState = canvasRef.current.getCanvasState();
+            const canvasState = (canvasRef.current as any).getCanvasState();
             const jsonString = JSON.stringify(canvasState, null, 2);
             const blob = new Blob([jsonString], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -43,16 +43,16 @@ export default function Home() {
         }
     };
 
-    const handleDragOver = (e) => {
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
     };
 
-    const handleDrop = (e) => {
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         if (canvasRef.current) {
             const nodeData = JSON.parse(e.dataTransfer.getData('application/json'));
             if (nodeData) {
-                canvasRef.current.addNode(nodeData, e.clientX, e.clientY);
+                (canvasRef.current as any).addNode(nodeData, e.clientX, e.clientY);
             }
         }
     };
