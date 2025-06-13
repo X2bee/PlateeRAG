@@ -23,7 +23,7 @@ export const NODE_DATA = [
                             { id: 'p-temp', name: 'Temperature', value: 0.7 },
                         ],
                         outputs: [
-                            { id: 'out-1', name: 'Output', multi: false },
+                            { id: 'out-1', name: 'Output1', multi: false },
                             { id: 'out-2', name: 'Output2', multi: false },
                             { id: 'out-3', name: 'Output3', multi: false },
                             { id: 'out-4', name: 'Output4', multi: false },

@@ -10,6 +10,9 @@ const MAX_SCALE = 100;
 const ZOOM_SENSITIVITY = 0.05;
 
 const Canvas = forwardRef((props, ref) => {
+    const contentRef = useRef(null);
+    const containerRef = useRef(null);
+
     const [view, setView] = useState({ x: 0, y: 0, scale: 1 });
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
@@ -17,9 +20,8 @@ const Canvas = forwardRef((props, ref) => {
     const [dragState, setDragState] = useState({ type: 'none', startX: 0, startY: 0 });
     const [edgePreview, setEdgePreview] = useState(null);
 
-    const contentRef = useRef(null);
-    const containerRef = useRef(null);
     const nodesRef = useRef(nodes);
+    const edgePreviewRef = useRef(edgePreview);
     const portRefs = useRef(new Map());
 
     const registerPortRef = useCallback((nodeId, portId, portType, el) => {
@@ -83,9 +85,9 @@ const Canvas = forwardRef((props, ref) => {
 
     const handleMouseUp = () => {
         setDragState({ type: 'none' });
-        // if (edgePreview) {
-        //     setEdgePreview(null);
-        // }
+        if (edgePreview) {
+            setEdgePreview(null);
+        }
     };
 
     const handleNodeMouseDown = useCallback((e, nodeId) => {
@@ -103,39 +105,44 @@ const Canvas = forwardRef((props, ref) => {
     }, [nodes, view.scale]);
 
     const handlePortMouseUp = useCallback(({ nodeId, portId, portType }) => {
-        if (!edgePreview || edgePreview.source.portType === portType) {
+        const currentEdgePreview = edgePreviewRef.current;
+        if (!currentEdgePreview || currentEdgePreview.source.portType === portType) {
             setEdgePreview(null);
             return;
         };
 
-        const sourceNodeId = edgePreview.source.nodeId;
+        const sourceNodeId = currentEdgePreview.source.nodeId;
         if (sourceNodeId === nodeId) {
             setEdgePreview(null);
             return;
         }
 
         const newEdge = {
-            id: `edge-${sourceNodeId}:${edgePreview.source.portId}-${nodeId}:${portId}`,
-            source: edgePreview.source,
+            id: `edge-${currentEdgePreview.source.nodeId}:${currentEdgePreview.source.portId}-${nodeId}:${portId}`,
+            source: currentEdgePreview.source,
             target: { nodeId, portId, portType }
         };
-        setEdges(prev => [...prev.filter(edge => edge.id !== newEdge.id), newEdge]);
+        setEdges(prev => [...prev.filter(edge => edge.target.portId !== portId || edge.target.nodeId !== nodeId), newEdge]);
         setEdgePreview(null);
     }, [edgePreview]);
 
     const handlePortMouseDown = useCallback(({ nodeId, portId, portType }) => {
         setDragState({ type: 'edge' });
-        setEdgePreview({
-            source: { nodeId, portId, portType },
-            targetPos: null
-        });
+        const startPos = getPortPosition(nodeId, portId, portType);
+        if (startPos) {
+            setEdgePreview({ source: { nodeId, portId, portType }, startPos, targetPos: startPos });
+        }
     }, []);
 
 
     // --- Effect ---
-    useEffect(() => {
-        nodesRef.current = nodes;
-    }, [nodes]);
+    useEffect(() => { 
+        nodesRef.current = nodes; 
+        edgePreviewRef.current = edgePreview; 
+    }, [nodes, edgePreview]);
+
+    useEffect(() => { edgePreviewRef.current = edgePreview; }, [edgePreview]);
+
 
     useEffect(() => {
         const container = containerRef.current;
@@ -191,7 +198,6 @@ const Canvas = forwardRef((props, ref) => {
         const contentRect = contentEl.getBoundingClientRect();
         const portRect = portEl.getBoundingClientRect();
 
-        // [수정] 줌 레벨(view.scale)을 고려하여 정확한 월드 좌표 계산
         const x = (portRect.left + portRect.width / 2 - contentRect.left) / view.scale;
         const y = (portRect.top + portRect.height / 2 - contentRect.top) / view.scale;
 
@@ -223,7 +229,7 @@ const Canvas = forwardRef((props, ref) => {
                         })}
                         {edgePreview?.targetPos && (
                             <Edge
-                                sourcePos={getPortPosition(edgePreview.source.nodeId, edgePreview.source.portId, edgePreview.source.portType)}
+                                sourcePos={edgePreview.startPos}
                                 targetPos={edgePreview.targetPos}
                             />
                         )}
