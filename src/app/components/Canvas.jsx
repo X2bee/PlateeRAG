@@ -171,34 +171,34 @@ const Canvas = forwardRef((props, ref) => {
 
 
     const handlePortMouseDown = useCallback(({ nodeId, portId, portType, isMulti }) => {
-        setDragState({ type: 'edge' });
-
-        // [수정] Re-editing 로직 추가
-        // 단일 연결만 허용하는 입력 포트이고, 이미 연결된 엣지가 있을 경우
         if (portType === 'input' && !isMulti) {
             const existingEdge = edges.find(e => e.target.nodeId === nodeId && e.target.portId === portId);
             if (existingEdge) {
-                // 기존 엣지를 제거
+                // 기존 엣지 수정 로직은 그대로 실행
+                setDragState({ type: 'edge' });
                 setEdges(prevEdges => prevEdges.filter(e => e.id !== existingEdge.id));
-
-                // 기존 엣지의 'source'를 새로운 'edgePreview'의 시작점으로 설정
+                
                 const sourcePos = portPositions[`${existingEdge.source.nodeId}-${existingEdge.source.portId}-${existingEdge.source.portType}`];
                 if (sourcePos) {
                     setEdgePreview({
                         source: existingEdge.source,
                         startPos: sourcePos,
-                        targetPos: sourcePos // 마우스 이동 전까지 시작점과 동일
+                        targetPos: sourcePos
                     });
                 }
-                return; // Re-editing 시작 후 함수 종료
+                return;
             }
         }
 
-        // 기본 로직: 새로운 엣지 생성 시작
-        const startPos = portPositions[`${nodeId}-${portId}-${portType}`];
-        if (startPos) {
-            setEdgePreview({ source: { nodeId, portId, portType }, startPos, targetPos: startPos });
+        if (portType === 'output') {
+            setDragState({ type: 'edge' });
+            const startPos = portPositions[`${nodeId}-${portId}-${portType}`];
+            if (startPos) {
+                setEdgePreview({ source: { nodeId, portId, portType }, startPos, targetPos: startPos });
+            }
+            return; 
         }
+
     }, [edges, portPositions]);
 
 
