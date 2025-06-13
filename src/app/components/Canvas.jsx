@@ -54,7 +54,6 @@ const Canvas = forwardRef((props, ref) => {
     }, []);
 
 
-
     useImperativeHandle(ref, () => ({
         getCanvasState: () => ({ view, nodes, edges }),
         addNode: (nodeData, clientX, clientY) => {
@@ -136,7 +135,7 @@ const Canvas = forwardRef((props, ref) => {
 
     const handleEdgeClick = useCallback((edgeId) => {
         setSelectedEdgeId(edgeId);
-        setSelectedNodeId(null); // 노드 선택 해제
+        setSelectedNodeId(null);
     }, []);
 
     const handlePortMouseUp = useCallback(({ nodeId, portId, portType }) => {
@@ -152,16 +151,25 @@ const Canvas = forwardRef((props, ref) => {
             return;
         }
 
-        const newEdges = edges.filter(edge => {
-            const targetPort = findPortData(nodeId, portId, 'input');
-            if (targetPort && !targetPort.multi && edge.target.nodeId === nodeId && edge.target.portId === portId) {
-                return false;
-            }
-            return true;
-        });
+        const newEdgeSignature = `${currentEdgePreview.source.nodeId}:${currentEdgePreview.source.portId}-${nodeId}:${portId}`;
+
+        const isDuplicate = edges.some(edge =>
+            `${edge.source.nodeId}:${edge.source.portId}-${edge.target.nodeId}:${edge.target.portId}` === newEdgeSignature
+        );
+
+        if (isDuplicate) {
+            setEdgePreview(null);
+            return;
+        }
+
+        let newEdges = [...edges];
+        const targetPort = findPortData(nodeId, portId, 'input');
+        if (targetPort && !targetPort.multi) {
+            newEdges = newEdges.filter(edge => !(edge.target.nodeId === nodeId && edge.target.portId === portId));
+        }
 
         const newEdge = {
-            id: `edge-${currentEdgePreview.source.nodeId}:${currentEdgePreview.source.portId}-${nodeId}:${portId}-${Date.now()}`,
+            id: `edge-${newEdgeSignature}-${Date.now()}`,
             source: currentEdgePreview.source,
             target: { nodeId, portId, portType }
         };
@@ -174,10 +182,9 @@ const Canvas = forwardRef((props, ref) => {
         if (portType === 'input' && !isMulti) {
             const existingEdge = edges.find(e => e.target.nodeId === nodeId && e.target.portId === portId);
             if (existingEdge) {
-                // 기존 엣지 수정 로직은 그대로 실행
                 setDragState({ type: 'edge' });
                 setEdges(prevEdges => prevEdges.filter(e => e.id !== existingEdge.id));
-                
+
                 const sourcePos = portPositions[`${existingEdge.source.nodeId}-${existingEdge.source.portId}-${existingEdge.source.portType}`];
                 if (sourcePos) {
                     setEdgePreview({
@@ -196,7 +203,7 @@ const Canvas = forwardRef((props, ref) => {
             if (startPos) {
                 setEdgePreview({ source: { nodeId, portId, portType }, startPos, targetPos: startPos });
             }
-            return; 
+            return;
         }
 
     }, [edges, portPositions]);
