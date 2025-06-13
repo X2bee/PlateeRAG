@@ -70,6 +70,11 @@ const Canvas = forwardRef((props, ref) => {
                 position: { x: worldX, y: worldY },
             };
             setNodes(prev => [...prev, newNode]);
+        },
+        loadCanvasState: (state) => {
+            if (state.nodes) setNodes(state.nodes);
+            if (state.edges) setEdges(state.edges);
+            if (state.view) setView(state.view);
         }
     }));
 

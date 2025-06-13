@@ -10,6 +10,7 @@ export default function Home() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef(null);
     const canvasRef = useRef(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -43,6 +44,31 @@ export default function Home() {
         }
     };
 
+    const handleLoadClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const json = event.target?.result as string;
+                const savedState = JSON.parse(json);
+                if (canvasRef.current) {
+                    (canvasRef.current as any).loadCanvasState(savedState);
+                }
+            } catch (error) {
+                console.error("Error parsing JSON file:", error);
+                alert("유효하지 않은 파일 형식입니다.");
+            }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+    };
+
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
     };
@@ -63,11 +89,22 @@ export default function Home() {
             onDragOver={handleDragOver}
             onDrop={handleDrop}
         >
-            <Header onMenuClick={() => setIsMenuOpen(prev => !prev)} onSave={handleSave} />
+            <Header 
+                onMenuClick={() => setIsMenuOpen(prev => !prev)} 
+                onSave={handleSave}
+                onLoad={handleLoadClick}
+            />
             <main className={styles.mainContent}>
                 <Canvas ref={canvasRef} />
                 {isMenuOpen && <SideMenu menuRef={menuRef} />}
             </main>
+            <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                accept=".json"
+                onChange={handleFileChange}
+            />
         </div>
     );
 }

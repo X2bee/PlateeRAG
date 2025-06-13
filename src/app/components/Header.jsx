@@ -1,8 +1,9 @@
 import React from 'react';
 import styles from '@/app/assets/Header.module.scss';
-import { LuPanelRightOpen, LuSave } from "react-icons/lu";
+import { LuPanelRightOpen, LuSave, LuFolderOpen } from "react-icons/lu";
 
-const Header = ({ onMenuClick, onSave }) => {
+// [수정] onSave 옆에 onLoad prop 추가
+const Header = ({ onMenuClick, onSave, onLoad }) => {
     return (
         <header className={styles.header}>
             <div className={styles.logo}>
@@ -18,6 +19,9 @@ const Header = ({ onMenuClick, onSave }) => {
                         <li><button type="button">도움말</button></li>
                     </ul>
                 </nav>
+                <button onClick={onLoad} className={styles.menuButton} title="Load Canvas">
+                    <LuFolderOpen />
+                </button>
                 <button onClick={onSave} className={styles.menuButton} title="Save Canvas">
                     <LuSave />
                 </button>
