@@ -1,0 +1,179 @@
+/* Chat.module.scss */
+
+.chatContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Make chat container take full height of its parent */
+    width: 360px; /* Or a width that suits your layout */
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.07);
+    overflow: hidden; /* Important for keeping children within rounded borders */
+}
+
+.chatHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    flex-shrink: 0;
+    border-bottom: 1px solid #f0f0f0;
+    background-color: #f9f9f9; /* Slightly different background for header */
+}
+
+.chatHeader h3 {
+    margin: 0;
+    font-size: 1rem; /* 16px */
+    font-weight: 600;
+    color: #333;
+}
+
+.backButton {
+    background: none;
+    border: none;
+    font-size: 1.25rem; /* Consistent with SideMenu */
+    color: #555;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.backButton:hover {
+    background-color: #f0f0f0; /* Consistent hover effect */
+}
+
+.messageList {
+    flex-grow: 1;
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: #cccccc transparent;
+}
+
+.messageList::-webkit-scrollbar {
+    width: 6px;
+}
+
+.messageList::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.messageList::-webkit-scrollbar-thumb {
+    background-color: #d1d1d1;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background-clip: content-box;
+}
+
+.messageList::-webkit-scrollbar-thumb:hover {
+    background-color: #a8a8a8;
+}
+
+.message {
+    padding: 10px 14px;
+    border-radius: 18px; /* More rounded for messages */
+    max-width: 80%;
+    word-wrap: break-word;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.userMessage {
+    background-color: #007bff; /* Blue for user messages */
+    color: white;
+    align-self: flex-end; /* Align user messages to the right */
+    border-bottom-right-radius: 6px; /* Slightly different rounding for tail effect */
+}
+
+.botMessage {
+    background-color: #e9ecef; /* Light grey for bot messages */
+    color: #333;
+    align-self: flex-start; /* Align bot messages to the left */
+    border-bottom-left-radius: 6px; /* Slightly different rounding for tail effect */
+}
+
+.inputArea {
+    display: flex;
+    padding: 12px;
+    border-top: 1px solid #f0f0f0;
+    background-color: #f9f9f9; /* Match header background */
+    gap: 10px;
+}
+
+.textInput {
+    flex-grow: 1;
+    padding: 10px 16px;
+    border-radius: 20px; /* Pill shape input */
+    border: 1px solid #e0e0e0;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.textInput:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+.sendButton {
+    padding: 10px 18px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 20px; /* Pill shape button */
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sendButton:hover {
+    background-color: #0056b3;
+}
+
+.sendButton:disabled {
+    background-color: #a0a0a0;
+    cursor: not-allowed;
+}
+
+/* Loading dots animation for bot messages */
+.loadingDots span {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: currentColor; /* Use the text color of the bot message */
+    margin: 0 2px;
+    animation: loadingBounce 1.4s infinite ease-in-out both;
+}
+
+.loadingDots span:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.loadingDots span:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+@keyframes loadingBounce {
+
+    0%,
+    80%,
+    100% {
+        transform: scale(0);
+    }
+
+    40% {
+        transform: scale(1.0);
+    }
+}
