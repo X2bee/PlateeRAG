@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import styles from '@/app/assets/SideMenu.module.scss';
 import AddNodePanel from './AddNodePanel';
-import { LuCirclePlus, LuCircleHelp, LuSettings, LuLayoutGrid } from "react-icons/lu";
+import Chat from './Chat'; // Import the Chat component
+import { LuCirclePlus, LuCircleHelp, LuSettings, LuLayoutGrid, LuMessageSquare } from "react-icons/lu";
 
 // 메인 메뉴 UI
 const MainMenu = ({ onNavigate }) => {
@@ -12,6 +13,10 @@ const MainMenu = ({ onNavigate }) => {
                 <button className={styles.menuItem} onClick={() => onNavigate('addNodes')}>
                     <LuCirclePlus />
                     <span>Add Node</span>
+                </button>
+                <button className={styles.menuItem} onClick={() => onNavigate('chat')}>
+                    <LuMessageSquare />
+                    <span>Chat</span>
                 </button>
                 <button className={styles.menuItem}>
                     <LuLayoutGrid />
@@ -39,6 +44,7 @@ const SideMenu = ({ menuRef }) => {
         <aside ref={menuRef} className={styles.sideMenuContainer} data-view={view}>
             {view === 'main' && <MainMenu onNavigate={setView} />}
             {view === 'addNodes' && <AddNodePanel onBack={() => setView('main')} />}
+            {view === 'chat' && <Chat onBack={() => setView('main')} />}
         </aside>
     );
 };
