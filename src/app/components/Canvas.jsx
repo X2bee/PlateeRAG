@@ -8,6 +8,7 @@ import Edge from '@/app/components/Edge';
 const MIN_SCALE = 0.6;
 const MAX_SCALE = 20;
 const ZOOM_SENSITIVITY = 0.05;
+const SNAP_DISTANCE = 20; // World units
 
 const Canvas = forwardRef((props, ref) => {
     const contentRef = useRef(null);
@@ -46,10 +47,11 @@ const Canvas = forwardRef((props, ref) => {
 
 
     const registerPortRef = useCallback((nodeId, portId, portType, el) => {
+        const key = `${nodeId}__PORTKEYDELIM__${portId}__PORTKEYDELIM__${portType}`;
         if (el) {
-            portRefs.current.set(`${nodeId}-${portId}-${portType}`, el);
+            portRefs.current.set(key, el);
         } else {
-            portRefs.current.delete(`${nodeId}-${portId}-${portType}`);
+            portRefs.current.delete(key);
         }
     }, []);
 
@@ -76,6 +78,11 @@ const Canvas = forwardRef((props, ref) => {
             if (state.view) setView(state.view);
         }
     }));
+
+    const calculateDistance = (pos1, pos2) => {
+        if (!pos1 || !pos2) return Infinity;
+        return Math.sqrt(Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2));
+    };
 
     // --- 이벤트 핸들러 ---
     const handleCanvasMouseDown = (e) => {
@@ -111,13 +118,6 @@ const Canvas = forwardRef((props, ref) => {
         }
     };
 
-    const handleMouseUp = () => {
-        setDragState({ type: 'none' });
-        if (edgePreview) {
-            setEdgePreview(null);
-        }
-    };
-
     const handleNodeMouseDown = useCallback((e, nodeId) => {
         if (e.button !== 0) return;
         setSelectedNodeId(nodeId);
@@ -138,6 +138,7 @@ const Canvas = forwardRef((props, ref) => {
         setSelectedNodeId(null);
     }, []);
 
+    // handlePortMouseUp is now defined before handleMouseUp
     const handlePortMouseUp = useCallback(({ nodeId, portId, portType }) => {
         const currentEdgePreview = edgePreviewRef.current;
         if (!currentEdgePreview || currentEdgePreview.source.portType === portType) {
@@ -151,8 +152,7 @@ const Canvas = forwardRef((props, ref) => {
             return;
         }
 
-        const newEdgeSignature = `${currentEdgePreview.source.nodeId}:${currentEdgePreview.source.portId}-${nodeId}:${portId}`;
-
+        const newEdgeSignature = `${currentEdgePreview.source.nodeId}:${currentEdgePreview.source.portId}-${nodeId}:${portId}`; // Signature can remain simple
         const isDuplicate = edges.some(edge =>
             `${edge.source.nodeId}:${edge.source.portId}-${edge.target.nodeId}:${edge.target.portId}` === newEdgeSignature
         );
@@ -163,9 +163,11 @@ const Canvas = forwardRef((props, ref) => {
         }
 
         let newEdges = [...edges];
-        const targetPort = findPortData(nodeId, portId, 'input');
-        if (targetPort && !targetPort.multi) {
-            newEdges = newEdges.filter(edge => !(edge.target.nodeId === nodeId && edge.target.portId === portId));
+        if (portType === 'input') { // Only apply for input targets
+            const targetPort = findPortData(nodeId, portId, 'input');
+            if (targetPort && !targetPort.multi) {
+                newEdges = newEdges.filter(edge => !(edge.target.nodeId === nodeId && edge.target.portId === portId));
+            }
         }
 
         const newEdge = {
@@ -175,8 +177,70 @@ const Canvas = forwardRef((props, ref) => {
         };
         setEdges([...newEdges, newEdge]);
         setEdgePreview(null);
-    }, [edges, nodes]);
+    }, [edges, nodes]); // Dependencies: [edges, nodes]
 
+    const handleMouseUp = useCallback(() => {
+        const currentDragStateType = dragState.type;
+        const currentEdgePreview = edgePreviewRef.current;
+
+        setDragState({ type: 'none' });
+
+        if (currentDragStateType === 'edge' && currentEdgePreview) {
+            if (currentEdgePreview.source && currentEdgePreview.source.portType === 'output') {
+                const { source: edgeSource, targetPos: mouseUpPos } = currentEdgePreview;
+                let snappedPortDetails = null;
+                let minSnapDistance = SNAP_DISTANCE; // SNAP_DISTANCE should be defined in the file
+
+                portRefs.current.forEach((portEl, key) => {
+                    const parts = key.split('__PORTKEYDELIM__');
+                    if (parts.length !== 3) {
+                        console.warn(`[Canvas Debug] Malformed port key encountered (new delimiter): ${key}`);
+                        return; // Skip this iteration
+                    }
+                    const targetNodeId = parts[0];
+                    const targetPortId = parts[1];
+                    const targetPortType = parts[2];
+
+                    if (targetPortType === 'input') {
+                        if (edgeSource.nodeId === targetNodeId) {
+                            return;
+                        }
+
+                        const targetPortWorldPos = portPositions[key];
+                        // calculateDistance should be defined in the file
+                        if (targetPortWorldPos && typeof calculateDistance === 'function') {
+                            const distance = calculateDistance(mouseUpPos, targetPortWorldPos);
+                            if (distance < minSnapDistance) {
+                                minSnapDistance = distance;
+                                snappedPortDetails = { nodeId: targetNodeId, portId: targetPortId, portType: targetPortType };
+                            }
+                        }
+                    }
+                });
+
+                if (snappedPortDetails) {
+                    handlePortMouseUp(snappedPortDetails);
+                    return;
+                }
+            }
+            setEdgePreview(null);
+        } else if (currentEdgePreview) {
+            setEdgePreview(null);
+        }
+    }, [
+        dragState,
+        edgePreviewRef,
+        setDragState,
+        setEdgePreview,
+        portRefs,
+        portPositions,
+        handlePortMouseUp
+        // Assuming SNAP_DISTANCE is a module/component const and calculateDistance is a stable function (e.g. defined outside or plain function in component scope)
+        // If calculateDistance is defined inside Canvas and not useCallback, it should be in deps.
+        // The last subtask report for adding logging confirmed calculateDistance is a plain function in component scope.
+        // For stricter linting, it might be listed, but often isn't for plain helpers if they don't cause issues.
+        // Keeping deps as per last confirmed state: [dragState, edgePreviewRef, setDragState, setEdgePreview, portRefs, portPositions, handlePortMouseUp]
+    ]);
 
     const handlePortMouseDown = useCallback(({ nodeId, portId, portType, isMulti }) => {
         if (portType === 'input' && !isMulti) {
@@ -185,7 +249,9 @@ const Canvas = forwardRef((props, ref) => {
                 setDragState({ type: 'edge' });
                 setEdges(prevEdges => prevEdges.filter(e => e.id !== existingEdge.id));
 
-                const sourcePos = portPositions[`${existingEdge.source.nodeId}-${existingEdge.source.portId}-${existingEdge.source.portType}`];
+                // Corrected key for lookup (already applied in previous step, ensure it's this version)
+                const sourcePosKey = `${existingEdge.source.nodeId}__PORTKEYDELIM__${existingEdge.source.portId}__PORTKEYDELIM__${existingEdge.source.portType}`;
+                const sourcePos = portPositions[sourcePosKey];
                 if (sourcePos) {
                     setEdgePreview({
                         source: existingEdge.source,
@@ -199,14 +265,15 @@ const Canvas = forwardRef((props, ref) => {
 
         if (portType === 'output') {
             setDragState({ type: 'edge' });
-            const startPos = portPositions[`${nodeId}-${portId}-${portType}`];
+            // Corrected key for lookup
+            const startPosKey = `${nodeId}__PORTKEYDELIM__${portId}__PORTKEYDELIM__${portType}`;
+            const startPos = portPositions[startPosKey];
             if (startPos) {
                 setEdgePreview({ source: { nodeId, portId, portType }, startPos, targetPos: startPos });
             }
             return;
         }
-
-    }, [edges, portPositions]);
+    }, [edges, portPositions, setDragState, setEdges, setEdgePreview]); // Updated dependencies
 
 
     // --- Effect ---
@@ -298,8 +365,8 @@ const Canvas = forwardRef((props, ref) => {
                 <svg className={styles.svgLayer}>
                     <g>
                         {edges.map(edge => {
-                            const sourceKey = `${edge.source.nodeId}-${edge.source.portId}-${edge.source.portType}`;
-                            const targetKey = `${edge.target.nodeId}-${edge.target.portId}-${edge.target.portType}`;
+                            const sourceKey = `${edge.source.nodeId}__PORTKEYDELIM__${edge.source.portId}__PORTKEYDELIM__${edge.source.portType}`;
+                            const targetKey = `${edge.target.nodeId}__PORTKEYDELIM__${edge.target.portId}__PORTKEYDELIM__${edge.target.portType}`;
                             const sourcePos = portPositions[sourceKey];
                             const targetPos = portPositions[targetKey];
                             return <Edge
