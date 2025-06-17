@@ -8,7 +8,15 @@ import Edge from '@/app/components/Edge';
 const MIN_SCALE = 0.6;
 const MAX_SCALE = 20;
 const ZOOM_SENSITIVITY = 0.05;
-const SNAP_DISTANCE = 40; // World units
+const SNAP_DISTANCE = 40;
+
+// 타입 호환성 검사 헬퍼 함수
+const areTypesCompatible = (sourceType, targetType) => {
+    if (!sourceType || !targetType) return true;
+    if (sourceType === targetType) return true;
+    if (sourceType === 'INT' && targetType === 'FLOAT') return true;
+    return false;
+};
 
 const Canvas = forwardRef((props, ref) => {
     const contentRef = useRef(null);
@@ -22,12 +30,14 @@ const Canvas = forwardRef((props, ref) => {
     const [dragState, setDragState] = useState({ type: 'none', startX: 0, startY: 0 });
     const [edgePreview, setEdgePreview] = useState(null);
     const [portPositions, setPortPositions] = useState({});
-    const [snappedPortKey, setSnappedPortKey] = useState(null); // ADDED: State to track the port being snapped to
+    const [snappedPortKey, setSnappedPortKey] = useState(null);
+    const [isSnapTargetValid, setIsSnapTargetValid] = useState(true);
 
     const nodesRef = useRef(nodes);
     const edgePreviewRef = useRef(edgePreview);
     const portRefs = useRef(new Map());
-    const snappedPortKeyRef = useRef(snappedPortKey); // ADDED: Ref for accessing the latest snappedPortKey in callbacks
+    const snappedPortKeyRef = useRef(snappedPortKey);
+    const isSnapTargetValidRef = useRef(isSnapTargetValid);
 
     useLayoutEffect(() => {
         const newPortPositions = {};
@@ -104,7 +114,14 @@ const Canvas = forwardRef((props, ref) => {
             })
         );
     }, []);
-    // --- 이벤트 핸들러 ---
+
+    const findPortData = (nodeId, portId, portType) => {
+        const node = nodes.find(n => n.id === nodeId);
+        if (!node) return null;
+        const portList = portType === 'input' ? node.data.inputs : node.data.outputs;
+        return portList?.find(p => p.id === portId) || null;
+    };
+
     const handleCanvasMouseDown = (e) => {
         if (e.button !== 0) return;
         setSelectedNodeId(null);
@@ -114,7 +131,7 @@ const Canvas = forwardRef((props, ref) => {
 
     const handleMouseMove = (e) => {
         if (dragState.type === 'none') return;
-        
+
         if (dragState.type === 'canvas') {
             setView(prev => ({ ...prev, x: e.clientX - dragState.startX, y: e.clientY - dragState.startY }));
         } else if (dragState.type === 'node') {
@@ -128,7 +145,7 @@ const Canvas = forwardRef((props, ref) => {
         } else if (dragState.type === 'edge') {
             const container = containerRef.current;
             if (!container || !edgePreviewRef.current) return;
-            
+
             const rect = container.getBoundingClientRect();
             const mousePos = {
                 x: (e.clientX - rect.left - view.x) / view.scale,
@@ -137,19 +154,15 @@ const Canvas = forwardRef((props, ref) => {
 
             setEdgePreview(prev => ({ ...prev, targetPos: mousePos }));
 
-            // --- CHANGED: Logic to find the closest port and set hover effect ---
             let closestPortKey = null;
             let minSnapDistance = SNAP_DISTANCE;
             const edgeSource = edgePreviewRef.current.source;
 
             if (edgeSource) {
-                 portRefs.current.forEach((portEl, key) => {
+                portRefs.current.forEach((portEl, key) => {
                     const parts = key.split('__PORTKEYDELIM__');
                     if (parts.length !== 3) return;
-
                     const [targetNodeId, targetPortId, targetPortType] = parts;
-
-                    // Check for valid connection: input type, not same node
                     if (targetPortType === 'input' && edgeSource.nodeId !== targetNodeId) {
                         const targetPortWorldPos = portPositions[key];
                         if (targetPortWorldPos) {
@@ -161,8 +174,17 @@ const Canvas = forwardRef((props, ref) => {
                         }
                     }
                 });
+
+                if (closestPortKey) {
+                    const parts = closestPortKey.split('__PORTKEYDELIM__');
+                    const targetPort = findPortData(parts[0], parts[1], parts[2]);
+                    const isValid = areTypesCompatible(edgeSource.type, targetPort.type);
+                    setIsSnapTargetValid(isValid);
+                } else {
+                    setIsSnapTargetValid(true);
+                }
             }
-            setSnappedPortKey(closestPortKey); // Update state with the closest port key, or null
+            setSnappedPortKey(closestPortKey);
         }
     };
 
@@ -186,8 +208,13 @@ const Canvas = forwardRef((props, ref) => {
         setSelectedNodeId(null);
     }, []);
 
-    const handlePortMouseUp = useCallback(({ nodeId, portId, portType }) => {
+    const handlePortMouseUp = useCallback(({ nodeId, portId, portType, type }) => {
         const currentEdgePreview = edgePreviewRef.current;
+        
+        if (!areTypesCompatible(currentEdgePreview.source.type, type)) {
+            return;
+        }
+
         if (!currentEdgePreview || currentEdgePreview.source.portType === portType) {
             setEdgePreview(null);
             return;
@@ -224,42 +251,56 @@ const Canvas = forwardRef((props, ref) => {
         };
         setEdges([...newEdges, newEdge]);
         setEdgePreview(null);
-    }, [edges, nodes]); // Dependencies: [edges, nodes]
+    }, [edges, nodes]);
 
     const handleMouseUp = useCallback(() => {
-        const currentDragStateType = dragState.type;
         setDragState({ type: 'none' });
 
-        if (currentDragStateType === 'edge') {
-            const snappedKey = snappedPortKeyRef.current; // Use ref for the most up-to-date value
+        if (dragState.type === 'edge') {
+            const snappedKey = snappedPortKeyRef.current;
             if (snappedKey) {
+                const source = edgePreviewRef.current.source;
                 const parts = snappedKey.split('__PORTKEYDELIM__');
-                if (parts.length === 3) {
-                    const [nodeId, portId, portType] = parts;
-                    handlePortMouseUp({ nodeId, portId, portType });
+                const [targetNodeId, targetPortId, targetPortType] = parts;
+
+                const targetPortData = findPortData(targetNodeId, targetPortId, targetPortType);
+
+                if (targetPortData && areTypesCompatible(source.type, targetPortData.type)) {
+                    handlePortMouseUp({
+                        nodeId: targetNodeId,
+                        portId: targetPortId,
+                        portType: targetPortType,
+                        type: targetPortData.type
+                    });
+                } else {
+                    setDragState({ type: 'none' });
+                    setEdgePreview(null);
                 }
             }
         }
-        
-        // Cleanup regardless of connection
+
         setEdgePreview(null);
         setSnappedPortKey(null);
+        setIsSnapTargetValid(true);
 
-    }, [dragState.type, handlePortMouseUp]); // Simplified dependencies
+    }, [dragState.type, handlePortMouseUp]);
 
 
-    const handlePortMouseDown = useCallback(({ nodeId, portId, portType, isMulti }) => {
+    const handlePortMouseDown = useCallback(({ nodeId, portId, portType, isMulti, type }) => {
         if (portType === 'input' && !isMulti) {
             const existingEdge = edges.find(e => e.target.nodeId === nodeId && e.target.portId === portId);
             if (existingEdge) {
                 setDragState({ type: 'edge' });
                 setEdges(prevEdges => prevEdges.filter(e => e.id !== existingEdge.id));
-                
+
                 const sourcePosKey = `${existingEdge.source.nodeId}__PORTKEYDELIM__${existingEdge.source.portId}__PORTKEYDELIM__${existingEdge.source.portType}`;
                 const sourcePos = portPositions[sourcePosKey];
-                if (sourcePos) {
+
+                const sourcePortData = findPortData(existingEdge.source.nodeId, existingEdge.source.portId, existingEdge.source.portType);
+
+                if (sourcePos && sourcePortData) {
                     setEdgePreview({
-                        source: existingEdge.source,
+                        source: { ...existingEdge.source, type: sourcePortData.type },
                         startPos: sourcePos,
                         targetPos: sourcePos
                     });
@@ -273,19 +314,19 @@ const Canvas = forwardRef((props, ref) => {
             const startPosKey = `${nodeId}__PORTKEYDELIM__${portId}__PORTKEYDELIM__${portType}`;
             const startPos = portPositions[startPosKey];
             if (startPos) {
-                setEdgePreview({ source: { nodeId, portId, portType }, startPos, targetPos: startPos });
+                setEdgePreview({ source: { nodeId, portId, portType, type }, startPos, targetPos: startPos });
             }
             return;
         }
-    }, [edges, portPositions]);
+    }, [edges, portPositions, nodes]);
 
 
-    // --- Effect ---
     useEffect(() => {
         nodesRef.current = nodes;
         edgePreviewRef.current = edgePreview;
-        snappedPortKeyRef.current = snappedPortKey; // ADDED: Keep ref updated
-    }, [nodes, edgePreview, snappedPortKey]); // ADDED: snappedPortKey dependency
+        snappedPortKeyRef.current = snappedPortKey;
+        isSnapTargetValidRef.current = isSnapTargetValid;
+    }, [nodes, edgePreview, snappedPortKey, isSnapTargetValid]);
 
     useEffect(() => {
         const container = containerRef.current;
@@ -339,14 +380,6 @@ const Canvas = forwardRef((props, ref) => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [selectedNodeId, selectedEdgeId]);
 
-    // --- Helper Function ---
-    const findPortData = (nodeId, portId, portType) => {
-        const node = nodes.find(n => n.id === nodeId);
-        if (!node) return null;
-        const portList = portType === 'input' ? node.data.inputs : node.data.outputs;
-        return portList?.find(p => p.id === portId) || null;
-    };
-
     return (
         <div
             ref={containerRef}
@@ -364,31 +397,6 @@ const Canvas = forwardRef((props, ref) => {
                     transformOrigin: '0 0',
                 }}
             >
-                <svg className={styles.svgLayer}>
-                    <g>
-                        {edges.map(edge => {
-                            const sourceKey = `${edge.source.nodeId}__PORTKEYDELIM__${edge.source.portId}__PORTKEYDELIM__${edge.source.portType}`;
-                            const targetKey = `${edge.target.nodeId}__PORTKEYDELIM__${edge.target.portId}__PORTKEYDELIM__${edge.target.portType}`;
-                            const sourcePos = portPositions[sourceKey];
-                            const targetPos = portPositions[targetKey];
-                            return <Edge
-                                key={edge.id}
-                                id={edge.id}
-                                sourcePos={sourcePos}
-                                targetPos={targetPos}
-                                onEdgeClick={handleEdgeClick}
-                                isSelected={edge.id === selectedEdgeId}
-                            />;
-                        })}
-
-                        {edgePreview?.targetPos && (
-                            <Edge
-                                sourcePos={edgePreview.startPos}
-                                targetPos={edgePreview.targetPos}
-                            />
-                        )}
-                    </g>
-                </svg>
                 {nodes.map(node => (
                     <Node
                         key={node.id}
@@ -402,8 +410,52 @@ const Canvas = forwardRef((props, ref) => {
                         registerPortRef={registerPortRef}
                         snappedPortKey={snappedPortKey}
                         onParameterChange={handleParameterChange}
+                        isSnapTargetInvalid={snappedPortKey?.startsWith(node.id) && !isSnapTargetValid}
                     />
                 ))}
+                <svg className={styles.svgLayer}>
+                    <g>
+                        {edges
+                            .filter(edge => edge.id !== selectedEdgeId)
+                            .map(edge => {
+                                const sourceKey = `${edge.source.nodeId}__PORTKEYDELIM__${edge.source.portId}__PORTKEYDELIM__${edge.source.portType}`;
+                                const targetKey = `${edge.target.nodeId}__PORTKEYDELIM__${edge.target.portId}__PORTKEYDELIM__${edge.target.portType}`;
+                                const sourcePos = portPositions[sourceKey];
+                                const targetPos = portPositions[targetKey];
+                                return <Edge
+                                    key={edge.id}
+                                    id={edge.id}
+                                    sourcePos={sourcePos}
+                                    targetPos={targetPos}
+                                    onEdgeClick={handleEdgeClick}
+                                    isSelected={false}
+                                />;
+                            })}
+
+                        {edges
+                            .filter(edge => edge.id === selectedEdgeId)
+                            .map(edge => {
+                                const sourceKey = `${edge.source.nodeId}__PORTKEYDELIM__${edge.source.portId}__PORTKEYDELIM__${edge.source.portType}`;
+                                const targetKey = `${edge.target.nodeId}__PORTKEYDELIM__${edge.target.portId}__PORTKEYDELIM__${edge.target.portType}`;
+                                const sourcePos = portPositions[sourceKey];
+                                const targetPos = portPositions[targetKey];
+                                return <Edge
+                                    key={edge.id}
+                                    id={edge.id}
+                                    sourcePos={sourcePos}
+                                    targetPos={targetPos}
+                                    onEdgeClick={handleEdgeClick}
+                                    isSelected={true}
+                                />;
+                            })}
+                        {edgePreview?.targetPos && (
+                            <Edge
+                                sourcePos={edgePreview.startPos}
+                                targetPos={edgePreview.targetPos}
+                            />
+                        )}
+                    </g>
+                </svg>
             </div>
         </div>
     );

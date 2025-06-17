@@ -1,22 +1,25 @@
+// src/app/components/Node.jsx
 import React, { memo } from 'react';
 import styles from '@/app/assets/Node.module.scss';
 
-// CHANGED: snappedPortKey prop이 비구조화 할당에 포함되었습니다.
-const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown, onPortMouseUp, registerPortRef, snappedPortKey, onParameterChange }) => {
+const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown, onPortMouseUp, registerPortRef, snappedPortKey, onParameterChange, isSnapTargetInvalid }) => {
     const { nodeName, inputs, parameters, outputs } = data;
 
     const handleMouseDown = (e) => {
         e.stopPropagation();
         onNodeMouseDown(e, id);
     };
+
     const handleParamValueChange = (e, paramId) => {
         e.stopPropagation();
         onParameterChange(id, paramId, e.target.value);
     };
+
     const hasInputs = inputs?.length > 0;
     const hasOutputs = outputs?.length > 0;
     const hasIO = hasInputs || hasOutputs;
     const hasParams = parameters?.length > 0;
+    const hasOnlyOutputs = hasOutputs && !hasInputs;
 
     return (
         <div
@@ -24,10 +27,7 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
             style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
             onMouseDown={handleMouseDown}
         >
-            <div className={styles.header}>
-                {nodeName}
-            </div>
-
+            <div className={styles.header}>{nodeName}</div>
             <div className={styles.body}>
                 {hasIO && (
                     <div className={styles.ioContainer}>
@@ -35,18 +35,23 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                             <div className={styles.column}>
                                 <div className={styles.sectionHeader}>INPUT</div>
                                 {inputs.map(portData => {
-                                    // ADDED: 현재 포트가 스냅 대상인지 확인하기 위한 로직
                                     const portKey = `${id}__PORTKEYDELIM__${portData.id}__PORTKEYDELIM__input`;
                                     const isSnapping = snappedPortKey === portKey;
+                                    
+                                    // [수정] 클래스 로직은 동일하나, 적용 대상이 바뀝니다.
+                                    const portClasses = [ styles.port, styles.inputPort, portData.multi ? styles.multi : '', styles[`type-${portData.type}`], isSnapping ? styles.snapping : '', isSnapping && isSnapTargetInvalid ? styles['invalid-snap'] : '' ].filter(Boolean).join(' ');
 
                                     return (
                                         <div key={portData.id} className={styles.portRow}>
+                                            {/* [수정] 기존 port div와 type 라벨을 하나로 통합합니다. */}
                                             <div
                                                 ref={(el) => registerPortRef(id, portData.id, 'input', el)}
-                                                className={`${styles.port} ${styles.inputPort} ${portData.multi ? styles.multi : ''} ${isSnapping ? styles.snapping : ''}`}
-                                                onMouseDown={(e) => { e.stopPropagation(); onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'input', isMulti: portData.multi }) }}
-                                                onMouseUp={(e) => { e.stopPropagation(); onPortMouseUp({ nodeId: id, portId: portData.id, portType: 'input' }) }}
-                                            />
+                                                className={portClasses}
+                                                onMouseDown={(e) => { e.stopPropagation(); onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'input', isMulti: portData.multi, type: portData.type }) }}
+                                                onMouseUp={(e) => { e.stopPropagation(); onPortMouseUp({ nodeId: id, portId: portData.id, portType: 'input', type: portData.type }) }}
+                                            >
+                                                {portData.type}
+                                            </div>
                                             <span className={styles.portLabel}>{portData.name}</span>
                                         </div>
                                     )
@@ -54,23 +59,31 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                             </div>
                         )}
                         {hasOutputs && (
-                            <div className={`${styles.column} ${styles.outputColumn}`}>
+                            <div className={`${styles.column} ${styles.outputColumn} ${hasOnlyOutputs ? styles.fullWidth : ''}`}>
                                 <div className={styles.sectionHeader}>OUTPUT</div>
-                                {outputs.map(portData => (
-                                    <div key={portData.id} className={`${styles.portRow} ${styles.outputRow}`}>
-                                        <span className={styles.portLabel}>{portData.name}</span>
-                                        <div
-                                            ref={(el) => registerPortRef(id, portData.id, 'output', el)}
-                                            className={`${styles.port} ${styles.outputPort} ${portData.multi ? styles.multi : ''}`}
-                                            onMouseDown={(e) => { e.stopPropagation(); onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'output', isMulti: portData.multi }) }}
-                                            onMouseUp={(e) => { e.stopPropagation(); onPortMouseUp({ nodeId: id, portId: portData.id, portType: 'output' }) }}
-                                        />
-                                    </div>
-                                ))}
+                                {outputs.map(portData => {
+                                    const portClasses = [ styles.port, styles.outputPort, portData.multi ? styles.multi : '', styles[`type-${portData.type}`] ].filter(Boolean).join(' ');
+
+                                    return (
+                                        <div key={portData.id} className={`${styles.portRow} ${styles.outputRow}`}>
+                                            <span className={styles.portLabel}>{portData.name}</span>
+                                            {/* [수정] 기존 port div와 type 라벨을 하나로 통합합니다. */}
+                                            <div
+                                                ref={(el) => registerPortRef(id, portData.id, 'output', el)}
+                                                className={portClasses}
+                                                onMouseDown={(e) => { e.stopPropagation(); onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'output', isMulti: portData.multi, type: portData.type }) }}
+                                                onMouseUp={(e) => { e.stopPropagation(); onPortMouseUp({ nodeId: id, portId: portData.id, portType: 'output', type: portData.type }) }}
+                                            >
+                                                {portData.type}
+                                            </div>
+                                        </div>
+                                    )
+                                })}
                             </div>
                         )}
                     </div>
                 )}
+                {/* ... parameters 렌더링 부분 ... */}
                 {hasParams && (
                     <>
                         {hasIO && <div className={styles.divider}></div>}
@@ -79,14 +92,7 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                             {parameters.map(param => (
                                 <div key={param.id} className={styles.param}>
                                     <span className={styles.paramKey}>{param.name}</span>
-                                    <input
-                                        type={typeof param.value === 'number' ? 'number' : 'text'}
-                                        value={param.value}
-                                        onChange={(e) => handleParamValueChange(e, param.id)}
-                                        onMouseDown={(e) => e.stopPropagation()}
-                                        className={styles.paramInput}
-                                        step={param.step}
-                                    />
+                                    <input type={typeof param.value === 'number' ? 'number' : 'text'} value={param.value} onChange={(e) => handleParamValueChange(e, param.id)} onMouseDown={(e) => e.stopPropagation()} className={styles.paramInput} step={param.step}/>
                                 </div>
                             ))}
                         </div>

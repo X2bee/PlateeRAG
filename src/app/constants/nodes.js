@@ -15,18 +15,20 @@ export const NODE_DATA = [
                         id: 'chat-openai',
                         nodeName: 'ChatOpenAI',
                         inputs: [
-                            { id: 'in-msg', name: 'Messages', multi: true },
-                            { id: 'in-stop', name: 'Stop Sequence', multi: false },
+                            // [수정] type: 'STR' 추가
+                            { id: 'in-msg', name: 'Messages', multi: true, type: 'STR' },
+                            { id: 'in-stop', name: 'Stop Sequence', multi: false, type: 'STR' },
                         ],
                         parameters: [
                             { id: 'p-model', name: 'Model', value: 'gpt-4o' },
-                            { id: 'p-temp', name: 'Temperature', value: 0.7, step:0.1 },
+                            { id: 'p-temp', name: 'Temperature', value: 0.7, step: 0.1 },
                         ],
                         outputs: [
-                            { id: 'out-1', name: 'Output1', multi: false },
-                            { id: 'out-2', name: 'Output2', multi: false },
-                            { id: 'out-3', name: 'Output3', multi: false },
-                            { id: 'out-4', name: 'Output4', multi: false },
+                            // [수정] type: 'STR' 추가
+                            { id: 'out-1', name: 'Output1', multi: false, type: 'STR' },
+                            { id: 'out-2', name: 'Output2', multi: false, type: 'STR' },
+                            { id: 'out-3', name: 'Output3', multi: false, type: 'STR' },
+                            { id: 'out-4', name: 'Output4', multi: false, type: 'STR' },
                         ]
                     },
                     {
@@ -54,12 +56,13 @@ export const NODE_DATA = [
                     {
                         id: 'llm-openai',
                         nodeName: 'OpenAI',
-                        // 이 노드는 파라미터가 없습니다.
                         inputs: [
-                            { id: 'in-llm-prompt', name: 'Prompt', multi: false }
+                            // [수정] type: 'STR' 추가
+                            { id: 'in-llm-prompt', name: 'Prompt', multi: false, type: 'STR' }
                         ],
                         outputs: [
-                            { id: 'out-llm-completion', name: 'Completion', multi: false }
+                            // [수정] type: 'STR' 추가
+                            { id: 'out-llm-completion', name: 'Completion', multi: false, type: 'STR' }
                         ]
                     }
                 ]
@@ -78,13 +81,41 @@ export const NODE_DATA = [
             { id: 'polar_cat_2', name: 'Polar Category 2' },
         ],
     },
-    {
+{
         id: 'utilities',
         name: 'Utilities',
         icon: 'LuWrench',
         categories: [
-            { id: 'util_cat_1', name: 'Utilities Category 1' },
-            { id: 'util_cat_2', name: 'Utilities Category 2' },
+            { 
+                id: 'util_types', 
+                name: 'Type Generators',
+                nodes: [
+                    {
+                        id: 'util-gen-str',
+                        nodeName: 'Generate String',
+                        outputs: [{ id: 'out-str', name: 'String', type: 'STR' }]
+                    },
+                    {
+                        id: 'util-gen-int',
+                        nodeName: 'Generate Integer',
+                        outputs: [{ id: 'out-int', name: 'Integer', type: 'INT' }]
+                    },
+                    {
+                        id: 'util-gen-float',
+                        nodeName: 'Generate Float',
+                        outputs: [{ id: 'out-float', name: 'Float', type: 'FLOAT' }]
+                    },
+                    {
+                        id: 'util-accept-all',
+                        nodeName: 'Accept Any',
+                        inputs: [
+                            { id: 'in-str', name: 'Accept STR', type: 'STR' },
+                            { id: 'in-int', name: 'Accept INT', type: 'INT' },
+                            { id: 'in-float', name: 'Accept FLOAT', type: 'FLOAT' },
+                        ]
+                    }
+                ]
+            },
         ],
     },
 ];

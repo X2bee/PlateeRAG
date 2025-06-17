@@ -8,6 +8,7 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     user-select: none;
     -webkit-user-select: none;
+    z-index: 20;
 
     // &:hover {
     //     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
@@ -17,6 +18,7 @@
     &.selected {
         border-color: #3b82f6;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4), 0 8px 24px rgba(0, 0, 0, 0.2);
+        z-index: 30;
     }
 }
 
@@ -45,8 +47,13 @@
 .column {
     display: flex;
     flex-direction: column;
-    gap: 14px; // 포트 간 세로 간격
-    flex-basis: 45%; // 각 컬럼이 차지할 기본 너비
+    gap: 14px; 
+    flex-basis: 48%; // [수정] 너비 미세 조정
+    
+    // [추가] Output만 있을 때 컬럼 너비를 100%로
+    &.fullWidth {
+        flex-basis: 100%;
+    }
 }
 
 .outputColumn {
@@ -69,7 +76,7 @@
 .portRow {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px; // [수정] 간격 조정
 }
 
 .portLabel {
@@ -77,32 +84,60 @@
     color: #374151;
 }
 
+
 .port {
-    width: 12px;
-    height: 12px;
+    position: relative;
+    z-index: 5;
+
+    padding: 3px 12px;
+    border-radius: 6px;
+    min-width: 50px;
+    
+    // 텍스트 스타일
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: center;
+    color: #374151;
+
+    // 테두리 및 기본 색상
     background-color: #fff;
-    border: 2px solid #9ca3af;
-    border-radius: 50%;
+    border: 2px solid #adb5bd;
     transition: all 0.2s ease;
-    flex-shrink: 0;
-    cursor: crosshair; // [추가] 포트 위에서 커서 변경
-    &.snapping {
-        border-color: #3b82f6;
-        transform: scale(1.1);
-        // box-shadow: 0 0 8px rgba(0, 123, 255, 0.7); // 바깥쪽 그림자 효과
+    cursor: crosshair;
+
+    // 타입별 색상 (테두리 색상으로 구분)
+    &.type-STR { border-color: #5D9CF4; }
+    &.type-INT { border-color: #7AD37A; }
+    &.type-FLOAT { border-color: #F7C966; }
+
+    // 다중 연결 포트 스타일
+    &.multi {
+        background-color: #dcf5f7;
     }
+
+    // 상호작용 스타일
     &:hover {
-        border-color: #3b82f6;
-        transform: scale(1.1);
+        transform: scale(1);
+        filter: brightness(0.95);
+    }
+
+    &.snapping {
+        // border-width: 3px;
+        transform: scale(1.05);
+    }
+
+    &.invalid-snap {
+        border-color: #e53e3e !important;
+        background-color: #fed7d7;
+        cursor: not-allowed;
     }
 }
 
-.port.multi {
-    border-radius: 4px;
-    background-color: #d1d5db;
-}
+// .port.multi {
+//     border-radius: 4px;
+//     background-color: #d1d5db;
+// }
 
-// --- 구분선 및 파라미터 섹션 ---
 .divider {
     height: 2px;
     background-color: #a8abb388;
