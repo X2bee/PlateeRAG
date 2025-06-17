@@ -252,6 +252,8 @@ const Canvas = forwardRef((props, ref) => {
         };
         setEdges([...newEdges, newEdge]);
         setEdgePreview(null);
+        setSnappedPortKey(null);
+        setIsSnapTargetValid(true);
     }, [edges, nodes]);
 
     const handleMouseUp = useCallback(() => {
