@@ -1,7 +1,8 @@
 import React, { memo } from 'react';
 import styles from '@/app/assets/Node.module.scss';
 
-const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown, onPortMouseUp, registerPortRef }) => {
+// CHANGED: snappedPortKey prop이 비구조화 할당에 포함되었습니다.
+const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown, onPortMouseUp, registerPortRef, snappedPortKey }) => {
     const { nodeName, inputs, parameters, outputs } = data;
 
     const handleMouseDown = (e) => {
@@ -25,31 +26,32 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
             </div>
 
             <div className={styles.body}>
-                {/* Input/Output 섹션 컨테이너 */}
                 {hasIO && (
                     <div className={styles.ioContainer}>
-                        {/* Input Column */}
                         {hasInputs && (
                             <div className={styles.column}>
                                 <div className={styles.sectionHeader}>INPUT</div>
-                                {inputs.map(portData => (
-                                    <div key={portData.id} className={styles.portRow}>
-                                        <div
-                                            ref={(el) => registerPortRef(id, portData.id, 'input', el)}
-                                            className={`${styles.port} ${styles.inputPort} ${portData.multi ? styles.multi : ''}`}
-                                            onMouseDown={(e) => {
-                                                e.stopPropagation();
-                                                // [수정] isMulti 프로퍼티를 이벤트 객체에 추가하여 전달합니다.
-                                                onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'input', isMulti: !!portData.multi });
-                                            }}
-                                            onMouseUp={(e) => { e.stopPropagation(); onPortMouseUp({ nodeId: id, portId: portData.id, portType: 'input' }) }}
-                                        />
-                                        <span className={styles.portLabel}>{portData.name}</span>
-                                    </div>
-                                ))}
+                                {inputs.map(portData => {
+                                    // ADDED: 현재 포트가 스냅 대상인지 확인하기 위한 로직
+                                    const portKey = `${id}__PORTKEYDELIM__${portData.id}__PORTKEYDELIM__input`;
+                                    const isSnapping = snappedPortKey === portKey;
+
+                                    return (
+                                        <div key={portData.id} className={styles.portRow}>
+                                            <div
+                                                ref={(el) => registerPortRef(id, portData.id, 'input', el)}
+                                                // CHANGED: isSnapping 값에 따라 'snapping' 클래스를 동적으로 추가
+                                                className={`${styles.port} ${styles.inputPort} ${portData.multi ? styles.multi : ''} ${isSnapping ? styles.snapping : ''}`}
+                                                // CHANGED: onPortMouseDown에 isMulti 속성 추가
+                                                onMouseDown={(e) => { e.stopPropagation(); onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'input', isMulti: portData.multi }) }}
+                                                onMouseUp={(e) => { e.stopPropagation(); onPortMouseUp({ nodeId: id, portId: portData.id, portType: 'input' }) }}
+                                            />
+                                            <span className={styles.portLabel}>{portData.name}</span>
+                                        </div>
+                                    )
+                                })}
                             </div>
                         )}
-                        {/* Output Column */}
                         {hasOutputs && (
                             <div className={`${styles.column} ${styles.outputColumn}`}>
                                 <div className={styles.sectionHeader}>OUTPUT</div>
@@ -59,11 +61,7 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                                         <div
                                             ref={(el) => registerPortRef(id, portData.id, 'output', el)}
                                             className={`${styles.port} ${styles.outputPort} ${portData.multi ? styles.multi : ''}`}
-                                            onMouseDown={(e) => {
-                                                e.stopPropagation();
-                                                 // [수정] 출력 포트는 항상 새로운 엣지를 생성하므로 isMulti는 false로 처리해도 무방합니다.
-                                                onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'output', isMulti: false });
-                                            }}
+                                            onMouseDown={(e) => { e.stopPropagation(); onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'output', isMulti: portData.multi }) }}
                                             onMouseUp={(e) => { e.stopPropagation(); onPortMouseUp({ nodeId: id, portId: portData.id, portType: 'output' }) }}
                                         />
                                     </div>
@@ -72,8 +70,6 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                         )}
                     </div>
                 )}
-
-                {/* Parameter Section */}
                 {hasParams && (
                     <>
                         {hasIO && <div className={styles.divider}></div>}

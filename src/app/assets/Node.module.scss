@@ -9,10 +9,10 @@
     user-select: none;
     -webkit-user-select: none;
 
-    &:hover {
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-        border-color: #d1d5db;
-    }
+    // &:hover {
+    //     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    //     border-color: #d1d5db;
+    // }
 
     &.selected {
         border-color: #3b82f6;
@@ -84,7 +84,11 @@
     border-radius: 50%;
     transition: all 0.2s ease;
     flex-shrink: 0;
-
+    &.snapping {
+        border-color: #3b82f6;
+        transform: scale(1.1);
+        // box-shadow: 0 0 8px rgba(0, 123, 255, 0.7); // 바깥쪽 그림자 효과
+    }
     &:hover {
         border-color: #3b82f6;
         transform: scale(1.1);
