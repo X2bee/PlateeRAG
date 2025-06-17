@@ -86,6 +86,24 @@ const Canvas = forwardRef((props, ref) => {
         return Math.sqrt(Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2));
     };
 
+    const handleParameterChange = useCallback((nodeId, paramId, value) => {
+        setNodes(prevNodes =>
+            prevNodes.map(node => {
+                if (node.id === nodeId) {
+                    const newParameters = node.data.parameters.map(param => {
+                        if (param.id === paramId) {
+                            const newValue = typeof param.value === 'number' ? Number(value) : value;
+                            return { ...param, value: newValue };
+                        }
+                        return param;
+                    });
+                    const newData = { ...node.data, parameters: newParameters };
+                    return { ...node, data: newData };
+                }
+                return node;
+            })
+        );
+    }, []);
     // --- 이벤트 핸들러 ---
     const handleCanvasMouseDown = (e) => {
         if (e.button !== 0) return;
@@ -382,7 +400,8 @@ const Canvas = forwardRef((props, ref) => {
                         onPortMouseDown={handlePortMouseDown}
                         onPortMouseUp={handlePortMouseUp}
                         registerPortRef={registerPortRef}
-                        snappedPortKey={snappedPortKey} // ADDED: Pass the snapped port key to the Node
+                        snappedPortKey={snappedPortKey}
+                        onParameterChange={handleParameterChange}
                     />
                 ))}
             </div>

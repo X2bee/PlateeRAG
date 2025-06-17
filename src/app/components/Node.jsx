@@ -2,14 +2,17 @@ import React, { memo } from 'react';
 import styles from '@/app/assets/Node.module.scss';
 
 // CHANGED: snappedPortKey prop이 비구조화 할당에 포함되었습니다.
-const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown, onPortMouseUp, registerPortRef, snappedPortKey }) => {
+const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown, onPortMouseUp, registerPortRef, snappedPortKey, onParameterChange }) => {
     const { nodeName, inputs, parameters, outputs } = data;
 
     const handleMouseDown = (e) => {
         e.stopPropagation();
         onNodeMouseDown(e, id);
     };
-
+    const handleParamValueChange = (e, paramId) => {
+        e.stopPropagation();
+        onParameterChange(id, paramId, e.target.value);
+    };
     const hasInputs = inputs?.length > 0;
     const hasOutputs = outputs?.length > 0;
     const hasIO = hasInputs || hasOutputs;
@@ -40,9 +43,7 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                                         <div key={portData.id} className={styles.portRow}>
                                             <div
                                                 ref={(el) => registerPortRef(id, portData.id, 'input', el)}
-                                                // CHANGED: isSnapping 값에 따라 'snapping' 클래스를 동적으로 추가
                                                 className={`${styles.port} ${styles.inputPort} ${portData.multi ? styles.multi : ''} ${isSnapping ? styles.snapping : ''}`}
-                                                // CHANGED: onPortMouseDown에 isMulti 속성 추가
                                                 onMouseDown={(e) => { e.stopPropagation(); onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'input', isMulti: portData.multi }) }}
                                                 onMouseUp={(e) => { e.stopPropagation(); onPortMouseUp({ nodeId: id, portId: portData.id, portType: 'input' }) }}
                                             />
@@ -78,7 +79,14 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                             {parameters.map(param => (
                                 <div key={param.id} className={styles.param}>
                                     <span className={styles.paramKey}>{param.name}</span>
-                                    <span className={styles.paramValue}>{String(param.value)}</span>
+                                    <input
+                                        type={typeof param.value === 'number' ? 'number' : 'text'}
+                                        value={param.value}
+                                        onChange={(e) => handleParamValueChange(e, param.id)}
+                                        onMouseDown={(e) => e.stopPropagation()}
+                                        className={styles.paramInput}
+                                        step={param.step}
+                                    />
                                 </div>
                             ))}
                         </div>

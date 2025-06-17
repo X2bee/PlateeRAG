@@ -20,7 +20,7 @@ export const NODE_DATA = [
                         ],
                         parameters: [
                             { id: 'p-model', name: 'Model', value: 'gpt-4o' },
-                            { id: 'p-temp', name: 'Temperature', value: 0.7 },
+                            { id: 'p-temp', name: 'Temperature', value: 0.7, step:0.1 },
                         ],
                         outputs: [
                             { id: 'out-1', name: 'Output1', multi: false },
