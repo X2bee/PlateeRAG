@@ -211,7 +211,7 @@ const Canvas = forwardRef((props, ref) => {
     const handlePortMouseUp = useCallback(({ nodeId, portId, portType, type }) => {
         const currentEdgePreview = edgePreviewRef.current;
         
-        if (!areTypesCompatible(currentEdgePreview.source.type, type)) {
+        if (currentEdgePreview && !areTypesCompatible(currentEdgePreview.source.type, type)) {
             setEdgePreview(null);
             return;
         }
