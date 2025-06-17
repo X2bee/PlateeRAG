@@ -212,6 +212,7 @@ const Canvas = forwardRef((props, ref) => {
         const currentEdgePreview = edgePreviewRef.current;
         
         if (!areTypesCompatible(currentEdgePreview.source.type, type)) {
+            setEdgePreview(null);
             return;
         }
 
@@ -272,9 +273,6 @@ const Canvas = forwardRef((props, ref) => {
                         portType: targetPortType,
                         type: targetPortData.type
                     });
-                } else {
-                    setDragState({ type: 'none' });
-                    setEdgePreview(null);
                 }
             }
         }
