@@ -38,12 +38,10 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                                     const portKey = `${id}__PORTKEYDELIM__${portData.id}__PORTKEYDELIM__input`;
                                     const isSnapping = snappedPortKey === portKey;
                                     
-                                    // [수정] 클래스 로직은 동일하나, 적용 대상이 바뀝니다.
                                     const portClasses = [ styles.port, styles.inputPort, portData.multi ? styles.multi : '', styles[`type-${portData.type}`], isSnapping ? styles.snapping : '', isSnapping && isSnapTargetInvalid ? styles['invalid-snap'] : '' ].filter(Boolean).join(' ');
 
                                     return (
                                         <div key={portData.id} className={styles.portRow}>
-                                            {/* [수정] 기존 port div와 type 라벨을 하나로 통합합니다. */}
                                             <div
                                                 ref={(el) => registerPortRef(id, portData.id, 'input', el)}
                                                 className={portClasses}
