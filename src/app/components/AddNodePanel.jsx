@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react'; 
+import React, { useState, useEffect } from 'react';
 import styles from '@/app/assets/SideMenu.module.scss';
 import NodeList from '@/app/components/NodeList';
 import DraggableNodeItem from '@/app/components/DraggableNodeItem';
@@ -14,34 +14,21 @@ const iconMap = {
 
 const AddNodePanel = ({ onBack }) => {
     const [nodeSpecs, setNodeSpecs] = useState([]);
-    const [activeTab, setActiveTab] = React.useState(null);
+    const [activeTab, setActiveTab] = useState(null);
 
-    // [수정] 컴포넌트가 마운트될 때 데이터를 불러옵니다.
     useEffect(() => {
-        // --- 추후 이 부분을 API 호출로 대체 ---
-        // const fetchNodeSpecs = async () => {
-        //     const response = await fetch('http://<backend-url>/api/nodes');
-        //     const data = await response.json();
-        //     setNodeSpecs(data);
-        //     if (data.length > 0) {
-        //         setActiveTab(data[0].id);
-        //     }
-        // };
-        // fetchNodeSpecs();
-        // ------------------------------------
-
-        // 임시 로컬 데이터 사용
         setNodeSpecs(NODE_DATA);
         if (NODE_DATA.length > 0) {
-            setActiveTab(NODE_DATA[0].id);
+            // [수정] id -> categoryId
+            setActiveTab(NODE_DATA[0].categoryId);
         }
-    }, []); // 빈 배열을 전달하여 최초 렌더링 시 한 번만 실행
+    }, []);
 
-    const activeTabData = nodeSpecs.find(tab => tab.id === activeTab);
+    // [수정] id -> categoryId
+    const activeTabData = nodeSpecs.find(tab => tab.categoryId === activeTab);
 
-    // 데이터가 로딩되기 전에 렌더링되는 것을 방지
     if (nodeSpecs.length === 0) {
-        return <div>Loading nodes...</div>; 
+        return <div>Loading nodes...</div>;
     }
 
     return (
@@ -60,23 +47,25 @@ const AddNodePanel = ({ onBack }) => {
             </div>
 
             <div className={styles.tabs}>
-                {/* [수정] NODE_DATA 대신 nodeSpecs 상태 사용 */}
                 {nodeSpecs.map(tab => (
                     <button
-                        key={tab.id}
-                        className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
-                        onClick={() => setActiveTab(tab.id)}
+                        // [수정] key와 onClick 핸들러 변경
+                        key={tab.categoryId}
+                        className={`${styles.tab} ${activeTab === tab.categoryId ? styles.active : ''}`}
+                        onClick={() => setActiveTab(tab.categoryId)}
                     >
                         {iconMap[tab.icon]}
-                        <span>{tab.name}</span>
+                        {/* [수정] name -> categoryName */}
+                        <span>{tab.categoryName}</span>
                     </button>
                 ))}
             </div>
 
             <div className={styles.nodeList}>
-                {activeTabData?.categories?.map(category => (
-                    <NodeList key={category.id} title={category.name}>
-                        {category.nodes?.map(node => (
+                {/* [수정] categories -> functions, 내부 키 이름들도 변경 */}
+                {activeTabData?.functions?.map(func => (
+                    <NodeList key={func.functionId} title={func.functionName}>
+                        {func.nodes?.map(node => (
                             <DraggableNodeItem key={node.id} nodeData={node} />
                         ))}
                     </NodeList>
