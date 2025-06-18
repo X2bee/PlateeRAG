@@ -288,28 +288,36 @@ const Canvas = forwardRef((props, ref) => {
 
     }, [dragState.type, handlePortMouseUp]);
 
-
     const handlePortMouseDown = useCallback(({ nodeId, portId, portType, isMulti, type }) => {
-        if (portType === 'input' && !isMulti) {
-            const existingEdge = edges.find(e => e.target.nodeId === nodeId && e.target.portId === portId);
+        if (portType === 'input') {
+            let existingEdge
+            if (!isMulti) {
+                existingEdge = edges.find(e => e.target.nodeId === nodeId && e.target.portId === portId);
+            } else{
+                existingEdge = edges.findLast(e => e.target.nodeId === nodeId && e.target.portId === portId);
+            }
             if (existingEdge) {
                 setDragState({ type: 'edge' });
-                setEdges(prevEdges => prevEdges.filter(e => e.id !== existingEdge.id));
-
+                console.log(existingEdge)
                 const sourcePosKey = `${existingEdge.source.nodeId}__PORTKEYDELIM__${existingEdge.source.portId}__PORTKEYDELIM__${existingEdge.source.portType}`;
                 const sourcePos = portPositions[sourcePosKey];
+                const targetPosKey = `${existingEdge.target.nodeId}__PORTKEYDELIM__${existingEdge.target.portId}__PORTKEYDELIM__${existingEdge.target.portType}`;
+                const targetPos = portPositions[targetPosKey];
 
                 const sourcePortData = findPortData(existingEdge.source.nodeId, existingEdge.source.portId, existingEdge.source.portType);
-
+                
                 if (sourcePos && sourcePortData) {
                     setEdgePreview({
                         source: { ...existingEdge.source, type: sourcePortData.type },
                         startPos: sourcePos,
-                        targetPos: sourcePos
+                        targetPos: targetPos
                     });
                 }
+                
+                setEdges(prevEdges => prevEdges.filter(e => e.id !== existingEdge.id));
                 return;
             }
+            
         }
 
         if (portType === 'output') {
