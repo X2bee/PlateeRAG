@@ -1,12 +1,12 @@
 export const NODE_DATA = [
     {
-        categoryId: 'langchain',       // id -> categoryId
-        categoryName: 'LangChain',     // name -> categoryName
+        categoryId: 'langchain',
+        categoryName: 'LangChain',
         icon: 'LuBrainCircuit',
-        functions: [                   // categories -> functions
+        functions: [    
             {
-                functionId: 'chat_models', // id -> functionId
-                functionName: 'Chat Models', // name -> functionName
+                functionId: 'chat_models',
+                functionName: 'Chat Models',
                 nodes: [
                     {
                         id: 'chat-openai',
@@ -26,10 +26,8 @@ export const NODE_DATA = [
                             { id: 'out-4', name: 'Output4', multi: false, type: 'STR' },
                         ]
                     },
-                    // ... 다른 노드들
                 ]
             },
-            // ... 다른 function들
         ],
     },
     {
