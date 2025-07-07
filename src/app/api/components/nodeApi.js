@@ -6,7 +6,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
  */
 export const getNodes = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/node/get/nodes`);
+        const response = await fetch(`${API_BASE_URL}/node/get`);
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -27,7 +27,7 @@ export const getNodes = async () => {
  */
 export const exportNodes = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/node/export/nodes`);
+        const response = await fetch(`${API_BASE_URL}/node/export`);
 
         if (!response.ok) {
             const errorData = await response.json();
