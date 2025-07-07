@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useRef, useEffect, useState, forwardRef, useImperativeHandle, useCallback, memo, useLayoutEffect } from 'react';
-import styles from '@/app/assets/Canvas.module.scss';
-import Node from '@/app/components/Node';
-import Edge from '@/app/components/Edge';
+import styles from '@/app/(canvas)/assets/Canvas.module.scss';
+import Node from '@/app/(canvas)/components/Node';
+import Edge from '@/app/(canvas)/components/Edge';
 
 const MIN_SCALE = 0.6;
 const MAX_SCALE = 20;

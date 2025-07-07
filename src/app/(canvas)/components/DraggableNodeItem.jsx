@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from '@/app/assets/SideMenu.module.scss';
+import styles from '@/app/(canvas)/assets/SideMenu.module.scss';
 
 const DraggableNodeItem = ({ nodeData }) => {
     const onDragStart = (event) => {

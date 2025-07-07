@@ -1,10 +1,11 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import styles from '@/app/assets/SideMenu.module.scss';
-import NodeList from '@/app/components/NodeList';
-import DraggableNodeItem from '@/app/components/DraggableNodeItem';
-import { NODE_DATA } from '@/app/constants/nodes';
-import { LuSearch, LuArrowLeft, LuBrainCircuit, LuShare2, LuWrench, LuX } from 'react-icons/lu';
+import styles from '@/app/(canvas)/assets/SideMenu.module.scss';
+import NodeList from '@/app/(canvas)/components/NodeList';
+import DraggableNodeItem from '@/app/(canvas)/components/DraggableNodeItem';
+// import { NODE_DATA } from '@/app/(canvas)/constants/nodes';
+import { LuSearch, LuArrowLeft, LuBrainCircuit, LuShare2, LuWrench, LuX, LuRefreshCw } from 'react-icons/lu';
+import { useNodes } from '@/app/api/components/nodeHook';
 
 const iconMap = {
     LuBrainCircuit: <LuBrainCircuit />,
@@ -13,22 +14,40 @@ const iconMap = {
 };
 
 const AddNodePanel = ({ onBack }) => {
-    const [nodeSpecs, setNodeSpecs] = useState([]);
+    const { nodes: nodeSpecs, isLoading, error, exportAndRefreshNodes } = useNodes();
     const [activeTab, setActiveTab] = useState(null);
 
     useEffect(() => {
-        setNodeSpecs(NODE_DATA);
-        if (NODE_DATA.length > 0) {
-            // [수정] id -> categoryId
-            setActiveTab(NODE_DATA[0].categoryId);
+        if (nodeSpecs && nodeSpecs.length > 0) {
+            setActiveTab(nodeSpecs[0].categoryId);
         }
-    }, []);
+    }, [nodeSpecs]); 
 
     // [수정] id -> categoryId
     const activeTabData = nodeSpecs.find(tab => tab.categoryId === activeTab);
 
-    if (nodeSpecs.length === 0) {
-        return <div>Loading nodes...</div>;
+    if (isLoading) {
+        return (
+            <>
+                <div className={styles.header}>
+                    <button onClick={onBack} className={styles.backButton}><LuArrowLeft /></button>
+                    <h3>Add Nodes</h3>
+                </div>
+                <div className={styles.loadingContainer}>Loading nodes...</div>
+            </>
+        )
+    }
+
+    if (error) {
+        return (
+            <>
+                <div className={styles.header}>
+                    <button onClick={onBack} className={styles.backButton}><LuArrowLeft /></button>
+                    <h3>Add Nodes</h3>
+                </div>
+                <div className={styles.errorContainer}>Error: {error}</div>
+            </>
+        )
     }
 
     return (
@@ -38,6 +57,14 @@ const AddNodePanel = ({ onBack }) => {
                     <LuArrowLeft />
                 </button>
                 <h3>Add Nodes</h3>
+                <button 
+                    onClick={exportAndRefreshNodes} 
+                    className={`${styles.refreshButton} ${isLoading ? styles.loading : ''}`}
+                    disabled={isLoading}
+                    title="Refresh Node List"
+                >
+                    <LuRefreshCw />
+                </button>
             </div>
 
             <div className={styles.searchBar}>

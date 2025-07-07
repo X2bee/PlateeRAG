@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { sendMessage } from '../services/chatAPI';
+import { sendMessage } from '../../services/chatAPI';
 import styles from '../assets/Chat.module.scss'; // Corrected path
 import { LuArrowLeft, LuSend } from "react-icons/lu"; // Icons for back and send
 

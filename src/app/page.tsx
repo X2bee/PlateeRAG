@@ -1,10 +1,10 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
 
-import Canvas from '@/app/components/Canvas';
-import Header from '@/app/components/Header';
-import SideMenu from '@/app/components/SideMenu';
-import styles from '@/app/assets/PlateeRAG.module.scss';
+import Canvas from '@/app/(canvas)/components/Canvas';
+import Header from '@/app/(canvas)/components/Header';
+import SideMenu from '@/app/(canvas)/components/SideMenu';
+import styles from '@/app/(canvas)/assets/PlateeRAG.module.scss';
 
 export default function Home() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);

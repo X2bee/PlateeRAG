@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import styles from '@/app/assets/NodeList.module.scss';
+import styles from '@/app/(canvas)/assets/NodeList.module.scss';
 import { LuChevronDown } from 'react-icons/lu';
 
 const NodeList = ({ title, children }) => {

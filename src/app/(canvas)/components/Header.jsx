@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from '@/app/assets/Header.module.scss';
+import styles from '@/app/(canvas)/assets/Header.module.scss';
 import { LuPanelRightOpen, LuSave, LuFolderOpen } from "react-icons/lu";
 
 // [수정] onSave 옆에 onLoad prop 추가

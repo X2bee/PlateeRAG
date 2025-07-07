@@ -1,8 +1,8 @@
 "use client";
 import React, { useState } from 'react';
-import styles from '@/app/assets/SideMenu.module.scss';
-import AddNodePanel from './AddNodePanel';
-import Chat from './Chat'; // Import the Chat component
+import styles from '@/app/(canvas)/assets/SideMenu.module.scss';
+import AddNodePanel from '@/app/(canvas)/components/AddNodePanel';
+import Chat from '@/app/(canvas)/components/Chat'; // Import the Chat component
 import { LuCirclePlus, LuCircleHelp, LuSettings, LuLayoutGrid, LuMessageSquare } from "react-icons/lu";
 
 // 메인 메뉴 UI

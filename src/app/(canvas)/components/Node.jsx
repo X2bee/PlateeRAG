@@ -1,6 +1,6 @@
 // src/app/components/Node.jsx
 import React, { memo } from 'react';
-import styles from '@/app/assets/Node.module.scss';
+import styles from '@/app/(canvas)/assets/Node.module.scss';
 
 const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown, onPortMouseUp, registerPortRef, snappedPortKey, onParameterChange, isSnapTargetInvalid }) => {
     const { nodeName, inputs, parameters, outputs } = data;
