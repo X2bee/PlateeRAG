@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "@/app/globals.css";
+import ToastProvider from "@/app/(common)/components/ToastProvider";
 
 export const metadata: Metadata = {
     title: "PlateeRAG",
@@ -14,6 +15,7 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body>
+                <ToastProvider />
                 {children}
             </body>
         </html>

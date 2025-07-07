@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { getNodes as apiGetNodes, exportNodes as apiExportNodes } from '@/app/api/components/nodeApi';
+import { toast } from 'react-hot-toast';
 
 /**
  * 노드 데이터를 관리하는 재사용 가능한 Custom Hook입니다.
@@ -26,6 +27,8 @@ export const useNodes = () => {
             setNodes(data);
         } catch (err) {
             setError(err.message);
+            toast.error(err.message || '데이터를 불러오는 데 실패했습니다.');
+
         } finally {
             setIsLoading(false);
         }
@@ -37,9 +40,10 @@ export const useNodes = () => {
         try {
             const data = await apiExportNodes();
             setNodes(data);
-            alert('노드 목록을 성공적으로 새로고침했습니다.');
+            toast.success('노드 목록을 성공적으로 새로고침했습니다.');
         } catch (err) {
             setError(err.message);
+            toast.error(err.message || '새로고침에 실패했습니다.');
         } finally {
             setIsLoading(false);
         }
@@ -47,7 +51,7 @@ export const useNodes = () => {
 
     useEffect(() => {
         refreshNodes();
-    }, [refreshNodes]); // refreshNodes는 useCallback으로 감싸져 있어 한번만 실행됩니다.
+    }, [refreshNodes]);
 
     return { nodes, isLoading, error, refreshNodes, exportAndRefreshNodes };
 };
