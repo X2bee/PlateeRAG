@@ -9,7 +9,7 @@ import ExecutionPanel from '@/app/(canvas)/components/ExecutionPanel';
 
 import styles from '@/app/(canvas)/assets/PlateeRAG.module.scss';
 
-import { executeWorkflow, saveWorkflow } from '@/app/api/components/nodeApi';
+import { executeWorkflow, saveWorkflow, listWorkflows } from '@/app/api/components/nodeApi';
 import { getWorkflowName } from '@/app/services/workflowStorage';
 
 export default function Home() {
@@ -43,19 +43,101 @@ export default function Home() {
             return;
         }
 
+        const canvasState = (canvasRef.current as any).getCanvasState();
+        const workflowName = getWorkflowName();
+        
+        if (!canvasState.nodes || canvasState.nodes.length === 0) {
+            toast.error("Cannot save an empty workflow. Please add nodes.");
+            return;
+        }
+
+        // 중복 확인을 위해 기존 워크플로우 목록 조회
+        const checkToastId = toast.loading('Checking for existing workflows...');
+        
+        try {
+            const existingWorkflows = await listWorkflows();
+            const targetFilename = `${workflowName}.json`;
+            const isDuplicate = existingWorkflows.includes(targetFilename);
+            
+            toast.dismiss(checkToastId);
+            
+            if (isDuplicate) {
+                // 중복 발견 시 사용자에게 확인 요청
+                const confirmToast = toast(
+                    (t) => (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div style={{ fontWeight: '600', color: '#f59e0b' }}>
+                                Workflow Already Exists
+                            </div>
+                            <div style={{ fontSize: '0.9rem', color: '#666' }}>
+                                A workflow named "<strong>{workflowName}</strong>" already exists.
+                                <br />
+                                Do you want to overwrite it?
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                <button
+                                    onClick={() => {
+                                        toast.dismiss(t.id);
+                                    }}
+                                    style={{
+                                        padding: '6px 12px',
+                                        backgroundColor: '#f3f4f6',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '0.8rem',
+                                        fontWeight: '500'
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        toast.dismiss(t.id);
+                                        await performSave(workflowName, canvasState);
+                                    }}
+                                    style={{
+                                        padding: '6px 12px',
+                                        backgroundColor: '#f59e0b',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '0.8rem',
+                                        fontWeight: '500'
+                                    }}
+                                >
+                                    Overwrite
+                                </button>
+                            </div>
+                        </div>
+                    ),
+                    {
+                        duration: Infinity,
+                        style: {
+                            maxWidth: '400px',
+                            padding: '16px',
+                        }
+                    }
+                );
+            } else {
+                // 중복이 없으면 바로 저장
+                await performSave(workflowName, canvasState);
+            }
+            
+        } catch (error: any) {
+            toast.dismiss(checkToastId);
+            console.error("Error checking existing workflows:", error);
+            toast.error(`Failed to check existing workflows: ${error.message}`);
+        }
+    };
+
+    const performSave = async (workflowName: string, canvasState: any) => {
         const toastId = toast.loading('Saving workflow...');
 
         try {
-            const canvasState = (canvasRef.current as any).getCanvasState();
-            const workflowName = getWorkflowName();
-            
-            if (!canvasState.nodes || canvasState.nodes.length === 0) {
-                throw new Error("Cannot save an empty workflow. Please add nodes.");
-            }
-
             const result = await saveWorkflow(workflowName, canvasState);
             toast.success(`Workflow '${workflowName}' saved successfully!`, { id: toastId });
-
         } catch (error: any) {
             console.error("Save failed:", error);
             toast.error(`Save failed: ${error.message}`, { id: toastId });

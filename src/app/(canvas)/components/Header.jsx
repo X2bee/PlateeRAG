@@ -104,14 +104,8 @@ const Header = ({ onMenuClick, onSave, onLoad, onExport }) => {
                         <li><button type="button">도움말</button></li>
                     </ul>
                 </nav> */}
-                <button onClick={onLoad} className={styles.menuButton} title="Load Canvas">
-                    <LuFolderOpen />
-                </button>
                 <button onClick={onSave} className={styles.menuButton} title="Save Workflow">
                     <LuSave />
-                </button>
-                <button onClick={onExport} className={styles.menuButton} title="Export as JSON">
-                    <LuDownload />
                 </button>
                 <button onClick={onMenuClick} className={styles.menuButton}>
                     <LuPanelRightOpen />
