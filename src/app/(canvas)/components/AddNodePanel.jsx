@@ -23,9 +23,7 @@ const AddNodePanel = ({ onBack }) => {
         }
     }, [nodeSpecs]); 
 
-    // [수정] id -> categoryId
     const activeTabData = nodeSpecs.find(tab => tab.categoryId === activeTab);
-
     if (isLoading) {
         return (
             <>

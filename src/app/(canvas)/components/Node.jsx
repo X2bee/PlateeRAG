@@ -3,7 +3,7 @@ import React, { memo } from 'react';
 import styles from '@/app/(canvas)/assets/Node.module.scss';
 
 const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown, onPortMouseUp, registerPortRef, snappedPortKey, onParameterChange, isSnapTargetInvalid }) => {
-    const { nodeName, inputs, parameters, outputs } = data;
+    const { nodeName, inputs, parameters, outputs, functionId } = data;
 
     const handleMouseDown = (e) => {
         e.stopPropagation();
@@ -27,7 +27,10 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
             style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
             onMouseDown={handleMouseDown}
         >
-            <div className={styles.header}>{nodeName}</div>
+            <div className={styles.header}>
+                <span>{nodeName}</span>
+                {functionId && <span className={styles.functionId}>({functionId})</span>}
+            </div>
             <div className={styles.body}>
                 {hasIO && (
                     <div className={styles.ioContainer}>

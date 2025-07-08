@@ -26,6 +26,15 @@
     border-top-right-radius: 12px;
     border-bottom: 1px solid #f3f4f6; // 매우 옅은 구분선
     cursor: grab; // [추가] 헤더에서만 드래그 가능하도록 커서 변경
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.functionId {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: normal;
 }
 
 .body {
@@ -104,6 +113,7 @@
     &.type-STR { border-color: #5D9CF4; }
     &.type-INT { border-color: #7AD37A; }
     &.type-FLOAT { border-color: #F7C966; }
+    &.type-ANY { border-color: #9C5BF4; } // 보라색 계열로 ANY 타입 표시
 
     // 다중 연결 포트 스타일
     &.multi {

@@ -14,6 +14,7 @@ const SNAP_DISTANCE = 40;
 const areTypesCompatible = (sourceType, targetType) => {
     if (!sourceType || !targetType) return true;
     if (sourceType === targetType) return true;
+    if (targetType === 'ANY') return true; // ANY type can accept any input
     if (sourceType === 'INT' && targetType === 'FLOAT') return true;
     return false;
 };
