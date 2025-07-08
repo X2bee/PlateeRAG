@@ -1,7 +1,37 @@
 "use client";
 import React from 'react';
 import styles from '@/app/(canvas)/assets/ExecutionPanel.module.scss';
-import { LuPlay, LuTrash2 } from 'react-icons/lu';
+import { LuPlay, LuTrash2, LuCircleX } from 'react-icons/lu';
+
+const OutputRenderer = ({ output }) => {
+    if (!output) {
+        return <div className={styles.placeholder}>Click 'Run' to execute the workflow.</div>;
+    }
+
+    if (output.error) {
+        return (
+            <div className={`${styles.resultContainer} ${styles.error}`}>
+                <div className={styles.status}>
+                    <LuCircleX />
+                    <span>Execution Failed</span>
+                </div>
+                <div className={styles.message}>{output.error}</div>
+            </div>
+        );
+    }
+
+    const { outputs } = output;
+    return (
+        <div className={`${styles.resultContainer} ${styles.success}`}>
+            <div className={styles.outputDataSection}>
+                <pre className={styles.outputContent}>
+                    {JSON.stringify(outputs, null, 2)}
+                </pre>
+            </div>
+        </div>
+    );
+};
+
 
 const ExecutionPanel = ({ onExecute, onClear, output, isLoading }) => {
     return (
@@ -37,7 +67,7 @@ const ExecutionPanel = ({ onExecute, onClear, output, isLoading }) => {
             </div>
             <div className={styles.outputContainer}>
                 <pre>
-                    {output ? JSON.stringify(output, null, 2) : "Click 'Run' to execute the workflow."}
+                    <OutputRenderer output={output} />
                 </pre>
             </div>
         </div>

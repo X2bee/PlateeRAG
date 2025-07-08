@@ -53,7 +53,9 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                                             >
                                                 {portData.type}
                                             </div>
-                                            <span className={styles.portLabel}>{portData.name}</span>
+                                            <span className={`${styles.portLabel} ${portData.required ? styles.required : ''}`}>
+                                                {portData.name}
+                                            </span>
                                         </div>
                                     )
                                 })}

@@ -10,13 +10,36 @@ const MAX_SCALE = 20;
 const ZOOM_SENSITIVITY = 0.05;
 const SNAP_DISTANCE = 40;
 
-// 타입 호환성 검사 헬퍼 함수
 const areTypesCompatible = (sourceType, targetType) => {
     if (!sourceType || !targetType) return true;
     if (sourceType === targetType) return true;
-    if (targetType === 'ANY') return true; // ANY type can accept any input
+    if (targetType === 'ANY') return true;
     if (sourceType === 'INT' && targetType === 'FLOAT') return true;
     return false;
+};
+
+const validateRequiredInputs = (nodes, edges) => {
+    for (const node of nodes) {
+        if (!node.data.inputs || node.data.inputs.length === 0) continue;
+        for (const input of node.data.inputs) {
+            if (input.required) {
+                const hasConnection = edges.some(edge => 
+                    edge.target.nodeId === node.id && 
+                    edge.target.portId === input.id
+                );
+                
+                if (!hasConnection) {
+                    return {
+                        isValid: false,
+                        nodeId: node.id,
+                        nodeName: node.data.nodeName,
+                        inputName: input.name
+                    };
+                }
+            }
+        }
+    }
+    return { isValid: true };
 };
 
 const Canvas = forwardRef((props, ref) => {
@@ -89,6 +112,20 @@ const Canvas = forwardRef((props, ref) => {
             if (state.nodes) setNodes(state.nodes);
             if (state.edges) setEdges(state.edges);
             if (state.view) setView(state.view);
+        },
+        validateAndPrepareExecution: () => {
+            const validationResult = validateRequiredInputs(nodes, edges);
+            if (!validationResult.isValid) {
+                setSelectedNodeId(validationResult.nodeId);
+                setSelectedEdgeId(null);
+                return {
+                    error: `Required input "${validationResult.inputName}" is missing in node "${validationResult.nodeName}"`,
+                    nodeId: validationResult.nodeId
+                };
+            }
+            setSelectedNodeId(null);
+            setSelectedEdgeId(null);
+            return { success: true };
         }
     }));
 

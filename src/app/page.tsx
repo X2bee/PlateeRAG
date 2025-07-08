@@ -17,7 +17,7 @@ export default function Home() {
     const canvasRef = useRef(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const [executionOutput, setExecutionOutput] = useState(null);
+    const [executionOutput, setExecutionOutput] = useState<any>(null);
     const [isExecuting, setIsExecuting] = useState(false);
 
     useEffect(() => {
@@ -94,6 +94,12 @@ export default function Home() {
     const handleExecute = async () => {
         if (!canvasRef.current) {
             toast.error("Canvas is not ready.");
+            return;
+        }
+
+        const validationResult = (canvasRef.current as any).validateAndPrepareExecution();
+        if (validationResult.error) {
+            toast.error(validationResult.error);
             return;
         }
 

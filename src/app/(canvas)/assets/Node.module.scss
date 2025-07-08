@@ -84,8 +84,15 @@
 }
 
 .portLabel {
+    flex: 1;
     font-size: 0.875rem;
-    color: #374151;
+    color: #4b5563;
+
+    &.required::after {
+        content: " *";
+        color: #ef4444;
+        font-weight: bold;
+    }
 }
 
 
