@@ -62,27 +62,38 @@ export default function Home() {
                 const confirmToast = toast(
                     (t) => (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            <div style={{ fontWeight: '600', color: '#f59e0b' }}>
+                            <div style={{ fontWeight: '600', color: '#f59e0b', fontSize: '1rem' }}>
                                 Workflow Already Exists
                             </div>
-                            <div style={{ fontSize: '0.9rem', color: '#666' }}>
+                            <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.4' }}>
                                 A workflow named "<strong>{workflowName}</strong>" already exists.
                                 <br />
                                 Do you want to overwrite it?
                             </div>
-                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
                                 <button
                                     onClick={() => {
                                         toast.dismiss(t.id);
                                     }}
                                     style={{
-                                        padding: '6px 12px',
-                                        backgroundColor: '#f3f4f6',
-                                        border: '1px solid #d1d5db',
-                                        borderRadius: '4px',
+                                        padding: '8px 16px',
+                                        backgroundColor: '#ffffff',
+                                        border: '2px solid #6b7280',
+                                        borderRadius: '6px',
                                         cursor: 'pointer',
-                                        fontSize: '0.8rem',
-                                        fontWeight: '500'
+                                        fontSize: '0.85rem',
+                                        fontWeight: '500',
+                                        color: '#374151',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                    }}
+                                    onMouseOver={(e) => {
+                                        (e.target as HTMLButtonElement).style.backgroundColor = '#f9fafb';
+                                        (e.target as HTMLButtonElement).style.borderColor = '#4b5563';
+                                    }}
+                                    onMouseOut={(e) => {
+                                        (e.target as HTMLButtonElement).style.backgroundColor = '#ffffff';
+                                        (e.target as HTMLButtonElement).style.borderColor = '#6b7280';
                                     }}
                                 >
                                     Cancel
@@ -93,14 +104,24 @@ export default function Home() {
                                         await performSave(workflowName, canvasState);
                                     }}
                                     style={{
-                                        padding: '6px 12px',
+                                        padding: '8px 16px',
                                         backgroundColor: '#f59e0b',
                                         color: 'white',
-                                        border: 'none',
-                                        borderRadius: '4px',
+                                        border: '2px solid #d97706',
+                                        borderRadius: '6px',
                                         cursor: 'pointer',
-                                        fontSize: '0.8rem',
-                                        fontWeight: '500'
+                                        fontSize: '0.85rem',
+                                        fontWeight: '500',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                    }}
+                                    onMouseOver={(e) => {
+                                        (e.target as HTMLButtonElement).style.backgroundColor = '#d97706';
+                                        (e.target as HTMLButtonElement).style.borderColor = '#b45309';
+                                    }}
+                                    onMouseOut={(e) => {
+                                        (e.target as HTMLButtonElement).style.backgroundColor = '#f59e0b';
+                                        (e.target as HTMLButtonElement).style.borderColor = '#d97706';
                                     }}
                                 >
                                     Overwrite
@@ -111,8 +132,14 @@ export default function Home() {
                     {
                         duration: Infinity,
                         style: {
-                            maxWidth: '400px',
-                            padding: '16px',
+                            maxWidth: '420px',
+                            padding: '20px',
+                            backgroundColor: '#f9fafb',
+                            border: '2px solid #374151',
+                            borderRadius: '12px',
+                            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
+                            color: '#374151',
+                            fontFamily: 'system-ui, -apple-system, sans-serif'
                         }
                     }
                 );

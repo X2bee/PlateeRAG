@@ -29,6 +29,7 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
 
     const handleRefresh = () => {
         fetchWorkflows();
+        toast.success('워크플로우 새로고침 완료!');
     };
 
     const handleLoadWorkflow = async (filename) => {
@@ -51,27 +52,30 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
         const confirmToast = toast(
             (t) => (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div style={{ fontWeight: '600', color: '#dc3545' }}>
+                    <div style={{ fontWeight: '600', color: '#dc3545', fontSize: '1rem' }}>
                         Delete Workflow
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: '#666' }}>
+                    <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.4' }}>
                         Are you sure you want to delete "<strong>{workflowName}</strong>"?
                         <br />
                         This action cannot be undone.
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
                         <button
                             onClick={() => {
                                 toast.dismiss(t.id);
                             }}
                             style={{
-                                padding: '6px 12px',
-                                backgroundColor: '#f3f4f6',
-                                border: '1px solid #d1d5db',
-                                borderRadius: '4px',
+                                padding: '8px 16px',
+                                backgroundColor: '#ffffff',
+                                border: '2px solid #6b7280',
+                                borderRadius: '6px',
                                 cursor: 'pointer',
-                                fontSize: '0.8rem',
-                                fontWeight: '500'
+                                fontSize: '0.85rem',
+                                fontWeight: '500',
+                                color: '#374151',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                             }}
                         >
                             Cancel
@@ -82,14 +86,16 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
                                 await performDelete(filename, workflowName);
                             }}
                             style={{
-                                padding: '6px 12px',
+                                padding: '8px 16px',
                                 backgroundColor: '#dc3545',
                                 color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
+                                border: '2px solid #b02a37',
+                                borderRadius: '6px',
                                 cursor: 'pointer',
-                                fontSize: '0.8rem',
-                                fontWeight: '500'
+                                fontSize: '0.85rem',
+                                fontWeight: '500',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                             }}
                         >
                             Delete
@@ -100,8 +106,14 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
             {
                 duration: Infinity,
                 style: {
-                    maxWidth: '400px',
-                    padding: '16px',
+                    maxWidth: '420px',
+                    padding: '20px',
+                    backgroundColor: '#f9fafb',
+                    border: '2px solid #374151',
+                    borderRadius: '12px',
+                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
+                    color: '#374151',
+                    fontFamily: 'system-ui, -apple-system, sans-serif'
                 }
             }
         );

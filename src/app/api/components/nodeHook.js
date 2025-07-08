@@ -40,7 +40,7 @@ export const useNodes = () => {
         try {
             const data = await apiExportNodes();
             setNodes(data);
-            toast.success('노드 목록을 성공적으로 새로고침했습니다.');
+            toast.success('노드 목록 새로고침 완료!');
         } catch (err) {
             setError(err.message);
             toast.error(err.message || '새로고침에 실패했습니다.');
