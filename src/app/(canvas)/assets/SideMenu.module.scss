@@ -36,6 +36,13 @@
         height: 85vh;
         max-height: 700px;
     }
+
+    // WorkflowPanel 뷰일 때 크기 확장
+    &[data-view="workflow"] {
+        width: 360px;
+        height: 85vh;
+        max-height: 700px;
+    }
 }
 
 // --- 패널 공통 헤더 ---

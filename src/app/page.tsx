@@ -9,7 +9,8 @@ import ExecutionPanel from '@/app/(canvas)/components/ExecutionPanel';
 
 import styles from '@/app/(canvas)/assets/PlateeRAG.module.scss';
 
-import { executeWorkflow } from '@/app/api/components/nodeApi';
+import { executeWorkflow, saveWorkflow } from '@/app/api/components/nodeApi';
+import { getWorkflowName } from '@/app/services/workflowStorage';
 
 export default function Home() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -36,15 +37,41 @@ export default function Home() {
         };
     }, [isMenuOpen]);
 
-    const handleSave = () => {
+    const handleSave = async () => {
+        if (!canvasRef.current) {
+            toast.error("Canvas is not ready.");
+            return;
+        }
+
+        const toastId = toast.loading('Saving workflow...');
+
+        try {
+            const canvasState = (canvasRef.current as any).getCanvasState();
+            const workflowName = getWorkflowName();
+            
+            if (!canvasState.nodes || canvasState.nodes.length === 0) {
+                throw new Error("Cannot save an empty workflow. Please add nodes.");
+            }
+
+            const result = await saveWorkflow(workflowName, canvasState);
+            toast.success(`Workflow '${workflowName}' saved successfully!`, { id: toastId });
+
+        } catch (error: any) {
+            console.error("Save failed:", error);
+            toast.error(`Save failed: ${error.message}`, { id: toastId });
+        }
+    };
+
+    const handleExport = () => {
         if (canvasRef.current) {
             const canvasState = (canvasRef.current as any).getCanvasState();
+            const workflowName = getWorkflowName();
             const jsonString = JSON.stringify(canvasState, null, 2);
             const blob = new Blob([jsonString], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'plateerag-canvas.json';
+            a.download = `${workflowName}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -54,6 +81,18 @@ export default function Home() {
 
     const handleLoadClick = () => {
         fileInputRef.current?.click();
+    };
+
+    const handleLoadWorkflow = async (workflowData: any) => {
+        try {
+            if (canvasRef.current) {
+                (canvasRef.current as any).loadCanvasState(workflowData);
+                toast.success('Workflow loaded successfully!');
+            }
+        } catch (error: any) {
+            console.error("Error loading workflow:", error);
+            toast.error(`Failed to load workflow: ${error.message}`);
+        }
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,10 +180,11 @@ export default function Home() {
                 onMenuClick={() => setIsMenuOpen(prev => !prev)}
                 onSave={handleSave}
                 onLoad={handleLoadClick}
+                onExport={handleExport}
             />
             <main className={styles.mainContent}>
                 <Canvas ref={canvasRef} />
-                {isMenuOpen && <SideMenu menuRef={menuRef} />}
+                {isMenuOpen && <SideMenu menuRef={menuRef} onLoad={handleLoadClick} onExport={handleExport} onLoadWorkflow={handleLoadWorkflow} />}
                 <ExecutionPanel
                     onExecute={handleExecute}
                     onClear={handleClearOutput}

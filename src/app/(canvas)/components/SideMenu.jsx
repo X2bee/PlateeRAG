@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import styles from '@/app/(canvas)/assets/SideMenu.module.scss';
 import AddNodePanel from '@/app/(canvas)/components/AddNodePanel';
-import Chat from '@/app/(canvas)/components/Chat'; // Import the Chat component
+import Chat from '@/app/(canvas)/components/Chat';
+import WorkflowPanel from '@/app/(canvas)/components/WorkflowPanel';
 import { LuCirclePlus, LuCircleHelp, LuSettings, LuLayoutGrid, LuMessageSquare } from "react-icons/lu";
 
 // 메인 메뉴 UI
@@ -18,9 +19,9 @@ const MainMenu = ({ onNavigate }) => {
                     <LuMessageSquare />
                     <span>Chat</span>
                 </button>
-                <button className={styles.menuItem}>
+                <button className={styles.menuItem} onClick={() => onNavigate('workflow')}>
                     <LuLayoutGrid />
-                    <span>Templates</span>
+                    <span>Workflow</span>
                 </button>
                 <button className={styles.menuItem}>
                     <LuSettings />
@@ -36,7 +37,7 @@ const MainMenu = ({ onNavigate }) => {
 };
 
 // SideMenu의 전체 컨테이너 및 뷰 전환 로직
-const SideMenu = ({ menuRef }) => {
+const SideMenu = ({ menuRef, onLoad, onExport, onLoadWorkflow }) => {
     const [view, setView] = useState('main');
 
     return (
@@ -45,6 +46,14 @@ const SideMenu = ({ menuRef }) => {
             {view === 'main' && <MainMenu onNavigate={setView} />}
             {view === 'addNodes' && <AddNodePanel onBack={() => setView('main')} />}
             {view === 'chat' && <Chat onBack={() => setView('main')} />}
+            {view === 'workflow' && (
+                <WorkflowPanel 
+                    onBack={() => setView('main')} 
+                    onLoad={onLoad}
+                    onExport={onExport}
+                    onLoadWorkflow={onLoadWorkflow}
+                />
+            )}
         </aside>
     );
 };
