@@ -10,7 +10,7 @@ import ExecutionPanel from '@/app/(canvas)/components/ExecutionPanel';
 import styles from '@/app/(canvas)/assets/PlateeRAG.module.scss';
 
 import { executeWorkflow, saveWorkflow, listWorkflows } from '@/app/api/components/nodeApi';
-import { getWorkflowName } from '@/app/services/workflowStorage';
+import { getWorkflowName, getWorkflowState, saveWorkflowState, clearWorkflowState, isValidWorkflowState } from '@/app/services/workflowStorage';
 
 export default function Home() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,6 +20,36 @@ export default function Home() {
 
     const [executionOutput, setExecutionOutput] = useState<any>(null);
     const [isExecuting, setIsExecuting] = useState(false);
+
+    // 컴포넌트 마운트 시 저장된 워크플로우 상태 복원
+    useEffect(() => {
+        const restoreWorkflowState = () => {
+            const savedState = getWorkflowState();
+            if (savedState && isValidWorkflowState(savedState) && canvasRef.current) {
+                try {
+                    (canvasRef.current as any).loadWorkflowState(savedState);
+                    console.log('Workflow state restored from localStorage');
+                } catch (error) {
+                    console.warn('Failed to restore workflow state:', error);
+                }
+            }
+        };
+
+        // Canvas가 준비된 후 상태 복원
+        const timer = setTimeout(restoreWorkflowState, 100);
+        return () => clearTimeout(timer);
+    }, []);
+
+    // 워크플로우 상태 변경 시 자동 저장
+    const handleCanvasStateChange = (state: any) => {
+        try {
+            if (state && (state.nodes?.length > 0 || state.edges?.length > 0)) {
+                saveWorkflowState(state);
+            }
+        } catch (error) {
+            console.warn('Failed to auto-save workflow state:', error);
+        }
+    };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -195,6 +225,8 @@ export default function Home() {
         try {
             if (canvasRef.current) {
                 (canvasRef.current as any).loadCanvasState(workflowData);
+                // 새로운 워크플로우 로드 시 로컬 스토리지 상태 업데이트
+                saveWorkflowState(workflowData);
                 toast.success('Workflow loaded successfully!');
             }
         } catch (error: any) {
@@ -214,6 +246,8 @@ export default function Home() {
                 const savedState = JSON.parse(json);
                 if (canvasRef.current) {
                     (canvasRef.current as any).loadCanvasState(savedState);
+                    // 파일에서 로드 시 로컬 스토리지 상태 업데이트
+                    saveWorkflowState(savedState);
                 }
             } catch (error) {
                 console.error("Error parsing JSON file:", error);
@@ -291,7 +325,7 @@ export default function Home() {
                 onExport={handleExport}
             />
             <main className={styles.mainContent}>
-                <Canvas ref={canvasRef} />
+                <Canvas ref={canvasRef} onStateChange={handleCanvasStateChange} />
                 {isMenuOpen && <SideMenu menuRef={menuRef} onLoad={handleLoadClick} onExport={handleExport} onLoadWorkflow={handleLoadWorkflow} />}
                 <ExecutionPanel
                     onExecute={handleExecute}

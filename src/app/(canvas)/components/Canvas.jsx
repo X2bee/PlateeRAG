@@ -42,7 +42,7 @@ const validateRequiredInputs = (nodes, edges) => {
     return { isValid: true };
 };
 
-const Canvas = forwardRef((props, ref) => {
+const Canvas = forwardRef(({ onStateChange }, ref) => {
     const contentRef = useRef(null);
     const containerRef = useRef(null);
 
@@ -81,6 +81,13 @@ const Canvas = forwardRef((props, ref) => {
         setPortPositions(newPortPositions);
     }, [nodes, view.scale]);
 
+    // 상태 변경 감지 및 콜백 호출
+    useEffect(() => {
+        if (onStateChange && (nodes.length > 0 || edges.length > 0)) {
+            const currentState = { view, nodes, edges };
+            onStateChange(currentState);
+        }
+    }, [nodes, edges, onStateChange]);
 
     const registerPortRef = useCallback((nodeId, portId, portType, el) => {
         const key = `${nodeId}__PORTKEYDELIM__${portId}__PORTKEYDELIM__${portType}`;
@@ -109,6 +116,12 @@ const Canvas = forwardRef((props, ref) => {
             setNodes(prev => [...prev, newNode]);
         },
         loadCanvasState: (state) => {
+            if (state.nodes) setNodes(state.nodes);
+            if (state.edges) setEdges(state.edges);
+            if (state.view) setView(state.view);
+        },
+        loadWorkflowState: (state) => {
+            // 상태 복원용 메서드 (자동 저장된 상태를 로드할 때 사용)
             if (state.nodes) setNodes(state.nodes);
             if (state.edges) setEdges(state.edges);
             if (state.view) setView(state.view);
