@@ -41,3 +41,34 @@ export const exportNodes = async () => {
         throw error;
     }
 };
+
+/**
+ * 주어진 워크플로우 데이터를 백엔드로 전송하여 실행합니다.
+ * @param {Object} workflowData - 노드와 엣지 정보를 포함하는 워크플로우 객체.
+ * @returns {Promise<Object>} API 응답 객체를 포함하는 프로미스.
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const executeWorkflow = async (workflowData) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/node/execute`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(workflowData),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            // FastAPI에서 HTTPException으로 반환된 detail 메시지를 사용
+            throw new Error(result.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        return result;
+    } catch (error) {
+        console.error("Failed to execute workflow:", error);
+        // UI에서 에러 메시지를 표시할 수 있도록 에러를 다시 던집니다.
+        throw error;
+    }
+};
