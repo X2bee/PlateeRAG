@@ -76,6 +76,40 @@
     }
 }
 
+.refreshButton {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    color: #555;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    border-radius: 50%;
+    margin-left: auto; // 오른쪽으로 밀어내기
+
+    &:hover {
+        background-color: #f0f0f0;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    &.loading {
+        animation: spin 1s linear infinite;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 // --- 메인 메뉴 스타일 ---
 .mainMenu {
     padding: 8px;

@@ -138,6 +138,14 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
                     <LuArrowLeft />
                 </button>
                 <h2>Workflow</h2>
+                <button 
+                    onClick={handleRefresh} 
+                    className={`${styles.refreshButton} ${isLoading ? styles.loading : ''}`}
+                    disabled={isLoading}
+                    title="Refresh Workflow List"
+                >
+                    <LuRefreshCw />
+                </button>
             </div>
 
             <div className={styles.actionButtons}>
@@ -148,10 +156,6 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
                 <button onClick={onExport} className={styles.actionButton}>
                     <LuDownload />
                     <span>Export to Local</span>
-                </button>
-                <button onClick={handleRefresh} className={styles.actionButton}>
-                    <LuRefreshCw />
-                    <span>Refresh</span>
                 </button>
             </div>
 
