@@ -33,17 +33,14 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
 
     const handleLoadWorkflow = async (filename) => {
         try {
-            // .json 확장자 제거하여 workflow ID 생성
             const workflowId = filename.replace('.json', '');
             const workflowData = await loadWorkflow(workflowId);
             
-            // Canvas에 워크플로우 데이터 로드
             if (onLoadWorkflow) {
                 onLoadWorkflow(workflowData);
             }
         } catch (error) {
             console.error("Failed to load workflow:", error);
-            // 에러 처리는 상위 컴포넌트에서 toast로 처리될 예정
             throw error;
         }
     };
@@ -51,7 +48,6 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
     const handleDeleteWorkflow = async (filename) => {
         const workflowName = getWorkflowDisplayName(filename);
         
-        // 현대적인 확인 toast 표시
         const confirmToast = toast(
             (t) => (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -102,7 +98,7 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
                 </div>
             ),
             {
-                duration: Infinity, // 사용자가 선택할 때까지 표시
+                duration: Infinity,
                 style: {
                     maxWidth: '400px',
                     padding: '16px',
@@ -115,11 +111,9 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
         const toastId = toast.loading(`Deleting "${workflowName}"...`);
         
         try {
-            // .json 확장자 제거하여 workflow ID 생성
             const workflowId = filename.replace('.json', '');
             await deleteWorkflow(workflowId);
             
-            // 성공 시 목록 새로고침
             await fetchWorkflows();
             
             toast.success(`Workflow "${workflowName}" deleted successfully!`, { id: toastId });
@@ -130,12 +124,10 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
     };
 
     const getWorkflowDisplayName = (filename) => {
-        // .json 확장자 제거
         return filename.replace('.json', '');
     };
 
     const getFileSize = (filename) => {
-        // 실제 파일 크기는 백엔드에서 제공해야 하지만, 현재는 placeholder
         return "Unknown";
     };
 
@@ -200,9 +192,6 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
                                 <div className={styles.workflowInfo}>
                                     <div className={styles.workflowName}>
                                         {getWorkflowDisplayName(filename)}
-                                    </div>
-                                    <div className={styles.workflowMeta}>
-                                        <span className={styles.filename}>{filename}</span>
                                     </div>
                                 </div>
                                 <div className={styles.workflowActions}>
