@@ -51,15 +51,11 @@ export default function Home() {
             return;
         }
 
-        // 중복 확인을 위해 기존 워크플로우 목록 조회
-        const checkToastId = toast.loading('Checking for existing workflows...');
-        
         try {
+            // 백그라운드에서 중복 확인 (로딩 메시지 없이)
             const existingWorkflows = await listWorkflows();
             const targetFilename = `${workflowName}.json`;
             const isDuplicate = existingWorkflows.includes(targetFilename);
-            
-            toast.dismiss(checkToastId);
             
             if (isDuplicate) {
                 // 중복 발견 시 사용자에게 확인 요청
@@ -126,9 +122,12 @@ export default function Home() {
             }
             
         } catch (error: any) {
-            toast.dismiss(checkToastId);
             console.error("Error checking existing workflows:", error);
-            toast.error(`Failed to check existing workflows: ${error.message}`);
+            // 중복 확인 실패 시에도 저장 시도 (graceful fallback)
+            toast.error(`Warning: Could not check for duplicates. Proceeding with save...`);
+            setTimeout(async () => {
+                await performSave(workflowName, canvasState);
+            }, 1000);
         }
     };
 
