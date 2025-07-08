@@ -1,7 +1,7 @@
 "use client";
-import React from 'react';
+import React, { useState } from 'react';
 import styles from '@/app/(canvas)/assets/ExecutionPanel.module.scss';
-import { LuPlay, LuTrash2, LuCircleX } from 'react-icons/lu';
+import { LuPlay, LuTrash2, LuCircleX, LuChevronUp, LuChevronDown } from 'react-icons/lu';
 
 const OutputRenderer = ({ output }) => {
     if (!output) {
@@ -34,11 +34,26 @@ const OutputRenderer = ({ output }) => {
 
 
 const ExecutionPanel = ({ onExecute, onClear, output, isLoading }) => {
+    const [isExpanded, setIsExpanded] = useState(true);
+
+    const toggleExpanded = () => {
+        setIsExpanded(!isExpanded);
+    };
+
     return (
-        <div className={styles.executionPanel}>
+        <div className={`${styles.executionPanel} ${!isExpanded ? styles.collapsed : ''}`}>
             <div className={styles.header}>
-                <h4>Execution</h4>
-                <div className={styles.actions}>
+                <div className={styles.titleSection}>
+                    <button
+                        onClick={toggleExpanded}
+                        className={styles.toggleButton}
+                        title={isExpanded ? "Collapse Panel" : "Expand Panel"}
+                    >
+                        {isExpanded ? <LuChevronUp /> : <LuChevronDown />}
+                    </button>
+                    <h4>Execution</h4>
+                </div>
+                <div className={styles.actions} style={{ display: isExpanded ? 'flex' : 'none' }}>
                     <button
                         onClick={onClear}
                         className={styles.actionButton}
@@ -65,11 +80,13 @@ const ExecutionPanel = ({ onExecute, onClear, output, isLoading }) => {
                     </button>
                 </div>
             </div>
-            <div className={styles.outputContainer}>
-                <pre>
-                    <OutputRenderer output={output} />
-                </pre>
-            </div>
+            {isExpanded && (
+                <div className={styles.outputContainer}>
+                    <pre>
+                        <OutputRenderer output={output} />
+                    </pre>
+                </div>
+            )}
         </div>
     );
 };

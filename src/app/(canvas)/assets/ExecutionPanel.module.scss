@@ -13,7 +13,13 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.collapsed {
+        max-height: auto;
+        height: auto;
+        width: 200px;
+    }
 }
 
 .header {
@@ -23,18 +29,30 @@
     padding: 8px 16px;
     border-bottom: 1px solid #e0e0e0;
     flex-shrink: 0;
+    transition: border-bottom 0.3s ease;
 
     h4 {
         margin: 0;
         font-weight: 600;
         font-size: 0.95rem;
     }
+
+    .executionPanel.collapsed & {
+        border-bottom: none;
+    }
+}
+
+.titleSection {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .actions {
     display: flex;
     align-items: center;
     gap: 8px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .actionButton {
@@ -55,6 +73,32 @@
     }
 }
 
+.toggleButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: none;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+    color: #495057;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 24px;
+    height: 24px;
+
+    &:hover {
+        background-color: #e9ecef;
+        color: #343a40;
+        transform: scale(1.05);
+    }
+
+    svg {
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+}
+
 .runButton {
     background-color: #28a745;
     color: white;
@@ -71,12 +115,26 @@
     font-family: 'Courier New', Courier, monospace;
     font-size: 0.85rem;
     background-color: #f8f9fa;
+    animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
     pre {
         margin: 0;
         white-space: pre-wrap;
         word-wrap: break-word;
         color: #333;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 500px;
     }
 }
 
