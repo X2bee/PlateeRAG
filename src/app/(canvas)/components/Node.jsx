@@ -65,7 +65,6 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                                     return (
                                         <div key={portData.id} className={`${styles.portRow} ${styles.outputRow}`}>
                                             <span className={styles.portLabel}>{portData.name}</span>
-                                            {/* [수정] 기존 port div와 type 라벨을 하나로 통합합니다. */}
                                             <div
                                                 ref={(el) => registerPortRef(id, portData.id, 'output', el)}
                                                 className={portClasses}
