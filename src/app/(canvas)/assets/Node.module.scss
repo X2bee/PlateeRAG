@@ -208,3 +208,30 @@
         box-shadow: 0 0 0 1px #3b82f6;
     }
 }
+
+// --- [새로운 스타일] 파라미터 선택 필드 (옵션이 있는 경우) ---
+.paramSelect {
+    flex-grow: 1;
+    max-width: 60%;
+    background-color: #f3f4f6;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #111827;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    text-align: right;
+    cursor: pointer;
+
+    &:focus {
+        background-color: #fff;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 1px #3b82f6;
+    }
+
+    &:hover {
+        background-color: #e5e7eb;
+    }
+}

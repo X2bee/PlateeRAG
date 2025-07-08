@@ -85,7 +85,6 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                         )}
                     </div>
                 )}
-                {/* ... parameters 렌더링 부분 ... */}
                 {hasParams && (
                     <>
                         {hasIO && <div className={styles.divider}></div>}
@@ -94,7 +93,31 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                             {parameters.map(param => (
                                 <div key={param.id} className={styles.param}>
                                     <span className={styles.paramKey}>{param.name}</span>
-                                    <input type={typeof param.value === 'number' ? 'number' : 'text'} value={param.value} onChange={(e) => handleParamValueChange(e, param.id)} onMouseDown={(e) => e.stopPropagation()} className={styles.paramInput} step={param.step}/>
+                                    {param.options && param.options.length > 0 ? (
+                                        <select 
+                                            value={param.value} 
+                                            onChange={(e) => handleParamValueChange(e, param.id)} 
+                                            onMouseDown={(e) => e.stopPropagation()} 
+                                            className={styles.paramSelect}
+                                        >
+                                            {param.options.map((option, index) => (
+                                                <option key={index} value={option.value}>
+                                                    {option.label || option.value}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <input 
+                                            type={typeof param.value === 'number' ? 'number' : 'text'} 
+                                            value={param.value} 
+                                            onChange={(e) => handleParamValueChange(e, param.id)} 
+                                            onMouseDown={(e) => e.stopPropagation()} 
+                                            className={styles.paramInput} 
+                                            step={param.step}
+                                            min={param.min}
+                                            max={param.max}
+                                        />
+                                    )}
                                 </div>
                             ))}
                         </div>
