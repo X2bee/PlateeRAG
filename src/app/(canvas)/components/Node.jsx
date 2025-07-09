@@ -92,7 +92,9 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                             <div className={styles.sectionHeader}>PARAMETER</div>
                             {parameters.map(param => (
                                 <div key={param.id} className={styles.param}>
-                                    <span className={styles.paramKey}>{param.name}</span>
+                                    <span className={`${styles.paramKey} ${param.required ? styles.required : ''}`}>
+                                        {param.name}
+                                    </span>
                                     {param.options && param.options.length > 0 ? (
                                         <select 
                                             value={param.value} 

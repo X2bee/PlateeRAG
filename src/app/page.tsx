@@ -10,7 +10,7 @@ import ExecutionPanel from '@/app/(canvas)/components/ExecutionPanel';
 import styles from '@/app/(canvas)/assets/PlateeRAG.module.scss';
 
 import { executeWorkflow, saveWorkflow, listWorkflows } from '@/app/api/components/nodeApi';
-import { getWorkflowName, getWorkflowState, saveWorkflowState, clearWorkflowState, isValidWorkflowState } from '@/app/services/workflowStorage';
+import { getWorkflowName, getWorkflowState, saveWorkflowState, clearWorkflowState, isValidWorkflowState, ensureValidWorkflowState, saveWorkflowName } from '@/app/services/workflowStorage';
 
 export default function Home() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,15 +20,24 @@ export default function Home() {
 
     const [executionOutput, setExecutionOutput] = useState<any>(null);
     const [isExecuting, setIsExecuting] = useState(false);
+    const [currentWorkflowName, setCurrentWorkflowName] = useState('Workflow');
 
-    // 컴포넌트 마운트 시 저장된 워크플로우 상태 복원
+    // 컴포넌트 마운트 시 워크플로우 이름과 상태 복원
     useEffect(() => {
+        // 저장된 워크플로우 이름 복원
+        const savedName = getWorkflowName();
+        setCurrentWorkflowName(savedName);
+
+        // 저장된 워크플로우 상태 복원
         const restoreWorkflowState = () => {
             const savedState = getWorkflowState();
-            if (savedState && isValidWorkflowState(savedState) && canvasRef.current) {
+            if (savedState && canvasRef.current) {
                 try {
-                    (canvasRef.current as any).loadWorkflowState(savedState);
-                    console.log('Workflow state restored from localStorage');
+                    const validState = ensureValidWorkflowState(savedState);
+                    if (validState) {
+                        (canvasRef.current as any).loadWorkflowState(validState);
+                        console.log('Workflow state restored from localStorage', validState);
+                    }
                 } catch (error) {
                     console.warn('Failed to restore workflow state:', error);
                 }
@@ -43,12 +52,25 @@ export default function Home() {
     // 워크플로우 상태 변경 시 자동 저장
     const handleCanvasStateChange = (state: any) => {
         try {
-            if (state && (state.nodes?.length > 0 || state.edges?.length > 0)) {
+            // 상태가 있으면 저장 (view 정보도 포함)
+            if (state) {
                 saveWorkflowState(state);
             }
         } catch (error) {
             console.warn('Failed to auto-save workflow state:', error);
         }
+    };
+
+    // 워크플로우 이름 업데이트 헬퍼 함수
+    const updateWorkflowName = (newName: string) => {
+        setCurrentWorkflowName(newName);
+        saveWorkflowName(newName);
+    };
+
+    // Header에서 워크플로우 이름 직접 편집 시 호출될 핸들러
+    const handleWorkflowNameChange = (newName: string) => {
+        setCurrentWorkflowName(newName);
+        // localStorage 저장은 Header에서 이미 처리하므로 중복 저장 방지
     };
 
     useEffect(() => {
@@ -221,12 +243,19 @@ export default function Home() {
         fileInputRef.current?.click();
     };
 
-    const handleLoadWorkflow = async (workflowData: any) => {
+    const handleLoadWorkflow = async (workflowData: any, workflowName?: string) => {
         try {
             if (canvasRef.current) {
-                (canvasRef.current as any).loadCanvasState(workflowData);
+                const validState = ensureValidWorkflowState(workflowData);
+                (canvasRef.current as any).loadCanvasState(validState);
                 // 새로운 워크플로우 로드 시 로컬 스토리지 상태 업데이트
-                saveWorkflowState(workflowData);
+                saveWorkflowState(validState);
+                
+                // 워크플로우 이름이 제공된 경우 업데이트
+                if (workflowName) {
+                    updateWorkflowName(workflowName);
+                }
+                
                 toast.success('Workflow loaded successfully!');
             }
         } catch (error: any) {
@@ -245,9 +274,14 @@ export default function Home() {
                 const json = event.target?.result as string;
                 const savedState = JSON.parse(json);
                 if (canvasRef.current) {
-                    (canvasRef.current as any).loadCanvasState(savedState);
+                    const validState = ensureValidWorkflowState(savedState);
+                    (canvasRef.current as any).loadCanvasState(validState);
                     // 파일에서 로드 시 로컬 스토리지 상태 업데이트
-                    saveWorkflowState(savedState);
+                    saveWorkflowState(validState);
+                    
+                    // 파일명에서 워크플로우 이름 추출 (.json 확장자 제거)
+                    const workflowName = file.name.replace(/\.json$/i, '');
+                    updateWorkflowName(workflowName);
                 }
             } catch (error) {
                 console.error("Error parsing JSON file:", error);
@@ -323,6 +357,8 @@ export default function Home() {
                 onSave={handleSave}
                 onLoad={handleLoadClick}
                 onExport={handleExport}
+                workflowName={currentWorkflowName}
+                onWorkflowNameChange={handleWorkflowNameChange}
             />
             <main className={styles.mainContent}>
                 <Canvas ref={canvasRef} onStateChange={handleCanvasStateChange} />

@@ -38,7 +38,8 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
             const workflowData = await loadWorkflow(workflowId);
             
             if (onLoadWorkflow) {
-                onLoadWorkflow(workflowData);
+                // 워크플로우 데이터와 함께 워크플로우 이름도 전달
+                onLoadWorkflow(workflowData, workflowId);
             }
         } catch (error) {
             console.error("Failed to load workflow:", error);

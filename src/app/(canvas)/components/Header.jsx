@@ -3,16 +3,20 @@ import styles from '@/app/(canvas)/assets/Header.module.scss';
 import { LuPanelRightOpen, LuSave, LuFolderOpen, LuCheck, LuX, LuPencil, LuDownload } from "react-icons/lu";
 import { getWorkflowName, saveWorkflowName } from '@/app/services/workflowStorage';
 
-const Header = ({ onMenuClick, onSave, onLoad, onExport }) => {
+const Header = ({ onMenuClick, onSave, onLoad, onExport, workflowName: externalWorkflowName, onWorkflowNameChange }) => {
     const [workflowName, setWorkflowName] = useState('Workflow');
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState('');
     const inputRef = useRef(null);
 
     useEffect(() => {
-        const savedName = getWorkflowName();
-        setWorkflowName(savedName);
-    }, []);
+        if (externalWorkflowName) {
+            setWorkflowName(externalWorkflowName);
+        } else {
+            const savedName = getWorkflowName();
+            setWorkflowName(savedName);
+        }
+    }, [externalWorkflowName]);
 
     useEffect(() => {
         if (isEditing && inputRef.current) {
@@ -31,6 +35,12 @@ const Header = ({ onMenuClick, onSave, onLoad, onExport }) => {
         const finalValue = trimmedValue || 'Workflow';
         setWorkflowName(finalValue);
         saveWorkflowName(finalValue);
+        
+        // 부모 컴포넌트에 변경사항 알림
+        if (onWorkflowNameChange) {
+            onWorkflowNameChange(finalValue);
+        }
+        
         setIsEditing(false);
     };
 

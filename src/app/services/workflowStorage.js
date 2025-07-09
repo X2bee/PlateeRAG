@@ -1,5 +1,3 @@
-// 워크플로우 이름 관련 유틸리티 함수들
-
 const WORKFLOW_NAME_KEY = 'plateerag_workflow_name';
 const WORKFLOW_STATE_KEY = 'plateerag_workflow_state';
 const DEFAULT_WORKFLOW_NAME = 'Workflow';
@@ -73,12 +71,12 @@ export const saveWorkflowState = (state) => {
     if (typeof window === 'undefined') return;
     
     try {
-        // 상태가 비어있으면 저장하지 않음
-        if (!state || (!state.nodes && !state.edges)) {
+        // 상태가 없으면 저장하지 않음
+        if (!state) {
             return;
         }
         
-        // 상태를 JSON 문자열로 저장
+        // 상태를 JSON 문자열로 저장 (view 정보도 포함)
         localStorage.setItem(WORKFLOW_STATE_KEY, JSON.stringify(state));
     } catch (error) {
         console.warn('Failed to save workflow state to localStorage:', error);
@@ -114,9 +112,32 @@ export const startNewWorkflow = () => {
 export const isValidWorkflowState = (state) => {
     if (!state || typeof state !== 'object') return false;
     
-    // 필수 속성들이 있는지 확인
+    // 필수 속성들이 있는지 확인 (view 정보도 포함)
     return (
         Array.isArray(state.nodes) &&
-        Array.isArray(state.edges)
+        Array.isArray(state.edges) &&
+        state.view && 
+        typeof state.view === 'object'
     );
+};
+
+/**
+ * 워크플로우 상태에 기본 view 정보를 추가합니다
+ * @param {object} state - 워크플로우 상태
+ * @returns {object} view 정보가 포함된 완전한 상태
+ */
+export const ensureValidWorkflowState = (state) => {
+    if (!state) return null;
+    
+    const defaultView = { x: 0, y: 0, scale: 1 };
+    
+    return {
+        nodes: Array.isArray(state.nodes) ? state.nodes : [],
+        edges: Array.isArray(state.edges) ? state.edges : [],
+        view: (state.view && typeof state.view === 'object') ? {
+            x: typeof state.view.x === 'number' ? state.view.x : defaultView.x,
+            y: typeof state.view.y === 'number' ? state.view.y : defaultView.y,
+            scale: typeof state.view.scale === 'number' ? state.view.scale : defaultView.scale
+        } : defaultView
+    };
 };
