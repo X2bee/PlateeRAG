@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from '@/app/(canvas)/assets/Header.module.scss';
-import { LuPanelRightOpen, LuSave, LuFolderOpen, LuCheck, LuX, LuPencil, LuDownload } from "react-icons/lu";
+import { LuPanelRightOpen, LuSave, LuFolderOpen, LuCheck, LuX, LuPencil, LuDownload, LuFileText } from "react-icons/lu";
 import { getWorkflowName, saveWorkflowName } from '@/app/services/workflowStorage';
 
-const Header = ({ onMenuClick, onSave, onLoad, onExport, workflowName: externalWorkflowName, onWorkflowNameChange }) => {
+const Header = ({ onMenuClick, onSave, onLoad, onExport, onNewWorkflow, workflowName: externalWorkflowName, onWorkflowNameChange }) => {
     const [workflowName, setWorkflowName] = useState('Workflow');
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState('');
@@ -114,6 +114,9 @@ const Header = ({ onMenuClick, onSave, onLoad, onExport, workflowName: externalW
                         <li><button type="button">도움말</button></li>
                     </ul>
                 </nav> */}
+                <button onClick={onNewWorkflow} className={styles.menuButton} title="New Workflow">
+                    <LuFileText />
+                </button>
                 <button onClick={onSave} className={styles.menuButton} title="Save Workflow">
                     <LuSave />
                 </button>

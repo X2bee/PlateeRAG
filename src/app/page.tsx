@@ -10,7 +10,7 @@ import ExecutionPanel from '@/app/(canvas)/components/ExecutionPanel';
 import styles from '@/app/(canvas)/assets/PlateeRAG.module.scss';
 
 import { executeWorkflow, saveWorkflow, listWorkflows } from '@/app/api/components/nodeApi';
-import { getWorkflowName, getWorkflowState, saveWorkflowState, clearWorkflowState, isValidWorkflowState, ensureValidWorkflowState, saveWorkflowName } from '@/app/services/workflowStorage';
+import { getWorkflowName, getWorkflowState, saveWorkflowState, clearWorkflowState, isValidWorkflowState, ensureValidWorkflowState, saveWorkflowName, startNewWorkflow } from '@/app/services/workflowStorage';
 
 export default function Home() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -50,37 +50,69 @@ export default function Home() {
 
     // 컴포넌트 마운트 시 워크플로우 이름과 상태 복원
     useEffect(() => {
+        console.log('=== Page useEffect: Restoring workflow state ===');
+        
         // 저장된 워크플로우 이름 복원
         const savedName = getWorkflowName();
+        console.log('Restored workflow name:', savedName);
         setCurrentWorkflowName(savedName);
+    }, []);
 
-        // 저장된 워크플로우 상태 복원
+    // Canvas가 마운트된 후 상태 복원을 위한 별도 useEffect
+    useEffect(() => {
         const restoreWorkflowState = () => {
+            console.log('restoreWorkflowState called, canvasRef.current:', !!canvasRef.current);
             const savedState = getWorkflowState();
+            
             if (savedState && canvasRef.current) {
                 try {
                     const validState = ensureValidWorkflowState(savedState);
                     if (validState) {
+                        console.log('Loading workflow state to Canvas:', validState);
                         (canvasRef.current as any).loadWorkflowState(validState);
-                        console.log('Workflow state restored from localStorage', validState);
+                        console.log('Workflow state restored from localStorage successfully');
+                    } else {
+                        console.log('No valid state to restore');
                     }
                 } catch (error) {
                     console.warn('Failed to restore workflow state:', error);
                 }
+            } else {
+                console.log('No saved state found or Canvas not ready:', {
+                    hasSavedState: !!savedState,
+                    hasCanvasRef: !!canvasRef.current
+                });
+                
+                // Canvas가 아직 준비되지 않았다면 다시 시도
+                if (!canvasRef.current && savedState) {
+                    console.log('Canvas not ready, retrying in 200ms...');
+                    setTimeout(restoreWorkflowState, 200);
+                }
             }
         };
 
-        // Canvas가 준비된 후 상태 복원
+        // 최초 시도
         const timer = setTimeout(restoreWorkflowState, 100);
         return () => clearTimeout(timer);
-    }, []);
+    }, [canvasRef.current]); // canvasRef.current 변경 시 재실행
 
     // 워크플로우 상태 변경 시 자동 저장
     const handleCanvasStateChange = (state: any) => {
+        console.log('handleCanvasStateChange called with:', {
+            hasState: !!state,
+            nodesCount: state?.nodes?.length || 0,
+            edgesCount: state?.edges?.length || 0,
+            view: state?.view
+        });
+        
         try {
-            // 상태가 있으면 저장 (view 정보도 포함)
-            if (state) {
+            // 상태가 있고 비어있지 않으면 저장 (빈 상태로 덮어쓰기 방지)
+            if (state && (state.nodes?.length > 0 || state.edges?.length > 0)) {
+                console.log('Saving non-empty state to localStorage');
                 saveWorkflowState(state);
+                console.log('Workflow state saved to localStorage');
+            } else {
+                console.log('Skipping save of empty state to preserve existing localStorage data');
             }
         } catch (error) {
             console.warn('Failed to auto-save workflow state:', error);
@@ -97,6 +129,136 @@ export default function Home() {
     const handleWorkflowNameChange = (newName: string) => {
         setCurrentWorkflowName(newName);
         // localStorage 저장은 Header에서 이미 처리하므로 중복 저장 방지
+    };
+
+    // 새로운 워크플로우 시작 핸들러
+    const handleNewWorkflow = () => {
+        // 현재 작업이 있는지 확인
+        const hasCurrentWork = canvasRef.current && 
+            ((canvasRef.current as any).getCanvasState?.()?.nodes?.length > 0 || 
+             (canvasRef.current as any).getCanvasState?.()?.edges?.length > 0);
+
+        if (hasCurrentWork) {
+            // 확인 토스트 표시
+            const confirmToast = toast(
+                (t) => (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div style={{ fontWeight: '600', color: '#dc2626', fontSize: '1rem' }}>
+                            Start New Workflow?
+                        </div>
+                        <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.4' }}>
+                            This will clear all current nodes and edges. 
+                            <br />
+                            Make sure to save your current work if needed.
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
+                            <button
+                                onClick={() => {
+                                    toast.dismiss(t.id);
+                                }}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: '#ffffff',
+                                    border: '2px solid #6b7280',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    fontWeight: '500',
+                                    color: '#374151',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                }}
+                                onMouseOver={(e) => {
+                                    (e.target as HTMLButtonElement).style.backgroundColor = '#f9fafb';
+                                    (e.target as HTMLButtonElement).style.borderColor = '#4b5563';
+                                }}
+                                onMouseOut={(e) => {
+                                    (e.target as HTMLButtonElement).style.backgroundColor = '#ffffff';
+                                    (e.target as HTMLButtonElement).style.borderColor = '#6b7280';
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    toast.dismiss(t.id);
+                                    performNewWorkflow();
+                                }}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: '#dc2626',
+                                    color: 'white',
+                                    border: '2px solid #b91c1c',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    fontWeight: '500',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                }}
+                                onMouseOver={(e) => {
+                                    (e.target as HTMLButtonElement).style.backgroundColor = '#b91c1c';
+                                    (e.target as HTMLButtonElement).style.borderColor = '#991b1b';
+                                }}
+                                onMouseOut={(e) => {
+                                    (e.target as HTMLButtonElement).style.backgroundColor = '#dc2626';
+                                    (e.target as HTMLButtonElement).style.borderColor = '#b91c1c';
+                                }}
+                            >
+                                Start New
+                            </button>
+                        </div>
+                    </div>
+                ),
+                {
+                    duration: Infinity,
+                    style: {
+                        maxWidth: '420px',
+                        padding: '20px',
+                        backgroundColor: '#f9fafb',
+                        border: '2px solid #374151',
+                        borderRadius: '12px',
+                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
+                        color: '#374151',
+                        fontFamily: 'system-ui, -apple-system, sans-serif'
+                    }
+                }
+            );
+        } else {
+            // 작업이 없으면 바로 시작
+            performNewWorkflow();
+        }
+    };
+
+    // 실제 새로운 워크플로우 시작 로직
+    const performNewWorkflow = () => {
+        try {
+            console.log('Starting new workflow...');
+            
+            // localStorage 데이터 초기화
+            startNewWorkflow();
+            
+            // Canvas 상태 초기화
+            if (canvasRef.current) {
+                const initialState = {
+                    nodes: [],
+                    edges: [],
+                    view: { x: 0, y: 0, scale: 1 }
+                };
+                (canvasRef.current as any).loadWorkflowState(initialState);
+                console.log('Canvas state reset to initial values');
+            }
+            
+            // 현재 워크플로우 이름을 기본값으로 재설정
+            setCurrentWorkflowName('Workflow');
+            
+            console.log('New workflow started successfully');
+            toast.success('New workflow started');
+            
+        } catch (error: any) {
+            console.error('Failed to start new workflow:', error);
+            toast.error(`Failed to start new workflow: ${error.message}`);
+        }
     };
 
     useEffect(() => {
@@ -385,6 +547,7 @@ export default function Home() {
                 onExport={handleExport}
                 workflowName={currentWorkflowName}
                 onWorkflowNameChange={handleWorkflowNameChange}
+                onNewWorkflow={handleNewWorkflow}
             />
             <main className={styles.mainContent}>
                 <Canvas ref={canvasRef} onStateChange={handleCanvasStateChange} />

@@ -42,7 +42,7 @@ const validateRequiredInputs = (nodes, edges) => {
     return { isValid: true };
 };
 
-const Canvas = forwardRef(({ onStateChange }, ref) => {
+const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
     const contentRef = useRef(null);
     const containerRef = useRef(null);
 
@@ -87,7 +87,20 @@ const Canvas = forwardRef(({ onStateChange }, ref) => {
     useEffect(() => {
         if (onStateChange) {
             const currentState = { view, nodes, edges };
-            onStateChange(currentState);
+            
+            // 빈 상태는 저장하지 않음 (localStorage 덮어쓰기 방지)
+            if (nodes.length > 0 || edges.length > 0) {
+                console.log('Canvas state changed, calling onStateChange:', {
+                    nodesCount: nodes.length,
+                    edgesCount: edges.length,
+                    view: view
+                });
+                onStateChange(currentState);
+            } else {
+                console.log('Canvas state is empty, skipping onStateChange to preserve localStorage');
+            }
+        } else {
+            console.warn('onStateChange callback is not provided to Canvas');
         }
     }, [nodes, edges, view, onStateChange]);
 
@@ -127,9 +140,29 @@ const Canvas = forwardRef(({ onStateChange }, ref) => {
         },
         loadWorkflowState: (state) => {
             // 상태 복원용 메서드 (자동 저장된 상태를 로드할 때 사용)
-            if (state.nodes) setNodes(state.nodes);
-            if (state.edges) setEdges(state.edges);
-            if (state.view) setView(state.view);
+            console.log('Canvas loadWorkflowState called with:', {
+                hasNodes: !!state.nodes,
+                nodesCount: state.nodes?.length || 0,
+                hasEdges: !!state.edges,
+                edgesCount: state.edges?.length || 0,
+                hasView: !!state.view,
+                view: state.view
+            });
+            
+            if (state.nodes) {
+                console.log('Setting nodes:', state.nodes.length);
+                setNodes(state.nodes);
+            }
+            if (state.edges) {
+                console.log('Setting edges:', state.edges.length);
+                setEdges(state.edges);
+            }
+            if (state.view) {
+                console.log('Setting view:', state.view);
+                setView(state.view);
+            }
+            
+            console.log('Canvas loadWorkflowState completed');
         },
         validateAndPrepareExecution: () => {
             const validationResult = validateRequiredInputs(nodes, edges);
@@ -549,6 +582,18 @@ const Canvas = forwardRef(({ onStateChange }, ref) => {
             setView({ x: (containerWidth - contentWidth) / 2, y: (containerHeight - contentHeight) / 2, scale: 1 });
         }
     }, []);
+
+    useEffect(() => {
+        // Canvas 마운트 시 초기 상태 알림 (하지만 빈 상태는 저장하지 않도록)
+        console.log('Canvas mounted, checking initial state');
+        if (onStateChange && (nodes.length > 0 || edges.length > 0)) {
+            console.log('Canvas has content, sending initial state');
+            const initialState = { view, nodes, edges };
+            onStateChange(initialState);
+        } else {
+            console.log('Canvas is empty, not sending initial state to avoid overwriting localStorage');
+        }
+    }, []); // 마운트 시 한 번만 실행
 
     useEffect(() => {
         const handleKeyDown = (e) => {
