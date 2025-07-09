@@ -174,8 +174,8 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
 
             <div className={styles.workflowList}>
                 <div className={styles.listHeader}>
-                    <h3>Saved Workflows</h3>
-                    <span className={styles.count}>({workflows.length})</span>
+                    <h3>📁 Saved Workflows</h3>
+                    <span className={styles.count}>{workflows.length}</span>
                 </div>
 
                 {isLoading && (
