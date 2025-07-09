@@ -238,14 +238,18 @@ export default function Home() {
             // localStorage 데이터 초기화
             startNewWorkflow();
             
-            // Canvas 상태 초기화
+            // Canvas 상태 초기화 (기존 Canvas 초기화 로직과 동일하게)
             if (canvasRef.current) {
+                const canvas = canvasRef.current;
+                const centeredView = (canvas as any).getCenteredView();
+
+                // 먼저 기본 상태로 초기화
                 const initialState = {
                     nodes: [],
                     edges: [],
-                    view: { x: 0, y: 0, scale: 1 }
+                    view: centeredView
                 };
-                (canvasRef.current as any).loadWorkflowState(initialState);
+                (canvas as any).loadWorkflowState(initialState);
                 console.log('Canvas state reset to initial values');
             }
             

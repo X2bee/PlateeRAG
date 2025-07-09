@@ -116,6 +116,37 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
         }
     }, []);
 
+    // 중앙 정렬 좌표를 계산하는 함수
+    const getCenteredView = useCallback(() => {
+        const container = containerRef.current;
+        const content = contentRef.current;
+        
+        if (container && content) {
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            const contentWidth = content.offsetWidth;
+            const contentHeight = content.offsetHeight;
+            
+            // 컨테이너나 콘텐츠 크기가 0이면 기본값 반환
+            if (containerWidth <= 0 || containerHeight <= 0) {
+                console.log('Container not ready for centered view calculation, using default');
+                return { x: 0, y: 0, scale: 1 };
+            }
+            
+            const centeredView = {
+                x: (containerWidth - contentWidth) / 2,
+                y: (containerHeight - contentHeight) / 2,
+                scale: 1
+            };
+            
+            console.log('Calculated centered view:', centeredView, 'container:', { containerWidth, containerHeight }, 'content:', { contentWidth, contentHeight });
+            return centeredView;
+        }
+        
+        console.log('Container or content not ready for centered view calculation');
+        return { x: 0, y: 0, scale: 1 };
+    }, []);
+
 
     useImperativeHandle(ref, () => ({
         getCanvasState: () => ({ view, nodes, edges }),
@@ -164,6 +195,7 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
             
             console.log('Canvas loadWorkflowState completed');
         },
+        getCenteredView,
         validateAndPrepareExecution: () => {
             const validationResult = validateRequiredInputs(nodes, edges);
             if (!validationResult.isValid) {
@@ -562,7 +594,6 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
         const container = containerRef.current;
         if (container) {
             container.addEventListener('keydown', handleKeyDown);
-            // 포커스를 받을 수 있도록 tabindex 설정
             container.setAttribute('tabindex', '0');
             
             return () => {
@@ -575,16 +606,12 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
         const container = containerRef.current;
         const content = contentRef.current;
         if (container && content) {
-            const containerWidth = container.clientWidth;
-            const containerHeight = container.clientHeight;
-            const contentWidth = content.offsetWidth;
-            const contentHeight = content.offsetHeight;
-            setView({ x: (containerWidth - contentWidth) / 2, y: (containerHeight - contentHeight) / 2, scale: 1 });
+            const centeredView = getCenteredView();
+            setView(centeredView);
         }
     }, []);
 
     useEffect(() => {
-        // Canvas 마운트 시 초기 상태 알림 (하지만 빈 상태는 저장하지 않도록)
         console.log('Canvas mounted, checking initial state');
         if (onStateChange && (nodes.length > 0 || edges.length > 0)) {
             console.log('Canvas has content, sending initial state');
@@ -593,7 +620,7 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
         } else {
             console.log('Canvas is empty, not sending initial state to avoid overwriting localStorage');
         }
-    }, []); // 마운트 시 한 번만 실행
+    }, []);
 
     useEffect(() => {
         const handleKeyDown = (e) => {
