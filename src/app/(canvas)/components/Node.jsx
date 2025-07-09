@@ -11,8 +11,33 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
     };
 
     const handleParamValueChange = (e, paramId) => {
+        console.log('=== Parameter Change Event ===');
+        console.log('nodeId:', id, 'paramId:', paramId, 'value:', e.target.value);
+        
+        // 이벤트 전파 중단
+        e.preventDefault();
         e.stopPropagation();
-        onParameterChange(id, paramId, e.target.value);
+        
+        try {
+            // 값 검증
+            const value = e.target.value;
+            if (value === undefined || value === null) {
+                console.warn('Invalid parameter value:', value);
+                return;
+            }
+            
+            console.log('Calling onParameterChange...');
+            // 안전한 콜백 호출
+            if (typeof onParameterChange === 'function') {
+                onParameterChange(id, paramId, value);
+                console.log('onParameterChange completed successfully');
+            } else {
+                console.error('onParameterChange is not a function');
+            }
+        } catch (error) {
+            console.error('Error in handleParamValueChange:', error);
+        }
+        console.log('=== End Parameter Change ===');
     };
 
     const hasInputs = inputs?.length > 0;
@@ -91,7 +116,7 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                         <div className={styles.paramSection}>
                             <div className={styles.sectionHeader}>PARAMETER</div>
                             {parameters.map(param => (
-                                <div key={param.id} className={styles.param}>
+                                <div key={param.id} className={`${styles.param} param`}>
                                     <span className={`${styles.paramKey} ${param.required ? styles.required : ''}`}>
                                         {param.name}
                                     </span>
@@ -99,8 +124,23 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                                         <select 
                                             value={param.value} 
                                             onChange={(e) => handleParamValueChange(e, param.id)} 
-                                            onMouseDown={(e) => e.stopPropagation()} 
-                                            className={styles.paramSelect}
+                                            onMouseDown={(e) => {
+                                                console.log('select onMouseDown');
+                                                e.stopPropagation();
+                                            }}
+                                            onClick={(e) => {
+                                                console.log('select onClick');
+                                                e.stopPropagation();
+                                            }}
+                                            onFocus={(e) => {
+                                                console.log('select onFocus');
+                                                e.stopPropagation();
+                                            }}
+                                            onBlur={(e) => {
+                                                console.log('select onBlur');
+                                                e.stopPropagation();
+                                            }}
+                                            className={`${styles.paramSelect} paramSelect`}
                                         >
                                             {param.options.map((option, index) => (
                                                 <option key={index} value={option.value}>
@@ -113,8 +153,19 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                                             type={typeof param.value === 'number' ? 'number' : 'text'} 
                                             value={param.value} 
                                             onChange={(e) => handleParamValueChange(e, param.id)} 
-                                            onMouseDown={(e) => e.stopPropagation()} 
-                                            className={styles.paramInput} 
+                                            onMouseDown={(e) => {
+                                                console.log('input onMouseDown');
+                                                e.stopPropagation();
+                                            }}
+                                            onClick={(e) => {
+                                                console.log('input onClick');
+                                                e.stopPropagation();
+                                            }}
+                                            onFocus={(e) => {
+                                                console.log('input onFocus');
+                                                e.stopPropagation();
+                                            }}
+                                            className={`${styles.paramInput} paramInput`} 
                                             step={param.step}
                                             min={param.min}
                                             max={param.max}

@@ -17,6 +17,32 @@ export default function Home() {
     const menuRef = useRef(null);
     const canvasRef = useRef(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [hasError, setHasError] = useState(false);
+
+    // Error boundary를 위한 useEffect
+    useEffect(() => {
+        const handleError = (error: any) => {
+            console.error('Global error caught:', error);
+            setHasError(true);
+        };
+
+        window.addEventListener('error', handleError);
+        window.addEventListener('unhandledrejection', handleError);
+
+        return () => {
+            window.removeEventListener('error', handleError);
+            window.removeEventListener('unhandledrejection', handleError);
+        };
+    }, []);
+
+    if (hasError) {
+        return (
+            <div style={{ padding: '20px', color: 'red' }}>
+                <h2>Something went wrong!</h2>
+                <button onClick={() => setHasError(false)}>Reset</button>
+            </div>
+        );
+    }
 
     const [executionOutput, setExecutionOutput] = useState<any>(null);
     const [isExecuting, setIsExecuting] = useState(false);

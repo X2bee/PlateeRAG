@@ -183,22 +183,70 @@ const Canvas = forwardRef(({ onStateChange }, ref) => {
 
 
     const handleParameterChange = useCallback((nodeId, paramId, value) => {
-        setNodes(prevNodes =>
-            prevNodes.map(node => {
-                if (node.id === nodeId) {
-                    const newParameters = node.data.parameters.map(param => {
-                        if (param.id === paramId) {
-                            const newValue = typeof param.value === 'number' ? Number(value) : value;
-                            return { ...param, value: newValue };
-                        }
-                        return param;
-                    });
-                    const newData = { ...node.data, parameters: newParameters };
-                    return { ...node, data: newData };
+        console.log('=== Canvas Parameter Change ===');
+        console.log('Received:', { nodeId, paramId, value });
+        
+        // React state 업데이트를 위한 안전한 접근
+        setNodes(prevNodes => {
+            console.log('Previous nodes count:', prevNodes.length);
+            
+            // 먼저 타겟 노드가 존재하는지 확인
+            const targetNodeIndex = prevNodes.findIndex(node => node.id === nodeId);
+            if (targetNodeIndex === -1) {
+                console.warn('Target node not found:', nodeId);
+                return prevNodes; // 변경 없음
+            }
+            
+            const targetNode = prevNodes[targetNodeIndex];
+            console.log('Found target node:', targetNode.data.nodeName);
+            
+            // parameters가 존재하는지 확인
+            if (!targetNode.data.parameters || !Array.isArray(targetNode.data.parameters)) {
+                console.warn('No parameters found in target node');
+                return prevNodes; // 변경 없음
+            }
+            
+            // 타겟 parameter가 존재하는지 확인
+            const targetParamIndex = targetNode.data.parameters.findIndex(param => param.id === paramId);
+            if (targetParamIndex === -1) {
+                console.warn('Target parameter not found:', paramId);
+                return prevNodes; // 변경 없음
+            }
+            
+            const targetParam = targetNode.data.parameters[targetParamIndex];
+            const newValue = typeof targetParam.value === 'number' ? Number(value) : value;
+            
+            // 값이 실제로 변경되었는지 확인
+            if (targetParam.value === newValue) {
+                console.log('Parameter value unchanged, skipping update');
+                return prevNodes; // 변경 없음
+            }
+            
+            console.log('Updating parameter:', { 
+                paramName: targetParam.name,
+                paramId, 
+                oldValue: targetParam.value, 
+                newValue 
+            });
+            
+            // 새로운 배열 생성 (immutable update)
+            const newNodes = [...prevNodes];
+            newNodes[targetNodeIndex] = {
+                ...targetNode,
+                data: {
+                    ...targetNode.data,
+                    parameters: [
+                        ...targetNode.data.parameters.slice(0, targetParamIndex),
+                        { ...targetParam, value: newValue },
+                        ...targetNode.data.parameters.slice(targetParamIndex + 1)
+                    ]
                 }
-                return node;
-            })
-        );
+            };
+            
+            console.log('Parameter update completed successfully');
+            console.log('=== End Canvas Parameter Change ===');
+            return newNodes;
+        });
     }, []);
 
     const findPortData = (nodeId, portId, portType) => {
@@ -209,6 +257,19 @@ const Canvas = forwardRef(({ onStateChange }, ref) => {
     };
 
     const handleCanvasMouseDown = (e) => {
+        // Parameter 입력 요소들은 Canvas 이벤트에서 제외
+        const target = e.target;
+        const isParameterInput = target.matches('input, select, option') ||
+                                target.classList.contains('paramInput') || 
+                                target.classList.contains('paramSelect') ||
+                                target.closest('.param') ||
+                                target.closest('[class*="param"]');
+        
+        if (isParameterInput) {
+            console.log('Canvas mousedown blocked for parameter input:', target);
+            return;
+        }
+
         if (e.button !== 0) return;
         setSelectedNodeId(null);
         setSelectedEdgeId(null);

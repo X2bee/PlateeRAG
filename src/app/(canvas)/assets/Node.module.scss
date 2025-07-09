@@ -230,11 +230,14 @@
     transition: border-color 0.2s, box-shadow 0.2s;
     text-align: right;
     cursor: pointer;
+    position: relative; // z-index 문제 방지
+    z-index: 1; // 기본 z-index 설정
 
     &:focus {
         background-color: #fff;
         border-color: #3b82f6;
         box-shadow: 0 0 0 1px #3b82f6;
+        z-index: 1000; // focus 시 최상위로
     }
 
     &:hover {

@@ -16,7 +16,11 @@ export const NODE_DATA = [
                             { id: 'in-stop', name: 'Stop Sequence', multi: false, type: 'STR' },
                         ],
                         parameters: [
-                            { id: 'p-model', name: 'Model', value: 'gpt-4o' },
+                            { id: 'p-model', name: 'Model', value: 'gpt-4o', options: [
+                                { value: 'gpt-4o', label: 'GPT-4o' },
+                                { value: 'gpt-4', label: 'GPT-4' },
+                                { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' }
+                            ]},
                             { id: 'p-temp', name: 'Temperature', value: 0.7, step: 0.1 },
                         ],
                         outputs: [
