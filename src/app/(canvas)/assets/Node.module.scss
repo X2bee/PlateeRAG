@@ -176,6 +176,12 @@
 .paramKey {
     color: #6b7280;
     margin-right: 8px;
+
+    &.required::after {
+        content: " *";
+        color: #ef4444;
+        font-weight: bold;
+    }
 }
 
 .paramValue {

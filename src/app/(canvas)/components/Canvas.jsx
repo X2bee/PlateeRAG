@@ -56,6 +56,7 @@ const Canvas = forwardRef(({ onStateChange }, ref) => {
     const [portPositions, setPortPositions] = useState({});
     const [snappedPortKey, setSnappedPortKey] = useState(null);
     const [isSnapTargetValid, setIsSnapTargetValid] = useState(true);
+    const [copiedNode, setCopiedNode] = useState(null); // 복사된 노드 저장
 
     const nodesRef = useRef(nodes);
     const edgePreviewRef = useRef(edgePreview);
@@ -81,13 +82,17 @@ const Canvas = forwardRef(({ onStateChange }, ref) => {
         setPortPositions(newPortPositions);
     }, [nodes, view.scale]);
 
-    // 상태 변경 감지 및 콜백 호출
+
+
     useEffect(() => {
-        if (onStateChange && (nodes.length > 0 || edges.length > 0)) {
+        if (onStateChange) {
             const currentState = { view, nodes, edges };
             onStateChange(currentState);
         }
-    }, [nodes, edges, onStateChange]);
+    }, [nodes, edges, view, onStateChange]);
+
+    // 키보드 이벤트 리스너 등록
+
 
     const registerPortRef = useCallback((nodeId, portId, portType, el) => {
         const key = `${nodeId}__PORTKEYDELIM__${portId}__PORTKEYDELIM__${portType}`;
@@ -146,6 +151,36 @@ const Canvas = forwardRef(({ onStateChange }, ref) => {
         if (!pos1 || !pos2) return Infinity;
         return Math.sqrt(Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2));
     };
+
+    const copySelectedNode = () => {
+        if (selectedNodeId) {
+            const nodeToCopy = nodes.find(node => node.id === selectedNodeId);
+            if (nodeToCopy) {
+                setCopiedNode(nodeToCopy);
+                console.log('Node copied:', nodeToCopy.data.nodeName);
+            }
+        }
+    };
+
+    const pasteNode = () => {
+        if (copiedNode) {
+            const newNode = {
+                ...copiedNode,
+                id: `${copiedNode.data.id}-${Date.now()}`, // 새로운 고유 ID 생성
+                position: {
+                    x: copiedNode.position.x + 50, // 약간 오프셋을 주어 겹치지 않게
+                    y: copiedNode.position.y + 50
+                }
+            };
+            
+            setNodes(prev => [...prev, newNode]);
+            setSelectedNodeId(newNode.id); // 새로 생성된 노드를 선택
+            console.log('Node pasted:', newNode.data.nodeName);
+        }
+    };
+
+    // 키보드 이벤트 핸들러
+
 
     const handleParameterChange = useCallback((nodeId, paramId, value) => {
         setNodes(prevNodes =>
@@ -238,6 +273,22 @@ const Canvas = forwardRef(({ onStateChange }, ref) => {
             setSnappedPortKey(closestPortKey);
         }
     };
+
+    const handleKeyDown = useCallback((e) => {
+        if (e.ctrlKey && e.key === 'c') {
+            e.preventDefault();
+            copySelectedNode();
+        }
+        else if (e.ctrlKey && e.key === 'v') {
+            e.preventDefault();
+            pasteNode();
+        }
+        else if (e.key === 'Delete' && selectedNodeId) {
+            e.preventDefault();
+            setNodes(prev => prev.filter(node => node.id !== selectedNodeId));
+            setSelectedNodeId(null);
+        }
+    }, [selectedNodeId, copiedNode, nodes]);
 
     const handleNodeMouseDown = useCallback((e, nodeId) => {
         if (e.button !== 0) return;
@@ -415,6 +466,19 @@ const Canvas = forwardRef(({ onStateChange }, ref) => {
 
     useEffect(() => {
         const container = containerRef.current;
+        if (container) {
+            container.addEventListener('keydown', handleKeyDown);
+            // 포커스를 받을 수 있도록 tabindex 설정
+            container.setAttribute('tabindex', '0');
+            
+            return () => {
+                container.removeEventListener('keydown', handleKeyDown);
+            };
+        }
+    }, [handleKeyDown]);
+
+    useEffect(() => {
+        const container = containerRef.current;
         const content = contentRef.current;
         if (container && content) {
             const containerWidth = container.clientWidth;
@@ -450,6 +514,9 @@ const Canvas = forwardRef(({ onStateChange }, ref) => {
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
+            onClick={() => containerRef.current?.focus()} // 클릭 시 포커스
+            tabIndex={0} // 키보드 포커스 가능하도록
+            style={{ outline: 'none' }} // 포커스 아웃라인 제거
         >
             <div
                 ref={contentRef}
