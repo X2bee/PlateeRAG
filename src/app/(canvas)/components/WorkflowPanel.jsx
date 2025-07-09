@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import styles from '@/app/(canvas)/assets/WorkflowPanel.module.scss';
+import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss'; // SideMenu 스타일 추가
 import { LuArrowLeft, LuFolderOpen, LuDownload, LuRefreshCw, LuCalendar, LuTrash2 } from "react-icons/lu";
 import { listWorkflows, loadWorkflow, deleteWorkflow } from '@/app/api/components/nodeApi';
 
@@ -146,14 +147,14 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
 
     return (
         <div className={styles.workflowPanel}>
-            <div className={styles.header}>
-                <button onClick={onBack} className={styles.backButton}>
+            <div className={sideMenuStyles.header}>
+                <button onClick={onBack} className={sideMenuStyles.backButton}>
                     <LuArrowLeft />
                 </button>
-                <h2>Workflow</h2>
+                <h3>Workflow</h3>
                 <button 
                     onClick={handleRefresh} 
-                    className={`${styles.refreshButton} ${isLoading ? styles.loading : ''}`}
+                    className={`${sideMenuStyles.refreshButton} ${isLoading ? sideMenuStyles.loading : ''}`}
                     disabled={isLoading}
                     title="Refresh Workflow List"
                 >

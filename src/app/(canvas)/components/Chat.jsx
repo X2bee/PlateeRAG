@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { sendMessage } from '../../services/chatAPI';
 import styles from '../assets/Chat.module.scss'; // Corrected path
+import sideMenuStyles from '../assets/SideMenu.module.scss'; // SideMenu 스타일 추가
 import { LuArrowLeft, LuSend } from "react-icons/lu"; // Icons for back and send
 
 const Chat = ({ onBack }) => {
@@ -66,8 +67,8 @@ const Chat = ({ onBack }) => {
 
     return (
         <div className={styles.chatContainer}>
-            <div className={styles.chatHeader}>
-                <button onClick={onBack} className={styles.backButton} aria-label="Back to main menu">
+            <div className={sideMenuStyles.header}>
+                <button onClick={onBack} className={sideMenuStyles.backButton} aria-label="Back to main menu">
                     <LuArrowLeft />
                 </button>
                 <h3>Chat</h3>
