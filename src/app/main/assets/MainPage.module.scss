@@ -24,16 +24,24 @@ $white: #ffffff;
 .mainContent {
   flex: 1;
   padding: 2rem;
+  margin-left: 280px; // 사이드바 width만큼 좌측 여백 추가
   overflow-y: auto;
+  min-height: 100vh;
 }
 
 .sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 280px;
+  height: 100vh;
   background: $white;
   border-right: 1px solid $gray-200;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
+  z-index: 1000;
+  overflow-y: auto;
 }
 
 // Sidebar Header
@@ -145,13 +153,19 @@ $white: #ffffff;
   }
 
   .sidebar {
+    position: relative;
+    top: auto;
+    left: auto;
     width: 100%;
+    height: auto;
     border-right: none;
     border-top: 1px solid $gray-200;
     order: 2;
+    z-index: auto;
   }
 
   .mainContent {
+    margin-left: 0;
     order: 1;
   }
 
