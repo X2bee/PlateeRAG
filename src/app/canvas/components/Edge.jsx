@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import styles from '@/app/(canvas)/assets/Edge.module.scss';
+import styles from '@/app/canvas/assets/Edge.module.scss';
 
 const getBezierPath = (x1, y1, x2, y2) => {
     const controlPointX1 = x1 + Math.abs(x2 - x1) * 0.5;

@@ -1,6 +1,6 @@
 // src/app/components/Node.jsx
 import React, { memo, useState, useEffect } from 'react';
-import styles from '@/app/(canvas)/assets/Node.module.scss';
+import styles from '@/app/canvas/assets/Node.module.scss';
 import { devLog } from '@/app/utils/logger';
 
 const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown, onPortMouseUp, registerPortRef, snappedPortKey, onParameterChange, isSnapTargetInvalid, isPreview = false, onNodeNameChange }) => {

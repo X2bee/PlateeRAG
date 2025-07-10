@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { sendMessage } from '@/app/api/chatAPI';
-import styles from '@/app/(canvas)/assets/Chat.module.scss';
-import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss';
+import styles from '@/app/canvas/assets/Chat.module.scss';
+import sideMenuStyles from '@/app/canvas/assets/SideMenu.module.scss';
 import { LuArrowLeft, LuSend } from "react-icons/lu";
 import { devLog } from '@/app/utils/logger';
 

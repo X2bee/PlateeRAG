@@ -2,8 +2,8 @@
 import React, { useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import toast from 'react-hot-toast';
-import styles from '@/app/(canvas)/assets/TemplatePreview.module.scss';
-import MiniCanvas from '@/app/(canvas)/components/SideMenuPanel/MiniCanvas';
+import styles from '@/app/canvas/assets/TemplatePreview.module.scss';
+import MiniCanvas from '@/app/canvas/components/SideMenuPanel/MiniCanvas';
 import { LuX, LuCopy } from "react-icons/lu";
 import { devLog } from '@/app/utils/logger';
 

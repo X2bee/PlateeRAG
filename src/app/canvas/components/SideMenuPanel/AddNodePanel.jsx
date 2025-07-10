@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import styles from '@/app/(canvas)/assets/SideMenu.module.scss';
-import NodeList from '@/app/(canvas)/components/Helper/NodeList';
-import DraggableNodeItem from '@/app/(canvas)/components/Helper/DraggableNodeItem';
+import styles from '@/app/canvas/assets/SideMenu.module.scss';
+import NodeList from '@/app/canvas/components/Helper/NodeList';
+import DraggableNodeItem from '@/app/canvas/components/Helper/DraggableNodeItem';
 import { LuSearch, LuArrowLeft, LuBrainCircuit, LuShare2, LuWrench, LuX, LuRefreshCw } from 'react-icons/lu';
 import { SiLangchain } from "react-icons/si";
 import { useNodes } from '@/app/(common)/components/nodeHook';

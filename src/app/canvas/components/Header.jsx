@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import styles from '@/app/(canvas)/assets/Header.module.scss';
+import styles from '@/app/canvas/assets/Header.module.scss';
 import { LuPanelRightOpen, LuSave, LuCheck, LuX, LuPencil, LuFileText } from "react-icons/lu";
 import { getWorkflowName, saveWorkflowName } from '@/app/(common)/components/workflowStorage';
 

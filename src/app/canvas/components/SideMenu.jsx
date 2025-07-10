@@ -1,10 +1,10 @@
 "use client";
 import React, { useState } from 'react';
-import styles from '@/app/(canvas)/assets/SideMenu.module.scss';
-import AddNodePanel from '@/app/(canvas)/components/SideMenuPanel/AddNodePanel';
-import ChatPanel from '@/app/(canvas)/components/SideMenuPanel/ChatPanel';
-import WorkflowPanel from '@/app/(canvas)/components/SideMenuPanel/WorkflowPanel';
-import TemplatePanel from '@/app/(canvas)/components/SideMenuPanel/TemplatePanel';
+import styles from '@/app/canvas/assets/SideMenu.module.scss';
+import AddNodePanel from '@/app/canvas/components/SideMenuPanel/AddNodePanel';
+import ChatPanel from '@/app/canvas/components/SideMenuPanel/ChatPanel';
+import WorkflowPanel from '@/app/canvas/components/SideMenuPanel/WorkflowPanel';
+import TemplatePanel from '@/app/canvas/components/SideMenuPanel/TemplatePanel';
 import { LuCirclePlus, LuCircleHelp, LuSettings, LuLayoutGrid, LuMessageSquare, LuLayoutTemplate } from "react-icons/lu";
 
 // 메인 메뉴 UI
