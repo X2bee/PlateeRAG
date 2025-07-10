@@ -36,7 +36,11 @@ const MiniCanvas = ({ template }) => {
         e.preventDefault();
         e.stopPropagation();
         setIsDragging(true);
-        setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
+        const rect = canvasRef.current.getBoundingClientRect();
+        setDragStart({ 
+            x: e.clientX - rect.left - offset.x, 
+            y: e.clientY - rect.top - offset.y 
+        });
     };
 
     // 드래그 중
@@ -44,9 +48,12 @@ const MiniCanvas = ({ template }) => {
         if (!isDragging) return;
         e.preventDefault();
         e.stopPropagation();
+        const rect = canvasRef.current?.getBoundingClientRect();
+        if (!rect) return;
+        
         setOffset({
-            x: e.clientX - dragStart.x,
-            y: e.clientY - dragStart.y
+            x: e.clientX - rect.left - dragStart.x,
+            y: e.clientY - rect.top - dragStart.y
         });
     };
 
@@ -111,21 +118,39 @@ const MiniCanvas = ({ template }) => {
                 <div className={styles.grid} />
 
                 {/* 엣지 렌더링 */}
-                <svg className={styles.edgesSvg}>
+                <svg 
+                    className={styles.edgesSvg}
+                    style={{
+                        width: '2000px',
+                        height: '2000px',
+                        position: 'absolute',
+                        top: '-500px',
+                        left: '-500px',
+                        pointerEvents: 'none',
+                        zIndex: 1
+                    }}
+                >
                     {edges.map(edge => {
                         const sourceNode = adjustedNodes.find(n => n.id === edge.source.nodeId);
                         const targetNode = adjustedNodes.find(n => n.id === edge.target.nodeId);
                         
-                        if (!sourceNode || !targetNode) return null;
+                        if (!sourceNode || !targetNode) {
+                            console.warn('Missing node for edge:', edge.id);
+                            return null;
+                        }
 
-                        // 포트 위치 계산 (간단한 추정)
+                        // 미니 캔버스 스케일에 맞는 간단한 포트 위치 계산
+                        const nodeWidth = 350 * 0.8; // 280px
+                        const nodeHeight = 120 * 0.8; // 대략적인 노드 높이
+                        
+                        // SVG 좌표 오프셋 적용
                         const sourcePos = {
-                            x: sourceNode.position.x + 180, // 노드 오른쪽
-                            y: sourceNode.position.y + 40   // 노드 중앙
+                            x: sourceNode.position.x + nodeWidth + 500,  // SVG 오프셋 + 노드 오른쪽 끝
+                            y: sourceNode.position.y + nodeHeight / 2 + 500   // SVG 오프셋 + 노드 중앙 높이
                         };
                         const targetPos = {
-                            x: targetNode.position.x,       // 노드 왼쪽
-                            y: targetNode.position.y + 40   // 노드 중앙
+                            x: targetNode.position.x + 500,       // SVG 오프셋 + 노드 왼쪽 시작
+                            y: targetNode.position.y + nodeHeight / 2 + 500   // SVG 오프셋 + 노드 중앙 높이
                         };
 
                         return (
