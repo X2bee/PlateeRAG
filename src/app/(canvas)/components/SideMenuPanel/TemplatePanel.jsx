@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import styles from '@/app/(canvas)/assets/WorkflowPanel.module.scss';
 import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss';
-import { LuArrowLeft, LuLayoutTemplate, LuDownload, LuPlay, LuCopy } from "react-icons/lu";
+import { LuArrowLeft, LuLayoutTemplate, LuPlay, LuCopy } from "react-icons/lu";
 import TemplatePreview from '@/app/(canvas)/components/SideMenuPanel/TemplatePreview';
+import { devLog } from '@/app/utils/logger';
 
 // workflow 파일들 직접 import
 import BasicChatbotTemplate from '@/app/(canvas)/constants/workflow/Basic_Chatbot.json';
@@ -11,9 +12,8 @@ import BasicChatbotTemplate from '@/app/(canvas)/constants/workflow/Basic_Chatbo
 const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
     const [templates, setTemplates] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [previewTemplate, setPreviewTemplate] = useState(null); // 미리보기 상태 추가
+    const [previewTemplate, setPreviewTemplate] = useState(null);
 
-    // 실제 workflow 파일에서 템플릿 데이터 로드
     useEffect(() => {
         const loadTemplates = async () => {
             try {
@@ -26,7 +26,6 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
                         nodes: BasicChatbotTemplate.nodes ? BasicChatbotTemplate.nodes.length : 0,
                         data: BasicChatbotTemplate
                     }
-                    // 여기에 더 많은 템플릿을 추가할 수 있음
                 ];
 
                 setTemplates(templateList);
@@ -42,17 +41,17 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
     }, []);
 
     const handleUseTemplate = (template) => {
-        console.log('=== TemplatePanel handleUseTemplate called ===');
-        console.log('Template:', template);
-        console.log('onLoadWorkflow exists:', !!onLoadWorkflow);
-        console.log('Template data exists:', !!template?.data);
+        devLog.log('=== TemplatePanel handleUseTemplate called ===');
+        devLog.log('Template:', template);
+        devLog.log('onLoadWorkflow exists:', !!onLoadWorkflow);
+        devLog.log('Template data exists:', !!template?.data);
         
         if (onLoadWorkflow && template.data) {
-            console.log('Calling onLoadWorkflow with:', template.data, template.name);
+            devLog.log('Calling onLoadWorkflow with:', template.data, template.name);
             onLoadWorkflow(template.data, template.name);
-            console.log('onLoadWorkflow call completed');
+            devLog.log('onLoadWorkflow call completed');
         } else {
-            console.error('Cannot call onLoadWorkflow:', {
+            devLog.error('Cannot call onLoadWorkflow:', {
                 hasOnLoadWorkflow: !!onLoadWorkflow,
                 hasTemplateData: !!template?.data
             });
@@ -60,13 +59,13 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
     };
 
     const handlePreviewTemplate = (template) => {
-        console.log('Previewing template:', template);
-        console.log('Setting previewTemplate state to:', template);
+        devLog.log('Previewing template:', template);
+        devLog.log('Setting previewTemplate state to:', template);
         setPreviewTemplate(template); // 미리보기 템플릿 설정
     };
 
     const handleClosePreview = () => {
-        console.log('Closing preview');
+        devLog.log('Closing preview');
         setPreviewTemplate(null); // 미리보기 닫기
     };
 
@@ -87,7 +86,7 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
         );
     }
 
-    console.log('TemplatePanel render - previewTemplate:', previewTemplate);
+    devLog.log('TemplatePanel render - previewTemplate:', previewTemplate);
 
     return (
         <div className={styles.workflowPanel}>

@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import styles from '@/app/(canvas)/assets/TemplatePreview.module.scss';
 import MiniCanvas from '@/app/(canvas)/components/SideMenuPanel/MiniCanvas';
 import { LuX, LuCopy } from "react-icons/lu";
+import { devLog } from '@/app/utils/logger';
 
 const TemplatePreview = ({ template, onClose, onUseTemplate }) => {
     const previewRef = useRef(null);
@@ -52,23 +53,23 @@ const TemplatePreview = ({ template, onClose, onUseTemplate }) => {
                         <button 
                             className={styles.useButton}
                             onClick={(e) => {
-                                console.log('=== TemplatePreview Use Template clicked ===');
-                                console.log('Event:', e);
-                                console.log('Template:', template);
-                                console.log('onUseTemplate function:', onUseTemplate);
+                                devLog.log('=== TemplatePreview Use Template clicked ===');
+                                devLog.log('Event:', e);
+                                devLog.log('Template:', template);
+                                devLog.log('onUseTemplate function:', onUseTemplate);
                                 e.preventDefault();
                                 e.stopPropagation();
                                 try {
                                     onUseTemplate(template);
-                                    console.log('onUseTemplate called successfully');
+                                    devLog.log('onUseTemplate called successfully');
                                     onClose();
-                                    console.log('onClose called successfully');
+                                    devLog.log('onClose called successfully');
                                 } catch (error) {
-                                    console.error('Error in Use Template:', error);
+                                    devLog.error('Error in Use Template:', error);
                                 }
                             }}
                             onMouseDown={(e) => {
-                                console.log('Use Template mousedown');
+                                devLog.log('Use Template mousedown');
                                 e.stopPropagation();
                             }}
                             title="Use This Template"
@@ -79,7 +80,7 @@ const TemplatePreview = ({ template, onClose, onUseTemplate }) => {
                         <button 
                             className={styles.closeButton}
                             onClick={(e) => {
-                                console.log('Close button clicked in TemplatePreview');
+                                devLog.log('Close button clicked in TemplatePreview');
                                 e.preventDefault();
                                 e.stopPropagation();
                                 onClose();
