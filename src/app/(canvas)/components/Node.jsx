@@ -1,10 +1,81 @@
 // src/app/components/Node.jsx
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import styles from '@/app/(canvas)/assets/Node.module.scss';
 import { devLog } from '@/app/utils/logger';
 
 const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown, onPortMouseUp, registerPortRef, snappedPortKey, onParameterChange, isSnapTargetInvalid, isPreview = false }) => {
     const { nodeName, inputs, parameters, outputs, functionId } = data;
+    const [showAdvanced, setShowAdvanced] = useState(false);
+
+    // 파라미터를 기본/고급으로 분리
+    const basicParameters = parameters?.filter(param => !param.optional) || [];
+    const advancedParameters = parameters?.filter(param => param.optional) || [];
+    const hasAdvancedParams = advancedParameters.length > 0;
+
+    const toggleAdvanced = (e) => {
+        e.stopPropagation();
+        setShowAdvanced(prev => !prev);
+    };
+
+    // 파라미터 렌더링 함수
+    const renderParameter = (param) => (
+        <div key={param.id} className={`${styles.param} param`}>
+            <span className={`${styles.paramKey} ${param.required ? styles.required : ''}`}>
+                {param.name}
+            </span>
+            {param.options && param.options.length > 0 ? (
+                <select 
+                    value={param.value} 
+                    onChange={(e) => handleParamValueChange(e, param.id)} 
+                    onMouseDown={(e) => {
+                        devLog.log('select onMouseDown');
+                        e.stopPropagation();
+                    }}
+                    onClick={(e) => {
+                        devLog.log('select onClick');
+                        e.stopPropagation();
+                    }}
+                    onFocus={(e) => {
+                        devLog.log('select onFocus');
+                        e.stopPropagation();
+                    }}
+                    onBlur={(e) => {
+                        devLog.log('select onBlur');
+                        e.stopPropagation();
+                    }}
+                    className={`${styles.paramSelect} paramSelect`}
+                >
+                    {param.options.map((option, index) => (
+                        <option key={index} value={option.value}>
+                            {option.label || option.value}
+                        </option>
+                    ))}
+                </select>
+            ) : (
+                <input 
+                    type={typeof param.value === 'number' ? 'number' : 'text'} 
+                    value={param.value} 
+                    onChange={(e) => handleParamValueChange(e, param.id)} 
+                    onMouseDown={(e) => {
+                        devLog.log('input onMouseDown');
+                        e.stopPropagation();
+                    }}
+                    onClick={(e) => {
+                        devLog.log('input onClick');
+                        e.stopPropagation();
+                    }}
+                    onFocus={(e) => {
+                        devLog.log('input onFocus');
+                        e.stopPropagation();
+                    }}
+                    className={`${styles.paramInput} paramInput`} 
+                    step={param.step}
+                    min={param.min}
+                    max={param.max}
+                />
+            )}
+        </div>
+    );
 
     const handleMouseDown = (e) => {
         if (isPreview) return; // 프리뷰 모드에서는 드래그 비활성화
@@ -117,64 +188,15 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                         {hasIO && <div className={styles.divider}></div>}
                         <div className={styles.paramSection}>
                             <div className={styles.sectionHeader}>PARAMETER</div>
-                            {parameters.map(param => (
-                                <div key={param.id} className={`${styles.param} param`}>
-                                    <span className={`${styles.paramKey} ${param.required ? styles.required : ''}`}>
-                                        {param.name}
-                                    </span>
-                                    {param.options && param.options.length > 0 ? (
-                                        <select 
-                                            value={param.value} 
-                                            onChange={(e) => handleParamValueChange(e, param.id)} 
-                                            onMouseDown={(e) => {
-                                                devLog.log('select onMouseDown');
-                                                e.stopPropagation();
-                                            }}
-                                            onClick={(e) => {
-                                                devLog.log('select onClick');
-                                                e.stopPropagation();
-                                            }}
-                                            onFocus={(e) => {
-                                                devLog.log('select onFocus');
-                                                e.stopPropagation();
-                                            }}
-                                            onBlur={(e) => {
-                                                devLog.log('select onBlur');
-                                                e.stopPropagation();
-                                            }}
-                                            className={`${styles.paramSelect} paramSelect`}
-                                        >
-                                            {param.options.map((option, index) => (
-                                                <option key={index} value={option.value}>
-                                                    {option.label || option.value}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    ) : (
-                                        <input 
-                                            type={typeof param.value === 'number' ? 'number' : 'text'} 
-                                            value={param.value} 
-                                            onChange={(e) => handleParamValueChange(e, param.id)} 
-                                            onMouseDown={(e) => {
-                                                devLog.log('input onMouseDown');
-                                                e.stopPropagation();
-                                            }}
-                                            onClick={(e) => {
-                                                devLog.log('input onClick');
-                                                e.stopPropagation();
-                                            }}
-                                            onFocus={(e) => {
-                                                devLog.log('input onFocus');
-                                                e.stopPropagation();
-                                            }}
-                                            className={`${styles.paramInput} paramInput`} 
-                                            step={param.step}
-                                            min={param.min}
-                                            max={param.max}
-                                        />
-                                    )}
+                            {basicParameters.map(param => renderParameter(param))}
+                            {hasAdvancedParams && (
+                                <div className={styles.advancedParams}>
+                                    <div className={styles.advancedHeader} onClick={toggleAdvanced}>
+                                        <span>Advanced {showAdvanced ? '▲' : '▼'}</span>
+                                    </div>
+                                    {showAdvanced && advancedParameters.map(param => renderParameter(param))}
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </>
                 )}

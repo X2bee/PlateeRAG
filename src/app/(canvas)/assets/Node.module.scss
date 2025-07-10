@@ -244,3 +244,36 @@
         background-color: #e5e7eb;
     }
 }
+
+// --- Advanced Parameters Styles ---
+.advancedParams {
+    margin-top: 8px;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 8px;
+}
+
+.advancedHeader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #64748b;
+    transition: all 0.2s ease;
+    margin-bottom: 8px;
+    
+    &:hover {
+        background-color: #f1f5f9;
+        border-color: #cbd5e1;
+        color: #475569;
+    }
+    
+    span {
+        user-select: none;
+    }
+}
