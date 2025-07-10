@@ -16,10 +16,40 @@
     gap: 24px;
 }
 
+.logoLink {
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    padding: 8px 12px;
+    
+    &:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    &:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+}
+
 .logo {
     font-size: 1.5rem; // 24px
     font-weight: 700;
     color: #212529;
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: all 0.2s ease;
+    
+    .logoLink:hover & {
+        background: linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 }
 
 .workflowNameSection {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import styles from '@/app/canvas/assets/Header.module.scss';
 import { LuPanelRightOpen, LuSave, LuCheck, LuX, LuPencil, LuFileText } from "react-icons/lu";
 import { getWorkflowName, saveWorkflowName } from '@/app/(common)/components/workflowStorage';
@@ -60,9 +61,11 @@ const Header = ({ onMenuClick, onSave, onLoad, onExport, onNewWorkflow, workflow
     return (
         <header className={styles.header}>
             <div className={styles.leftSection}>
-                <div className={styles.logo}>
-                    PlateeRAG
-                </div>
+                <Link href="/main" className={styles.logoLink}>
+                    <div className={styles.logo}>
+                        PlateeRAG
+                    </div>
+                </Link>
                 <div className={styles.workflowNameSection}>
                     {isEditing ? (
                         <div className={styles.editMode}>
@@ -105,15 +108,6 @@ const Header = ({ onMenuClick, onSave, onLoad, onExport, onNewWorkflow, workflow
                 </div>
             </div>
             <div className={styles.rightSection}>
-                {/* <nav className={styles.nav}>
-                    <ul>
-                        <li><button type="button">파일</button></li>
-                        <li><button type="button">편집</button></li>
-                        <li><button type="button">보기</button></li>
-                        <li><button type="button">내보내기</button></li>
-                        <li><button type="button">도움말</button></li>
-                    </ul>
-                </nav> */}
                 <button onClick={onNewWorkflow} className={styles.menuButton} title="New Workflow">
                     <LuFileText />
                 </button>
