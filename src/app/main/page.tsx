@@ -6,6 +6,7 @@ import ContentArea from "@/app/main/components/ContentArea";
 import CanvasIntroduction from "@/app/main/components/CanvasIntroduction";
 import CompletedWorkflows from "@/app/main/components/CompletedWorkflows";
 import Executor from "@/app/main/components/Executor";
+import Settings from "@/app/main/components/Settings";
 import { SidebarItem } from "@/app/main/components/types";
 import styles from "@/app/main/assets/MainPage.module.scss";
 
@@ -71,10 +72,10 @@ const MainPage: React.FC = () => {
             case "settings":
                 return (
                     <ContentArea
-                        title="워크플로우 실행기"
-                        description="완성된 워크플로우를 실제 환경에서 실행하고 모니터링하세요."
+                        title="환경 설정"
+                        description="워크플로우에서 사용할 AI 모델과 데이터베이스를 설정하세요."
                     >
-                        <Executor />
+                        <Settings />
                     </ContentArea>
                 );
             default:
