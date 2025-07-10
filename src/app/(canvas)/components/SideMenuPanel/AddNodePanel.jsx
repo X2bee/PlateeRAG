@@ -3,9 +3,8 @@ import React, { useState, useEffect } from 'react';
 import styles from '@/app/(canvas)/assets/SideMenu.module.scss';
 import NodeList from '@/app/(canvas)/components/NodeList';
 import DraggableNodeItem from '@/app/(canvas)/components/DraggableNodeItem';
-// import { NODE_DATA } from '@/app/(canvas)/constants/nodes';
 import { LuSearch, LuArrowLeft, LuBrainCircuit, LuShare2, LuWrench, LuX, LuRefreshCw } from 'react-icons/lu';
-import { useNodes } from '@/app/api/components/nodeHook';
+import { useNodes } from '@/app/(common)/components/nodeHook';
 
 const iconMap = {
     LuBrainCircuit: <LuBrainCircuit />,

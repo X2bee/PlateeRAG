@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { getNodes as apiGetNodes, exportNodes as apiExportNodes } from '@/app/api/components/nodeApi';
+import { getNodes as apiGetNodes, exportNodes as apiExportNodes } from '@/app/api/nodeApi';
 import { toast } from 'react-hot-toast';
 
 /**

@@ -9,8 +9,8 @@ import ExecutionPanel from '@/app/(canvas)/components/ExecutionPanel';
 
 import styles from '@/app/(canvas)/assets/PlateeRAG.module.scss';
 
-import { executeWorkflow, saveWorkflow, listWorkflows } from '@/app/api/components/nodeApi';
-import { getWorkflowName, getWorkflowState, saveWorkflowState, clearWorkflowState, isValidWorkflowState, ensureValidWorkflowState, saveWorkflowName, startNewWorkflow } from '@/app/services/workflowStorage';
+import { executeWorkflow, saveWorkflow, listWorkflows } from '@/app/api/nodeApi';
+import { getWorkflowName, getWorkflowState, saveWorkflowState, clearWorkflowState, isValidWorkflowState, ensureValidWorkflowState, saveWorkflowName, startNewWorkflow } from '@/app/(common)/components/workflowStorage';
 
 export default function Home() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);

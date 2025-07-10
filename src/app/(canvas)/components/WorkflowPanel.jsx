@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import styles from '@/app/(canvas)/assets/WorkflowPanel.module.scss';
 import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss'; // SideMenu 스타일 추가
 import { LuArrowLeft, LuFolderOpen, LuDownload, LuRefreshCw, LuCalendar, LuTrash2 } from "react-icons/lu";
-import { listWorkflows, loadWorkflow, deleteWorkflow } from '@/app/api/components/nodeApi';
+import { listWorkflows, loadWorkflow, deleteWorkflow } from '@/app/api/nodeApi';
 
 const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
     const [workflows, setWorkflows] = useState([]);

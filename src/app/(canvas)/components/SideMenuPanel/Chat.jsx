@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { sendMessage } from '../../services/chatAPI';
-import styles from '../assets/Chat.module.scss'; // Corrected path
-import sideMenuStyles from '../assets/SideMenu.module.scss'; // SideMenu 스타일 추가
+import { sendMessage } from '@/app/api/chatAPI';
+import styles from '@/app/(canvas)/assets/Chat.module.scss'; // Corrected path
+import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss'; // SideMenu 스타일 추가
 import { LuArrowLeft, LuSend } from "react-icons/lu"; // Icons for back and send
 
 const Chat = ({ onBack }) => {

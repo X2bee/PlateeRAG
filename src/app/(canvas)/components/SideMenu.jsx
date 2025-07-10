@@ -1,8 +1,8 @@
 "use client";
 import React, { useState } from 'react';
 import styles from '@/app/(canvas)/assets/SideMenu.module.scss';
-import AddNodePanel from '@/app/(canvas)/components/AddNodePanel';
-import Chat from '@/app/(canvas)/components/Chat';
+import AddNodePanel from '@/app/(canvas)/components/SideMenuPanel/AddNodePanel';
+import Chat from '@/app/(canvas)/components/SideMenuPanel/Chat';
 import WorkflowPanel from '@/app/(canvas)/components/WorkflowPanel';
 import TemplatePanel from '@/app/(canvas)/components/TemplatePanel';
 import { LuCirclePlus, LuCircleHelp, LuSettings, LuLayoutGrid, LuMessageSquare, LuLayoutTemplate } from "react-icons/lu";
