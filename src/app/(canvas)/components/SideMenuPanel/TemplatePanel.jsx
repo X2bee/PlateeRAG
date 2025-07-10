@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import styles from '@/app/(canvas)/assets/SideMenu.module.scss';
+import styles from '@/app/(canvas)/assets/WorkflowPanel.module.scss'; // WorkflowPanel 스타일 사용
+import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss'; // SideMenu 스타일 추가
 import { LuArrowLeft, LuLayoutTemplate, LuDownload, LuPlay, LuCopy } from "react-icons/lu";
 
 const TemplatePanel = ({ onBack }) => {
@@ -59,49 +60,34 @@ const TemplatePanel = ({ onBack }) => {
 
     if (isLoading) {
         return (
-            <>
-                <div className={styles.header}>
-                    <button onClick={onBack} className={styles.backButton}>
+            <div className={styles.workflowPanel}>
+                <div className={sideMenuStyles.header}>
+                    <button onClick={onBack} className={sideMenuStyles.backButton}>
                         <LuArrowLeft />
                     </button>
                     <h3>Templates</h3>
                 </div>
-                <div className={styles.loadingContainer}>
-                    <div style={{ 
-                        display: 'flex', 
-                        flexDirection: 'column', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        padding: '40px 20px',
-                        color: '#6b7280'
-                    }}>
-                        <LuLayoutTemplate style={{ fontSize: '2rem', marginBottom: '12px' }} />
-                        <span>Loading templates...</span>
-                    </div>
+                <div className={styles.loadingState}>
+                    <LuLayoutTemplate className={styles.spinIcon} />
+                    <span>Loading templates...</span>
                 </div>
-            </>
+            </div>
         );
     }
 
     return (
-        <>
-            <div className={styles.header}>
-                <button onClick={onBack} className={styles.backButton}>
+        <div className={styles.workflowPanel}>
+            <div className={sideMenuStyles.header}>
+                <button onClick={onBack} className={sideMenuStyles.backButton}>
                     <LuArrowLeft />
                 </button>
                 <h3>Templates</h3>
             </div>
 
-            <div className={styles.templateContent}>
-                <div className={styles.templateDescription}>
-                    <p style={{ 
-                        margin: '16px 20px', 
-                        fontSize: '0.9rem', 
-                        color: '#6b7280', 
-                        lineHeight: '1.4' 
-                    }}>
-                        Choose from pre-built workflow templates to get started quickly.
-                    </p>
+            <div className={styles.workflowList}>
+                <div className={styles.listHeader}>
+                    <h3>📁 Available Templates</h3>
+                    <span className={styles.count}>{templates.length}</span>
                 </div>
 
                 <div className={styles.templateList}>
@@ -140,7 +126,7 @@ const TemplatePanel = ({ onBack }) => {
                     ))}
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 

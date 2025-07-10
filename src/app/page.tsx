@@ -6,7 +6,6 @@ import Canvas from '@/app/(canvas)/components/Canvas';
 import Header from '@/app/(canvas)/components/Header';
 import SideMenu from '@/app/(canvas)/components/SideMenu';
 import ExecutionPanel from '@/app/(canvas)/components/ExecutionPanel';
-
 import styles from '@/app/(canvas)/assets/PlateeRAG.module.scss';
 
 import { executeWorkflow, saveWorkflow, listWorkflows } from '@/app/api/nodeApi';
