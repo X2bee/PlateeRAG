@@ -43,7 +43,13 @@ const TemplatePreview = ({ template, onClose, onUseTemplate }) => {
                 <div className={styles.header}>
                     <div className={styles.titleSection}>
                         <h3>{template.name}</h3>
-                        <span className={styles.category}>{template.category}</span>
+                        <div className={styles.tagsContainer}>
+                            {template.tags && template.tags.map(tag => (
+                                <span key={tag} className={styles.category}>
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
                     </div>
                     <div className={styles.actions}>
                         <button 

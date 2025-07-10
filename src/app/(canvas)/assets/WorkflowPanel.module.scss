@@ -271,6 +271,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px; // templateHeader와 templateActions 사이에 간격 추가
     padding: 16px;
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
     border: 1px solid #e2e8f0;
@@ -323,17 +324,24 @@
     color: #6b7280;
     margin: 0 0 8px 0;
     line-height: 1.3;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .templateMeta {
     display: flex;
-    gap: 8px;
+    justify-content: space-between;
     align-items: center;
+    gap: 8px;
+}
+
+.templateTags {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    flex-wrap: nowrap; // 한 줄에 유지
+    overflow: hidden; // 넘치는 부분 숨김
 }
 
 .templateCategory {
@@ -344,6 +352,8 @@
     padding: 2px 6px;
     border-radius: 6px;
     border: 1px solid rgba(59, 130, 246, 0.15);
+    white-space: nowrap; // 텍스트 줄바꿈 방지
+    flex-shrink: 0; // 태그가 축소되지 않도록
 }
 
 .templateNodes {
@@ -352,6 +362,8 @@
     background-color: #f3f4f6;
     padding: 2px 6px;
     border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .templateActions {

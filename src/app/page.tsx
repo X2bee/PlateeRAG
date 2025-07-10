@@ -9,7 +9,7 @@ import ExecutionPanel from '@/app/(canvas)/components/ExecutionPanel';
 import styles from '@/app/(canvas)/assets/PlateeRAG.module.scss';
 
 import { executeWorkflow, saveWorkflow, listWorkflows } from '@/app/api/workflowAPI';
-import { getWorkflowName, getWorkflowState, saveWorkflowState, clearWorkflowState, isValidWorkflowState, ensureValidWorkflowState, saveWorkflowName, startNewWorkflow } from '@/app/(common)/components/workflowStorage';
+import { getWorkflowName, getWorkflowState, saveWorkflowState, ensureValidWorkflowState, saveWorkflowName, startNewWorkflow } from '@/app/(common)/components/workflowStorage';
 import { devLog } from '@/app/utils/logger';
 
 export default function Home() {

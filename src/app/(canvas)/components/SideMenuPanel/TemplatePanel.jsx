@@ -6,8 +6,10 @@ import { LuArrowLeft, LuLayoutTemplate, LuPlay, LuCopy } from "react-icons/lu";
 import TemplatePreview from '@/app/(canvas)/components/SideMenuPanel/TemplatePreview';
 import { devLog } from '@/app/utils/logger';
 
-// workflow 파일들 직접 import
-import BasicChatbotTemplate from '@/app/(canvas)/constants/workflow/Basic_Chatbot.json';
+import Basic_Chatbot from '@/app/(canvas)/constants/workflow/Basic_Chatbot.json';
+import Data_Processing from '@/app/(canvas)/constants/workflow/Data_Processing.json';
+
+const templateList = [Basic_Chatbot, Data_Processing];
 
 const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
     const [templates, setTemplates] = useState([]);
@@ -17,18 +19,20 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
     useEffect(() => {
         const loadTemplates = async () => {
             try {
-                const templateList = [
-                    {
-                        id: 'Basic_Chatbot',
-                        name: 'Basic Chatbot',
-                        description: 'Simple question-answer chatbot workflow using OpenAI',
-                        category: 'AI',
-                        nodes: BasicChatbotTemplate.nodes ? BasicChatbotTemplate.nodes.length : 0,
-                        data: BasicChatbotTemplate
-                    }
-                ];
+                setIsLoading(true);
 
-                setTemplates(templateList);
+                devLog.log('templateList:', templateList);
+                
+                const formattedTemplates = templateList.map(template => ({
+                    id: template.id,
+                    name: template.name,
+                    description: template.description || 'No description available',
+                    tags: template.tags || [],
+                    nodes: template.contents?.nodes?.length || 0,
+                    data: template.contents
+                }));
+
+                setTemplates(formattedTemplates);
                 setIsLoading(false);
             } catch (error) {
                 devLog.error('Failed to load templates:', error);
@@ -112,9 +116,25 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
                                 </div>
                                 <div className={styles.templateInfo}>
                                     <h4 className={styles.templateName}>{template.name}</h4>
-                                    <p className={styles.templateDescription}>{template.description}</p>
+                                    <p className={styles.templateDescription}>
+                                        {template.description && template.description.length > 20 
+                                            ? `${template.description.substring(0, 20)}...` 
+                                            : template.description
+                                        }
+                                    </p>
                                     <div className={styles.templateMeta}>
-                                        <span className={styles.templateCategory}>{template.category}</span>
+                                        <div className={styles.templateTags}>
+                                            {template.tags && template.tags.slice(0, 2).map(tag => (
+                                                <span key={tag} className={styles.templateCategory}>
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                            {template.tags && template.tags.length > 2 && (
+                                                <span className={styles.templateCategory}>
+                                                    +{template.tags.length - 2}
+                                                </span>
+                                            )}
+                                        </div>
                                         <span className={styles.templateNodes}>{template.nodes} nodes</span>
                                     </div>
                                 </div>

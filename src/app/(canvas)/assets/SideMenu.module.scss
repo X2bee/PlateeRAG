@@ -14,7 +14,9 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    width: 320px; // 기본 메뉴 너비 증가 (280px → 320px)
+    min-width: 320px; // 최소 너비 설정
+    width: auto; // 동적 너비
+    max-width: 600px; // 최대 너비 제한
     height: auto; // 기본 메뉴 높이
     background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
     border-radius: 14px; // 둥근 테두리 증가
@@ -32,21 +34,27 @@
 
     // AddNodePanel 뷰일 때 크기 확장
     &[data-view="addNodes"] {
-        width: 400px; // 확장 너비 증가 (360px → 400px)
+        min-width: 400px; // 확장 시 최소 너비
+        width: auto; // 동적 너비
+        max-width: 600px; // 최대 너비 제한
         height: 85vh;
         max-height: 700px;
     }
 
     // WorkflowPanel 뷰일 때 크기 확장
     &[data-view="workflow"] {
-        width: 400px; // 확장 너비 증가 (360px → 400px)
+        min-width: 400px; // 확장 시 최소 너비
+        width: auto; // 동적 너비
+        max-width: 600px; // 최대 너비 제한
         height: 85vh;
         max-height: 700px;
     }
 
     // TemplatePanel 뷰일 때 크기 확장
     &[data-view="template"] {
-        width: 400px; // WorkflowPanel과 동일한 너비
+        min-width: 400px; // WorkflowPanel과 동일한 최소 너비
+        width: auto; // 동적 너비
+        max-width: 600px; // 최대 너비 제한
         height: 85vh;
         max-height: 700px;
     }

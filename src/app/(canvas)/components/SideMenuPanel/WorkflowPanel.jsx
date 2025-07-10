@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import styles from '@/app/(canvas)/assets/WorkflowPanel.module.scss';
-import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss'; // SideMenu 스타일 추가
+import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss'; 
 import { LuArrowLeft, LuFolderOpen, LuDownload, LuRefreshCw, LuCalendar, LuTrash2 } from "react-icons/lu";
 import { listWorkflows, loadWorkflow, deleteWorkflow } from '@/app/api/workflowAPI';
 import { devLog } from '@/app/utils/logger';

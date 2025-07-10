@@ -1,113 +1,118 @@
 {
-    "view": {
-        "x": -8739,
+    "id": "Basic_Chatbot",
+    "name": "Basic Chatbot",
+    "description": "OpenAI GPT를 사용한 기본적인 챗봇 워크플로우입니다. 사용자의 입력을 받아 GPT 모델로 처리하고 결과를 출력합니다.",
+    "tags": ["AI", "Chat", "OpenAI", "GPT", "Basic"],
+    "contents": {
+        "view": {
+            "x": -8739,
             "y": -4067.5,
-                "scale": 1
-    },
-    "nodes": [
-        {
-            "id": "chat/openai-1752035468492",
-            "data": {
-                "functionId": "chat_models",
-                "id": "chat/openai",
-                "nodeName": "Chat OpenAI",
-                "inputs": [
-                    {
-                        "id": "text",
-                        "name": "Text",
-                        "type": "STR",
-                        "multi": false,
-                        "required": true
-                    }
-                ],
-                "outputs": [
-                    {
-                        "id": "result",
-                        "name": "Result",
-                        "type": "STR"
-                    }
-                ],
-                "parameters": [
-                    {
-                        "id": "model",
-                        "name": "Model",
-                        "type": "STR",
-                        "value": "gpt-4o",
-                        "required": true,
-                        "options": [
-                            {
-                                "value": "gpt-3.5-turbo",
-                                "label": "GPT-3.5 Turbo"
-                            },
-                            {
-                                "value": "gpt-4",
-                                "label": "GPT-4"
-                            },
-                            {
-                                "value": "gpt-4o",
-                                "label": "GPT-4o"
-                            }
-                        ]
-                    }
-                ]
-            },
-            "position": {
-                "x": 9438,
-                "y": 4446.5
-            }
+            "scale": 1
         },
-        {
-            "id": "tools/print_any-1752035471107",
-            "data": {
-                "functionId": "endnode",
-                "id": "tools/print_any",
-                "nodeName": "Print Any",
-                "inputs": [
-                    {
-                        "id": "input_print",
-                        "name": "Print",
-                        "type": "ANY",
-                        "multi": false,
-                        "required": true
-                    }
-                ],
-                "outputs": [],
-                "parameters": []
+        "nodes": [
+            {
+                "id": "chat/openai-1752035468492",
+                "data": {
+                    "functionId": "chat_models",
+                    "id": "chat/openai",
+                    "nodeName": "Chat OpenAI",
+                    "inputs": [
+                        {
+                            "id": "text",
+                            "name": "Text",
+                            "type": "STR",
+                            "multi": false,
+                            "required": true
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "id": "result",
+                            "name": "Result",
+                            "type": "STR"
+                        }
+                    ],
+                    "parameters": [
+                        {
+                            "id": "model",
+                            "name": "Model",
+                            "type": "STR",
+                            "value": "gpt-4o",
+                            "required": true,
+                            "options": [
+                                {
+                                    "value": "gpt-3.5-turbo",
+                                    "label": "GPT-3.5 Turbo"
+                                },
+                                {
+                                    "value": "gpt-4",
+                                    "label": "GPT-4"
+                                },
+                                {
+                                    "value": "gpt-4o",
+                                    "label": "GPT-4o"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "position": {
+                    "x": 9438,
+                    "y": 4446.5
+                }
             },
-            "position": {
-                "x": 9916,
-                "y": 4446.5
-            }
-        },
-        {
-            "id": "math/input_str-1752035472920",
-            "data": {
-                "functionId": "tools",
-                "id": "math/input_str",
-                "nodeName": "Input String",
-                "inputs": [],
-                "outputs": [
-                    {
-                        "id": "result",
-                        "name": "Result",
-                        "type": "STR"
-                    }
-                ],
-                "parameters": [
-                    {
-                        "id": "input_str",
-                        "name": "String",
-                        "type": "STR",
-                        "value": "안녕하세요?"
-                    }
-                ]
+            {
+                "id": "tools/print_any-1752035471107",
+                "data": {
+                    "functionId": "endnode",
+                    "id": "tools/print_any",
+                    "nodeName": "Print Any",
+                    "inputs": [
+                        {
+                            "id": "input_print",
+                            "name": "Print",
+                            "type": "ANY",
+                            "multi": false,
+                            "required": true
+                        }
+                    ],
+                    "outputs": [],
+                    "parameters": []
+                },
+                "position": {
+                    "x": 9916,
+                    "y": 4446.5
+                }
             },
-            "position": {
-                "x": 8872,
-                "y": 4390.5
+            {
+                "id": "math/input_str-1752035472920",
+                "data": {
+                    "functionId": "tools",
+                    "id": "math/input_str",
+                    "nodeName": "Input String",
+                    "inputs": [],
+                    "outputs": [
+                        {
+                            "id": "result",
+                            "name": "Result",
+                            "type": "STR"
+                        }
+                    ],
+                    "parameters": [
+                        {
+                            "id": "input_str",
+                            "name": "String",
+                            "type": "STR",
+                            "value": "안녕하세요?"
+                        }
+                    ]
+                },
+                "position": {
+                    "x": 8872,
+                    "y": 4390.5
+                }
             }
-        }
-    ],
+        ],
         "edges": [
             {
                 "id": "edge-math/input_str-1752035472920:result-chat/openai-1752035468492:text-1752035474177",
@@ -138,4 +143,5 @@
                 }
             }
         ]
+    }
 }
