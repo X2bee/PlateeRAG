@@ -1,9 +1,11 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import styles from '@/app/(canvas)/assets/WorkflowPanel.module.scss';
 import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss';
 import { LuArrowLeft, LuLayoutTemplate, LuPlay, LuCopy } from "react-icons/lu";
 import TemplatePreview from '@/app/(canvas)/components/SideMenuPanel/TemplatePreview';
+import { getWorkflowState } from '@/app/(common)/components/workflowStorage';
 import { devLog } from '@/app/utils/logger';
 
 import Basic_Chatbot from '@/app/(canvas)/constants/workflow/Basic_Chatbot.json';
@@ -45,7 +47,85 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
     }, []);
 
     const handleUseTemplate = (template) => {
-        devLog.log('=== TemplatePanel handleUseTemplate called ===');
+        const currentState = getWorkflowState();
+        const hasCurrentWorkflow = currentState && (currentState.nodes?.length > 0 || currentState.edges?.length > 0);
+        
+        if (hasCurrentWorkflow) {
+            const confirmToast = toast(
+                (t) => (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div style={{ fontWeight: '600', color: '#f59e0b', fontSize: '1rem' }}>
+                            Use Template
+                        </div>
+                        <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.4' }}>
+                            You have an existing workflow with unsaved changes.
+                            <br />
+                            Using "<strong>{template.name}</strong>" template will replace your current work.
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
+                            <button
+                                onClick={() => {
+                                    toast.dismiss(t.id);
+                                }}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: '#ffffff',
+                                    border: '2px solid #6b7280',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    fontWeight: '500',
+                                    color: '#374151',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    toast.dismiss(t.id);
+                                    performUseTemplate(template);
+                                }}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: '#f59e0b',
+                                    color: 'white',
+                                    border: '2px solid #d97706',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    fontWeight: '500',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                }}
+                            >
+                                Use Template
+                            </button>
+                        </div>
+                    </div>
+                ),
+                {
+                    duration: Infinity,
+                    style: {
+                        maxWidth: '420px',
+                        padding: '20px',
+                        backgroundColor: '#f9fafb',
+                        border: '2px solid #374151',
+                        borderRadius: '12px',
+                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
+                        color: '#374151',
+                        fontFamily: 'system-ui, -apple-system, sans-serif'
+                    }
+                }
+            );
+        } else {
+            performUseTemplate(template);
+        }
+    };
+
+    const performUseTemplate = (template) => {
+        devLog.log('=== TemplatePanel performUseTemplate called ===');
         devLog.log('Template:', template);
         devLog.log('onLoadWorkflow exists:', !!onLoadWorkflow);
         devLog.log('Template data exists:', !!template?.data);
@@ -54,11 +134,13 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
             devLog.log('Calling onLoadWorkflow with:', template.data, template.name);
             onLoadWorkflow(template.data, template.name);
             devLog.log('onLoadWorkflow call completed');
+            toast.success(`Template "${template.name}" loaded successfully!`);
         } else {
             devLog.error('Cannot call onLoadWorkflow:', {
                 hasOnLoadWorkflow: !!onLoadWorkflow,
                 hasTemplateData: !!template?.data
             });
+            toast.error('Failed to load template');
         }
     };
 

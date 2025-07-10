@@ -5,6 +5,7 @@ import styles from '@/app/(canvas)/assets/WorkflowPanel.module.scss';
 import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss'; 
 import { LuArrowLeft, LuFolderOpen, LuDownload, LuRefreshCw, LuCalendar, LuTrash2 } from "react-icons/lu";
 import { listWorkflows, loadWorkflow, deleteWorkflow } from '@/app/api/workflowAPI';
+import { getWorkflowState } from '@/app/(common)/components/workflowStorage';
 import { devLog } from '@/app/utils/logger';
 
 const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
@@ -35,6 +36,86 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
     };
 
     const handleLoadWorkflow = async (filename) => {
+        const currentState = getWorkflowState();
+        const hasCurrentWorkflow = currentState && (currentState.nodes?.length > 0 || currentState.edges?.length > 0);
+        
+        if (hasCurrentWorkflow) {
+            const workflowName = getWorkflowDisplayName(filename);
+            
+            const confirmToast = toast(
+                (t) => (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div style={{ fontWeight: '600', color: '#f59e0b', fontSize: '1rem' }}>
+                            Load Workflow
+                        </div>
+                        <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.4' }}>
+                            You have an existing workflow with unsaved changes.
+                            <br />
+                            Loading "<strong>{workflowName}</strong>" will replace your current work.
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
+                            <button
+                                onClick={() => {
+                                    toast.dismiss(t.id);
+                                }}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: '#ffffff',
+                                    border: '2px solid #6b7280',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    fontWeight: '500',
+                                    color: '#374151',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    toast.dismiss(t.id);
+                                    await performLoadWorkflow(filename);
+                                }}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: '#f59e0b',
+                                    color: 'white',
+                                    border: '2px solid #d97706',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    fontWeight: '500',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                }}
+                            >
+                                Load Anyway
+                            </button>
+                        </div>
+                    </div>
+                ),
+                {
+                    duration: Infinity,
+                    style: {
+                        maxWidth: '420px',
+                        padding: '20px',
+                        backgroundColor: '#f9fafb',
+                        border: '2px solid #374151',
+                        borderRadius: '12px',
+                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
+                        color: '#374151',
+                        fontFamily: 'system-ui, -apple-system, sans-serif'
+                    }
+                }
+            );
+        } else {
+            await performLoadWorkflow(filename);
+        }
+    };
+
+    const performLoadWorkflow = async (filename) => {
         try {
             const workflowId = filename.replace('.json', '');
             const workflowData = await loadWorkflow(workflowId);
@@ -45,7 +126,7 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
             }
         } catch (error) {
             devLog.error("Failed to load workflow:", error);
-            throw error;
+            toast.error(`Failed to load workflow: ${error.message}`);
         }
     };
 

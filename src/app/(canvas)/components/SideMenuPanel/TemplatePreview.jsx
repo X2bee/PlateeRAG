@@ -1,6 +1,7 @@
 "use client";
 import React, { useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import toast from 'react-hot-toast';
 import styles from '@/app/(canvas)/assets/TemplatePreview.module.scss';
 import MiniCanvas from '@/app/(canvas)/components/SideMenuPanel/MiniCanvas';
 import { LuX, LuCopy } from "react-icons/lu";
@@ -22,6 +23,23 @@ const TemplatePreview = ({ template, onClose, onUseTemplate }) => {
             document.removeEventListener('keydown', handleEscapeKey);
         };
     }, [onClose]);
+
+    const handleUseTemplate = (template) => {
+        devLog.log('=== TemplatePreview Use Template clicked ===');
+        devLog.log('Template:', template);
+        devLog.log('onUseTemplate function:', onUseTemplate);
+        
+        try {
+            // TemplatePanel의 확인 로직을 사용하기 위해 직접 호출
+            onUseTemplate(template);
+            devLog.log('onUseTemplate called successfully');
+            onClose();
+            devLog.log('onClose called successfully');
+        } catch (error) {
+            devLog.error('Error in Use Template:', error);
+            toast.error('Failed to load template');
+        }
+    };
 
     if (!template) {
         return null;
@@ -56,19 +74,9 @@ const TemplatePreview = ({ template, onClose, onUseTemplate }) => {
                             className={styles.useButton}
                             onClick={(e) => {
                                 devLog.log('=== TemplatePreview Use Template clicked ===');
-                                devLog.log('Event:', e);
-                                devLog.log('Template:', template);
-                                devLog.log('onUseTemplate function:', onUseTemplate);
                                 e.preventDefault();
                                 e.stopPropagation();
-                                try {
-                                    onUseTemplate(template);
-                                    devLog.log('onUseTemplate called successfully');
-                                    onClose();
-                                    devLog.log('onClose called successfully');
-                                } catch (error) {
-                                    devLog.error('Error in Use Template:', error);
-                                }
+                                handleUseTemplate(template);
                             }}
                             onMouseDown={(e) => {
                                 devLog.log('Use Template mousedown');
