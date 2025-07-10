@@ -57,7 +57,7 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
     const [portPositions, setPortPositions] = useState({});
     const [snappedPortKey, setSnappedPortKey] = useState(null);
     const [isSnapTargetValid, setIsSnapTargetValid] = useState(true);
-    const [copiedNode, setCopiedNode] = useState(null); // 복사된 노드 저장
+    const [copiedNode, setCopiedNode] = useState(null);
 
     const nodesRef = useRef(nodes);
     const edgePreviewRef = useRef(edgePreview);
@@ -88,8 +88,6 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
     useEffect(() => {
         if (onStateChange) {
             const currentState = { view, nodes, edges };
-            
-            // 빈 상태는 저장하지 않음 (localStorage 덮어쓰기 방지)
             if (nodes.length > 0 || edges.length > 0) {
                 devLog.log('Canvas state changed, calling onStateChange:', {
                     nodesCount: nodes.length,
@@ -105,9 +103,6 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
         }
     }, [nodes, edges, view, onStateChange]);
 
-    // 키보드 이벤트 리스너 등록
-
-
     const registerPortRef = useCallback((nodeId, portId, portType, el) => {
         const key = `${nodeId}__PORTKEYDELIM__${portId}__PORTKEYDELIM__${portType}`;
         if (el) {
@@ -117,7 +112,6 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
         }
     }, []);
 
-    // 중앙 정렬 좌표를 계산하는 함수
     const getCenteredView = useCallback(() => {
         const container = containerRef.current;
         const content = contentRef.current;
@@ -171,7 +165,6 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
             if (state.view) setView(state.view);
         },
         loadWorkflowState: (state) => {
-            // 상태 복원용 메서드 (자동 저장된 상태를 로드할 때 사용)
             devLog.log('Canvas loadWorkflowState called with:', {
                 hasNodes: !!state.nodes,
                 nodesCount: state.nodes?.length || 0,
@@ -232,60 +225,53 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
         if (copiedNode) {
             const newNode = {
                 ...copiedNode,
-                id: `${copiedNode.data.id}-${Date.now()}`, // 새로운 고유 ID 생성
+                id: `${copiedNode.data.id}-${Date.now()}`,
                 position: {
-                    x: copiedNode.position.x + 50, // 약간 오프셋을 주어 겹치지 않게
+                    x: copiedNode.position.x + 50,
                     y: copiedNode.position.y + 50
                 }
             };
             
             setNodes(prev => [...prev, newNode]);
-            setSelectedNodeId(newNode.id); // 새로 생성된 노드를 선택
+            setSelectedNodeId(newNode.id);
             devLog.log('Node pasted:', newNode.data.nodeName);
         }
     };
-
-    // 키보드 이벤트 핸들러
 
 
     const handleParameterChange = useCallback((nodeId, paramId, value) => {
         devLog.log('=== Canvas Parameter Change ===');
         devLog.log('Received:', { nodeId, paramId, value });
         
-        // React state 업데이트를 위한 안전한 접근
         setNodes(prevNodes => {
             devLog.log('Previous nodes count:', prevNodes.length);
             
-            // 먼저 타겟 노드가 존재하는지 확인
             const targetNodeIndex = prevNodes.findIndex(node => node.id === nodeId);
             if (targetNodeIndex === -1) {
                 devLog.warn('Target node not found:', nodeId);
-                return prevNodes; // 변경 없음
+                return prevNodes;
             }
             
             const targetNode = prevNodes[targetNodeIndex];
             devLog.log('Found target node:', targetNode.data.nodeName);
             
-            // parameters가 존재하는지 확인
             if (!targetNode.data.parameters || !Array.isArray(targetNode.data.parameters)) {
                 devLog.warn('No parameters found in target node');
-                return prevNodes; // 변경 없음
+                return prevNodes;
             }
             
-            // 타겟 parameter가 존재하는지 확인
             const targetParamIndex = targetNode.data.parameters.findIndex(param => param.id === paramId);
             if (targetParamIndex === -1) {
                 devLog.warn('Target parameter not found:', paramId);
-                return prevNodes; // 변경 없음
+                return prevNodes;
             }
             
             const targetParam = targetNode.data.parameters[targetParamIndex];
             const newValue = typeof targetParam.value === 'number' ? Number(value) : value;
             
-            // 값이 실제로 변경되었는지 확인
             if (targetParam.value === newValue) {
                 devLog.log('Parameter value unchanged, skipping update');
-                return prevNodes; // 변경 없음
+                return prevNodes;
             }
             
             devLog.log('Updating parameter:', { 
@@ -295,7 +281,6 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
                 newValue 
             });
             
-            // 새로운 배열 생성 (immutable update)
             const newNodes = [...prevNodes];
             newNodes[targetNodeIndex] = {
                 ...targetNode,
@@ -323,7 +308,6 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
     };
 
     const handleCanvasMouseDown = (e) => {
-        // Parameter 입력 요소들은 Canvas 이벤트에서 제외
         const target = e.target;
         const isParameterInput = target.matches('input, select, option') ||
                                 target.classList.contains('paramInput') || 
@@ -648,9 +632,9 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
-            onClick={() => containerRef.current?.focus()} // 클릭 시 포커스
-            tabIndex={0} // 키보드 포커스 가능하도록
-            style={{ outline: 'none' }} // 포커스 아웃라인 제거
+            onClick={() => containerRef.current?.focus()}
+            tabIndex={0} 
+            style={{ outline: 'none' }} 
         >
             <div
                 ref={contentRef}
