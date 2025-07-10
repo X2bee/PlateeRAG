@@ -2,9 +2,9 @@
 import React, { useState } from 'react';
 import styles from '@/app/(canvas)/assets/SideMenu.module.scss';
 import AddNodePanel from '@/app/(canvas)/components/SideMenuPanel/AddNodePanel';
-import Chat from '@/app/(canvas)/components/SideMenuPanel/Chat';
-import WorkflowPanel from '@/app/(canvas)/components/WorkflowPanel';
-import TemplatePanel from '@/app/(canvas)/components/TemplatePanel';
+import ChatPanel from '@/app/(canvas)/components/SideMenuPanel/ChatPanel';
+import WorkflowPanel from '@/app/(canvas)/components/SideMenuPanel/WorkflowPanel';
+import TemplatePanel from '@/app/(canvas)/components/SideMenuPanel/TemplatePanel';
 import { LuCirclePlus, LuCircleHelp, LuSettings, LuLayoutGrid, LuMessageSquare, LuLayoutTemplate } from "react-icons/lu";
 
 // 메인 메뉴 UI
@@ -50,7 +50,7 @@ const SideMenu = ({ menuRef, onLoad, onExport, onLoadWorkflow }) => {
         <aside ref={menuRef} className={styles.sideMenuContainer} data-view={view}>
             {view === 'main' && <MainMenu onNavigate={setView} />}
             {view === 'addNodes' && <AddNodePanel onBack={() => setView('main')} />}
-            {view === 'chat' && <Chat onBack={() => setView('main')} />}
+            {view === 'chat' && <ChatPanel onBack={() => setView('main')} />}
             {view === 'workflow' && (
                 <WorkflowPanel 
                     onBack={() => setView('main')} 

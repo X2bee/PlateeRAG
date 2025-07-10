@@ -4,7 +4,7 @@ import styles from '@/app/(canvas)/assets/Chat.module.scss'; // Corrected path
 import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss'; // SideMenu 스타일 추가
 import { LuArrowLeft, LuSend } from "react-icons/lu"; // Icons for back and send
 
-const Chat = ({ onBack }) => {
+const ChatPanel = ({ onBack }) => {
     const [messages, setMessages] = useState([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -113,4 +113,4 @@ const Chat = ({ onBack }) => {
     );
 };
 
-export default Chat;
+export default ChatPanel;
