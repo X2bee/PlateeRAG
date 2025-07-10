@@ -2,8 +2,8 @@
 import React, { useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import styles from '@/app/(canvas)/assets/TemplatePreview.module.scss';
+import MiniCanvas from '@/app/(canvas)/components/SideMenuPanel/MiniCanvas';
 import { LuX, LuCopy } from "react-icons/lu";
-import MiniCanvas from './MiniCanvas';
 
 const TemplatePreview = ({ template, onClose, onUseTemplate }) => {
     const previewRef = useRef(null);

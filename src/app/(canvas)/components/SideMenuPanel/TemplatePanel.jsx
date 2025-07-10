@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import styles from '@/app/(canvas)/assets/WorkflowPanel.module.scss'; // WorkflowPanel 스타일 사용
 import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss'; // SideMenu 스타일 추가
 import { LuArrowLeft, LuLayoutTemplate, LuDownload, LuPlay, LuCopy } from "react-icons/lu";
-import TemplatePreview from '@/app/(canvas)/components/TemplatePreview';
+import TemplatePreview from '@/app/(canvas)/components/SideMenuPanel/TemplatePreview';
 
 // workflow 파일들 직접 import
 import BasicChatbotTemplate from '@/app/(canvas)/constants/workflow/Basic_Chatbot.json';

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from 'react';
-import Node from './Node';
-import Edge from './Edge';
+import Node from '../Node';
+import Edge from '../Edge';
 import styles from '@/app/(canvas)/assets/MiniCanvas.module.scss';
 
 const MiniCanvas = ({ template }) => {
