@@ -37,6 +37,41 @@
     font-weight: normal;
 }
 
+// --- Node Name Editing Styles ---
+.nodeName {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+    padding: 2px 4px;
+    border-radius: 4px;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    
+    &:hover {
+        background-color: rgba(59, 130, 246, 0.1);
+    }
+}
+
+.nameInput {
+    background: #fff;
+    border: 2px solid #3b82f6;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    outline: none;
+    min-width: 100px;
+    max-width: 200px;
+    font-family: inherit;
+    
+    &:focus {
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+}
+
 .body {
     padding: 12px 0;
 }

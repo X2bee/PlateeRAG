@@ -300,6 +300,47 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
         });
     }, []);
 
+    const handleNodeNameChange = useCallback((nodeId, newName) => {
+        devLog.log('=== Canvas Node Name Change ===');
+        devLog.log('Received:', { nodeId, newName });
+        
+        setNodes(prevNodes => {
+            const targetNodeIndex = prevNodes.findIndex(node => node.id === nodeId);
+            if (targetNodeIndex === -1) {
+                devLog.warn('Target node not found:', nodeId);
+                return prevNodes;
+            }
+            
+            const targetNode = prevNodes[targetNodeIndex];
+            if (targetNode.data.nodeName === newName) {
+                devLog.log('Node name unchanged, skipping update');
+                return prevNodes;
+            }
+            
+            devLog.log('Updating node name:', { 
+                nodeId,
+                oldName: targetNode.data.nodeName, 
+                newName 
+            });
+            
+            const newNodes = [
+                ...prevNodes.slice(0, targetNodeIndex),
+                {
+                    ...targetNode,
+                    data: {
+                        ...targetNode.data,
+                        nodeName: newName
+                    }
+                },
+                ...prevNodes.slice(targetNodeIndex + 1)
+            ];
+            
+            devLog.log('Node name update completed successfully');
+            devLog.log('=== End Canvas Node Name Change ===');
+            return newNodes;
+        });
+    }, []);
+
     const findPortData = (nodeId, portId, portType) => {
         const node = nodes.find(n => n.id === nodeId);
         if (!node) return null;
@@ -657,6 +698,7 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
                         registerPortRef={registerPortRef}
                         snappedPortKey={snappedPortKey}
                         onParameterChange={handleParameterChange}
+                        onNodeNameChange={handleNodeNameChange}
                         isSnapTargetInvalid={snappedPortKey?.startsWith(node.id) && !isSnapTargetValid}
                     />
                 ))}
