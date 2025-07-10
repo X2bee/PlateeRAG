@@ -33,6 +33,8 @@ const MiniCanvas = ({ template }) => {
 
     // 드래그 시작
     const handleMouseDown = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         setIsDragging(true);
         setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
     };
@@ -40,6 +42,8 @@ const MiniCanvas = ({ template }) => {
     // 드래그 중
     const handleMouseMove = (e) => {
         if (!isDragging) return;
+        e.preventDefault();
+        e.stopPropagation();
         setOffset({
             x: e.clientX - dragStart.x,
             y: e.clientY - dragStart.y
@@ -47,7 +51,9 @@ const MiniCanvas = ({ template }) => {
     };
 
     // 드래그 종료
-    const handleMouseUp = () => {
+    const handleMouseUp = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         setIsDragging(false);
     };
 
@@ -58,16 +64,25 @@ const MiniCanvas = ({ template }) => {
 
         canvas.addEventListener('wheel', handleWheel, { passive: false });
         canvas.addEventListener('mousedown', handleMouseDown);
-        window.addEventListener('mousemove', handleMouseMove);
-        window.addEventListener('mouseup', handleMouseUp);
-
+        
         return () => {
             canvas.removeEventListener('wheel', handleWheel);
             canvas.removeEventListener('mousedown', handleMouseDown);
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
         };
-    }, [isDragging, dragStart, offset]);
+    }, []);
+
+    // 드래그 이벤트는 전역으로 등록
+    useEffect(() => {
+        if (isDragging) {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        }
+        
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isDragging, dragStart]);
 
     // 더미 함수들 (실제 기능은 없지만 Node 컴포넌트에 필요)
     const dummyHandlers = {
@@ -81,7 +96,7 @@ const MiniCanvas = ({ template }) => {
 
     return (
         <div 
-            className={styles.miniCanvas}
+            className={`${styles.miniCanvas} miniCanvas`}
             ref={canvasRef}
             style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
         >
@@ -128,16 +143,18 @@ const MiniCanvas = ({ template }) => {
                 </svg>
 
                 {/* 노드 렌더링 */}
-                {adjustedNodes.map(node => (
-                    <Node
-                        key={node.id}
-                        id={node.id}
-                        data={node.data}
-                        position={node.position}
-                        isPreview={true}
-                        {...dummyHandlers}
-                    />
-                ))}
+                <div className={styles.nodesContainer}>
+                    {adjustedNodes.map(node => (
+                        <Node
+                            key={node.id}
+                            id={node.id}
+                            data={node.data}
+                            position={node.position}
+                            isPreview={true}
+                            {...dummyHandlers}
+                        />
+                    ))}
+                </div>
             </div>
 
             {/* 줌 컨트롤 */}

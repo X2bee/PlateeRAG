@@ -8,6 +8,7 @@
     border-radius: 12px;
     border: 2px solid #e2e8f0;
     user-select: none;
+    pointer-events: auto; /* 캔버스 내부 이벤트 활성화 */
 }
 
 .canvasContent {
@@ -30,6 +31,7 @@
 .nodesContainer {
     position: relative;
     z-index: 2;
+    pointer-events: none; /* 노드 자체는 클릭 불가 */
 }
 
 .grid {

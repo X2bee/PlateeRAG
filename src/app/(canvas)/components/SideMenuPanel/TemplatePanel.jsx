@@ -42,10 +42,20 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
     }, []);
 
     const handleUseTemplate = (template) => {
-        console.log('Using template:', template);
+        console.log('=== TemplatePanel handleUseTemplate called ===');
+        console.log('Template:', template);
+        console.log('onLoadWorkflow exists:', !!onLoadWorkflow);
+        console.log('Template data exists:', !!template?.data);
+        
         if (onLoadWorkflow && template.data) {
-            // 템플릿 데이터를 워크플로우로 로드
+            console.log('Calling onLoadWorkflow with:', template.data, template.name);
             onLoadWorkflow(template.data, template.name);
+            console.log('onLoadWorkflow call completed');
+        } else {
+            console.error('Cannot call onLoadWorkflow:', {
+                hasOnLoadWorkflow: !!onLoadWorkflow,
+                hasTemplateData: !!template?.data
+            });
         }
     };
 

@@ -9,19 +9,7 @@ const TemplatePreview = ({ template, onClose, onUseTemplate }) => {
     const previewRef = useRef(null);
     const canvasRef = useRef(null);
 
-    // 팝업 외부 클릭 시 닫기
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (previewRef.current && !previewRef.current.contains(event.target)) {
-                onClose();
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [onClose]);
+    // 외부 클릭 감지 로직 제거 - 오버레이 배경 클릭만으로 닫기
 
     // ESC 키로 닫기
     useEffect(() => {
@@ -42,8 +30,19 @@ const TemplatePreview = ({ template, onClose, onUseTemplate }) => {
     }
 
     const modalContent = (
-        <div className={styles.overlay}>
-            <div className={styles.previewContainer} ref={previewRef}>
+        <div className={styles.overlay} onClick={(e) => {
+            // 오버레이 배경을 클릭했을 때만 닫기 (자식 요소 클릭은 제외)
+            if (e.target === e.currentTarget) {
+                onClose();
+            }
+        }}>
+            <div 
+                className={styles.previewContainer} 
+                ref={previewRef}
+                data-template-preview="true"
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+            >
                 <div className={styles.header}>
                     <div className={styles.titleSection}>
                         <h3>{template.name}</h3>
@@ -52,7 +51,26 @@ const TemplatePreview = ({ template, onClose, onUseTemplate }) => {
                     <div className={styles.actions}>
                         <button 
                             className={styles.useButton}
-                            onClick={() => onUseTemplate(template)}
+                            onClick={(e) => {
+                                console.log('=== TemplatePreview Use Template clicked ===');
+                                console.log('Event:', e);
+                                console.log('Template:', template);
+                                console.log('onUseTemplate function:', onUseTemplate);
+                                e.preventDefault();
+                                e.stopPropagation();
+                                try {
+                                    onUseTemplate(template);
+                                    console.log('onUseTemplate called successfully');
+                                    onClose();
+                                    console.log('onClose called successfully');
+                                } catch (error) {
+                                    console.error('Error in Use Template:', error);
+                                }
+                            }}
+                            onMouseDown={(e) => {
+                                console.log('Use Template mousedown');
+                                e.stopPropagation();
+                            }}
                             title="Use This Template"
                         >
                             <LuCopy />
@@ -60,7 +78,15 @@ const TemplatePreview = ({ template, onClose, onUseTemplate }) => {
                         </button>
                         <button 
                             className={styles.closeButton}
-                            onClick={onClose}
+                            onClick={(e) => {
+                                console.log('Close button clicked in TemplatePreview');
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onClose();
+                            }}
+                            onMouseDown={(e) => {
+                                e.stopPropagation();
+                            }}
                             title="Close Preview"
                         >
                             <LuX />

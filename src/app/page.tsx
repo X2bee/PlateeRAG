@@ -266,6 +266,12 @@ export default function Home() {
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
+            // TemplatePreview 오버레이 클릭인지 확인 (CSS 클래스로)
+            const target = event.target as HTMLElement;
+            if (target.closest('[data-template-preview]')) {
+                return; // TemplatePreview 내부 클릭 시 메뉴 닫지 않음
+            }
+            
             if (menuRef.current && !(menuRef.current as any).contains(event.target)) {
                 setIsMenuOpen(false);
             }

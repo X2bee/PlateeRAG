@@ -147,6 +147,7 @@
     align-items: center;
     justify-content: center;
     padding: 20px;
+    position: relative; /* MiniCanvas 이벤트를 위해 추가 */
 }
 
 .previewCanvas {
