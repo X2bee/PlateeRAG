@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import styles from '@/app/(canvas)/assets/WorkflowPanel.module.scss'; // WorkflowPanel 스타일 사용
-import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss'; // SideMenu 스타일 추가
+import styles from '@/app/(canvas)/assets/WorkflowPanel.module.scss';
+import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss';
 import { LuArrowLeft, LuLayoutTemplate, LuDownload, LuPlay, LuCopy } from "react-icons/lu";
 import TemplatePreview from '@/app/(canvas)/components/SideMenuPanel/TemplatePreview';
 
