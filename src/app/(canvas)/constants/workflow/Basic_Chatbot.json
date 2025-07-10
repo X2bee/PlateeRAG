@@ -1,0 +1,141 @@
+{
+    "view": {
+        "x": -8739,
+            "y": -4067.5,
+                "scale": 1
+    },
+    "nodes": [
+        {
+            "id": "chat/openai-1752035468492",
+            "data": {
+                "functionId": "chat_models",
+                "id": "chat/openai",
+                "nodeName": "Chat OpenAI",
+                "inputs": [
+                    {
+                        "id": "text",
+                        "name": "Text",
+                        "type": "STR",
+                        "multi": false,
+                        "required": true
+                    }
+                ],
+                "outputs": [
+                    {
+                        "id": "result",
+                        "name": "Result",
+                        "type": "STR"
+                    }
+                ],
+                "parameters": [
+                    {
+                        "id": "model",
+                        "name": "Model",
+                        "type": "STR",
+                        "value": "gpt-4o",
+                        "required": true,
+                        "options": [
+                            {
+                                "value": "gpt-3.5-turbo",
+                                "label": "GPT-3.5 Turbo"
+                            },
+                            {
+                                "value": "gpt-4",
+                                "label": "GPT-4"
+                            },
+                            {
+                                "value": "gpt-4o",
+                                "label": "GPT-4o"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "position": {
+                "x": 9438,
+                "y": 4446.5
+            }
+        },
+        {
+            "id": "tools/print_any-1752035471107",
+            "data": {
+                "functionId": "endnode",
+                "id": "tools/print_any",
+                "nodeName": "Print Any",
+                "inputs": [
+                    {
+                        "id": "input_print",
+                        "name": "Print",
+                        "type": "ANY",
+                        "multi": false,
+                        "required": true
+                    }
+                ],
+                "outputs": [],
+                "parameters": []
+            },
+            "position": {
+                "x": 9916,
+                "y": 4446.5
+            }
+        },
+        {
+            "id": "math/input_str-1752035472920",
+            "data": {
+                "functionId": "tools",
+                "id": "math/input_str",
+                "nodeName": "Input String",
+                "inputs": [],
+                "outputs": [
+                    {
+                        "id": "result",
+                        "name": "Result",
+                        "type": "STR"
+                    }
+                ],
+                "parameters": [
+                    {
+                        "id": "input_str",
+                        "name": "String",
+                        "type": "STR",
+                        "value": "안녕하세요?"
+                    }
+                ]
+            },
+            "position": {
+                "x": 8872,
+                "y": 4390.5
+            }
+        }
+    ],
+        "edges": [
+            {
+                "id": "edge-math/input_str-1752035472920:result-chat/openai-1752035468492:text-1752035474177",
+                "source": {
+                    "nodeId": "math/input_str-1752035472920",
+                    "portId": "result",
+                    "portType": "output",
+                    "type": "STR"
+                },
+                "target": {
+                    "nodeId": "chat/openai-1752035468492",
+                    "portId": "text",
+                    "portType": "input"
+                }
+            },
+            {
+                "id": "edge-chat/openai-1752035468492:result-tools/print_any-1752035471107:input_print-1752035475062",
+                "source": {
+                    "nodeId": "chat/openai-1752035468492",
+                    "portId": "result",
+                    "portType": "output",
+                    "type": "STR"
+                },
+                "target": {
+                    "nodeId": "tools/print_any-1752035471107",
+                    "portId": "input_print",
+                    "portType": "input"
+                }
+            }
+        ]
+}

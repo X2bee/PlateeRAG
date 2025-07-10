@@ -4,58 +4,53 @@ import styles from '@/app/(canvas)/assets/WorkflowPanel.module.scss'; // Workflo
 import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss'; // SideMenu 스타일 추가
 import { LuArrowLeft, LuLayoutTemplate, LuDownload, LuPlay, LuCopy } from "react-icons/lu";
 
-const TemplatePanel = ({ onBack }) => {
+// workflow 파일들 직접 import
+import BasicChatbotTemplate from '@/app/(canvas)/constants/workflow/Basic_Chatbot.json';
+
+const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
     const [templates, setTemplates] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // 모의 템플릿 데이터 (실제로는 API에서 가져올 수 있음)
+    // 실제 workflow 파일에서 템플릿 데이터 로드
     useEffect(() => {
-        const mockTemplates = [
-            {
-                id: 'basic-chat',
-                name: 'Basic Chatbot',
-                description: 'Simple question-answer chatbot workflow',
-                category: 'AI',
-                nodes: 3
-            },
-            {
-                id: 'data-processing',
-                name: 'Data Processing Pipeline',
-                description: 'Process and transform data through multiple stages',
-                category: 'Data',
-                nodes: 5
-            },
-            {
-                id: 'image-analysis',
-                name: 'Image Analysis',
-                description: 'Analyze and classify images using AI models',
-                category: 'Vision',
-                nodes: 4
-            },
-            {
-                id: 'text-summarization',
-                name: 'Text Summarization',
-                description: 'Summarize long text documents automatically',
-                category: 'NLP',
-                nodes: 3
-            }
-        ];
+        const loadTemplates = async () => {
+            try {
+                const templateList = [
+                    {
+                        id: 'Basic_Chatbot',
+                        name: 'Basic Chatbot',
+                        description: 'Simple question-answer chatbot workflow using OpenAI',
+                        category: 'AI',
+                        nodes: BasicChatbotTemplate.nodes ? BasicChatbotTemplate.nodes.length : 0,
+                        data: BasicChatbotTemplate
+                    }
+                    // 여기에 더 많은 템플릿을 추가할 수 있음
+                ];
 
-        // 로딩 시뮬레이션
-        setTimeout(() => {
-            setTemplates(mockTemplates);
-            setIsLoading(false);
-        }, 500);
+                setTemplates(templateList);
+                setIsLoading(false);
+            } catch (error) {
+                console.error('Failed to load templates:', error);
+                setTemplates([]);
+                setIsLoading(false);
+            }
+        };
+
+        loadTemplates();
     }, []);
 
     const handleUseTemplate = (template) => {
         console.log('Using template:', template);
-        // TODO: 템플릿을 캔버스에 로드하는 로직 구현
+        if (onLoadWorkflow && template.data) {
+            // 템플릿 데이터를 워크플로우로 로드
+            onLoadWorkflow(template.data, template.name);
+        }
     };
 
     const handlePreviewTemplate = (template) => {
         console.log('Previewing template:', template);
         // TODO: 템플릿 미리보기 기능 구현
+        console.log('Template data:', template.data);
     };
 
     if (isLoading) {

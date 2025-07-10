@@ -59,7 +59,12 @@ const SideMenu = ({ menuRef, onLoad, onExport, onLoadWorkflow }) => {
                     onLoadWorkflow={onLoadWorkflow}
                 />
             )}
-            {view === 'template' && <TemplatePanel onBack={() => setView('main')} />}
+            {view === 'template' && (
+                <TemplatePanel 
+                    onBack={() => setView('main')} 
+                    onLoadWorkflow={onLoadWorkflow}
+                />
+            )}
         </aside>
     );
 };
