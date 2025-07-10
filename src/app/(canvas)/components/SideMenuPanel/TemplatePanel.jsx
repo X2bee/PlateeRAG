@@ -107,14 +107,14 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
                                     onClick={() => handlePreviewTemplate(template)}
                                     title="Preview Template"
                                 >
-                                    <LuPlay />
+                                    <LuCopy />
                                 </button>
                                 <button 
                                     className={styles.templateActionButton}
                                     onClick={() => handleUseTemplate(template)}
                                     title="Use Template"
                                 >
-                                    <LuCopy />
+                                    <LuPlay />
                                 </button>
                             </div>
                         </div>
