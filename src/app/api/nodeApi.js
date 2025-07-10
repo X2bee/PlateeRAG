@@ -1,3 +1,5 @@
+import { devLog } from '@/app/utils/logger';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
 /**
@@ -15,7 +17,7 @@ export const getNodes = async () => {
 
         return await response.json();
     } catch (error) {
-        console.error("Failed to get nodes:", error);
+        devLog.error("Failed to get nodes:", error);
         throw error; // 에러를 호출한 쪽으로 다시 던져서 UI에서 처리할 수 있도록 합니다.
     }
 };
@@ -37,7 +39,7 @@ export const exportNodes = async () => {
         // export 후, 최신 노드 리스트를 다시 불러옵니다.
         return await getNodes();
     } catch (error) {
-        console.error("Failed to export nodes:", error);
+        devLog.error("Failed to export nodes:", error);
         throw error;
     }
 };
@@ -67,7 +69,7 @@ export const executeWorkflow = async (workflowData) => {
 
         return result;
     } catch (error) {
-        console.error("Failed to execute workflow:", error);
+        devLog.error("Failed to execute workflow:", error);
         // UI에서 에러 메시지를 표시할 수 있도록 에러를 다시 던집니다.
         throw error;
     }
@@ -101,7 +103,7 @@ export const saveWorkflow = async (workflowId, workflowContent) => {
 
         return result;
     } catch (error) {
-        console.error("Failed to save workflow:", error);
+        devLog.error("Failed to save workflow:", error);
         throw error;
     }
 };
@@ -123,7 +125,7 @@ export const listWorkflows = async () => {
         const result = await response.json();
         return result.workflows || [];
     } catch (error) {
-        console.error("Failed to list workflows:", error);
+        devLog.error("Failed to list workflows:", error);
         throw error;
     }
 };
@@ -146,7 +148,7 @@ export const loadWorkflow = async (workflowId) => {
         const workflowData = await response.json();
         return workflowData;
     } catch (error) {
-        console.error("Failed to load workflow:", error);
+        devLog.error("Failed to load workflow:", error);
         throw error;
     }
 };
@@ -171,7 +173,7 @@ export const deleteWorkflow = async (workflowId) => {
         const result = await response.json();
         return result;
     } catch (error) {
-        console.error("Failed to delete workflow:", error);
+        devLog.error("Failed to delete workflow:", error);
         throw error;
     }
 };

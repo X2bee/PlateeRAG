@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { sendMessage } from '@/app/api/chatAPI';
-import styles from '@/app/(canvas)/assets/Chat.module.scss'; // Corrected path
-import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss'; // SideMenu 스타일 추가
-import { LuArrowLeft, LuSend } from "react-icons/lu"; // Icons for back and send
+import styles from '@/app/(canvas)/assets/Chat.module.scss';
+import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss';
+import { LuArrowLeft, LuSend } from "react-icons/lu";
+import { devLog } from '@/app/utils/logger';
 
 const ChatPanel = ({ onBack }) => {
     const [messages, setMessages] = useState([]);
@@ -10,7 +11,6 @@ const ChatPanel = ({ onBack }) => {
     const [isLoading, setIsLoading] = useState(false);
     const messageListRef = useRef(null);
 
-    // Scroll to bottom effect when new messages are added
     useEffect(() => {
         if (messageListRef.current) {
             messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
@@ -32,19 +32,19 @@ const ChatPanel = ({ onBack }) => {
         };
         setMessages(prevMessages => [...prevMessages, userMessage]);
         setIsLoading(true);
-        setInputValue(''); // Clear input immediately
+        setInputValue('');
 
         try {
             const response = await sendMessage(userMessage.text);
             const botMessage = {
-                id: Date.now() + 1, // Ensure unique ID
+                id: Date.now() + 1,
                 text: response.text,
                 sender: 'bot',
                 timestamp: new Date(),
             };
             setMessages(prevMessages => [...prevMessages, botMessage]);
         } catch (error) {
-            console.error("Error sending message:", error);
+            devLog.error("Error sending message:", error);
             const errorMessage = {
                 id: Date.now() + 1,
                 text: "Sorry, I couldn't get a response. Please try again.",
@@ -57,10 +57,9 @@ const ChatPanel = ({ onBack }) => {
         }
     };
 
-    // Allow sending message with Enter key
     const handleKeyPress = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault(); // Prevent newline in textarea
+            e.preventDefault();
             handleSendMessage();
         }
     };

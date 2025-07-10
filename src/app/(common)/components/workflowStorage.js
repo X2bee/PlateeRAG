@@ -1,3 +1,5 @@
+import { devLog } from '@/app/utils/logger';
+
 const WORKFLOW_NAME_KEY = 'plateerag_workflow_name';
 const WORKFLOW_STATE_KEY = 'plateerag_workflow_state';
 const DEFAULT_WORKFLOW_NAME = 'Workflow';
@@ -13,7 +15,7 @@ export const getWorkflowName = () => {
         const savedName = localStorage.getItem(WORKFLOW_NAME_KEY);
         return savedName || DEFAULT_WORKFLOW_NAME;
     } catch (error) {
-        console.warn('Failed to get workflow name from localStorage:', error);
+        devLog.warn('Failed to get workflow name from localStorage:', error);
         return DEFAULT_WORKFLOW_NAME;
     }
 };
@@ -30,7 +32,7 @@ export const saveWorkflowName = (name) => {
         const nameToSave = trimmedName || DEFAULT_WORKFLOW_NAME;
         localStorage.setItem(WORKFLOW_NAME_KEY, nameToSave);
     } catch (error) {
-        console.warn('Failed to save workflow name to localStorage:', error);
+        devLog.warn('Failed to save workflow name to localStorage:', error);
     }
 };
 
@@ -43,7 +45,7 @@ export const resetWorkflowName = () => {
     try {
         localStorage.removeItem(WORKFLOW_NAME_KEY);
     } catch (error) {
-        console.warn('Failed to reset workflow name:', error);
+        devLog.warn('Failed to reset workflow name:', error);
     }
 };
 
@@ -56,17 +58,17 @@ export const getWorkflowState = () => {
     
     try {
         const savedState = localStorage.getItem(WORKFLOW_STATE_KEY);
-        console.log('getWorkflowState: Retrieved from localStorage:', savedState ? 'data found' : 'no data');
+        devLog.log('getWorkflowState: Retrieved from localStorage:', savedState ? 'data found' : 'no data');
         
         if (savedState) {
             const parsedState = JSON.parse(savedState);
-            console.log('getWorkflowState: Found', parsedState.nodes?.length || 0, 'nodes and', parsedState.edges?.length || 0, 'edges');
+            devLog.log('getWorkflowState: Found', parsedState.nodes?.length || 0, 'nodes and', parsedState.edges?.length || 0, 'edges');
             return parsedState;
         }
         
         return null;
     } catch (error) {
-        console.warn('Failed to get workflow state from localStorage:', error);
+        devLog.warn('Failed to get workflow state from localStorage:', error);
         return null;
     }
 };
@@ -81,20 +83,20 @@ export const saveWorkflowState = (state) => {
     try {
         // 상태가 없으면 저장하지 않음
         if (!state) {
-            console.log('saveWorkflowState: No state provided, skipping save');
+            devLog.log('saveWorkflowState: No state provided, skipping save');
             return;
         }
         
-        console.log('saveWorkflowState: Saving state with', state.nodes?.length || 0, 'nodes and', state.edges?.length || 0, 'edges');
+        devLog.log('saveWorkflowState: Saving state with', state.nodes?.length || 0, 'nodes and', state.edges?.length || 0, 'edges');
         
         // 상태를 JSON 문자열로 저장 (view 정보도 포함)
         const stateJson = JSON.stringify(state);
         localStorage.setItem(WORKFLOW_STATE_KEY, stateJson);
         
-        console.log('saveWorkflowState: Successfully saved to localStorage');
+        devLog.log('saveWorkflowState: Successfully saved to localStorage');
         
     } catch (error) {
-        console.warn('Failed to save workflow state to localStorage:', error);
+        devLog.warn('Failed to save workflow state to localStorage:', error);
     }
 };
 
@@ -107,7 +109,7 @@ export const clearWorkflowState = () => {
     try {
         localStorage.removeItem(WORKFLOW_STATE_KEY);
     } catch (error) {
-        console.warn('Failed to clear workflow state:', error);
+        devLog.warn('Failed to clear workflow state:', error);
     }
 };
 
@@ -115,10 +117,10 @@ export const clearWorkflowState = () => {
  * 새로운 워크플로우를 시작합니다 (상태와 이름을 모두 초기화)
  */
 export const startNewWorkflow = () => {
-    console.log('Starting new workflow - clearing all stored data');
+    devLog.log('Starting new workflow - clearing all stored data');
     clearWorkflowState();
     resetWorkflowName();
-    console.log('New workflow started successfully');
+    devLog.log('New workflow started successfully');
 };
 
 /**

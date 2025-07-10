@@ -4,6 +4,7 @@ import React, { useRef, useEffect, useState, forwardRef, useImperativeHandle, us
 import styles from '@/app/(canvas)/assets/Canvas.module.scss';
 import Node from '@/app/(canvas)/components/Node';
 import Edge from '@/app/(canvas)/components/Edge';
+import { devLog } from '@/app/utils/logger';
 
 const MIN_SCALE = 0.6;
 const MAX_SCALE = 20;
@@ -90,17 +91,17 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
             
             // 빈 상태는 저장하지 않음 (localStorage 덮어쓰기 방지)
             if (nodes.length > 0 || edges.length > 0) {
-                console.log('Canvas state changed, calling onStateChange:', {
+                devLog.log('Canvas state changed, calling onStateChange:', {
                     nodesCount: nodes.length,
                     edgesCount: edges.length,
                     view: view
                 });
                 onStateChange(currentState);
             } else {
-                console.log('Canvas state is empty, skipping onStateChange to preserve localStorage');
+                devLog.log('Canvas state is empty, skipping onStateChange to preserve localStorage');
             }
         } else {
-            console.warn('onStateChange callback is not provided to Canvas');
+            devLog.warn('onStateChange callback is not provided to Canvas');
         }
     }, [nodes, edges, view, onStateChange]);
 
@@ -129,7 +130,7 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
             
             // 컨테이너나 콘텐츠 크기가 0이면 기본값 반환
             if (containerWidth <= 0 || containerHeight <= 0) {
-                console.log('Container not ready for centered view calculation, using default');
+                devLog.log('Container not ready for centered view calculation, using default');
                 return { x: 0, y: 0, scale: 1 };
             }
             
@@ -139,11 +140,11 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
                 scale: 1
             };
             
-            console.log('Calculated centered view:', centeredView, 'container:', { containerWidth, containerHeight }, 'content:', { contentWidth, contentHeight });
+            devLog.log('Calculated centered view:', centeredView, 'container:', { containerWidth, containerHeight }, 'content:', { contentWidth, contentHeight });
             return centeredView;
         }
         
-        console.log('Container or content not ready for centered view calculation');
+        devLog.log('Container or content not ready for centered view calculation');
         return { x: 0, y: 0, scale: 1 };
     }, []);
 
@@ -171,7 +172,7 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
         },
         loadWorkflowState: (state) => {
             // 상태 복원용 메서드 (자동 저장된 상태를 로드할 때 사용)
-            console.log('Canvas loadWorkflowState called with:', {
+            devLog.log('Canvas loadWorkflowState called with:', {
                 hasNodes: !!state.nodes,
                 nodesCount: state.nodes?.length || 0,
                 hasEdges: !!state.edges,
@@ -181,19 +182,19 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
             });
             
             if (state.nodes) {
-                console.log('Setting nodes:', state.nodes.length);
+                devLog.log('Setting nodes:', state.nodes.length);
                 setNodes(state.nodes);
             }
             if (state.edges) {
-                console.log('Setting edges:', state.edges.length);
+                devLog.log('Setting edges:', state.edges.length);
                 setEdges(state.edges);
             }
             if (state.view) {
-                console.log('Setting view:', state.view);
+                devLog.log('Setting view:', state.view);
                 setView(state.view);
             }
             
-            console.log('Canvas loadWorkflowState completed');
+            devLog.log('Canvas loadWorkflowState completed');
         },
         getCenteredView,
         validateAndPrepareExecution: () => {
@@ -222,7 +223,7 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
             const nodeToCopy = nodes.find(node => node.id === selectedNodeId);
             if (nodeToCopy) {
                 setCopiedNode(nodeToCopy);
-                console.log('Node copied:', nodeToCopy.data.nodeName);
+                devLog.log('Node copied:', nodeToCopy.data.nodeName);
             }
         }
     };
@@ -240,7 +241,7 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
             
             setNodes(prev => [...prev, newNode]);
             setSelectedNodeId(newNode.id); // 새로 생성된 노드를 선택
-            console.log('Node pasted:', newNode.data.nodeName);
+            devLog.log('Node pasted:', newNode.data.nodeName);
         }
     };
 
@@ -248,33 +249,33 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
 
 
     const handleParameterChange = useCallback((nodeId, paramId, value) => {
-        console.log('=== Canvas Parameter Change ===');
-        console.log('Received:', { nodeId, paramId, value });
+        devLog.log('=== Canvas Parameter Change ===');
+        devLog.log('Received:', { nodeId, paramId, value });
         
         // React state 업데이트를 위한 안전한 접근
         setNodes(prevNodes => {
-            console.log('Previous nodes count:', prevNodes.length);
+            devLog.log('Previous nodes count:', prevNodes.length);
             
             // 먼저 타겟 노드가 존재하는지 확인
             const targetNodeIndex = prevNodes.findIndex(node => node.id === nodeId);
             if (targetNodeIndex === -1) {
-                console.warn('Target node not found:', nodeId);
+                devLog.warn('Target node not found:', nodeId);
                 return prevNodes; // 변경 없음
             }
             
             const targetNode = prevNodes[targetNodeIndex];
-            console.log('Found target node:', targetNode.data.nodeName);
+            devLog.log('Found target node:', targetNode.data.nodeName);
             
             // parameters가 존재하는지 확인
             if (!targetNode.data.parameters || !Array.isArray(targetNode.data.parameters)) {
-                console.warn('No parameters found in target node');
+                devLog.warn('No parameters found in target node');
                 return prevNodes; // 변경 없음
             }
             
             // 타겟 parameter가 존재하는지 확인
             const targetParamIndex = targetNode.data.parameters.findIndex(param => param.id === paramId);
             if (targetParamIndex === -1) {
-                console.warn('Target parameter not found:', paramId);
+                devLog.warn('Target parameter not found:', paramId);
                 return prevNodes; // 변경 없음
             }
             
@@ -283,11 +284,11 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
             
             // 값이 실제로 변경되었는지 확인
             if (targetParam.value === newValue) {
-                console.log('Parameter value unchanged, skipping update');
+                devLog.log('Parameter value unchanged, skipping update');
                 return prevNodes; // 변경 없음
             }
             
-            console.log('Updating parameter:', { 
+            devLog.log('Updating parameter:', { 
                 paramName: targetParam.name,
                 paramId, 
                 oldValue: targetParam.value, 
@@ -308,8 +309,8 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
                 }
             };
             
-            console.log('Parameter update completed successfully');
-            console.log('=== End Canvas Parameter Change ===');
+            devLog.log('Parameter update completed successfully');
+            devLog.log('=== End Canvas Parameter Change ===');
             return newNodes;
         });
     }, []);
@@ -331,7 +332,7 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
                                 target.closest('[class*="param"]');
         
         if (isParameterInput) {
-            console.log('Canvas mousedown blocked for parameter input:', target);
+            devLog.log('Canvas mousedown blocked for parameter input:', target);
             return;
         }
 
@@ -526,7 +527,7 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
             }
             if (existingEdge) {
                 setDragState({ type: 'edge' });
-                console.log(existingEdge)
+                devLog.log(existingEdge)
                 const sourcePosKey = `${existingEdge.source.nodeId}__PORTKEYDELIM__${existingEdge.source.portId}__PORTKEYDELIM__${existingEdge.source.portType}`;
                 const sourcePos = portPositions[sourcePosKey];
                 const targetPosKey = `${existingEdge.target.nodeId}__PORTKEYDELIM__${existingEdge.target.portId}__PORTKEYDELIM__${existingEdge.target.portType}`;
@@ -612,13 +613,13 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
     }, []);
 
     useEffect(() => {
-        console.log('Canvas mounted, checking initial state');
+        devLog.log('Canvas mounted, checking initial state');
         if (onStateChange && (nodes.length > 0 || edges.length > 0)) {
-            console.log('Canvas has content, sending initial state');
+            devLog.log('Canvas has content, sending initial state');
             const initialState = { view, nodes, edges };
             onStateChange(initialState);
         } else {
-            console.log('Canvas is empty, not sending initial state to avoid overwriting localStorage');
+            devLog.log('Canvas is empty, not sending initial state to avoid overwriting localStorage');
         }
     }, []);
 

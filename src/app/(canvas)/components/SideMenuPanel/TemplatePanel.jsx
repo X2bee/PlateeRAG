@@ -31,7 +31,7 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
                 setTemplates(templateList);
                 setIsLoading(false);
             } catch (error) {
-                console.error('Failed to load templates:', error);
+                devLog.error('Failed to load templates:', error);
                 setTemplates([]);
                 setIsLoading(false);
             }

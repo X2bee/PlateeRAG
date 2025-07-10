@@ -5,6 +5,7 @@ import styles from '@/app/(canvas)/assets/WorkflowPanel.module.scss';
 import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss'; // SideMenu 스타일 추가
 import { LuArrowLeft, LuFolderOpen, LuDownload, LuRefreshCw, LuCalendar, LuTrash2 } from "react-icons/lu";
 import { listWorkflows, loadWorkflow, deleteWorkflow } from '@/app/api/nodeApi';
+import { devLog } from '@/app/utils/logger';
 
 const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
     const [workflows, setWorkflows] = useState([]);
@@ -43,7 +44,7 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
                 onLoadWorkflow(workflowData, workflowId);
             }
         } catch (error) {
-            console.error("Failed to load workflow:", error);
+            devLog.error("Failed to load workflow:", error);
             throw error;
         }
     };
@@ -132,7 +133,7 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
             
             toast.success(`Workflow "${workflowName}" deleted successfully!`, { id: toastId });
         } catch (error) {
-            console.error("Failed to delete workflow:", error);
+            devLog.error("Failed to delete workflow:", error);
             toast.error(`Failed to delete workflow: ${error.message}`, { id: toastId });
         }
     };

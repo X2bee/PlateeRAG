@@ -88,21 +88,21 @@
 }
 
 // Node preview 스타일 조정
-:global(.nodeContainer.preview) {
+.miniCanvas :global(.nodeContainer.preview) {
     transform: scale(0.8);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     
-    .nodeHeader {
+    :global(.nodeHeader) {
         font-size: 11px;
     }
     
-    .nodeInputs, .nodeOutputs {
+    :global(.nodeInputs), :global(.nodeOutputs) {
         font-size: 10px;
     }
 }
 
 // Edge preview 스타일 조정
-:global(.edge.preview) {
+.miniCanvas :global(.edge.preview) {
     stroke-width: 2;
     opacity: 0.8;
 }

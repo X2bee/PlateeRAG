@@ -10,9 +10,6 @@ const TemplatePreview = ({ template, onClose, onUseTemplate }) => {
     const previewRef = useRef(null);
     const canvasRef = useRef(null);
 
-    // 외부 클릭 감지 로직 제거 - 오버레이 배경 클릭만으로 닫기
-
-    // ESC 키로 닫기
     useEffect(() => {
         const handleEscapeKey = (event) => {
             if (event.key === 'Escape') {
@@ -32,7 +29,6 @@ const TemplatePreview = ({ template, onClose, onUseTemplate }) => {
 
     const modalContent = (
         <div className={styles.overlay} onClick={(e) => {
-            // 오버레이 배경을 클릭했을 때만 닫기 (자식 요소 클릭은 제외)
             if (e.target === e.currentTarget) {
                 onClose();
             }
@@ -114,7 +110,6 @@ const TemplatePreview = ({ template, onClose, onUseTemplate }) => {
         </div>
     );
 
-    // Portal을 사용하여 document.body에 직접 렌더링
     return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null;
 };
 

@@ -1,6 +1,7 @@
 // src/app/components/Node.jsx
 import React, { memo } from 'react';
 import styles from '@/app/(canvas)/assets/Node.module.scss';
+import { devLog } from '@/app/utils/logger';
 
 const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown, onPortMouseUp, registerPortRef, snappedPortKey, onParameterChange, isSnapTargetInvalid, isPreview = false }) => {
     const { nodeName, inputs, parameters, outputs, functionId } = data;
@@ -12,8 +13,8 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
     };
 
     const handleParamValueChange = (e, paramId) => {
-        console.log('=== Parameter Change Event ===');
-        console.log('nodeId:', id, 'paramId:', paramId, 'value:', e.target.value);
+        devLog.log('=== Parameter Change Event ===');
+        devLog.log('nodeId:', id, 'paramId:', paramId, 'value:', e.target.value);
         
         // 이벤트 전파 중단
         e.preventDefault();
@@ -23,22 +24,22 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
             // 값 검증
             const value = e.target.value;
             if (value === undefined || value === null) {
-                console.warn('Invalid parameter value:', value);
+                devLog.warn('Invalid parameter value:', value);
                 return;
             }
             
-            console.log('Calling onParameterChange...');
+            devLog.log('Calling onParameterChange...');
             // 안전한 콜백 호출
             if (typeof onParameterChange === 'function') {
                 onParameterChange(id, paramId, value);
-                console.log('onParameterChange completed successfully');
+                devLog.log('onParameterChange completed successfully');
             } else {
-                console.error('onParameterChange is not a function');
+                devLog.error('onParameterChange is not a function');
             }
         } catch (error) {
-            console.error('Error in handleParamValueChange:', error);
+            devLog.error('Error in handleParamValueChange:', error);
         }
-        console.log('=== End Parameter Change ===');
+        devLog.log('=== End Parameter Change ===');
     };
 
     const hasInputs = inputs?.length > 0;
@@ -126,19 +127,19 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                                             value={param.value} 
                                             onChange={(e) => handleParamValueChange(e, param.id)} 
                                             onMouseDown={(e) => {
-                                                console.log('select onMouseDown');
+                                                devLog.log('select onMouseDown');
                                                 e.stopPropagation();
                                             }}
                                             onClick={(e) => {
-                                                console.log('select onClick');
+                                                devLog.log('select onClick');
                                                 e.stopPropagation();
                                             }}
                                             onFocus={(e) => {
-                                                console.log('select onFocus');
+                                                devLog.log('select onFocus');
                                                 e.stopPropagation();
                                             }}
                                             onBlur={(e) => {
-                                                console.log('select onBlur');
+                                                devLog.log('select onBlur');
                                                 e.stopPropagation();
                                             }}
                                             className={`${styles.paramSelect} paramSelect`}
@@ -155,15 +156,15 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                                             value={param.value} 
                                             onChange={(e) => handleParamValueChange(e, param.id)} 
                                             onMouseDown={(e) => {
-                                                console.log('input onMouseDown');
+                                                devLog.log('input onMouseDown');
                                                 e.stopPropagation();
                                             }}
                                             onClick={(e) => {
-                                                console.log('input onClick');
+                                                devLog.log('input onClick');
                                                 e.stopPropagation();
                                             }}
                                             onFocus={(e) => {
-                                                console.log('input onFocus');
+                                                devLog.log('input onFocus');
                                                 e.stopPropagation();
                                             }}
                                             className={`${styles.paramInput} paramInput`} 

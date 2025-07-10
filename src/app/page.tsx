@@ -10,6 +10,7 @@ import styles from '@/app/(canvas)/assets/PlateeRAG.module.scss';
 
 import { executeWorkflow, saveWorkflow, listWorkflows } from '@/app/api/nodeApi';
 import { getWorkflowName, getWorkflowState, saveWorkflowState, clearWorkflowState, isValidWorkflowState, ensureValidWorkflowState, saveWorkflowName, startNewWorkflow } from '@/app/(common)/components/workflowStorage';
+import { devLog } from '@/app/utils/logger';
 
 export default function Home() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -21,7 +22,7 @@ export default function Home() {
     // Error boundary를 위한 useEffect
     useEffect(() => {
         const handleError = (error: any) => {
-            console.error('Global error caught:', error);
+            devLog.error('Global error caught:', error);
             setHasError(true);
         };
 
@@ -49,42 +50,42 @@ export default function Home() {
 
     // 컴포넌트 마운트 시 워크플로우 이름과 상태 복원
     useEffect(() => {
-        console.log('=== Page useEffect: Restoring workflow state ===');
+        devLog.log('=== Page useEffect: Restoring workflow state ===');
         
         // 저장된 워크플로우 이름 복원
         const savedName = getWorkflowName();
-        console.log('Restored workflow name:', savedName);
+        devLog.log('Restored workflow name:', savedName);
         setCurrentWorkflowName(savedName);
     }, []);
 
     // Canvas가 마운트된 후 상태 복원을 위한 별도 useEffect
     useEffect(() => {
         const restoreWorkflowState = () => {
-            console.log('restoreWorkflowState called, canvasRef.current:', !!canvasRef.current);
+            devLog.log('restoreWorkflowState called, canvasRef.current:', !!canvasRef.current);
             const savedState = getWorkflowState();
             
             if (savedState && canvasRef.current) {
                 try {
                     const validState = ensureValidWorkflowState(savedState);
                     if (validState) {
-                        console.log('Loading workflow state to Canvas:', validState);
+                        devLog.log('Loading workflow state to Canvas:', validState);
                         (canvasRef.current as any).loadWorkflowState(validState);
-                        console.log('Workflow state restored from localStorage successfully');
+                        devLog.log('Workflow state restored from localStorage successfully');
                     } else {
-                        console.log('No valid state to restore');
+                        devLog.log('No valid state to restore');
                     }
                 } catch (error) {
-                    console.warn('Failed to restore workflow state:', error);
+                    devLog.warn('Failed to restore workflow state:', error);
                 }
             } else {
-                console.log('No saved state found or Canvas not ready:', {
+                devLog.log('No saved state found or Canvas not ready:', {
                     hasSavedState: !!savedState,
                     hasCanvasRef: !!canvasRef.current
                 });
                 
                 // Canvas가 아직 준비되지 않았다면 다시 시도
                 if (!canvasRef.current && savedState) {
-                    console.log('Canvas not ready, retrying in 200ms...');
+                    devLog.log('Canvas not ready, retrying in 200ms...');
                     setTimeout(restoreWorkflowState, 200);
                 }
             }
@@ -97,7 +98,7 @@ export default function Home() {
 
     // 워크플로우 상태 변경 시 자동 저장
     const handleCanvasStateChange = (state: any) => {
-        console.log('handleCanvasStateChange called with:', {
+        devLog.log('handleCanvasStateChange called with:', {
             hasState: !!state,
             nodesCount: state?.nodes?.length || 0,
             edgesCount: state?.edges?.length || 0,
@@ -107,14 +108,14 @@ export default function Home() {
         try {
             // 상태가 있고 비어있지 않으면 저장 (빈 상태로 덮어쓰기 방지)
             if (state && (state.nodes?.length > 0 || state.edges?.length > 0)) {
-                console.log('Saving non-empty state to localStorage');
+                devLog.log('Saving non-empty state to localStorage');
                 saveWorkflowState(state);
-                console.log('Workflow state saved to localStorage');
+                devLog.log('Workflow state saved to localStorage');
             } else {
-                console.log('Skipping save of empty state to preserve existing localStorage data');
+                devLog.log('Skipping save of empty state to preserve existing localStorage data');
             }
         } catch (error) {
-            console.warn('Failed to auto-save workflow state:', error);
+            devLog.warn('Failed to auto-save workflow state:', error);
         }
     };
 
@@ -232,7 +233,7 @@ export default function Home() {
     // 실제 새로운 워크플로우 시작 로직
     const performNewWorkflow = () => {
         try {
-            console.log('Starting new workflow...');
+            devLog.log('Starting new workflow...');
             
             // localStorage 데이터 초기화
             startNewWorkflow();
@@ -249,17 +250,17 @@ export default function Home() {
                     view: centeredView
                 };
                 (canvas as any).loadWorkflowState(initialState);
-                console.log('Canvas state reset to initial values');
+                devLog.log('Canvas state reset to initial values');
             }
             
             // 현재 워크플로우 이름을 기본값으로 재설정
             setCurrentWorkflowName('Workflow');
             
-            console.log('New workflow started successfully');
+            devLog.log('New workflow started successfully');
             toast.success('New workflow started');
             
         } catch (error: any) {
-            console.error('Failed to start new workflow:', error);
+            devLog.error('Failed to start new workflow:', error);
             toast.error(`Failed to start new workflow: ${error.message}`);
         }
     };
@@ -398,7 +399,7 @@ export default function Home() {
             }
             
         } catch (error: any) {
-            console.error("Error checking existing workflows:", error);
+            devLog.error("Error checking existing workflows:", error);
             // 중복 확인 실패 시에도 저장 시도 (graceful fallback)
             toast.error(`Warning: Could not check for duplicates. Proceeding with save...`);
             setTimeout(async () => {
@@ -414,7 +415,7 @@ export default function Home() {
             const result = await saveWorkflow(workflowName, canvasState);
             toast.success(`Workflow '${workflowName}' saved successfully!`, { id: toastId });
         } catch (error: any) {
-            console.error("Save failed:", error);
+            devLog.error("Save failed:", error);
             toast.error(`Save failed: ${error.message}`, { id: toastId });
         }
     };
@@ -456,7 +457,7 @@ export default function Home() {
                 toast.success('Workflow loaded successfully!');
             }
         } catch (error: any) {
-            console.error("Error loading workflow:", error);
+            devLog.error("Error loading workflow:", error);
             toast.error(`Failed to load workflow: ${error.message}`);
         }
     };
@@ -481,7 +482,7 @@ export default function Home() {
                     updateWorkflowName(workflowName);
                 }
             } catch (error) {
-                console.error("Error parsing JSON file:", error);
+                devLog.error("Error parsing JSON file:", error);
                 alert("유효하지 않은 파일 형식입니다.");
             }
         };
@@ -531,7 +532,7 @@ export default function Home() {
             toast.success('Workflow executed successfully!', { id: toastId });
 
         } catch (error: any) {
-            console.error("Execution failed:", error);
+            devLog.error("Execution failed:", error);
             setExecutionOutput({ error: error.message });
             toast.error(`Execution failed: ${error.message}`, { id: toastId });
         } finally {
@@ -559,7 +560,7 @@ export default function Home() {
                 onNewWorkflow={handleNewWorkflow}
             />
             <main className={styles.mainContent}>
-                <Canvas ref={canvasRef} onStateChange={handleCanvasStateChange} />
+                <Canvas ref={canvasRef} onStateChange={handleCanvasStateChange} {...({} as any)} />
                 {isMenuOpen && <SideMenu menuRef={menuRef} onLoad={handleLoadClick} onExport={handleExport} onLoadWorkflow={handleLoadWorkflow} />}
                 <ExecutionPanel
                     onExecute={handleExecute}
