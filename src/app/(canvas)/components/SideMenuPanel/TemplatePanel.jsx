@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import styles from '@/app/(canvas)/assets/WorkflowPanel.module.scss'; // WorkflowPanel 스타일 사용
 import sideMenuStyles from '@/app/(canvas)/assets/SideMenu.module.scss'; // SideMenu 스타일 추가
 import { LuArrowLeft, LuLayoutTemplate, LuDownload, LuPlay, LuCopy } from "react-icons/lu";
+import TemplatePreview from '@/app/(canvas)/components/TemplatePreview';
 
 // workflow 파일들 직접 import
 import BasicChatbotTemplate from '@/app/(canvas)/constants/workflow/Basic_Chatbot.json';
@@ -10,6 +11,7 @@ import BasicChatbotTemplate from '@/app/(canvas)/constants/workflow/Basic_Chatbo
 const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
     const [templates, setTemplates] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [previewTemplate, setPreviewTemplate] = useState(null); // 미리보기 상태 추가
 
     // 실제 workflow 파일에서 템플릿 데이터 로드
     useEffect(() => {
@@ -49,8 +51,13 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
 
     const handlePreviewTemplate = (template) => {
         console.log('Previewing template:', template);
-        // TODO: 템플릿 미리보기 기능 구현
-        console.log('Template data:', template.data);
+        console.log('Setting previewTemplate state to:', template);
+        setPreviewTemplate(template); // 미리보기 템플릿 설정
+    };
+
+    const handleClosePreview = () => {
+        console.log('Closing preview');
+        setPreviewTemplate(null); // 미리보기 닫기
     };
 
     if (isLoading) {
@@ -69,6 +76,8 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
             </div>
         );
     }
+
+    console.log('TemplatePanel render - previewTemplate:', previewTemplate);
 
     return (
         <div className={styles.workflowPanel}>
@@ -121,6 +130,15 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
                     ))}
                 </div>
             </div>
+
+            {/* 템플릿 미리보기 팝업 */}
+            {previewTemplate && (
+                <TemplatePreview
+                    template={previewTemplate}
+                    onClose={handleClosePreview}
+                    onUseTemplate={handleUseTemplate}
+                />
+            )}
         </div>
     );
 };

@@ -2,10 +2,11 @@
 import React, { memo } from 'react';
 import styles from '@/app/(canvas)/assets/Node.module.scss';
 
-const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown, onPortMouseUp, registerPortRef, snappedPortKey, onParameterChange, isSnapTargetInvalid }) => {
+const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown, onPortMouseUp, registerPortRef, snappedPortKey, onParameterChange, isSnapTargetInvalid, isPreview = false }) => {
     const { nodeName, inputs, parameters, outputs, functionId } = data;
 
     const handleMouseDown = (e) => {
+        if (isPreview) return; // 프리뷰 모드에서는 드래그 비활성화
         e.stopPropagation();
         onNodeMouseDown(e, id);
     };
@@ -48,7 +49,7 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
 
     return (
         <div
-            className={`${styles.node} ${isSelected ? styles.selected : ''}`}
+            className={`${styles.node} ${isSelected ? styles.selected : ''} ${isPreview ? 'preview' : ''}`}
             style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
             onMouseDown={handleMouseDown}
         >
@@ -71,10 +72,10 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                                     return (
                                         <div key={portData.id} className={styles.portRow}>
                                             <div
-                                                ref={(el) => registerPortRef(id, portData.id, 'input', el)}
+                                                ref={(el) => registerPortRef && registerPortRef(id, portData.id, 'input', el)}
                                                 className={portClasses}
-                                                onMouseDown={(e) => { e.stopPropagation(); onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'input', isMulti: portData.multi, type: portData.type }) }}
-                                                onMouseUp={(e) => { e.stopPropagation(); onPortMouseUp({ nodeId: id, portId: portData.id, portType: 'input', type: portData.type }) }}
+                                                onMouseDown={isPreview ? undefined : (e) => { e.stopPropagation(); onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'input', isMulti: portData.multi, type: portData.type }) }}
+                                                onMouseUp={isPreview ? undefined : (e) => { e.stopPropagation(); onPortMouseUp({ nodeId: id, portId: portData.id, portType: 'input', type: portData.type }) }}
                                             >
                                                 {portData.type}
                                             </div>
@@ -96,10 +97,10 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                                         <div key={portData.id} className={`${styles.portRow} ${styles.outputRow}`}>
                                             <span className={styles.portLabel}>{portData.name}</span>
                                             <div
-                                                ref={(el) => registerPortRef(id, portData.id, 'output', el)}
+                                                ref={(el) => registerPortRef && registerPortRef(id, portData.id, 'output', el)}
                                                 className={portClasses}
-                                                onMouseDown={(e) => { e.stopPropagation(); onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'output', isMulti: portData.multi, type: portData.type }) }}
-                                                onMouseUp={(e) => { e.stopPropagation(); onPortMouseUp({ nodeId: id, portId: portData.id, portType: 'output', type: portData.type }) }}
+                                                onMouseDown={isPreview ? undefined : (e) => { e.stopPropagation(); onPortMouseDown({ nodeId: id, portId: portData.id, portType: 'output', isMulti: portData.multi, type: portData.type }) }}
+                                                onMouseUp={isPreview ? undefined : (e) => { e.stopPropagation(); onPortMouseUp({ nodeId: id, portId: portData.id, portType: 'output', type: portData.type }) }}
                                             >
                                                 {portData.type}
                                             </div>
