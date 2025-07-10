@@ -261,6 +261,134 @@ $white: #ffffff;
   }
 }
 
+// Detail View Styles
+.detailView {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.detailHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid $gray-200;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: $white;
+  border: 1px solid $gray-300;
+  border-radius: 0.5rem;
+  color: $gray-700;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    background: $gray-50;
+    border-color: $gray-400;
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+.detailTitle {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  flex: 1;
+
+  h2 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: $gray-900;
+    margin: 0 0 0.25rem 0;
+  }
+
+  p {
+    color: $gray-600;
+    margin: 0;
+    line-height: 1.6;
+  }
+}
+
+.detailIcon {
+  width: 4rem;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $gray-50;
+  border-radius: 1rem;
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.configWrapper {
+  background: $white;
+  border-radius: 0.75rem;
+  border: 1px solid $gray-200;
+  padding: 2rem;
+}
+
+.configForm {
+  display: grid;
+  gap: 1.5rem;
+
+  .formGroup {
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: $gray-700;
+      margin-bottom: 0.5rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid $gray-300;
+      border-radius: 0.5rem;
+      font-size: 0.925rem;
+      background: $white;
+      transition: all 0.2s ease-in-out;
+
+      &:focus {
+        outline: none;
+        border-color: $primary-blue;
+        box-shadow: 0 0 0 3px rgba($primary-blue, 0.1);
+      }
+
+      &::placeholder {
+        color: $gray-400;
+      }
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    input[type="password"] {
+      font-family: monospace;
+      letter-spacing: 2px;
+
+      &::placeholder {
+        font-family: inherit;
+        letter-spacing: normal;
+      }
+    }
+  }
+}
+
 // Responsive Design
 @media (max-width: 768px) {
   .categoryHeader {
@@ -284,5 +412,29 @@ $white: #ffffff;
     .button {
       width: 100%;
     }
+  }
+
+  .detailHeader {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .detailTitle {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .detailIcon {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.5rem;
+  }
+
+  .configWrapper {
+    padding: 1.5rem;
+  }
+
+  .backButton {
+    align-self: flex-start;
   }
 }
