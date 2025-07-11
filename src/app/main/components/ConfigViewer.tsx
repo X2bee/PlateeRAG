@@ -32,7 +32,7 @@ const ConfigViewer = () => {
         try {
             const data = await fetchAllConfigs();
             devLog.info('Fetched config data:', data); // 데이터 구조 확인용
-            
+
             if (data && (data as any).persistent_summary && (data as any).persistent_summary.configs) {
                 const configArray: ConfigItem[] = (data as any).persistent_summary.configs.map((config: any) => {
                     // 값의 타입을 추론
@@ -115,25 +115,25 @@ const ConfigViewer = () => {
 
     const formatValue = (value: any, type: string, envName?: string): string => {
         if (value === null || value === undefined) return 'N/A';
-        
+
         // 민감한 정보 마스킹 (API 키, 패스워드 등)
         const sensitiveFields = ['API_KEY', 'PASSWORD', 'SECRET', 'TOKEN'];
         const isSensitive = envName && sensitiveFields.some(field => envName.includes(field));
-        
+
         if (isSensitive && typeof value === 'string' && value.length > 8) {
             return value.substring(0, 8) + '*'.repeat(Math.min(value.length - 8, 20)) + '...';
         }
-        
+
         // 배열 타입 처리
         if (Array.isArray(value)) {
             return value.join(', ');
         }
-        
+
         // 긴 문자열 처리
         if (typeof value === 'string' && value.length > 50) {
             return value.substring(0, 47) + '...';
         }
-        
+
         return String(value);
     };
 
@@ -159,16 +159,16 @@ const ConfigViewer = () => {
             unsaved: 0,
             total: 0
         };
-        
+
         configs.forEach(config => {
             const category = getConfigCategory(config.config_path);
             stats[category]++;
         });
-        
+
         stats.saved = configs.filter(c => c.is_saved).length;
         stats.unsaved = configs.length - stats.saved;
         stats.total = configs.length;
-        
+
         return stats;
     };
 
@@ -200,12 +200,12 @@ const ConfigViewer = () => {
                     if (boolValue === 'true') return { isValid: true, parsedValue: true };
                     if (boolValue === 'false') return { isValid: true, parsedValue: false };
                     return { isValid: false, parsedValue: null, error: 'Boolean values must be "true" or "false"' };
-                
+
                 case 'number':
                     const numValue = Number(value);
                     if (isNaN(numValue)) return { isValid: false, parsedValue: null, error: 'Invalid number format' };
                     return { isValid: true, parsedValue: numValue };
-                
+
                 case 'array':
                     try {
                         const arrayValue = JSON.parse(value);
@@ -218,7 +218,7 @@ const ConfigViewer = () => {
                         const arrayValue = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
                         return { isValid: true, parsedValue: arrayValue };
                     }
-                
+
                 case 'string':
                 default:
                     return { isValid: true, parsedValue: value };
@@ -230,7 +230,7 @@ const ConfigViewer = () => {
 
     const handleEditSave = async (config: ConfigItem) => {
         const validation = validateValue(editValue, config.type);
-        
+
         if (!validation.isValid) {
             alert(`유효하지 않은 값입니다: ${validation.error}`);
             return;
@@ -239,19 +239,19 @@ const ConfigViewer = () => {
         setUpdating(true);
         try {
             await updateConfig(config.env_name, validation.parsedValue);
-            
+
             // 로컬 상태 업데이트
-            setConfigs(prevConfigs => 
-                prevConfigs.map(c => 
-                    c.env_name === config.env_name 
+            setConfigs(prevConfigs =>
+                prevConfigs.map(c =>
+                    c.env_name === config.env_name
                         ? { ...c, current_value: validation.parsedValue, is_saved: true }
                         : c
                 )
             );
-            
+
             setEditingConfig(null);
             setEditValue('');
-            
+
             devLog.info(`Config ${config.env_name} updated successfully`);
         } catch (error) {
             devLog.error('Failed to update config:', error);
@@ -316,20 +316,20 @@ const ConfigViewer = () => {
 
             {/* Filters */}
             <div className={styles.filters}>
-                <button 
+                <button
                     className={`${styles.filterButton} ${filter === 'all' ? styles.active : ''}`}
                     onClick={() => setFilter('all')}
                 >
                     전체 ({stats.total})
                 </button>
-                {(['database', 'openai', 'app', 'workflow', 'node'] as CategoryType[]).map(category => (
+                {(['database', 'openai', 'app', 'workflow', 'node', 'other'] as CategoryType[]).map(category => (
                     stats[category] > 0 && (
-                        <button 
+                        <button
                             key={category}
                             className={`${styles.filterButton} ${filter === category ? styles.active : ''}`}
                             onClick={() => setFilter(category)}
                         >
-                            <span 
+                            <span
                                 className={styles.filterIcon}
                                 style={{ color: getCategoryColor(category) }}
                             >
@@ -349,7 +349,7 @@ const ConfigViewer = () => {
                         <div key={index} className={styles.configItem}>
                             <div className={styles.configHeader}>
                                 <div className={styles.configInfo}>
-                                    <div 
+                                    <div
                                         className={styles.categoryIcon}
                                         style={{ color: getCategoryColor(category) }}
                                     >
@@ -375,7 +375,7 @@ const ConfigViewer = () => {
                                             <label>현재값:</label>
                                             <div className={styles.valueWithEdit}>
                                                 {config.type.toLowerCase() === 'boolean' ? (
-                                                    <select 
+                                                    <select
                                                         value={editValue}
                                                         onChange={(e) => setEditValue(e.target.value)}
                                                         className={styles.editSelectInline}
@@ -387,7 +387,7 @@ const ConfigViewer = () => {
                                                         <option value="false">false</option>
                                                     </select>
                                                 ) : (
-                                                    <input 
+                                                    <input
                                                         type={config.type.toLowerCase() === 'number' ? 'number' : 'text'}
                                                         value={editValue}
                                                         onChange={(e) => setEditValue(e.target.value)}
@@ -399,7 +399,7 @@ const ConfigViewer = () => {
                                                     />
                                                 )}
                                                 <div className={styles.editButtons}>
-                                                    <button 
+                                                    <button
                                                         onClick={() => handleEditSave(config)}
                                                         className={`${styles.editButton} ${styles.saveButton}`}
                                                         disabled={updating}
@@ -407,7 +407,7 @@ const ConfigViewer = () => {
                                                     >
                                                         <FiCheck />
                                                     </button>
-                                                    <button 
+                                                    <button
                                                         onClick={handleEditCancel}
                                                         className={`${styles.editButton} ${styles.cancelButton}`}
                                                         disabled={updating}
@@ -439,7 +439,7 @@ const ConfigViewer = () => {
                                                 <span className={styles.currentValue}>
                                                     {formatValue(config.current_value, config.type, config.env_name)}
                                                 </span>
-                                                <button 
+                                                <button
                                                     onClick={() => handleEditStart(config)}
                                                     className={styles.editTrigger}
                                                     title="현재값 편집"
