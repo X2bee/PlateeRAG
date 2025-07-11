@@ -5,6 +5,14 @@ import { SiOpenai, SiGoogle, SiPostgresql, SiMongodb, SiAmazon } from "react-ico
 import { FiCloud } from "react-icons/fi";
 import styles from "@/app/main/assets/Settings.module.scss";
 
+// Import config components
+import OpenAIConfig from "@/app/main/components/config/openAIConfig";
+import GoogleConfig from "@/app/main/components/config/googleConfig";
+import PostgreSQLConfig from "@/app/main/components/config/postgreSQLConfig";
+import MongoDBConfig from "@/app/main/components/config/mongoDBConfig";
+import AWSConfig from "@/app/main/components/config/awsConfig";
+import AzureConfig from "@/app/main/components/config/azureConfig";
+
 interface ToolCategory {
     id: string;
     name: string;
@@ -26,12 +34,39 @@ interface ApiConfig {
     database?: string;
     username?: string;
     password?: string;
+    // MongoDB specific
+    uri?: string;
+    authDatabase?: string;
+    // AWS specific
+    accessKeyId?: string;
+    secretAccessKey?: string;
+    region?: string;
+    service?: string;
+    modelId?: string;
+    sessionToken?: string;
+    // Azure specific
+    apiVersion?: string;
+    deploymentName?: string;
+    resourceGroup?: string;
 }
 
 const Settings: React.FC = () => {
     const [currentView, setCurrentView] = useState<"list" | "detail">("list");
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [configs, setConfigs] = useState<Record<string, ApiConfig>>({});
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Load configs from localStorage on component mount
+    React.useEffect(() => {
+        const savedConfigs = localStorage.getItem('plateerag-configs');
+        if (savedConfigs) {
+            try {
+                setConfigs(JSON.parse(savedConfigs));
+            } catch (error) {
+                console.error('Failed to load saved configs:', error);
+            }
+        }
+    }, []);
 
     const toolCategories: ToolCategory[] = [
         {
@@ -72,7 +107,7 @@ const Settings: React.FC = () => {
             description: "AWS Bedrock, SageMaker 등",
             icon: <SiAmazon />,
             color: "#ff9900",
-            status: configs.aws?.apiKey ? "connected" : "disconnected"
+            status: configs.aws?.accessKeyId ? "connected" : "disconnected"
         },
         {
             id: "azure",
@@ -111,174 +146,108 @@ const Settings: React.FC = () => {
         alert(`${categoryId} 연결 테스트 (실제 구현 예정)`);
     };
 
+    const handleSaveConfig = async () => {
+        if (!selectedCategory) return;
+        
+        setIsSaving(true);
+        try {
+            // Save to localStorage
+            localStorage.setItem('plateerag-configs', JSON.stringify(configs));
+            
+            // Show success message
+            alert(`${getCurrentCategory()?.name} 설정이 저장되었습니다.`);
+            
+            // Navigate back to list
+            handleBackToList();
+        } catch (error) {
+            console.error('Failed to save config:', error);
+            alert('설정 저장에 실패했습니다.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const validateConfig = (categoryId: string): boolean => {
+        const config = configs[categoryId] || {};
+        
+        switch (categoryId) {
+            case "openai":
+            case "google":
+            case "azure":
+                return !!config.apiKey;
+            case "postgresql":
+            case "mongodb":
+                return !!(config.host && config.database);
+            case "aws":
+                return !!(config.accessKeyId && config.secretAccessKey);
+            default:
+                return false;
+        }
+    };
+
     const renderOpenAIConfig = () => {
         const config = configs.openai || {};
         return (
-            <div className={styles.configForm}>
-                <div className={styles.formGroup}>
-                    <label>API Key</label>
-                    <input
-                        type="password"
-                        value={config.apiKey || ""}
-                        onChange={(e) => handleConfigChange("openai", "apiKey", e.target.value)}
-                        placeholder="sk-..."
-                    />
-                </div>
-                <div className={styles.formGroup}>
-                    <label>모델</label>
-                    <select
-                        value={config.model || "gpt-4"}
-                        onChange={(e) => handleConfigChange("openai", "model", e.target.value)}
-                    >
-                        <option value="gpt-4">GPT-4</option>
-                        <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                    </select>
-                </div>
-                <div className={styles.formGroup}>
-                    <label>Temperature (0-2)</label>
-                    <input
-                        type="number"
-                        min="0"
-                        max="2"
-                        step="0.1"
-                        value={config.temperature || 0.7}
-                        onChange={(e) => handleConfigChange("openai", "temperature", parseFloat(e.target.value))}
-                    />
-                </div>
-                <div className={styles.formGroup}>
-                    <label>Max Tokens</label>
-                    <input
-                        type="number"
-                        value={config.maxTokens || 4096}
-                        onChange={(e) => handleConfigChange("openai", "maxTokens", parseInt(e.target.value))}
-                    />
-                </div>
-            </div>
+            <OpenAIConfig 
+                config={config}
+                onConfigChange={handleConfigChange}
+                onTestConnection={handleTestConnection}
+            />
         );
     };
 
     const renderGoogleConfig = () => {
         const config = configs.google || {};
         return (
-            <div className={styles.configForm}>
-                <div className={styles.formGroup}>
-                    <label>API Key</label>
-                    <input
-                        type="password"
-                        value={config.apiKey || ""}
-                        onChange={(e) => handleConfigChange("google", "apiKey", e.target.value)}
-                        placeholder="Google AI API Key"
-                    />
-                </div>
-                <div className={styles.formGroup}>
-                    <label>모델</label>
-                    <select
-                        value={config.model || "gemini-pro"}
-                        onChange={(e) => handleConfigChange("google", "model", e.target.value)}
-                    >
-                        <option value="gemini-pro">Gemini Pro</option>
-                        <option value="gemini-pro-vision">Gemini Pro Vision</option>
-                        <option value="text-bison">PaLM Text Bison</option>
-                    </select>
-                </div>
-                <div className={styles.formGroup}>
-                    <label>Endpoint (선택사항)</label>
-                    <input
-                        type="url"
-                        value={config.endpoint || ""}
-                        onChange={(e) => handleConfigChange("google", "endpoint", e.target.value)}
-                        placeholder="https://generativelanguage.googleapis.com"
-                    />
-                </div>
-            </div>
+            <GoogleConfig 
+                config={config}
+                onConfigChange={handleConfigChange}
+                onTestConnection={handleTestConnection}
+            />
         );
     };
 
-    const renderDatabaseConfig = (categoryId: string) => {
-        const config = configs[categoryId] || {};
+    const renderPostgreSQLConfig = () => {
+        const config = configs.postgresql || {};
         return (
-            <div className={styles.configForm}>
-                <div className={styles.formGroup}>
-                    <label>호스트</label>
-                    <input
-                        type="text"
-                        value={config.host || ""}
-                        onChange={(e) => handleConfigChange(categoryId, "host", e.target.value)}
-                        placeholder="localhost"
-                    />
-                </div>
-                <div className={styles.formGroup}>
-                    <label>포트</label>
-                    <input
-                        type="number"
-                        value={config.port || (categoryId === "postgresql" ? 5432 : 27017)}
-                        onChange={(e) => handleConfigChange(categoryId, "port", parseInt(e.target.value))}
-                    />
-                </div>
-                <div className={styles.formGroup}>
-                    <label>데이터베이스 이름</label>
-                    <input
-                        type="text"
-                        value={config.database || ""}
-                        onChange={(e) => handleConfigChange(categoryId, "database", e.target.value)}
-                        placeholder="database_name"
-                    />
-                </div>
-                <div className={styles.formGroup}>
-                    <label>사용자명</label>
-                    <input
-                        type="text"
-                        value={config.username || ""}
-                        onChange={(e) => handleConfigChange(categoryId, "username", e.target.value)}
-                        placeholder="username"
-                    />
-                </div>
-                <div className={styles.formGroup}>
-                    <label>비밀번호</label>
-                    <input
-                        type="password"
-                        value={config.password || ""}
-                        onChange={(e) => handleConfigChange(categoryId, "password", e.target.value)}
-                        placeholder="password"
-                    />
-                </div>
-            </div>
+            <PostgreSQLConfig 
+                config={config}
+                onConfigChange={handleConfigChange}
+                onTestConnection={handleTestConnection}
+            />
         );
     };
 
-    const renderCloudConfig = (categoryId: string) => {
-        const config = configs[categoryId] || {};
+    const renderMongoDBConfig = () => {
+        const config = configs.mongodb || {};
         return (
-            <div className={styles.configForm}>
-                <div className={styles.formGroup}>
-                    <label>액세스 키</label>
-                    <input
-                        type="password"
-                        value={config.apiKey || ""}
-                        onChange={(e) => handleConfigChange(categoryId, "apiKey", e.target.value)}
-                        placeholder="액세스 키"
-                    />
-                </div>
-                <div className={styles.formGroup}>
-                    <label>엔드포인트</label>
-                    <input
-                        type="url"
-                        value={config.endpoint || ""}
-                        onChange={(e) => handleConfigChange(categoryId, "endpoint", e.target.value)}
-                        placeholder="서비스 엔드포인트"
-                    />
-                </div>
-                <div className={styles.formGroup}>
-                    <label>리전 (선택사항)</label>
-                    <input
-                        type="text"
-                        value={config.model || ""}
-                        onChange={(e) => handleConfigChange(categoryId, "model", e.target.value)}
-                        placeholder="us-east-1"
-                    />
-                </div>
-            </div>
+            <MongoDBConfig 
+                config={config}
+                onConfigChange={handleConfigChange}
+                onTestConnection={handleTestConnection}
+            />
+        );
+    };
+
+    const renderAWSConfig = () => {
+        const config = configs.aws || {};
+        return (
+            <AWSConfig 
+                config={config}
+                onConfigChange={handleConfigChange}
+                onTestConnection={handleTestConnection}
+            />
+        );
+    };
+
+    const renderAzureConfig = () => {
+        const config = configs.azure || {};
+        return (
+            <AzureConfig 
+                config={config}
+                onConfigChange={handleConfigChange}
+                onTestConnection={handleTestConnection}
+            />
         );
     };
 
@@ -289,11 +258,13 @@ const Settings: React.FC = () => {
             case "google":
                 return renderGoogleConfig();
             case "postgresql":
+                return renderPostgreSQLConfig();
             case "mongodb":
-                return renderDatabaseConfig(categoryId);
+                return renderMongoDBConfig();
             case "aws":
+                return renderAWSConfig();
             case "azure":
-                return renderCloudConfig(categoryId);
+                return renderAzureConfig();
             default:
                 return <p>설정 폼을 준비 중입니다.</p>;
         }
@@ -404,19 +375,23 @@ const Settings: React.FC = () => {
                                 <button 
                                     onClick={() => handleTestConnection(selectedCategory)}
                                     className={`${styles.button} ${styles.test}`}
+                                    disabled={!validateConfig(selectedCategory)}
                                 >
                                     연결 테스트
                                 </button>
                                 <button 
                                     onClick={handleBackToList}
                                     className={`${styles.button} ${styles.secondary}`}
+                                    disabled={isSaving}
                                 >
                                     취소
                                 </button>
                                 <button 
+                                    onClick={handleSaveConfig}
                                     className={`${styles.button} ${styles.primary}`}
+                                    disabled={!validateConfig(selectedCategory) || isSaving}
                                 >
-                                    저장
+                                    {isSaving ? "저장 중..." : "저장"}
                                 </button>
                             </div>
                         </div>

@@ -212,6 +212,34 @@ $white: #ffffff;
     resize: vertical;
     min-height: 80px;
   }
+
+  small {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    color: $gray-500;
+    line-height: 1.4;
+  }
+
+  .error {
+    color: $primary-red;
+    font-weight: 500;
+  }
+
+  .success {
+    color: $primary-green;
+    font-weight: 500;
+  }
+
+  input.error, select.error {
+    border-color: $primary-red;
+    box-shadow: 0 0 0 3px rgba($primary-red, 0.1);
+  }
+
+  input.success, select.success {
+    border-color: $primary-green;
+    box-shadow: 0 0 0 3px rgba($primary-green, 0.1);
+  }
 }
 
 .formActions {
@@ -232,12 +260,21 @@ $white: #ffffff;
   transition: all 0.2s ease-in-out;
   border: 1px solid transparent;
 
+  &:disabled {
+    cursor: not-allowed;
+  }
+
   &.primary {
     background-color: $primary-blue;
     color: $white;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background-color: darken($primary-blue, 10%);
+    }
+
+    &:disabled {
+      background-color: $gray-300;
+      color: $gray-500;
     }
   }
 
@@ -246,8 +283,14 @@ $white: #ffffff;
     color: $gray-700;
     border-color: $gray-300;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background-color: $gray-50;
+    }
+
+    &:disabled {
+      background-color: $gray-100;
+      color: $gray-400;
+      border-color: $gray-200;
     }
   }
 
@@ -255,8 +298,13 @@ $white: #ffffff;
     background-color: $primary-green;
     color: $white;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background-color: darken($primary-green, 10%);
+    }
+
+    &:disabled {
+      background-color: $gray-300;
+      color: $gray-500;
     }
   }
 }
