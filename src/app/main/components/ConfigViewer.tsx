@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { FiRefreshCw, FiDatabase, FiSettings, FiCpu, FiLayers, FiServer, FiArrowLeft } from 'react-icons/fi';
+import { FiRefreshCw, FiDatabase, FiSettings, FiCpu, FiLayers, FiServer, FiArrowLeft, FiEdit3, FiCheck, FiX } from 'react-icons/fi';
 import { SiOpenai } from 'react-icons/si';
-import { fetchAllConfigs } from '@/app/api/configAPI';
+import { fetchAllConfigs, updateConfig } from '@/app/api/configAPI';
 import { devLog } from '@/app/utils/logger';
 import styles from '@/app/main/assets/ConfigViewer.module.scss';
 
@@ -22,6 +22,9 @@ const ConfigViewer = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState<string>('all');
+    const [editingConfig, setEditingConfig] = useState<string | null>(null);
+    const [editValue, setEditValue] = useState<string>('');
+    const [updating, setUpdating] = useState(false);
 
     const fetchConfigs = async () => {
         setLoading(true);
@@ -170,6 +173,95 @@ const ConfigViewer = () => {
         return stats;
     };
 
+    const handleEditStart = (config: ConfigItem) => {
+        setEditingConfig(config.env_name);
+        setEditValue(String(config.current_value));
+    };
+
+    const handleEditCancel = () => {
+        setEditingConfig(null);
+        setEditValue('');
+    };
+
+    const handleKeyPress = (e: React.KeyboardEvent, config: ConfigItem) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleEditSave(config);
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            handleEditCancel();
+        }
+    };
+
+    const validateValue = (value: string, type: string): { isValid: boolean; parsedValue: any; error?: string } => {
+        try {
+            switch (type.toLowerCase()) {
+                case 'boolean':
+                    const boolValue = value.toLowerCase().trim();
+                    if (boolValue === 'true') return { isValid: true, parsedValue: true };
+                    if (boolValue === 'false') return { isValid: true, parsedValue: false };
+                    return { isValid: false, parsedValue: null, error: 'Boolean values must be "true" or "false"' };
+                
+                case 'number':
+                    const numValue = Number(value);
+                    if (isNaN(numValue)) return { isValid: false, parsedValue: null, error: 'Invalid number format' };
+                    return { isValid: true, parsedValue: numValue };
+                
+                case 'array':
+                    try {
+                        const arrayValue = JSON.parse(value);
+                        if (!Array.isArray(arrayValue)) {
+                            return { isValid: false, parsedValue: null, error: 'Value must be a valid JSON array' };
+                        }
+                        return { isValid: true, parsedValue: arrayValue };
+                    } catch {
+                        // 쉼표로 구분된 문자열을 배열로 변환
+                        const arrayValue = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
+                        return { isValid: true, parsedValue: arrayValue };
+                    }
+                
+                case 'string':
+                default:
+                    return { isValid: true, parsedValue: value };
+            }
+        } catch (error) {
+            return { isValid: false, parsedValue: null, error: 'Invalid value format' };
+        }
+    };
+
+    const handleEditSave = async (config: ConfigItem) => {
+        const validation = validateValue(editValue, config.type);
+        
+        if (!validation.isValid) {
+            alert(`유효하지 않은 값입니다: ${validation.error}`);
+            return;
+        }
+
+        setUpdating(true);
+        try {
+            await updateConfig(config.env_name, validation.parsedValue);
+            
+            // 로컬 상태 업데이트
+            setConfigs(prevConfigs => 
+                prevConfigs.map(c => 
+                    c.env_name === config.env_name 
+                        ? { ...c, current_value: validation.parsedValue, is_saved: true }
+                        : c
+                )
+            );
+            
+            setEditingConfig(null);
+            setEditValue('');
+            
+            devLog.info(`Config ${config.env_name} updated successfully`);
+        } catch (error) {
+            devLog.error('Failed to update config:', error);
+            alert('설정 업데이트에 실패했습니다.');
+        } finally {
+            setUpdating(false);
+        }
+    };
+
     const stats = getFilterStats();
     const filteredConfigs = getFilteredConfigs();
 
@@ -277,19 +369,93 @@ const ConfigViewer = () => {
                                 </div>
                             </div>
                             <div className={styles.configValue}>
-                                <div className={styles.valueRow}>
-                                    <label>현재값:</label>
-                                    <span className={styles.currentValue}>
-                                        {formatValue(config.current_value, config.type, config.env_name)}
-                                    </span>
-                                </div>
-                                {config.current_value !== config.default_value && (
-                                    <div className={styles.valueRow}>
-                                        <label>기본값:</label>
-                                        <span className={styles.defaultValue}>
-                                            {formatValue(config.default_value, config.type, config.env_name)}
-                                        </span>
-                                    </div>
+                                {editingConfig === config.env_name ? (
+                                    // 편집 모드 - 기본 레이아웃 유지
+                                    <>
+                                        <div className={styles.valueRow}>
+                                            <label>현재값:</label>
+                                            <div className={styles.valueWithEdit}>
+                                                {config.type.toLowerCase() === 'boolean' ? (
+                                                    <select 
+                                                        value={editValue}
+                                                        onChange={(e) => setEditValue(e.target.value)}
+                                                        className={styles.editSelectInline}
+                                                        disabled={updating}
+                                                        onKeyDown={(e) => handleKeyPress(e, config)}
+                                                        autoFocus
+                                                    >
+                                                        <option value="true">true</option>
+                                                        <option value="false">false</option>
+                                                    </select>
+                                                ) : (
+                                                    <input 
+                                                        type={config.type.toLowerCase() === 'number' ? 'number' : 'text'}
+                                                        value={editValue}
+                                                        onChange={(e) => setEditValue(e.target.value)}
+                                                        className={styles.editInputInline}
+                                                        disabled={updating}
+                                                        placeholder={`Enter ${config.type.toLowerCase()} value`}
+                                                        onKeyDown={(e) => handleKeyPress(e, config)}
+                                                        autoFocus
+                                                    />
+                                                )}
+                                                <div className={styles.editButtons}>
+                                                    <button 
+                                                        onClick={() => handleEditSave(config)}
+                                                        className={`${styles.editButton} ${styles.saveButton}`}
+                                                        disabled={updating}
+                                                        title="저장"
+                                                    >
+                                                        <FiCheck />
+                                                    </button>
+                                                    <button 
+                                                        onClick={handleEditCancel}
+                                                        className={`${styles.editButton} ${styles.cancelButton}`}
+                                                        disabled={updating}
+                                                        title="취소"
+                                                    >
+                                                        <FiX />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className={styles.valueRow}>
+                                            <label>기본값:</label>
+                                            <span className={styles.defaultValue}>
+                                                {formatValue(config.default_value, config.type, config.env_name)}
+                                            </span>
+                                        </div>
+                                        {config.type.toLowerCase() === 'array' && (
+                                            <div className={styles.helpText}>
+                                                배열 값: JSON 형식 ["value1", "value2"] 또는 쉼표로 구분된 값
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    // 일반 모드
+                                    <>
+                                        <div className={styles.valueRow}>
+                                            <label>현재값:</label>
+                                            <div className={styles.valueWithEdit}>
+                                                <span className={styles.currentValue}>
+                                                    {formatValue(config.current_value, config.type, config.env_name)}
+                                                </span>
+                                                <button 
+                                                    onClick={() => handleEditStart(config)}
+                                                    className={styles.editTrigger}
+                                                    title="현재값 편집"
+                                                >
+                                                    <FiEdit3 />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className={styles.valueRow}>
+                                            <label>기본값:</label>
+                                            <span className={styles.defaultValue}>
+                                                {formatValue(config.default_value, config.type, config.env_name)}
+                                            </span>
+                                        </div>
+                                    </>
                                 )}
                             </div>
                         </div>
