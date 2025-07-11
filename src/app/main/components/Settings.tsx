@@ -4,6 +4,7 @@ import { FiChevronRight, FiSettings, FiCheck, FiX, FiArrowLeft } from "react-ico
 import { SiOpenai, SiGoogle, SiPostgresql, SiMongodb, SiAmazon } from "react-icons/si";
 import { FiCloud } from "react-icons/fi";
 import { testConnection, updateConfig, refreshConfigs, saveConfigs } from "@/app/api/configAPI";
+import { devLog } from "@/app/utils/logger";
 import styles from "@/app/main/assets/Settings.module.scss";
 
 // Import config components
