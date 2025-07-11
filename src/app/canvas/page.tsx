@@ -536,7 +536,7 @@ export default function CanvasPage() {
             }
 
             if (!workflowData.id) {
-                workflowData['id'] = generateSha1Hash(workflowData.name)
+                workflowData['id'] = `workflow_${generateSha1Hash(getWorkflowName())}`
             }
             
             const result = await executeWorkflow(workflowData);
