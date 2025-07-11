@@ -293,8 +293,14 @@ export default function CanvasPage() {
             return;
         }
 
-        const canvasState = (canvasRef.current as any).getCanvasState();
+        let canvasState = (canvasRef.current as any).getCanvasState();
         const workflowName = getWorkflowName();
+        const workflowId = `workflow_${Date.now()}`;
+        canvasState['id'] = workflowId;
+        
+        devLog.log('Canvas state before save:', canvasState);
+        devLog.log('Workflow ID set:', workflowId);
+        devLog.log('Canvas state id field:', canvasState.id);
         
         if (!canvasState.nodes || canvasState.nodes.length === 0) {
             toast.error("Cannot save an empty workflow. Please add nodes.");

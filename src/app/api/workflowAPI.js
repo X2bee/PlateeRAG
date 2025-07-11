@@ -42,6 +42,11 @@ export const executeWorkflow = async (workflowData) => {
  */
 export const saveWorkflow = async (workflowId, workflowContent) => {
     try {
+        devLog.log('SaveWorkflow called with:');
+        devLog.log('- workflowId (name):', workflowId);
+        devLog.log('- workflowContent.id:', workflowContent.id);
+        devLog.log('- Full workflowContent keys:', Object.keys(workflowContent));
+        
         const response = await fetch(`${API_BASE_URL}/workflow/save`, {
             method: 'POST',
             headers: {

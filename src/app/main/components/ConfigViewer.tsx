@@ -33,7 +33,6 @@ const ConfigViewer = () => {
             const data = await fetchAllConfigs();
             devLog.info('Fetched config data:', data); // 데이터 구조 확인용
             
-            // 백엔드에서 오는 실제 데이터 구조에 맞게 처리
             if (data && (data as any).persistent_summary && (data as any).persistent_summary.configs) {
                 const configArray: ConfigItem[] = (data as any).persistent_summary.configs.map((config: any) => {
                     // 값의 타입을 추론

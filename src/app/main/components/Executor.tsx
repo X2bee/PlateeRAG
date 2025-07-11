@@ -58,7 +58,7 @@ const Executor: React.FC = () => {
                     <div className={styles.progressFill} style={{ width: "65%" }}></div>
                 </div>
                 <p className={styles.progressNote}>
-                    베타 버전은 2025년 2월 출시 예정입니다.
+                    베타 버전은 2026년 2월 출시 예정입니다.
                 </p>
             </div>
         </div>
