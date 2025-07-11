@@ -303,8 +303,10 @@ const Settings: React.FC = () => {
                 <>
                     {/* Header */}
                     <div className={styles.header}>
-                        <h2>환경 설정</h2>
-                        <p>워크플로우에서 사용할 AI 모델과 데이터베이스를 설정하세요.</p>
+                        <div className={styles.headerContent}>
+                            <h2>환경 설정</h2>
+                            <p>워크플로우에서 사용할 AI 모델과 데이터베이스를 설정하세요.</p>
+                        </div>
                     </div>
 
                     {/* Categories Grid */}

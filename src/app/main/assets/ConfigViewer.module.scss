@@ -1,0 +1,372 @@
+@import '@/app/main/assets/Settings.module.scss';
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: 100vh;
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+
+    p {
+        color: $gray-600;
+        font-size: 1rem;
+        margin-top: 1rem;
+    }
+}
+
+.spinner {
+    width: 2rem;
+    height: 2rem;
+    color: $primary-blue;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+
+    p {
+        color: $primary-red;
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+}
+
+.retryButton {
+    padding: 0.75rem 1.5rem;
+    background-color: $primary-blue;
+    color: $white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.925rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+
+    &:hover {
+        background-color: darken($primary-blue, 10%);
+    }
+}
+
+// Header
+.header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid $gray-200;
+}
+
+.refreshButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background-color: $white;
+    color: $gray-700;
+    border: 1px solid $gray-300;
+    border-radius: 0.5rem;
+    font-size: 0.925rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        background-color: $gray-50;
+        border-color: $gray-400;
+    }
+
+    svg {
+        width: 1rem;
+        height: 1rem;
+    }
+}
+
+// Stats
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.statCard {
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-color: rgba($primary-blue, 0.3);
+    }
+}
+
+.statValue {
+    font-size: 2rem;
+    font-weight: 700;
+    color: $primary-blue;
+    margin-bottom: 0.5rem;
+}
+
+.statLabel {
+    font-size: 0.925rem;
+    font-weight: 500;
+    color: $gray-600;
+}
+
+// Filters
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: $gray-50;
+    border-radius: 0.75rem;
+}
+
+.filterButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background: $white;
+    color: $gray-700;
+    border: 1px solid $gray-300;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        background: $gray-100;
+        border-color: $gray-400;
+    }
+
+    &.active {
+        background: $primary-blue;
+        color: $white;
+        border-color: $primary-blue;
+
+        .filterIcon {
+            color: $white !important;
+        }
+    }
+}
+
+.filterIcon {
+    width: 1rem;
+    height: 1rem;
+}
+
+// Config List
+.configList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.configItem {
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-color: rgba($primary-blue, 0.3);
+    }
+}
+
+.configHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid $gray-100;
+}
+
+.configInfo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.categoryIcon {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $gray-50;
+    border-radius: 0.5rem;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.configTitle {
+    h4 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: $gray-900;
+        margin: 0 0 0.25rem 0;
+    }
+}
+
+.configPath {
+    font-size: 0.825rem;
+    color: $gray-500;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
+.configStatus {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.statusBadge {
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+
+    &.saved {
+        background: rgba($primary-green, 0.1);
+        color: $primary-green;
+    }
+
+    &.default {
+        background: rgba($gray-500, 0.1);
+        color: $gray-600;
+    }
+}
+
+.typeBadge {
+    padding: 0.25rem 0.5rem;
+    background: rgba($primary-blue, 0.1);
+    color: $primary-blue;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
+.configValue {
+    padding: 1.25rem 1.5rem;
+    background: $gray-50;
+}
+
+.valueRow {
+    display: flex;
+    margin-bottom: 0.75rem;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+
+    label {
+        width: 4rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: $gray-600;
+        flex-shrink: 0;
+    }
+
+    span {
+        flex: 1;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        word-break: break-all;
+    }
+}
+
+.currentValue {
+    color: $gray-900;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
+.defaultValue {
+    color: $gray-600;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 4rem 2rem;
+
+    p {
+        color: $gray-500;
+        font-size: 1rem;
+    }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .refreshButton {
+    align-self: flex-start;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .filters {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .filterButton {
+    justify-content: center;
+  }
+
+  .configHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .configStatus {
+    align-self: flex-end;
+  }
+
+  .valueRow {
+    flex-direction: column;
+    gap: 0.25rem;
+
+    label {
+      width: auto;
+    }
+  }
+}
