@@ -270,7 +270,7 @@ const ConfigViewer = () => {
                                 </div>
                                 <div className={styles.configStatus}>
                                     <span className={`${styles.statusBadge} ${config.is_saved ? styles.saved : styles.default}`}>
-                                        {config.is_saved ? '저장됨' : '기본값'}
+                                        {config.is_saved ? '설정됨' : '기본값'}
                                     </span>
                                     <span className={styles.typeBadge}>{formatTypeName(config.type)}</span>
                                 </div>
