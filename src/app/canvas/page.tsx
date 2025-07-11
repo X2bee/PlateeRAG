@@ -11,7 +11,7 @@ import styles from '@/app/canvas/assets/PlateeRAG.module.scss';
 import { executeWorkflow, saveWorkflow, listWorkflows } from '@/app/api/workflowAPI';
 import { getWorkflowName, getWorkflowState, saveWorkflowState, ensureValidWorkflowState, saveWorkflowName, startNewWorkflow } from '@/app/(common)/components/workflowStorage';
 import { devLog } from '@/app/utils/logger';
-import { generateSha1Hash } from '../utils/generateSha1Hash';
+import { generateSha1Hash } from '@/app/utils/generateSha1Hash';
 
 export default function CanvasPage() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -529,10 +529,14 @@ export default function CanvasPage() {
         const toastId = toast.loading('Executing workflow...');
 
         try {
-            const workflowData = (canvasRef.current as any).getCanvasState();
+            let workflowData = (canvasRef.current as any).getCanvasState();
             
             if (!workflowData.nodes || workflowData.nodes.length === 0) {
                 throw new Error("Cannot execute an empty workflow. Please add nodes.");
+            }
+
+            if (!workflowData.id) {
+                workflowData['id'] = generateSha1Hash(workflowData.name)
             }
             
             const result = await executeWorkflow(workflowData);
