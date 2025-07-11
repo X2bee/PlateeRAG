@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { FiChevronRight, FiSettings, FiCheck, FiX, FiArrowLeft } from "react-icons/fi";
 import { SiOpenai, SiGoogle, SiPostgresql, SiMongodb, SiAmazon } from "react-icons/si";
 import { FiCloud } from "react-icons/fi";
+import { testConnection, updateConfig, refreshConfigs, saveConfigs } from "@/app/api/configAPI";
 import styles from "@/app/main/assets/Settings.module.scss";
 
 // Import config components
@@ -139,11 +140,86 @@ const Settings: React.FC = () => {
         }));
     };
 
-    const handleTestConnection = (categoryId: string) => {
-        // 실제 구현에서는 API 연결 테스트를 수행
-        console.log(`Testing connection for ${categoryId}`, configs[categoryId]);
-        // 임시로 상태 업데이트
-        alert(`${categoryId} 연결 테스트 (실제 구현 예정)`);
+    const handleTestConnection = async (categoryId: string) => {
+        try {
+            console.log(`Testing connection for ${categoryId}`, configs[categoryId]);
+            const result = await testConnection(categoryId);
+            alert(`${categoryId} 연결 테스트 성공: ${JSON.stringify(result)}`);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            alert(`${categoryId} 연결 테스트 실패: ${errorMessage}`);
+            console.error('Connection test failed:', error);
+        }
+    };
+
+    // Save all configs to backend
+    const handleSaveAllConfigs = async () => {
+        setIsSaving(true);
+        try {
+            await saveConfigs();
+            // Also save to localStorage for local persistence
+            localStorage.setItem('plateerag-configs', JSON.stringify(configs));
+            alert('모든 설정이 성공적으로 저장되었습니다.');
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            alert(`설정 저장 실패: ${errorMessage}`);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    // Reset specific category configs (클라이언트 측에서만 처리)
+    const handleResetCategory = async (categoryId: string) => {
+        if (confirm(`${categoryId} 카테고리의 모든 설정을 기본값으로 초기화하시겠습니까?`)) {
+            try {
+                // 백엔드에 리셋 API가 없으므로 클라이언트에서만 초기화
+                setConfigs(prev => ({
+                    ...prev,
+                    [categoryId]: {}
+                }));
+                
+                // localStorage에서도 제거
+                const savedConfigs = { ...configs };
+                delete savedConfigs[categoryId];
+                localStorage.setItem('plateerag-configs', JSON.stringify(savedConfigs));
+                
+                alert(`${categoryId} 설정이 기본값으로 초기화되었습니다.`);
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+                alert(`설정 초기화 실패: ${errorMessage}`);
+            }
+        }
+    };
+
+    // Update specific config value
+    const handleUpdateConfig = async (categoryId: string, key: string, value: string | number) => {
+        try {
+            // configName format: CATEGORY_KEY (e.g., OPENAI_API_KEY)
+            const configName = `${categoryId.toUpperCase()}_${key.toUpperCase()}`;
+            await updateConfig(configName, value);
+            // Update local state
+            handleConfigChange(categoryId, key, value);
+        } catch (error) {
+            console.error('Failed to update config:', error);
+        }
+    };
+
+    // Save category-specific configs (클라이언트 측에서만 처리)
+    const handleSaveCategoryConfigs = async (categoryId: string) => {
+        try {
+            // 백엔드에 일괄 업데이트 API가 없으므로 개별적으로 업데이트
+            const categoryConfig = configs[categoryId] || {};
+            
+            for (const [key, value] of Object.entries(categoryConfig)) {
+                const configName = `${categoryId.toUpperCase()}_${key.toUpperCase()}`;
+                await updateConfig(configName, value);
+            }
+            
+            alert(`${categoryId} 설정이 저장되었습니다.`);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            alert(`설정 저장 실패: ${errorMessage}`);
+        }
     };
 
     const handleSaveConfig = async () => {
@@ -151,6 +227,9 @@ const Settings: React.FC = () => {
         
         setIsSaving(true);
         try {
+            // Save to backend
+            await handleSaveCategoryConfigs(selectedCategory);
+            
             // Save to localStorage
             localStorage.setItem('plateerag-configs', JSON.stringify(configs));
             
@@ -307,6 +386,15 @@ const Settings: React.FC = () => {
                             <h2>환경 설정</h2>
                             <p>워크플로우에서 사용할 AI 모델과 데이터베이스를 설정하세요.</p>
                         </div>
+                        <div className={styles.headerActions}>
+                            <button 
+                                onClick={handleSaveAllConfigs}
+                                className={`${styles.button} ${styles.primary}`}
+                                disabled={isSaving}
+                            >
+                                {isSaving ? "저장 중..." : "모든 설정 저장"}
+                            </button>
+                        </div>
                     </div>
 
                     {/* Categories Grid */}
@@ -375,6 +463,12 @@ const Settings: React.FC = () => {
                             {/* Form Actions */}
                             <div className={styles.formActions}>
                                 <button 
+                                    onClick={() => handleResetCategory(selectedCategory)}
+                                    className={`${styles.button} ${styles.danger}`}
+                                >
+                                    기본값으로 초기화
+                                </button>
+                                <button 
                                     onClick={() => handleTestConnection(selectedCategory)}
                                     className={`${styles.button} ${styles.test}`}
                                     disabled={!validateConfig(selectedCategory)}
@@ -403,5 +497,20 @@ const Settings: React.FC = () => {
         </div>
     );
 };
+
+// TODO: 백엔드 API 연동 현황
+// ✅ updateConfig API 연동 완료 - 개별 설정값 업데이트
+// ✅ fetchAllConfigs API 연동 완료 - 모든 설정 정보 조회  
+// ✅ saveConfigs API 연동 완료 - 모든 설정 저장
+// ✅ refreshConfigs API 연동 완료 - 설정 새로고침
+// ⏳ testConnection - 임시 더미 함수로 구현 (백엔드 엔드포인트 추가 필요)
+// ❌ resetConfig - 백엔드에 없는 기능, 클라이언트에서만 처리
+// ❌ updateCategoryConfigs - 백엔드에 없는 기능, 개별 업데이트로 대체
+
+// 현재 localStorage와 백엔드 API를 모두 활용하는 하이브리드 방식으로 구현
+// 백엔드에서 추가로 필요한 API:
+// - POST /app/config/test/{category} - 연결 테스트
+// - POST /app/config/reset/{category} - 카테고리별 리셋
+// - PUT /app/config/batch/{category} - 카테고리별 일괄 업데이트
 
 export default Settings;

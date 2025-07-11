@@ -22,11 +22,23 @@ $white: #ffffff;
 
 // Header
 .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
     margin-bottom: 2rem;
-    text-align: center;
+    gap: 2rem;
+    
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1rem;
+    }
 }
 
 .headerContent {
+  flex: 1;
+
   h2 {
     font-size: 1.875rem;
     font-weight: 700;
@@ -40,6 +52,12 @@ $white: #ffffff;
     line-height: 1.6;
     font-size: 1.125rem;
   }
+}
+
+.headerActions {
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0;
 }
 
 // Categories Grid
@@ -302,6 +320,20 @@ $white: #ffffff;
 
     &:hover:not(:disabled) {
       background-color: darken($primary-green, 10%);
+    }
+
+    &:disabled {
+      background-color: $gray-300;
+      color: $gray-500;
+    }
+  }
+
+  &.danger {
+    background-color: $primary-red;
+    color: $white;
+
+    &:hover:not(:disabled) {
+      background-color: darken($primary-red, 10%);
     }
 
     &:disabled {

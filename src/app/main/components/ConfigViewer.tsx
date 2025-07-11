@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiDatabase, FiSettings, FiCpu, FiLayers, FiServer, FiArrowLeft } from 'react-icons/fi';
 import { SiOpenai } from 'react-icons/si';
+import { fetchAllConfigs } from '@/app/api/configAPI';
 import styles from '@/app/main/assets/ConfigViewer.module.scss';
 
 interface ConfigItem {
@@ -25,11 +26,7 @@ const ConfigViewer = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await fetch('http://localhost:8000/config/persistent/all');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
+            const data = await fetchAllConfigs();
             setConfigs(data);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류';
