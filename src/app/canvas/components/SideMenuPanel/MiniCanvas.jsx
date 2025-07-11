@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Node from '@/app/canvas/components/Node';
 import Edge from '@/app/canvas/components/Edge';
+import { devLog } from '@/app/utils/logger';
 import styles from '@/app/canvas/assets/MiniCanvas.module.scss';
 
 const MiniCanvas = ({ template }) => {
@@ -135,7 +136,7 @@ const MiniCanvas = ({ template }) => {
                         const targetNode = adjustedNodes.find(n => n.id === edge.target.nodeId);
                         
                         if (!sourceNode || !targetNode) {
-                            console.warn('Missing node for edge:', edge.id);
+                            devLog.warn('Missing node for edge:', edge.id);
                             return null;
                         }
 

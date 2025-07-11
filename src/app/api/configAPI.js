@@ -48,7 +48,7 @@ export const updateConfig = async (configName, value) => {
         const data = await response.json();
         return data;
     } catch (error) {
-        console.error('Failed to update config:', error);
+        devLog.error('Failed to update config:', error);
         throw error;
     }
 };
@@ -73,7 +73,7 @@ export const refreshConfigs = async () => {
         const data = await response.json();
         return data;
     } catch (error) {
-        console.error('Failed to refresh configs:', error);
+        devLog.error('Failed to refresh configs:', error);
         throw error;
     }
 };
@@ -98,7 +98,7 @@ export const fetchConfigsByCategory = async (category) => {
         
         return filteredConfigs;
     } catch (error) {
-        console.error('Failed to fetch configs by category:', error);
+        devLog.error('Failed to fetch configs by category:', error);
         throw error;
     }
 };
@@ -111,7 +111,7 @@ export const fetchConfigsByCategory = async (category) => {
 export const testConnection = async (category) => {
     try {
         // 백엔드에 연결 테스트 엔드포인트가 없으므로 임시로 더미 응답 반환
-        console.log(`Testing connection for ${category}...`);
+        devLog.info(`Testing connection for ${category}...`);
         
         // 시뮬레이션을 위한 지연
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -123,7 +123,7 @@ export const testConnection = async (category) => {
             timestamp: new Date().toISOString()
         };
     } catch (error) {
-        console.error('Failed to test connection:', error);
+        devLog.error('Failed to test connection:', error);
         throw error;
     }
 };
@@ -148,7 +148,7 @@ export const saveConfigs = async () => {
         const data = await response.json();
         return data;
     } catch (error) {
-        console.error('Failed to save configs:', error);
+        devLog.error('Failed to save configs:', error);
         throw error;
     }
 };
@@ -168,7 +168,7 @@ export const fetchAppConfig = async () => {
         const data = await response.json();
         return data;
     } catch (error) {
-        console.error('Failed to fetch app config:', error);
+        devLog.error('Failed to fetch app config:', error);
         throw error;
     }
 };
