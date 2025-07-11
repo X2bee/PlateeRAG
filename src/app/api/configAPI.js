@@ -1,4 +1,5 @@
 // Configuration API 호출 함수들을 관리하는 파일
+import { devLog } from '@/app/utils/logger';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
@@ -17,7 +18,7 @@ export const fetchAllConfigs = async () => {
         const data = await response.json();
         return data;
     } catch (error) {
-        console.error('Failed to fetch configs:', error);
+        devLog.error('Failed to fetch configs:', error);
         throw error;
     }
 };

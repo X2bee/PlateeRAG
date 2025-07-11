@@ -65,7 +65,7 @@ const Settings: React.FC = () => {
             try {
                 setConfigs(JSON.parse(savedConfigs));
             } catch (error) {
-                console.error('Failed to load saved configs:', error);
+                devLog.error('Failed to load saved configs:', error);
             }
         }
     }, []);
@@ -143,13 +143,13 @@ const Settings: React.FC = () => {
 
     const handleTestConnection = async (categoryId: string) => {
         try {
-            console.log(`Testing connection for ${categoryId}`, configs[categoryId]);
+            devLog.info(`Testing connection for ${categoryId}`, configs[categoryId]);
             const result = await testConnection(categoryId);
             alert(`${categoryId} 연결 테스트 성공: ${JSON.stringify(result)}`);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
             alert(`${categoryId} 연결 테스트 실패: ${errorMessage}`);
-            console.error('Connection test failed:', error);
+            devLog.error('Connection test failed:', error);
         }
     };
 
@@ -201,7 +201,7 @@ const Settings: React.FC = () => {
             // Update local state
             handleConfigChange(categoryId, key, value);
         } catch (error) {
-            console.error('Failed to update config:', error);
+            devLog.error('Failed to update config:', error);
         }
     };
 
@@ -240,7 +240,7 @@ const Settings: React.FC = () => {
             // Navigate back to list
             handleBackToList();
         } catch (error) {
-            console.error('Failed to save config:', error);
+            devLog.error('Failed to save config:', error);
             alert('설정 저장에 실패했습니다.');
         } finally {
             setIsSaving(false);

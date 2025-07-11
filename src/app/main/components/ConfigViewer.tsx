@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiDatabase, FiSettings, FiCpu, FiLayers, FiServer, FiArrowLeft } from 'react-icons/fi';
 import { SiOpenai } from 'react-icons/si';
 import { fetchAllConfigs } from '@/app/api/configAPI';
+import { devLog } from '@/app/utils/logger';
 import styles from '@/app/main/assets/ConfigViewer.module.scss';
 
 interface ConfigItem {
@@ -27,7 +28,7 @@ const ConfigViewer = () => {
         setError(null);
         try {
             const data = await fetchAllConfigs();
-            console.log('Fetched config data:', data); // 데이터 구조 확인용
+            devLog.info('Fetched config data:', data); // 데이터 구조 확인용
             
             // 백엔드에서 오는 실제 데이터 구조에 맞게 처리
             if (data && (data as any).persistent_summary && (data as any).persistent_summary.configs) {
@@ -53,7 +54,7 @@ const ConfigViewer = () => {
                 setConfigs(configArray);
             } else {
                 setConfigs([]);
-                console.warn('Unexpected data structure:', data);
+                devLog.warn('Unexpected data structure:', data);
             }
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류';
