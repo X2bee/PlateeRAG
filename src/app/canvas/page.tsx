@@ -11,6 +11,7 @@ import styles from '@/app/canvas/assets/PlateeRAG.module.scss';
 import { executeWorkflow, saveWorkflow, listWorkflows } from '@/app/api/workflowAPI';
 import { getWorkflowName, getWorkflowState, saveWorkflowState, ensureValidWorkflowState, saveWorkflowName, startNewWorkflow } from '@/app/(common)/components/workflowStorage';
 import { devLog } from '@/app/utils/logger';
+import { generateSha1Hash } from '../utils/generateSha1Hash';
 
 export default function CanvasPage() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -295,7 +296,8 @@ export default function CanvasPage() {
 
         let canvasState = (canvasRef.current as any).getCanvasState();
         const workflowName = getWorkflowName();
-        const workflowId = `workflow_${Date.now()}`;
+
+        const workflowId = `workflow_${generateSha1Hash(workflowName)}`;
         canvasState['id'] = workflowId;
         
         devLog.log('Canvas state before save:', canvasState);
