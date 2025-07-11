@@ -1,3 +1,5 @@
+@use "sass:color";
+
 // Color Variables
 $primary-blue: #2563eb;
 $primary-green: #059669;
@@ -16,8 +18,8 @@ $gray-900: #111827;
 $white: #ffffff;
 
 .container {
-  max-width: 1200px;
-  margin: 0 auto;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 // Header
@@ -27,7 +29,7 @@ $white: #ffffff;
     align-items: flex-start;
     margin-bottom: 2rem;
     gap: 2rem;
-    
+
     @media (max-width: 768px) {
         flex-direction: column;
         align-items: center;
@@ -37,21 +39,21 @@ $white: #ffffff;
 }
 
 .headerContent {
-  flex: 1;
+    flex: 1;
 
-  h2 {
-    font-size: 1.875rem;
-    font-weight: 700;
-    color: $gray-900;
-    margin: 0 0 0.5rem 0;
-  }
+    h2 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: $gray-900;
+        margin: 0 0 0.5rem 0;
+    }
 
-  p {
-    color: $gray-600;
-    margin: 0;
-    line-height: 1.6;
-    font-size: 1.125rem;
-  }
+    p {
+        color: $gray-600;
+        margin: 0;
+        line-height: 1.6;
+        font-size: 1.125rem;
+    }
 }
 
 .headerActions {
@@ -62,461 +64,467 @@ $white: #ffffff;
 
 // Categories Grid
 .categoriesGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .categoryWrapper {
-  background: $white;
-  border-radius: 0.75rem;
-  border: 1px solid $gray-200;
-  overflow: hidden;
-  transition: all 0.2s ease-in-out;
+    background: $white;
+    border-radius: 0.75rem;
+    border: 1px solid $gray-200;
+    overflow: hidden;
+    transition: all 0.2s ease-in-out;
 
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-color: rgba($primary-blue, 0.3);
-  }
+    &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-color: rgba($primary-blue, 0.3);
+    }
 }
 
 .categoryCard {
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
 
-  &.active {
-    background-color: rgba($primary-blue, 0.02);
-  }
+    &.active {
+        background-color: rgba($primary-blue, 0.02);
+    }
 }
 
 .categoryHeader {
-  display: flex;
-  align-items: center;
-  padding: 1.5rem;
-  gap: 1rem;
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    gap: 1rem;
 }
 
 .categoryIcon {
-  width: 3rem;
-  height: 3rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: $gray-50;
-  border-radius: 0.75rem;
-  font-size: 1.5rem;
-  flex-shrink: 0;
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $gray-50;
+    border-radius: 0.75rem;
+    font-size: 1.5rem;
+    flex-shrink: 0;
 }
 
 .categoryInfo {
-  flex: 1;
+    flex: 1;
 
-  h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: $gray-900;
-    margin: 0 0 0.25rem 0;
-  }
+    h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: $gray-900;
+        margin: 0 0 0.25rem 0;
+    }
 
-  p {
-    color: $gray-600;
-    margin: 0;
-    font-size: 0.925rem;
-    line-height: 1.5;
-  }
+    p {
+        color: $gray-600;
+        margin: 0;
+        font-size: 0.925rem;
+        line-height: 1.5;
+    }
 }
 
 .categoryStatus {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
 }
 
 .statusText {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: $gray-600;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: $gray-600;
 }
 
 .statusConnected {
-  color: $primary-green;
-  width: 1.25rem;
-  height: 1.25rem;
+    color: $primary-green;
+    width: 1.25rem;
+    height: 1.25rem;
 }
 
 .statusError {
-  color: $primary-red;
-  width: 1.25rem;
-  height: 1.25rem;
+    color: $primary-red;
+    width: 1.25rem;
+    height: 1.25rem;
 }
 
 .chevron {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: $gray-400;
-  transition: transform 0.2s ease-in-out;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: $gray-400;
+    transition: transform 0.2s ease-in-out;
 
-  &.expanded {
-    transform: rotate(90deg);
-  }
+    &.expanded {
+        transform: rotate(90deg);
+    }
 }
 
 // Configuration Panel
 .configPanel {
-  border-top: 1px solid $gray-200;
-  background: $gray-50;
-  animation: slideDown 0.3s ease-in-out;
+    border-top: 1px solid $gray-200;
+    background: $gray-50;
+    animation: slideDown 0.3s ease-in-out;
 }
 
 @keyframes slideDown {
-  from {
-    opacity: 0;
-    max-height: 0;
-  }
-  to {
-    opacity: 1;
-    max-height: 500px;
-  }
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+
+    to {
+        opacity: 1;
+        max-height: 500px;
+    }
 }
 
 .configContent {
-  padding: 1.5rem;
+    padding: 1.5rem;
 
-  h4 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: $gray-900;
-    margin: 0 0 1rem 0;
-  }
+    h4 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: $gray-900;
+        margin: 0 0 1rem 0;
+    }
 
-  p {
-    color: $gray-600;
-    margin: 0;
-    line-height: 1.6;
-  }
+    p {
+        color: $gray-600;
+        margin: 0;
+        line-height: 1.6;
+    }
 }
 
 // Form Styles (for next step)
 .formGroup {
-  margin-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
 
-  label {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: $gray-700;
-    margin-bottom: 0.5rem;
-  }
-
-  input, select, textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid $gray-300;
-    border-radius: 0.5rem;
-    font-size: 0.925rem;
-    transition: border-color 0.2s ease-in-out;
-
-    &:focus {
-      outline: none;
-      border-color: $primary-blue;
-      box-shadow: 0 0 0 3px rgba($primary-blue, 0.1);
+    label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: $gray-700;
+        margin-bottom: 0.5rem;
     }
 
-    &::placeholder {
-      color: $gray-400;
+    input,
+    select,
+    textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid $gray-300;
+        border-radius: 0.5rem;
+        font-size: 0.925rem;
+        transition: border-color 0.2s ease-in-out;
+
+        &:focus {
+            outline: none;
+            border-color: $primary-blue;
+            box-shadow: 0 0 0 3px rgba($primary-blue, 0.1);
+        }
+
+        &::placeholder {
+            color: $gray-400;
+        }
     }
-  }
 
-  textarea {
-    resize: vertical;
-    min-height: 80px;
-  }
+    textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
 
-  small {
-    display: block;
-    margin-top: 0.25rem;
-    font-size: 0.8rem;
-    color: $gray-500;
-    line-height: 1.4;
-  }
+    small {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 0.8rem;
+        color: $gray-500;
+        line-height: 1.4;
+    }
 
-  .error {
-    color: $primary-red;
-    font-weight: 500;
-  }
+    .error {
+        color: $primary-red;
+        font-weight: 500;
+    }
 
-  .success {
-    color: $primary-green;
-    font-weight: 500;
-  }
+    .success {
+        color: $primary-green;
+        font-weight: 500;
+    }
 
-  input.error, select.error {
-    border-color: $primary-red;
-    box-shadow: 0 0 0 3px rgba($primary-red, 0.1);
-  }
+    input.error,
+    select.error {
+        border-color: $primary-red;
+        box-shadow: 0 0 0 3px rgba($primary-red, 0.1);
+    }
 
-  input.success, select.success {
-    border-color: $primary-green;
-    box-shadow: 0 0 0 3px rgba($primary-green, 0.1);
-  }
+    input.success,
+    select.success {
+        border-color: $primary-green;
+        box-shadow: 0 0 0 3px rgba($primary-green, 0.1);
+    }
 }
 
 .formActions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid $gray-200;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid $gray-200;
 }
 
 .button {
-  padding: 0.625rem 1.25rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  border: 1px solid transparent;
-
-  &:disabled {
-    cursor: not-allowed;
-  }
-
-  &.primary {
-    background-color: $primary-blue;
-    color: $white;
-
-    &:hover:not(:disabled) {
-      background-color: darken($primary-blue, 10%);
-    }
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid transparent;
 
     &:disabled {
-      background-color: $gray-300;
-      color: $gray-500;
-    }
-  }
-
-  &.secondary {
-    background-color: $white;
-    color: $gray-700;
-    border-color: $gray-300;
-
-    &:hover:not(:disabled) {
-      background-color: $gray-50;
+        cursor: not-allowed;
     }
 
-    &:disabled {
-      background-color: $gray-100;
-      color: $gray-400;
-      border-color: $gray-200;
-    }
-  }
+    &.primary {
+        background-color: $primary-blue;
+        color: $white;
 
-  &.test {
-    background-color: $primary-green;
-    color: $white;
+        &:hover:not(:disabled) {
+            background-color: color.adjust($primary-blue, $lightness: -10%);
+        }
 
-    &:hover:not(:disabled) {
-      background-color: darken($primary-green, 10%);
-    }
-
-    &:disabled {
-      background-color: $gray-300;
-      color: $gray-500;
-    }
-  }
-
-  &.danger {
-    background-color: $primary-red;
-    color: $white;
-
-    &:hover:not(:disabled) {
-      background-color: darken($primary-red, 10%);
+        &:disabled {
+            background-color: $gray-300;
+            color: $gray-500;
+        }
     }
 
-    &:disabled {
-      background-color: $gray-300;
-      color: $gray-500;
+    &.secondary {
+        background-color: $white;
+        color: $gray-700;
+        border-color: $gray-300;
+
+        &:hover:not(:disabled) {
+            background-color: $gray-50;
+        }
+
+        &:disabled {
+            background-color: $gray-100;
+            color: $gray-400;
+            border-color: $gray-200;
+        }
     }
-  }
+
+    &.test {
+        background-color: $primary-green;
+        color: $white;
+
+        &:hover:not(:disabled) {
+            background-color: color.adjust($primary-green, $lightness: -10%);
+        }
+
+        &:disabled {
+            background-color: $gray-300;
+            color: $gray-500;
+        }
+    }
+
+    &.danger {
+        background-color: $primary-red;
+        color: $white;
+
+        &:hover:not(:disabled) {
+            background-color: color.adjust($primary-red, $lightness: -10%);
+        }
+
+        &:disabled {
+            background-color: $gray-300;
+            color: $gray-500;
+        }
+    }
 }
 
 // Detail View Styles
 .detailView {
-  max-width: 800px;
-  margin: 0 auto;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 .detailHeader {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid $gray-200;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid $gray-200;
 }
 
 .backButton {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1rem;
-  background: $white;
-  border: 1px solid $gray-300;
-  border-radius: 0.5rem;
-  color: $gray-700;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background: $white;
+    border: 1px solid $gray-300;
+    border-radius: 0.5rem;
+    color: $gray-700;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
 
-  &:hover {
-    background: $gray-50;
-    border-color: $gray-400;
-  }
+    &:hover {
+        background: $gray-50;
+        border-color: $gray-400;
+    }
 
-  svg {
-    width: 1rem;
-    height: 1rem;
-  }
+    svg {
+        width: 1rem;
+        height: 1rem;
+    }
 }
 
 .detailTitle {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  flex: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    flex: 1;
 
-  h2 {
-    font-size: 1.875rem;
-    font-weight: 700;
-    color: $gray-900;
-    margin: 0 0 0.25rem 0;
-  }
+    h2 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: $gray-900;
+        margin: 0 0 0.25rem 0;
+    }
 
-  p {
-    color: $gray-600;
-    margin: 0;
-    line-height: 1.6;
-  }
+    p {
+        color: $gray-600;
+        margin: 0;
+        line-height: 1.6;
+    }
 }
 
 .detailIcon {
-  width: 4rem;
-  height: 4rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: $gray-50;
-  border-radius: 1rem;
-  font-size: 2rem;
-  flex-shrink: 0;
+    width: 4rem;
+    height: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $gray-50;
+    border-radius: 1rem;
+    font-size: 2rem;
+    flex-shrink: 0;
 }
 
 .configWrapper {
-  background: $white;
-  border-radius: 0.75rem;
-  border: 1px solid $gray-200;
-  padding: 2rem;
+    background: $white;
+    border-radius: 0.75rem;
+    border: 1px solid $gray-200;
+    padding: 2rem;
 }
 
 .configForm {
-  display: grid;
-  gap: 1.5rem;
+    display: grid;
+    gap: 1.5rem;
 
-  .formGroup {
-    label {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: $gray-700;
-      margin-bottom: 0.5rem;
+    .formGroup {
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: $gray-700;
+            margin-bottom: 0.5rem;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid $gray-300;
+            border-radius: 0.5rem;
+            font-size: 0.925rem;
+            background: $white;
+            transition: all 0.2s ease-in-out;
+
+            &:focus {
+                outline: none;
+                border-color: $primary-blue;
+                box-shadow: 0 0 0 3px rgba($primary-blue, 0.1);
+            }
+
+            &::placeholder {
+                color: $gray-400;
+            }
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        input[type="password"] {
+            font-family: monospace;
+            letter-spacing: 2px;
+
+            &::placeholder {
+                font-family: inherit;
+                letter-spacing: normal;
+            }
+        }
     }
-
-    input, select {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      border: 1px solid $gray-300;
-      border-radius: 0.5rem;
-      font-size: 0.925rem;
-      background: $white;
-      transition: all 0.2s ease-in-out;
-
-      &:focus {
-        outline: none;
-        border-color: $primary-blue;
-        box-shadow: 0 0 0 3px rgba($primary-blue, 0.1);
-      }
-
-      &::placeholder {
-        color: $gray-400;
-      }
-    }
-
-    select {
-      cursor: pointer;
-    }
-
-    input[type="password"] {
-      font-family: monospace;
-      letter-spacing: 2px;
-
-      &::placeholder {
-        font-family: inherit;
-        letter-spacing: normal;
-      }
-    }
-  }
 }
 
 // Responsive Design
 @media (max-width: 768px) {
-  .categoryHeader {
-    padding: 1rem;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-
-  .categoryStatus {
-    align-self: flex-end;
-  }
-
-  .configContent {
-    padding: 1rem;
-  }
-
-  .formActions {
-    flex-direction: column;
-
-    .button {
-      width: 100%;
+    .categoryHeader {
+        padding: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
     }
-  }
 
-  .detailHeader {
-    flex-direction: column;
-    gap: 1rem;
-  }
+    .categoryStatus {
+        align-self: flex-end;
+    }
 
-  .detailTitle {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
+    .configContent {
+        padding: 1rem;
+    }
 
-  .detailIcon {
-    width: 3rem;
-    height: 3rem;
-    font-size: 1.5rem;
-  }
+    .formActions {
+        flex-direction: column;
 
-  .configWrapper {
-    padding: 1.5rem;
-  }
+        .button {
+            width: 100%;
+        }
+    }
 
-  .backButton {
-    align-self: flex-start;
-  }
+    .detailHeader {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .detailTitle {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .detailIcon {
+        width: 3rem;
+        height: 3rem;
+        font-size: 1.5rem;
+    }
+
+    .configWrapper {
+        padding: 1.5rem;
+    }
+
+    .backButton {
+        align-self: flex-start;
+    }
 }

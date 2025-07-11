@@ -27,7 +27,34 @@ const ConfigViewer = () => {
         setError(null);
         try {
             const data = await fetchAllConfigs();
-            setConfigs(data);
+            console.log('Fetched config data:', data); // 데이터 구조 확인용
+            
+            // 백엔드에서 오는 실제 데이터 구조에 맞게 처리
+            if (data && (data as any).persistent_summary && (data as any).persistent_summary.configs) {
+                const configArray: ConfigItem[] = (data as any).persistent_summary.configs.map((config: any) => {
+                    // 값의 타입을 추론
+                    const getValueType = (value: any): string => {
+                        if (Array.isArray(value)) return 'Array';
+                        if (typeof value === 'boolean') return 'Bool';
+                        if (typeof value === 'number') return 'Num';
+                        if (typeof value === 'string') return 'Str';
+                        return 'Unknown';
+                    };
+
+                    return {
+                        env_name: config.env_name,
+                        config_path: config.config_path,
+                        current_value: config.current_value,
+                        default_value: config.default_value,
+                        is_saved: config.is_saved || false,
+                        type: getValueType(config.current_value)
+                    };
+                });
+                setConfigs(configArray);
+            } else {
+                setConfigs([]);
+                console.warn('Unexpected data structure:', data);
+            }
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류';
             setError(`설정 정보를 불러오는데 실패했습니다: ${errorMessage}`);
@@ -83,15 +110,33 @@ const ConfigViewer = () => {
         }
     };
 
-    const formatValue = (value: any, type: string): string => {
+    const formatValue = (value: any, type: string, envName?: string): string => {
         if (value === null || value === undefined) return 'N/A';
-        if (type === 'list' && Array.isArray(value)) {
+        
+        // 민감한 정보 마스킹 (API 키, 패스워드 등)
+        const sensitiveFields = ['API_KEY', 'PASSWORD', 'SECRET', 'TOKEN'];
+        const isSensitive = envName && sensitiveFields.some(field => envName.includes(field));
+        
+        if (isSensitive && typeof value === 'string' && value.length > 8) {
+            return value.substring(0, 8) + '*'.repeat(Math.min(value.length - 8, 20)) + '...';
+        }
+        
+        // 배열 타입 처리
+        if (Array.isArray(value)) {
             return value.join(', ');
         }
+        
+        // 긴 문자열 처리
         if (typeof value === 'string' && value.length > 50) {
             return value.substring(0, 47) + '...';
         }
+        
         return String(value);
+    };
+
+    const formatTypeName = (type: string): string => {
+        if (!type) return 'Unknown';
+        return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
     };
 
     const getFilteredConfigs = () => {
@@ -227,21 +272,21 @@ const ConfigViewer = () => {
                                     <span className={`${styles.statusBadge} ${config.is_saved ? styles.saved : styles.default}`}>
                                         {config.is_saved ? '저장됨' : '기본값'}
                                     </span>
-                                    <span className={styles.typeBadge}>{config.type}</span>
+                                    <span className={styles.typeBadge}>{formatTypeName(config.type)}</span>
                                 </div>
                             </div>
                             <div className={styles.configValue}>
                                 <div className={styles.valueRow}>
                                     <label>현재값:</label>
                                     <span className={styles.currentValue}>
-                                        {formatValue(config.current_value, config.type)}
+                                        {formatValue(config.current_value, config.type, config.env_name)}
                                     </span>
                                 </div>
                                 {config.current_value !== config.default_value && (
                                     <div className={styles.valueRow}>
                                         <label>기본값:</label>
                                         <span className={styles.defaultValue}>
-                                            {formatValue(config.default_value, config.type)}
+                                            {formatValue(config.default_value, config.type, config.env_name)}
                                         </span>
                                     </div>
                                 )}

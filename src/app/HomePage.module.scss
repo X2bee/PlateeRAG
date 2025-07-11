@@ -1,3 +1,5 @@
+@use "sass:color";
+
 $primary-blue: #2563eb;
 $primary-purple: #7c3aed;
 $primary-green: #059669;
@@ -100,7 +102,7 @@ $white: #ffffff;
     color: $white;
 
     &:hover {
-        background-color: darken($primary-blue, 10%);
+        background-color: color.adjust($primary-blue, $lightness: -10%);
     }
 
     svg {
@@ -185,7 +187,7 @@ $white: #ffffff;
     box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
 
     &:hover {
-        background-color: darken($primary-blue, 10%);
+        background-color: color.adjust($primary-blue, $lightness: -10%);
         transform: translateY(-2px);
         box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
     }
