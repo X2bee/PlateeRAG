@@ -163,6 +163,17 @@ $white: #ffffff;
   font-size: 0.925rem;
 }
 
+.workflowError {
+  color: $primary-red;
+  line-height: 1.6;
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+  padding: 0.5rem;
+  background: rgba($primary-red, 0.1);
+  border-radius: 0.375rem;
+  border-left: 3px solid $primary-red;
+}
+
 .workflowMeta {
   display: flex;
   flex-wrap: wrap;
@@ -216,6 +227,45 @@ $white: #ffffff;
   svg {
     width: 1rem;
     height: 1rem;
+  }
+}
+
+// Loading State
+.loadingState {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: $gray-500;
+
+  p {
+    font-size: 1.125rem;
+    margin: 0;
+  }
+}
+
+// Error State
+.errorState {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: $primary-red;
+
+  p {
+    font-size: 1.125rem;
+    margin: 0 0 1rem 0;
+  }
+
+  button {
+    padding: 0.5rem 1rem;
+    background: $primary-blue;
+    color: $white;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s ease-in-out;
+
+    &:hover {
+      background: darken($primary-blue, 10%);
+    }
   }
 }
 
