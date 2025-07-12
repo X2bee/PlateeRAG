@@ -17,7 +17,11 @@ interface ConfigItem {
 
 type CategoryType = 'database' | 'openai' | 'app' | 'workflow' | 'node' | 'other';
 
-const ConfigViewer = () => {
+interface ConfigViewerProps {
+    onNavigateToSettings?: () => void;
+}
+
+const ConfigViewer: React.FC<ConfigViewerProps> = ({ onNavigateToSettings }) => {
     const [configs, setConfigs] = useState<ConfigItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -53,6 +57,7 @@ const ConfigViewer = () => {
                     };
                 });
                 setConfigs(configArray);
+                devLog.info('Parsed config items:', configArray);
             } else {
                 setConfigs([]);
                 devLog.warn('Unexpected data structure:', data);
@@ -291,10 +296,22 @@ const ConfigViewer = () => {
         <div className={styles.container}>
             {/* Header - simplified for component use */}
             <div className={styles.header}>
-                <button onClick={fetchConfigs} className={styles.refreshButton}>
-                    <FiRefreshCw />
-                    새로고침
-                </button>
+                <div className={styles.headerActions}>
+                    <button onClick={fetchConfigs} className={styles.refreshButton}>
+                        <FiRefreshCw />
+                        새로고침
+                    </button>
+                    {onNavigateToSettings && (
+                        <button 
+                            onClick={onNavigateToSettings} 
+                            className={styles.settingsButton}
+                            title="고급 환경 설정으로 이동"
+                        >
+                            <FiSettings />
+                            고급 설정
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Stats */}

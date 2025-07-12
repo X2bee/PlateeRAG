@@ -1,19 +1,21 @@
 "use client";
 import React, { useState } from "react";
 import { FiChevronRight, FiSettings, FiCheck, FiX, FiArrowLeft } from "react-icons/fi";
-import { SiOpenai, SiGoogle, SiPostgresql, SiMongodb, SiAmazon } from "react-icons/si";
-import { FiCloud } from "react-icons/fi";
-import { testConnection, updateConfig, refreshConfigs, saveConfigs } from "@/app/api/configAPI";
+import { SiOpenai } from "react-icons/si";
+import { testConnection, updateConfig, refreshConfigs, saveConfigs, fetchAllConfigs } from "@/app/api/configAPI";
 import { devLog } from "@/app/utils/logger";
 import styles from "@/app/main/assets/Settings.module.scss";
 
 // Import config components
 import OpenAIConfig from "@/app/main/components/config/openAIConfig";
-import GoogleConfig from "@/app/main/components/config/googleConfig";
-import PostgreSQLConfig from "@/app/main/components/config/postgreSQLConfig";
-import MongoDBConfig from "@/app/main/components/config/mongoDBConfig";
-import AWSConfig from "@/app/main/components/config/awsConfig";
-import AzureConfig from "@/app/main/components/config/azureConfig";
+
+interface ConfigItem {
+    env_name: string;
+    config_path: string;
+    current_value: any;
+    default_value: any;
+    is_saved: boolean;
+}
 
 interface ToolCategory {
     id: string;
@@ -30,33 +32,53 @@ interface ApiConfig {
     model?: string;
     temperature?: number;
     maxTokens?: number;
-    // Database specific
-    host?: string;
-    port?: number;
-    database?: string;
-    username?: string;
-    password?: string;
-    // MongoDB specific
-    uri?: string;
-    authDatabase?: string;
-    // AWS specific
-    accessKeyId?: string;
-    secretAccessKey?: string;
-    region?: string;
-    service?: string;
-    modelId?: string;
-    sessionToken?: string;
-    // Azure specific
-    apiVersion?: string;
-    deploymentName?: string;
-    resourceGroup?: string;
+    organization?: string;
 }
 
 const Settings: React.FC = () => {
     const [currentView, setCurrentView] = useState<"list" | "detail">("list");
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [configs, setConfigs] = useState<Record<string, ApiConfig>>({});
+    const [configData, setConfigData] = useState<ConfigItem[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+
+    // Load configs from localStorage and fetch from backend
+    React.useEffect(() => {
+        const savedConfigs = localStorage.getItem('plateerag-configs');
+        if (savedConfigs) {
+            try {
+                setConfigs(JSON.parse(savedConfigs));
+            } catch (error) {
+                devLog.error('Failed to load saved configs:', error);
+            }
+        }
+        
+        // Fetch config data from backend
+        fetchConfigData();
+    }, []);
+
+    const fetchConfigData = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const data = await fetchAllConfigs();
+            devLog.info('Fetched config data:', data);
+
+            if (data && (data as any).persistent_summary && (data as any).persistent_summary.configs) {
+                setConfigData((data as any).persistent_summary.configs);
+            } else {
+                setConfigData([]);
+                devLog.warn('Unexpected data structure:', data);
+            }
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류';
+            setError(`설정 정보를 불러오는데 실패했습니다: ${errorMessage}`);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Load configs from localStorage on component mount
     React.useEffect(() => {
@@ -78,46 +100,6 @@ const Settings: React.FC = () => {
             icon: <SiOpenai />,
             color: "#10a37f",
             status: configs.openai?.apiKey ? "connected" : "disconnected"
-        },
-        {
-            id: "google",
-            name: "Google AI",
-            description: "Gemini, PaLM, Vertex AI 서비스",
-            icon: <SiGoogle />,
-            color: "#4285f4",
-            status: configs.google?.apiKey ? "connected" : "disconnected"
-        },
-        {
-            id: "postgresql",
-            name: "PostgreSQL",
-            description: "PostgreSQL 데이터베이스 연결",
-            icon: <SiPostgresql />,
-            color: "#336791",
-            status: configs.postgresql?.host ? "connected" : "disconnected"
-        },
-        {
-            id: "mongodb",
-            name: "MongoDB",
-            description: "MongoDB 데이터베이스 연결",
-            icon: <SiMongodb />,
-            color: "#47a248",
-            status: configs.mongodb?.host ? "connected" : "disconnected"
-        },
-        {
-            id: "aws",
-            name: "Amazon Web Services",
-            description: "AWS Bedrock, SageMaker 등",
-            icon: <SiAmazon />,
-            color: "#ff9900",
-            status: configs.aws?.accessKeyId ? "connected" : "disconnected"
-        },
-        {
-            id: "azure",
-            name: "Microsoft Azure",
-            description: "Azure OpenAI, Cognitive Services",
-            icon: <FiCloud />,
-            color: "#0078d4",
-            status: configs.azure?.apiKey ? "connected" : "disconnected"
         }
     ];
 
@@ -153,113 +135,12 @@ const Settings: React.FC = () => {
         }
     };
 
-    // Save all configs to backend
-    const handleSaveAllConfigs = async () => {
-        setIsSaving(true);
-        try {
-            await saveConfigs();
-            // Also save to localStorage for local persistence
-            localStorage.setItem('plateerag-configs', JSON.stringify(configs));
-            alert('모든 설정이 성공적으로 저장되었습니다.');
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-            alert(`설정 저장 실패: ${errorMessage}`);
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    // Reset specific category configs (클라이언트 측에서만 처리)
-    const handleResetCategory = async (categoryId: string) => {
-        if (confirm(`${categoryId} 카테고리의 모든 설정을 기본값으로 초기화하시겠습니까?`)) {
-            try {
-                // 백엔드에 리셋 API가 없으므로 클라이언트에서만 초기화
-                setConfigs(prev => ({
-                    ...prev,
-                    [categoryId]: {}
-                }));
-                
-                // localStorage에서도 제거
-                const savedConfigs = { ...configs };
-                delete savedConfigs[categoryId];
-                localStorage.setItem('plateerag-configs', JSON.stringify(savedConfigs));
-                
-                alert(`${categoryId} 설정이 기본값으로 초기화되었습니다.`);
-            } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-                alert(`설정 초기화 실패: ${errorMessage}`);
-            }
-        }
-    };
-
-    // Update specific config value
-    const handleUpdateConfig = async (categoryId: string, key: string, value: string | number) => {
-        try {
-            // configName format: CATEGORY_KEY (e.g., OPENAI_API_KEY)
-            const configName = `${categoryId.toUpperCase()}_${key.toUpperCase()}`;
-            await updateConfig(configName, value);
-            // Update local state
-            handleConfigChange(categoryId, key, value);
-        } catch (error) {
-            devLog.error('Failed to update config:', error);
-        }
-    };
-
-    // Save category-specific configs (클라이언트 측에서만 처리)
-    const handleSaveCategoryConfigs = async (categoryId: string) => {
-        try {
-            // 백엔드에 일괄 업데이트 API가 없으므로 개별적으로 업데이트
-            const categoryConfig = configs[categoryId] || {};
-            
-            for (const [key, value] of Object.entries(categoryConfig)) {
-                const configName = `${categoryId.toUpperCase()}_${key.toUpperCase()}`;
-                await updateConfig(configName, value);
-            }
-            
-            alert(`${categoryId} 설정이 저장되었습니다.`);
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-            alert(`설정 저장 실패: ${errorMessage}`);
-        }
-    };
-
-    const handleSaveConfig = async () => {
-        if (!selectedCategory) return;
-        
-        setIsSaving(true);
-        try {
-            // Save to backend
-            await handleSaveCategoryConfigs(selectedCategory);
-            
-            // Save to localStorage
-            localStorage.setItem('plateerag-configs', JSON.stringify(configs));
-            
-            // Show success message
-            alert(`${getCurrentCategory()?.name} 설정이 저장되었습니다.`);
-            
-            // Navigate back to list
-            handleBackToList();
-        } catch (error) {
-            devLog.error('Failed to save config:', error);
-            alert('설정 저장에 실패했습니다.');
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
     const validateConfig = (categoryId: string): boolean => {
         const config = configs[categoryId] || {};
-        
+
         switch (categoryId) {
             case "openai":
-            case "google":
-            case "azure":
                 return !!config.apiKey;
-            case "postgresql":
-            case "mongodb":
-                return !!(config.host && config.database);
-            case "aws":
-                return !!(config.accessKeyId && config.secretAccessKey);
             default:
                 return false;
         }
@@ -268,65 +149,11 @@ const Settings: React.FC = () => {
     const renderOpenAIConfig = () => {
         const config = configs.openai || {};
         return (
-            <OpenAIConfig 
+            <OpenAIConfig
                 config={config}
                 onConfigChange={handleConfigChange}
                 onTestConnection={handleTestConnection}
-            />
-        );
-    };
-
-    const renderGoogleConfig = () => {
-        const config = configs.google || {};
-        return (
-            <GoogleConfig 
-                config={config}
-                onConfigChange={handleConfigChange}
-                onTestConnection={handleTestConnection}
-            />
-        );
-    };
-
-    const renderPostgreSQLConfig = () => {
-        const config = configs.postgresql || {};
-        return (
-            <PostgreSQLConfig 
-                config={config}
-                onConfigChange={handleConfigChange}
-                onTestConnection={handleTestConnection}
-            />
-        );
-    };
-
-    const renderMongoDBConfig = () => {
-        const config = configs.mongodb || {};
-        return (
-            <MongoDBConfig 
-                config={config}
-                onConfigChange={handleConfigChange}
-                onTestConnection={handleTestConnection}
-            />
-        );
-    };
-
-    const renderAWSConfig = () => {
-        const config = configs.aws || {};
-        return (
-            <AWSConfig 
-                config={config}
-                onConfigChange={handleConfigChange}
-                onTestConnection={handleTestConnection}
-            />
-        );
-    };
-
-    const renderAzureConfig = () => {
-        const config = configs.azure || {};
-        return (
-            <AzureConfig 
-                config={config}
-                onConfigChange={handleConfigChange}
-                onTestConnection={handleTestConnection}
+                configData={configData}
             />
         );
     };
@@ -335,16 +162,6 @@ const Settings: React.FC = () => {
         switch (categoryId) {
             case "openai":
                 return renderOpenAIConfig();
-            case "google":
-                return renderGoogleConfig();
-            case "postgresql":
-                return renderPostgreSQLConfig();
-            case "mongodb":
-                return renderMongoDBConfig();
-            case "aws":
-                return renderAWSConfig();
-            case "azure":
-                return renderAzureConfig();
             default:
                 return <p>설정 폼을 준비 중입니다.</p>;
         }
@@ -384,17 +201,8 @@ const Settings: React.FC = () => {
                     {/* Header */}
                     <div className={styles.header}>
                         <div className={styles.headerContent}>
-                            <h2>환경 설정</h2>
-                            <p>워크플로우에서 사용할 AI 모델과 데이터베이스를 설정하세요.</p>
-                        </div>
-                        <div className={styles.headerActions}>
-                            <button 
-                                onClick={handleSaveAllConfigs}
-                                className={`${styles.button} ${styles.primary}`}
-                                disabled={isSaving}
-                            >
-                                {isSaving ? "저장 중..." : "모든 설정 저장"}
-                            </button>
+                            <h2>OpenAI 환경 설정</h2>
+                            <p>OpenAI API 환경변수를 직접 편집하고 관리하세요.</p>
                         </div>
                     </div>
 
@@ -436,61 +244,48 @@ const Settings: React.FC = () => {
                     <div className={styles.detailView}>
                         {/* Detail Header */}
                         <div className={styles.detailHeader}>
-                            <button 
-                                onClick={handleBackToList}
-                                className={styles.backButton}
-                            >
-                                <FiArrowLeft />
-                                뒤로
-                            </button>
-                            <div className={styles.detailTitle}>
-                                <div 
-                                    className={styles.detailIcon}
-                                    style={{ color: getCurrentCategory()?.color }}
+                            <div className={styles.headerTop}>
+                                <button
+                                    onClick={handleBackToList}
+                                    className={styles.backButton}
                                 >
-                                    {getCurrentCategory()?.icon}
-                                </div>
-                                <div>
-                                    <h2>{getCurrentCategory()?.name} 설정</h2>
-                                    <p>{getCurrentCategory()?.description}</p>
+                                    <FiArrowLeft />
+                                    뒤로
+                                </button>
+                                <div className={styles.detailTitle}>
+                                    <div
+                                        className={styles.detailIcon}
+                                        style={{ color: getCurrentCategory()?.color }}
+                                    >
+                                        {getCurrentCategory()?.icon}
+                                    </div>
+                                    <div>
+                                        <h2>{getCurrentCategory()?.name} 설정</h2>
+                                        <p>{getCurrentCategory()?.description}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Configuration Form */}
                         <div className={styles.configWrapper}>
-                            {renderConfigForm(selectedCategory)}
-                            
-                            {/* Form Actions */}
-                            <div className={styles.formActions}>
-                                <button 
-                                    onClick={() => handleResetCategory(selectedCategory)}
-                                    className={`${styles.button} ${styles.danger}`}
-                                >
-                                    기본값으로 초기화
-                                </button>
-                                <button 
-                                    onClick={() => handleTestConnection(selectedCategory)}
-                                    className={`${styles.button} ${styles.test}`}
-                                    disabled={!validateConfig(selectedCategory)}
-                                >
-                                    연결 테스트
-                                </button>
-                                <button 
-                                    onClick={handleBackToList}
-                                    className={`${styles.button} ${styles.secondary}`}
-                                    disabled={isSaving}
-                                >
-                                    취소
-                                </button>
-                                <button 
-                                    onClick={handleSaveConfig}
-                                    className={`${styles.button} ${styles.primary}`}
-                                    disabled={!validateConfig(selectedCategory) || isSaving}
-                                >
-                                    {isSaving ? "저장 중..." : "저장"}
-                                </button>
-                            </div>
+                            {loading ? (
+                                <div className={styles.loadingState}>
+                                    <p>설정 정보를 불러오는 중...</p>
+                                </div>
+                            ) : error ? (
+                                <div className={styles.errorState}>
+                                    <p>오류: {error}</p>
+                                    <button 
+                                        onClick={fetchConfigData}
+                                        className={`${styles.button} ${styles.secondary}`}
+                                    >
+                                        다시 시도
+                                    </button>
+                                </div>
+                            ) : (
+                                renderConfigForm(selectedCategory)
+                            )}
                         </div>
                     </div>
                 )
