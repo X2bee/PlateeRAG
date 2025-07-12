@@ -95,13 +95,18 @@ export const listWorkflows = async () => {
 
 /**
  * 백엔드에서 특정 워크플로우를 로드합니다.
- * @param {string} workflowId - 로드할 워크플로우 ID (.json 확장자 제외)
+ * @param {string} workflowId - 로드할 워크플로우 ID (.json 확장자 포함/제외 모두 가능)
  * @returns {Promise<Object>} 워크플로우 데이터 객체를 포함하는 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
 export const loadWorkflow = async (workflowId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/workflow/load/${encodeURIComponent(workflowId)}`);
+        // .json 확장자가 포함되어 있으면 제거
+        const cleanWorkflowId = workflowId.endsWith('.json') 
+            ? workflowId.slice(0, -5) 
+            : workflowId;
+            
+        const response = await fetch(`${API_BASE_URL}/workflow/load/${encodeURIComponent(cleanWorkflowId)}`);
 
         if (!response.ok) {
             const errorData = await response.json();

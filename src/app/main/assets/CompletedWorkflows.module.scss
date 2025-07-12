@@ -219,6 +219,45 @@ $white: #ffffff;
   }
 }
 
+// Loading State
+.loadingState {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: $gray-500;
+
+  p {
+    font-size: 1.125rem;
+    margin: 0;
+  }
+}
+
+// Error State
+.errorState {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: $primary-red;
+
+  p {
+    font-size: 1.125rem;
+    margin: 0 0 1rem 0;
+  }
+
+  button {
+    padding: 0.5rem 1rem;
+    background: $primary-blue;
+    color: $white;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s ease-in-out;
+
+    &:hover {
+      background: darken($primary-blue, 10%);
+    }
+  }
+}
+
 // Empty State
 .emptyState {
   text-align: center;
