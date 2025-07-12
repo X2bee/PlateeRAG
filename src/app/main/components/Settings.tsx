@@ -1,13 +1,16 @@
 "use client";
 import React, { useState } from "react";
-import { FiChevronRight, FiSettings, FiCheck, FiX, FiArrowLeft } from "react-icons/fi";
+import { FiChevronRight, FiSettings, FiCheck, FiX, FiArrowLeft, FiDatabase } from "react-icons/fi";
 import { SiOpenai } from "react-icons/si";
+import { BsGear } from "react-icons/bs"; // Workflow 아이콘으로 사용
 import { testConnection, updateConfig, refreshConfigs, saveConfigs, fetchAllConfigs } from "@/app/api/configAPI";
 import { devLog } from "@/app/utils/logger";
 import styles from "@/app/main/assets/Settings.module.scss";
 
 // Import config components
 import OpenAIConfig from "@/app/main/components/config/openAIConfig";
+import WorkflowConfig from "@/app/main/components/config/workflowConfig";
+import DatabaseConfig from "@/app/main/components/config/databaseConfig";
 
 interface ConfigItem {
     env_name: string;
@@ -100,6 +103,22 @@ const Settings: React.FC = () => {
             icon: <SiOpenai />,
             color: "#10a37f",
             status: configs.openai?.apiKey ? "connected" : "disconnected"
+        },
+        {
+            id: "workflow",
+            name: "워크플로우",
+            description: "워크플로우 실행 및 관리 설정",
+            icon: <BsGear />,
+            color: "#4f46e5",
+            status: "connected"
+        },
+        {
+            id: "database",
+            name: "데이터베이스",
+            description: "PostgreSQL, SQLite 등 데이터베이스 연결 설정",
+            icon: <FiDatabase />,
+            color: "#059669",
+            status: "connected"
         }
     ];
 
@@ -158,10 +177,32 @@ const Settings: React.FC = () => {
         );
     };
 
+    const renderWorkflowConfig = () => {
+        return (
+            <WorkflowConfig
+                configData={configData}
+                onTestConnection={handleTestConnection}
+            />
+        );
+    };
+
+    const renderDatabaseConfig = () => {
+        return (
+            <DatabaseConfig
+                configData={configData}
+                onTestConnection={handleTestConnection}
+            />
+        );
+    };
+
     const renderConfigForm = (categoryId: string) => {
         switch (categoryId) {
             case "openai":
                 return renderOpenAIConfig();
+            case "workflow":
+                return renderWorkflowConfig();
+            case "database":
+                return renderDatabaseConfig();
             default:
                 return <p>설정 폼을 준비 중입니다.</p>;
         }
@@ -201,8 +242,8 @@ const Settings: React.FC = () => {
                     {/* Header */}
                     <div className={styles.header}>
                         <div className={styles.headerContent}>
-                            <h2>OpenAI 환경 설정</h2>
-                            <p>OpenAI API 환경변수를 직접 편집하고 관리하세요.</p>
+                            <h2>환경 설정</h2>
+                            <p>다양한 도구들의 환경을 설정합니다.</p>
                         </div>
                     </div>
 
