@@ -35,8 +35,8 @@ const MainPage: React.FC = () => {
         },
         {
             id: "settings",
-            title: "환경 설정",
-            description: "LLM 및 Tool 환경 설정",
+            title: "고급 환경 설정",
+            description: "LLM 및 Tool 환경변수 직접 관리",
             icon: <FiSettings />
         },
         {
@@ -79,8 +79,8 @@ const MainPage: React.FC = () => {
             case "settings":
                 return (
                     <ContentArea
-                        title="환경 설정"
-                        description="워크플로우에서 사용할 AI 모델과 데이터베이스를 설정하세요."
+                        title="고급 환경 설정"
+                        description="백엔드 환경변수를 직접 편집하고 관리하세요. 모든 설정값을 세밀하게 제어할 수 있습니다."
                     >
                         <Settings />
                     </ContentArea>
@@ -91,7 +91,9 @@ const MainPage: React.FC = () => {
                         title="설정값 확인"
                         description="백엔드에서 관리되는 모든 환경변수와 설정값을 확인하세요."
                     >
-                        <ConfigViewer />
+                        <ConfigViewer 
+                            onNavigateToSettings={() => setActiveSection("settings")}
+                        />
                     </ContentArea>
                 );
             default:

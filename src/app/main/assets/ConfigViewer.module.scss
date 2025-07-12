@@ -93,7 +93,13 @@ $white: #ffffff;
     border-bottom: 1px solid $gray-200;
 }
 
-.refreshButton {
+.headerActions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.refreshButton, .settingsButton {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -115,6 +121,17 @@ $white: #ffffff;
     svg {
         width: 1rem;
         height: 1rem;
+    }
+}
+
+.settingsButton {
+    background-color: $primary-blue;
+    color: $white;
+    border-color: $primary-blue;
+
+    &:hover {
+        background-color: color.adjust($primary-blue, $lightness: -10%);
+        border-color: color.adjust($primary-blue, $lightness: -10%);
     }
 }
 

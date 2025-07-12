@@ -1,3 +1,5 @@
+@use "sass:color";
+
 // Color Variables
 $primary-blue: #2563eb;
 $primary-green: #059669;
@@ -264,7 +266,7 @@ $white: #ffffff;
     transition: background-color 0.2s ease-in-out;
 
     &:hover {
-      background: darken($primary-blue, 10%);
+      background: color.scale($primary-blue, $lightness: -10%);
     }
   }
 }

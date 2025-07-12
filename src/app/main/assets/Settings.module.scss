@@ -62,6 +62,50 @@ $white: #ffffff;
     flex-shrink: 0;
 }
 
+// Mode Toggle Styles
+.headerTop {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.modeToggle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: $gray-50;
+    border: 1px solid $gray-200;
+    border-radius: 0.5rem;
+
+    .modeLabel {
+        font-weight: 600;
+        color: $gray-700;
+        font-size: 0.875rem;
+    }
+
+    .toggleButton {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: $primary-blue;
+        font-size: 1.5rem;
+        transition: color 0.2s ease-in-out;
+
+        &:hover {
+            color: color.adjust($primary-blue, $lightness: -10%);
+        }
+    }
+
+    .modeDescription {
+        color: $gray-500;
+        font-size: 0.75rem;
+        max-width: 200px;
+        line-height: 1.4;
+    }
+}
+
 // Categories Grid
 .categoriesGrid {
     display: flex;
@@ -445,10 +489,10 @@ $white: #ffffff;
         input,
         select {
             width: 100%;
-            padding: 0.75rem 1rem;
+            padding: 0.25rem 0.8rem;
             border: 1px solid $gray-300;
             border-radius: 0.5rem;
-            font-size: 0.925rem;
+            font-size: 0.875rem;
             background: $white;
             transition: all 0.2s ease-in-out;
 
@@ -477,6 +521,242 @@ $white: #ffffff;
             }
         }
     }
+}
+
+// Special styling for select dropdowns
+.editSelect {
+    appearance: none; /* Remove default browser styling */
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.875rem center;
+    background-repeat: no-repeat;
+    background-size: 1.125rem;
+    padding-right: 2.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: 2px solid $gray-300;
+    height: 2.5rem; // editInput과 동일한 높이
+    box-sizing: border-box; // border를 포함한 박스 크기 계산
+    font-size: 0.875rem; // currentValue와 동일한 폰트 크기
+    
+    &:hover {
+        border-color: $gray-400;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%234b5563' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    }
+    
+    &:focus {
+        border-color: $primary-blue;
+        box-shadow: 0 0 0 3px rgba($primary-blue, 0.1);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%232563eb' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    }
+
+    &:disabled {
+        background-color: $gray-100;
+        border-color: $gray-200;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+        cursor: not-allowed;
+        color: $gray-500;
+    }
+
+    // Style for option elements
+    option {
+        padding: 0.75rem;
+        background-color: $white;
+        color: $gray-700;
+        border: none;
+        font-size: 0.875rem;
+        
+        &:hover {
+            background-color: $gray-50;
+        }
+        
+        &:checked {
+            background-color: $primary-blue;
+            color: $white;
+        }
+    }
+}
+
+// Loading and Error States
+.loadingState, .errorState {
+    padding: 2rem;
+    text-align: center;
+    color: $gray-600;
+
+    p {
+        margin: 0 0 1rem 0;
+        font-size: 1rem;
+    }
+}
+
+.errorState {
+    background: color.adjust($primary-red, $lightness: 45%);
+    border: 1px solid color.adjust($primary-red, $lightness: 35%);
+    border-radius: 0.5rem;
+    color: color.adjust($primary-red, $lightness: -20%);
+}
+
+// Advanced Config Styles
+.configPath {
+    font-family: 'Courier New', monospace;
+    font-size: 0.75rem;
+    color: $gray-400;
+    display: block;
+    margin-top: 0.25rem;
+}
+
+.required {
+    color: $primary-red;
+    margin-left: 0.25rem;
+}
+
+.unsaved {
+    color: $primary-yellow;
+    font-weight: 600;
+}
+
+.saving {
+    color: $primary-blue;
+    font-weight: 600;
+}
+
+// Config item header
+.configHeader {
+    margin-bottom: 0.5rem;
+
+    label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: $gray-700;
+    }
+}
+
+.editButton {
+    background: none;
+    border: 1px solid $gray-300;
+    border-radius: 0.25rem;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: $gray-600;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        background-color: $gray-50;
+        border-color: $gray-400;
+        color: $gray-700;
+    }
+
+    svg {
+        width: 0.875rem;
+        height: 0.875rem;
+    }
+}
+
+.saveButton {
+    background-color: $primary-green;
+    border-color: $primary-green;
+    color: $white;
+
+    &:hover {
+        background-color: color.adjust($primary-green, $lightness: -10%);
+        border-color: color.adjust($primary-green, $lightness: -10%);
+    }
+
+    &:disabled {
+        background-color: $gray-300;
+        border-color: $gray-300;
+        color: $gray-500;
+        cursor: not-allowed;
+    }
+}
+
+.cancelButton {
+    background-color: $primary-red;
+    border-color: $primary-red;
+    color: $white;
+
+    &:hover {
+        background-color: color.adjust($primary-red, $lightness: -10%);
+        border-color: color.adjust($primary-red, $lightness: -10%);
+    }
+
+    &:disabled {
+        background-color: $gray-300;
+        border-color: $gray-300;
+        color: $gray-500;
+        cursor: not-allowed;
+    }
+}
+
+.configValue {
+    margin-bottom: 0.75rem;
+}
+
+.editContainer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.editInput {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 2px solid $gray-300;
+    border-radius: 0.375rem;
+    font-size: 0.875rem; // currentValue와 동일한 폰트 크기
+    transition: all 0.2s ease-in-out;
+    height: 2.5rem; // 고정된 높이로 valueDisplay와 맞춤
+    box-sizing: border-box; // border를 포함한 박스 크기 계산
+
+    &:hover {
+        border-color: $gray-400;
+    }
+
+    &:focus {
+        outline: none;
+        border-color: $primary-blue;
+        box-shadow: 0 0 0 3px rgba($primary-blue, 0.1);
+    }
+
+    &:disabled {
+        background-color: $gray-100;
+        border-color: $gray-200;
+        color: $gray-500;
+        cursor: not-allowed;
+    }
+}
+
+.editButtons {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.valueDisplay {
+    padding: 0.5rem 0.75rem; // editInput과 동일한 padding
+    background-color: $gray-50;
+    border: 2px solid $gray-200; // editInput과 동일한 border 두께
+    border-radius: 0.375rem; // editInput과 동일한 border-radius
+    height: 2.5rem; // editInput과 동일한 높이
+    box-sizing: border-box; // border를 포함한 박스 크기 계산
+    display: flex;
+    align-items: center;
+    flex: 1; // editContainer 내에서 최대 공간 차지
+}
+
+.currentValue {
+    font-size: 0.875rem;
+    color: $gray-700;
+    word-break: break-all;
+}
+
+.fieldDescription {
+    display: block;
+    margin-top: 0.5rem;
+    line-height: 1.4;
 }
 
 // Responsive Design
@@ -526,5 +806,37 @@ $white: #ffffff;
 
     .backButton {
         align-self: flex-start;
+    }
+
+    .headerTop {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .modeToggle {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+
+        .modeDescription {
+            max-width: 100%;
+        }
+    }
+
+    .configHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .editContainer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .editButtons {
+        justify-content: flex-end;
     }
 }
