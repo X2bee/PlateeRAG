@@ -163,6 +163,17 @@ $white: #ffffff;
   font-size: 0.925rem;
 }
 
+.workflowError {
+  color: $primary-red;
+  line-height: 1.6;
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+  padding: 0.5rem;
+  background: rgba($primary-red, 0.1);
+  border-radius: 0.375rem;
+  border-left: 3px solid $primary-red;
+}
+
 .workflowMeta {
   display: flex;
   flex-wrap: wrap;

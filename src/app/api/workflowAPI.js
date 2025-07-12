@@ -94,6 +94,28 @@ export const listWorkflows = async () => {
 };
 
 /**
+ * 백엔드에서 저장된 워크플로우들의 상세 정보를 가져옵니다.
+ * @returns {Promise<Array<Object>>} 워크플로우 상세 정보 배열을 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const listWorkflowsDetail = async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/workflow/list/detail`);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        return result.workflows || [];
+    } catch (error) {
+        devLog.error("Failed to list workflow details:", error);
+        throw error;
+    }
+};
+
+/**
  * 백엔드에서 특정 워크플로우를 로드합니다.
  * @param {string} workflowId - 로드할 워크플로우 ID (.json 확장자 포함/제외 모두 가능)
  * @returns {Promise<Object>} 워크플로우 데이터 객체를 포함하는 프로미스

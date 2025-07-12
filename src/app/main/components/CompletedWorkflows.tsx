@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { FiFolder, FiPlay, FiEdit, FiTrash2, FiUser } from "react-icons/fi";
+import { FiFolder, FiPlay, FiEdit, FiTrash2, FiUser, FiClock } from "react-icons/fi";
 import styles from "@/app/main/assets/CompletedWorkflows.module.scss";
-import { listWorkflows, loadWorkflow } from "@/app/api/workflowAPI";
+import { listWorkflowsDetail } from "@/app/api/workflowAPI";
 
 interface Workflow {
     id: string;
@@ -13,17 +13,16 @@ interface Workflow {
     author: string;
     nodeCount: number;
     status: "active" | "draft" | "archived";
+    filename?: string;
+    error?: string;
 }
 
-interface WorkflowData {
-    id?: string;
-    name?: string;
-    description?: string;
-    contents?: {
-        nodes?: any[];
-        [key: string]: any;
-    };
-    [key: string]: any;
+interface WorkflowDetailResponse {
+    filename: string;
+    workflow_id: string;
+    node_count: number;
+    last_modified: string;
+    error?: string;
 }
 
 const CompletedWorkflows: React.FC = () => {
@@ -38,39 +37,24 @@ const CompletedWorkflows: React.FC = () => {
             setLoading(true);
             setError(null);
             
-            // 워크플로우 파일 목록 가져오기
-            const workflowNames = await listWorkflows();
+            // 워크플로우 상세 정보 가져오기
+            const workflowDetails = await listWorkflowsDetail() as WorkflowDetailResponse[];
             
-            // 각 워크플로우의 상세 정보 로드
-            const workflowPromises = workflowNames.map(async (name: string) => {
-                try {
-                    // const workflowData = await loadWorkflow(name) as WorkflowData;
-                    
-                    // 노드 개수 계산
-                    const nodeCount = workflowData.contents?.nodes?.length || 0;
-                    
-                    return {
-                        id: workflowData.id || name,
-                        name: workflowData.name || name.replace('.json', ''),
-                        description: workflowData.description,
-                        author: "AI-LAB", // 모든 생성자를 AI-LAB으로 설정
-                        nodeCount: nodeCount,
-                        status: "active" as const, // 일단 모든 워크플로우를 active로 설정
-                    };
-                } catch (error) {
-                    console.error(`Failed to load workflow ${name}:`, error);
-                    return {
-                        id: name,
-                        name: name.replace('.json', ''),
-                        author: "AI-LAB",
-                        nodeCount: 0,
-                        status: "active" as const,
-                    };
-                }
+            // API 응답을 UI에서 사용할 형태로 변환
+            const transformedWorkflows: Workflow[] = workflowDetails.map((detail: WorkflowDetailResponse) => {
+                return {
+                    id: detail.workflow_id,
+                    name: detail.filename.replace('.json', '') || detail.workflow_id,
+                    author: "AI-LAB",
+                    nodeCount: detail.node_count,
+                    lastModified: detail.last_modified,
+                    status: detail.error ? "draft" as const : "active" as const, // 에러가 있으면 draft로 표시
+                    filename: detail.filename,
+                    error: detail.error,
+                };
             });
             
-            const loadedWorkflows = await Promise.all(workflowPromises);
-            setWorkflows(loadedWorkflows);
+            setWorkflows(transformedWorkflows);
             
         } catch (error) {
             console.error("Failed to fetch workflows:", error);
@@ -165,12 +149,21 @@ const CompletedWorkflows: React.FC = () => {
                                 {workflow.description && (
                                     <p className={styles.workflowDescription}>{workflow.description}</p>
                                 )}
+                                {workflow.error && (
+                                    <p className={styles.workflowError}>오류: {workflow.error}</p>
+                                )}
 
                                 <div className={styles.workflowMeta}>
                                     <div className={styles.metaItem}>
                                         <FiUser />
                                         <span>{workflow.author}</span>
                                     </div>
+                                    {workflow.lastModified && (
+                                        <div className={styles.metaItem}>
+                                            <FiClock />
+                                            <span>{new Date(workflow.lastModified).toLocaleDateString('ko-KR')}</span>
+                                        </div>
+                                    )}
                                     <div className={styles.metaItem}>
                                         <span>{workflow.nodeCount}개 노드</span>
                                     </div>
