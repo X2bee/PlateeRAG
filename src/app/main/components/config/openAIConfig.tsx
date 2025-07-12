@@ -176,7 +176,7 @@ const OpenAIConfig: React.FC<OpenAIConfigProps> = ({
         }
 
         setUpdating(prev => ({ ...prev, [configItem.env_name]: true }));
-        
+
         try {
             await updateConfig(configItem.env_name, validation.parsedValue);
             setLocalConfig(prev => ({ ...prev, [configItem.env_name]: validation.parsedValue }));
@@ -214,8 +214,8 @@ const OpenAIConfig: React.FC<OpenAIConfigProps> = ({
                 const fieldConfig = OPENAI_CONFIG_FIELDS[configItem.env_name];
                 if (!fieldConfig) return null;
 
-                const currentValue = localConfig[configItem.env_name] !== undefined 
-                    ? localConfig[configItem.env_name] 
+                const currentValue = localConfig[configItem.env_name] !== undefined
+                    ? localConfig[configItem.env_name]
                     : configItem.current_value;
 
                 const isEditing = editingConfig === configItem.env_name;
@@ -266,7 +266,7 @@ const OpenAIConfig: React.FC<OpenAIConfigProps> = ({
                                             }}
                                         />
                                     )}
-                                    
+
                                     <div className={styles.editButtons}>
                                         <button
                                             onClick={() => handleEditSave(configItem)}
@@ -289,7 +289,7 @@ const OpenAIConfig: React.FC<OpenAIConfigProps> = ({
                             ) : (
                                 <div className={styles.editContainer}>
                                     <div className={styles.valueDisplay}>
-                                        <span 
+                                        <span
                                             className={styles.currentValue}
                                             style={{
                                                 fontFamily: fieldConfig.type === 'password' ? "'Courier New', monospace" : "inherit"
@@ -310,7 +310,7 @@ const OpenAIConfig: React.FC<OpenAIConfigProps> = ({
                                 </div>
                             )}
                         </div>
-                        
+
                         <small className={styles.fieldDescription}>
                             {fieldConfig.description}
                             <br />
@@ -327,7 +327,7 @@ const OpenAIConfig: React.FC<OpenAIConfigProps> = ({
                     </div>
                 );
             })}
-            
+
             {/* Test Connection Button */}
             {openaiConfigs.length > 0 && (
                 <div className={styles.formActions} style={{ marginTop: '1rem' }}>
