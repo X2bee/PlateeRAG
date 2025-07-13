@@ -297,8 +297,8 @@ export default function CanvasPage() {
         let canvasState = (canvasRef.current as any).getCanvasState();
         const workflowName = getWorkflowName();
 
-        const workflowId = `workflow_${generateSha1Hash(workflowName)}`;
-        canvasState['id'] = workflowId;
+        const workflowId = `workflow_${generateSha1Hash(JSON.stringify(canvasState))}`;
+        canvasState = { ...canvasState, id: workflowId };
         
         devLog.log('Canvas state before save:', canvasState);
         devLog.log('Workflow ID set:', workflowId);
