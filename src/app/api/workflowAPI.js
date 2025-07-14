@@ -167,3 +167,66 @@ export const deleteWorkflow = async (workflowId) => {
         throw error;
     }
 };
+
+/**
+ * 워크플로우 목록과 세부 정보를 가져옵니다.
+ * @returns {Promise<Object>} 워크플로우 목록을 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const getWorkflowList = async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/workflow/list/detail`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        devLog.log('Workflow list retrieved successfully:', result);
+        return result;
+    } catch (error) {
+        devLog.error("Failed to get workflow list:", error);
+        throw error;
+    }
+};
+
+/**
+ * 특정 워크플로우의 성능 모니터링 데이터를 가져옵니다.
+ * @param {string} workflowName - 워크플로우 이름 (.json 확장자 제외)
+ * @param {string} workflowId - 워크플로우 ID
+ * @returns {Promise<Object>} 성능 데이터를 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const getWorkflowPerformance = async (workflowName, workflowId) => {
+    try {
+        const params = new URLSearchParams({
+            workflow_name: workflowName,
+            workflow_id: workflowId
+        });
+        
+        const response = await fetch(`${API_BASE_URL}/workflow/performance?${params}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        devLog.log('Workflow performance data retrieved successfully:', result);
+        return result;
+    } catch (error) {
+        devLog.error("Failed to get workflow performance:", error);
+        throw error;
+    }
+};

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { FiGrid, FiFolder, FiCpu, FiSettings, FiEye } from "react-icons/fi";
+import { FiGrid, FiFolder, FiCpu, FiSettings, FiEye, FiBarChart } from "react-icons/fi";
 import Sidebar from "@/app/main/components/Sidebar";
 import ContentArea from "@/app/main/components/ContentArea";
 import CanvasIntroduction from "@/app/main/components/CanvasIntroduction";
@@ -8,6 +8,7 @@ import CompletedWorkflows from "@/app/main/components/CompletedWorkflows";
 import Executor from "@/app/main/components/Executor";
 import Settings from "@/app/main/components/Settings";
 import ConfigViewer from "@/app/main/components/ConfigViewer";
+import Monitoring from "@/app/main/components/Monitoring";
 import { SidebarItem } from "@/app/main/components/types";
 import styles from "@/app/main/assets/MainPage.module.scss";
 
@@ -32,6 +33,12 @@ const MainPage: React.FC = () => {
             title: "실행기",
             description: "워크플로우 실행 및 모니터링",
             icon: <FiCpu />
+        },
+        {
+            id: "monitoring",
+            title: "성능 모니터링",
+            description: "워크플로우 실행 성능 분석",
+            icon: <FiBarChart />
         },
         {
             id: "settings",
@@ -74,6 +81,15 @@ const MainPage: React.FC = () => {
                         description="완성된 워크플로우를 실제 환경에서 실행하고 모니터링하세요."
                     >
                         <Executor />
+                    </ContentArea>
+                );
+            case "monitoring":
+                return (
+                    <ContentArea
+                        title="성능 모니터링"
+                        description="워크플로우의 실행 성능과 리소스 사용량을 실시간으로 모니터링하세요."
+                    >
+                        <Monitoring />
                     </ContentArea>
                 );
             case "settings":
