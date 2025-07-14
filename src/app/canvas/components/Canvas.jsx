@@ -58,6 +58,7 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
     const [snappedPortKey, setSnappedPortKey] = useState(null);
     const [isSnapTargetValid, setIsSnapTargetValid] = useState(true);
     const [copiedNode, setCopiedNode] = useState(null);
+    const [lastDeleted, setLastDeleted] = useState(null); // 삭제 복원을 위한 상태
 
     const nodesRef = useRef(nodes);
     const edgePreviewRef = useRef(edgePreview);
@@ -436,20 +437,39 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
             return;
         }
         
-        if (e.ctrlKey && e.key === 'c') {
+        const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+
+        if (isCtrlOrCmd && e.key === 'c') {
             e.preventDefault();
             copySelectedNode();
         }
-        else if (e.ctrlKey && e.key === 'v') {
+        else if (isCtrlOrCmd && e.key === 'v') {
             e.preventDefault();
             pasteNode();
         }
+        else if (isCtrlOrCmd && e.key === 'z') {
+            e.preventDefault();
+            if (lastDeleted) {
+                setNodes(prev => [...prev, lastDeleted.node]);
+                setEdges(prev => [...prev, ...lastDeleted.edges]);
+                setLastDeleted(null);
+                devLog.log('Node restored:', lastDeleted.node.data.nodeName);
+            }
+        }
         else if (e.key === 'Delete' && selectedNodeId) {
             e.preventDefault();
-            setNodes(prev => prev.filter(node => node.id !== selectedNodeId));
-            setSelectedNodeId(null);
+            const nodeToDelete = nodes.find(node => node.id === selectedNodeId);
+            if (nodeToDelete) {
+                const connectedEdges = edges.filter(edge => edge.source.nodeId === selectedNodeId || edge.target.nodeId === selectedNodeId);
+                setLastDeleted({ node: nodeToDelete, edges: connectedEdges });
+
+                setNodes(prev => prev.filter(node => node.id !== selectedNodeId));
+                setEdges(prev => prev.filter(edge => edge.source.nodeId !== selectedNodeId && edge.target.nodeId !== selectedNodeId));
+                setSelectedNodeId(null);
+                devLog.log('Node deleted and saved for undo:', nodeToDelete.data.nodeName);
+            }
         }
-    }, [selectedNodeId, copiedNode, nodes]);
+    }, [selectedNodeId, copiedNode, nodes, edges, lastDeleted]);
 
     const handleNodeMouseDown = useCallback((e, nodeId) => {
         if (e.button !== 0) return;
