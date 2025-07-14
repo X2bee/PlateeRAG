@@ -12,7 +12,7 @@ interface Workflow {
 }
 
 interface IOLog {
-    log_id: number;
+    log_id: number | string;
     workflow_name: string;
     workflow_id: string;
     input_data: string;
@@ -29,6 +29,7 @@ const Executor: React.FC = () => {
     const [executing, setExecuting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [inputMessage, setInputMessage] = useState<string>('');
+    const [pendingLogId, setPendingLogId] = useState<string | null>(null);
     
     // 채팅 메시지 스크롤을 위한 ref
     const chatMessagesRef = useRef<HTMLDivElement>(null);
@@ -65,12 +66,11 @@ const Executor: React.FC = () => {
         try {
             setChatLoading(true);
             setError(null);
-            
-            // .json 확장자 제거
             const workflowName = workflow.filename.replace('.json', '');
             const logs = await getWorkflowIOLogs(workflowName, workflow.workflow_id);
             setIOLogs((logs as any).in_out_logs || []);
             setSelectedWorkflow(workflow);
+            setPendingLogId(null); // 기존 임시 메시지 제거
         } catch (err) {
             setError("실행 로그를 불러오는데 실패했습니다.");
             setIOLogs([]);
@@ -87,23 +87,40 @@ const Executor: React.FC = () => {
         if (!selectedWorkflow || !inputMessage.trim()) {
             return;
         }
-
+        setError(null);
+        setExecuting(true);
+        // 임시 메시지 추가
+        const tempId = `pending-${Date.now()}`;
+        setPendingLogId(tempId);
+        setIOLogs((prev) => [
+            ...prev,
+            {
+                log_id: tempId,
+                workflow_name: selectedWorkflow.filename.replace('.json', ''),
+                workflow_id: selectedWorkflow.workflow_id,
+                input_data: inputMessage,
+                output_data: '',
+                updated_at: new Date().toISOString(),
+            }
+        ]);
+        setInputMessage('');
         try {
-            setExecuting(true);
-            setError(null);
-
-            // 워크플로우 실행
             const workflowName = selectedWorkflow.filename.replace('.json', '');
-            const result = await executeWorkflowById(workflowName, selectedWorkflow.workflow_id, inputMessage);
-
-            // 실행 후 로그 다시 로드
-            await loadChatLogs(selectedWorkflow);
-            
-            // 입력 필드 초기화
-            setInputMessage('');
-
+            const result: any = await executeWorkflowById(workflowName, selectedWorkflow.workflow_id, inputMessage);
+            // 임시 메시지의 output_data를 응답으로 교체
+            setIOLogs((prev) => prev.map(log =>
+                String(log.log_id) === tempId
+                    ? { ...log, output_data: result.outputs ? JSON.stringify(result.outputs) : (result.message || '성공'), updated_at: new Date().toISOString() }
+                    : log
+            ));
+            setPendingLogId(null);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "워크플로우 실행에 실패했습니다.");
+            setIOLogs((prev) => prev.map(log =>
+                String(log.log_id) === tempId
+                    ? { ...log, output_data: (err instanceof Error ? err.message : '실패'), updated_at: new Date().toISOString() }
+                    : log
+            ));
+            setPendingLogId(null);
         } finally {
             setExecuting(false);
         }
@@ -207,7 +224,11 @@ const Executor: React.FC = () => {
                                             </div>
                                             <div className={styles.botMessage}>
                                                 <div className={styles.messageContent}>
-                                                    {log.output_data}
+                                                    {String(log.log_id) === pendingLogId && executing && !log.output_data ? (
+                                                        <span className={styles.miniSpinner}></span>
+                                                    ) : (
+                                                        log.output_data
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
