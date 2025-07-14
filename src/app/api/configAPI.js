@@ -1,7 +1,6 @@
 // Configuration API 호출 함수들을 관리하는 파일
 import { devLog } from '@/app/utils/logger';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+import { API_BASE_URL } from '@/app/config.js';
 
 /**
  * 백엔드에서 모든 설정 정보를 가져오는 함수

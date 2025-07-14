@@ -1,6 +1,5 @@
 import { devLog } from '@/app/utils/logger';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { API_BASE_URL } from '@/app/config.js';
 
 /**
  * 주어진 워크플로우 데이터를 백엔드로 전송하여 실행합니다.
@@ -211,6 +210,41 @@ export const getWorkflowPerformance = async (workflowName, workflowId) => {
         });
         
         const response = await fetch(`${API_BASE_URL}/workflow/performance?${params}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        devLog.log('Workflow performance data retrieved successfully:', result);
+        return result;
+    } catch (error) {
+        devLog.error("Failed to get workflow performance:", error);
+        throw error;
+    }
+};
+
+/**
+ * 특정 워크플로우의 성능 모니터링 데이터를 가져옵니다.
+ * @param {string} workflowName - 워크플로우 이름 (.json 확장자 제외)
+ * @param {string} workflowId - 워크플로우 ID
+ * @returns {Promise<Object>} 성능 데이터를 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const getWorkflowIOLogs = async (workflowName, workflowId) => {
+    try {
+        const params = new URLSearchParams({
+            workflow_name: workflowName,
+            workflow_id: workflowId
+        });
+        
+        const response = await fetch(`${API_BASE_URL}/workflow/io_logs?${params}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
