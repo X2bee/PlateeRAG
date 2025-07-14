@@ -3,7 +3,7 @@ import React, { memo, useState, useEffect } from 'react';
 import styles from '@/app/canvas/assets/Node.module.scss';
 import { devLog } from '@/app/utils/logger';
 
-const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown, onPortMouseUp, registerPortRef, snappedPortKey, onParameterChange, isSnapTargetInvalid, isPreview = false, onNodeNameChange }) => {
+const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown, onPortMouseUp, registerPortRef, snappedPortKey, onParameterChange, isSnapTargetInvalid, isPreview = false, onNodeNameChange, onClearSelection }) => {
     const { nodeName, inputs, parameters, outputs, functionId } = data;
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [isEditingName, setIsEditingName] = useState(false);
@@ -86,9 +86,17 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                     onFocus={(e) => {
                         devLog.log('select onFocus');
                         e.stopPropagation();
+                        // 파라미터 편집 시 노드 선택 해제
+                        if (onClearSelection) {
+                            onClearSelection();
+                        }
                     }}
                     onBlur={(e) => {
                         devLog.log('select onBlur');
+                        e.stopPropagation();
+                    }}
+                    onKeyDown={(e) => {
+                        // 키보드 이벤트 전파 방지
                         e.stopPropagation();
                     }}
                     className={`${styles.paramSelect} paramSelect`}
@@ -114,6 +122,14 @@ const Node = ({ id, data, position, onNodeMouseDown, isSelected, onPortMouseDown
                     }}
                     onFocus={(e) => {
                         devLog.log('input onFocus');
+                        e.stopPropagation();
+                        // 파라미터 편집 시 노드 선택 해제
+                        if (onClearSelection) {
+                            onClearSelection();
+                        }
+                    }}
+                    onKeyDown={(e) => {
+                        // 키보드 이벤트 전파 방지 (백스페이스, 삭제 등)
                         e.stopPropagation();
                     }}
                     className={`${styles.paramInput} paramInput`} 

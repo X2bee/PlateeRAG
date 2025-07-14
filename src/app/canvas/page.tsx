@@ -558,6 +558,24 @@ export default function CanvasPage() {
         setExecutionOutput(null);
     };
 
+    // 브라우저 뒤로가기 방지
+    useEffect(() => {
+        const preventBackspace = (e: KeyboardEvent) => {
+            // 입력 필드가 아닌 곳에서 백스페이스 키를 눌렀을 때 뒤로가기 방지
+            if (e.key === 'Backspace' && 
+                e.target instanceof HTMLElement && 
+                e.target.tagName !== 'INPUT' && 
+                e.target.tagName !== 'SELECT' && 
+                e.target.tagName !== 'TEXTAREA' &&
+                !e.target.isContentEditable) {
+                e.preventDefault();
+            }
+        };
+
+        window.addEventListener('keydown', preventBackspace);
+        return () => window.removeEventListener('keydown', preventBackspace);
+    }, []);
+
     return (
         <div
             className={styles.pageContainer}

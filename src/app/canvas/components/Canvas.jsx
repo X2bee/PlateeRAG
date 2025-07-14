@@ -190,6 +190,10 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
             devLog.log('Canvas loadWorkflowState completed');
         },
         getCenteredView,
+        clearSelectedNode: () => {
+            setSelectedNodeId(null);
+            setSelectedEdgeId(null);
+        },
         validateAndPrepareExecution: () => {
             const validationResult = validateRequiredInputs(nodes, edges);
             if (!validationResult.isValid) {
@@ -427,6 +431,11 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
     };
 
     const handleKeyDown = useCallback((e) => {
+        // 입력 필드에서의 키 이벤트는 무시
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+            return;
+        }
+        
         if (e.ctrlKey && e.key === 'c') {
             e.preventDefault();
             copySelectedNode();
@@ -650,7 +659,13 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
 
     useEffect(() => {
         const handleKeyDown = (e) => {
+            // 입력 필드에서의 키 이벤트는 무시
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+                return;
+            }
+            
             if (e.key === 'Delete' || e.key === 'Backspace') {
+                e.preventDefault(); // 페이지 뒤로가기 방지
                 if (selectedNodeId) {
                     setNodes(prev => prev.filter(node => node.id !== selectedNodeId));
                     setEdges(prev => prev.filter(edge => edge.source.nodeId !== selectedNodeId && edge.target.nodeId !== selectedNodeId));
@@ -700,6 +715,7 @@ const Canvas = forwardRef(({ onStateChange, ...otherProps }, ref) => {
                         onParameterChange={handleParameterChange}
                         onNodeNameChange={handleNodeNameChange}
                         isSnapTargetInvalid={snappedPortKey?.startsWith(node.id) && !isSnapTargetValid}
+                        onClearSelection={() => setSelectedNodeId(null)}
                     />
                 ))}
                 <svg className={styles.svgLayer}>
