@@ -372,11 +372,42 @@
             justify-content: center;
             width: 44px;
             height: 44px;
+            transition: all 0.2s ease;
+
+            &.disabled {
+                background: #e9ecef;
+                cursor: not-allowed;
+
+                svg {
+                    color: #6c757d;
+                }
+            }
+
+            &.active {
+                background: #007bff;
+                cursor: pointer;
+
+                &:hover {
+                    background: #0056b3;
+                }
+
+                svg {
+                    color: white;
+                }
+            }
 
             svg {
                 width: 16px;
                 height: 16px;
-                color: #6c757d;
+            }
+
+            .miniSpinner {
+                width: 16px;
+                height: 16px;
+                border: 2px solid #e9ecef;
+                border-top: 2px solid #007bff;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
             }
         }
     }
@@ -388,6 +419,28 @@
         margin: 0;
         font-style: italic;
     }
+
+    .executingNote {
+        font-size: 0.75rem;
+        color: #007bff;
+        text-align: center;
+        margin: 0;
+        font-weight: 500;
+        animation: pulse 1.5s ease-in-out infinite alternate;
+    }
+
+    .errorNote {
+        font-size: 0.75rem;
+        color: #dc3545;
+        text-align: center;
+        margin: 0;
+        font-weight: 500;
+    }
+}
+
+@keyframes pulse {
+    from { opacity: 0.6; }
+    to { opacity: 1; }
 }
 
 // 반응형 디자인

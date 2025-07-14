@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { FiRefreshCw, FiPlay, FiMessageSquare, FiSend, FiClock } from "react-icons/fi";
-import { listWorkflowsDetail, getWorkflowIOLogs } from "@/app/api/workflowAPI";
+import { listWorkflowsDetail, getWorkflowIOLogs, executeWorkflowById } from "@/app/api/workflowAPI";
 import styles from "@/app/main/assets/Executor.module.scss";
 
 interface Workflow {
@@ -26,7 +26,9 @@ const Executor: React.FC = () => {
     const [ioLogs, setIOLogs] = useState<IOLog[]>([]);
     const [workflowListLoading, setWorkflowListLoading] = useState(false);
     const [chatLoading, setChatLoading] = useState(false);
+    const [executing, setExecuting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [inputMessage, setInputMessage] = useState<string>('');
     
     // 채팅 메시지 스크롤을 위한 ref
     const chatMessagesRef = useRef<HTMLDivElement>(null);
@@ -79,6 +81,39 @@ const Executor: React.FC = () => {
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleString('ko-KR');
+    };
+
+    const executeWorkflow = async () => {
+        if (!selectedWorkflow || !inputMessage.trim()) {
+            return;
+        }
+
+        try {
+            setExecuting(true);
+            setError(null);
+
+            // 워크플로우 실행
+            const workflowName = selectedWorkflow.filename.replace('.json', '');
+            const result = await executeWorkflowById(workflowName, selectedWorkflow.workflow_id, inputMessage);
+
+            // 실행 후 로그 다시 로드
+            await loadChatLogs(selectedWorkflow);
+            
+            // 입력 필드 초기화
+            setInputMessage('');
+
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "워크플로우 실행에 실패했습니다.");
+        } finally {
+            setExecuting(false);
+        }
+    };
+
+    const handleKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey && !executing) {
+            e.preventDefault();
+            executeWorkflow();
+        }
     };
 
     return (
@@ -184,17 +219,35 @@ const Executor: React.FC = () => {
                                 <div className={styles.inputContainer}>
                                     <input 
                                         type="text" 
-                                        placeholder="새로운 실행을 위한 입력... (곧 사용 가능)"
-                                        disabled
+                                        placeholder="메시지를 입력하세요..."
+                                        value={inputMessage}
+                                        onChange={(e) => setInputMessage(e.target.value)}
+                                        onKeyPress={handleKeyPress}
+                                        disabled={executing}
                                         className={styles.chatInput}
                                     />
-                                    <button disabled className={styles.sendButton}>
-                                        <FiSend />
+                                    <button 
+                                        onClick={executeWorkflow}
+                                        disabled={executing || !inputMessage.trim()}
+                                        className={`${styles.sendButton} ${executing || !inputMessage.trim() ? styles.disabled : styles.active}`}
+                                    >
+                                        {executing ? (
+                                            <div className={styles.miniSpinner}></div>
+                                        ) : (
+                                            <FiSend />
+                                        )}
                                     </button>
                                 </div>
-                                <p className={styles.inputNote}>
-                                    실행 기능은 다음 업데이트에서 추가될 예정입니다.
-                                </p>
+                                {executing && (
+                                    <p className={styles.executingNote}>
+                                        워크플로우를 실행 중입니다...
+                                    </p>
+                                )}
+                                {error && (
+                                    <p className={styles.errorNote}>
+                                        {error}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>

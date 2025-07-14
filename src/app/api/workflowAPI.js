@@ -264,3 +264,44 @@ export const getWorkflowIOLogs = async (workflowName, workflowId) => {
         throw error;
     }
 };
+
+/**
+ * 워크플로우 이름과 ID를 기반으로 워크플로우를 실행합니다.
+ * @param {string} workflowName - 워크플로우 이름 (.json 확장자 제외)
+ * @param {string} workflowId - 워크플로우 ID
+ * @param {string} inputData - 실행에 사용할 입력 데이터 (선택사항)
+ * @returns {Promise<Object>} 실행 결과를 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const executeWorkflowById = async (workflowName, workflowId, inputData = '') => {
+    try {
+        const body = {
+            workflow_name: workflowName,
+            workflow_id: workflowId,
+            input_data: inputData || ''
+        };
+        devLog.log('ExecuteWorkflowById called with:');
+        devLog.log('- workflowName:', workflowName);
+        devLog.log('- workflowId:', workflowId);
+        devLog.log('- inputData:', inputData);
+        const response = await fetch(`${API_BASE_URL}/workflow/execute/based_id`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        devLog.log('Workflow executed successfully:', result);
+        return result;
+    } catch (error) {
+        devLog.error("Failed to execute workflow:", error);
+        throw error;
+    }
+};
