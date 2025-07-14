@@ -13,19 +13,103 @@
     padding: 1.5rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
+}
+
+.workflowListHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
 
     h3 {
-        margin: 0 0 1rem 0;
+        margin: 0;
         color: #2c3e50;
         font-size: 1.2rem;
         font-weight: 600;
     }
 }
 
+.workflowRefreshButton {
+    background: transparent;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: #6c757d;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+
+    &:hover:not(:disabled) {
+        background: #f8f9fa;
+        border-color: #007bff;
+        color: #007bff;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
 .workflowItems {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+}
+
+.workflowLoading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+    gap: 1rem;
+
+    span {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+}
+
+.loadingSpinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e9ecef;
+    border-top: 3px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.emptyState {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+    font-style: italic;
+    text-align: center;
+    border: 2px dashed #e9ecef;
+    border-radius: 8px;
+    background: #f8f9fa;
 }
 
 .workflowItem {
@@ -76,6 +160,21 @@
     padding: 1.5rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
+}
+
+.performanceLoading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #6c757d;
+    gap: 1rem;
+
+    span {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
 }
 
 .placeholder {
@@ -131,8 +230,14 @@
     font-size: 0.9rem;
     transition: background-color 0.2s ease;
 
-    &:hover {
+    &:hover:not(:disabled) {
         background: #0056b3;
+    }
+
+    &:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        opacity: 0.7;
     }
 }
 
