@@ -10,7 +10,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
  */
 export const executeWorkflow = async (workflowData) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/node/execute`, {
+        const response = await fetch(`${API_BASE_URL}/workflow/execute`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

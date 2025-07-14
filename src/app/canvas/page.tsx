@@ -11,7 +11,7 @@ import styles from '@/app/canvas/assets/PlateeRAG.module.scss';
 import { executeWorkflow, saveWorkflow, listWorkflows } from '@/app/api/workflowAPI';
 import { getWorkflowName, getWorkflowState, saveWorkflowState, ensureValidWorkflowState, saveWorkflowName, startNewWorkflow } from '@/app/(common)/components/workflowStorage';
 import { devLog } from '@/app/utils/logger';
-import { generateSha1Hash } from '@/app/utils/generateSha1Hash';
+import { generateWorkflowHash } from '@/app/utils/generateSha1Hash';
 
 export default function CanvasPage() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -297,8 +297,9 @@ export default function CanvasPage() {
         let canvasState = (canvasRef.current as any).getCanvasState();
         const workflowName = getWorkflowName();
 
-        const workflowId = `workflow_${generateSha1Hash(JSON.stringify(canvasState))}`;
-        canvasState = { ...canvasState, id: workflowId };
+        const workflowId = `workflow_${generateWorkflowHash(canvasState)}`;
+        canvasState = { ...canvasState, workflow_id: workflowId };
+        canvasState = { ...canvasState, workflow_name: workflowName };
         
         devLog.log('Canvas state before save:', canvasState);
         devLog.log('Workflow ID set:', workflowId);
@@ -530,14 +531,15 @@ export default function CanvasPage() {
 
         try {
             let workflowData = (canvasRef.current as any).getCanvasState();
+            const workflowName = getWorkflowName();
             
             if (!workflowData.nodes || workflowData.nodes.length === 0) {
                 throw new Error("Cannot execute an empty workflow. Please add nodes.");
             }
 
-            if (!workflowData.id) {
-                workflowData['id'] = `workflow_${generateSha1Hash(getWorkflowName())}`
-            }
+            const workflowId = `workflow_${generateWorkflowHash(workflowData)}`;
+            workflowData = { ...workflowData, workflow_id: workflowId };
+            workflowData = { ...workflowData, workflow_name: workflowName };
             
             const result = await executeWorkflow(workflowData);
             setExecutionOutput(result);
