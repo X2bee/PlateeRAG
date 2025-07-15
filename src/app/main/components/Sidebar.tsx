@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { SidebarProps } from "./types";
+import { SidebarProps } from "@/app/main/components/types";
 import styles from "@/app/main/assets/MainPage.module.scss";
 
 const Sidebar: React.FC<SidebarProps> = ({ items, activeItem, onItemClick, className = "" }) => {

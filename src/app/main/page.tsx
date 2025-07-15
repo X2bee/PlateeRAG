@@ -1,19 +1,35 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiGrid, FiFolder, FiCpu, FiSettings, FiEye, FiBarChart } from "react-icons/fi";
 import Sidebar from "@/app/main/components/Sidebar";
 import ContentArea from "@/app/main/components/ContentArea";
 import CanvasIntroduction from "@/app/main/components/CanvasIntroduction";
 import CompletedWorkflows from "@/app/main/components/CompletedWorkflows";
-import Executor from "@/app/main/components/Executor";
+import Playground from "@/app/main/components/Playground";
 import Settings from "@/app/main/components/Settings";
 import ConfigViewer from "@/app/main/components/ConfigViewer";
-import Monitoring from "@/app/main/components/Monitoring";
 import { SidebarItem } from "@/app/main/components/types";
 import styles from "@/app/main/assets/MainPage.module.scss";
 
 const MainPage: React.FC = () => {
     const [activeSection, setActiveSection] = useState<string>("canvas");
+    // Executor/Monitoring 통합 토글 상태
+    const [execTab, setExecTab] = useState<'executor' | 'monitoring'>("executor");
+
+    // 페이지 이동 시에도 탭 상태 유지
+    useEffect(() => {
+        // 로컬 스토리지에서 탭 상태 복원
+        const savedTab = localStorage.getItem('execMonitorTab');
+        if (savedTab === 'executor' || savedTab === 'monitoring') {
+            setExecTab(savedTab as 'executor' | 'monitoring');
+        }
+    }, []);
+
+    // 탭 변경 시 로컬 스토리지에 상태 저장
+    const handleTabChange = (tab: 'executor' | 'monitoring') => {
+        setExecTab(tab);
+        localStorage.setItem('execMonitorTab', tab);
+    };
 
     const sidebarItems: SidebarItem[] = [
         {
@@ -29,16 +45,10 @@ const MainPage: React.FC = () => {
             icon: <FiFolder />
         },
         {
-            id: "executor",
-            title: "실행기",
-            description: "워크플로우 실행 및 모니터링",
+            id: "exec-monitor",
+            title: "실행 및 모니터링",
+            description: "워크플로우 실행과 성능 모니터링",
             icon: <FiCpu />
-        },
-        {
-            id: "monitoring",
-            title: "성능 모니터링",
-            description: "워크플로우 실행 성능 분석",
-            icon: <FiBarChart />
         },
         {
             id: "settings",
@@ -53,6 +63,24 @@ const MainPage: React.FC = () => {
             icon: <FiEye />
         },
     ];
+
+    // 헤더에 표시할 토글 버튼
+    const renderExecMonitorToggleButtons = () => (
+        <div className={styles.tabToggleContainer}>
+            <button
+                onClick={() => handleTabChange('executor')}
+                className={`${styles.tabToggleButton} ${execTab === 'executor' ? styles.active : ''}`}
+            >
+                채팅 실행기
+            </button>
+            <button
+                onClick={() => handleTabChange('monitoring')}
+                className={`${styles.tabToggleButton} ${execTab === 'monitoring' ? styles.active : ''}`}
+            >
+                성능 모니터링
+            </button>
+        </div>
+    );
 
     const renderContent = () => {
         switch (activeSection) {
@@ -74,24 +102,20 @@ const MainPage: React.FC = () => {
                         <CompletedWorkflows />
                     </ContentArea>
                 );
-            case "executor":
+            case "exec-monitor":
                 return (
                     <ContentArea
-                        title="워크플로우 실행기"
-                        description="완성된 워크플로우를 실제 환경에서 실행하고 모니터링하세요."
+                        title="실행 및 모니터링"
+                        description={execTab === 'executor' ? "완성된 워크플로우를 실제 환경에서 실행하고 모니터링하세요." : "워크플로우의 실행 성능과 리소스 사용량을 실시간으로 모니터링하세요."}
+                        headerButtons={renderExecMonitorToggleButtons()}
                     >
-                        <Executor />
+                        <Playground 
+                            activeTab={execTab}
+                            onTabChange={handleTabChange}
+                        />
                     </ContentArea>
                 );
-            case "monitoring":
-                return (
-                    <ContentArea
-                        title="성능 모니터링"
-                        description="워크플로우의 실행 성능과 리소스 사용량을 실시간으로 모니터링하세요."
-                    >
-                        <Monitoring />
-                    </ContentArea>
-                );
+
             case "settings":
                 return (
                     <ContentArea

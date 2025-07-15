@@ -1,11 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { FiRefreshCw } from "react-icons/fi";
-import { getWorkflowList, getWorkflowPerformance } from "@/app/api/workflowAPI";
+import { getWorkflowPerformance } from "@/app/api/workflowAPI";
 import { devLog } from "@/app/utils/logger";
 import styles from "@/app/main/assets/Monitoring.module.scss";
 
-interface WorkflowInfo {
+interface Workflow {
     filename: string;
     workflow_id: string;
     node_count: number;
@@ -37,46 +36,39 @@ interface WorkflowPerformance {
     performance_stats: PerformanceStats[];
 }
 
-const Monitoring: React.FC = () => {
-    const [workflows, setWorkflows] = useState<WorkflowInfo[]>([]);
-    const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowInfo | null>(null);
+interface WorkflowPartsProps {
+    workflow: Workflow | null;
+}
+
+const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
+    const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
     const [performanceData, setPerformanceData] = useState<WorkflowPerformance | null>(null);
-    const [workflowListLoading, setWorkflowListLoading] = useState(false);
     const [performanceLoading, setPerformanceLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        loadWorkflowList();
-    }, []);
-
-    const loadWorkflowList = async () => {
-        try {
-            setWorkflowListLoading(true);
-            setError(null);
-            const data = await getWorkflowList() as { workflows: WorkflowInfo[] };
-            setWorkflows(data.workflows || []);
-        } catch (err) {
-            setError("워크플로우 목록을 불러오는데 실패했습니다.");
-            devLog.error("Failed to load workflow list:", err);
-        } finally {
-            setWorkflowListLoading(false);
-        }
-    };
+        loadPerformanceData(workflow);
+    }, [workflow]);
 
     // 선택된 워크플로우의 성능 데이터 로드
-    const loadPerformanceData = async (workflow: WorkflowInfo) => {
-        try {
-            setPerformanceLoading(true);
-            setError(null);
-            const workflowName = workflow.filename.replace('.json', '');
-            const data = await getWorkflowPerformance(workflowName, workflow.workflow_id) as WorkflowPerformance;
-            setPerformanceData(data);
-            setSelectedWorkflow(workflow);
-        } catch (err) {
-            setError("성능 데이터를 불러오는데 실패했습니다.");
-            devLog.error("Failed to load performance data:", err);
-        } finally {
-            setPerformanceLoading(false);
+    const loadPerformanceData = async (workflow: Workflow | null) => {
+        if (workflow) {
+            try {
+                setPerformanceLoading(true);
+                setError(null);
+                const workflowName = workflow.filename.replace('.json', '');
+                const data = await getWorkflowPerformance(workflowName, workflow.workflow_id) as WorkflowPerformance;
+                setPerformanceData(data);
+                setSelectedWorkflow(workflow);
+            } catch (err) {
+                setError("성능 데이터를 불러오는데 실패했습니다.");
+                devLog.error("Failed to load performance data:", err);
+            } finally {
+                setPerformanceLoading(false);
+            }
+        } else {
+            setPerformanceData(null);
+            setSelectedWorkflow(null);
         }
     };
 
@@ -92,52 +84,7 @@ const Monitoring: React.FC = () => {
     };
 
     return (
-        <div className={styles.monitoringContainer}>        <div className={styles.workflowList}>
-            <div className={styles.workflowListHeader}>
-                <h3>워크플로우 목록</h3>
-                <button 
-                    onClick={loadWorkflowList}
-                    className={styles.workflowRefreshButton}
-                    disabled={workflowListLoading}
-                    title="목록 새로고침"
-                >
-                    <FiRefreshCw className={workflowListLoading ? styles.spinning : ''} />
-                </button>
-            </div>
-            {error && <div className={styles.error}>{error}</div>}
-            
-            <div className={styles.workflowItems}>
-                {workflowListLoading ? (
-                    <div className={styles.workflowLoading}>
-                        <div className={styles.loadingSpinner}></div>
-                        <span>워크플로우 목록을 불러오는 중...</span>
-                    </div>
-                ) : workflows.length === 0 ? (
-                    <div className={styles.emptyState}>
-                        <span>저장된 워크플로우가 없습니다</span>
-                    </div>
-                ) : (
-                    workflows.map((workflow) => (
-                        <div
-                            key={workflow.workflow_id}
-                            className={`${styles.workflowItem} ${
-                                selectedWorkflow?.workflow_id === workflow.workflow_id ? styles.selected : ''
-                            }`}
-                            onClick={() => loadPerformanceData(workflow)}
-                        >
-                            <div className={styles.workflowName}>
-                                {workflow.filename.replace('.json', '')}
-                            </div>
-                            <div className={styles.workflowInfo}>
-                                <span>노드: {workflow.node_count}개</span>
-                                <span>수정: {new Date(workflow.last_modified).toLocaleDateString()}</span>
-                            </div>
-                        </div>
-                    ))
-                )}
-            </div>
-        </div>
-
+        <>
             <div className={styles.performancePanel}>
                 {!selectedWorkflow ? (
                     <div className={styles.placeholder}>
@@ -148,7 +95,7 @@ const Monitoring: React.FC = () => {
                     <div className={styles.performanceData}>
                         <div className={styles.performanceHeader}>
                             <h3>{performanceData.workflow_name} 성능 모니터링</h3>
-                            <button 
+                            <button
                                 onClick={() => loadPerformanceData(selectedWorkflow)}
                                 className={styles.refreshButton}
                                 disabled={performanceLoading}
@@ -250,8 +197,8 @@ const Monitoring: React.FC = () => {
                     <div className={styles.error}>성능 데이터를 불러올 수 없습니다.</div>
                 )}
             </div>
-        </div>
+        </>
     );
 };
 
-export default Monitoring;
+export default Monitor;

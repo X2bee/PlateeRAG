@@ -19,4 +19,5 @@ export interface ContentAreaProps {
     description: string;
     children: ReactNode;
     className?: string;
+    headerButtons?: ReactNode; // 헤더 우측에 표시할 버튼 추가
 }
