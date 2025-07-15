@@ -76,9 +76,9 @@ interface Template {
 }
 
 interface TemplatePreviewProps {
-    template: Template;
+    template: Template | null;
     onClose: () => void;
-    onUseTemplate: (template: Template) => void;
+    onUseTemplate: (template: Template | null) => void;
 }
 
 const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onClose, onUseTemplate }) => {
@@ -98,7 +98,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onClose, on
         };
     }, [onClose]);
 
-    const handleUseTemplate = (template: Template): void => {
+    const handleUseTemplate = (template: Template | null): void => {
         devLog.log('=== TemplatePreview Use Template clicked ===');
         devLog.log('Template:', template);
         devLog.log('onUseTemplate function:', onUseTemplate);
