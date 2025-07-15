@@ -1,0 +1,285 @@
+@keyframes pop-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.sideMenuContainer {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    min-width: 320px; // 최소 너비 설정
+    width: auto; // 동적 너비
+    max-width: 600px; // 최대 너비 제한
+    height: auto; // 기본 메뉴 높이
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 14px; // 둥근 테두리 증가
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06); // 더 깊은 그림자
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    z-index: 1000; // 다른 요소들 위에 보이도록 z-index 설정
+    overflow: hidden; // 내부 콘텐츠가 테두리를 넘지 않도록 함
+
+    animation: pop-in 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    transform-origin: top right; // 오른쪽 위를 기준으로 애니메이션이 발생
+    transition: width 0.3s ease-in-out, height 0.3s ease-in-out;
+
+    display: flex;
+    flex-direction: column;
+
+    // AddNodePanel 뷰일 때 크기 확장
+    &[data-view="addNodes"] {
+        min-width: 400px; // 확장 시 최소 너비
+        width: auto; // 동적 너비
+        max-width: 600px; // 최대 너비 제한
+        height: 85vh;
+        max-height: 700px;
+    }
+
+    // WorkflowPanel 뷰일 때 크기 확장
+    &[data-view="workflow"] {
+        min-width: 400px; // 확장 시 최소 너비
+        width: auto; // 동적 너비
+        max-width: 600px; // 최대 너비 제한
+        height: 85vh;
+        max-height: 700px;
+    }
+
+    // TemplatePanel 뷰일 때 크기 확장
+    &[data-view="template"] {
+        min-width: 400px; // WorkflowPanel과 동일한 최소 너비
+        width: auto; // 동적 너비
+        max-width: 600px; // 최대 너비 제한
+        height: 85vh;
+        max-height: 700px;
+    }
+}
+
+// --- 패널 공통 헤더 ---
+.header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    flex-shrink: 0;
+    border-bottom: 1px solid #e2e8f0;
+    background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%);
+
+    h3 {
+        margin: 0;
+        font-size: 1.05rem; // 16px → 17px로 약간 증가
+        font-weight: 600;
+        color: #374151;
+        letter-spacing: 0.2px;
+    }
+}
+
+.backButton {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: rgba(59, 130, 246, 0.08);
+        color: #3b82f6;
+        transform: translateX(-1px);
+    }
+}
+
+.refreshButton {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    border-radius: 8px;
+    margin-left: auto;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: rgba(34, 197, 94, 0.08);
+        color: #22c55e;
+        transform: rotate(90deg);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    &.loading {
+        animation: spin 1s linear infinite;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// --- 메인 메뉴 스타일 ---
+.mainMenu {
+    padding: 12px 8px; // 좌우 패딩을 줄임 (16px → 8px)
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.menuItem {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-align: left;
+    background-color: transparent;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    color: #374151;
+    transition: all 0.2s ease;
+    position: relative;
+    margin: 0; // 마진 제거
+    box-sizing: border-box; // 박스 사이징 명시
+
+    svg {
+        font-size: 1.2rem;
+        color: #6b7280;
+        transition: all 0.2s ease;
+    }
+
+    &:hover {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(147, 51, 234, 0.06) 100%);
+        color: #1e40af;
+        transform: translateX(1px); // 이동 거리를 줄임 (2px → 1px)
+        
+        svg {
+            color: #3b82f6;
+            transform: scale(1.05);
+        }
+    }
+
+    &:active {
+        transform: translateX(0px) scale(0.98); // 액티브 시 이동 제거
+    }
+}
+
+// --- AddNodePanel 스타일 ---
+.searchBar {
+    position: relative;
+    padding: 16px;
+    flex-shrink: 0;
+
+    input {
+        width: 100%;
+        padding: 10px 16px 10px 40px;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        font-size: 0.95rem;
+        outline: none;
+        transition: all 0.2s ease;
+
+        &:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+        }
+    }
+}
+
+.searchIcon,
+.clearIcon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+}
+
+.searchIcon {
+    left: 30px;
+}
+
+.clearIcon {
+    right: 30px;
+    cursor: pointer;
+}
+
+.tabs {
+    display: flex;
+    padding: 0 16px;
+    border-bottom: 1px solid #e0e0e0;
+    flex-shrink: 0;
+
+    overflow-x: auto;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    font-weight: 500;
+    color: #555;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    flex-shrink: 0;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+
+    &.active {
+        color: #007bff;
+        border-bottom-color: #007bff;
+    }
+}
+
+.nodeList {
+    flex-grow: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #cccccc transparent;
+
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: #d1d1d1;
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background-color: #a8a8a8;
+    }
+}
