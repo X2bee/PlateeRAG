@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiDatabase, FiSettings, FiCpu, FiLayers, FiServer, FiArrowLeft, FiEdit3, FiCheck, FiX } from 'react-icons/fi';
+import { BsDatabaseUp } from "react-icons/bs";
 import { SiOpenai } from 'react-icons/si';
 import { fetchAllConfigs, updateConfig } from '@/app/api/configAPI';
 import { devLog } from '@/app/utils/logger';
@@ -93,7 +94,7 @@ const ConfigViewer: React.FC<ConfigViewerProps> = ({ onNavigateToSettings }) => 
             case 'app': return <FiServer />;
             case 'workflow': return <FiLayers />;
             case 'node': return <FiCpu />;
-            case 'vectordb': return <FiDatabase />;
+            case 'vectordb': return <BsDatabaseUp />;
             default: return <FiSettings />;
         }
     };
@@ -105,7 +106,7 @@ const ConfigViewer: React.FC<ConfigViewerProps> = ({ onNavigateToSettings }) => 
             case 'app': return '#0078d4';
             case 'workflow': return '#ff6b35';
             case 'node': return '#6366f1';
-            case 'vectordb': return '#6b7280';
+            case 'vectordb': return '#023196';
             default: return '#6b7280';
         }
     };
@@ -163,6 +164,7 @@ const ConfigViewer: React.FC<ConfigViewerProps> = ({ onNavigateToSettings }) => 
             app: 0,
             workflow: 0,
             node: 0,
+            vectordb: 0,
             other: 0,
             saved: 0,
             unsaved: 0,
@@ -343,7 +345,7 @@ const ConfigViewer: React.FC<ConfigViewerProps> = ({ onNavigateToSettings }) => 
                 >
                     전체 ({stats.total})
                 </button>
-                {(['database', 'openai', 'app', 'workflow', 'node', 'vectordb'] as CategoryType[]).map(category => (
+                {(['node', 'workflow', 'app', 'database', 'vectordb',  'openai' ] as CategoryType[]).map(category => (
                     stats[category] > 0 && (
                         <button
                             key={category}
