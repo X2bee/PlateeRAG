@@ -19,6 +19,7 @@
     padding: 1.5rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
+    max-height: 68vh;
 }
 
 .performanceLoading {
@@ -152,6 +153,7 @@
 
 .nodePerformanceSection {
     flex: 1;
+    padding-bottom: 1.5rem;
 
     h4 {
         margin: 0 0 1rem 0;

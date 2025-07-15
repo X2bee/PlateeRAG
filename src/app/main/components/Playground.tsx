@@ -43,7 +43,6 @@ const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
     }, []);
 
     useEffect(() => {
-        // Check for workflowName and workflowId in URL params
         const workflowName = searchParams.get('workflowName');
         const workflowId = searchParams.get('workflowId');
 
@@ -57,17 +56,15 @@ const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
 
             if (workflow) {
                 setSelectedWorkflow(workflow);
-                // Switch to executor tab if not already active
-                if (activeTab !== 'executor') {
-                    onTabChange('executor');
-                }
+                // 무조건 executor 탭으로 전환
+                onTabChange('executor');
             } else {
                 console.log(
                     `Workflow not found with name=${workflowName} and id=${workflowId}`,
                 );
             }
         }
-    }, [workflows, searchParams, activeTab, onTabChange]);
+    }, [workflows, searchParams, onTabChange]);
 
     const loadWorkflowList = async () => {
         try {
@@ -86,6 +83,8 @@ const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
     const loadChatLogs = async (workflow: Workflow) => {
         try {
             setSelectedWorkflow(workflow);
+            // 워크플로우 선택 시 항상 executor 탭으로 전환
+            onTabChange('executor');
         } catch (err) {
             setError('워크플로우 셋팅에 문제가 발생했습니다.');
         } finally {

@@ -11,15 +11,32 @@
     background: white;
     border-radius: 8px;
     padding: 1.5rem;
+    padding-top: 0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
+    max-height: 68vh;
+    position: relative; /* Needed for sticky positioning context */
+
+    &.scrolled {
+        .workflowListHeader {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+        }
+    }
 }
 
 .workflowListHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    min-height: 5rem;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 5;
     margin-bottom: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    border-bottom: 2px solid #6ea6df;
 
     h3 {
         margin: 0;

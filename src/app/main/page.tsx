@@ -34,9 +34,21 @@ const MainPage: React.FC = () => {
     useEffect(() => {
         // Check URL parameters first for direct navigation
         const view = searchParams.get('view');
+        const workflowName = searchParams.get('workflowName');
+        const workflowId = searchParams.get('workflowId');
+        
         if (view === 'playground') {
             setActiveSection('exec-monitor');
-            setExecTab('executor');
+            // 워크플로우 ID가 있으면 executor 탭으로 설정
+            if (workflowName && workflowId) {
+                setExecTab('executor');
+            } else {
+                // 워크플로우 ID가 없으면 저장된 탭을 사용
+                const savedTab = localStorage.getItem('execMonitorTab');
+                if (savedTab === 'executor' || savedTab === 'monitoring') {
+                    setExecTab(savedTab as 'executor' | 'monitoring');
+                }
+            }
             setInitialLoad(false);
         } else {
             // If no view parameter, load from localStorage
