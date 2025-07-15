@@ -44,7 +44,6 @@ const Playground: React.FC<PlaygroundProps> = ({
     }, []);
 
     useEffect(() => {
-        // Check for workflowName and workflowId in URL params
         const workflowName = searchParams.get('workflowName');
         const workflowId = searchParams.get('workflowId');
         
