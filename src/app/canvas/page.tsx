@@ -24,7 +24,7 @@ import { generateWorkflowHash } from '@/app/utils/generateSha1Hash';
 
 export default function CanvasPage() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const menuRef = useRef(null);
+    const menuRef = useRef<HTMLElement | null>(null);
     const canvasRef = useRef(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [hasError, setHasError] = useState(false);
