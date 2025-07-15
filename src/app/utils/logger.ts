@@ -6,7 +6,12 @@ const isProductionEnvironment = () => {
     if (typeof window !== 'undefined') {
         // 호스트명으로 production 환경 감지
         const hostname = window.location.hostname;
-        const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.');
+        const isLocalhost =
+            hostname === 'localhost' ||
+            hostname === '127.0.0.1' ||
+            hostname.startsWith('192.168.') ||
+            hostname.startsWith('10.') ||
+            hostname.startsWith('172.');
 
         // localhost가 아니면 production으로 간주
         if (!isLocalhost) {
@@ -15,7 +20,11 @@ const isProductionEnvironment = () => {
 
         // 추가적인 production 환경 감지 로직
         // 예: 특정 도메인 패턴, 환경 변수 등
-        if (hostname.includes('plateerag.com') || hostname.includes('prod') || hostname.includes('live')) {
+        if (
+            hostname.includes('plateerag.com') ||
+            hostname.includes('prod') ||
+            hostname.includes('live')
+        ) {
             return true;
         }
     }
@@ -59,8 +68,14 @@ if (typeof window !== 'undefined') {
     (window as any).resetDebugLogs = () => {
         localStorage.removeItem('DEBUG_ENABLED');
         debugEnabled = getDebugEnabled();
-        const envInfo = isProductionEnvironment() ? 'production' : (isDev ? 'development' : 'unknown');
-        console.log(`🔄 Debug logs reset to default (${debugEnabled ? 'enabled' : 'disabled'}) - Environment: ${envInfo}`);
+        const envInfo = isProductionEnvironment()
+            ? 'production'
+            : isDev
+              ? 'development'
+              : 'unknown';
+        console.log(
+            `🔄 Debug logs reset to default (${debugEnabled ? 'enabled' : 'disabled'}) - Environment: ${envInfo}`,
+        );
     };
 
     (window as any).checkEnvironment = () => {
@@ -70,7 +85,7 @@ if (typeof window !== 'undefined') {
             isProduction: isProductionEnvironment(),
             hostname: window.location.hostname,
             debugEnabled,
-            manualOverride: localStorage.getItem('DEBUG_ENABLED')
+            manualOverride: localStorage.getItem('DEBUG_ENABLED'),
         };
         console.log('🌍 Environment Info:', envInfo);
         return envInfo;
@@ -89,11 +104,11 @@ export const devLog = {
     },
     info: (...args: any[]) => {
         if (debugEnabled) console.info(...args);
-    }
+    },
 };
 
 // 항상 출력되는 로거 (중요한 에러용)
 export const prodLog = {
     error: (...args: any[]) => console.error(...args),
-    warn: (...args: any[]) => console.warn(...args)
+    warn: (...args: any[]) => console.warn(...args),
 };

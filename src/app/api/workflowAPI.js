@@ -21,12 +21,14 @@ export const executeWorkflow = async (workflowData) => {
 
         if (!response.ok) {
             // FastAPI에서 HTTPException으로 반환된 detail 메시지를 사용
-            throw new Error(result.detail || `HTTP error! status: ${response.status}`);
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`,
+            );
         }
 
         return result;
     } catch (error) {
-        devLog.error("Failed to execute workflow:", error);
+        devLog.error('Failed to execute workflow:', error);
         // UI에서 에러 메시지를 표시할 수 있도록 에러를 다시 던집니다.
         throw error;
     }
@@ -44,8 +46,11 @@ export const saveWorkflow = async (workflowId, workflowContent) => {
         devLog.log('SaveWorkflow called with:');
         devLog.log('- workflowId (name):', workflowId);
         devLog.log('- workflowContent.id:', workflowContent.id);
-        devLog.log('- Full workflowContent keys:', Object.keys(workflowContent));
-        
+        devLog.log(
+            '- Full workflowContent keys:',
+            Object.keys(workflowContent),
+        );
+
         const response = await fetch(`${API_BASE_URL}/workflow/save`, {
             method: 'POST',
             headers: {
@@ -60,12 +65,14 @@ export const saveWorkflow = async (workflowId, workflowContent) => {
         const result = await response.json();
 
         if (!response.ok) {
-            throw new Error(result.detail || `HTTP error! status: ${response.status}`);
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`,
+            );
         }
 
         return result;
     } catch (error) {
-        devLog.error("Failed to save workflow:", error);
+        devLog.error('Failed to save workflow:', error);
         throw error;
     }
 };
@@ -81,13 +88,15 @@ export const listWorkflows = async () => {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
         }
 
         const result = await response.json();
         return result.workflows || [];
     } catch (error) {
-        devLog.error("Failed to list workflows:", error);
+        devLog.error('Failed to list workflows:', error);
         throw error;
     }
 };
@@ -103,13 +112,15 @@ export const listWorkflowsDetail = async () => {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
         }
 
         const result = await response.json();
         return result.workflows || [];
     } catch (error) {
-        devLog.error("Failed to list workflow details:", error);
+        devLog.error('Failed to list workflow details:', error);
         throw error;
     }
 };
@@ -123,21 +134,25 @@ export const listWorkflowsDetail = async () => {
 export const loadWorkflow = async (workflowId) => {
     try {
         // .json 확장자가 포함되어 있으면 제거
-        const cleanWorkflowId = workflowId.endsWith('.json') 
-            ? workflowId.slice(0, -5) 
+        const cleanWorkflowId = workflowId.endsWith('.json')
+            ? workflowId.slice(0, -5)
             : workflowId;
-            
-        const response = await fetch(`${API_BASE_URL}/workflow/load/${encodeURIComponent(cleanWorkflowId)}`);
+
+        const response = await fetch(
+            `${API_BASE_URL}/workflow/load/${encodeURIComponent(cleanWorkflowId)}`,
+        );
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
         }
 
         const workflowData = await response.json();
         return workflowData;
     } catch (error) {
-        devLog.error("Failed to load workflow:", error);
+        devLog.error('Failed to load workflow:', error);
         throw error;
     }
 };
@@ -150,19 +165,24 @@ export const loadWorkflow = async (workflowId) => {
  */
 export const deleteWorkflow = async (workflowId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/workflow/delete/${encodeURIComponent(workflowId)}`, {
-            method: 'DELETE',
-        });
+        const response = await fetch(
+            `${API_BASE_URL}/workflow/delete/${encodeURIComponent(workflowId)}`,
+            {
+                method: 'DELETE',
+            },
+        );
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
         }
 
         const result = await response.json();
         return result;
     } catch (error) {
-        devLog.error("Failed to delete workflow:", error);
+        devLog.error('Failed to delete workflow:', error);
         throw error;
     }
 };
@@ -183,14 +203,16 @@ export const getWorkflowList = async () => {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
         }
 
         const result = await response.json();
         devLog.log('Workflow list retrieved successfully:', result);
         return result;
     } catch (error) {
-        devLog.error("Failed to get workflow list:", error);
+        devLog.error('Failed to get workflow list:', error);
         throw error;
     }
 };
@@ -206,26 +228,31 @@ export const getWorkflowPerformance = async (workflowName, workflowId) => {
     try {
         const params = new URLSearchParams({
             workflow_name: workflowName,
-            workflow_id: workflowId
+            workflow_id: workflowId,
         });
-        
-        const response = await fetch(`${API_BASE_URL}/workflow/performance?${params}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
+
+        const response = await fetch(
+            `${API_BASE_URL}/workflow/performance?${params}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             },
-        });
+        );
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
         }
 
         const result = await response.json();
         devLog.log('Workflow performance data retrieved successfully:', result);
         return result;
     } catch (error) {
-        devLog.error("Failed to get workflow performance:", error);
+        devLog.error('Failed to get workflow performance:', error);
         throw error;
     }
 };
@@ -241,26 +268,31 @@ export const getWorkflowIOLogs = async (workflowName, workflowId) => {
     try {
         const params = new URLSearchParams({
             workflow_name: workflowName,
-            workflow_id: workflowId
+            workflow_id: workflowId,
         });
-        
-        const response = await fetch(`${API_BASE_URL}/workflow/io_logs?${params}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
+
+        const response = await fetch(
+            `${API_BASE_URL}/workflow/io_logs?${params}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             },
-        });
+        );
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
         }
 
         const result = await response.json();
         devLog.log('Workflow performance data retrieved successfully:', result);
         return result;
     } catch (error) {
-        devLog.error("Failed to get workflow performance:", error);
+        devLog.error('Failed to get workflow performance:', error);
         throw error;
     }
 };
@@ -273,35 +305,44 @@ export const getWorkflowIOLogs = async (workflowName, workflowId) => {
  * @returns {Promise<Object>} 실행 결과를 포함하는 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
-export const executeWorkflowById = async (workflowName, workflowId, inputData = '') => {
+export const executeWorkflowById = async (
+    workflowName,
+    workflowId,
+    inputData = '',
+) => {
     try {
         const body = {
             workflow_name: workflowName,
             workflow_id: workflowId,
-            input_data: inputData || ''
+            input_data: inputData || '',
         };
         devLog.log('ExecuteWorkflowById called with:');
         devLog.log('- workflowName:', workflowName);
         devLog.log('- workflowId:', workflowId);
         devLog.log('- inputData:', inputData);
-        const response = await fetch(`${API_BASE_URL}/workflow/execute/based_id`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+        const response = await fetch(
+            `${API_BASE_URL}/workflow/execute/based_id`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body),
             },
-            body: JSON.stringify(body),
-        });
+        );
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
         }
 
         const result = await response.json();
         devLog.log('Workflow executed successfully:', result);
         return result;
     } catch (error) {
-        devLog.error("Failed to execute workflow:", error);
+        devLog.error('Failed to execute workflow:', error);
         throw error;
     }
 };

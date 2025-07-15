@@ -1,7 +1,10 @@
-"use client";
+'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getNodes as apiGetNodes, exportNodes as apiExportNodes } from '@/app/api/nodeAPI';
+import {
+    getNodes as apiGetNodes,
+    exportNodes as apiExportNodes,
+} from '@/app/api/nodeAPI';
 import { toast } from 'react-hot-toast';
 
 /**
@@ -16,7 +19,7 @@ import { toast } from 'react-hot-toast';
  */
 export const useNodes = () => {
     const [nodes, setNodes] = useState([]);
-    const [isLoading, setIsLoading] = useState(true); 
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
     const refreshNodes = useCallback(async () => {
@@ -28,7 +31,6 @@ export const useNodes = () => {
         } catch (err) {
             setError(err.message);
             toast.error(err.message || '데이터를 불러오는 데 실패했습니다.');
-
         } finally {
             setIsLoading(false);
         }

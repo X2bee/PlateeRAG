@@ -9,7 +9,7 @@ export const API_CONFIG = {
     TIMEOUT: 30000, // 30 seconds
     DEFAULT_HEADERS: {
         'Content-Type': 'application/json',
-    }
+    },
 };
 
 // You can add other configuration categories here

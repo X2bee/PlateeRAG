@@ -1,9 +1,15 @@
-"use client";
-import React from "react";
-import { ContentAreaProps } from "./types";
-import styles from "@/app/main/assets/MainPage.module.scss";
+'use client';
+import React from 'react';
+import { ContentAreaProps } from './types';
+import styles from '@/app/main/assets/MainPage.module.scss';
 
-const ContentArea: React.FC<ContentAreaProps> = ({ title, description, children, headerButtons, className = "" }) => {
+const ContentArea: React.FC<ContentAreaProps> = ({
+    title,
+    description,
+    children,
+    headerButtons,
+    className = '',
+}) => {
     return (
         <div className={`${styles.contentArea} ${className}`}>
             <header className={styles.contentHeader}>
@@ -12,14 +18,10 @@ const ContentArea: React.FC<ContentAreaProps> = ({ title, description, children,
                     <p>{description}</p>
                 </div>
                 {headerButtons && (
-                    <div className={styles.headerButtons}>
-                        {headerButtons}
-                    </div>
+                    <div className={styles.headerButtons}>{headerButtons}</div>
                 )}
             </header>
-            <div>
-                {children}
-            </div>
+            <div>{children}</div>
         </div>
     );
 };

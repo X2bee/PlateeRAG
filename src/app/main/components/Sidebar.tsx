@@ -1,9 +1,14 @@
-"use client";
-import React from "react";
-import { SidebarProps } from "@/app/main/components/types";
-import styles from "@/app/main/assets/MainPage.module.scss";
+'use client';
+import React from 'react';
+import { SidebarProps } from '@/app/main/components/types';
+import styles from '@/app/main/assets/MainPage.module.scss';
 
-const Sidebar: React.FC<SidebarProps> = ({ items, activeItem, onItemClick, className = "" }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+    items,
+    activeItem,
+    onItemClick,
+    className = '',
+}) => {
     return (
         <aside className={`${styles.sidebar} ${className}`}>
             <div className={styles.sidebarHeader}>
@@ -16,12 +21,14 @@ const Sidebar: React.FC<SidebarProps> = ({ items, activeItem, onItemClick, class
                     <button
                         key={item.id}
                         onClick={() => onItemClick(item.id)}
-                        className={`${styles.navItem} ${activeItem === item.id ? styles.active : ""}`}
+                        className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
                     >
                         {item.icon}
                         <div className={styles.navText}>
                             <div className={styles.navTitle}>{item.title}</div>
-                            <div className={styles.navDescription}>{item.description}</div>
+                            <div className={styles.navDescription}>
+                                {item.description}
+                            </div>
                         </div>
                     </button>
                 ))}

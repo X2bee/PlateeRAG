@@ -9,11 +9,11 @@ import { API_BASE_URL } from '@/app/config.js';
 export const fetchAllConfigs = async () => {
     try {
         const response = await fetch(`${API_BASE_URL}/app/config/persistent`);
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         return data;
     } catch (error) {
@@ -30,20 +30,23 @@ export const fetchAllConfigs = async () => {
  */
 export const updateConfig = async (configName, value) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/app/config/persistent/${configName}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
+        const response = await fetch(
+            `${API_BASE_URL}/app/config/persistent/${configName}`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    value: value,
+                }),
             },
-            body: JSON.stringify({
-                value: value
-            })
-        });
-        
+        );
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         return data;
     } catch (error) {
@@ -58,17 +61,20 @@ export const updateConfig = async (configName, value) => {
  */
 export const refreshConfigs = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/app/config/persistent/refresh`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-        
+        const response = await fetch(
+            `${API_BASE_URL}/app/config/persistent/refresh`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         return data;
     } catch (error) {
@@ -88,13 +94,13 @@ export const fetchConfigsByCategory = async (category) => {
         // 클라이언트에서 카테고리별로 필터링
         const filteredConfigs = {};
         const categoryPrefix = category.toLowerCase();
-        
+
         for (const [key, config] of Object.entries(allConfigs)) {
             if (key.toLowerCase().includes(categoryPrefix)) {
                 filteredConfigs[key] = config;
             }
         }
-        
+
         return filteredConfigs;
     } catch (error) {
         devLog.error('Failed to fetch configs by category:', error);
@@ -111,15 +117,15 @@ export const testConnection = async (category) => {
     try {
         // 백엔드에 연결 테스트 엔드포인트가 없으므로 임시로 더미 응답 반환
         devLog.info(`Testing connection for ${category}...`);
-        
+
         // 시뮬레이션을 위한 지연
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
         return {
             success: true,
             message: `${category} 연결 테스트가 완료되었습니다.`,
             category: category,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         };
     } catch (error) {
         devLog.error('Failed to test connection:', error);
@@ -133,17 +139,20 @@ export const testConnection = async (category) => {
  */
 export const saveConfigs = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/app/config/persistent/save`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-        
+        const response = await fetch(
+            `${API_BASE_URL}/app/config/persistent/save`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         return data;
     } catch (error) {
@@ -159,11 +168,11 @@ export const saveConfigs = async () => {
 export const fetchAppConfig = async () => {
     try {
         const response = await fetch(`${API_BASE_URL}/app/config`);
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         return data;
     } catch (error) {

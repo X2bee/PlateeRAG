@@ -1,8 +1,8 @@
-"use client";
-import React, { useState, useEffect } from "react";
-import { getWorkflowPerformance } from "@/app/api/workflowAPI";
-import { devLog } from "@/app/utils/logger";
-import styles from "@/app/main/assets/Monitor.module.scss";
+'use client';
+import React, { useState, useEffect } from 'react';
+import { getWorkflowPerformance } from '@/app/api/workflowAPI';
+import { devLog } from '@/app/utils/logger';
+import styles from '@/app/main/assets/Monitor.module.scss';
 
 interface Workflow {
     filename: string;
@@ -44,8 +44,11 @@ interface WorkflowPartsProps {
 }
 
 const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
-    const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
-    const [performanceData, setPerformanceData] = useState<WorkflowPerformance | null>(null);
+    const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(
+        null,
+    );
+    const [performanceData, setPerformanceData] =
+        useState<WorkflowPerformance | null>(null);
     const [performanceLoading, setPerformanceLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [noPerformanceData, setNoPerformanceData] = useState(false); // 실행 기록이 없는 경우를 위한 상태
@@ -62,23 +65,29 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                 setError(null);
                 setNoPerformanceData(false);
                 const workflowName = workflow.filename.replace('.json', '');
-                const data = await getWorkflowPerformance(workflowName, workflow.workflow_id) as WorkflowPerformance;
-                
+                const data = (await getWorkflowPerformance(
+                    workflowName,
+                    workflow.workflow_id,
+                )) as WorkflowPerformance;
+
                 // 실행 기록이 없는 경우 체크
-                if (data.message === "No performance data found for this workflow" || 
-                    !data.performance_stats || 
-                    data.performance_stats.length === 0) {
+                if (
+                    data.message ===
+                        'No performance data found for this workflow' ||
+                    !data.performance_stats ||
+                    data.performance_stats.length === 0
+                ) {
                     setNoPerformanceData(true);
                     setPerformanceData(data);
                 } else {
                     setNoPerformanceData(false);
                     setPerformanceData(data);
                 }
-                
+
                 setSelectedWorkflow(workflow);
             } catch (err) {
-                setError("성능 데이터를 불러오는데 실패했습니다.");
-                devLog.error("Failed to load performance data:", err);
+                setError('성능 데이터를 불러오는데 실패했습니다.');
+                devLog.error('Failed to load performance data:', err);
             } finally {
                 setPerformanceLoading(false);
             }
@@ -106,34 +115,48 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                 {!selectedWorkflow ? (
                     <div className={styles.placeholder}>
                         <h3>워크플로우를 선택하세요</h3>
-                        <p>왼쪽 목록에서 워크플로우를 선택하면 성능 모니터링 정보를 확인할 수 있습니다.</p>
+                        <p>
+                            왼쪽 목록에서 워크플로우를 선택하면 성능 모니터링
+                            정보를 확인할 수 있습니다.
+                        </p>
                     </div>
                 ) : noPerformanceData ? (
                     <div className={styles.placeholder}>
                         <h3>실행 기록이 없습니다</h3>
                         <p>
-                            "<strong>{selectedWorkflow.filename.replace('.json', '')}</strong>" 워크플로우의 실행 기록이 없습니다.
+                            &quot;
+                            <strong>
+                                {selectedWorkflow.filename.replace('.json', '')}
+                            </strong>
+                            &quot; 워크플로우의 실행 기록이 없습니다.
                             <br />
-                            워크플로우를 먼저 실행한 후에 모니터링 데이터를 확인할 수 있습니다.
+                            워크플로우를 먼저 실행한 후에 모니터링 데이터를
+                            확인할 수 있습니다.
                         </p>
                         <button
-                            onClick={() => loadPerformanceData(selectedWorkflow)}
+                            onClick={() =>
+                                loadPerformanceData(selectedWorkflow)
+                            }
                             className={styles.refreshButton}
                             disabled={performanceLoading}
                         >
-                            {performanceLoading ? "로딩 중..." : "새로고침"}
+                            {performanceLoading ? '로딩 중...' : '새로고침'}
                         </button>
                     </div>
                 ) : performanceData ? (
                     <div className={styles.performanceData}>
                         <div className={styles.performanceHeader}>
-                            <h3>{performanceData.workflow_name} 성능 모니터링</h3>
+                            <h3>
+                                {performanceData.workflow_name} 성능 모니터링
+                            </h3>
                             <button
-                                onClick={() => loadPerformanceData(selectedWorkflow)}
+                                onClick={() =>
+                                    loadPerformanceData(selectedWorkflow)
+                                }
                                 className={styles.refreshButton}
                                 disabled={performanceLoading}
                             >
-                                {performanceLoading ? "로딩 중..." : "새로고침"}
+                                {performanceLoading ? '로딩 중...' : '새로고침'}
                             </button>
                         </div>
 
@@ -142,25 +165,49 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                             <h4>전체 요약</h4>
                             <div className={styles.summaryGrid}>
                                 <div className={styles.summaryItem}>
-                                    <span className={styles.label}>총 실행 횟수</span>
-                                    <span className={styles.value}>{performanceData.summary?.total_executions || 0 }회</span>
-                                </div>
-                                <div className={styles.summaryItem}>
-                                    <span className={styles.label}>평균 처리 시간</span>
+                                    <span className={styles.label}>
+                                        총 실행 횟수
+                                    </span>
                                     <span className={styles.value}>
-                                        {formatTime(performanceData.summary?.avg_total_processing_time_ms || 0)}
+                                        {performanceData.summary
+                                            ?.total_executions || 0}
+                                        회
                                     </span>
                                 </div>
                                 <div className={styles.summaryItem}>
-                                    <span className={styles.label}>평균 CPU 사용률</span>
+                                    <span className={styles.label}>
+                                        평균 처리 시간
+                                    </span>
                                     <span className={styles.value}>
-                                        {(performanceData.summary?.avg_total_cpu_usage_percent || 0).toFixed(2)}%
+                                        {formatTime(
+                                            performanceData.summary
+                                                ?.avg_total_processing_time_ms ||
+                                                0,
+                                        )}
                                     </span>
                                 </div>
                                 <div className={styles.summaryItem}>
-                                    <span className={styles.label}>평균 RAM 사용량</span>
+                                    <span className={styles.label}>
+                                        평균 CPU 사용률
+                                    </span>
                                     <span className={styles.value}>
-                                        {formatMemory(performanceData.summary?.avg_total_ram_usage_mb || 0)}
+                                        {(
+                                            performanceData.summary
+                                                ?.avg_total_cpu_usage_percent ||
+                                            0
+                                        ).toFixed(2)}
+                                        %
+                                    </span>
+                                </div>
+                                <div className={styles.summaryItem}>
+                                    <span className={styles.label}>
+                                        평균 RAM 사용량
+                                    </span>
+                                    <span className={styles.value}>
+                                        {formatMemory(
+                                            performanceData.summary
+                                                ?.avg_total_ram_usage_mb || 0,
+                                        )}
                                     </span>
                                 </div>
                             </div>
@@ -170,54 +217,149 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                         <div className={styles.nodePerformanceSection}>
                             <h4>노드별 성능</h4>
                             <div className={styles.nodePerformanceList}>
-                                {performanceData.performance_stats.map((node) => (
-                                    <div key={node.node_id} className={styles.nodePerformanceItem}>
-                                        <div className={styles.nodeHeader}>
-                                            <h5>{node.node_name}</h5>
-                                            <span className={styles.nodeId}>{node.node_id}</span>
+                                {performanceData.performance_stats.map(
+                                    (node) => (
+                                        <div
+                                            key={node.node_id}
+                                            className={
+                                                styles.nodePerformanceItem
+                                            }
+                                        >
+                                            <div className={styles.nodeHeader}>
+                                                <h5>{node.node_name}</h5>
+                                                <span className={styles.nodeId}>
+                                                    {node.node_id}
+                                                </span>
+                                            </div>
+                                            <div className={styles.nodeStats}>
+                                                <div className={styles.stat}>
+                                                    <span
+                                                        className={
+                                                            styles.statLabel
+                                                        }
+                                                    >
+                                                        실행 횟수
+                                                    </span>
+                                                    <span
+                                                        className={
+                                                            styles.statValue
+                                                        }
+                                                    >
+                                                        {node.execution_count ||
+                                                            0}
+                                                        회
+                                                    </span>
+                                                </div>
+                                                <div className={styles.stat}>
+                                                    <span
+                                                        className={
+                                                            styles.statLabel
+                                                        }
+                                                    >
+                                                        평균 처리 시간
+                                                    </span>
+                                                    <span
+                                                        className={
+                                                            styles.statValue
+                                                        }
+                                                    >
+                                                        {formatTime(
+                                                            node.avg_processing_time_ms,
+                                                        ) || 0}
+                                                    </span>
+                                                </div>
+                                                <div className={styles.stat}>
+                                                    <span
+                                                        className={
+                                                            styles.statLabel
+                                                        }
+                                                    >
+                                                        평균 CPU 사용률
+                                                    </span>
+                                                    <span
+                                                        className={
+                                                            styles.statValue
+                                                        }
+                                                    >
+                                                        {node.avg_cpu_usage_percent.toFixed(
+                                                            2,
+                                                        ) || 0}
+                                                        %
+                                                    </span>
+                                                </div>
+                                                <div className={styles.stat}>
+                                                    <span
+                                                        className={
+                                                            styles.statLabel
+                                                        }
+                                                    >
+                                                        평균 RAM 사용량
+                                                    </span>
+                                                    <span
+                                                        className={
+                                                            styles.statValue
+                                                        }
+                                                    >
+                                                        {formatMemory(
+                                                            node.avg_ram_usage_mb,
+                                                        ) || 0}
+                                                    </span>
+                                                </div>
+                                                {node.avg_gpu_usage_percent !==
+                                                    null && (
+                                                    <>
+                                                        <div
+                                                            className={
+                                                                styles.stat
+                                                            }
+                                                        >
+                                                            <span
+                                                                className={
+                                                                    styles.statLabel
+                                                                }
+                                                            >
+                                                                GPU 사용률
+                                                            </span>
+                                                            <span
+                                                                className={
+                                                                    styles.statValue
+                                                                }
+                                                            >
+                                                                {node.avg_gpu_usage_percent.toFixed(
+                                                                    2,
+                                                                ) || 0}
+                                                                %
+                                                            </span>
+                                                        </div>
+                                                        <div
+                                                            className={
+                                                                styles.stat
+                                                            }
+                                                        >
+                                                            <span
+                                                                className={
+                                                                    styles.statLabel
+                                                                }
+                                                            >
+                                                                GPU 메모리
+                                                            </span>
+                                                            <span
+                                                                className={
+                                                                    styles.statValue
+                                                                }
+                                                            >
+                                                                {formatMemory(
+                                                                    node.avg_gpu_memory_mb ||
+                                                                        0,
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div className={styles.nodeStats}>
-                                            <div className={styles.stat}>
-                                                <span className={styles.statLabel}>실행 횟수</span>
-                                                <span className={styles.statValue}>{node.execution_count || 0}회</span>
-                                            </div>
-                                            <div className={styles.stat}>
-                                                <span className={styles.statLabel}>평균 처리 시간</span>
-                                                <span className={styles.statValue}>
-                                                    {formatTime(node.avg_processing_time_ms) || 0}
-                                                </span>
-                                            </div>
-                                            <div className={styles.stat}>
-                                                <span className={styles.statLabel}>평균 CPU 사용률</span>
-                                                <span className={styles.statValue}>
-                                                    {node.avg_cpu_usage_percent.toFixed(2) || 0}%
-                                                </span>
-                                            </div>
-                                            <div className={styles.stat}>
-                                                <span className={styles.statLabel}>평균 RAM 사용량</span>
-                                                <span className={styles.statValue}>
-                                                    {formatMemory(node.avg_ram_usage_mb) || 0}
-                                                </span>
-                                            </div>
-                                            {node.avg_gpu_usage_percent !== null && (
-                                                <>
-                                                    <div className={styles.stat}>
-                                                        <span className={styles.statLabel}>GPU 사용률</span>
-                                                        <span className={styles.statValue}>
-                                                            {node.avg_gpu_usage_percent.toFixed(2) || 0}%
-                                                        </span>
-                                                    </div>
-                                                    <div className={styles.stat}>
-                                                        <span className={styles.statLabel}>GPU 메모리</span>
-                                                        <span className={styles.statValue}>
-                                                            {formatMemory(node.avg_gpu_memory_mb || 0)}
-                                                        </span>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
+                                    ),
+                                )}
                             </div>
                         </div>
                     </div>
@@ -227,7 +369,9 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                         <span>성능 데이터를 불러오는 중...</span>
                     </div>
                 ) : (
-                    <div className={styles.error}>성능 데이터를 불러올 수 없습니다.</div>
+                    <div className={styles.error}>
+                        성능 데이터를 불러올 수 없습니다.
+                    </div>
                 )}
             </div>
         </>

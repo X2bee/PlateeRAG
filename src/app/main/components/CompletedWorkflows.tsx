@@ -1,9 +1,17 @@
-"use client";
-import React, { useState, useEffect } from "react";
-import { FiFolder, FiPlay, FiEdit, FiTrash2, FiUser, FiClock, FiRefreshCw } from "react-icons/fi";
-import styles from "@/app/main/assets/CompletedWorkflows.module.scss";
-import { listWorkflowsDetail, deleteWorkflow } from "@/app/api/workflowAPI";
-import { useRouter } from "next/navigation";
+'use client';
+import React, { useState, useEffect } from 'react';
+import {
+    FiFolder,
+    FiPlay,
+    FiEdit,
+    FiTrash2,
+    FiUser,
+    FiClock,
+    FiRefreshCw,
+} from 'react-icons/fi';
+import styles from '@/app/main/assets/CompletedWorkflows.module.scss';
+import { listWorkflowsDetail, deleteWorkflow } from '@/app/api/workflowAPI';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 interface Workflow {
@@ -14,7 +22,7 @@ interface Workflow {
     lastModified?: string;
     author: string;
     nodeCount: number;
-    status: "active" | "draft" | "archived";
+    status: 'active' | 'draft' | 'archived';
     filename?: string;
     error?: string;
 }
@@ -34,36 +42,46 @@ const CompletedWorkflows: React.FC = () => {
     const [workflows, setWorkflows] = useState<Workflow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [filter, setFilter] = useState<"all" | "active" | "draft" | "archived">("all");
+    const [filter, setFilter] = useState<
+        'all' | 'active' | 'draft' | 'archived'
+    >('all');
 
     const fetchWorkflows = async () => {
         try {
             setLoading(true);
             setError(null);
-            const workflowDetails = await listWorkflowsDetail() as WorkflowDetailResponse[];
-            const transformedWorkflows: Workflow[] = workflowDetails.map((detail: WorkflowDetailResponse) => {
-                let status: "active" | "draft" | "archived" = "active";
-                if (!detail.has_startnode || !detail.has_endnode || detail.node_count < 3) {
-                    status = "draft";
-                } 
+            const workflowDetails =
+                (await listWorkflowsDetail()) as WorkflowDetailResponse[];
+            const transformedWorkflows: Workflow[] = workflowDetails.map(
+                (detail: WorkflowDetailResponse) => {
+                    let status: 'active' | 'draft' | 'archived' = 'active';
+                    if (
+                        !detail.has_startnode ||
+                        !detail.has_endnode ||
+                        detail.node_count < 3
+                    ) {
+                        status = 'draft';
+                    }
 
-                return {
-                    id: detail.workflow_id,
-                    name: detail.filename.replace('.json', '') || detail.workflow_id,
-                    author: "AI-LAB",
-                    nodeCount: detail.node_count,
-                    lastModified: detail.last_modified,
-                    status: status,
-                    filename: detail.filename,
-                    error: detail.error,
-                };
-            });
-            
+                    return {
+                        id: detail.workflow_id,
+                        name:
+                            detail.filename.replace('.json', '') ||
+                            detail.workflow_id,
+                        author: 'AI-LAB',
+                        nodeCount: detail.node_count,
+                        lastModified: detail.last_modified,
+                        status: status,
+                        filename: detail.filename,
+                        error: detail.error,
+                    };
+                },
+            );
+
             setWorkflows(transformedWorkflows);
-            
         } catch (error) {
-            console.error("Failed to fetch workflows:", error);
-            setError("워크플로우를 불러오는데 실패했습니다.");
+            console.error('Failed to fetch workflows:', error);
+            setError('워크플로우를 불러오는데 실패했습니다.');
         } finally {
             setLoading(false);
         }
@@ -73,54 +91,93 @@ const CompletedWorkflows: React.FC = () => {
         fetchWorkflows();
     }, []);
 
-    const filteredWorkflows = workflows.filter(workflow =>
-        filter === "all" || workflow.status === filter
+    const filteredWorkflows = workflows.filter(
+        (workflow) => filter === 'all' || workflow.status === filter,
     );
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case "active": return styles.statusActive;
-            case "draft": return styles.statusDraft;
-            case "archived": return styles.statusArchived;
-            default: return styles.statusActive;
+            case 'active':
+                return styles.statusActive;
+            case 'draft':
+                return styles.statusDraft;
+            case 'archived':
+                return styles.statusArchived;
+            default:
+                return styles.statusActive;
         }
     };
 
     const getStatusText = (status: string) => {
         switch (status) {
-            case "active": return "활성";
-            case "draft": return "초안";
-            case "archived": return "보관됨";
-            default: return "활성";
+            case 'active':
+                return '활성';
+            case 'draft':
+                return '초안';
+            case 'archived':
+                return '보관됨';
+            default:
+                return '활성';
         }
     };
 
     // Handle workflow execution
     const handleExecute = (workflow: Workflow) => {
         // 메인 페이지의 실행 탭으로 이동하며 URL 파라미터 설정
-        router.push(`/main?view=playground&workflowName=${encodeURIComponent(workflow.name)}&workflowId=${encodeURIComponent(workflow.id)}`);
+        router.push(
+            `/main?view=playground&workflowName=${encodeURIComponent(workflow.name)}&workflowId=${encodeURIComponent(workflow.id)}`,
+        );
     };
 
     // Handle workflow editing
     const handleEdit = (workflow: Workflow) => {
         // 캔버스 페이지를 새 창에서 열고 워크플로우 로드
-        window.open(`/canvas?load=${encodeURIComponent(workflow.name)}`, '_blank');
+        window.open(
+            `/canvas?load=${encodeURIComponent(workflow.name)}`,
+            '_blank',
+        );
     };
 
     // Handle workflow deletion with Toast confirmation
     const handleDelete = (workflow: Workflow) => {
         const confirmToast = toast(
             (t) => (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div style={{ fontWeight: '600', color: '#dc2626', fontSize: '1rem' }}>
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                    }}
+                >
+                    <div
+                        style={{
+                            fontWeight: '600',
+                            color: '#dc2626',
+                            fontSize: '1rem',
+                        }}
+                    >
                         Delete Workflow
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.4' }}>
-                        Are you sure you want to delete "<strong>{workflow.name}</strong>"?
+                    <div
+                        style={{
+                            fontSize: '0.9rem',
+                            color: '#374151',
+                            lineHeight: '1.4',
+                        }}
+                    >
+                        Are you sure you want to delete "
+                        <strong>{workflow.name}</strong>"?
                         <br />
                         This action cannot be undone.
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            gap: '8px',
+                            justifyContent: 'flex-end',
+                            marginTop: '4px',
+                        }}
+                    >
                         <button
                             onClick={() => {
                                 toast.dismiss(t.id);
@@ -135,7 +192,7 @@ const CompletedWorkflows: React.FC = () => {
                                 fontWeight: '500',
                                 color: '#374151',
                                 transition: 'all 0.2s ease',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                             }}
                         >
                             Cancel
@@ -145,11 +202,18 @@ const CompletedWorkflows: React.FC = () => {
                                 toast.dismiss(t.id);
                                 try {
                                     await deleteWorkflow(workflow.name);
-                                    toast.success(`Workflow "${workflow.name}" deleted successfully!`);
+                                    toast.success(
+                                        `Workflow "${workflow.name}" deleted successfully!`,
+                                    );
                                     fetchWorkflows(); // 목록 새로고침
                                 } catch (error) {
-                                    console.error("Failed to delete workflow:", error);
-                                    toast.error(`Failed to delete workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                                    console.error(
+                                        'Failed to delete workflow:',
+                                        error,
+                                    );
+                                    toast.error(
+                                        `Failed to delete workflow: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                                    );
                                 }
                             }}
                             style={{
@@ -162,7 +226,7 @@ const CompletedWorkflows: React.FC = () => {
                                 fontSize: '0.85rem',
                                 fontWeight: '500',
                                 transition: 'all 0.2s ease',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                             }}
                         >
                             Delete
@@ -178,11 +242,12 @@ const CompletedWorkflows: React.FC = () => {
                     backgroundColor: '#f9fafb',
                     border: '2px solid #374151',
                     borderRadius: '12px',
-                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
+                    boxShadow:
+                        '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
                     color: '#374151',
-                    fontFamily: 'system-ui, -apple-system, sans-serif'
+                    fontFamily: 'system-ui, -apple-system, sans-serif',
                 },
-            }
+            },
         );
     };
 
@@ -197,19 +262,25 @@ const CompletedWorkflows: React.FC = () => {
 
                 <div className={styles.headerActions}>
                     <div className={styles.filters}>
-                        {["all", "active", "draft", "archived"].map((filterType) => (
-                            <button
-                                key={filterType}
-                                onClick={() => setFilter(filterType as any)}
-                                className={`${styles.filterButton} ${filter === filterType ? styles.active : ""}`}
-                            >
-                                {filterType === "all" ? "전체" :
-                                    filterType === "active" ? "활성" :
-                                        filterType === "draft" ? "초안" : "보관됨"}
-                            </button>
-                        ))}
+                        {['all', 'active', 'draft', 'archived'].map(
+                            (filterType) => (
+                                <button
+                                    key={filterType}
+                                    onClick={() => setFilter(filterType as any)}
+                                    className={`${styles.filterButton} ${filter === filterType ? styles.active : ''}`}
+                                >
+                                    {filterType === 'all'
+                                        ? '전체'
+                                        : filterType === 'active'
+                                          ? '활성'
+                                          : filterType === 'draft'
+                                            ? '초안'
+                                            : '보관됨'}
+                                </button>
+                            ),
+                        )}
                     </div>
-                    
+
                     <button
                         className={`${styles.refreshButton} ${loading ? styles.spinning : ''}`}
                         onClick={fetchWorkflows}
@@ -240,23 +311,34 @@ const CompletedWorkflows: React.FC = () => {
             {!loading && !error && (
                 <div className={styles.workflowsGrid}>
                     {filteredWorkflows.map((workflow) => (
-                        <div key={workflow.name} className={styles.workflowCard}>
+                        <div
+                            key={workflow.name}
+                            className={styles.workflowCard}
+                        >
                             <div className={styles.cardHeader}>
                                 <div className={styles.workflowIcon}>
                                     <FiFolder />
                                 </div>
-                                <div className={`${styles.status} ${getStatusColor(workflow.status)}`}>
+                                <div
+                                    className={`${styles.status} ${getStatusColor(workflow.status)}`}
+                                >
                                     {getStatusText(workflow.status)}
                                 </div>
                             </div>
 
                             <div className={styles.cardContent}>
-                                <h3 className={styles.workflowName}>{workflow.name}</h3>
+                                <h3 className={styles.workflowName}>
+                                    {workflow.name}
+                                </h3>
                                 {workflow.description && (
-                                    <p className={styles.workflowDescription}>{workflow.description}</p>
+                                    <p className={styles.workflowDescription}>
+                                        {workflow.description}
+                                    </p>
                                 )}
                                 {workflow.error && (
-                                    <p className={styles.workflowError}>오류: {workflow.error}</p>
+                                    <p className={styles.workflowError}>
+                                        오류: {workflow.error}
+                                    </p>
                                 )}
 
                                 <div className={styles.workflowMeta}>
@@ -267,7 +349,11 @@ const CompletedWorkflows: React.FC = () => {
                                     {workflow.lastModified && (
                                         <div className={styles.metaItem}>
                                             <FiClock />
-                                            <span>{new Date(workflow.lastModified).toLocaleDateString('ko-KR')}</span>
+                                            <span>
+                                                {new Date(
+                                                    workflow.lastModified,
+                                                ).toLocaleDateString('ko-KR')}
+                                            </span>
                                         </div>
                                     )}
                                     <div className={styles.metaItem}>
@@ -277,8 +363,8 @@ const CompletedWorkflows: React.FC = () => {
                             </div>
 
                             <div className={styles.cardActions}>
-                                <button 
-                                    className={styles.actionButton} 
+                                <button
+                                    className={styles.actionButton}
                                     title="실행"
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -287,8 +373,8 @@ const CompletedWorkflows: React.FC = () => {
                                 >
                                     <FiPlay />
                                 </button>
-                                <button 
-                                    className={styles.actionButton} 
+                                <button
+                                    className={styles.actionButton}
                                     title="편집"
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -297,8 +383,8 @@ const CompletedWorkflows: React.FC = () => {
                                 >
                                     <FiEdit />
                                 </button>
-                                <button 
-                                    className={`${styles.actionButton} ${styles.danger}`} 
+                                <button
+                                    className={`${styles.actionButton} ${styles.danger}`}
                                     title="삭제"
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -317,7 +403,10 @@ const CompletedWorkflows: React.FC = () => {
                 <div className={styles.emptyState}>
                     <FiFolder className={styles.emptyIcon} />
                     <h3>워크플로우가 없습니다</h3>
-                    <p>아직 저장된 워크플로우가 없습니다. 새로운 워크플로우를 만들어보세요.</p>
+                    <p>
+                        아직 저장된 워크플로우가 없습니다. 새로운 워크플로우를
+                        만들어보세요.
+                    </p>
                 </div>
             )}
         </div>

@@ -1,24 +1,33 @@
-"use client";
-import React, { useState, useEffect } from "react";
-import { FiGrid, FiFolder, FiCpu, FiSettings, FiEye, FiBarChart } from "react-icons/fi";
-import Sidebar from "@/app/main/components/Sidebar";
-import ContentArea from "@/app/main/components/ContentArea";
-import CanvasIntroduction from "@/app/main/components/CanvasIntroduction";
-import CompletedWorkflows from "@/app/main/components/CompletedWorkflows";
-import Playground from "@/app/main/components/Playground";
-import Settings from "@/app/main/components/Settings";
-import ConfigViewer from "@/app/main/components/ConfigViewer";
-import { SidebarItem } from "@/app/main/components/types";
-import styles from "@/app/main/assets/MainPage.module.scss";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+'use client';
+import React, { useState, useEffect } from 'react';
+import {
+    FiGrid,
+    FiFolder,
+    FiCpu,
+    FiSettings,
+    FiEye,
+    FiBarChart,
+} from 'react-icons/fi';
+import Sidebar from '@/app/main/components/Sidebar';
+import ContentArea from '@/app/main/components/ContentArea';
+import CanvasIntroduction from '@/app/main/components/CanvasIntroduction';
+import CompletedWorkflows from '@/app/main/components/CompletedWorkflows';
+import Playground from '@/app/main/components/Playground';
+import Settings from '@/app/main/components/Settings';
+import ConfigViewer from '@/app/main/components/ConfigViewer';
+import { SidebarItem } from '@/app/main/components/types';
+import styles from '@/app/main/assets/MainPage.module.scss';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 const MainPage: React.FC = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
-    const [activeSection, setActiveSection] = useState<string>("canvas");
+    const [activeSection, setActiveSection] = useState<string>('canvas');
     // Executor/Monitoring 통합 토글 상태
-    const [execTab, setExecTab] = useState<'executor' | 'monitoring'>("executor");
+    const [execTab, setExecTab] = useState<'executor' | 'monitoring'>(
+        'executor',
+    );
     const [initialLoad, setInitialLoad] = useState(true);
 
     // URL 파라미터 기반 초기 라우팅 처리
@@ -56,7 +65,11 @@ const MainPage: React.FC = () => {
         if (!initialLoad && activeSection !== 'exec-monitor') {
             // URL에서 파라미터를 제거하고 기본 /main 경로로 변경
             const currentParams = new URLSearchParams(searchParams.toString());
-            if (currentParams.has('view') || currentParams.has('workflowName') || currentParams.has('workflowId')) {
+            if (
+                currentParams.has('view') ||
+                currentParams.has('workflowName') ||
+                currentParams.has('workflowId')
+            ) {
                 router.replace(pathname);
             }
         }
@@ -75,34 +88,34 @@ const MainPage: React.FC = () => {
 
     const sidebarItems: SidebarItem[] = [
         {
-            id: "canvas",
-            title: "워크플로우 캔버스",
-            description: "새로운 워크플로우 만들기",
-            icon: <FiGrid />
+            id: 'canvas',
+            title: '워크플로우 캔버스',
+            description: '새로운 워크플로우 만들기',
+            icon: <FiGrid />,
         },
         {
-            id: "workflows",
-            title: "완성된 워크플로우",
-            description: "저장된 워크플로우 관리",
-            icon: <FiFolder />
+            id: 'workflows',
+            title: '완성된 워크플로우',
+            description: '저장된 워크플로우 관리',
+            icon: <FiFolder />,
         },
         {
-            id: "exec-monitor",
-            title: "실행 및 모니터링",
-            description: "워크플로우 실행과 성능 모니터링",
-            icon: <FiCpu />
+            id: 'exec-monitor',
+            title: '실행 및 모니터링',
+            description: '워크플로우 실행과 성능 모니터링',
+            icon: <FiCpu />,
         },
         {
-            id: "settings",
-            title: "고급 환경 설정",
-            description: "LLM 및 Tool 환경변수 직접 관리",
-            icon: <FiSettings />
+            id: 'settings',
+            title: '고급 환경 설정',
+            description: 'LLM 및 Tool 환경변수 직접 관리',
+            icon: <FiSettings />,
         },
         {
-            id: "config-viewer",
-            title: "설정값 확인",
-            description: "백엔드 환경변수 및 설정 확인",
-            icon: <FiEye />
+            id: 'config-viewer',
+            title: '설정값 확인',
+            description: '백엔드 환경변수 및 설정 확인',
+            icon: <FiEye />,
         },
     ];
 
@@ -126,7 +139,7 @@ const MainPage: React.FC = () => {
 
     const renderContent = () => {
         switch (activeSection) {
-            case "canvas":
+            case 'canvas':
                 return (
                     <ContentArea
                         title="워크플로우 캔버스"
@@ -135,7 +148,7 @@ const MainPage: React.FC = () => {
                         <CanvasIntroduction />
                     </ContentArea>
                 );
-            case "workflows":
+            case 'workflows':
                 return (
                     <ContentArea
                         title="완성된 워크플로우"
@@ -144,21 +157,25 @@ const MainPage: React.FC = () => {
                         <CompletedWorkflows />
                     </ContentArea>
                 );
-            case "exec-monitor":
+            case 'exec-monitor':
                 return (
                     <ContentArea
                         title="실행 및 모니터링"
-                        description={execTab === 'executor' ? "완성된 워크플로우를 실제 환경에서 실행하고 모니터링하세요." : "워크플로우의 실행 성능과 리소스 사용량을 실시간으로 모니터링하세요."}
+                        description={
+                            execTab === 'executor'
+                                ? '완성된 워크플로우를 실제 환경에서 실행하고 모니터링하세요.'
+                                : '워크플로우의 실행 성능과 리소스 사용량을 실시간으로 모니터링하세요.'
+                        }
                         headerButtons={renderExecMonitorToggleButtons()}
                     >
-                        <Playground 
+                        <Playground
                             activeTab={execTab}
                             onTabChange={handleTabChange}
                         />
                     </ContentArea>
                 );
 
-            case "settings":
+            case 'settings':
                 return (
                     <ContentArea
                         title="고급 환경 설정"
@@ -167,14 +184,16 @@ const MainPage: React.FC = () => {
                         <Settings />
                     </ContentArea>
                 );
-            case "config-viewer":
+            case 'config-viewer':
                 return (
                     <ContentArea
                         title="설정값 확인"
                         description="백엔드에서 관리되는 모든 환경변수와 설정값을 확인하세요."
                     >
-                        <ConfigViewer 
-                            onNavigateToSettings={() => setActiveSection("settings")}
+                        <ConfigViewer
+                            onNavigateToSettings={() =>
+                                setActiveSection('settings')
+                            }
                         />
                     </ContentArea>
                 );
@@ -197,9 +216,7 @@ const MainPage: React.FC = () => {
                 activeItem={activeSection}
                 onItemClick={handleSidebarItemClick}
             />
-            <main className={styles.mainContent}>
-                {renderContent()}
-            </main>
+            <main className={styles.mainContent}>{renderContent()}</main>
         </div>
     );
 };
