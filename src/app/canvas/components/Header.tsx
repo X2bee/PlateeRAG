@@ -1,14 +1,33 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, KeyboardEvent, ChangeEvent } from 'react';
 import Link from 'next/link';
 import styles from '@/app/canvas/assets/Header.module.scss';
 import { LuPanelRightOpen, LuSave, LuCheck, LuX, LuPencil, LuFileText } from "react-icons/lu";
 import { getWorkflowName, saveWorkflowName } from '@/app/(common)/components/workflowStorage';
 
-const Header = ({ onMenuClick, onSave, onLoad, onExport, onNewWorkflow, workflowName: externalWorkflowName, onWorkflowNameChange }) => {
-    const [workflowName, setWorkflowName] = useState('Workflow');
-    const [isEditing, setIsEditing] = useState(false);
-    const [editValue, setEditValue] = useState('');
-    const inputRef = useRef(null);
+// Type definitions
+interface HeaderProps {
+    onMenuClick: () => void;
+    onSave: () => void;
+    onLoad: () => void;
+    onExport: () => void;
+    onNewWorkflow: () => void;
+    workflowName?: string;
+    onWorkflowNameChange?: (name: string) => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ 
+    onMenuClick, 
+    onSave, 
+    onLoad, 
+    onExport, 
+    onNewWorkflow, 
+    workflowName: externalWorkflowName, 
+    onWorkflowNameChange 
+}) => {
+    const [workflowName, setWorkflowName] = useState<string>('Workflow');
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [editValue, setEditValue] = useState<string>('');
+    const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (externalWorkflowName) {
@@ -26,18 +45,18 @@ const Header = ({ onMenuClick, onSave, onLoad, onExport, onNewWorkflow, workflow
         }
     }, [isEditing]);
 
-    const handleEditClick = () => {
+    const handleEditClick = (): void => {
         setEditValue(workflowName);
         setIsEditing(true);
     };
 
-    const handleSaveClick = () => {
+    const handleSaveClick = (): void => {
         const trimmedValue = editValue.trim();
         const finalValue = trimmedValue || 'Workflow';
         setWorkflowName(finalValue);
         saveWorkflowName(finalValue);
         
-        // 부모 컴포넌트에 변경사항 알림
+        // Notify parent component of changes
         if (onWorkflowNameChange) {
             onWorkflowNameChange(finalValue);
         }
@@ -45,17 +64,21 @@ const Header = ({ onMenuClick, onSave, onLoad, onExport, onNewWorkflow, workflow
         setIsEditing(false);
     };
 
-    const handleCancelClick = () => {
+    const handleCancelClick = (): void => {
         setEditValue(workflowName);
         setIsEditing(false);
     };
 
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
         if (e.key === 'Enter') {
             handleSaveClick();
         } else if (e.key === 'Escape') {
             handleCancelClick();
         }
+    };
+
+    const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
+        setEditValue(e.target.value);
     };
 
     return (
@@ -73,7 +96,7 @@ const Header = ({ onMenuClick, onSave, onLoad, onExport, onNewWorkflow, workflow
                                 ref={inputRef}
                                 type="text"
                                 value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
+                                onChange={handleInputChange}
                                 onKeyDown={handleKeyDown}
                                 className={styles.workflowInput}
                                 placeholder="Workflow name..."
