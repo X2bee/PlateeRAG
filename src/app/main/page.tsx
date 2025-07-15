@@ -10,25 +10,55 @@ import Settings from "@/app/main/components/Settings";
 import ConfigViewer from "@/app/main/components/ConfigViewer";
 import { SidebarItem } from "@/app/main/components/types";
 import styles from "@/app/main/assets/MainPage.module.scss";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 const MainPage: React.FC = () => {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
     const [activeSection, setActiveSection] = useState<string>("canvas");
     // Executor/Monitoring 통합 토글 상태
     const [execTab, setExecTab] = useState<'executor' | 'monitoring'>("executor");
+    const [initialLoad, setInitialLoad] = useState(true);
 
-    // 페이지 이동 시에도 탭 상태 유지
+    // URL 파라미터 기반 초기 라우팅 처리
     useEffect(() => {
-        // 로컬 스토리지에서 탭 상태 복원
-        const savedTab = localStorage.getItem('execMonitorTab');
-        if (savedTab === 'executor' || savedTab === 'monitoring') {
-            setExecTab(savedTab as 'executor' | 'monitoring');
+        // Check URL parameters first for direct navigation
+        const view = searchParams.get('view');
+        if (view === 'playground') {
+            setActiveSection('exec-monitor');
+            setExecTab('executor');
+            setInitialLoad(false);
+        } else {
+            // If no view parameter, load from localStorage
+            const savedTab = localStorage.getItem('execMonitorTab');
+            if (savedTab === 'executor' || savedTab === 'monitoring') {
+                setExecTab(savedTab as 'executor' | 'monitoring');
+            }
+            setInitialLoad(false);
         }
-    }, []);
+    }, [searchParams]);
+
+    // activeSection 변경 시 URL 초기화 처리
+    useEffect(() => {
+        if (!initialLoad && activeSection !== 'exec-monitor') {
+            // URL에서 파라미터를 제거하고 기본 /main 경로로 변경
+            const currentParams = new URLSearchParams(searchParams.toString());
+            if (currentParams.has('view') || currentParams.has('workflowName') || currentParams.has('workflowId')) {
+                router.replace(pathname);
+            }
+        }
+    }, [activeSection, initialLoad, pathname, router, searchParams]);
 
     // 탭 변경 시 로컬 스토리지에 상태 저장
     const handleTabChange = (tab: 'executor' | 'monitoring') => {
         setExecTab(tab);
         localStorage.setItem('execMonitorTab', tab);
+    };
+
+    // 사이드바 아이템 클릭 처리
+    const handleSidebarItemClick = (id: string) => {
+        setActiveSection(id);
     };
 
     const sidebarItems: SidebarItem[] = [
@@ -153,7 +183,7 @@ const MainPage: React.FC = () => {
             <Sidebar
                 items={sidebarItems}
                 activeItem={activeSection}
-                onItemClick={setActiveSection}
+                onItemClick={handleSidebarItemClick}
             />
             <main className={styles.mainContent}>
                 {renderContent()}

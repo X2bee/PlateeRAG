@@ -1,8 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { FiFolder, FiPlay, FiEdit, FiTrash2, FiUser, FiClock } from "react-icons/fi";
+import { FiFolder, FiPlay, FiEdit, FiTrash2, FiUser, FiClock, FiRefreshCw } from "react-icons/fi";
 import styles from "@/app/main/assets/CompletedWorkflows.module.scss";
-import { listWorkflowsDetail } from "@/app/api/workflowAPI";
+import { listWorkflowsDetail, deleteWorkflow } from "@/app/api/workflowAPI";
+import { useRouter } from "next/navigation";
+import toast from 'react-hot-toast';
 
 interface Workflow {
     id: string;
@@ -22,33 +24,36 @@ interface WorkflowDetailResponse {
     workflow_id: string;
     node_count: number;
     last_modified: string;
+    has_startnode: boolean;
+    has_endnode: boolean;
     error?: string;
 }
 
 const CompletedWorkflows: React.FC = () => {
+    const router = useRouter();
     const [workflows, setWorkflows] = useState<Workflow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState<"all" | "active" | "draft" | "archived">("all");
 
-    // 워크플로우 목록을 가져오는 함수
     const fetchWorkflows = async () => {
         try {
             setLoading(true);
             setError(null);
-            
-            // 워크플로우 상세 정보 가져오기
             const workflowDetails = await listWorkflowsDetail() as WorkflowDetailResponse[];
-            
-            // API 응답을 UI에서 사용할 형태로 변환
             const transformedWorkflows: Workflow[] = workflowDetails.map((detail: WorkflowDetailResponse) => {
+                let status: "active" | "draft" | "archived" = "active";
+                if (!detail.has_startnode || !detail.has_endnode || detail.node_count < 3) {
+                    status = "draft";
+                } 
+
                 return {
                     id: detail.workflow_id,
                     name: detail.filename.replace('.json', '') || detail.workflow_id,
                     author: "AI-LAB",
                     nodeCount: detail.node_count,
                     lastModified: detail.last_modified,
-                    status: detail.error ? "draft" as const : "active" as const, // 에러가 있으면 draft로 표시
+                    status: status,
                     filename: detail.filename,
                     error: detail.error,
                 };
@@ -64,7 +69,6 @@ const CompletedWorkflows: React.FC = () => {
         }
     };
 
-    // 컴포넌트 마운트 시 워크플로우 목록 로드
     useEffect(() => {
         fetchWorkflows();
     }, []);
@@ -91,6 +95,97 @@ const CompletedWorkflows: React.FC = () => {
         }
     };
 
+    // Handle workflow execution
+    const handleExecute = (workflow: Workflow) => {
+        // 메인 페이지의 실행 탭으로 이동하며 URL 파라미터 설정
+        router.push(`/main?view=playground&workflowName=${encodeURIComponent(workflow.name)}&workflowId=${encodeURIComponent(workflow.id)}`);
+    };
+
+    // Handle workflow editing
+    const handleEdit = (workflow: Workflow) => {
+        // 캔버스 페이지를 새 창에서 열고 워크플로우 로드
+        window.open(`/canvas?load=${encodeURIComponent(workflow.name)}`, '_blank');
+    };
+
+    // Handle workflow deletion with Toast confirmation
+    const handleDelete = (workflow: Workflow) => {
+        const confirmToast = toast(
+            (t) => (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ fontWeight: '600', color: '#dc2626', fontSize: '1rem' }}>
+                        Delete Workflow
+                    </div>
+                    <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.4' }}>
+                        Are you sure you want to delete "<strong>{workflow.name}</strong>"?
+                        <br />
+                        This action cannot be undone.
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
+                        <button
+                            onClick={() => {
+                                toast.dismiss(t.id);
+                            }}
+                            style={{
+                                padding: '8px 16px',
+                                backgroundColor: '#ffffff',
+                                border: '2px solid #6b7280',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem',
+                                fontWeight: '500',
+                                color: '#374151',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                            }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={async () => {
+                                toast.dismiss(t.id);
+                                try {
+                                    await deleteWorkflow(workflow.name);
+                                    toast.success(`Workflow "${workflow.name}" deleted successfully!`);
+                                    fetchWorkflows(); // 목록 새로고침
+                                } catch (error) {
+                                    console.error("Failed to delete workflow:", error);
+                                    toast.error(`Failed to delete workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                                }
+                            }}
+                            style={{
+                                padding: '8px 16px',
+                                backgroundColor: '#dc2626',
+                                color: 'white',
+                                border: '2px solid #b91c1c',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem',
+                                fontWeight: '500',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                            }}
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            ),
+            {
+                duration: Infinity,
+                style: {
+                    maxWidth: '420px',
+                    padding: '20px',
+                    backgroundColor: '#f9fafb',
+                    border: '2px solid #374151',
+                    borderRadius: '12px',
+                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
+                    color: '#374151',
+                    fontFamily: 'system-ui, -apple-system, sans-serif'
+                },
+            }
+        );
+    };
+
     return (
         <div className={styles.container}>
             {/* Header with Filters */}
@@ -100,18 +195,29 @@ const CompletedWorkflows: React.FC = () => {
                     <p>저장된 워크플로우를 확인하고 관리하세요.</p>
                 </div>
 
-                <div className={styles.filters}>
-                    {["all", "active", "draft", "archived"].map((filterType) => (
-                        <button
-                            key={filterType}
-                            onClick={() => setFilter(filterType as any)}
-                            className={`${styles.filterButton} ${filter === filterType ? styles.active : ""}`}
-                        >
-                            {filterType === "all" ? "전체" :
-                                filterType === "active" ? "활성" :
-                                    filterType === "draft" ? "초안" : "보관됨"}
-                        </button>
-                    ))}
+                <div className={styles.headerActions}>
+                    <div className={styles.filters}>
+                        {["all", "active", "draft", "archived"].map((filterType) => (
+                            <button
+                                key={filterType}
+                                onClick={() => setFilter(filterType as any)}
+                                className={`${styles.filterButton} ${filter === filterType ? styles.active : ""}`}
+                            >
+                                {filterType === "all" ? "전체" :
+                                    filterType === "active" ? "활성" :
+                                        filterType === "draft" ? "초안" : "보관됨"}
+                            </button>
+                        ))}
+                    </div>
+                    
+                    <button
+                        className={`${styles.refreshButton} ${loading ? styles.spinning : ''}`}
+                        onClick={fetchWorkflows}
+                        disabled={loading}
+                        title="새로고침"
+                    >
+                        <FiRefreshCw />
+                    </button>
                 </div>
             </div>
 
@@ -134,7 +240,7 @@ const CompletedWorkflows: React.FC = () => {
             {!loading && !error && (
                 <div className={styles.workflowsGrid}>
                     {filteredWorkflows.map((workflow) => (
-                        <div key={workflow.id} className={styles.workflowCard}>
+                        <div key={workflow.name} className={styles.workflowCard}>
                             <div className={styles.cardHeader}>
                                 <div className={styles.workflowIcon}>
                                     <FiFolder />
@@ -171,13 +277,34 @@ const CompletedWorkflows: React.FC = () => {
                             </div>
 
                             <div className={styles.cardActions}>
-                                <button className={styles.actionButton} title="실행">
+                                <button 
+                                    className={styles.actionButton} 
+                                    title="실행"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleExecute(workflow);
+                                    }}
+                                >
                                     <FiPlay />
                                 </button>
-                                <button className={styles.actionButton} title="편집">
+                                <button 
+                                    className={styles.actionButton} 
+                                    title="편집"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEdit(workflow);
+                                    }}
+                                >
                                     <FiEdit />
                                 </button>
-                                <button className={`${styles.actionButton} ${styles.danger}`} title="삭제">
+                                <button 
+                                    className={`${styles.actionButton} ${styles.danger}`} 
+                                    title="삭제"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDelete(workflow);
+                                    }}
+                                >
                                     <FiTrash2 />
                                 </button>
                             </div>

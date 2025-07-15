@@ -9,6 +9,8 @@ interface Workflow {
     workflow_id: string;
     node_count: number;
     last_modified: string;
+    has_startnode: boolean;
+    has_endnode: boolean;    
 }
 
 interface IOLog {

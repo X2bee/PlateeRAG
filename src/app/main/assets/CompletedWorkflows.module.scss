@@ -46,6 +46,12 @@ $white: #ffffff;
   }
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 // Filters
 .filters {
   display: flex;
@@ -53,6 +59,48 @@ $white: #ffffff;
   background: $gray-100;
   padding: 0.25rem;
   border-radius: 0.5rem;
+}
+
+// 새로고침 버튼 스타일
+.refreshButton {
+  background: transparent;
+  border: 1px solid $gray-300;
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: $gray-600;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+
+  &:hover:not(:disabled) {
+    background: $gray-50;
+    border-color: $primary-blue;
+    color: $primary-blue;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// 스피닝 애니메이션
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .filterButton {

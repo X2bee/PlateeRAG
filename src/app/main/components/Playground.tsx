@@ -5,6 +5,7 @@ import { listWorkflowsDetail } from "@/app/api/workflowAPI";
 import styles from "@/app/main/assets/Playground.module.scss";
 import Executor from "@/app/main/components/Executor";
 import Monitor from "@/app/main/components/Monitor";
+import { useSearchParams } from "next/navigation";
 
 interface PlaygroundProps {
     activeTab: 'executor' | 'monitoring';
@@ -15,6 +16,8 @@ interface Workflow {
     workflow_id: string;
     node_count: number;
     last_modified: string;
+    has_startnode: boolean;
+    has_endnode: boolean;
 }
 
 interface IOLog {
@@ -30,15 +33,39 @@ const Playground: React.FC<PlaygroundProps> = ({
     activeTab,
     onTabChange
 }) => {
+    const searchParams = useSearchParams();
     const [workflows, setWorkflows] = useState<Workflow[]>([]);
     const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
     const [workflowListLoading, setWorkflowListLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-
     useEffect(() => {
         loadWorkflowList();
     }, []);
+
+    useEffect(() => {
+        // Check for workflowName and workflowId in URL params
+        const workflowName = searchParams.get('workflowName');
+        const workflowId = searchParams.get('workflowId');
+        
+        if (workflowName && workflowId && workflows.length > 0) {
+            // Find the workflow in the loaded list
+            const workflow = workflows.find(w => 
+                w.filename.replace('.json', '') === workflowName && 
+                w.workflow_id === workflowId
+            );
+            
+            if (workflow) {
+                setSelectedWorkflow(workflow);
+                // Switch to executor tab if not already active
+                if (activeTab !== 'executor') {
+                    onTabChange('executor');
+                }
+            } else {
+                console.log(`Workflow not found with name=${workflowName} and id=${workflowId}`);
+            }
+        }
+    }, [workflows, searchParams, activeTab, onTabChange]);
 
     const loadWorkflowList = async () => {
         try {
@@ -73,7 +100,7 @@ const Playground: React.FC<PlaygroundProps> = ({
             <div className={styles.monitoringContainer}>
                 <div className={styles.workflowList}>
                     <div className={styles.workflowListHeader}>
-                        <h3>워크플로우 실행</h3>
+                        <h3>워크플로우 목록</h3>
                         <button
                             className={`${styles.workflowRefreshButton} ${workflowListLoading ? styles.spinning : ''}`}
                             onClick={loadWorkflowList}
@@ -96,8 +123,8 @@ const Playground: React.FC<PlaygroundProps> = ({
                         <div className={styles.workflowItems}>
                             {workflows.map((workflow) => (
                                 <div
-                                    key={workflow.workflow_id}
-                                    className={`${styles.workflowItem} ${selectedWorkflow?.workflow_id === workflow.workflow_id ? styles.selected : ''}`}
+                                    key={workflow.filename}
+                                    className={`${styles.workflowItem} ${selectedWorkflow?.filename === workflow.filename ? styles.selected : ''}`}
                                     onClick={() => loadChatLogs(workflow)}
                                 >
                                     <div className={styles.workflowName}>

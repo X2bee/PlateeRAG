@@ -44,15 +44,26 @@
     height: 100%;
     text-align: center;
     color: #6c757d;
+    padding: 2rem;
 
     h3 {
         margin-bottom: 0.5rem;
         color: #495057;
+        font-size: 1.2rem;
     }
 
     p {
         max-width: 400px;
         line-height: 1.5;
+        margin-bottom: 1.5rem;
+    }
+
+    strong {
+        color: #2c3e50;
+    }
+
+    .refreshButton {
+        margin-top: 1rem;
     }
 }
 
