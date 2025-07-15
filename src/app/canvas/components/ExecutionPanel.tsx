@@ -3,12 +3,43 @@ import React, { useState } from 'react';
 import styles from '@/app/canvas/assets/ExecutionPanel.module.scss';
 import { LuPlay, LuTrash2, LuCircleX, LuChevronUp, LuChevronDown } from 'react-icons/lu';
 
-const OutputRenderer = ({ output }) => {
+// Type definitions
+interface ExecutionError {
+    error: string;
+}
+
+interface ExecutionSuccess {
+    outputs: Record<string, any>;
+}
+
+type ExecutionOutput = ExecutionError | ExecutionSuccess | null;
+
+interface OutputRendererProps {
+    output: ExecutionOutput;
+}
+
+interface ExecutionPanelProps {
+    onExecute: () => void;
+    onClear: () => void;
+    output: ExecutionOutput;
+    isLoading: boolean;
+}
+
+// Type guard functions
+const hasError = (output: ExecutionOutput): output is ExecutionError => {
+    return output !== null && 'error' in output;
+};
+
+const hasOutputs = (output: ExecutionOutput): output is ExecutionSuccess => {
+    return output !== null && 'outputs' in output;
+};
+
+const OutputRenderer: React.FC<OutputRendererProps> = ({ output }) => {
     if (!output) {
         return <div className={styles.placeholder}>Click 'Run' to execute the workflow.</div>;
     }
 
-    if (output.error) {
+    if (hasError(output)) {
         return (
             <div className={`${styles.resultContainer} ${styles.error}`}>
                 <div className={styles.status}>
@@ -20,23 +51,35 @@ const OutputRenderer = ({ output }) => {
         );
     }
 
-    const { outputs } = output;
-    return (
-        <div className={`${styles.resultContainer} ${styles.success}`}>
-            <div className={styles.outputDataSection}>
-                <pre className={styles.outputContent}>
-                    {JSON.stringify(outputs, null, 2)}
-                </pre>
+    if (hasOutputs(output)) {
+        return (
+            <div className={`${styles.resultContainer} ${styles.success}`}>
+                <div className={styles.outputDataSection}>
+                    <pre className={styles.outputContent}>
+                        {JSON.stringify(output.outputs, null, 2)}
+                    </pre>
+                </div>
             </div>
+        );
+    }
+
+    // Fallback for unexpected output format
+    return (
+        <div className={styles.placeholder}>
+            Unexpected output format.
         </div>
     );
 };
 
+const ExecutionPanel: React.FC<ExecutionPanelProps> = ({ 
+    onExecute, 
+    onClear, 
+    output, 
+    isLoading 
+}) => {
+    const [isExpanded, setIsExpanded] = useState<boolean>(true);
 
-const ExecutionPanel = ({ onExecute, onClear, output, isLoading }) => {
-    const [isExpanded, setIsExpanded] = useState(true);
-
-    const toggleExpanded = () => {
+    const toggleExpanded = (): void => {
         setIsExpanded(!isExpanded);
     };
 

@@ -22,7 +22,7 @@ const AddNodePanel = ({ onBack }) => {
         if (nodeSpecs && nodeSpecs.length > 0) {
             setActiveTab(nodeSpecs[0].categoryId);
         }
-    }, [nodeSpecs]); 
+    }, [nodeSpecs]);
 
     const activeTabData = nodeSpecs.find(tab => tab.categoryId === activeTab);
     if (isLoading) {

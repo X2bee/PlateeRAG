@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, RefObject } from 'react';
 import styles from '@/app/canvas/assets/SideMenu.module.scss';
 import AddNodePanel from '@/app/canvas/components/SideMenuPanel/AddNodePanel';
 import ChatPanel from '@/app/canvas/components/SideMenuPanel/ChatPanel';
@@ -7,8 +7,22 @@ import WorkflowPanel from '@/app/canvas/components/SideMenuPanel/WorkflowPanel';
 import TemplatePanel from '@/app/canvas/components/SideMenuPanel/TemplatePanel';
 import { LuCirclePlus, LuCircleHelp, LuSettings, LuLayoutGrid, LuMessageSquare, LuLayoutTemplate } from "react-icons/lu";
 
-// 메인 메뉴 UI
-const MainMenu = ({ onNavigate }) => {
+// Type definitions
+type MenuView = 'main' | 'addNodes' | 'chat' | 'workflow' | 'template';
+
+interface MainMenuProps {
+    onNavigate: (view: MenuView) => void;
+}
+
+interface SideMenuProps {
+    menuRef: RefObject<HTMLElement>;
+    onLoad: () => void;
+    onExport: () => void;
+    onLoadWorkflow: (workflowData: any) => void;
+}
+
+// Main menu UI
+const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
     return (
         <>
             <div className={styles.menuList}>
@@ -41,19 +55,32 @@ const MainMenu = ({ onNavigate }) => {
     );
 };
 
-// SideMenu의 전체 컨테이너 및 뷰 전환 로직
-const SideMenu = ({ menuRef, onLoad, onExport, onLoadWorkflow }) => {
-    const [view, setView] = useState('main');
+// SideMenu container and view switching logic
+const SideMenu: React.FC<SideMenuProps> = ({ 
+    menuRef, 
+    onLoad, 
+    onExport, 
+    onLoadWorkflow 
+}) => {
+    const [view, setView] = useState<MenuView>('main');
+
+    const handleNavigate = (newView: MenuView): void => {
+        setView(newView);
+    };
+
+    const handleBackToMain = (): void => {
+        setView('main');
+    };
 
     return (
-        // menuRef를 받아 외부 클릭 감지에 사용
+        // menuRef is used for external click detection
         <aside ref={menuRef} className={styles.sideMenuContainer} data-view={view}>
-            {view === 'main' && <MainMenu onNavigate={setView} />}
-            {view === 'addNodes' && <AddNodePanel onBack={() => setView('main')} />}
-            {view === 'chat' && <ChatPanel onBack={() => setView('main')} />}
+            {view === 'main' && <MainMenu onNavigate={handleNavigate} />}
+            {view === 'addNodes' && <AddNodePanel onBack={handleBackToMain} />}
+            {view === 'chat' && <ChatPanel onBack={handleBackToMain} />}
             {view === 'workflow' && (
                 <WorkflowPanel 
-                    onBack={() => setView('main')} 
+                    onBack={handleBackToMain} 
                     onLoad={onLoad}
                     onExport={onExport}
                     onLoadWorkflow={onLoadWorkflow}
@@ -61,7 +88,7 @@ const SideMenu = ({ menuRef, onLoad, onExport, onLoadWorkflow }) => {
             )}
             {view === 'template' && (
                 <TemplatePanel 
-                    onBack={() => setView('main')} 
+                    onBack={handleBackToMain} 
                     onLoadWorkflow={onLoadWorkflow}
                 />
             )}
