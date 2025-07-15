@@ -1,13 +1,11 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
-
 import Canvas from '@/app/canvas/components/Canvas';
 import Header from '@/app/canvas/components/Header';
 import SideMenu from '@/app/canvas/components/SideMenu';
 import ExecutionPanel from '@/app/canvas/components/ExecutionPanel';
 import styles from '@/app/canvas/assets/PlateeRAG.module.scss';
-
 import {
     executeWorkflow,
     saveWorkflow,
@@ -162,7 +160,7 @@ export default function CanvasPage() {
             canvasRef.current &&
             ((canvasRef.current as any).getCanvasState?.()?.nodes?.length > 0 ||
                 (canvasRef.current as any).getCanvasState?.()?.edges?.length >
-                    0);
+                0);
 
         if (hasCurrentWork) {
             // 확인 토스트 표시
