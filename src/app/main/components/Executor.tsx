@@ -27,16 +27,16 @@ interface WorkflowPartsProps {
 const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
     const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
     const [ioLogs, setIOLogs] = useState<IOLog[]>([]);
-    const [chatLoading, setChatLoading] = useState(false);
+    const [executorLoading, setExecutorLoading] = useState(false);
     const [executing, setExecuting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [inputMessage, setInputMessage] = useState<string>('');
     const [pendingLogId, setPendingLogId] = useState<string | null>(null);
 
-    const chatMessagesRef = useRef<HTMLDivElement>(null);
+    const executorMessagesRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        loadChatLogs(workflow);
+        loadExecutorLogs(workflow);
     }, [workflow]);
 
     useEffect(() => {
@@ -44,15 +44,15 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
     }, [ioLogs]);
 
     const scrollToBottom = () => {
-        if (chatMessagesRef.current) {
-            chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+        if (executorMessagesRef.current) {
+            executorMessagesRef.current.scrollTop = executorMessagesRef.current.scrollHeight;
         }
     };
 
-    const loadChatLogs = async (workflow: Workflow | null) => {
+    const loadExecutorLogs = async (workflow: Workflow | null) => {
         if (workflow) {
             try {
-                setChatLoading(true);
+                setExecutorLoading(true);
                 setError(null);
                 const workflowName = workflow.filename.replace('.json', '');
                 const logs = await getWorkflowIOLogs(workflowName, workflow.workflow_id);
@@ -63,7 +63,7 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                 setError("실행 로그를 불러오는데 실패했습니다.");
                 setIOLogs([]);
             } finally {
-                setChatLoading(false);
+                setExecutorLoading(false);
             }
         } else {
             setIOLogs([]);
@@ -81,7 +81,6 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
         }
         setError(null);
         setExecuting(true);
-        // 임시 메시지 추가
         const tempId = `pending-${Date.now()}`;
         setPendingLogId(tempId);
         setIOLogs((prev) => [
@@ -99,7 +98,6 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
         try {
             const workflowName = selectedWorkflow.filename.replace('.json', '');
             const result: any = await executeWorkflowById(workflowName, selectedWorkflow.workflow_id, inputMessage);
-            // 임시 메시지의 output_data를 응답으로 교체
             setIOLogs((prev) => prev.map(log =>
                 String(log.log_id) === tempId
                     ? { ...log, output_data: result.outputs ? JSON.stringify(result.outputs) : (result.message || '성공'), updated_at: new Date().toISOString() }
@@ -127,20 +125,20 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
 
     return (
         <>
-            <div className={styles.performancePanel}>
+            <div className={styles.executorPanel}>
                 {!selectedWorkflow ? (
                     <div className={styles.placeholder}>
                         <h3>워크플로우를 선택하세요</h3>
                         <p>왼쪽에서 워크플로우를 선택하면 실행 로그와 채팅 인터페이스가 표시됩니다.</p>
                     </div>
-                ) : chatLoading ? (
-                    <div className={styles.performanceLoading}>
+                ) : executorLoading ? (
+                    <div className={styles.executorLoading}>
                         <div className={styles.loadingSpinner}></div>
                         <span>실행 로그를 불러오는 중...</span>
                     </div>
                 ) : (
-                    <div className={styles.performanceData}>
-                        <div className={styles.performanceHeader}>
+                    <div className={styles.executorData}>
+                        <div className={styles.executorHeader}>
                             <h3>{selectedWorkflow.filename.replace('.json', '')} 실행 로그</h3>
                             <div className={styles.logCount}>
                                 <FiMessageSquare />
@@ -148,20 +146,20 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                             </div>
                         </div>
 
-                        <div className={styles.chatContainer}>
+                        <div className={styles.executorContainer}>
                             <div
-                                ref={chatMessagesRef}
-                                className={styles.chatMessages}
+                                ref={executorMessagesRef}
+                                className={styles.executorMessages}
                             >
                                 {ioLogs.length === 0 ? (
-                                    <div className={styles.emptyChatState}>
+                                    <div className={styles.emptyexecutorState}>
                                         <FiClock className={styles.emptyIcon} />
                                         <p>아직 실행 기록이 없습니다.</p>
                                         <p>워크플로우를 실행해보세요.</p>
                                     </div>
                                 ) : (
                                     ioLogs.map((log) => (
-                                        <div key={log.log_id} className={styles.chatExchange}>
+                                        <div key={log.log_id} className={styles.executorExchange}>
                                             <div className={styles.userMessage}>
                                                 <div className={styles.messageContent}>
                                                     {log.input_data}
@@ -184,7 +182,7 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                                 )}
                             </div>
 
-                            <div className={styles.chatInputArea}>
+                            <div className={styles.executorInputArea}>
                                 <div className={styles.inputContainer}>
                                     <input
                                         type="text"
@@ -193,7 +191,7 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                                         onChange={(e) => setInputMessage(e.target.value)}
                                         onKeyPress={handleKeyPress}
                                         disabled={executing}
-                                        className={styles.chatInput}
+                                        className={styles.executorInput}
                                     />
                                     <button
                                         onClick={executeWorkflow}
