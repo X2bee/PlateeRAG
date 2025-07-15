@@ -14,6 +14,10 @@ jobs:
       matrix:
         node-version: [18.x, 20.x, 22.x, 24.x]
 
+    defaults:
+      run:
+        working-directory: ./
+
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
