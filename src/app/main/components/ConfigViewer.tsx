@@ -15,7 +15,7 @@ interface ConfigItem {
     type: string;
 }
 
-type CategoryType = 'database' | 'openai' | 'app' | 'workflow' | 'node' | 'other';
+type CategoryType = 'database' | 'openai' | 'app' | 'workflow' | 'node' | 'vectordb' | 'other';
 
 interface ConfigViewerProps {
     onNavigateToSettings?: () => void;
@@ -81,6 +81,7 @@ const ConfigViewer: React.FC<ConfigViewerProps> = ({ onNavigateToSettings }) => 
         if (path.startsWith('app.')) return 'app';
         if (path.startsWith('workflow.')) return 'workflow';
         if (path.startsWith('node.')) return 'node';
+        if (path.startsWith('vectordb.')) return 'vectordb';
         return 'other';
     };
 
@@ -91,6 +92,7 @@ const ConfigViewer: React.FC<ConfigViewerProps> = ({ onNavigateToSettings }) => 
             case 'app': return <FiServer />;
             case 'workflow': return <FiLayers />;
             case 'node': return <FiCpu />;
+            case 'vectordb': return <FiDatabase />;
             default: return <FiSettings />;
         }
     };
@@ -102,6 +104,7 @@ const ConfigViewer: React.FC<ConfigViewerProps> = ({ onNavigateToSettings }) => 
             case 'app': return '#0078d4';
             case 'workflow': return '#ff6b35';
             case 'node': return '#6366f1';
+            case 'vectordb': return '#6b7280';
             default: return '#6b7280';
         }
     };
@@ -113,6 +116,7 @@ const ConfigViewer: React.FC<ConfigViewerProps> = ({ onNavigateToSettings }) => 
             case 'app': return '애플리케이션';
             case 'workflow': return '워크플로우';
             case 'node': return '노드';
+            case 'vectordb': return '벡터 데이터베이스';
             default: return '기타';
         }
     };
@@ -338,7 +342,7 @@ const ConfigViewer: React.FC<ConfigViewerProps> = ({ onNavigateToSettings }) => 
                 >
                     전체 ({stats.total})
                 </button>
-                {(['database', 'openai', 'app', 'workflow', 'node'] as CategoryType[]).map(category => (
+                {(['database', 'openai', 'app', 'workflow', 'node', 'vectordb'] as CategoryType[]).map(category => (
                     stats[category] > 0 && (
                         <button
                             key={category}
