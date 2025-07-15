@@ -1,16 +1,29 @@
-"use client";
-import React, { useState } from "react";
-import { FiChevronRight, FiSettings, FiCheck, FiX, FiArrowLeft, FiDatabase } from "react-icons/fi";
-import { SiOpenai } from "react-icons/si";
-import { BsGear } from "react-icons/bs"; // Workflow 아이콘으로 사용
-import { testConnection, updateConfig, refreshConfigs, saveConfigs, fetchAllConfigs } from "@/app/api/configAPI";
-import { devLog } from "@/app/utils/logger";
-import styles from "@/app/main/assets/Settings.module.scss";
+'use client';
+import React, { useState } from 'react';
+import {
+    FiChevronRight,
+    FiSettings,
+    FiCheck,
+    FiX,
+    FiArrowLeft,
+    FiDatabase,
+} from 'react-icons/fi';
+import { SiOpenai } from 'react-icons/si';
+import { BsGear } from 'react-icons/bs'; // Workflow 아이콘으로 사용
+import {
+    testConnection,
+    updateConfig,
+    refreshConfigs,
+    saveConfigs,
+    fetchAllConfigs,
+} from '@/app/api/configAPI';
+import { devLog } from '@/app/utils/logger';
+import styles from '@/app/main/assets/Settings.module.scss';
 
 // Import config components
-import OpenAIConfig from "@/app/main/components/config/openAIConfig";
-import WorkflowConfig from "@/app/main/components/config/workflowConfig";
-import DatabaseConfig from "@/app/main/components/config/databaseConfig";
+import OpenAIConfig from '@/app/main/components/config/openAIConfig';
+import WorkflowConfig from '@/app/main/components/config/workflowConfig';
+import DatabaseConfig from '@/app/main/components/config/databaseConfig';
 
 interface ConfigItem {
     env_name: string;
@@ -26,7 +39,7 @@ interface ToolCategory {
     description: string;
     icon: React.ReactNode;
     color: string;
-    status: "connected" | "disconnected" | "error";
+    status: 'connected' | 'disconnected' | 'error';
 }
 
 interface ApiConfig {
@@ -39,8 +52,10 @@ interface ApiConfig {
 }
 
 const Settings: React.FC = () => {
-    const [currentView, setCurrentView] = useState<"list" | "detail">("list");
-    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [currentView, setCurrentView] = useState<'list' | 'detail'>('list');
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(
+        null,
+    );
     const [configs, setConfigs] = useState<Record<string, ApiConfig>>({});
     const [configData, setConfigData] = useState<ConfigItem[]>([]);
     const [loading, setLoading] = useState(false);
@@ -57,7 +72,7 @@ const Settings: React.FC = () => {
                 devLog.error('Failed to load saved configs:', error);
             }
         }
-        
+
         // Fetch config data from backend
         fetchConfigData();
     }, []);
@@ -69,14 +84,19 @@ const Settings: React.FC = () => {
             const data = await fetchAllConfigs();
             devLog.info('Fetched config data:', data);
 
-            if (data && (data as any).persistent_summary && (data as any).persistent_summary.configs) {
+            if (
+                data &&
+                (data as any).persistent_summary &&
+                (data as any).persistent_summary.configs
+            ) {
                 setConfigData((data as any).persistent_summary.configs);
             } else {
                 setConfigData([]);
                 devLog.warn('Unexpected data structure:', data);
             }
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류';
+            const errorMessage =
+                err instanceof Error ? err.message : '알 수 없는 오류';
             setError(`설정 정보를 불러오는데 실패했습니다: ${errorMessage}`);
         } finally {
             setLoading(false);
@@ -97,58 +117,66 @@ const Settings: React.FC = () => {
 
     const toolCategories: ToolCategory[] = [
         {
-            id: "openai",
-            name: "OpenAI",
-            description: "GPT-4, GPT-3.5, DALL-E 등 OpenAI 서비스",
+            id: 'openai',
+            name: 'OpenAI',
+            description: 'GPT-4, GPT-3.5, DALL-E 등 OpenAI 서비스',
             icon: <SiOpenai />,
-            color: "#10a37f",
-            status: configs.openai?.apiKey ? "connected" : "disconnected"
+            color: '#10a37f',
+            status: configs.openai?.apiKey ? 'connected' : 'disconnected',
         },
         {
-            id: "workflow",
-            name: "워크플로우",
-            description: "워크플로우 실행 및 관리 설정",
+            id: 'workflow',
+            name: '워크플로우',
+            description: '워크플로우 실행 및 관리 설정',
             icon: <BsGear />,
-            color: "#4f46e5",
-            status: "connected"
+            color: '#4f46e5',
+            status: 'connected',
         },
         {
-            id: "database",
-            name: "데이터베이스",
-            description: "PostgreSQL, SQLite 등 데이터베이스 연결 설정",
+            id: 'database',
+            name: '데이터베이스',
+            description: 'PostgreSQL, SQLite 등 데이터베이스 연결 설정',
             icon: <FiDatabase />,
-            color: "#059669",
-            status: "connected"
-        }
+            color: '#059669',
+            status: 'connected',
+        },
     ];
 
     const handleCategoryClick = (categoryId: string) => {
         setSelectedCategory(categoryId);
-        setCurrentView("detail");
+        setCurrentView('detail');
     };
 
     const handleBackToList = () => {
-        setCurrentView("list");
+        setCurrentView('list');
         setSelectedCategory(null);
     };
 
-    const handleConfigChange = (categoryId: string, field: string, value: string | number) => {
-        setConfigs(prev => ({
+    const handleConfigChange = (
+        categoryId: string,
+        field: string,
+        value: string | number,
+    ) => {
+        setConfigs((prev) => ({
             ...prev,
             [categoryId]: {
                 ...prev[categoryId],
-                [field]: value
-            }
+                [field]: value,
+            },
         }));
     };
 
     const handleTestConnection = async (categoryId: string) => {
         try {
-            devLog.info(`Testing connection for ${categoryId}`, configs[categoryId]);
+            devLog.info(
+                `Testing connection for ${categoryId}`,
+                configs[categoryId],
+            );
             const result = await testConnection(categoryId);
             alert(`${categoryId} 연결 테스트 성공: ${JSON.stringify(result)}`);
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            const errorMessage =
+                error instanceof Error ? error.message : '알 수 없는 오류';
             alert(`${categoryId} 연결 테스트 실패: ${errorMessage}`);
             devLog.error('Connection test failed:', error);
         }
@@ -158,7 +186,7 @@ const Settings: React.FC = () => {
         const config = configs[categoryId] || {};
 
         switch (categoryId) {
-            case "openai":
+            case 'openai':
                 return !!config.apiKey;
             default:
                 return false;
@@ -197,11 +225,11 @@ const Settings: React.FC = () => {
 
     const renderConfigForm = (categoryId: string) => {
         switch (categoryId) {
-            case "openai":
+            case 'openai':
                 return renderOpenAIConfig();
-            case "workflow":
+            case 'workflow':
                 return renderWorkflowConfig();
-            case "database":
+            case 'database':
                 return renderDatabaseConfig();
             default:
                 return <p>설정 폼을 준비 중입니다.</p>;
@@ -209,14 +237,14 @@ const Settings: React.FC = () => {
     };
 
     const getCurrentCategory = () => {
-        return toolCategories.find(cat => cat.id === selectedCategory);
+        return toolCategories.find((cat) => cat.id === selectedCategory);
     };
 
     const getStatusIcon = (status: string) => {
         switch (status) {
-            case "connected":
+            case 'connected':
                 return <FiCheck className={styles.statusConnected} />;
-            case "error":
+            case 'error':
                 return <FiX className={styles.statusError} />;
             default:
                 return null;
@@ -225,18 +253,18 @@ const Settings: React.FC = () => {
 
     const getStatusText = (status: string) => {
         switch (status) {
-            case "connected":
-                return "연결됨";
-            case "error":
-                return "오류";
+            case 'connected':
+                return '연결됨';
+            case 'error':
+                return '오류';
             default:
-                return "연결 안됨";
+                return '연결 안됨';
         }
     };
 
     return (
         <div className={styles.container}>
-            {currentView === "list" ? (
+            {currentView === 'list' ? (
                 // Settings List View
                 <>
                     {/* Header */}
@@ -250,10 +278,15 @@ const Settings: React.FC = () => {
                     {/* Categories Grid */}
                     <div className={styles.categoriesGrid}>
                         {toolCategories.map((category) => (
-                            <div key={category.id} className={styles.categoryWrapper}>
+                            <div
+                                key={category.id}
+                                className={styles.categoryWrapper}
+                            >
                                 <div
                                     className={styles.categoryCard}
-                                    onClick={() => handleCategoryClick(category.id)}
+                                    onClick={() =>
+                                        handleCategoryClick(category.id)
+                                    }
                                 >
                                     <div className={styles.categoryHeader}>
                                         <div
@@ -271,7 +304,9 @@ const Settings: React.FC = () => {
                                             <span className={styles.statusText}>
                                                 {getStatusText(category.status)}
                                             </span>
-                                            <FiChevronRight className={styles.chevron} />
+                                            <FiChevronRight
+                                                className={styles.chevron}
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -296,13 +331,19 @@ const Settings: React.FC = () => {
                                 <div className={styles.detailTitle}>
                                     <div
                                         className={styles.detailIcon}
-                                        style={{ color: getCurrentCategory()?.color }}
+                                        style={{
+                                            color: getCurrentCategory()?.color,
+                                        }}
                                     >
                                         {getCurrentCategory()?.icon}
                                     </div>
                                     <div>
-                                        <h2>{getCurrentCategory()?.name} 설정</h2>
-                                        <p>{getCurrentCategory()?.description}</p>
+                                        <h2>
+                                            {getCurrentCategory()?.name} 설정
+                                        </h2>
+                                        <p>
+                                            {getCurrentCategory()?.description}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -317,7 +358,7 @@ const Settings: React.FC = () => {
                             ) : error ? (
                                 <div className={styles.errorState}>
                                     <p>오류: {error}</p>
-                                    <button 
+                                    <button
                                         onClick={fetchConfigData}
                                         className={`${styles.button} ${styles.secondary}`}
                                     >
@@ -337,7 +378,7 @@ const Settings: React.FC = () => {
 
 // TODO: 백엔드 API 연동 현황
 // ✅ updateConfig API 연동 완료 - 개별 설정값 업데이트
-// ✅ fetchAllConfigs API 연동 완료 - 모든 설정 정보 조회  
+// ✅ fetchAllConfigs API 연동 완료 - 모든 설정 정보 조회
 // ✅ saveConfigs API 연동 완료 - 모든 설정 저장
 // ✅ refreshConfigs API 연동 완료 - 설정 새로고침
 // ⏳ testConnection - 임시 더미 함수로 구현 (백엔드 엔드포인트 추가 필요)

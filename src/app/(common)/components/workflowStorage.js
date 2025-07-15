@@ -10,7 +10,7 @@ const DEFAULT_WORKFLOW_NAME = 'Workflow';
  */
 export const getWorkflowName = () => {
     if (typeof window === 'undefined') return DEFAULT_WORKFLOW_NAME;
-    
+
     try {
         const savedName = localStorage.getItem(WORKFLOW_NAME_KEY);
         return savedName || DEFAULT_WORKFLOW_NAME;
@@ -26,7 +26,7 @@ export const getWorkflowName = () => {
  */
 export const saveWorkflowName = (name) => {
     if (typeof window === 'undefined') return;
-    
+
     try {
         const trimmedName = name.trim();
         const nameToSave = trimmedName || DEFAULT_WORKFLOW_NAME;
@@ -41,7 +41,7 @@ export const saveWorkflowName = (name) => {
  */
 export const resetWorkflowName = () => {
     if (typeof window === 'undefined') return;
-    
+
     try {
         localStorage.removeItem(WORKFLOW_NAME_KEY);
     } catch (error) {
@@ -55,17 +55,26 @@ export const resetWorkflowName = () => {
  */
 export const getWorkflowState = () => {
     if (typeof window === 'undefined') return null;
-    
+
     try {
         const savedState = localStorage.getItem(WORKFLOW_STATE_KEY);
-        devLog.log('getWorkflowState: Retrieved from localStorage:', savedState ? 'data found' : 'no data');
-        
+        devLog.log(
+            'getWorkflowState: Retrieved from localStorage:',
+            savedState ? 'data found' : 'no data',
+        );
+
         if (savedState) {
             const parsedState = JSON.parse(savedState);
-            devLog.log('getWorkflowState: Found', parsedState.nodes?.length || 0, 'nodes and', parsedState.edges?.length || 0, 'edges');
+            devLog.log(
+                'getWorkflowState: Found',
+                parsedState.nodes?.length || 0,
+                'nodes and',
+                parsedState.edges?.length || 0,
+                'edges',
+            );
             return parsedState;
         }
-        
+
         return null;
     } catch (error) {
         devLog.warn('Failed to get workflow state from localStorage:', error);
@@ -79,22 +88,27 @@ export const getWorkflowState = () => {
  */
 export const saveWorkflowState = (state) => {
     if (typeof window === 'undefined') return;
-    
+
     try {
         // 상태가 없으면 저장하지 않음
         if (!state) {
             devLog.log('saveWorkflowState: No state provided, skipping save');
             return;
         }
-        
-        devLog.log('saveWorkflowState: Saving state with', state.nodes?.length || 0, 'nodes and', state.edges?.length || 0, 'edges');
-        
+
+        devLog.log(
+            'saveWorkflowState: Saving state with',
+            state.nodes?.length || 0,
+            'nodes and',
+            state.edges?.length || 0,
+            'edges',
+        );
+
         // 상태를 JSON 문자열로 저장 (view 정보도 포함)
         const stateJson = JSON.stringify(state);
         localStorage.setItem(WORKFLOW_STATE_KEY, stateJson);
-        
+
         devLog.log('saveWorkflowState: Successfully saved to localStorage');
-        
     } catch (error) {
         devLog.warn('Failed to save workflow state to localStorage:', error);
     }
@@ -105,7 +119,7 @@ export const saveWorkflowState = (state) => {
  */
 export const clearWorkflowState = () => {
     if (typeof window === 'undefined') return;
-    
+
     try {
         localStorage.removeItem(WORKFLOW_STATE_KEY);
     } catch (error) {
@@ -130,12 +144,12 @@ export const startNewWorkflow = () => {
  */
 export const isValidWorkflowState = (state) => {
     if (!state || typeof state !== 'object') return false;
-    
+
     // 필수 속성들이 있는지 확인 (view 정보도 포함)
     return (
         Array.isArray(state.nodes) &&
         Array.isArray(state.edges) &&
-        state.view && 
+        state.view &&
         typeof state.view === 'object'
     );
 };
@@ -147,16 +161,28 @@ export const isValidWorkflowState = (state) => {
  */
 export const ensureValidWorkflowState = (state) => {
     if (!state) return null;
-    
+
     const defaultView = { x: 0, y: 0, scale: 1 };
-    
+
     return {
         nodes: Array.isArray(state.nodes) ? state.nodes : [],
         edges: Array.isArray(state.edges) ? state.edges : [],
-        view: (state.view && typeof state.view === 'object') ? {
-            x: typeof state.view.x === 'number' ? state.view.x : defaultView.x,
-            y: typeof state.view.y === 'number' ? state.view.y : defaultView.y,
-            scale: typeof state.view.scale === 'number' ? state.view.scale : defaultView.scale
-        } : defaultView
+        view:
+            state.view && typeof state.view === 'object'
+                ? {
+                      x:
+                          typeof state.view.x === 'number'
+                              ? state.view.x
+                              : defaultView.x,
+                      y:
+                          typeof state.view.y === 'number'
+                              ? state.view.y
+                              : defaultView.y,
+                      scale:
+                          typeof state.view.scale === 'number'
+                              ? state.view.scale
+                              : defaultView.scale,
+                  }
+                : defaultView,
     };
 };

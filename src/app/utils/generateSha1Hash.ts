@@ -1,4 +1,4 @@
-import { BinaryLike, createHash } from "crypto";
+import { BinaryLike, createHash } from 'crypto';
 
 export function generateSha1Hash(data: BinaryLike) {
     const hash = createHash('sha1');
@@ -27,8 +27,8 @@ export function generateWorkflowHash(canvasState: any) {
         view: undefined, // view 제거
         nodes: canvasState.nodes?.map((node: any) => ({
             ...node,
-            position: undefined // position 제거
-        }))
+            position: undefined, // position 제거
+        })),
     };
 
     return generateSha1Hash(JSON.stringify(normalizedForHash));

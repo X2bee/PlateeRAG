@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { FiEdit3, FiCheck, FiX } from "react-icons/fi";
-import { updateConfig } from "@/app/api/configAPI";
-import { devLog } from "@/app/utils/logger";
-import styles from "@/app/main/assets/Settings.module.scss";
+import React, { useState, useEffect } from 'react';
+import { FiEdit3, FiCheck, FiX } from 'react-icons/fi';
+import { updateConfig } from '@/app/api/configAPI';
+import { devLog } from '@/app/utils/logger';
+import styles from '@/app/main/assets/Settings.module.scss';
 
 export interface ConfigItem {
     env_name: string;
@@ -38,8 +38,8 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
     fieldConfigs,
     filterPrefix,
     onTestConnection,
-    testConnectionLabel = "연결 테스트",
-    testConnectionCategory = "default"
+    testConnectionLabel = '연결 테스트',
+    testConnectionCategory = 'default',
 }) => {
     const [localConfig, setLocalConfig] = useState<Record<string, any>>({});
     const [editingConfig, setEditingConfig] = useState<string | null>(null);
@@ -47,26 +47,32 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
     const [updating, setUpdating] = useState<Record<string, boolean>>({});
 
     // configData에서 관련 설정들을 추출 (filterPrefix가 있으면 필터링)
-    const filteredConfigs = filterPrefix 
-        ? configData.filter(item => 
-            item.config_path.startsWith(filterPrefix) || 
-            item.env_name.startsWith(filterPrefix)
+    const filteredConfigs = filterPrefix
+        ? configData.filter(
+              (item) =>
+                  item.config_path.startsWith(filterPrefix) ||
+                  item.env_name.startsWith(filterPrefix),
           )
         : configData;
 
     // 중복 키 제거 (env_name 기준으로 중복 제거)
-    const uniqueConfigs = filteredConfigs.reduce((acc: ConfigItem[], current) => {
-        const existing = acc.find(item => item.env_name === current.env_name);
-        if (!existing) {
-            acc.push(current);
-        }
-        return acc;
-    }, []);
+    const uniqueConfigs = filteredConfigs.reduce(
+        (acc: ConfigItem[], current) => {
+            const existing = acc.find(
+                (item) => item.env_name === current.env_name,
+            );
+            if (!existing) {
+                acc.push(current);
+            }
+            return acc;
+        },
+        [],
+    );
 
     useEffect(() => {
         // configData에서 현재 값들을 localConfig에 설정
         const newLocalConfig: Record<string, any> = {};
-        uniqueConfigs.forEach(item => {
+        uniqueConfigs.forEach((item) => {
             newLocalConfig[item.env_name] = item.current_value;
         });
         setLocalConfig(newLocalConfig);
@@ -92,34 +98,66 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
         }
     };
 
-    const validateValue = (value: string, fieldConfig: FieldConfig): { isValid: boolean; parsedValue: any; error?: string } => {
+    const validateValue = (
+        value: string,
+        fieldConfig: FieldConfig,
+    ): { isValid: boolean; parsedValue: any; error?: string } => {
         try {
             switch (fieldConfig.type) {
-                case 'number':
+                case 'number': {
                     const numValue = parseFloat(value);
                     if (isNaN(numValue)) {
-                        return { isValid: false, parsedValue: null, error: 'Invalid number format' };
+                        return {
+                            isValid: false,
+                            parsedValue: null,
+                            error: 'Invalid number format',
+                        };
                     }
-                    if (fieldConfig.min !== undefined && numValue < fieldConfig.min) {
-                        return { isValid: false, parsedValue: null, error: `Value must be at least ${fieldConfig.min}` };
+                    if (
+                        fieldConfig.min !== undefined &&
+                        numValue < fieldConfig.min
+                    ) {
+                        return {
+                            isValid: false,
+                            parsedValue: null,
+                            error: `Value must be at least ${fieldConfig.min}`,
+                        };
                     }
-                    if (fieldConfig.max !== undefined && numValue > fieldConfig.max) {
-                        return { isValid: false, parsedValue: null, error: `Value must be at most ${fieldConfig.max}` };
+                    if (
+                        fieldConfig.max !== undefined &&
+                        numValue > fieldConfig.max
+                    ) {
+                        return {
+                            isValid: false,
+                            parsedValue: null,
+                            error: `Value must be at most ${fieldConfig.max}`,
+                        };
                     }
                     return { isValid: true, parsedValue: numValue };
+                }
 
                 case 'boolean':
                     if (value === 'true' || value === 'false') {
                         return { isValid: true, parsedValue: value === 'true' };
                     }
-                    return { isValid: false, parsedValue: null, error: 'Invalid boolean value' };
+                    return {
+                        isValid: false,
+                        parsedValue: null,
+                        error: 'Invalid boolean value',
+                    };
 
-                case 'select':
-                    const validOptions = fieldConfig.options?.map(opt => opt.value) || [];
+                case 'select': {
+                    const validOptions =
+                        fieldConfig.options?.map((opt) => opt.value) || [];
                     if (!validOptions.includes(value)) {
-                        return { isValid: false, parsedValue: null, error: 'Invalid option selected' };
+                        return {
+                            isValid: false,
+                            parsedValue: null,
+                            error: 'Invalid option selected',
+                        };
                     }
                     return { isValid: true, parsedValue: value };
+                }
 
                 case 'password':
                 case 'text':
@@ -127,7 +165,11 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
                     return { isValid: true, parsedValue: value };
             }
         } catch (error) {
-            return { isValid: false, parsedValue: null, error: 'Invalid value format' };
+            return {
+                isValid: false,
+                parsedValue: null,
+                error: 'Invalid value format',
+            };
         }
     };
 
@@ -142,19 +184,25 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
             return;
         }
 
-        setUpdating(prev => ({ ...prev, [configItem.env_name]: true }));
-        
+        setUpdating((prev) => ({ ...prev, [configItem.env_name]: true }));
+
         try {
             await updateConfig(configItem.env_name, validation.parsedValue);
-            setLocalConfig(prev => ({ ...prev, [configItem.env_name]: validation.parsedValue }));
+            setLocalConfig((prev) => ({
+                ...prev,
+                [configItem.env_name]: validation.parsedValue,
+            }));
             setEditingConfig(null);
             setEditValue('');
-            devLog.info(`Updated ${configItem.env_name}:`, validation.parsedValue);
+            devLog.info(
+                `Updated ${configItem.env_name}:`,
+                validation.parsedValue,
+            );
         } catch (error) {
             devLog.error(`Failed to update ${configItem.env_name}:`, error);
             alert('설정 업데이트에 실패했습니다.');
         } finally {
-            setUpdating(prev => ({ ...prev, [configItem.env_name]: false }));
+            setUpdating((prev) => ({ ...prev, [configItem.env_name]: false }));
         }
     };
 
@@ -162,8 +210,16 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
         if (value === null || value === undefined) return 'N/A';
 
         // 민감한 정보 마스킹 (API 키, 패스워드 등)
-        if (fieldConfig.type === 'password' && typeof value === 'string' && value.length > 8) {
-            return value.substring(0, 8) + '*'.repeat(Math.min(value.length - 8, 20)) + '...';
+        if (
+            fieldConfig.type === 'password' &&
+            typeof value === 'string' &&
+            value.length > 8
+        ) {
+            return (
+                value.substring(0, 8) +
+                '*'.repeat(Math.min(value.length - 8, 20)) +
+                '...'
+            );
         }
 
         // Boolean 값 처리
@@ -180,8 +236,11 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
         }
     };
 
-    const renderEditInput = (configItem: ConfigItem, fieldConfig: FieldConfig) => {
-        if (fieldConfig.type === "select") {
+    const renderEditInput = (
+        configItem: ConfigItem,
+        fieldConfig: FieldConfig,
+    ) => {
+        if (fieldConfig.type === 'select') {
             return (
                 <select
                     value={editValue}
@@ -192,14 +251,16 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
                     className={`${styles.editInput} ${styles.editSelect}`}
                 >
                     <option value="">선택하세요</option>
-                    {fieldConfig.options?.map((option: { value: string; label: string }) => (
-                        <option key={option.value} value={option.value}>
-                            {option.label}
-                        </option>
-                    ))}
+                    {fieldConfig.options?.map(
+                        (option: { value: string; label: string }) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ),
+                    )}
                 </select>
             );
-        } else if (fieldConfig.type === "boolean") {
+        } else if (fieldConfig.type === 'boolean') {
             return (
                 <select
                     value={editValue}
@@ -216,7 +277,11 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
         } else {
             return (
                 <input
-                    type={fieldConfig.type === "password" ? "text" : fieldConfig.type}
+                    type={
+                        fieldConfig.type === 'password'
+                            ? 'text'
+                            : fieldConfig.type
+                    }
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
                     placeholder={fieldConfig.placeholder}
@@ -228,7 +293,10 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
                     autoFocus
                     className={styles.editInput}
                     style={{
-                        fontFamily: fieldConfig.type === 'password' ? "'Courier New', monospace" : "inherit"
+                        fontFamily:
+                            fieldConfig.type === 'password'
+                                ? "'Courier New', monospace"
+                                : 'inherit',
                     }}
                 />
             );
@@ -237,13 +305,14 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
 
     return (
         <div className={styles.configForm}>
-            {uniqueConfigs.map(configItem => {
+            {uniqueConfigs.map((configItem) => {
                 const fieldConfig = fieldConfigs[configItem.env_name];
                 if (!fieldConfig) return null;
 
-                const currentValue = localConfig[configItem.env_name] !== undefined 
-                    ? localConfig[configItem.env_name] 
-                    : configItem.current_value;
+                const currentValue =
+                    localConfig[configItem.env_name] !== undefined
+                        ? localConfig[configItem.env_name]
+                        : configItem.current_value;
 
                 const isEditing = editingConfig === configItem.env_name;
 
@@ -252,7 +321,9 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
                         <div className={styles.configHeader}>
                             <label>
                                 {fieldConfig.label}
-                                {fieldConfig.required && <span className={styles.required}>*</span>}
+                                {fieldConfig.required && (
+                                    <span className={styles.required}>*</span>
+                                )}
                             </label>
                         </div>
 
@@ -260,12 +331,16 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
                             {isEditing ? (
                                 <div className={styles.editContainer}>
                                     {renderEditInput(configItem, fieldConfig)}
-                                    
+
                                     <div className={styles.editButtons}>
                                         <button
-                                            onClick={() => handleEditSave(configItem)}
+                                            onClick={() =>
+                                                handleEditSave(configItem)
+                                            }
                                             className={`${styles.editButton} ${styles.saveButton}`}
-                                            disabled={updating[configItem.env_name]}
+                                            disabled={
+                                                updating[configItem.env_name]
+                                            }
                                             title="저장"
                                         >
                                             <FiCheck />
@@ -273,7 +348,9 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
                                         <button
                                             onClick={handleEditCancel}
                                             className={`${styles.editButton} ${styles.cancelButton}`}
-                                            disabled={updating[configItem.env_name]}
+                                            disabled={
+                                                updating[configItem.env_name]
+                                            }
                                             title="취소"
                                         >
                                             <FiX />
@@ -283,18 +360,27 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
                             ) : (
                                 <div className={styles.editContainer}>
                                     <div className={styles.valueDisplay}>
-                                        <span 
+                                        <span
                                             className={styles.currentValue}
                                             style={{
-                                                fontFamily: fieldConfig.type === 'password' ? "'Courier New', monospace" : "inherit"
+                                                fontFamily:
+                                                    fieldConfig.type ===
+                                                    'password'
+                                                        ? "'Courier New', monospace"
+                                                        : 'inherit',
                                             }}
                                         >
-                                            {formatValue(currentValue, fieldConfig)}
+                                            {formatValue(
+                                                currentValue,
+                                                fieldConfig,
+                                            )}
                                         </span>
                                     </div>
                                     <div className={styles.editButtons}>
                                         <button
-                                            onClick={() => handleEditStart(configItem)}
+                                            onClick={() =>
+                                                handleEditStart(configItem)
+                                            }
                                             className={styles.editButton}
                                             title="편집"
                                         >
@@ -304,31 +390,41 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
                                 </div>
                             )}
                         </div>
-                        
+
                         <small className={styles.fieldDescription}>
                             {fieldConfig.description}
                             <br />
                             <span className={styles.configPath}>
-                                환경변수: {configItem.env_name} | 설정경로: {configItem.config_path}
+                                환경변수: {configItem.env_name} | 설정경로:{' '}
+                                {configItem.config_path}
                             </span>
                             {!configItem.is_saved && (
-                                <span className={styles.unsaved}> (저장되지 않음)</span>
+                                <span className={styles.unsaved}>
+                                    {' '}
+                                    (저장되지 않음)
+                                </span>
                             )}
                             {updating[configItem.env_name] && (
-                                <span className={styles.saving}> (저장 중...)</span>
+                                <span className={styles.saving}>
+                                    {' '}
+                                    (저장 중...)
+                                </span>
                             )}
                         </small>
                     </div>
                 );
             })}
-            
+
             {/* Test Connection Button */}
             {uniqueConfigs.length > 0 && onTestConnection && (
-                <div className={styles.formActions} style={{ marginTop: '1rem' }}>
+                <div
+                    className={styles.formActions}
+                    style={{ marginTop: '1rem' }}
+                >
                     <button
                         onClick={handleTest}
                         className={`${styles.button} ${styles.test}`}
-                        disabled={!uniqueConfigs.some(c => c.is_saved)}
+                        disabled={!uniqueConfigs.some((c) => c.is_saved)}
                     >
                         {testConnectionLabel}
                     </button>

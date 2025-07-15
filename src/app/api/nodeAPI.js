@@ -11,12 +11,14 @@ export const getNodes = async () => {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
         }
 
         return await response.json();
     } catch (error) {
-        devLog.error("Failed to get nodes:", error);
+        devLog.error('Failed to get nodes:', error);
         throw error; // 에러를 호출한 쪽으로 다시 던져서 UI에서 처리할 수 있도록 합니다.
     }
 };
@@ -32,13 +34,15 @@ export const exportNodes = async () => {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
         }
-        
+
         // export 후, 최신 노드 리스트를 다시 불러옵니다.
         return await getNodes();
     } catch (error) {
-        devLog.error("Failed to export nodes:", error);
+        devLog.error('Failed to export nodes:', error);
         throw error;
     }
 };

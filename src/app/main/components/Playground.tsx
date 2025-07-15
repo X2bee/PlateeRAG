@@ -1,11 +1,11 @@
-"use client";
-import React, { useState, useEffect, useRef } from "react";
-import { FiRefreshCw } from "react-icons/fi";
-import { listWorkflowsDetail } from "@/app/api/workflowAPI";
-import styles from "@/app/main/assets/Playground.module.scss";
-import Executor from "@/app/main/components/Executor";
-import Monitor from "@/app/main/components/Monitor";
-import { useSearchParams } from "next/navigation";
+'use client';
+import React, { useState, useEffect, useRef } from 'react';
+import { FiRefreshCw } from 'react-icons/fi';
+import { listWorkflowsDetail } from '@/app/api/workflowAPI';
+import styles from '@/app/main/assets/Playground.module.scss';
+import Executor from '@/app/main/components/Executor';
+import Monitor from '@/app/main/components/Monitor';
+import { useSearchParams } from 'next/navigation';
 
 interface PlaygroundProps {
     activeTab: 'executor' | 'monitoring';
@@ -29,13 +29,12 @@ interface IOLog {
     updated_at: string;
 }
 
-const Playground: React.FC<PlaygroundProps> = ({
-    activeTab,
-    onTabChange
-}) => {
+const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
     const searchParams = useSearchParams();
     const [workflows, setWorkflows] = useState<Workflow[]>([]);
-    const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
+    const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(
+        null,
+    );
     const [workflowListLoading, setWorkflowListLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -47,14 +46,15 @@ const Playground: React.FC<PlaygroundProps> = ({
         // Check for workflowName and workflowId in URL params
         const workflowName = searchParams.get('workflowName');
         const workflowId = searchParams.get('workflowId');
-        
+
         if (workflowName && workflowId && workflows.length > 0) {
             // Find the workflow in the loaded list
-            const workflow = workflows.find(w => 
-                w.filename.replace('.json', '') === workflowName && 
-                w.workflow_id === workflowId
+            const workflow = workflows.find(
+                (w) =>
+                    w.filename.replace('.json', '') === workflowName &&
+                    w.workflow_id === workflowId,
             );
-            
+
             if (workflow) {
                 setSelectedWorkflow(workflow);
                 // Switch to executor tab if not already active
@@ -62,7 +62,9 @@ const Playground: React.FC<PlaygroundProps> = ({
                     onTabChange('executor');
                 }
             } else {
-                console.log(`Workflow not found with name=${workflowName} and id=${workflowId}`);
+                console.log(
+                    `Workflow not found with name=${workflowName} and id=${workflowId}`,
+                );
             }
         }
     }, [workflows, searchParams, activeTab, onTabChange]);
@@ -75,7 +77,7 @@ const Playground: React.FC<PlaygroundProps> = ({
             setWorkflows(workflowList as Workflow[]);
             setSelectedWorkflow(null);
         } catch (err) {
-            setError("워크플로우 목록을 불러오는데 실패했습니다.");
+            setError('워크플로우 목록을 불러오는데 실패했습니다.');
         } finally {
             setWorkflowListLoading(false);
         }
@@ -85,7 +87,7 @@ const Playground: React.FC<PlaygroundProps> = ({
         try {
             setSelectedWorkflow(workflow);
         } catch (err) {
-            setError("워크플로우 셋팅에 문제가 발생했습니다.");
+            setError('워크플로우 셋팅에 문제가 발생했습니다.');
         } finally {
             setWorkflowListLoading(false);
         }
@@ -131,15 +133,23 @@ const Playground: React.FC<PlaygroundProps> = ({
                                         {workflow.filename.replace('.json', '')}
                                     </div>
                                     <div className={styles.workflowInfo}>
-                                        <span>{workflow.node_count}개 노드</span>
-                                        <span>{formatDate(workflow.last_modified)}</span>
+                                        <span>
+                                            {workflow.node_count}개 노드
+                                        </span>
+                                        <span>
+                                            {formatDate(workflow.last_modified)}
+                                        </span>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>
-                {activeTab === 'executor' ? <Executor workflow={selectedWorkflow} /> : <Monitor workflow={selectedWorkflow} />}
+                {activeTab === 'executor' ? (
+                    <Executor workflow={selectedWorkflow} />
+                ) : (
+                    <Monitor workflow={selectedWorkflow} />
+                )}
             </div>
         </>
     );

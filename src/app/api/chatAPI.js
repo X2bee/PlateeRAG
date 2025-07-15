@@ -7,7 +7,7 @@ export const sendMessage = (message) => {
     return new Promise((resolve) => {
         setTimeout(() => {
             resolve({
-                text: `This is a response to your message: "${message}"`
+                text: `This is a response to your message: "${message}"`,
             });
         }, 1000); // Simulate 1 second delay
     });
