@@ -16,7 +16,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./
+        working-directory: /home/runner/work/PlateeRAG/PlateeRAG/
 
     steps:
       - name: Checkout source code
