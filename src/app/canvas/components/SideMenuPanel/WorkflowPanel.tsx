@@ -8,19 +8,91 @@ import { listWorkflows, loadWorkflow, deleteWorkflow } from '@/app/api/workflowA
 import { getWorkflowState } from '@/app/(common)/components/workflowStorage';
 import { devLog } from '@/app/utils/logger';
 
-const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
-    const [workflows, setWorkflows] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
+// Type definitions
+interface Position {
+    x: number;
+    y: number;
+}
 
-    const fetchWorkflows = async () => {
+interface Port {
+    id: string;
+    name: string;
+    type: string;
+    required?: boolean;
+    multi?: boolean;
+}
+
+interface Parameter {
+    id: string;
+    name: string;
+    value: string | number;
+    type?: string;
+    required?: boolean;
+    optional?: boolean;
+    options?: Array<{ value: string | number; label?: string }>;
+    step?: number;
+    min?: number;
+    max?: number;
+}
+
+interface NodeData {
+    id: string;
+    nodeName: string;
+    functionId?: string;
+    inputs?: Port[];
+    outputs?: Port[];
+    parameters?: Parameter[];
+}
+
+interface CanvasNode {
+    id: string;
+    data: NodeData;
+    position: Position;
+}
+
+interface EdgeConnection {
+    nodeId: string;
+    portId: string;
+    portType: 'input' | 'output';
+}
+
+interface CanvasEdge {
+    id: string;
+    source: EdgeConnection;
+    target: EdgeConnection;
+}
+
+interface WorkflowData {
+    nodes?: CanvasNode[];
+    edges?: CanvasEdge[];
+}
+
+interface WorkflowState {
+    nodes?: CanvasNode[];
+    edges?: CanvasEdge[];
+}
+
+interface WorkflowPanelProps {
+    onBack: () => void;
+    onLoad: () => void;
+    onExport: () => void;
+    onLoadWorkflow: (workflowData: WorkflowData, workflowName?: string) => void;
+}
+
+const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
+    const [workflows, setWorkflows] = useState<string[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchWorkflows = async (): Promise<void> => {
         setIsLoading(true);
         setError(null);
         try {
-            const workflowList = await listWorkflows();
+            const workflowList: string[] = await listWorkflows();
             setWorkflows(workflowList);
         } catch (err) {
-            setError(err.message);
+            const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+            setError(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -30,14 +102,14 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
         fetchWorkflows();
     }, []);
 
-    const handleRefresh = () => {
+    const handleRefresh = (): void => {
         fetchWorkflows();
         toast.success('워크플로우 새로고침 완료!');
     };
 
-    const handleLoadWorkflow = async (filename) => {
-        const currentState = getWorkflowState();
-        const hasCurrentWorkflow = currentState && (currentState.nodes?.length > 0 || currentState.edges?.length > 0);
+    const handleLoadWorkflow = async (filename: string): Promise<void> => {
+        const currentState: WorkflowState | null = getWorkflowState();
+        const hasCurrentWorkflow = currentState && ((currentState.nodes?.length || 0) > 0 || (currentState.edges?.length || 0) > 0);
         
         if (hasCurrentWorkflow) {
             const workflowName = getWorkflowDisplayName(filename);
@@ -115,22 +187,23 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
         }
     };
 
-    const performLoadWorkflow = async (filename) => {
+    const performLoadWorkflow = async (filename: string): Promise<void> => {
         try {
             const workflowId = filename.replace('.json', '');
-            const workflowData = await loadWorkflow(workflowId);
+            const workflowData: WorkflowData = await loadWorkflow(workflowId);
             
             if (onLoadWorkflow) {
-                // 워크플로우 데이터와 함께 워크플로우 이름도 전달
+                // Pass workflow data along with workflow name
                 onLoadWorkflow(workflowData, workflowId);
             }
         } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
             devLog.error("Failed to load workflow:", error);
-            toast.error(`Failed to load workflow: ${error.message}`);
+            toast.error(`Failed to load workflow: ${errorMessage}`);
         }
     };
 
-    const handleDeleteWorkflow = async (filename) => {
+    const handleDeleteWorkflow = async (filename: string): Promise<void> => {
         const workflowName = getWorkflowDisplayName(filename);
         
         const confirmToast = toast(
@@ -203,7 +276,7 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
         );
     };
 
-    const performDelete = async (filename, workflowName) => {
+    const performDelete = async (filename: string, workflowName: string): Promise<void> => {
         const toastId = toast.loading(`Deleting "${workflowName}"...`);
         
         try {
@@ -214,16 +287,17 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
             
             toast.success(`Workflow "${workflowName}" deleted successfully!`, { id: toastId });
         } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
             devLog.error("Failed to delete workflow:", error);
-            toast.error(`Failed to delete workflow: ${error.message}`, { id: toastId });
+            toast.error(`Failed to delete workflow: ${errorMessage}`, { id: toastId });
         }
     };
 
-    const getWorkflowDisplayName = (filename) => {
+    const getWorkflowDisplayName = (filename: string): string => {
         return filename.replace('.json', '');
     };
 
-    const getFileSize = (filename) => {
+    const getFileSize = (filename: string): string => {
         return "Unknown";
     };
 
@@ -287,7 +361,7 @@ const WorkflowPanel = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
 
                 {!isLoading && !error && workflows.length > 0 && (
                     <div className={styles.workflowItems}>
-                        {workflows.map((filename, index) => (
+                        {workflows.map((filename: string, index: number) => (
                             <div key={index} className={styles.workflowItem}>
                                 <div className={styles.workflowInfo}>
                                     <div className={styles.workflowName}>

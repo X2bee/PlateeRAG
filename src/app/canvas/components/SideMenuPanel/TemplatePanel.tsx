@@ -11,21 +11,108 @@ import { devLog } from '@/app/utils/logger';
 import Basic_Chatbot from '@/app/canvas/constants/workflow/Basic_Chatbot.json';
 import Data_Processing from '@/app/canvas/constants/workflow/Data_Processing.json';
 
-const templateList = [Basic_Chatbot, Data_Processing];
+// Type definitions
+interface Position {
+    x: number;
+    y: number;
+}
 
-const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
-    const [templates, setTemplates] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [previewTemplate, setPreviewTemplate] = useState(null);
+interface Port {
+    id: string;
+    name: string;
+    type: string;
+    required?: boolean;
+    multi?: boolean;
+}
+
+interface Parameter {
+    id: string;
+    name: string;
+    value: string | number;
+    type?: string;
+    required?: boolean;
+    optional?: boolean;
+    options?: Array<{ value: string | number; label?: string }>;
+    step?: number;
+    min?: number;
+    max?: number;
+}
+
+interface NodeData {
+    id: string;
+    nodeName: string;
+    functionId?: string;
+    inputs?: Port[];
+    outputs?: Port[];
+    parameters?: Parameter[];
+}
+
+interface CanvasNode {
+    id: string;
+    data: NodeData;
+    position: Position;
+}
+
+interface EdgeConnection {
+    nodeId: string;
+    portId: string;
+    portType: string; // Changed from 'input' | 'output' to string for JSON compatibility
+    type?: string;
+}
+
+interface CanvasEdge {
+    id: string;
+    source: EdgeConnection;
+    target: EdgeConnection;
+}
+
+interface WorkflowData {
+    nodes?: CanvasNode[];
+    edges?: CanvasEdge[];
+}
+
+interface RawTemplate {
+    id: string;
+    name: string;
+    description?: string;
+    tags?: string[];
+    contents?: WorkflowData;
+}
+
+interface Template {
+    id: string;
+    name: string;
+    description: string;
+    tags: string[];
+    nodes: number;
+    data?: WorkflowData;
+}
+
+interface WorkflowState {
+    nodes?: CanvasNode[];
+    edges?: CanvasEdge[];
+}
+
+interface TemplatePanelProps {
+    onBack: () => void;
+    onLoadWorkflow: (workflowData: WorkflowData, templateName?: string) => void;
+}
+
+const templateList: RawTemplate[] = [Basic_Chatbot, Data_Processing];
+
+const TemplatePanel: React.FC<TemplatePanelProps> = ({ onBack, onLoadWorkflow }) => {
+    const [templates, setTemplates] = useState<Template[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
 
     useEffect(() => {
-        const loadTemplates = async () => {
+        const loadTemplates = async (): Promise<void> => {
             try {
                 setIsLoading(true);
 
                 devLog.log('templateList:', templateList);
                 
-                const formattedTemplates = templateList.map(template => ({
+                const formattedTemplates: Template[] = templateList.map((template: RawTemplate) => ({
                     id: template.id,
                     name: template.name,
                     description: template.description || 'No description available',
@@ -46,9 +133,9 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
         loadTemplates();
     }, []);
 
-    const handleUseTemplate = (template) => {
-        const currentState = getWorkflowState();
-        const hasCurrentWorkflow = currentState && (currentState.nodes?.length > 0 || currentState.edges?.length > 0);
+    const handleUseTemplate = (template: Template): void => {
+        const currentState: WorkflowState | null = getWorkflowState();
+        const hasCurrentWorkflow = currentState && ((currentState.nodes?.length || 0) > 0 || (currentState.edges?.length || 0) > 0);
         
         if (hasCurrentWorkflow) {
             const confirmToast = toast(
@@ -124,7 +211,7 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
         }
     };
 
-    const performUseTemplate = (template) => {
+    const performUseTemplate = (template: Template): void => {
         devLog.log('=== TemplatePanel performUseTemplate called ===');
         devLog.log('Template:', template);
         devLog.log('onLoadWorkflow exists:', !!onLoadWorkflow);
@@ -144,15 +231,15 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
         }
     };
 
-    const handlePreviewTemplate = (template) => {
+    const handlePreviewTemplate = (template: Template): void => {
         devLog.log('Previewing template:', template);
         devLog.log('Setting previewTemplate state to:', template);
-        setPreviewTemplate(template); // 미리보기 템플릿 설정
+        setPreviewTemplate(template);
     };
 
-    const handleClosePreview = () => {
+    const handleClosePreview = (): void => {
         devLog.log('Closing preview');
-        setPreviewTemplate(null); // 미리보기 닫기
+        setPreviewTemplate(null);
     };
 
     if (isLoading) {
@@ -190,7 +277,7 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
                 </div>
 
                 <div className={styles.templateList}>
-                    {templates.map(template => (
+                    {templates.map((template: Template) => (
                         <div key={template.id} className={styles.templateItem}>
                             <div className={styles.templateHeader}>
                                 <div className={styles.templateIcon}>
@@ -206,7 +293,7 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
                                     </p>
                                     <div className={styles.templateMeta}>
                                         <div className={styles.templateTags}>
-                                            {template.tags && template.tags.slice(0, 2).map(tag => (
+                                            {template.tags && template.tags.slice(0, 2).map((tag: string) => (
                                                 <span key={tag} className={styles.templateCategory}>
                                                     {tag}
                                                 </span>
@@ -242,7 +329,7 @@ const TemplatePanel = ({ onBack, onLoadWorkflow }) => {
                 </div>
             </div>
 
-            {/* 템플릿 미리보기 팝업 */}
+            {/* Template preview popup */}
             {previewTemplate && (
                 <TemplatePreview
                     template={previewTemplate}

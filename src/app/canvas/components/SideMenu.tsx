@@ -15,7 +15,7 @@ interface MainMenuProps {
 }
 
 interface SideMenuProps {
-    menuRef: RefObject<HTMLElement>;
+    menuRef: RefObject<HTMLElement | null>;
     onLoad: () => void;
     onExport: () => void;
     onLoadWorkflow: (workflowData: any) => void;
