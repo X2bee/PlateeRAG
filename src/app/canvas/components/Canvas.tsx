@@ -544,8 +544,10 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
                     }
                 });
 
-                if (closestPortKey) {
-                    const parts = closestPortKey.split('__PORTKEYDELIM__');
+                if (closestPortKey && typeof closestPortKey === 'string') {
+                    // TypeScript sometimes infers never, so force string
+                    const keyStr: string = closestPortKey as string;
+                    const parts = keyStr.split('__PORTKEYDELIM__');
                     const targetPort = findPortData(parts[0], parts[1], parts[2]);
                     const isValid = targetPort ? areTypesCompatible(edgeSource.type, targetPort.type) : false;
                     setIsSnapTargetValid(isValid);
@@ -863,7 +865,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
                         snappedPortKey={snappedPortKey}
                         onParameterChange={handleParameterChange}
                         onNodeNameChange={handleNodeNameChange}
-                        isSnapTargetInvalid={snappedPortKey?.startsWith(node.id) && !isSnapTargetValid}
+                        isSnapTargetInvalid={Boolean(snappedPortKey?.startsWith(node.id) && !isSnapTargetValid)}
                         onClearSelection={() => setSelectedNodeId(null)}
                     />
                 ))}
