@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FiRefreshCw } from "react-icons/fi";
 import { listWorkflowsDetail } from "@/app/api/workflowAPI";
-import styles from "@/app/main/assets/Executor.module.scss";
+import styles from "@/app/main/assets/Playground.module.scss";
 import Executor from "@/app/main/components/Executor";
 import Monitor from "@/app/main/components/Monitor";
 

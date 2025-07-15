@@ -1,0 +1,187 @@
+.monitoringContainer {
+    display: flex;
+    height: 100%;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+}
+
+.workflowList {
+    flex: 0 0 350px;
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+}
+
+.workflowListHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+
+    h3 {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+}
+
+.workflowRefreshButton {
+    background: transparent;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: #6c757d;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+
+    &:hover:not(:disabled) {
+        background: #f8f9fa;
+        border-color: #007bff;
+        color: #007bff;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+.workflowItems {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.workflowLoading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+    gap: 1rem;
+
+    span {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+}
+
+.loadingSpinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e9ecef;
+    border-top: 3px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.emptyState {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+    font-style: italic;
+    text-align: center;
+    border: 2px dashed #e9ecef;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.workflowItem {
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fff;
+
+    &:hover {
+        border-color: #007bff;
+        background: #f8f9fa;
+    }
+
+    &.selected {
+        border-color: #007bff;
+        background: #e3f2fd;
+        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+    }
+}
+
+.workflowName {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.workflowInfo {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #6c757d;
+
+    span {
+        &:first-child {
+            color: #28a745;
+            font-weight: 500;
+        }
+    }
+}
+
+@keyframes pulse {
+    from { opacity: 0.6; }
+    to { opacity: 1; }
+}
+
+// 반응형 디자인
+@media (max-width: 768px) {
+    .monitoringContainer {
+        flex-direction: column;
+        padding: 0.5rem;
+        gap: 0.5rem;
+    }
+
+    .workflowList {
+        flex: 0 0 auto;
+        height: 200px;
+    }
+
+    .performancePanel {
+        flex: 1;
+        min-height: 400px;
+    }
+
+    .chatMessages {
+        padding: 1rem;
+
+        .userMessage .messageContent,
+        .botMessage .messageContent {
+            max-width: 85%;
+        }
+    }
+}

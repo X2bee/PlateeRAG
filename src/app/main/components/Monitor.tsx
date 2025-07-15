@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { getWorkflowPerformance } from "@/app/api/workflowAPI";
 import { devLog } from "@/app/utils/logger";
-import styles from "@/app/main/assets/Monitoring.module.scss";
+import styles from "@/app/main/assets/Monitor.module.scss";
 
 interface Workflow {
     filename: string;
