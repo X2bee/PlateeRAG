@@ -15,8 +15,6 @@ import styles from '@/app/main/assets/MainPage.module.scss';
 
 const ChatPage: React.FC = () => {
     const router = useRouter();
-
-    // Main 페이지와 동일한 사이드바 아이템들
     const sidebarItems: SidebarItem[] = [
         {
             id: 'canvas',
