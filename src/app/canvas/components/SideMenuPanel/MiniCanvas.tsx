@@ -4,102 +4,20 @@ import Node from '@/app/canvas/components/Node';
 import Edge from '@/app/canvas/components/Edge';
 import { devLog } from '@/app/utils/logger';
 import styles from '@/app/canvas/assets/MiniCanvas.module.scss';
-
-// Type definitions
-interface Position {
-    x: number;
-    y: number;
-}
-
-interface Port {
-    id: string;
-    name: string;
-    type: string;
-    required?: boolean;
-    multi?: boolean;
-}
-
-interface Parameter {
-    id: string;
-    name: string;
-    value: string | number;
-    type?: string;
-    required?: boolean;
-    optional?: boolean;
-    options?: Array<{ value: string | number; label?: string }>;
-    step?: number;
-    min?: number;
-    max?: number;
-}
-
-interface NodeData {
-    id: string;
-    nodeName: string;
-    functionId?: string;
-    inputs?: Port[];
-    outputs?: Port[];
-    parameters?: Parameter[];
-}
-
-interface CanvasNode {
-    id: string;
-    data: NodeData;
-    position: Position;
-}
-
-interface EdgeConnection {
-    nodeId: string;
-    portId: string;
-    portType: 'input' | 'output';
-}
-
-interface CanvasEdge {
-    id: string;
-    source: EdgeConnection;
-    target: EdgeConnection;
-}
-
-interface WorkflowData {
-    nodes?: CanvasNode[];
-    edges?: CanvasEdge[];
-}
-
-interface Template {
-    id: string;
-    name: string;
-    description?: string;
-    tags?: string[];
-    nodes: number;
-    data?: WorkflowData;
-}
-
-interface MiniCanvasProps {
-    template: Template;
-}
-
-interface PortMouseEventData {
-    nodeId: string;
-    portId: string;
-    portType: 'input' | 'output';
-    isMulti?: boolean;
-    type: string;
-}
-
-interface DummyHandlers {
-    onNodeClick: () => void;
-    onNodeDrag: () => void;
-    onPortClick: () => void;
-    onNodeDelete: () => void;
-    onNodeDuplicate: () => void;
-    updateNodeData: () => void;
-    onNodeMouseDown: (e: React.MouseEvent, nodeId: string) => void;
-    onPortMouseDown: (data: PortMouseEventData) => void;
-    onPortMouseUp: (data: PortMouseEventData) => void;
-    registerPortRef: (nodeId: string, portId: string, portType: string, el: HTMLElement | null) => void;
-    onParameterChange: (nodeId: string, paramId: string, value: string | number) => void;
-    onNodeNameChange: (nodeId: string, newName: string) => void;
-    onClearSelection: () => void;
-}
+import type {
+    Position,
+    Port,
+    Parameter,
+    NodeData,
+    CanvasNode,
+    EdgeConnection,
+    CanvasEdge,
+    WorkflowData,
+    Template,
+    MiniCanvasProps,
+    PortMouseEventData,
+    DummyHandlers
+} from '@/app/canvas/types';
 
 const MiniCanvas: React.FC<MiniCanvasProps> = ({ template }) => {
     const canvasRef = useRef<HTMLDivElement>(null);

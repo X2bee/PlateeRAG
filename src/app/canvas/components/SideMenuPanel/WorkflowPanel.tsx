@@ -7,77 +7,18 @@ import { LuArrowLeft, LuFolderOpen, LuDownload, LuRefreshCw, LuCalendar, LuTrash
 import { listWorkflows, loadWorkflow, deleteWorkflow } from '@/app/api/workflowAPI';
 import { getWorkflowState } from '@/app/(common)/components/workflowStorage';
 import { devLog } from '@/app/utils/logger';
-
-// Type definitions
-interface Position {
-    x: number;
-    y: number;
-}
-
-interface Port {
-    id: string;
-    name: string;
-    type: string;
-    required?: boolean;
-    multi?: boolean;
-}
-
-interface Parameter {
-    id: string;
-    name: string;
-    value: string | number;
-    type?: string;
-    required?: boolean;
-    optional?: boolean;
-    options?: Array<{ value: string | number; label?: string }>;
-    step?: number;
-    min?: number;
-    max?: number;
-}
-
-interface NodeData {
-    id: string;
-    nodeName: string;
-    functionId?: string;
-    inputs?: Port[];
-    outputs?: Port[];
-    parameters?: Parameter[];
-}
-
-interface CanvasNode {
-    id: string;
-    data: NodeData;
-    position: Position;
-}
-
-interface EdgeConnection {
-    nodeId: string;
-    portId: string;
-    portType: 'input' | 'output';
-}
-
-interface CanvasEdge {
-    id: string;
-    source: EdgeConnection;
-    target: EdgeConnection;
-}
-
-interface WorkflowData {
-    nodes?: CanvasNode[];
-    edges?: CanvasEdge[];
-}
-
-interface WorkflowState {
-    nodes?: CanvasNode[];
-    edges?: CanvasEdge[];
-}
-
-interface WorkflowPanelProps {
-    onBack: () => void;
-    onLoad: () => void;
-    onExport: () => void;
-    onLoadWorkflow: (workflowData: WorkflowData, workflowName?: string) => void;
-}
+import type {
+    Position,
+    Port,
+    Parameter,
+    NodeData,
+    CanvasNode,
+    EdgeConnection,
+    CanvasEdge,
+    WorkflowData,
+    WorkflowState,
+    WorkflowPanelProps
+} from '@/app/canvas/types';
 
 const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
     const [workflows, setWorkflows] = useState<string[]>([]);

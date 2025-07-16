@@ -4,22 +4,11 @@ import styles from '@/app/canvas/assets/Chat.module.scss';
 import sideMenuStyles from '@/app/canvas/assets/SideMenu.module.scss';
 import { LuArrowLeft, LuSend } from "react-icons/lu";
 import { devLog } from '@/app/utils/logger';
-
-// Type definitions
-interface Message {
-    id: number;
-    text: string;
-    sender: 'user' | 'bot';
-    timestamp: Date;
-}
-
-interface ChatPanelProps {
-    onBack: () => void;
-}
-
-interface SendMessageResponse {
-    text: string;
-}
+import type {
+    Message,
+    ChatPanelProps,
+    SendMessageResponse
+} from '@/app/canvas/types';
 
 const ChatPanel: React.FC<ChatPanelProps> = ({ onBack }) => {
     const [messages, setMessages] = useState<Message[]>([]);

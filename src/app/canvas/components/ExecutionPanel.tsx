@@ -2,28 +2,13 @@
 import React, { useState } from 'react';
 import styles from '@/app/canvas/assets/ExecutionPanel.module.scss';
 import { LuPlay, LuTrash2, LuCircleX, LuChevronUp, LuChevronDown } from 'react-icons/lu';
-
-// Type definitions
-interface ExecutionError {
-    error: string;
-}
-
-interface ExecutionSuccess {
-    outputs: Record<string, any>;
-}
-
-type ExecutionOutput = ExecutionError | ExecutionSuccess | null;
-
-interface OutputRendererProps {
-    output: ExecutionOutput;
-}
-
-interface ExecutionPanelProps {
-    onExecute: () => void;
-    onClear: () => void;
-    output: ExecutionOutput;
-    isLoading: boolean;
-}
+import type {
+    ExecutionError,
+    ExecutionSuccess,
+    ExecutionOutput,
+    OutputRendererProps,
+    ExecutionPanelProps
+} from '@/app/canvas/types';
 
 // Type guard functions
 const hasError = (output: ExecutionOutput): output is ExecutionError => {
