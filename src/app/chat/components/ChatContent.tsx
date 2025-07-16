@@ -3,15 +3,32 @@ import styles from '@/app/chat/assets/ChatContent.module.scss';
 import { LuWorkflow } from "react-icons/lu";
 import { IoChatbubblesOutline } from "react-icons/io5";
 import WorkflowSelection from './WorkflowSelection';
+import ChatInterface from './ChatInterface';
 
 const ChatContent: React.FC = () => {
-    const [currentView, setCurrentView] = useState<'welcome' | 'workflow'>('welcome');
+    const [currentView, setCurrentView] = useState<'welcome' | 'workflow' | 'chat'>('welcome');
+    const [selectedWorkflow, setSelectedWorkflow] = useState<any>(null);
 
     const handleWorkflowSelect = (workflow: any) => {
-        // 워크플로우 선택 후 로직 (나중에 구현)
-        console.log('Selected workflow:', workflow);
+        setSelectedWorkflow(workflow);
+        setCurrentView('chat');
     };
 
+    // 채팅 화면
+    if (currentView === 'chat' && selectedWorkflow) {
+        return (
+            <div className={styles.chatContainer}>
+                <div className={styles.workflowSection}>
+                    <ChatInterface 
+                        workflow={selectedWorkflow}
+                        onBack={() => setCurrentView('workflow')}
+                    />
+                </div>
+            </div>
+        );
+    }
+
+    // 워크플로우 선택 화면
     if (currentView === 'workflow') {
         return (
             <div className={styles.chatContainer}>
@@ -25,6 +42,7 @@ const ChatContent: React.FC = () => {
         );
     }
 
+    // 웰컴 화면
     return (
         <div className={styles.chatContainer}>
             <div className={styles.welcomeSection}>

@@ -190,6 +190,41 @@
     }
 }
 
+// Typing Indicator
+.typingIndicator {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0;
+    
+    span {
+        width: 6px;
+        height: 6px;
+        background-color: #6c757d;
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out;
+        
+        &:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+        
+        &:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+    }
+}
+
+@keyframes typing {
+    0%, 80%, 100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 .executorInputArea {
     border-top: 1px solid #e9ecef;
     padding: 1rem 1.5rem;
@@ -259,15 +294,6 @@
             svg {
                 width: 16px;
                 height: 16px;
-            }
-
-            .miniSpinner {
-                width: 16px;
-                height: 16px;
-                border: 2px solid #e9ecef;
-                border-top: 2px solid #007bff;
-                border-radius: 50%;
-                animation: spin 1s linear infinite;
             }
         }
     }

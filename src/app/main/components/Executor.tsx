@@ -232,11 +232,11 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                                                         pendingLogId &&
                                                     executing &&
                                                     !log.output_data ? (
-                                                        <span
-                                                            className={
-                                                                styles.miniSpinner
-                                                            }
-                                                        ></span>
+                                                        <div className={styles.typingIndicator}>
+                                                            <span></span>
+                                                            <span></span>
+                                                            <span></span>
+                                                        </div>
                                                     ) : (
                                                         log.output_data
                                                     )}
@@ -269,7 +269,7 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                                     >
                                         {executing ? (
                                             <div
-                                                className={styles.miniSpinner}
+                                                className={styles.loadingSpinner}
                                             ></div>
                                         ) : (
                                             <FiSend />

@@ -41,11 +41,14 @@ $white: #ffffff;
   padding: 2rem;
   transition: all 0.5s ease;
   overflow: hidden;
+  height: 100vh;
+  max-height: 100vh;
   
   .container {
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
+    height: 100%;
   }
 }
 
