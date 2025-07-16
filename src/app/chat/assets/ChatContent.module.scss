@@ -29,6 +29,24 @@ $white: #ffffff;
   align-items: center;
   justify-content: center;
   padding: 3rem;
+  transition: all 0.5s ease;
+  overflow: hidden;
+}
+
+.workflowSection {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem;
+  transition: all 0.5s ease;
+  overflow: hidden;
+  
+  .container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
 }
 
 .welcomeContent {

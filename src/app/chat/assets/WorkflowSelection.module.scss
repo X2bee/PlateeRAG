@@ -1,0 +1,441 @@
+@use "sass:color";
+
+// Color Variables
+$primary-blue: #2563eb;
+$primary-green: #059669;
+$primary-yellow: #d97706;
+$primary-red: #dc2626;
+$gray-50: #f9fafb;
+$gray-100: #f3f4f6;
+$gray-200: #e5e7eb;
+$gray-300: #d1d5db;
+$gray-400: #9ca3af;
+$gray-500: #6b7280;
+$gray-600: #4b5563;
+$gray-700: #374151;
+$gray-900: #111827;
+$white: #ffffff;
+
+.container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+// Header
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.headerInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  h2 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: $gray-900;
+    margin: 0 0 0.5rem 0;
+  }
+
+  p {
+    color: $gray-600;
+    margin: 0;
+    line-height: 1.6;
+  }
+}
+
+.backButton {
+  background: $white;
+  border: 2px solid $gray-200;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  svg {
+    font-size: 1.25rem;
+    color: $gray-600;
+  }
+
+  &:hover {
+    border-color: $primary-blue;
+    background: $gray-50;
+    
+    svg {
+      color: $primary-blue;
+    }
+  }
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+// Filters
+.filters {
+  display: flex;
+  gap: 0.5rem;
+  background: $gray-100;
+  padding: 0.25rem;
+  border-radius: 0.5rem;
+}
+
+// 새로고침 버튼 스타일
+.refreshButton {
+  background: transparent;
+  border: 1px solid $gray-300;
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: $gray-600;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+
+  &:hover:not(:disabled) {
+    background: $gray-50;
+    border-color: $primary-blue;
+    color: $primary-blue;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// 스피닝 애니메이션
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.filterButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: $gray-700;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  font-size: 0.875rem;
+
+  &:hover {
+    background: $white;
+    color: $gray-900;
+  }
+
+  &.active {
+    background: $white;
+    color: $primary-blue;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Workflows Grid
+.workflowsGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  padding-top: 1rem;
+  gap: 1rem;
+  overflow-y: auto;
+  max-height: 380px;
+  padding-right: 0.5rem;
+  
+  /* 스크롤바 스타일링 */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: $gray-100;
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: $gray-300;
+    border-radius: 3px;
+    
+    &:hover {
+      background: $gray-400;
+    }
+  }
+}
+
+.workflowCard {
+  background: $white;
+  border: 2px solid $gray-200;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  position: relative;
+  min-height: 160px;
+  max-height: 160px;
+  display: flex;
+  flex-direction: column;
+
+  &:hover:not(.disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: $primary-blue;
+  }
+
+  &:active:not(.disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  &.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    
+    &:hover {
+      transform: none;
+      box-shadow: none;
+      border-color: $gray-200;
+    }
+  }
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.workflowIcon {
+  width: 2rem;
+  height: 2rem;
+  background: rgba($primary-blue, 0.1);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+    color: $primary-blue;
+  }
+}
+
+.status {
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.75rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  &.statusActive {
+    background: rgba($primary-green, 0.1);
+    color: $primary-green;
+  }
+
+  &.statusDraft {
+    background: rgba($primary-yellow, 0.1);
+    color: $primary-yellow;
+  }
+
+  &.statusArchived {
+    background: rgba($gray-500, 0.1);
+    color: $gray-500;
+  }
+}
+
+// Card Content
+.cardContent {
+  margin-bottom: 0.75rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.workflowName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $gray-900;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflowDescription {
+  color: $gray-600;
+  line-height: 1.4;
+  margin: 0 0 0.75rem 0;
+  font-size: 0.8rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.workflowError {
+  color: $primary-red;
+  line-height: 1.4;
+  margin: 0 0 0.75rem 0;
+  font-size: 0.75rem;
+  padding: 0.4rem;
+  background: rgba($primary-red, 0.1);
+  border-radius: 0.375rem;
+  border-left: 2px solid $primary-red;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.workflowMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-top: auto;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: $gray-500;
+  font-size: 0.75rem;
+
+  svg {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+}
+
+// Loading State
+.loadingState {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: $gray-500;
+
+  p {
+    font-size: 1.125rem;
+    margin: 0;
+  }
+}
+
+// Error State
+.errorState {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: $primary-red;
+
+  p {
+    font-size: 1.125rem;
+    margin: 0 0 1rem 0;
+  }
+
+  button {
+    padding: 0.5rem 1rem;
+    background: $primary-blue;
+    color: $white;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s ease-in-out;
+
+    &:hover {
+      background: color.scale($primary-blue, $lightness: -10%);
+    }
+  }
+}
+
+// Empty State
+.emptyState {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: $gray-500;
+
+  .emptyIcon {
+    width: 4rem;
+    height: 4rem;
+    margin: 0 auto 1rem;
+    opacity: 0.5;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    color: $gray-700;
+  }
+
+  p {
+    margin: 0;
+    line-height: 1.6;
+  }
+}
+
+// Responsive Design
+@media (max-width: 1024px) {
+  .workflowsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filters {
+    justify-content: center;
+  }
+
+  .workflowsGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+
+  .workflowCard {
+    min-height: 140px;
+    max-height: 140px;
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .workflowsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
