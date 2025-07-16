@@ -1,0 +1,166 @@
+// Chat Content Styles
+$primary-blue: #2563eb;
+$primary-purple: #7c3aed;
+$primary-green: #059669;
+$gray-50: #f9fafb;
+$gray-100: #f3f4f6;
+$gray-200: #e5e7eb;
+$gray-300: #d1d5db;
+$gray-400: #9ca3af;
+$gray-500: #6b7280;
+$gray-600: #4b5563;
+$gray-700: #374151;
+$gray-800: #1f2937;
+$gray-900: #111827;
+$white: #ffffff;
+
+.chatContainer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: $white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.welcomeSection {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  transition: all 0.5s ease;
+  overflow: hidden;
+}
+
+.workflowSection {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem;
+  transition: all 0.5s ease;
+  overflow: hidden;
+  
+  .container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+
+.welcomeContent {
+  text-align: center;
+  max-width: 600px;
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: $gray-900;
+    margin: 0 0 1rem 0;
+    background: linear-gradient(135deg, $primary-blue 0%, $primary-purple 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  p {
+    font-size: 1.125rem;
+    color: $gray-600;
+    margin: 0 0 3rem 0;
+    line-height: 1.6;
+  }
+}
+
+.buttonContainer {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.workflowButton,
+.chatButton {
+  background: $white;
+  border: 2px solid $gray-200;
+  border-radius: 1rem;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  width: 220px;
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+
+  svg {
+    font-size: 2rem;
+    color: $primary-blue;
+    transition: all 0.3s ease;
+  }
+
+  h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $gray-900;
+    margin: 0;
+  }
+
+  p {
+    font-size: 0.875rem;
+    color: $gray-500;
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border-color: $primary-blue;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
+
+    svg {
+      color: $primary-purple;
+      transform: scale(1.1);
+    }
+  }
+
+  &:active {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .welcomeContent {
+    padding: 1.5rem;
+
+    h1 {
+      font-size: 2rem;
+    }
+
+    p {
+      font-size: 1rem;
+    }
+  }
+
+  .buttonContainer {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .workflowButton,
+  .chatButton {
+    width: 100%;
+    max-width: 280px;
+    height: 160px;
+    padding: 1.5rem;
+  }
+}

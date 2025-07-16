@@ -5,7 +5,7 @@ import styles from '@/app/canvas/assets/WorkflowPanel.module.scss';
 import sideMenuStyles from '@/app/canvas/assets/SideMenu.module.scss';
 import { LuArrowLeft, LuLayoutTemplate, LuPlay, LuCopy } from "react-icons/lu";
 import TemplatePreview from '@/app/canvas/components/SideMenuPanel/TemplatePreview';
-import { getWorkflowState } from '@/app/(common)/components/workflowStorage';
+import { getWorkflowState } from '@/app/_common/components/workflowStorage';
 import { devLog } from '@/app/utils/logger';
 
 import Basic_Chatbot from '@/app/canvas/constants/workflow/Basic_Chatbot.json';

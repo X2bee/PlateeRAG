@@ -12,6 +12,8 @@ export interface SidebarProps {
     activeItem: string;
     onItemClick: (itemId: string) => void;
     className?: string;
+    initialChatExpanded?: boolean;
+    initialSettingExpanded?: boolean;
 }
 
 export interface ContentAreaProps {
