@@ -6,58 +6,15 @@ import DraggableNodeItem from '@/app/canvas/components/Helper/DraggableNodeItem'
 import { LuSearch, LuArrowLeft, LuBrainCircuit, LuShare2, LuWrench, LuX, LuRefreshCw } from 'react-icons/lu';
 import { SiLangchain } from "react-icons/si";
 import { useNodes } from '@/app/(common)/components/nodeHook';
-
-// Type definitions
-interface Port {
-    id: string;
-    name: string;
-    type: string;
-    required?: boolean;
-    multi?: boolean;
-}
-
-interface Parameter {
-    id: string;
-    name: string;
-    value: string | number;
-    type?: string;
-    required?: boolean;
-    optional?: boolean;
-    options?: Array<{ value: string | number; label?: string }>;
-    step?: number;
-    min?: number;
-    max?: number;
-}
-
-interface NodeData {
-    id: string;
-    nodeName: string;
-    functionId?: string;
-    inputs?: Port[];
-    outputs?: Port[];
-    parameters?: Parameter[];
-}
-
-interface NodeFunction {
-    functionId: string;
-    functionName: string;
-    nodes?: NodeData[];
-}
-
-interface NodeCategory {
-    categoryId: string;
-    categoryName: string;
-    icon: string;
-    functions?: NodeFunction[];
-}
-
-interface AddNodePanelProps {
-    onBack: () => void;
-}
-
-interface IconMapType {
-    [key: string]: ReactElement;
-}
+import type {
+    Port,
+    Parameter,
+    NodeData,
+    NodeFunction,
+    NodeCategory,
+    AddNodePanelProps,
+    IconMapType
+} from '@/app/canvas/types';
 
 const iconMap: IconMapType = {
     LuBrainCircuit: <LuBrainCircuit />,

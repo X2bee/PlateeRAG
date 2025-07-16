@@ -6,80 +6,18 @@ import styles from '@/app/canvas/assets/TemplatePreview.module.scss';
 import MiniCanvas from '@/app/canvas/components/SideMenuPanel/MiniCanvas';
 import { LuX, LuCopy } from "react-icons/lu";
 import { devLog } from '@/app/utils/logger';
-
-// Type definitions
-interface Position {
-    x: number;
-    y: number;
-}
-
-interface Port {
-    id: string;
-    name: string;
-    type: string;
-    required?: boolean;
-    multi?: boolean;
-}
-
-interface Parameter {
-    id: string;
-    name: string;
-    value: string | number;
-    type?: string;
-    required?: boolean;
-    optional?: boolean;
-    options?: Array<{ value: string | number; label?: string }>;
-    step?: number;
-    min?: number;
-    max?: number;
-}
-
-interface NodeData {
-    id: string;
-    nodeName: string;
-    functionId?: string;
-    inputs?: Port[];
-    outputs?: Port[];
-    parameters?: Parameter[];
-}
-
-interface CanvasNode {
-    id: string;
-    data: NodeData;
-    position: Position;
-}
-
-interface EdgeConnection {
-    nodeId: string;
-    portId: string;
-    portType: 'input' | 'output';
-}
-
-interface CanvasEdge {
-    id: string;
-    source: EdgeConnection;
-    target: EdgeConnection;
-}
-
-interface WorkflowData {
-    nodes?: CanvasNode[];
-    edges?: CanvasEdge[];
-}
-
-interface Template {
-    id: string;
-    name: string;
-    description: string;
-    tags: string[];
-    nodes: number;
-    data?: WorkflowData;
-}
-
-interface TemplatePreviewProps {
-    template: Template | null;
-    onClose: () => void;
-    onUseTemplate: (template: Template | null) => void;
-}
+import type {
+    Position,
+    Port,
+    Parameter,
+    NodeData,
+    CanvasNode,
+    EdgeConnection,
+    CanvasEdge,
+    WorkflowData,
+    Template,
+    TemplatePreviewProps
+} from '@/app/canvas/types';
 
 const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onClose, onUseTemplate }) => {
     const previewRef = useRef<HTMLDivElement>(null);

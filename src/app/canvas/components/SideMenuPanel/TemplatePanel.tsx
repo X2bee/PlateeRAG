@@ -10,93 +10,21 @@ import { devLog } from '@/app/utils/logger';
 
 import Basic_Chatbot from '@/app/canvas/constants/workflow/Basic_Chatbot.json';
 import Data_Processing from '@/app/canvas/constants/workflow/Data_Processing.json';
+import type {
+    Position,
+    Port,
+    Parameter,
+    NodeData,
+    CanvasNode,
+    EdgeConnection,
+    CanvasEdge,
+    WorkflowData,
+    RawTemplate,
+    Template,
+    WorkflowState,
+    TemplatePanelProps
+} from '@/app/canvas/types';
 
-// Type definitions
-interface Position {
-    x: number;
-    y: number;
-}
-
-interface Port {
-    id: string;
-    name: string;
-    type: string;
-    required?: boolean;
-    multi?: boolean;
-}
-
-interface Parameter {
-    id: string;
-    name: string;
-    value: string | number;
-    type?: string;
-    required?: boolean;
-    optional?: boolean;
-    options?: Array<{ value: string | number; label?: string }>;
-    step?: number;
-    min?: number;
-    max?: number;
-}
-
-interface NodeData {
-    id: string;
-    nodeName: string;
-    functionId?: string;
-    inputs?: Port[];
-    outputs?: Port[];
-    parameters?: Parameter[];
-}
-
-interface CanvasNode {
-    id: string;
-    data: NodeData;
-    position: Position;
-}
-
-interface EdgeConnection {
-    nodeId: string;
-    portId: string;
-    portType: string; // Changed from 'input' | 'output' to string for JSON compatibility
-    type?: string;
-}
-
-interface CanvasEdge {
-    id: string;
-    source: EdgeConnection;
-    target: EdgeConnection;
-}
-
-interface WorkflowData {
-    nodes?: CanvasNode[];
-    edges?: CanvasEdge[];
-}
-
-interface RawTemplate {
-    id: string;
-    name: string;
-    description?: string;
-    tags?: string[];
-    contents?: WorkflowData;
-}
-
-interface Template {
-    id: string;
-    name: string;
-    description: string;
-    tags: string[];
-    nodes: number;
-    data?: WorkflowData;
-}
-
-interface WorkflowState {
-    nodes?: CanvasNode[];
-    edges?: CanvasEdge[];
-}
-
-interface TemplatePanelProps {
-    onBack: () => void;
-    onLoadWorkflow: (workflowData: WorkflowData, templateName?: string) => void;
-}
 
 const templateList: RawTemplate[] = [Basic_Chatbot, Data_Processing];
 
@@ -133,7 +61,9 @@ const TemplatePanel: React.FC<TemplatePanelProps> = ({ onBack, onLoadWorkflow })
         loadTemplates();
     }, []);
 
-    const handleUseTemplate = (template: Template): void => {
+    const handleUseTemplate = (template: Template | null): void => {
+        if (!template) return;
+        
         const currentState: WorkflowState | null = getWorkflowState();
         const hasCurrentWorkflow = currentState && ((currentState.nodes?.length || 0) > 0 || (currentState.edges?.length || 0) > 0);
         

@@ -1,72 +1,15 @@
 import React, { memo, useState, useEffect, ChangeEvent, KeyboardEvent } from 'react';
 import styles from '@/app/canvas/assets/Node.module.scss';
 import { devLog } from '@/app/utils/logger';
-
-// Type definitions
-interface Position {
-    x: number;
-    y: number;
-}
-
-interface Port {
-    id: string;
-    name: string;
-    type: string;
-    required?: boolean;
-    multi?: boolean;
-}
-
-interface ParameterOption {
-    value: string | number;
-    label?: string;
-}
-
-interface Parameter {
-    id: string;
-    name: string;
-    value: string | number;
-    type?: string;
-    required?: boolean;
-    optional?: boolean;
-    options?: ParameterOption[];
-    step?: number;
-    min?: number;
-    max?: number;
-}
-
-interface NodeData {
-    id: string;
-    nodeName: string;
-    functionId?: string;
-    inputs?: Port[];
-    outputs?: Port[];
-    parameters?: Parameter[];
-}
-
-interface PortMouseEventData {
-    nodeId: string;
-    portId: string;
-    portType: 'input' | 'output';
-    isMulti?: boolean;
-    type: string;
-}
-
-interface NodeProps {
-    id: string;
-    data: NodeData;
-    position: Position;
-    onNodeMouseDown: (e: React.MouseEvent, nodeId: string) => void;
-    isSelected: boolean;
-    onPortMouseDown: (data: PortMouseEventData) => void;
-    onPortMouseUp: (data: PortMouseEventData) => void;
-    registerPortRef: (nodeId: string, portId: string, portType: string, el: HTMLElement | null) => void;
-    snappedPortKey: string | null;
-    onParameterChange: (nodeId: string, paramId: string, value: string | number) => void;
-    isSnapTargetInvalid: boolean;
-    isPreview?: boolean;
-    onNodeNameChange: (nodeId: string, newName: string) => void;
-    onClearSelection: () => void;
-}
+import type {
+    Position,
+    Port,
+    ParameterOption,
+    Parameter,
+    NodeData,
+    PortMouseEventData,
+    NodeProps
+} from '@/app/canvas/types';
 
 const Node: React.FC<NodeProps> = ({
     id,

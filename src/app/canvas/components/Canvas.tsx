@@ -14,127 +14,26 @@ import styles from '@/app/canvas/assets/Canvas.module.scss';
 import Node from '@/app/canvas/components/Node';
 import Edge from '@/app/canvas/components/Edge';
 import { devLog } from '@/app/utils/logger';
-
-// Type definitions
-interface Position {
-    x: number;
-    y: number;
-}
-
-interface View {
-    x: number;
-    y: number;
-    scale: number;
-}
-
-interface Port {
-    id: string;
-    name: string;
-    type: string;
-    required?: boolean;
-    multi?: boolean;
-}
-
-interface Parameter {
-    id: string;
-    name: string;
-    value: string | number;
-    type?: string;
-    required?: boolean;
-    optional?: boolean;
-    options?: Array<{ value: string | number; label?: string }>;
-    step?: number;
-    min?: number;
-    max?: number;
-}
-
-interface NodeData {
-    id: string;
-    nodeName: string;
-    functionId?: string;
-    inputs?: Port[];
-    outputs?: Port[];
-    parameters?: Parameter[];
-}
-
-interface CanvasNode {
-    id: string;
-    data: NodeData;
-    position: Position;
-}
-
-interface EdgeConnection {
-    nodeId: string;
-    portId: string;
-    portType: 'input' | 'output';
-}
-
-interface CanvasEdge {
-    id: string;
-    source: EdgeConnection;
-    target: EdgeConnection;
-}
-
-interface EdgePreview {
-    source: EdgeConnection & { type: string };
-    startPos: Position;
-    targetPos: Position;
-}
-
-interface DragState {
-    type: 'none' | 'canvas' | 'node' | 'edge';
-    startX?: number;
-    startY?: number;
-    nodeId?: string;
-    offsetX?: number;
-    offsetY?: number;
-}
-
-interface CanvasState {
-    view: View;
-    nodes: CanvasNode[];
-    edges: CanvasEdge[];
-}
-
-interface ValidationResult {
-    isValid: boolean;
-    nodeId?: string;
-    nodeName?: string;
-    inputName?: string;
-}
-
-interface ExecutionValidationResult {
-    error?: string;
-    nodeId?: string;
-    success?: boolean;
-}
-
-interface DeletedItem {
-    node: CanvasNode;
-    edges: CanvasEdge[];
-}
-
-interface PortMouseEventData {
-    nodeId: string;
-    portId: string;
-    portType: 'input' | 'output';
-    isMulti?: boolean;
-    type: string;
-}
-
-interface CanvasProps {
-    onStateChange?: (state: CanvasState) => void;
-}
-
-interface CanvasRef {
-    getCanvasState: () => CanvasState;
-    addNode: (nodeData: NodeData, clientX: number, clientY: number) => void;
-    loadCanvasState: (state: Partial<CanvasState>) => void;
-    loadWorkflowState: (state: Partial<CanvasState>) => void;
-    getCenteredView: () => View;
-    clearSelectedNode: () => void;
-    validateAndPrepareExecution: () => ExecutionValidationResult;
-}
+import type {
+    Position,
+    View,
+    Port,
+    Parameter,
+    NodeData,
+    CanvasNode,
+    EdgeConnection,
+    CanvasEdge,
+    EdgePreview,
+    DragState,
+    CanvasState,
+    ValidationResult,
+    PortMouseEventData,
+    WorkflowData,
+    ExecutionValidationResult,
+    DeletedItem,
+    CanvasProps,
+    CanvasRef
+} from '@/app/canvas/types';
 
 // Constants
 const MIN_SCALE = 0.6;
