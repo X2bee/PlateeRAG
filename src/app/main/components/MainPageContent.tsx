@@ -51,6 +51,13 @@ const MainPageContent: React.FC = () => {
             }
             setInitialLoad(false);
         } else {
+            // Check if there's a saved activeSection from chat page navigation
+            const savedActiveSection = localStorage.getItem('activeSection');
+            if (savedActiveSection && ['canvas', 'workflows', 'exec-monitor', 'settings', 'config-viewer'].includes(savedActiveSection)) {
+                setActiveSection(savedActiveSection);
+                localStorage.removeItem('activeSection'); // Clear after use
+            }
+            
             // If no view parameter, load from localStorage
             const savedTab = localStorage.getItem('execMonitorTab');
             if (savedTab === 'executor' || savedTab === 'monitoring') {
@@ -215,6 +222,8 @@ const MainPageContent: React.FC = () => {
                 items={sidebarItems}
                 activeItem={activeSection}
                 onItemClick={handleSidebarItemClick}
+                initialChatExpanded={false}
+                initialSettingExpanded={true}
             />
             <main className={styles.mainContent}>{renderContent()}</main>
         </div>
