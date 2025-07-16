@@ -18,6 +18,6 @@ const MainPage: React.FC = () => {
             <MainPageContent />
         </Suspense>
     );
-};
+}
 
 export default MainPage;

@@ -1,4 +1,6 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-npx lint-staged
+npx eslint "*.{js,jsx,ts,tsx}"
+
+npx prettier --write "*.{js,jsx,ts,tsx,json,css,md}"
