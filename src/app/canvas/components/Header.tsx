@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, KeyboardEvent, ChangeEvent } from '
 import Link from 'next/link';
 import styles from '@/app/canvas/assets/Header.module.scss';
 import { LuPanelRightOpen, LuSave, LuCheck, LuX, LuPencil, LuFileText } from "react-icons/lu";
-import { getWorkflowName, saveWorkflowName } from '@/app/(common)/components/workflowStorage';
+import { getWorkflowName, saveWorkflowName } from '@/app/_common/components/workflowStorage';
 
 // Type definitions
 interface HeaderProps {

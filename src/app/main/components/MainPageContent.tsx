@@ -1,13 +1,5 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import {
-    FiGrid,
-    FiFolder,
-    FiCpu,
-    FiSettings,
-    FiEye,
-    FiBarChart,
-} from 'react-icons/fi';
 import Sidebar from '@/app/main/components/Sidebar';
 import ContentArea from '@/app/main/components/ContentArea';
 import CanvasIntroduction from '@/app/main/components/CanvasIntroduction';
@@ -15,7 +7,7 @@ import CompletedWorkflows from '@/app/main/components/CompletedWorkflows';
 import Playground from '@/app/main/components/Playground';
 import Settings from '@/app/main/components/Settings';
 import ConfigViewer from '@/app/main/components/ConfigViewer';
-import { SidebarItem } from '@/app/main/components/types';
+import { getSidebarItems } from '@/app/_common/components/sidebarConfig';
 import styles from '@/app/main/assets/MainPage.module.scss';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
@@ -93,38 +85,7 @@ const MainPageContent: React.FC = () => {
         setActiveSection(id);
     };
 
-    const sidebarItems: SidebarItem[] = [
-        {
-            id: 'canvas',
-            title: '워크플로우 캔버스',
-            description: '새로운 워크플로우 만들기',
-            icon: <FiGrid />,
-        },
-        {
-            id: 'workflows',
-            title: '완성된 워크플로우',
-            description: '저장된 워크플로우 관리',
-            icon: <FiFolder />,
-        },
-        {
-            id: 'exec-monitor',
-            title: '실행 및 모니터링',
-            description: '워크플로우 실행과 성능 모니터링',
-            icon: <FiCpu />,
-        },
-        {
-            id: 'settings',
-            title: '고급 환경 설정',
-            description: 'LLM 및 Tool 환경변수 직접 관리',
-            icon: <FiSettings />,
-        },
-        {
-            id: 'config-viewer',
-            title: '설정값 확인',
-            description: '백엔드 환경변수 및 설정 확인',
-            icon: <FiEye />,
-        },
-    ];
+    const sidebarItems = getSidebarItems();
 
     // 헤더에 표시할 토글 버튼
     const renderExecMonitorToggleButtons = () => (

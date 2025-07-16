@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import '@/app/globals.css';
-import ToastProvider from '@/app/(common)/components/ToastProvider';
+import ToastProvider from '@/app/_common/components/ToastProvider';
 
 export const metadata: Metadata = {
     title: 'PlateeRAG',

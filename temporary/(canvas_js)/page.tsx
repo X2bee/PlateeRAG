@@ -18,7 +18,7 @@ import {
     ensureValidWorkflowState,
     saveWorkflowName,
     startNewWorkflow,
-} from '@/app/(common)/components/workflowStorage';
+} from '@/app/_common/components/workflowStorage';
 import { devLog } from '@/app/utils/logger';
 import { generateWorkflowHash } from '@/app/utils/generateSha1Hash';
 
