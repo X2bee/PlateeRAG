@@ -1,0 +1,281 @@
+// Color Variables
+$primary-blue: #2563eb;
+$primary-purple: #7c3aed;
+$primary-green: #059669;
+$gray-50: #f9fafb;
+$gray-100: #f3f4f6;
+$gray-200: #e5e7eb;
+$gray-300: #d1d5db;
+$gray-400: #9ca3af;
+$gray-500: #6b7280;
+$gray-600: #4b5563;
+$gray-700: #374151;
+$gray-800: #1f2937;
+$gray-900: #111827;
+$white: #ffffff;
+
+// Layout
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, $gray-50 0%, $white 100%);
+  display: flex;
+}
+
+.mainContent {
+  flex: 1;
+  padding: 2rem;
+  margin-left: 280px; // 사이드바 width만큼 좌측 여백 추가
+  overflow-y: auto;
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100vh;
+  background: $white;
+  border-right: 1px solid $gray-200;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+// Sidebar Header
+.sidebarHeader {
+  padding: 1.5rem;
+  border-bottom: 1px solid $gray-200;
+  background: linear-gradient(135deg, $primary-blue 0%, $primary-purple 100%);
+  color: $white;
+
+  .logoButton {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+    width: 100%;
+    text-align: left;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.9;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0;
+      pointer-events: none;
+    }
+  }
+}
+
+// Sidebar Toggle Button
+.sidebarToggle {
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  color: $gray-700;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid $gray-200;
+  
+  &:hover {
+    background-color: $gray-50;
+    color: $primary-blue;
+  }
+  
+  span {
+    pointer-events: none;
+  }
+}
+
+.toggleIcon {
+  transition: transform 0.2s ease;
+  font-size: 12px;
+  color: $gray-500;
+  
+  &.expanded {
+    transform: rotate(180deg);
+    color: $primary-blue;
+  }
+}
+
+// Sidebar Navigation
+.sidebarNav {
+  padding: 0;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  color: $gray-700;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background-color: $gray-50;
+    color: $primary-blue;
+  }
+
+  &.active {
+    background-color: rgba($primary-blue, 0.1);
+    color: $primary-blue;
+    border-left: 3px solid $primary-blue;
+  }
+
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .navText {
+    flex: 1;
+
+    .navTitle {
+      font-weight: 500;
+      font-size: 0.875rem;
+      margin: 0;
+    }
+
+    .navDescription {
+      font-size: 0.75rem;
+      color: $gray-500;
+      margin: 0.25rem 0 0 0;
+    }
+  }
+}
+
+// Content Area
+.contentArea {
+  background: $white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+  min-height: calc(100vh - 4rem);
+}
+
+.contentHeader {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid $gray-200;
+  padding-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  .headerContent {
+    flex: 1;
+  }
+
+  .headerButtons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-left: 16px;
+  }
+
+  h1 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: $gray-900;
+    margin: 0 0 0.5rem 0;
+  }
+
+  p {
+    color: $gray-600;
+    margin: 0;
+    line-height: 1.6;
+  }
+}
+
+// Exec-Monitor Integration
+// 통합 화면 스타일은 기존 contentArea를 상속받아 사용
+
+.tabToggleContainer {
+  display: flex;
+  gap: 8px;
+}
+
+.tabToggleButton {
+  padding: 6px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  background-color: $white;
+  border: 1px solid $gray-300;
+  color: $gray-700;
+
+  &.active {
+    font-weight: 600;
+    background-color: rgba($primary-blue, 0.1);
+    border: 2px solid $primary-blue;
+    color: $primary-blue;
+  }
+
+  &:hover:not(.active) {
+    background-color: $gray-100;
+    border-color: $gray-400;
+  }
+}
+
+// Responsive Design
+@media (max-width: 1024px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-top: 1px solid $gray-200;
+    order: 2;
+    z-index: auto;
+  }
+
+  .mainContent {
+    margin-left: 0;
+    order: 1;
+  }
+
+  .sidebarNav {
+    display: flex;
+    overflow-x: auto;
+    padding: 0.5rem;
+
+    .navItem {
+      flex-shrink: 0;
+      min-width: 200px;
+      margin-right: 0.5rem;
+      border-radius: 0.5rem;
+      border-left: none;
+
+      &.active {
+        border-left: none;
+        border-bottom: 3px solid $primary-blue;
+      }
+    }
+  }
+}

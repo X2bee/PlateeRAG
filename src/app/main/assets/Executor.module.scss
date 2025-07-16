@@ -1,0 +1,332 @@
+.loadingSpinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e9ecef;
+    border-top: 3px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.executorPanel {
+    flex: 1;
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    max-height: 68vh;
+}
+
+.executorLoading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #6c757d;
+    gap: 1rem;
+
+    span {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+}
+
+.placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    color: #6c757d;
+
+    h3 {
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+
+    p {
+        max-width: 400px;
+        line-height: 1.5;
+    }
+}
+
+.executorData {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.executorHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+
+    h3 {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 1.4rem;
+        font-weight: 600;
+        flex: 1;
+    }
+}
+
+.logCount {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 500;
+    
+    svg {
+        width: 16px;
+        height: 16px;
+        color: #007bff;
+    }
+}
+
+.executorContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.executorMessages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    min-height: 300px;
+    max-height: 500px;
+    background: #fafbfc;
+}
+
+.emptyexecutorState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    border: 2px dashed #e9ecef;
+    border-radius: 8px;
+    background: white;
+    color: #6c757d;
+    
+    .emptyIcon {
+        width: 2.5rem;
+        height: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    p {
+        margin-bottom: 0.25rem;
+        font-style: italic;
+    }
+}
+
+.executorExchange {
+    margin-bottom: 1.5rem;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.userMessage, .botMessage {
+    margin-bottom: 0.75rem;
+    
+    .messageContent {
+        max-width: 75%;
+        padding: 0.875rem 1.125rem;
+        border-radius: 12px;
+        word-wrap: break-word;
+        line-height: 1.4;
+        font-size: 0.9rem;
+    }
+
+    .messageTime {
+        font-size: 0.7rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+        text-align: right;
+    }
+}
+
+.userMessage {
+    text-align: right;
+    
+    .messageContent {
+        background: #007bff;
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 4px;
+    }
+}
+
+.botMessage {
+    text-align: left;
+    
+    .messageContent {
+        background: white;
+        color: #343a40;
+        margin-right: auto;
+        border-bottom-left-radius: 4px;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+}
+
+.executorInputArea {
+    border-top: 1px solid #e9ecef;
+    padding: 1rem 1.5rem;
+    background: white;
+
+    .inputContainer {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+
+        .executorInput {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: #f8f9fa;
+            
+            &:disabled {
+                color: #6c757d;
+                cursor: not-allowed;
+            }
+
+            &:focus:not(:disabled) {
+                outline: none;
+                border-color: #007bff;
+                box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+                background: white;
+            }
+        }
+
+        .sendButton {
+            background: #e9ecef;
+            border: none;
+            border-radius: 6px;
+            padding: 0.75rem;
+            cursor: not-allowed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            transition: all 0.2s ease;
+
+            &.disabled {
+                background: #e9ecef;
+                cursor: not-allowed;
+
+                svg {
+                    color: #6c757d;
+                }
+            }
+
+            &.active {
+                background: #007bff;
+                cursor: pointer;
+
+                &:hover {
+                    background: #0056b3;
+                }
+
+                svg {
+                    color: white;
+                }
+            }
+
+            svg {
+                width: 16px;
+                height: 16px;
+            }
+
+            .miniSpinner {
+                width: 16px;
+                height: 16px;
+                border: 2px solid #e9ecef;
+                border-top: 2px solid #007bff;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            }
+        }
+    }
+
+    .inputNote {
+        font-size: 0.75rem;
+        color: #6c757d;
+        text-align: center;
+        margin: 0;
+        font-style: italic;
+    }
+
+    .executingNote {
+        font-size: 0.75rem;
+        color: #007bff;
+        text-align: center;
+        margin: 0;
+        font-weight: 500;
+        animation: pulse 1.5s ease-in-out infinite alternate;
+    }
+
+    .errorNote {
+        font-size: 0.75rem;
+        color: #dc3545;
+        text-align: center;
+        margin: 0;
+        font-weight: 500;
+    }
+}
+
+@keyframes pulse {
+    from { opacity: 0.6; }
+    to { opacity: 1; }
+}
+
+// 반응형 디자인
+@media (max-width: 768px) {
+    .monitoringContainer {
+        flex-direction: column;
+        padding: 0.5rem;
+        gap: 0.5rem;
+    }
+
+    .workflowList {
+        flex: 0 0 auto;
+        height: 200px;
+    }
+
+    .executorPanel {
+        flex: 1;
+        min-height: 400px;
+    }
+
+    .executorMessages {
+        padding: 1rem;
+
+        .userMessage .messageContent,
+        .botMessage .messageContent {
+            max-width: 85%;
+        }
+    }
+}

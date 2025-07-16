@@ -1,0 +1,399 @@
+.workflowPanel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: #ffffff;
+}
+
+.actionButtons {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px;
+    flex-shrink: 0;
+}
+
+.actionButton {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: left;
+    background-color: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #333;
+    transition: background-color 0.2s ease;
+
+    svg {
+        font-size: 1.1rem;
+        color: #555;
+    }
+
+    &:hover {
+        background-color: #f5f5f5;
+    }
+
+    span {
+        flex-grow: 1;
+        text-align: left;
+    }
+}
+
+.workflowList {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: #cccccc transparent;
+
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: #d1d1d1;
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background-color: #a8a8a8;
+    }
+}
+
+.listHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+    h3 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #374151;
+        margin: 0;
+        letter-spacing: 0.1px;
+    }
+
+    .count {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #6b7280;
+        background-color: rgba(59, 130, 246, 0.08);
+        padding: 3px 8px;
+        border-radius: 12px;
+        border: 1px solid rgba(59, 130, 246, 0.15);
+    }
+}
+
+.loadingState, .errorState, .emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 16px;
+    text-align: center;
+    color: #666;
+
+    .spinIcon {
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+        animation: spin 1s linear infinite;
+    }
+
+    span {
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+
+    p {
+        font-size: 0.8rem;
+        color: #888;
+        margin: 0;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.errorState {
+    .retryButton {
+        margin-top: 8px;
+        padding: 6px 12px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+            background-color: #0056b3;
+        }
+    }
+}
+
+.workflowItems {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.workflowItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+
+    &:hover {
+        border-color: #ccc;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.workflowInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.workflowName {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+    word-break: break-word;
+}
+
+.workflowMeta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filename {
+    font-size: 0.75rem;
+    color: #666;
+    font-family: monospace;
+    background-color: #f0f0f0;
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+.workflowActions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.loadButton {
+    padding: 6px 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+        background-color: #0056b3;
+    }
+
+    &:active {
+        background-color: #004085;
+    }
+}
+
+.deleteButton {
+    padding: 6px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+
+    &:hover {
+        background-color: #c82333;
+    }
+
+    &:active {
+        background-color: #bd2130;
+    }
+}
+
+// --- TemplatePanel 스타일 ---
+.templateList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.templateItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px; // templateHeader와 templateActions 사이에 간격 추가
+    padding: 16px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+    &:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transform: translateY(-1px);
+    }
+}
+
+.templateHeader {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 1;
+}
+
+.templateIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+    border-radius: 10px;
+    color: white;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.templateInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.templateName {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+}
+
+.templateDescription {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin: 0 0 8px 0;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.templateMeta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.templateTags {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    flex-wrap: nowrap; // 한 줄에 유지
+    overflow: hidden; // 넘치는 부분 숨김
+}
+
+.templateCategory {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #3b82f6;
+    background-color: rgba(59, 130, 246, 0.08);
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    white-space: nowrap; // 텍스트 줄바꿈 방지
+    flex-shrink: 0; // 태그가 축소되지 않도록
+}
+
+.templateNodes {
+    font-size: 0.7rem;
+    color: #6b7280;
+    background-color: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.templateActions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.templateActionButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #6b7280;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: #f3f4f6;
+        border-color: #cbd5e1;
+        color: #374151;
+        transform: scale(1.05);
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+}

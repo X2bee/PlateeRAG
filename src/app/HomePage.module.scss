@@ -1,0 +1,476 @@
+@use "sass:color";
+
+$primary-blue: #2563eb;
+$primary-purple: #7c3aed;
+$primary-green: #059669;
+$primary-pink: #db2777;
+$gray-50: #f9fafb;
+$gray-100: #f3f4f6;
+$gray-200: #e5e7eb;
+$gray-300: #d1d5db;
+$gray-400: #9ca3af;
+$gray-500: #6b7280;
+$gray-600: #4b5563;
+$gray-700: #374151;
+$gray-900: #111827;
+$white: #ffffff;
+
+// Mixins
+@mixin gradient-text($from, $to) {
+    background: linear-gradient(to right, $from, $to);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+@mixin card-hover {
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+}
+
+@mixin button-primary {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+// Main Container
+.container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, $gray-50 0%, $white 100%);
+}
+
+// Header Styles
+.header {
+    position: relative;
+    z-index: 10;
+}
+
+.nav {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1rem;
+
+    @media (min-width: 640px) {
+        padding: 0 1.5rem;
+    }
+
+    @media (min-width: 1024px) {
+        padding: 0 2rem;
+    }
+}
+
+.navContent {
+    display: flex;
+    height: 4rem;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+
+    h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+        @include gradient-text($primary-blue, $primary-purple);
+    }
+}
+
+.navActions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.getStartedBtn {
+    @include button-primary;
+    background-color: $primary-blue;
+    color: $white;
+
+    &:hover {
+        background-color: color.adjust($primary-blue, $lightness: -10%);
+    }
+
+    svg {
+        margin-left: 0.5rem;
+        width: 1rem;
+        height: 1rem;
+    }
+}
+
+.secondaryBtn {
+    @include button-primary;
+    background-color: $white;
+    color: $gray-700;
+    border: 1px solid $gray-300;
+
+    &:hover {
+        background-color: $gray-50;
+        color: $gray-900;
+    }
+}
+
+// Main Content
+.main {
+    position: relative;
+}
+
+.heroSection {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 5rem 1rem 4rem;
+    text-align: center;
+
+    @media (min-width: 640px) {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    @media (min-width: 1024px) {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+}
+
+.heroTitle {
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: $gray-900;
+    margin-bottom: 1.5rem;
+
+    @media (min-width: 640px) {
+        font-size: 3.75rem;
+    }
+
+    .highlight {
+        display: block;
+        color: $primary-blue;
+    }
+}
+
+.heroDescription {
+    font-size: 1.125rem;
+    line-height: 1.75;
+    color: $gray-600;
+    max-width: 48rem;
+    margin: 0 auto 2.5rem;
+}
+
+.heroActions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.primaryBtn {
+    @include button-primary;
+    background-color: $primary-blue;
+    color: $white;
+    padding: 0.75rem 1.5rem;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+        background-color: color.adjust($primary-blue, $lightness: -10%);
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    svg {
+        margin-right: 0.5rem;
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
+.secondaryBtn {
+    @include button-primary;
+    background-color: $white;
+    color: $gray-700;
+    border: 1px solid $gray-300;
+
+    &:hover {
+        background-color: $gray-50;
+    }
+}
+
+// Features Section
+.featuresSection {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 6rem 1rem;
+
+    @media (min-width: 640px) {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    @media (min-width: 1024px) {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+}
+
+.featuresHeader {
+    text-align: center;
+    margin-bottom: 4rem;
+
+    h2 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: $gray-900;
+        margin-bottom: 1rem;
+
+        @media (min-width: 640px) {
+            font-size: 2.25rem;
+        }
+    }
+
+    p {
+        font-size: 1.125rem;
+        color: $gray-600;
+        margin: 0;
+    }
+}
+
+.featuresGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+
+    @media (min-width: 640px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.featureCard {
+    position: relative;
+
+    .cardBackground {
+        position: absolute;
+        inset: 0;
+        border-radius: 0.5rem;
+        opacity: 0.25;
+        filter: blur(4px);
+        transition: opacity 0.2s ease-in-out;
+
+        &.blue {
+            background: linear-gradient(to right, $primary-blue, $primary-purple);
+        }
+
+        &.purple {
+            background: linear-gradient(to right, $primary-purple, $primary-pink);
+        }
+
+        &.green {
+            background: linear-gradient(to right, $primary-green, $primary-blue);
+        }
+    }
+
+    &:hover .cardBackground {
+        opacity: 0.4;
+    }
+
+    .cardContent {
+        position: relative;
+        background-color: $white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        @include card-hover;
+    }
+
+    .cardHeader {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+
+        svg {
+            width: 2rem;
+            height: 2rem;
+            flex-shrink: 0;
+
+            &.blue {
+                color: $primary-blue;
+            }
+
+            &.purple {
+                color: $primary-purple;
+            }
+
+            &.green {
+                color: $primary-green;
+            }
+        }
+
+        h3 {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: $gray-900;
+            margin: 0 0 0 1rem;
+        }
+    }
+
+    .cardDescription {
+        color: $gray-600;
+        margin: 0;
+        line-height: 1.6;
+    }
+}
+
+// CTA Section
+.ctaSection {
+    background-color: $primary-blue;
+    color: $white;
+
+    .ctaContent {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 4rem 1rem;
+        text-align: center;
+
+        @media (min-width: 640px) {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+
+        @media (min-width: 1024px) {
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+
+        h2 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+
+            @media (min-width: 640px) {
+                font-size: 2.25rem;
+            }
+        }
+
+        p {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 2rem;
+        }
+    }
+}
+
+.ctaBtn {
+    @include button-primary;
+    background-color: $white;
+    color: $primary-blue;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+        background-color: $gray-50;
+    }
+
+    svg {
+        margin-right: 0.5rem;
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
+// Footer
+.footer {
+    background-color: $gray-50;
+
+    .footerContent {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 3rem 1rem;
+
+        @media (min-width: 640px) {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+
+        @media (min-width: 1024px) {
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+    }
+
+    .footerTop {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+
+        .footerBrand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+
+            h3 {
+                font-size: 1.125rem;
+                font-weight: 600;
+                color: $gray-900;
+                margin: 0;
+            }
+
+            p {
+                font-size: 0.875rem;
+                color: $gray-600;
+                margin: 0;
+            }
+        }
+
+        .footerSocial {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+
+            a {
+                color: $gray-400;
+                transition: color 0.2s ease-in-out;
+
+                &:hover {
+                    color: $gray-500;
+                }
+
+                svg {
+                    width: 1.5rem;
+                    height: 1.5rem;
+                }
+            }
+        }
+    }
+
+    .footerBottom {
+        margin-top: 2rem;
+        border-top: 1px solid $gray-200;
+        padding-top: 2rem;
+        text-align: center;
+
+        p {
+            font-size: 0.875rem;
+            color: $gray-500;
+            margin: 0;
+        }
+    }
+}
