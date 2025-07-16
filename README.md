@@ -36,6 +36,7 @@ PlateerRAG는 **비주얼 워크플로우 에디터**로 AI 애플리케이션�
 </div>
 
 ### 💬 **AI 채팅 인터페이스**
+
 - **워크플로우 연동**: 구축한 워크플로우와 실시간 대화
 - **타이핑 애니메이션**: 세련된 UI로 AI 응답 표시
 - **다중 워크플로우**: 여러 워크플로우 중 선택하여 대화
@@ -61,6 +62,7 @@ PlateerRAG는 **비주얼 워크플로우 에디터**로 AI 애플리케이션�
 </div>
 
 ### ⚡ **고성능 아키텍처**
+
 - **FastAPI 백엔드**: Python 기반의 고성능 API 서버
 - **Turbopack**: Next.js 15의 빠른 번들러 활용
 - **모듈화 설계**: 컴포넌트 기반의 확장 가능한 구조
@@ -124,7 +126,7 @@ plateerag/
 │   │   │   ├── generateSha1Hash.ts # 해시 생성기
 │   │   │   └── debug-guide.js   # 디버그 가이드
 │   │   └── _common/             # 공통 컴포넌트
-│   │       └── components/      
+│   │       └── components/
 │   │           ├── ToastProvider.jsx    # 알림 시스템
 │   │           ├── nodeHook.ts          # 노드 관리 훅
 │   │           ├── sidebarConfig.ts     # 사이드바 설정
@@ -138,20 +140,22 @@ plateerag/
 ├── DEBUG_GUIDE.md              # 디버그 시스템 사용법
 └── README.md                   # 프로젝트 문서
 ```
-│   │   │   └── assets/          # 채팅 스타일
-│   │   ├── main/                # 관리센터
-│   │   │   ├── page.tsx
-│   │   │   ├── components/       # 관리 도구 컴포넌트
-│   │   │   └── assets/          # 관리센터 스타일
-│   │   ├── api/                 # API 관련 유틸리티
-│   │   ├── data/                # 데이터 관리
-│   │   └── utils/               # 공통 유틸리티
-│   └── public/                  # 정적 파일
-├── package.json                 # 프로젝트 설정
-├── next.config.ts              # Next.js 설정
-├── tsconfig.json               # TypeScript 설정
-└── README.md                   # 프로젝트 문서
-```
+
+│ │ │ └── assets/ # 채팅 스타일
+│ │ ├── main/ # 관리센터
+│ │ │ ├── page.tsx
+│ │ │ ├── components/ # 관리 도구 컴포넌트
+│ │ │ └── assets/ # 관리센터 스타일
+│ │ ├── api/ # API 관련 유틸리티
+│ │ ├── data/ # 데이터 관리
+│ │ └── utils/ # 공통 유틸리티
+│ └── public/ # 정적 파일
+├── package.json # 프로젝트 설정
+├── next.config.ts # Next.js 설정
+├── tsconfig.json # TypeScript 설정
+└── README.md # 프로젝트 문서
+
+````
 
 ## 🤖 지원하는 AI 노드
 
@@ -202,7 +206,7 @@ yarn install
 npm run dev
 # 또는
 yarn dev
-```
+````
 
 ### 3. 브라우저에서 확인
 
@@ -270,6 +274,7 @@ npm run format
 ### 기술 스택
 
 #### 🎨 **프론트엔드**
+
 - **Next.js 15.3.2**: App Router 기반의 풀스택 React 프레임워크
 - **React 19**: 최신 React 기능 활용 (Concurrent Features, Server Components)
 - **TypeScript**: 타입 안전성과 개발 생산성 향상
@@ -278,17 +283,20 @@ npm run format
 - **React Hot Toast**: 세련된 알림 시스템
 
 #### 🔧 **개발 도구**
+
 - **Turbopack**: Next.js 15의 고속 번들러 (dev 모드)
 - **ESLint**: 코드 품질 및 일관성 관리
 - **Prettier**: 자동 코드 포매팅
 - **Husky**: Git 훅을 통한 품질 관리
 
 #### 🌐 **백엔드 연동**
+
 - **FastAPI**: Python 기반 고성능 API 서버
 - **LangChain**: AI 체인 구성을 위한 프레임워크
 - **RESTful API**: 표준 HTTP API 통신
 
 #### 📊 **데이터 관리**
+
 - **LocalStorage**: 클라이언트 사이드 데이터 저장
 - **React State**: 애플리케이션 상태 관리
 - **JSON**: 데이터 직렬화 및 API 통신
@@ -316,18 +324,19 @@ prodLog.error('심각한 에러');
 ```
 
 #### 브라우저 콘솔 제어
+
 ```javascript
 // 디버그 로그 강제 활성화
-enableDebugLogs()
+enableDebugLogs();
 
 // 디버그 로그 비활성화
-disableDebugLogs()
+disableDebugLogs();
 
 // 환경 설정으로 리셋
-resetDebugLogs()
+resetDebugLogs();
 
 // 현재 환경 정보 확인
-checkEnvironment()
+checkEnvironment();
 ```
 
 상세한 사용법은 [`DEBUG_GUIDE.md`](DEBUG_GUIDE.md)를 참조하세요.
@@ -340,11 +349,13 @@ checkEnvironment()
 <img src="./img/canvas.png" alt="캔버스 에디터" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
 <img src="./img/template.png" alt="템플릿 선택" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
 
-### 📊 관리센터 
+### 📊 관리센터
+
 <img src="./img/chatdemo.png" alt="채팅 데모" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
 <img src="./img/resource_monitoring.png" alt="리소스 모니터링" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
 
 ### ⚙️ 워크플로우 관리
+
 <img src="./img/workflow_control.png" alt="워크플로우 제어" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
 <img src="./img/setting.png" alt="설정 관리" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
 
@@ -352,16 +363,16 @@ checkEnvironment()
 
 ## 🌟 주요 페이지
 
-| 페이지 | 경로 | 설명 |
-|--------|------|------|
-| **홈** | `/` | 프로젝트 소개 및 메인 랜딩 |
-| **캔버스** | `/canvas` | 비주얼 워크플로우 에디터 |
-| **채팅** | `/chat` | AI 워크플로우 채팅 인터페이스 |
-| **관리센터** | `/main` | 워크플로우 관리 및 모니터링 |
+| 페이지       | 경로      | 설명                          |
+| ------------ | --------- | ----------------------------- |
+| **홈**       | `/`       | 프로젝트 소개 및 메인 랜딩    |
+| **캔버스**   | `/canvas` | 비주얼 워크플로우 에디터      |
+| **채팅**     | `/chat`   | AI 워크플로우 채팅 인터페이스 |
+| **관리센터** | `/main`   | 워크플로우 관리 및 모니터링   |
 
 ## 🤝 기여하기
 
-PlateerRAG 프로젝트에 기여해주셔서 감사합니다! 
+PlateerRAG 프로젝트에 기여해주셔서 감사합니다!
 
 ### 기여 방법
 
