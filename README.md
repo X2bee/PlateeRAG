@@ -383,20 +383,21 @@ npm run format
 
 ## 📄 라이선스
 
-이 프로젝트는 [MIT 라이선스](LICENSE)를 따릅니다.
+이 프로젝트는 [GPL-3.0](LICENSE)를 따릅니다.
 
 ## 👥 개발팀
 
-- **Plateer AI-LAB** - 프로젝트 기획 및 AI 엔진
-- **CocoRoF** - 프론트엔드 개발 및 UI/UX
-- **haesookimDev** - 백엔드 개발 및 아키텍처
+- **Plateer AI-LAB**
+- **CocoRoF** - 장하렴
+- **haesookimDev** - 김해수
+- **SonAIengine** - 손성준 (AI-LAB Part Leader)
 
 ## 🔗 관련 링크
 
 - **GitHub 저장소**: [PlateerRAG Repository](https://github.com/plateer/plateerag)
 - **개발 문서**: [`DEBUG_GUIDE.md`](DEBUG_GUIDE.md) - 디버그 시스템 사용법
 - **이슈 리포트**: GitHub Issues를 통한 버그 신고 및 기능 요청
-- **기술 블로그**: [Plateer 기술 블로그](https://tech.plateer.com)
+- **기술 블로그**: [Plateer 기술 블로그](https://x2bee.tistory.com/)
 
 ---
 
