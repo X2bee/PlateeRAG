@@ -141,23 +141,8 @@ plateerag/
 └── README.md                   # 프로젝트 문서
 ```
 
-│ │ │ └── assets/ # 채팅 스타일
-│ │ ├── main/ # 관리센터
-│ │ │ ├── page.tsx
-│ │ │ ├── components/ # 관리 도구 컴포넌트
-│ │ │ └── assets/ # 관리센터 스타일
-│ │ ├── api/ # API 관련 유틸리티
-│ │ ├── data/ # 데이터 관리
-│ │ └── utils/ # 공통 유틸리티
-│ └── public/ # 정적 파일
-├── package.json # 프로젝트 설정
-├── next.config.ts # Next.js 설정
-├── tsconfig.json # TypeScript 설정
-└── README.md # 프로젝트 문서
-
 ````
-
-## 🤖 지원하는 AI 노드
+## 🤖 지원하는 AI 노드 (예정)
 
 PlateerRAG는 **LangChain** 생태계의 다양한 AI 노드를 지원합니다:
 
