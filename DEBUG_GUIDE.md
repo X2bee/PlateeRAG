@@ -1,5 +1,3 @@
-/\*\*
-
 - 🚀 Debug Logger 사용 가이드
 -
 - 이 프로젝트는 개발 환경에서만 디버그 로그를 출력하도록 설정되어 있습니다.
@@ -54,7 +52,6 @@
 -   2. 브라우저에서 disableDebugLogs() 실행 → 로그 사라짐
 -   3. enableDebugLogs() 실행 → 로그 다시 나타남
 -   4. npm run build → npm start로 프로덕션 모드 테스트
-       \*/
 
 console.log('🎯 Debug Logger가 활성화되었습니다!');
 console.log('브라우저 콘솔에서 enableDebugLogs(), disableDebugLogs(), resetDebugLogs() 함수를 사용할 수 있습니다.');

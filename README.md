@@ -404,6 +404,6 @@ npm run format
 
 **Made with ❤️ by Plateer AI-LAB**
 
-[⭐ Star this repo](https://github.com/plateer/plateerag) • [🐛 Report Bug](https://github.com/plateer/plateerag/issues) • [💡 Request Feature](https://github.com/plateer/plateerag/issues)
+[⭐ Star this repo](https://github.com/X2bee/PlateeRAG) • [🐛 Report Bug](https://github.com/X2bee/PlateeRAG/issues) • [💡 Request Feature](https://github.com/X2bee/PlateeRAG/issues)
 
 </div>
