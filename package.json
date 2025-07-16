@@ -22,10 +22,6 @@
         "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
         "prepare": "husky"
     },
-    "lint-staged": {
-        "*.{js,jsx,ts,tsx}": "npx eslint",
-        "*.{js,jsx,ts,tsx,json,css,md}": "npx prettier --write"
-    },
     "dependencies": {
         "@eslint/compat": "^1.3.1",
         "@eslint/eslintrc": "^3.3.1",

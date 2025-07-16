@@ -1,19 +1,21 @@
-import { Suspense } from 'react';
-import MainPageClient from './components/MainPageClient';
-import styles from './assets/MainPage.module.scss';
+'use client';
+import React, { Suspense } from 'react';
+import MainPageContent from '@/app/main/components/MainPageContent';
+import styles from '@/app/main/assets/MainPage.module.scss';
 
-function Loading() {
-    return (
+const LoadingFallback = () => (
+    <div className={styles.container}>
         <div className={styles.loadingContainer}>
-            <p>페이지를 불러오는 중입니다...</p>
+            <div className={styles.spinner}></div>
+            <p>Loading...</p>
         </div>
-    );
-}
+    </div>
+);
 
-export default function MainPage() {
+const MainPage: React.FC = () => {
     return (
-        <Suspense fallback={<Loading />}>
-            <MainPageClient />
+        <Suspense fallback={<LoadingFallback />}>
+            <MainPageContent />
         </Suspense>
     );
 }
