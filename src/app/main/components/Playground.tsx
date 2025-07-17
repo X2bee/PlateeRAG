@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiRefreshCw } from 'react-icons/fi';
 import { listWorkflowsDetail } from '@/app/api/workflowAPI';
 import styles from '@/app/main/assets/Playground.module.scss';
@@ -18,15 +18,6 @@ interface Workflow {
     last_modified: string;
     has_startnode: boolean;
     has_endnode: boolean;
-}
-
-interface IOLog {
-    log_id: number | string;
-    workflow_name: string;
-    workflow_id: string;
-    input_data: string;
-    output_data: string;
-    updated_at: string;
 }
 
 const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
@@ -127,6 +118,14 @@ const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
                                     key={workflow.filename}
                                     className={`${styles.workflowItem} ${selectedWorkflow?.filename === workflow.filename ? styles.selected : ''}`}
                                     onClick={() => loadChatLogs(workflow)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            loadChatLogs(workflow);
+                                        }
+                                    }}
+                                    role="button"
+                                    tabIndex={0}
                                 >
                                     <div className={styles.workflowName}>
                                         {workflow.filename.replace('.json', '')}

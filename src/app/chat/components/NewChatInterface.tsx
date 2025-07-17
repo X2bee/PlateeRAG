@@ -187,7 +187,7 @@ const NewChatInterface: React.FC<NewChatInterfaceProps> = ({ workflow, onBack })
                         <div className={styles.emptyState}>
                             <FiClock className={styles.emptyIcon} />
                             <h3>첫 대화를 시작해보세요!</h3>
-                            <p>"{workflow.name}" 워크플로우가 준비되었습니다.</p>
+                            <p>&quot;{workflow.name}&quot; 워크플로우가 준비되었습니다.</p>
                             <div className={styles.welcomeActions}>
                                 <div className={styles.suggestionChips}>
                                     <button 

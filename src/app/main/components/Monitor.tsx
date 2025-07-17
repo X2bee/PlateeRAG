@@ -145,7 +145,7 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                             lineHeight: '1.4',
                         }}
                     >
-                        "<strong>{workflowName}</strong>" 워크플로우의 모든 성능 데이터를 삭제하시겠습니까?
+                        &quot;<strong>{workflowName}</strong>&quot; 워크플로우의 모든 성능 데이터를 삭제하시겠습니까?
                         <br />
                         이 작업은 되돌릴 수 없습니다.
                     </div>

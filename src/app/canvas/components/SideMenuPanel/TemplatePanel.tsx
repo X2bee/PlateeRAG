@@ -77,7 +77,7 @@ const TemplatePanel: React.FC<TemplatePanelProps> = ({ onBack, onLoadWorkflow })
                         <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.4' }}>
                             You have an existing workflow with unsaved changes.
                             <br />
-                            Using "<strong>{template.name}</strong>" template will replace your current work.
+                            Using &quot;<strong>{template.name}</strong>&quot; template will replace your current work.
                         </div>
                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
                             <button

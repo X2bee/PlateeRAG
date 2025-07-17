@@ -625,8 +625,8 @@ const ConfigViewer: React.FC<ConfigViewerProps> = ({
                                         {config.type.toLowerCase() ===
                                             'array' && (
                                             <div className={styles.helpText}>
-                                                배열 값: JSON 형식 ["value1",
-                                                "value2"] 또는 쉼표로 구분된 값
+                                                배열 값: JSON 형식 [&quot;value1&quot;,
+                                                &quot;value2&quot;] 또는 쉼표로 구분된 값
                                             </div>
                                         )}
                                     </>

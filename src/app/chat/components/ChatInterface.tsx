@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
     FiSend,
     FiArrowLeft,
@@ -54,7 +54,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, existin
 
     useEffect(() => {
         loadChatLogs();
-    }, [workflow]);
+    }, [workflow, existingChatData]);
 
     useEffect(() => {
         scrollToBottom();
@@ -221,7 +221,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, existin
                                 <div className={styles.emptyState}>
                                     <FiClock className={styles.emptyIcon} />
                                     <h3>대화 기록이 없습니다</h3>
-                                    <p>"{workflow.name}" 워크플로우의 이전 대화를 불러올 수 없습니다.</p>
+                                    <p>&quot;{workflow.name}&quot; 워크플로우의 이전 대화를 불러올 수 없습니다.</p>
                                     <p>새로운 대화를 시작해보세요.</p>
                                 </div>
                             ) : (

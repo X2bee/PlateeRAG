@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import {
     FiFolder,
-    FiPlay,
     FiUser,
     FiClock,
     FiRefreshCw,
@@ -192,6 +191,14 @@ const WorkflowSelection: React.FC<WorkflowSelectionProps> = ({ onBack, onSelectW
                             key={workflow.name}
                             className={`${styles.workflowCard} ${workflow.status !== 'active' ? styles.disabled : ''}`}
                             onClick={() => handleSelectWorkflow(workflow)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    handleSelectWorkflow(workflow);
+                                }
+                            }}
+                            role="button"
+                            tabIndex={0}
                         >
                             <div className={styles.cardHeader}>
                                 <div className={styles.workflowIcon}>

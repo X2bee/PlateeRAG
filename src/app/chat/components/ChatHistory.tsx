@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import {
     FiMessageSquare,
-    FiClock,
     FiRefreshCw,
     FiUser,
     FiPlay,

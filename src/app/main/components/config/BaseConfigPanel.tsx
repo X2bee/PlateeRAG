@@ -49,10 +49,10 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
     // configData에서 관련 설정들을 추출 (filterPrefix가 있으면 필터링)
     const filteredConfigs = filterPrefix
         ? configData.filter(
-              (item) =>
-                  item.config_path.startsWith(filterPrefix) ||
-                  item.env_name.startsWith(filterPrefix),
-          )
+            (item) =>
+                item.config_path.startsWith(filterPrefix) ||
+                item.env_name.startsWith(filterPrefix),
+        )
         : configData;
 
     // 중복 키 제거 (env_name 기준으로 중복 제거)
@@ -365,7 +365,7 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
                                             style={{
                                                 fontFamily:
                                                     fieldConfig.type ===
-                                                    'password'
+                                                        'password'
                                                         ? "'Courier New', monospace"
                                                         : 'inherit',
                                             }}

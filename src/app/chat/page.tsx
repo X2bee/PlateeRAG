@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/app/main/components/Sidebar';
 import ChatContent from '@/app/chat/components/ChatContent';
@@ -8,7 +8,7 @@ import CurrentChatInterface from '@/app/chat/components/CurrentChatInterface';
 import { getSidebarItems, createItemClickHandler } from '@/app/_common/components/sidebarConfig';
 import styles from '@/app/main/assets/MainPage.module.scss';
 
-const ChatPage: React.FC = () => {
+const ChatPageContent: React.FC = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [activeMode, setActiveMode] = useState<'new-chat' | 'chat-history' | 'current-chat'>('chat-history');
@@ -75,6 +75,21 @@ const ChatPage: React.FC = () => {
                 {renderContent()}
             </main>
         </div>
+    );
+};
+
+const ChatPage: React.FC = () => {
+    return (
+        <Suspense fallback={
+            <div className={styles.container}>
+                <div className={styles.loadingContainer}>
+                    <div className={styles.spinner}></div>
+                    <p>Loading...</p>
+                </div>
+            </div>
+        }>
+            <ChatPageContent />
+        </Suspense>
     );
 };
 

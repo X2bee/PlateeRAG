@@ -6,7 +6,6 @@ import {
     FiPlay,
     FiZap,
     FiGrid,
-    FiUsers,
     FiMessageCircle,
     FiCpu,
     FiLayers,
@@ -265,7 +264,7 @@ export default function HomePage() {
                             </Link>
                         </div>
                         <div className={styles.ctaNote}>
-                            <span> Let's Start </span>
+                            <span> Let&apos;s Start </span>
                         </div>
                     </div>
                 </div>

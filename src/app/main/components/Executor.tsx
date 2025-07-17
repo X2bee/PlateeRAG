@@ -1,8 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import {
-    FiRefreshCw,
-    FiPlay,
     FiMessageSquare,
     FiSend,
     FiClock,
@@ -130,7 +128,7 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                             lineHeight: '1.4',
                         }}
                     >
-                        "<strong>{workflowName}</strong>" 워크플로우의 모든 실행 로그를 삭제하시겠습니까?
+                        <strong>{workflowName}</strong> 워크플로우의 모든 실행 로그를 삭제하시겠습니까?
                         <br />
                         이 작업은 되돌릴 수 없습니다.
                     </div>
