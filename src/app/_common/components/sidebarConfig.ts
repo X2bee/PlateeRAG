@@ -6,7 +6,7 @@ import {
     FiSettings,
     FiEye,
     FiClock,
-    FiMessageCircle
+    FiMessageCircle,
     FiFile,
 } from 'react-icons/fi';
 import { RiChatSmileAiLine } from "react-icons/ri";
