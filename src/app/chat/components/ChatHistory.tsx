@@ -154,7 +154,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
                             <div key={chat.id} className={styles.chatCard}>
                                 <div className={styles.cardHeader}>
                                     <h3 className={styles.workflowName}>
-                                        {chat.workflow_name}
+                                        {chat.metadata.placeholder || chat.workflow_name}
                                     </h3>
                                     <span className={styles.chatDate}>
                                         {formatDate(chat.updated_at)}
@@ -169,7 +169,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
                                     <div className={styles.metaItem}>
                                         <FiUser />
                                         <span className={styles.interactionId}>
-                                            {chat.interaction_id}
+                                            {chat.workflow_name}
                                         </span>
                                     </div>
                                 </div>
