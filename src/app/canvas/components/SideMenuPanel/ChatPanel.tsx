@@ -40,7 +40,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onBack }) => {
         setInputValue('');
 
         try {
-            const response: SendMessageResponse = await sendMessage(userMessage.text);
+            const response = await sendMessage({ 
+                message: userMessage.text,
+                isNewChat: messages.length === 1 // 첫 번째 메시지면 새 채팅
+            }) as SendMessageResponse;
             const botMessage: Message = {
                 id: Date.now() + 1,
                 text: response.text,
