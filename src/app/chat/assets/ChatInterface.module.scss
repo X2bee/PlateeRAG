@@ -378,6 +378,52 @@ $white: #ffffff;
     font-weight: 500;
 }
 
+// Welcome Actions for NewChatInterface
+.welcomeActions {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.suggestionChips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+    max-width: 400px;
+}
+
+.suggestionChip {
+    padding: 0.75rem 1.25rem;
+    background: $gray-50;
+    border: 1px solid $gray-300;
+    border-radius: 20px;
+    color: $gray-700;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background: $primary-blue;
+        color: $white;
+        border-color: $primary-blue;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(37, 99, 235, 0.15);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}
+
 // Responsive Design
 @media (max-width: 768px) {
     .header {

@@ -1,26 +1,85 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import styles from '@/app/chat/assets/ChatContent.module.scss';
 import { LuWorkflow } from "react-icons/lu";
 import { IoChatbubblesOutline } from "react-icons/io5";
 import WorkflowSelection from './WorkflowSelection';
 import ChatInterface from './ChatInterface';
+import NewChatInterface from './NewChatInterface';
 
 const ChatContent: React.FC = () => {
-    const [currentView, setCurrentView] = useState<'welcome' | 'workflow' | 'chat'>('welcome');
+    const searchParams = useSearchParams();
+    const [currentView, setCurrentView] = useState<'welcome' | 'workflow' | 'newChat' | 'existingChat'>('welcome');
     const [selectedWorkflow, setSelectedWorkflow] = useState<any>(null);
+    const [chatType, setChatType] = useState<'new' | 'existing'>('new');
+    const [existingChatData, setExistingChatData] = useState<any>(null);
+
+    // URL 파라미터에서 기존 채팅 정보 확인
+    useEffect(() => {
+        const mode = searchParams.get('mode');
+        const interactionId = searchParams.get('interaction_id');
+        const workflowId = searchParams.get('workflow_id');
+        const workflowName = searchParams.get('workflow_name');
+
+        if (mode === 'existing' && interactionId && workflowId && workflowName) {
+            // 기존 채팅 정보를 설정하고 바로 채팅 화면으로 이동
+            const existingWorkflow = {
+                id: workflowId,
+                name: workflowName,
+                filename: workflowName,
+                author: 'Unknown',
+                nodeCount: 0,
+                status: 'active' as const,
+            };
+            
+            setExistingChatData({
+                interactionId,
+                workflowId,
+                workflowName,
+            });
+            
+            setSelectedWorkflow(existingWorkflow);
+            setChatType('existing');
+            setCurrentView('existingChat');
+        }
+    }, [searchParams]);
 
     const handleWorkflowSelect = (workflow: any) => {
         setSelectedWorkflow(workflow);
-        setCurrentView('chat');
+        // 새로운 채팅으로 시작 (항상 NewChatInterface 사용)
+        setChatType('new');
+        setCurrentView('newChat');
     };
 
-    // 채팅 화면
-    if (currentView === 'chat' && selectedWorkflow) {
+    const handleExistingChatSelect = (workflow: any) => {
+        setSelectedWorkflow(workflow);
+        // 기존 채팅 계속하기 (ChatInterface 사용)
+        setChatType('existing');
+        setCurrentView('existingChat');
+    };
+
+    // 새로운 채팅 화면 (NewChatInterface)
+    if (currentView === 'newChat' && selectedWorkflow) {
+        return (
+            <div className={styles.chatContainer}>
+                <div className={styles.workflowSection}>
+                    <NewChatInterface 
+                        workflow={selectedWorkflow}
+                        onBack={() => setCurrentView('workflow')}
+                    />
+                </div>
+            </div>
+        );
+    }
+
+    // 기존 채팅 화면 (ChatInterface)
+    if (currentView === 'existingChat' && selectedWorkflow) {
         return (
             <div className={styles.chatContainer}>
                 <div className={styles.workflowSection}>
                     <ChatInterface 
                         workflow={selectedWorkflow}
+                        existingChatData={existingChatData}
                         onBack={() => setCurrentView('workflow')}
                     />
                 </div>

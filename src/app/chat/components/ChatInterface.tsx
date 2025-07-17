@@ -35,9 +35,14 @@ interface IOLog {
 interface ChatInterfaceProps {
     workflow: Workflow;
     onBack: () => void;
+    existingChatData?: {
+        interactionId: string;
+        workflowId: string;
+        workflowName: string;
+    } | null;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, existingChatData }) => {
     const [ioLogs, setIOLogs] = useState<IOLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [executing, setExecuting] = useState(false);
@@ -65,7 +70,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack }) => {
         try {
             setLoading(true);
             setError(null);
-            const logs = await getWorkflowIOLogs(workflow.name, workflow.id);
+            
+            // existingChatData가 있으면 해당 interaction_id의 로그를 가져옴
+            const interactionId = existingChatData?.interactionId || 'default';
+            const workflowName = existingChatData?.workflowName || workflow.name;
+            const workflowId = existingChatData?.workflowId || workflow.id;
+            
+            const logs = await getWorkflowIOLogs(workflowName, workflowId, interactionId);
             setIOLogs((logs as any).in_out_logs || []);
             setPendingLogId(null);
         } catch (err) {
@@ -112,10 +123,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack }) => {
         setInputMessage('');
 
         try {
+            // existingChatData가 있으면 해당 interaction_id 사용
+            const interactionId = existingChatData?.interactionId || 'default';
+            const workflowName = existingChatData?.workflowName || workflow.name;
+            const workflowId = existingChatData?.workflowId || workflow.id;
+            
             const result: any = await executeWorkflowById(
-                workflow.name,
-                workflow.id,
+                workflowName,
+                workflowId,
                 currentMessage,
+                interactionId,
             );
 
             // 결과로 임시 메시지 업데이트
@@ -133,6 +150,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack }) => {
                 ),
             );
             setPendingLogId(null);
+            
+            // 기존 채팅 데이터가 있는 경우 localStorage 업데이트
+            if (existingChatData) {
+                const currentChatData = {
+                    interactionId: existingChatData.interactionId,
+                    workflowId: existingChatData.workflowId,
+                    workflowName: existingChatData.workflowName,
+                    startedAt: new Date().toISOString(),
+                };
+                localStorage.setItem('currentChatData', JSON.stringify(currentChatData));
+            }
         } catch (err) {
             // 에러로 임시 메시지 업데이트
             setIOLogs((prev) =>
@@ -170,7 +198,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack }) => {
                     </button>
                     <div>
                         <h2>{workflow.name}</h2>
-                        <p>AI 워크플로우와 대화하세요</p>
+                        <p>기존 대화를 계속하세요</p>
                     </div>
                 </div>
                 <div className={styles.chatCount}>
@@ -192,8 +220,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack }) => {
                             {ioLogs.length === 0 ? (
                                 <div className={styles.emptyState}>
                                     <FiClock className={styles.emptyIcon} />
-                                    <h3>첫 대화를 시작해보세요!</h3>
-                                    <p>"{workflow.name}" 워크플로우가 준비되었습니다.</p>
+                                    <h3>대화 기록이 없습니다</h3>
+                                    <p>"{workflow.name}" 워크플로우의 이전 대화를 불러올 수 없습니다.</p>
+                                    <p>새로운 대화를 시작해보세요.</p>
                                 </div>
                             ) : (
                                 ioLogs.map((log) => (

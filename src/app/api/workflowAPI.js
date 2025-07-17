@@ -353,17 +353,15 @@ export const executeWorkflowById = async (
     workflowName,
     workflowId,
     inputData = '',
+    interaction_id = 'default',
 ) => {
     try {
         const body = {
             workflow_name: workflowName,
             workflow_id: workflowId,
             input_data: inputData || '',
+            interaction_id: interaction_id || 'default',
         };
-        devLog.log('ExecuteWorkflowById called with:');
-        devLog.log('- workflowName:', workflowName);
-        devLog.log('- workflowId:', workflowId);
-        devLog.log('- inputData:', inputData);
         const response = await fetch(
             `${API_BASE_URL}/workflow/execute/based_id`,
             {
