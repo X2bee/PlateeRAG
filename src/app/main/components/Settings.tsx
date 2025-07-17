@@ -7,6 +7,7 @@ import {
     FiArrowLeft,
     FiDatabase,
 } from 'react-icons/fi';
+import { BsDatabaseUp } from 'react-icons/bs';
 import { SiOpenai } from 'react-icons/si';
 import { BsGear } from 'react-icons/bs'; // Workflow 아이콘으로 사용
 import {
@@ -20,6 +21,7 @@ import styles from '@/app/main/assets/Settings.module.scss';
 import OpenAIConfig from '@/app/main/components/config/openAIConfig';
 import WorkflowConfig from '@/app/main/components/config/workflowConfig';
 import DatabaseConfig from '@/app/main/components/config/databaseConfig';
+import VectordbConfig from '@/app/main/components/config/vectordbConfig';
 
 interface ConfigItem {
     env_name: string;
@@ -135,6 +137,14 @@ const Settings: React.FC = () => {
             color: '#059669',
             status: 'connected',
         },
+        {
+            id: 'vectordb',
+            name: '벡터 데이터베이스',
+            description: '벡터 데이터베이스 연결 설정',
+            icon: <BsDatabaseUp />,
+            color: '#023196',
+            status: 'connected',
+        },
     ];
 
     const handleCategoryClick = (categoryId: string) => {
@@ -207,6 +217,15 @@ const Settings: React.FC = () => {
         );
     };
 
+    const renderVectorDBConfig = () => {
+        return (
+            <VectordbConfig
+                configData={configData}
+                onTestConnection={handleTestConnection}
+            />
+        );
+    };
+
     const renderConfigForm = (categoryId: string) => {
         switch (categoryId) {
             case 'openai':
@@ -215,6 +234,8 @@ const Settings: React.FC = () => {
                 return renderWorkflowConfig();
             case 'database':
                 return renderDatabaseConfig();
+            case 'vectordb':
+                return renderVectorDBConfig();
             default:
                 return <p>설정 폼을 준비 중입니다.</p>;
         }

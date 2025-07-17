@@ -7,6 +7,7 @@ import {
     FiEye,
     FiClock,
     FiMessageCircle
+    FiFile,
 } from 'react-icons/fi';
 import { RiChatSmileAiLine } from "react-icons/ri";
 import { SidebarItem } from '@/app/main/components/types';
@@ -62,6 +63,12 @@ export const getSettingSidebarItems = (): SidebarItem[] => [
         title: '설정값 확인',
         description: '백엔드 환경변수 및 설정 확인',
         icon: React.createElement(FiEye),
+    },
+    {
+        id: 'documents',
+        title: '문서',
+        description: '문서 저장소',
+        icon: React.createElement(FiFile),
     },
 ];
 
