@@ -807,7 +807,7 @@ export const getEmbeddingDimension = (provider, model) => {
                     return 1536;
             }
         
-        case 'huggingface':
+        case 'huggingface': {
             // 일반적인 HuggingFace 모델 차원
             const commonModels = {
                 'sentence-transformers/all-MiniLM-L6-v2': 384,
@@ -820,6 +820,7 @@ export const getEmbeddingDimension = (provider, model) => {
                 'BAAI/bge-small-en-v1.5': 384,
             };
             return commonModels[model] || 768; // 일반적인 기본값
+        }
 
         case 'custom_http':
         case 'vllm':
@@ -838,7 +839,6 @@ export const getEmbeddingDimension = (provider, model) => {
 export const getCurrentEmbeddingDimension = async () => {
     try {
         const status = await getEmbeddingStatus();
-        const config = await getRagConfig();
         
         if (status && status.provider_info) {
             const provider = status.provider_info.provider || 'openai';
