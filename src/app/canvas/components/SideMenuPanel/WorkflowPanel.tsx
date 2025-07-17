@@ -8,13 +8,6 @@ import { listWorkflows, loadWorkflow, deleteWorkflow } from '@/app/api/workflowA
 import { getWorkflowState } from '@/app/_common/components/workflowStorage';
 import { devLog } from '@/app/utils/logger';
 import type {
-    Position,
-    Port,
-    Parameter,
-    NodeData,
-    CanvasNode,
-    EdgeConnection,
-    CanvasEdge,
     WorkflowData,
     WorkflowState,
     WorkflowPanelProps
@@ -64,7 +57,7 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
                         <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.4' }}>
                             You have an existing workflow with unsaved changes.
                             <br />
-                            Loading "<strong>{workflowName}</strong>" will replace your current work.
+                            Loading &quot;<strong>{workflowName}</strong>&quot; will replace your current work.
                         </div>
                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
                             <button
@@ -154,7 +147,7 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
                         Delete Workflow
                     </div>
                     <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.4' }}>
-                        Are you sure you want to delete "<strong>{workflowName}</strong>"?
+                        Are you sure you want to delete &quot;<strong>{workflowName}</strong>&quot;?
                         <br />
                         This action cannot be undone.
                     </div>

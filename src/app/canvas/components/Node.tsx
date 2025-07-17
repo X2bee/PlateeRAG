@@ -2,12 +2,7 @@ import React, { memo, useState, useEffect, ChangeEvent, KeyboardEvent } from 're
 import styles from '@/app/canvas/assets/Node.module.scss';
 import { devLog } from '@/app/utils/logger';
 import type {
-    Position,
-    Port,
-    ParameterOption,
     Parameter,
-    NodeData,
-    PortMouseEventData,
     NodeProps
 } from '@/app/canvas/types';
 

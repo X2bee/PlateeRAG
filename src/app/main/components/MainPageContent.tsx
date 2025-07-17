@@ -7,6 +7,8 @@ import CompletedWorkflows from '@/app/main/components/CompletedWorkflows';
 import Playground from '@/app/main/components/Playground';
 import Settings from '@/app/main/components/Settings';
 import ConfigViewer from '@/app/main/components/ConfigViewer';
+import ChatHistory from '@/app/chat/components/ChatHistory';
+import CurrentChatInterface from '@/app/chat/components/CurrentChatInterface';
 import { getSidebarItems } from '@/app/_common/components/sidebarConfig';
 import styles from '@/app/main/assets/MainPage.module.scss';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
@@ -83,6 +85,13 @@ const MainPageContent: React.FC = () => {
     // 사이드바 아이템 클릭 처리
     const handleSidebarItemClick = (id: string) => {
         setActiveSection(id);
+    };
+
+    // 채팅 선택 처리 (Main 화면에서 기존 채팅 세션 표시)
+    const handleChatSelect = (executionMeta: any) => {
+        // 선택된 채팅을 현재 채팅으로 설정 후 current-chat 모드로 전환
+        console.log('Selected chat:', executionMeta);
+        setActiveSection('current-chat');
     };
 
     const sidebarItems = getSidebarItems();
@@ -163,6 +172,24 @@ const MainPageContent: React.FC = () => {
                                 setActiveSection('settings')
                             }
                         />
+                    </ContentArea>
+                );
+            case 'chat-history':
+                return (
+                    <ContentArea
+                        title="기존 채팅 불러오기"
+                        description="이전 대화 기록을 확인하고 계속 진행하세요."
+                    >
+                        <ChatHistory onSelectChat={handleChatSelect} />
+                    </ContentArea>
+                );
+            case 'current-chat':
+                return (
+                    <ContentArea
+                        title="현재 채팅"
+                        description="진행 중인 대화를 계속하세요."
+                    >
+                        <CurrentChatInterface />
                     </ContentArea>
                 );
             default:

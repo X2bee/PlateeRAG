@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import {
     FiFolder,
-    FiPlay,
     FiUser,
     FiClock,
     FiRefreshCw,
@@ -137,7 +136,7 @@ const WorkflowSelection: React.FC<WorkflowSelectionProps> = ({ onBack, onSelectW
                     </button>
                     <div>
                         <h2>워크플로우 선택</h2>
-                        <p>채팅에 사용할 워크플로우를 선택하세요.</p>
+                        <p>새로운 대화를 시작할 워크플로우를 선택하세요.</p>
                     </div>
                 </div>
 
@@ -192,6 +191,14 @@ const WorkflowSelection: React.FC<WorkflowSelectionProps> = ({ onBack, onSelectW
                             key={workflow.name}
                             className={`${styles.workflowCard} ${workflow.status !== 'active' ? styles.disabled : ''}`}
                             onClick={() => handleSelectWorkflow(workflow)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    handleSelectWorkflow(workflow);
+                                }
+                            }}
+                            role="button"
+                            tabIndex={0}
                         >
                             <div className={styles.cardHeader}>
                                 <div className={styles.workflowIcon}>
