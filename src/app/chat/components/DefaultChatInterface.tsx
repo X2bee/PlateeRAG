@@ -78,79 +78,65 @@ const DefaultChatInterface: React.FC<DefaultChatInterfaceProps> = ({ onBack }) =
     };
 
     const scrollToBottom = () => {
-        setTimeout(() => {
-            if (messagesRef.current) {
-                messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
-            }
-        }, 100);
-    };
-
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffMs = now.getTime() - date.getTime();
-        const diffMinutes = Math.floor(diffMs / (1000 * 60));
-        
-        if (diffMinutes < 1) {
-            return '방금 전';
-        } else if (diffMinutes < 60) {
-            return `${diffMinutes}분 전`;
-        } else {
-            return date.toLocaleTimeString('ko-KR', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
+        if (messagesRef.current) {
+            messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
         }
     };
 
-    /**
-     * 일반 채팅을 시작하는 메서드 (첫 번째 메시지)
-     */
-    const startDefaultChat = async (inputData: string) => {
-        try {
-            setExecuting(true);
-            setError(null);
-            
-            // workflow 검증
-            if (defaultWorkflow.id !== 'default_mode' || defaultWorkflow.name !== 'default_mode') {
-                throw new Error('일반 채팅은 default_mode workflow만 사용 가능합니다.');
-            }
-            
-            const tempLogId = `temp_${Date.now()}`;
-            const tempLog: IOLog = {
-                log_id: tempLogId,
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleString('ko-KR', {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    };
+
+    const executeWorkflow = async () => {
+        if (!inputMessage.trim()) {
+            return;
+        }
+
+        setError(null);
+        setExecuting(true);
+        const tempId = `pending-${Date.now()}`;
+        setPendingLogId(tempId);
+
+        // 임시 메시지 추가
+        setIOLogs((prev) => [
+            ...prev,
+            {
+                log_id: tempId,
                 workflow_name: '일반 채팅',
                 workflow_id: defaultWorkflow.id,
-                input_data: inputData,
+                input_data: inputMessage,
                 output_data: '',
-                updated_at: new Date().toISOString()
-            };
-            
-            setIOLogs(prev => [...prev, tempLog]);
-            setPendingLogId(tempLogId);
-            scrollToBottom();
-            
-            // 새로운 채팅 세션 생성
-            const result = await createNewChat({
-                interaction_id: interactionId,
-                input_data: inputData
-            }) as ChatNewResponse;
-            
-            if (result.status === 'success') {
-                const newLog: IOLog = {
-                    log_id: Date.now(),
-                    workflow_name: '일반 채팅',
-                    workflow_id: result.workflow_id,
-                    input_data: inputData,
-                    output_data: result.chat_response || '채팅 세션이 시작되었습니다.',
-                    updated_at: result.timestamp || new Date().toISOString()
-                };
-                
-                setIOLogs(prev => prev.map(log => 
-                    log.log_id === tempLogId ? newLog : log
-                ));
-                
-                // 첫 번째 메시지 후 현재 채팅 데이터 저장
+                updated_at: new Date().toISOString(),
+            },
+        ]);
+
+        const currentMessage = inputMessage;
+        setInputMessage('');
+
+        // 스크롤을 하단으로 이동
+        setTimeout(scrollToBottom, 100);
+
+        try {
+            let result: ChatNewResponse | ChatExecutionResponse;
+
+            if (isFirstMessage) {
+                // workflow 검증
+                if (defaultWorkflow.id !== 'default_mode' || defaultWorkflow.name !== 'default_mode') {
+                    throw new Error('일반 채팅은 default_mode workflow만 사용 가능합니다.');
+                }
+
+                // 새로운 채팅 세션 생성
+                result = await createNewChat({
+                    interaction_id: interactionId,
+                    input_data: currentMessage
+                }) as ChatNewResponse;
+
+                // 첫 번째 메시지 전송 시 현재 채팅 데이터를 localStorage에 저장
                 const currentChatData = {
                     interactionId: result.interaction_id,
                     workflowId: result.workflow_id,
@@ -159,100 +145,62 @@ const DefaultChatInterface: React.FC<DefaultChatInterfaceProps> = ({ onBack }) =
                 };
                 localStorage.setItem('currentChatData', JSON.stringify(currentChatData));
                 setIsFirstMessage(false);
-                
-                toast.success('일반 채팅이 시작되었습니다!');
             } else {
-                throw new Error(result.message || 'Unknown error occurred');
-            }
-        } catch (err) {
-            console.error('Default chat start failed:', err);
-            setError('일반 채팅 시작에 실패했습니다. 다시 시도해주세요.');
-            
-            // 실패한 임시 로그 제거
-            setIOLogs(prev => prev.filter(log => log.log_id !== pendingLogId));
-            
-            toast.error('일반 채팅 시작에 실패했습니다.');
-        } finally {
-            setExecuting(false);
-            setPendingLogId(null);
-            scrollToBottom();
-        }
-    };
+                // workflow 검증
+                if (defaultWorkflow.id !== 'default_mode' || defaultWorkflow.name !== 'default_mode') {
+                    throw new Error('일반 채팅은 default_mode workflow만 사용 가능합니다.');
+                }
 
-    /**
-     * 일반 채팅을 이어나가는 메서드 (후속 메시지들)
-     */
-    const continueDefaultChat = async (inputData: string) => {
-        try {
-            setExecuting(true);
-            setError(null);
-            
-            // workflow 검증
-            if (defaultWorkflow.id !== 'default_mode' || defaultWorkflow.name !== 'default_mode') {
-                throw new Error('일반 채팅은 default_mode workflow만 사용 가능합니다.');
+                // 기존 채팅 세션 계속
+                result = await executeChatMessage({
+                    user_input: currentMessage,
+                    interaction_id: interactionId,
+                    workflow_id: defaultWorkflow.id,
+                    workflow_name: defaultWorkflow.name
+                }) as ChatExecutionResponse;
             }
-            
-            const tempLogId = `temp_${Date.now()}`;
-            const tempLog: IOLog = {
-                log_id: tempLogId,
-                workflow_name: '일반 채팅',
-                workflow_id: defaultWorkflow.id,
-                input_data: inputData,
-                output_data: '',
-                updated_at: new Date().toISOString()
-            };
-            
-            setIOLogs(prev => [...prev, tempLog]);
-            setPendingLogId(tempLogId);
-            scrollToBottom();
-            
-            // 기존 채팅 세션 계속
-            const result = await executeChatMessage({
-                user_input: inputData,
-                interaction_id: interactionId,
-                workflow_id: defaultWorkflow.id,
-                workflow_name: defaultWorkflow.name
-            }) as ChatExecutionResponse;
-            
+
             if (result.status === 'success') {
-                const newLog: IOLog = {
-                    log_id: Date.now(),
-                    workflow_name: '일반 채팅',
-                    workflow_id: result.execution_meta.workflow_id,
-                    input_data: inputData,
-                    output_data: result.ai_response || '',
-                    updated_at: result.timestamp || new Date().toISOString()
-                };
-                
-                setIOLogs(prev => prev.map(log => 
-                    log.log_id === tempLogId ? newLog : log
-                ));
-                
-                toast.success('메시지가 성공적으로 전송되었습니다!');
+                // 결과로 임시 메시지 업데이트
+                setIOLogs((prev) =>
+                    prev.map((log) =>
+                        String(log.log_id) === tempId
+                            ? {
+                                  ...log,
+                                  output_data: isFirstMessage 
+                                      ? (result as ChatNewResponse).chat_response || '채팅 세션이 시작되었습니다.'
+                                      : (result as ChatExecutionResponse).ai_response || '',
+                                  updated_at: result.timestamp || new Date().toISOString(),
+                              }
+                            : log,
+                    ),
+                );
+                setPendingLogId(null);
+                setTimeout(scrollToBottom, 100);
+                toast.success(isFirstMessage ? '일반 채팅이 시작되었습니다!' : '메시지가 성공적으로 전송되었습니다!');
             } else {
                 throw new Error(result.message || 'Unknown error occurred');
             }
         } catch (err) {
-            console.error('Default chat continuation failed:', err);
-            setError('메시지 전송에 실패했습니다. 다시 시도해주세요.');
+            console.error('Default chat execution failed:', err);
             
-            // 실패한 임시 로그 제거
-            setIOLogs(prev => prev.filter(log => log.log_id !== pendingLogId));
-            
-            toast.error('메시지 전송에 실패했습니다.');
+            // 에러로 임시 메시지 업데이트
+            setIOLogs((prev) =>
+                prev.map((log) =>
+                    String(log.log_id) === tempId
+                        ? {
+                              ...log,
+                              output_data: err instanceof Error ? err.message : '처리 중 오류가 발생했습니다.',
+                              updated_at: new Date().toISOString(),
+                          }
+                        : log,
+                ),
+            );
+            setPendingLogId(null);
+            toast.error('메시지 처리 중 오류가 발생했습니다.');
+            setTimeout(scrollToBottom, 100);
         } finally {
             setExecuting(false);
-            setPendingLogId(null);
-            scrollToBottom();
-        }
-    };
-
-    const executeWorkflow = async (inputData: string) => {
-        // 첫 번째 메시지인지 확인하여 적절한 메서드 호출
-        if (isFirstMessage) {
-            await startDefaultChat(inputData);
-        } else {
-            await continueDefaultChat(inputData);
         }
     };
 
@@ -260,14 +208,13 @@ const DefaultChatInterface: React.FC<DefaultChatInterfaceProps> = ({ onBack }) =
         const trimmedMessage = inputMessage.trim();
         if (!trimmedMessage || executing) return;
         
-        setInputMessage('');
-        await executeWorkflow(trimmedMessage);
+        await executeWorkflow();
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter' && !e.shiftKey && !executing) {
             e.preventDefault();
-            handleSendMessage();
+            executeWorkflow();
         }
     };
 
@@ -295,15 +242,40 @@ const DefaultChatInterface: React.FC<DefaultChatInterfaceProps> = ({ onBack }) =
             {/* Chat Area */}
             <div className={styles.chatContainer}>
                 <div ref={messagesRef} className={styles.messagesArea}>
-                    {ioLogs.length === 0 ? (
-                        <div className={styles.welcomeMessage}>
-                            <FiMessageSquare className={styles.welcomeIcon} />
-                            <h3>AI와 대화를 시작해보세요!</h3>
-                            <p>아래 입력창에 메시지를 입력하고 전송하세요.</p>
+                    {isFirstMessage ? (
+                        <div className={styles.emptyState}>
+                            <FiMessageSquare className={styles.emptyIcon} />
+                            <h3>첫 대화를 시작해보세요!</h3>
+                            <p>일반 채팅 모드가 준비되었습니다.</p>
+                            <div className={styles.welcomeActions}>
+                                <div className={styles.suggestionChips}>
+                                    <button 
+                                        className={styles.suggestionChip}
+                                        onClick={() => setInputMessage('안녕하세요!')}
+                                        disabled={executing}
+                                    >
+                                        안녕하세요!
+                                    </button>
+                                    <button 
+                                        className={styles.suggestionChip}
+                                        onClick={() => setInputMessage('도움이 필요해요')}
+                                        disabled={executing}
+                                    >
+                                        도움이 필요해요
+                                    </button>
+                                    <button 
+                                        className={styles.suggestionChip}
+                                        onClick={() => setInputMessage('어떤 기능이 있나요?')}
+                                        disabled={executing}
+                                    >
+                                        어떤 기능이 있나요?
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     ) : (
                         ioLogs.map((log) => (
-                            <div key={log.log_id} className={styles.messageGroup}>
+                            <div key={log.log_id} className={styles.messageExchange}>
                                 {/* User Message */}
                                 <div className={styles.userMessage}>
                                     <div className={styles.messageContent}>
@@ -313,57 +285,58 @@ const DefaultChatInterface: React.FC<DefaultChatInterfaceProps> = ({ onBack }) =
                                         {formatDate(log.updated_at)}
                                     </div>
                                 </div>
-                                
+
                                 {/* AI Response */}
-                                <div className={styles.aiMessage}>
+                                <div className={styles.botMessage}>
                                     <div className={styles.messageContent}>
-                                        {pendingLogId === log.log_id ? (
-                                            <div className={styles.loadingDots}>
+                                        {String(log.log_id) === pendingLogId && executing && !log.output_data ? (
+                                            <div className={styles.typingIndicator}>
                                                 <span></span>
                                                 <span></span>
                                                 <span></span>
                                             </div>
                                         ) : (
-                                            log.output_data || '응답을 기다리는 중...'
+                                            log.output_data
                                         )}
                                     </div>
-                                    {log.output_data && (
-                                        <div className={styles.messageTime}>
-                                            {formatDate(log.updated_at)}
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         ))
                     )}
                 </div>
 
-                {error && (
-                    <div className={styles.errorMessage}>
-                        {error}
-                    </div>
-                )}
-
                 {/* Input Area */}
                 <div className={styles.inputArea}>
                     <div className={styles.inputContainer}>
-                        <textarea
+                        <input
+                            type="text"
+                            placeholder={isFirstMessage ? "첫 메시지를 입력하세요..." : "메시지를 입력하세요..."}
                             value={inputMessage}
                             onChange={(e) => setInputMessage(e.target.value)}
                             onKeyPress={handleKeyPress}
-                            placeholder="메시지를 입력하세요..."
-                            className={styles.messageInput}
                             disabled={executing}
-                            rows={1}
+                            className={styles.messageInput}
                         />
                         <button
-                            onClick={handleSendMessage}
-                            disabled={!inputMessage.trim() || executing}
-                            className={`${styles.sendButton} ${executing ? styles.sending : ''}`}
+                            onClick={executeWorkflow}
+                            disabled={executing || !inputMessage.trim()}
+                            className={`${styles.sendButton} ${executing || !inputMessage.trim() ? styles.disabled : ''}`}
                         >
-                            <FiSend />
+                            {executing ? (
+                                <div className={styles.miniSpinner}></div>
+                            ) : (
+                                <FiSend />
+                            )}
                         </button>
                     </div>
+                    {executing && (
+                        <p className={styles.executingNote}>
+                            일반 채팅을 실행 중입니다...
+                        </p>
+                    )}
+                    {error && (
+                        <p className={styles.errorNote}>{error}</p>
+                    )}
                 </div>
             </div>
         </div>
