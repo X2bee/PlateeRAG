@@ -74,6 +74,56 @@
     flex-direction: column;
 }
 
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.recordCount {
+    display: flex;
+    align-items: center;
+    color: #6c757d;
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.clearRecordsBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: white;
+    border: 1px solid #dc3545;
+    border-radius: 6px;
+    color: #dc3545;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background: #f8d7da;
+        border-color: #c82333;
+        color: #721c24;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        background: #f8f9fa;
+    }
+
+    svg {
+        width: 1rem;
+        height: 1rem;
+    }
+}
+
 .performanceHeader {
     display: flex;
     justify-content: space-between;
@@ -90,7 +140,6 @@
         flex: 1;
     }
 }
-
 .refreshButton {
     background: #007bff;
     color: white;

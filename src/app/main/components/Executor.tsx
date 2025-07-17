@@ -121,7 +121,7 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                             fontSize: '1rem',
                         }}
                     >
-                        Delete Execution Logs
+                        실행 로그 삭제
                     </div>
                     <div
                         style={{
@@ -130,10 +130,9 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                             lineHeight: '1.4',
                         }}
                     >
-                        Are you sure you want to delete all execution logs for "
-                        <strong>{workflowName}</strong>"?
+                        "<strong>{workflowName}</strong>" 워크플로우의 모든 실행 로그를 삭제하시겠습니까?
                         <br />
-                        This action cannot be undone.
+                        이 작업은 되돌릴 수 없습니다.
                     </div>
                     <div
                         style={{
@@ -160,7 +159,7 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                             }}
                         >
-                            Cancel
+                            취소
                         </button>
                         <button
                             onClick={async () => {
@@ -181,13 +180,13 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                                     // 성공 토스트 메시지
                                     const deletedCount = (result as any).deleted_count || 0;
                                     toast.success(
-                                        `Execution logs for "${workflowName}" deleted successfully! (${deletedCount} logs removed)`,
+                                        `"${workflowName}" 워크플로우의 실행 로그가 성공적으로 삭제되었습니다! (${deletedCount}개 로그 제거됨)`,
                                     );
                                 } catch (error) {
                                     console.error('Failed to delete logs:', error);
                                     setError('로그 삭제에 실패했습니다.');
                                     toast.error(
-                                        `Failed to delete execution logs: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                                        `실행 로그 삭제에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
                                     );
                                 } finally {
                                     setDeletingLogs(false);
@@ -206,7 +205,7 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                             }}
                         >
-                            Delete
+                            삭제
                         </button>
                     </div>
                 </div>
