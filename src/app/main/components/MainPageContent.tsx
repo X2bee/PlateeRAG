@@ -10,6 +10,7 @@ import ConfigViewer from '@/app/main/components/ConfigViewer';
 import { getSidebarItems } from '@/app/_common/components/sidebarConfig';
 import styles from '@/app/main/assets/MainPage.module.scss';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import Documents from '@/app/main/components/Documents';
 
 const MainPageContent: React.FC = () => {
     const searchParams = useSearchParams();
@@ -116,7 +117,7 @@ const MainPageContent: React.FC = () => {
                         <CanvasIntroduction />
                     </ContentArea>
                 );
-            case 'workflows':
+            case 'workflows':sidebarItems
                 return (
                     <ContentArea
                         title="완성된 워크플로우"
@@ -163,6 +164,15 @@ const MainPageContent: React.FC = () => {
                                 setActiveSection('settings')
                             }
                         />
+                    </ContentArea>
+                );
+            case 'documents':
+                return (
+                    <ContentArea
+                        title="문서"
+                        description="문서 저장소"
+                    >
+                        <Documents />
                     </ContentArea>
                 );
             default:
