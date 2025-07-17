@@ -8,7 +8,7 @@ const port = process.env.NEXT_PUBLIC_BACKEND_PORT || '8000'
 console.log(`Backend server running at ${host_url}:${port}`);
 // API Configuration
 export const API_CONFIG = {
-    BASE_URL: `${host_url}:${port}`,
+    BASE_URL: `${host_url}:${port}/api`,
     // Add other API related configs here if needed in the future
     TIMEOUT: 30000, // 30 seconds
     DEFAULT_HEADERS: {
