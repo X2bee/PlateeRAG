@@ -100,8 +100,9 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
         };
         localStorage.setItem('currentChatData', JSON.stringify(currentChatData));
         
-        // 현재 채팅 모드로 이동
-        window.location.href = '/chat?mode=current';
+        // onSelectChat을 통해 부모 컴포넌트에서 current-chat 모드로 변경
+        onSelectChat(chat);
+        toast.success(`"${chat.workflow_name}" 대화를 현재 채팅으로 설정했습니다!`);
     };
 
     return (

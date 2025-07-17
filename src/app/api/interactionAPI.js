@@ -21,7 +21,7 @@ export const listInteractions = async (filters = {}) => {
         params.append('limit', limit.toString());
 
         const response = await fetch(
-            `${API_BASE_URL}/interaction/list?${params}`,
+            `${API_BASE_URL}/api/interaction/list?${params}`,
             {
                 method: 'GET',
                 headers: {
@@ -74,7 +74,7 @@ export const executeWorkflowNew = async (requestData) => {
 
         devLog.log('Executing new workflow with data:', requestBody);
 
-        const response = await fetch(`${API_BASE_URL}/interaction/new`, {
+        const response = await fetch(`${API_BASE_URL}/api/interaction/new`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

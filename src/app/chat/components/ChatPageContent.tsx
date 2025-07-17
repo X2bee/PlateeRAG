@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/app/_common/components/Sidebar';
-import ContentArea from '@/app/main/components/ContentArea';
 import ChatHistory from '@/app/chat/components/ChatHistory';
 import CurrentChatInterface from '@/app/chat/components/CurrentChatInterface';
 import ChatContent from '@/app/chat/components/ChatContent';
@@ -77,27 +76,13 @@ const ChatPageContent: React.FC = () => {
     const renderContent = () => {
         switch (activeSection) {
             case 'new-chat':
-                return (
-                    <ContentArea
-                        title="새 채팅"
-                        description="새로운 AI 채팅을 시작합니다"
-                    >
-                        <ChatContent />
-                    </ContentArea>
-                );
+                return <ChatContent />
             case 'current-chat':
                 return <CurrentChatInterface />;
             case 'chat-history':
                 return <ChatHistory onSelectChat={handleChatSelect} />
             default:
-                return (
-                    <ContentArea
-                        title="새 채팅"
-                        description="새로운 AI 채팅을 시작합니다"
-                    >
-                        <ChatContent />
-                    </ContentArea>
-                );
+                return <ChatContent />
         }
     };
 
