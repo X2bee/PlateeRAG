@@ -5,12 +5,35 @@ import {
     FiCpu,
     FiSettings,
     FiEye,
+    FiClock,
+    FiMessageCircle,
     FiFile,
 } from 'react-icons/fi';
+import { RiChatSmileAiLine } from "react-icons/ri";
 import { SidebarItem } from '@/app/main/components/types';
 
-// 워크플로우 관리 센터의 공통 사이드바 아이템들을 반환하는 함수
-export const getSidebarItems = (): SidebarItem[] => [
+export const getChatSidebarItems = (): SidebarItem[] => [
+    {
+        id: 'new-chat',
+        title: '새 채팅',
+        description: '새로운 AI 채팅을 시작합니다',
+        icon: React.createElement(RiChatSmileAiLine),
+    },
+    {
+        id: 'current-chat',
+        title: '현재 채팅',
+        description: '진행 중인 대화를 계속합니다',
+        icon: React.createElement(FiMessageCircle),
+    },
+    {
+        id: 'chat-history',
+        title: '기존 채팅 불러오기',
+        description: '이전 대화를 불러와서 계속합니다',
+        icon: React.createElement(FiClock),
+    },
+];
+
+export const getSettingSidebarItems = (): SidebarItem[] => [
     {
         id: 'canvas',
         title: '워크플로우 캔버스',
@@ -55,5 +78,14 @@ export const createItemClickHandler = (router: any) => {
         // 클릭한 섹션을 localStorage에 저장하고 /main으로 이동
         localStorage.setItem('activeSection', itemId);
         router.push('/main');
+    };
+};
+
+// 채팅 아이템 클릭 핸들러 (localStorage 사용)
+export const createChatItemClickHandler = (router: any) => {
+    return (itemId: string) => {
+        // 클릭한 채팅 섹션을 localStorage에 저장하고 /chat으로 이동
+        localStorage.setItem('activeChatSection', itemId);
+        router.push('/chat');
     };
 };

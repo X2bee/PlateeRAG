@@ -9,7 +9,7 @@ import { API_BASE_URL } from '@/app/config.js';
  */
 export const executeWorkflow = async (workflowData) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/workflow/execute`, {
+        const response = await fetch(`${API_BASE_URL}/api/workflow/execute`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -51,7 +51,7 @@ export const saveWorkflow = async (workflowId, workflowContent) => {
             Object.keys(workflowContent),
         );
 
-        const response = await fetch(`${API_BASE_URL}/workflow/save`, {
+        const response = await fetch(`${API_BASE_URL}/api/workflow/save`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -84,7 +84,7 @@ export const saveWorkflow = async (workflowId, workflowContent) => {
  */
 export const listWorkflows = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/workflow/list`);
+        const response = await fetch(`${API_BASE_URL}/api/workflow/list`);
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -108,7 +108,7 @@ export const listWorkflows = async () => {
  */
 export const listWorkflowsDetail = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/workflow/list/detail`);
+        const response = await fetch(`${API_BASE_URL}/api/workflow/list/detail`);
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -139,7 +139,7 @@ export const loadWorkflow = async (workflowId) => {
             : workflowId;
 
         const response = await fetch(
-            `${API_BASE_URL}/workflow/load/${encodeURIComponent(cleanWorkflowId)}`,
+            `${API_BASE_URL}/api/workflow/load/${encodeURIComponent(cleanWorkflowId)}`,
         );
 
         if (!response.ok) {
@@ -166,7 +166,7 @@ export const loadWorkflow = async (workflowId) => {
 export const deleteWorkflow = async (workflowId) => {
     try {
         const response = await fetch(
-            `${API_BASE_URL}/workflow/delete/${encodeURIComponent(workflowId)}`,
+            `${API_BASE_URL}/api/workflow/delete/${encodeURIComponent(workflowId)}`,
             {
                 method: 'DELETE',
             },
@@ -194,7 +194,7 @@ export const deleteWorkflow = async (workflowId) => {
  */
 export const getWorkflowList = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/workflow/list/detail`, {
+        const response = await fetch(`${API_BASE_URL}/api/workflow/list/detail`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -232,7 +232,7 @@ export const getWorkflowPerformance = async (workflowName, workflowId) => {
         });
 
         const response = await fetch(
-            `${API_BASE_URL}/workflow/performance?${params}`,
+            `${API_BASE_URL}/api/workflow/performance?${params}`,
             {
                 method: 'GET',
                 headers: {
@@ -274,7 +274,7 @@ export const getWorkflowIOLogs = async (workflowName, workflowId, interactionId 
         });
 
         const response = await fetch(
-            `${API_BASE_URL}/workflow/io_logs?${params}`,
+            `${API_BASE_URL}/api/workflow/io_logs?${params}`,
             {
                 method: 'GET',
                 headers: {
@@ -316,7 +316,7 @@ export const deleteWorkflowIOLogs = async (workflowName, workflowId, interaction
         });
 
         const response = await fetch(
-            `${API_BASE_URL}/workflow/io_logs?${params}`,
+            `${API_BASE_URL}/api/workflow/io_logs?${params}`,
             {
                 method: 'DELETE',
                 headers: {
@@ -363,7 +363,7 @@ export const executeWorkflowById = async (
             interaction_id: interaction_id || 'default',
         };
         const response = await fetch(
-            `${API_BASE_URL}/workflow/execute/based_id`,
+            `${API_BASE_URL}/api/workflow/execute/based_id`,
             {
                 method: 'POST',
                 headers: {
@@ -404,7 +404,7 @@ export const deleteWorkflowPerformance = async (workflowName, workflowId) => {
         });
 
         const response = await fetch(
-            `${API_BASE_URL}/workflow/performance?${params}`,
+            `${API_BASE_URL}/api/workflow/performance?${params}`,
             {
                 method: 'DELETE',
                 headers: {

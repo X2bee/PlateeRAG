@@ -295,6 +295,11 @@ export interface ChatPanelProps {
 
 export interface SendMessageResponse {
     text: string;
+    interaction_id?: string;
+    session_id?: string;
+    session_info?: any;
+    timestamp?: string;
+    status?: string;
 }
 
 // ========== Utility Types ==========

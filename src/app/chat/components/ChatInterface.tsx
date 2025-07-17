@@ -35,6 +35,7 @@ interface IOLog {
 interface ChatInterfaceProps {
     workflow: Workflow;
     onBack: () => void;
+    hideBackButton?: boolean;
     existingChatData?: {
         interactionId: string;
         workflowId: string;
@@ -42,7 +43,7 @@ interface ChatInterfaceProps {
     } | null;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, existingChatData }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBackButton = false, existingChatData }) => {
     const [ioLogs, setIOLogs] = useState<IOLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [executing, setExecuting] = useState(false);
@@ -53,8 +54,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, existin
     const messagesRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        loadChatLogs();
-    }, [workflow, existingChatData]);
+        if (workflow?.id && existingChatData?.interactionId) {
+            loadChatLogs();
+        }
+    }, [workflow?.id, existingChatData?.interactionId, existingChatData?.workflowId]);
 
     useEffect(() => {
         scrollToBottom();
@@ -71,7 +74,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, existin
             setLoading(true);
             setError(null);
             
-            // existingChatData가 있으면 해당 interaction_id의 로그를 가져옴
             const interactionId = existingChatData?.interactionId || 'default';
             const workflowName = existingChatData?.workflowName || workflow.name;
             const workflowId = existingChatData?.workflowId || workflow.id;
@@ -193,12 +195,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, existin
             {/* Header */}
             <div className={styles.header}>
                 <div className={styles.headerInfo}>
-                    <button className={styles.backButton} onClick={onBack}>
-                        <FiArrowLeft />
-                    </button>
+                    {!hideBackButton && (
+                        <button className={styles.backButton} onClick={onBack}>
+                            <FiArrowLeft />
+                        </button>
+                    )}
                     <div>
                         <h2>{workflow.name}</h2>
-                        <p>기존 대화를 계속하세요</p>
+                        <p>{hideBackButton ? '현재 채팅을 계속하세요' : '기존 대화를 계속하세요'}</p>
                     </div>
                 </div>
                 <div className={styles.chatCount}>

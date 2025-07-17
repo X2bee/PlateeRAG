@@ -100,8 +100,9 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
         };
         localStorage.setItem('currentChatData', JSON.stringify(currentChatData));
         
-        // 현재 채팅 모드로 이동
-        window.location.href = '/chat?mode=current';
+        // onSelectChat을 통해 부모 컴포넌트에서 current-chat 모드로 변경
+        onSelectChat(chat);
+        toast.success(`"${chat.workflow_name}" 대화를 현재 채팅으로 설정했습니다!`);
     };
 
     return (
@@ -153,7 +154,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
                             <div key={chat.id} className={styles.chatCard}>
                                 <div className={styles.cardHeader}>
                                     <h3 className={styles.workflowName}>
-                                        {chat.workflow_name}
+                                        {chat.metadata.placeholder || chat.workflow_name}
                                     </h3>
                                     <span className={styles.chatDate}>
                                         {formatDate(chat.updated_at)}
@@ -168,7 +169,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
                                     <div className={styles.metaItem}>
                                         <FiUser />
                                         <span className={styles.interactionId}>
-                                            {chat.interaction_id}
+                                            {chat.workflow_name}
                                         </span>
                                     </div>
                                 </div>

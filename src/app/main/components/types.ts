@@ -9,6 +9,7 @@ export interface SidebarItem {
 
 export interface SidebarProps {
     items: SidebarItem[];
+    chatItems?: SidebarItem[];
     activeItem: string;
     onItemClick: (itemId: string) => void;
     className?: string;

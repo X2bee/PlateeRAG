@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import ChatInterface from './ChatInterface';
 import { FiMessageSquare } from 'react-icons/fi';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
@@ -14,7 +14,6 @@ const CurrentChatInterface: React.FC<CurrentChatInterfaceProps> = ({ onBack }) =
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // localStorage에서 현재 채팅 정보 가져오기
         const savedChatData = localStorage.getItem('currentChatData');
         if (savedChatData) {
             try {
@@ -26,6 +25,28 @@ const CurrentChatInterface: React.FC<CurrentChatInterfaceProps> = ({ onBack }) =
         }
         setLoading(false);
     }, []);
+
+    // Hook들은 항상 같은 순서로 호출되어야 함
+    const workflow = useMemo(() => {
+        if (!currentChatData) return null;
+        return {
+            id: currentChatData.workflowId,
+            name: currentChatData.workflowName,
+            filename: currentChatData.workflowName,
+            author: 'Unknown',
+            nodeCount: 0,
+            status: 'active' as const,
+        };
+    }, [currentChatData]);
+
+    const existingChatData = useMemo(() => {
+        if (!currentChatData) return null;
+        return {
+            interactionId: currentChatData.interactionId,
+            workflowId: currentChatData.workflowId,
+            workflowName: currentChatData.workflowName,
+        };
+    }, [currentChatData]);
 
     if (loading) {
         return (
@@ -42,7 +63,7 @@ const CurrentChatInterface: React.FC<CurrentChatInterfaceProps> = ({ onBack }) =
         );
     }
 
-    if (!currentChatData) {
+    if (!currentChatData || !workflow || !existingChatData) {
         return (
             <div className={chatContentStyles.chatContainer}>
                 <div className={chatContentStyles.workflowSection}>
@@ -58,29 +79,14 @@ const CurrentChatInterface: React.FC<CurrentChatInterfaceProps> = ({ onBack }) =
         );
     }
 
-    // 현재 채팅 데이터로 워크플로우 객체 생성
-    const workflow = {
-        id: currentChatData.workflowId,
-        name: currentChatData.workflowName,
-        filename: currentChatData.workflowName,
-        author: 'Unknown',
-        nodeCount: 0,
-        status: 'active' as const,
-    };
-
-    const existingChatData = {
-        interactionId: currentChatData.interactionId,
-        workflowId: currentChatData.workflowId,
-        workflowName: currentChatData.workflowName,
-    };
-
     return (
         <div className={chatContentStyles.chatContainer}>
             <div className={chatContentStyles.workflowSection}>
                 <ChatInterface
                     workflow={workflow}
                     existingChatData={existingChatData}
-                    onBack={onBack || (() => {})}
+                    hideBackButton={true}
+                    onBack={onBack || (() => { })}
                 />
             </div>
         </div>

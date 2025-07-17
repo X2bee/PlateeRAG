@@ -6,10 +6,11 @@ import { IoChatbubblesOutline } from "react-icons/io5";
 import WorkflowSelection from './WorkflowSelection';
 import ChatInterface from './ChatInterface';
 import NewChatInterface from './NewChatInterface';
+import DefaultChatInterface from './DefaultChatInterface';
 
 const ChatContentInner: React.FC = () => {
     const searchParams = useSearchParams();
-    const [currentView, setCurrentView] = useState<'welcome' | 'workflow' | 'newChat' | 'existingChat'>('welcome');
+    const [currentView, setCurrentView] = useState<'welcome' | 'workflow' | 'newChat' | 'existingChat' | 'defaultChat'>('welcome');
     const [selectedWorkflow, setSelectedWorkflow] = useState<any>(null);
     const [existingChatData, setExistingChatData] = useState<any>(null);
 
@@ -47,6 +48,23 @@ const ChatContentInner: React.FC = () => {
         // 새로운 채팅으로 시작 (항상 NewChatInterface 사용)
         setCurrentView('newChat');
     };
+
+    const handleDefaultChatStart = () => {
+        setCurrentView('defaultChat');
+    };
+
+    // 일반 채팅 화면 (DefaultChatInterface)
+    if (currentView === 'defaultChat') {
+        return (
+            <div className={styles.chatContainer}>
+                <div className={styles.workflowSection}>
+                    <DefaultChatInterface 
+                        onBack={() => setCurrentView('welcome')}
+                    />
+                </div>
+            </div>
+        );
+    }
 
     // 새로운 채팅 화면 (NewChatInterface)
     if (currentView === 'newChat' && selectedWorkflow) {
@@ -107,7 +125,10 @@ const ChatContentInner: React.FC = () => {
                             <h3>Workflow 선택</h3>
                             <p>정해진 워크플로우로 시작하기</p>
                         </button>
-                        <button className={styles.chatButton}>
+                        <button 
+                            className={styles.chatButton}
+                            onClick={handleDefaultChatStart}
+                        >
                             <IoChatbubblesOutline />
                             <h3>일반 채팅 시작</h3>
                             <p>자유롭게 대화하기</p>

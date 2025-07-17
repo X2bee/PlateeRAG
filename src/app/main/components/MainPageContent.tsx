@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import Sidebar from '@/app/main/components/Sidebar';
+import Sidebar from '@/app/_common/components/Sidebar';
 import ContentArea from '@/app/main/components/ContentArea';
 import CanvasIntroduction from '@/app/main/components/CanvasIntroduction';
 import CompletedWorkflows from '@/app/main/components/CompletedWorkflows';
@@ -9,7 +9,7 @@ import Settings from '@/app/main/components/Settings';
 import ConfigViewer from '@/app/main/components/ConfigViewer';
 import ChatHistory from '@/app/chat/components/ChatHistory';
 import CurrentChatInterface from '@/app/chat/components/CurrentChatInterface';
-import { getSidebarItems } from '@/app/_common/components/sidebarConfig';
+import { getChatSidebarItems, getSettingSidebarItems, createChatItemClickHandler } from '@/app/_common/components/sidebarConfig';
 import styles from '@/app/main/assets/MainPage.module.scss';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import Documents from '@/app/main/components/Documents';
@@ -19,26 +19,21 @@ const MainPageContent: React.FC = () => {
     const router = useRouter();
     const pathname = usePathname();
     const [activeSection, setActiveSection] = useState<string>('canvas');
-    // Executor/Monitoring 통합 토글 상태
     const [execTab, setExecTab] = useState<'executor' | 'monitoring'>(
         'executor',
     );
     const [initialLoad, setInitialLoad] = useState(true);
 
-    // URL 파라미터 기반 초기 라우팅 처리
     useEffect(() => {
-        // Check URL parameters first for direct navigation
         const view = searchParams.get('view');
         const workflowName = searchParams.get('workflowName');
         const workflowId = searchParams.get('workflowId');
         
         if (view === 'playground') {
             setActiveSection('exec-monitor');
-            // 워크플로우 ID가 있으면 executor 탭으로 설정
             if (workflowName && workflowId) {
                 setExecTab('executor');
             } else {
-                // 워크플로우 ID가 없으면 저장된 탭을 사용
                 const savedTab = localStorage.getItem('execMonitorTab');
                 if (savedTab === 'executor' || savedTab === 'monitoring') {
                     setExecTab(savedTab as 'executor' | 'monitoring');
@@ -46,14 +41,12 @@ const MainPageContent: React.FC = () => {
             }
             setInitialLoad(false);
         } else {
-            // Check if there's a saved activeSection from chat page navigation
             const savedActiveSection = localStorage.getItem('activeSection');
             if (savedActiveSection && ['canvas', 'workflows', 'exec-monitor', 'settings', 'config-viewer'].includes(savedActiveSection)) {
                 setActiveSection(savedActiveSection);
-                localStorage.removeItem('activeSection'); // Clear after use
+                localStorage.removeItem('activeSection');
             }
             
-            // If no view parameter, load from localStorage
             const savedTab = localStorage.getItem('execMonitorTab');
             if (savedTab === 'executor' || savedTab === 'monitoring') {
                 setExecTab(savedTab as 'executor' | 'monitoring');
@@ -62,10 +55,8 @@ const MainPageContent: React.FC = () => {
         }
     }, [searchParams]);
 
-    // activeSection 변경 시 URL 초기화 처리
     useEffect(() => {
         if (!initialLoad && activeSection !== 'exec-monitor') {
-            // URL에서 파라미터를 제거하고 기본 /main 경로로 변경
             const currentParams = new URLSearchParams(searchParams.toString());
             if (
                 currentParams.has('view') ||
@@ -77,25 +68,31 @@ const MainPageContent: React.FC = () => {
         }
     }, [activeSection, initialLoad, pathname, router, searchParams]);
 
-    // 탭 변경 시 로컬 스토리지에 상태 저장
     const handleTabChange = (tab: 'executor' | 'monitoring') => {
         setExecTab(tab);
         localStorage.setItem('execMonitorTab', tab);
     };
 
-    // 사이드바 아이템 클릭 처리
     const handleSidebarItemClick = (id: string) => {
-        setActiveSection(id);
+        // 채팅 관련 아이템인지 확인
+        const chatItems = ['new-chat', 'current-chat', 'chat-history'];
+        if (chatItems.includes(id)) {
+            // 채팅 아이템인 경우 localStorage에 저장하고 /chat으로 이동
+            const chatItemClickHandler = createChatItemClickHandler(router);
+            chatItemClickHandler(id);
+        } else {
+            // 설정 관련 아이템인 경우 현재 페이지에서 섹션 변경
+            setActiveSection(id);
+        }
     };
 
-    // 채팅 선택 처리 (Main 화면에서 기존 채팅 세션 표시)
     const handleChatSelect = (executionMeta: any) => {
-        // 선택된 채팅을 현재 채팅으로 설정 후 current-chat 모드로 전환
         console.log('Selected chat:', executionMeta);
         setActiveSection('current-chat');
     };
 
-    const sidebarItems = getSidebarItems();
+    const settingSidebarItems = getSettingSidebarItems();
+    const chatSidebarItems = getChatSidebarItems();
 
     // 헤더에 표시할 토글 버튼
     const renderExecMonitorToggleButtons = () => (
@@ -215,7 +212,8 @@ const MainPageContent: React.FC = () => {
     return (
         <div className={styles.container}>
             <Sidebar
-                items={sidebarItems}
+                items={settingSidebarItems}
+                chatItems={chatSidebarItems}
                 activeItem={activeSection}
                 onItemClick={handleSidebarItemClick}
                 initialChatExpanded={false}

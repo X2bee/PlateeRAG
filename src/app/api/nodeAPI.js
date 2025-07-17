@@ -7,7 +7,7 @@ import { API_BASE_URL } from '@/app/config.js';
  */
 export const getNodes = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/node/get`);
+        const response = await fetch(`${API_BASE_URL}/api/node/get`);
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -30,7 +30,7 @@ export const getNodes = async () => {
  */
 export const exportNodes = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/node/export`);
+        const response = await fetch(`${API_BASE_URL}/api/node/export`);
 
         if (!response.ok) {
             const errorData = await response.json();
