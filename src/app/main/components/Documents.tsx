@@ -186,7 +186,7 @@ const Documents: React.FC = () => {
                 selectedCollection.name,
                 searchQuery,
                 10, // limit
-                0.3, // score_threshold (낮춰서 더 많은 결과 반환)
+                0.0,
                 selectedDocument ? { document_id: selectedDocument.document_id } : undefined
             ) as SearchResponse;
             setSearchResults(response.results || []);

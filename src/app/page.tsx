@@ -99,6 +99,7 @@ export default function HomePage() {
                                 </div>
                                 <p className={styles.cardDescription}>
                                     구성한 워크플로우를 실시간으로 실행하고
+                                    구성한 워크플로우를 실시간으로 실행하고
                                     결과를 즉시 확인할 수 있습니다.
                                 </p>
                             </div>
