@@ -4,7 +4,7 @@
 
 // API Configuration
 export const API_CONFIG = {
-    BASE_URL: 'http://localhost:8000',
+    BASE_URL: 'http://localhost:8000/api',
     // Add other API related configs here if needed in the future
     TIMEOUT: 30000, // 30 seconds
     DEFAULT_HEADERS: {

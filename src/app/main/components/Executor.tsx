@@ -6,12 +6,15 @@ import {
     FiMessageSquare,
     FiSend,
     FiClock,
+    FiTrash2,
 } from 'react-icons/fi';
 import {
     listWorkflowsDetail,
     getWorkflowIOLogs,
     executeWorkflowById,
+    deleteWorkflowIOLogs,
 } from '@/app/api/workflowAPI';
+import toast from 'react-hot-toast';
 import styles from '@/app/main/assets/Executor.module.scss';
 
 interface Workflow {
@@ -43,6 +46,7 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
     const [ioLogs, setIOLogs] = useState<IOLog[]>([]);
     const [executorLoading, setExecutorLoading] = useState(false);
     const [executing, setExecuting] = useState(false);
+    const [deletingLogs, setDeletingLogs] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [inputMessage, setInputMessage] = useState<string>('');
     const [pendingLogId, setPendingLogId] = useState<string | null>(null);
@@ -91,6 +95,137 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleString('ko-KR');
+    };
+
+    // Handle log deletion with Toast confirmation (exactly like CompletedWorkflows)
+    const clearWorkflowLogs = async () => {
+        if (!selectedWorkflow) {
+            return;
+        }
+
+        const workflowName = selectedWorkflow.filename.replace('.json', '');
+
+        const confirmToast = toast(
+            (t) => (
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                    }}
+                >
+                    <div
+                        style={{
+                            fontWeight: '600',
+                            color: '#dc2626',
+                            fontSize: '1rem',
+                        }}
+                    >
+                        Delete Execution Logs
+                    </div>
+                    <div
+                        style={{
+                            fontSize: '0.9rem',
+                            color: '#374151',
+                            lineHeight: '1.4',
+                        }}
+                    >
+                        Are you sure you want to delete all execution logs for "
+                        <strong>{workflowName}</strong>"?
+                        <br />
+                        This action cannot be undone.
+                    </div>
+                    <div
+                        style={{
+                            display: 'flex',
+                            gap: '8px',
+                            justifyContent: 'flex-end',
+                            marginTop: '4px',
+                        }}
+                    >
+                        <button
+                            onClick={() => {
+                                toast.dismiss(t.id);
+                            }}
+                            style={{
+                                padding: '8px 16px',
+                                backgroundColor: '#ffffff',
+                                border: '2px solid #6b7280',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem',
+                                fontWeight: '500',
+                                color: '#374151',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                            }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={async () => {
+                                toast.dismiss(t.id);
+                                try {
+                                    setDeletingLogs(true);
+                                    setError(null);
+
+                                    const result = await deleteWorkflowIOLogs(
+                                        workflowName,
+                                        selectedWorkflow.workflow_id
+                                    );
+
+                                    // 성공 시 로그 목록 초기화
+                                    setIOLogs([]);
+                                    setPendingLogId(null);
+
+                                    // 성공 토스트 메시지
+                                    const deletedCount = (result as any).deleted_count || 0;
+                                    toast.success(
+                                        `Execution logs for "${workflowName}" deleted successfully! (${deletedCount} logs removed)`,
+                                    );
+                                } catch (error) {
+                                    console.error('Failed to delete logs:', error);
+                                    setError('로그 삭제에 실패했습니다.');
+                                    toast.error(
+                                        `Failed to delete execution logs: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                                    );
+                                } finally {
+                                    setDeletingLogs(false);
+                                }
+                            }}
+                            style={{
+                                padding: '8px 16px',
+                                backgroundColor: '#dc2626',
+                                color: 'white',
+                                border: '2px solid #b91c1c',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem',
+                                fontWeight: '500',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                            }}
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            ),
+            {
+                duration: Infinity,
+                style: {
+                    maxWidth: '420px',
+                    padding: '20px',
+                    backgroundColor: '#f9fafb',
+                    border: '2px solid #374151',
+                    borderRadius: '12px',
+                    boxShadow:
+                        '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
+                    color: '#374151',
+                    fontFamily: 'system-ui, -apple-system, sans-serif',
+                },
+            },
+        );
     };
 
     const executeWorkflow = async () => {
@@ -183,9 +318,22 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                                 {selectedWorkflow.filename.replace('.json', '')}{' '}
                                 실행 로그
                             </h3>
-                            <div className={styles.logCount}>
-                                <FiMessageSquare />
-                                <span>{ioLogs.length}개의 대화</span>
+                            <div className={styles.headerActions}>
+                                <div className={styles.logCount}>
+                                    <FiMessageSquare />
+                                    <span>{ioLogs.length}개의 로그</span>
+                                </div>
+                                {ioLogs.length > 0 && (
+                                    <button
+                                        className={styles.clearLogsBtn}
+                                        onClick={clearWorkflowLogs}
+                                        disabled={deletingLogs}
+                                        title="로그 초기화"
+                                    >
+                                        <FiTrash2 />
+                                        {deletingLogs ? '삭제 중...' : '로그 초기화'}
+                                    </button>
+                                )}
                             </div>
                         </div>
 
