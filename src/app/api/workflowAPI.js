@@ -258,17 +258,19 @@ export const getWorkflowPerformance = async (workflowName, workflowId) => {
 };
 
 /**
- * 특정 워크플로우의 성능 모니터링 데이터를 가져옵니다.
+ * 특정 워크플로우의 실행 기록 데이터를 가져옵니다.
  * @param {string} workflowName - 워크플로우 이름 (.json 확장자 제외)
  * @param {string} workflowId - 워크플로우 ID
- * @returns {Promise<Object>} 성능 데이터를 포함하는 프로미스
+ * @param {string} interactionId - 상호작용 ID (선택사항, 기본값: "default")
+ * @returns {Promise<Object>} 실행 기록 데이터를 포함하는 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
-export const getWorkflowIOLogs = async (workflowName, workflowId) => {
+export const getWorkflowIOLogs = async (workflowName, workflowId, interactionId = 'default') => {
     try {
         const params = new URLSearchParams({
             workflow_name: workflowName,
             workflow_id: workflowId,
+            interaction_id: interactionId,
         });
 
         const response = await fetch(
@@ -289,10 +291,52 @@ export const getWorkflowIOLogs = async (workflowName, workflowId) => {
         }
 
         const result = await response.json();
-        devLog.log('Workflow performance data retrieved successfully:', result);
+        devLog.log('Workflow IO logs retrieved successfully:', result);
         return result;
     } catch (error) {
-        devLog.error('Failed to get workflow performance:', error);
+        devLog.error('Failed to get workflow IO logs:', error);
+        throw error;
+    }
+};
+
+/**
+ * 특정 워크플로우의 실행 기록 데이터를 삭제합니다.
+ * @param {string} workflowName - 워크플로우 이름 (.json 확장자 제외)
+ * @param {string} workflowId - 워크플로우 ID
+ * @param {string} interactionId - 상호작용 ID (기본값: "default")
+ * @returns {Promise<Object>} 삭제 결과 데이터를 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const deleteWorkflowIOLogs = async (workflowName, workflowId, interactionId = 'default') => {
+    try {
+        const params = new URLSearchParams({
+            workflow_name: workflowName,
+            workflow_id: workflowId,
+            interaction_id: interactionId,
+        });
+
+        const response = await fetch(
+            `${API_BASE_URL}/workflow/io_logs?${params}`,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
+        }
+
+        const result = await response.json();
+        devLog.log('Workflow IO logs deleted successfully:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to delete workflow IO logs:', error);
         throw error;
     }
 };
@@ -309,17 +353,15 @@ export const executeWorkflowById = async (
     workflowName,
     workflowId,
     inputData = '',
+    interaction_id = 'default',
 ) => {
     try {
         const body = {
             workflow_name: workflowName,
             workflow_id: workflowId,
             input_data: inputData || '',
+            interaction_id: interaction_id || 'default',
         };
-        devLog.log('ExecuteWorkflowById called with:');
-        devLog.log('- workflowName:', workflowName);
-        devLog.log('- workflowId:', workflowId);
-        devLog.log('- inputData:', inputData);
         const response = await fetch(
             `${API_BASE_URL}/workflow/execute/based_id`,
             {
@@ -343,6 +385,46 @@ export const executeWorkflowById = async (
         return result;
     } catch (error) {
         devLog.error('Failed to execute workflow:', error);
+        throw error;
+    }
+};
+
+/**
+ * 워크플로우의 성능 데이터를 삭제합니다.
+ * @param {string} workflowName - 워크플로우 이름 (.json 확장자 제외)
+ * @param {string} workflowId - 워크플로우 ID
+ * @returns {Promise<Object>} 삭제 결과를 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const deleteWorkflowPerformance = async (workflowName, workflowId) => {
+    try {
+        const params = new URLSearchParams({
+            workflow_name: workflowName,
+            workflow_id: workflowId,
+        });
+
+        const response = await fetch(
+            `${API_BASE_URL}/workflow/performance?${params}`,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
+        }
+
+        const result = await response.json();
+        devLog.log('Workflow performance data deleted successfully:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to delete workflow performance data:', error);
         throw error;
     }
 };

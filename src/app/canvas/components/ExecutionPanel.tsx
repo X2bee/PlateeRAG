@@ -21,7 +21,7 @@ const hasOutputs = (output: ExecutionOutput): output is ExecutionSuccess => {
 
 const OutputRenderer: React.FC<OutputRendererProps> = ({ output }) => {
     if (!output) {
-        return <div className={styles.placeholder}>Click 'Run' to execute the workflow.</div>;
+        return <div className={styles.placeholder}>Click &apos;Run&apos; to execute the workflow.</div>;
     }
 
     if (hasError(output)) {

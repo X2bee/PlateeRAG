@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import styles from '@/app/canvas/assets/Edge.module.scss';
-import type { Position, EdgeProps } from '@/app/canvas/types';
+import type { EdgeProps } from '@/app/canvas/types';
 
 const getBezierPath = (x1: number, y1: number, x2: number, y2: number): string => {
     const controlPointX1 = x1 + Math.abs(x2 - x1) * 0.5;

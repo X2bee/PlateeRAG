@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import {
     FiChevronRight,
-    FiSettings,
     FiCheck,
     FiX,
     FiArrowLeft,
@@ -13,9 +12,6 @@ import { SiOpenai } from 'react-icons/si';
 import { BsGear } from 'react-icons/bs'; // Workflow 아이콘으로 사용
 import {
     testConnection,
-    updateConfig,
-    refreshConfigs,
-    saveConfigs,
     fetchAllConfigs,
 } from '@/app/api/configAPI';
 import { devLog } from '@/app/utils/logger';
@@ -62,7 +58,6 @@ const Settings: React.FC = () => {
     const [configData, setConfigData] = useState<ConfigItem[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [isSaving, setIsSaving] = useState(false);
 
     // Load configs from localStorage and fetch from backend
     React.useEffect(() => {
@@ -192,17 +187,6 @@ const Settings: React.FC = () => {
         }
     };
 
-    const validateConfig = (categoryId: string): boolean => {
-        const config = configs[categoryId] || {};
-
-        switch (categoryId) {
-            case 'openai':
-                return !!config.apiKey;
-            default:
-                return false;
-        }
-    };
-
     const renderOpenAIConfig = () => {
         const config = configs.openai || {};
         return (
@@ -308,6 +292,14 @@ const Settings: React.FC = () => {
                                     onClick={() =>
                                         handleCategoryClick(category.id)
                                     }
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            handleCategoryClick(category.id);
+                                        }
+                                    }}
+                                    role="button"
+                                    tabIndex={0}
                                 >
                                     <div className={styles.categoryHeader}>
                                         <div

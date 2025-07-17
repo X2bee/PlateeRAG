@@ -410,8 +410,8 @@ export default function CanvasPage() {
                                     lineHeight: '1.4',
                                 }}
                             >
-                                A workflow named "
-                                <strong>{workflowName}</strong>" already exists.
+                                A workflow named &quot;
+                                <strong>{workflowName}</strong>&quot; already exists.
                                 <br />
                                 Do you want to overwrite it?
                             </div>

@@ -165,8 +165,8 @@ const CompletedWorkflows: React.FC = () => {
                             lineHeight: '1.4',
                         }}
                     >
-                        Are you sure you want to delete "
-                        <strong>{workflow.name}</strong>"?
+                        Are you sure you want to delete &quot;
+                        <strong>{workflow.name}</strong>&quot;?
                         <br />
                         This action cannot be undone.
                     </div>

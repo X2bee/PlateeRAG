@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { RiChatSmileAiLine } from "react-icons/ri";
+import { FiClock, FiMessageCircle } from "react-icons/fi";
 import { SidebarProps } from '@/app/main/components/types';
 import styles from '@/app/main/assets/MainPage.module.scss';
 
@@ -36,6 +37,17 @@ const Sidebar: React.FC<SidebarProps> = ({
     };
 
     const handleNewChatClick = () => {
+        onItemClick('new-chat');
+        router.push('/chat');
+    };
+
+    const handleChatHistoryClick = () => {
+        onItemClick('chat-history');
+        router.push('/chat');
+    };
+
+    const handleCurrentChatClick = () => {
+        onItemClick('current-chat');
         router.push('/chat');
     };
 
@@ -71,6 +83,32 @@ const Sidebar: React.FC<SidebarProps> = ({
                             <div className={styles.navTitle}>새 채팅</div>
                             <div className={styles.navDescription}>
                                 새로운 AI 채팅을 시작합니다
+                            </div>
+                        </div>
+                    </button>
+                    
+                    <button
+                        onClick={handleCurrentChatClick}
+                        className={`${styles.navItem} ${activeItem === 'current-chat' ? styles.active : ''}`}
+                    >
+                        <FiMessageCircle />
+                        <div className={styles.navText}>
+                            <div className={styles.navTitle}>현재 채팅</div>
+                            <div className={styles.navDescription}>
+                                진행 중인 대화를 계속합니다
+                            </div>
+                        </div>
+                    </button>
+                    
+                    <button
+                        onClick={handleChatHistoryClick}
+                        className={`${styles.navItem} ${activeItem === 'chat-history' ? styles.active : ''}`}
+                    >
+                        <FiClock />
+                        <div className={styles.navText}>
+                            <div className={styles.navTitle}>기존 채팅 불러오기</div>
+                            <div className={styles.navDescription}>
+                                이전 대화를 불러와서 계속합니다
                             </div>
                         </div>
                     </button>

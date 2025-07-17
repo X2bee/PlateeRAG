@@ -1,15 +1,164 @@
-.loadingSpinner {
-    width: 32px;
-    height: 32px;
-    border: 3px solid #e9ecef;
-    border-top: 3px solid #007bff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+@use "sass:color";
+
+// Color Variables
+$primary-blue: #2563eb;
+$primary-green: #059669;
+$primary-yellow: #d97706;
+$primary-red: #dc2626;
+$gray-50: #f9fafb;
+$gray-100: #f3f4f6;
+$gray-200: #e5e7eb;
+$gray-300: #d1d5db;
+$gray-400: #9ca3af;
+$gray-500: #6b7280;
+$gray-600: #4b5563;
+$gray-700: #374151;
+$gray-900: #111827;
+$white: #ffffff;
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+// Header
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.headerInfo {
+  h2 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: $gray-900;
+    margin: 0 0 0.5rem 0;
+  }
+
+  p {
+    color: $gray-600;
+    margin: 0;
+    line-height: 1.6;
+  }
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+// 새로고침 버튼 스타일
+.refreshButton {
+  background: transparent;
+  border: 1px solid $gray-300;
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: $gray-600;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+
+  &:hover:not(:disabled) {
+    background: $gray-50;
+    border-color: $primary-blue;
+    color: $primary-blue;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// 스피닝 애니메이션
+.spinning {
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// Executor 헤더
+.executorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+
+  h3 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: $gray-900;
+    margin: 0 0 0.5rem 0;
+  }
+}
+
+.logCount {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: $gray-500;
+  font-size: 0.875rem;
+  padding: 0.375rem 0.75rem;
+  background: $gray-50;
+  border-radius: 6px;
+  border: 1px solid $gray-200;
+
+  svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+.clearLogsBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: $white;
+  border: 1px solid $gray-300;
+  border-radius: 6px;
+  color: $gray-600;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #dc2626;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    background: $gray-100;
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
 }
 
 .executorPanel {
@@ -30,7 +179,7 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: #6c757d;
+    color: $gray-500;
     gap: 1rem;
 
     span {
@@ -46,11 +195,11 @@
     justify-content: center;
     height: 100%;
     text-align: center;
-    color: #6c757d;
+    color: $gray-500;
 
     h3 {
         margin-bottom: 0.5rem;
-        color: #495057;
+        color: $gray-700;
     }
 
     p {
@@ -63,38 +212,6 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-}
-
-.executorHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #e9ecef;
-
-    h3 {
-        margin: 0;
-        color: #2c3e50;
-        font-size: 1.4rem;
-        font-weight: 600;
-        flex: 1;
-    }
-}
-
-.logCount {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #6c757d;
-    font-size: 0.9rem;
-    font-weight: 500;
-    
-    svg {
-        width: 16px;
-        height: 16px;
-        color: #007bff;
-    }
 }
 
 .executorContainer {
@@ -190,6 +307,41 @@
     }
 }
 
+// Typing Indicator
+.typingIndicator {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0;
+    
+    span {
+        width: 6px;
+        height: 6px;
+        background-color: #6c757d;
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out;
+        
+        &:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+        
+        &:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+    }
+}
+
+@keyframes typing {
+    0%, 80%, 100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 .executorInputArea {
     border-top: 1px solid #e9ecef;
     padding: 1rem 1.5rem;
@@ -259,15 +411,6 @@
             svg {
                 width: 16px;
                 height: 16px;
-            }
-
-            .miniSpinner {
-                width: 16px;
-                height: 16px;
-                border: 2px solid #e9ecef;
-                border-top: 2px solid #007bff;
-                border-radius: 50%;
-                animation: spin 1s linear infinite;
             }
         }
     }
