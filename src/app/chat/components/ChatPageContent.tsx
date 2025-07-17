@@ -4,6 +4,7 @@ import Sidebar from '@/app/_common/components/Sidebar';
 import ChatHistory from '@/app/chat/components/ChatHistory';
 import CurrentChatInterface from '@/app/chat/components/CurrentChatInterface';
 import ChatContent from '@/app/chat/components/ChatContent';
+import DefaultChatInterface from '@/app/chat/components/DefaultChatInterface';
 import { getChatSidebarItems, getSettingSidebarItems, createItemClickHandler } from '@/app/_common/components/sidebarConfig';
 import styles from '@/app/main/assets/MainPage.module.scss';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
