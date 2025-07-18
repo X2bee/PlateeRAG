@@ -2,14 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../assets/Documents.module.scss';
 import { 
-//     listCollections, 
-//     createCollection, 
-//     uploadDocument, 
-//     searchDocuments,
-//     deleteCollection,
-//     listDocumentsInCollection,
-//     getDocumentDetails,
-//     deleteDocumentFromCollection,
     isSupportedFileType,
     isValidFileSize,
     isValidCollectionName,

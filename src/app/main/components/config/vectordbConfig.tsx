@@ -2,16 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiCheck, FiX, FiAlertCircle, FiPlay, FiSettings, FiServer, FiDatabase } from 'react-icons/fi';
 import { SiOpenai, SiHuggingface } from 'react-icons/si';
 import { BsRobot } from 'react-icons/bs';
-import BaseConfigPanel, { ConfigItem, FieldConfig } from './BaseConfigPanel';
+import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/BaseConfigPanel';
 import { 
-//     getEmbeddingProviders, 
-//     getEmbeddingStatus, 
-//     switchEmbeddingProvider, 
-//     autoSwitchEmbeddingProvider,
-//     testEmbeddingQuery,
-//     reloadEmbeddingClient,
-//     getEmbeddingConfigStatus,
-//     getEmbeddingDebugInfo,
     getCurrentEmbeddingDimension
 } from '@/app/api/ragAPI';
 import { 
@@ -24,7 +16,7 @@ import {
     getEmbeddingConfigStatus,
     getEmbeddingDebugInfo,
 } from '@/app/api/embeddingAPI';
-import styles from '../../assets/Settings.module.scss';
+import styles from '@/app/main/assets/Settings.module.scss';
 
 interface VectordbConfigProps {
     configData?: ConfigItem[];
@@ -212,17 +204,18 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
         setLoading(true);
         setError(null);
         try {
-            const [status, configStatus, dimensionData] = await Promise.all([
+            const [status, configStatus] = await Promise.all([
                 getEmbeddingStatus(),
                 getEmbeddingConfigStatus(),
-                getCurrentEmbeddingDimension()
             ]);
-            
+            const provider = (status as any).provider_info?.provider || 'openai';
+            const model = (status as any).provider_info?.model || 'text-embedding-3-small';
+            const dimensionData = await getCurrentEmbeddingDimension(provider, model);
+
             setEmbeddingStatus(status as EmbeddingStatus);
             setCurrentProvider((configStatus as any).current_provider || '');
             setDimensionInfo(dimensionData);
             
-            // 제공자별 상태 정보 구성
             const providerStatuses = EMBEDDING_PROVIDERS.map(provider => ({
                 provider: provider.name,
                 available: (configStatus as any)[provider.name]?.available || false,
