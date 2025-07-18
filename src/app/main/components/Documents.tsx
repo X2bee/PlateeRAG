@@ -226,7 +226,6 @@ const Documents: React.FC = () => {
             setError(null);
             await createCollection(
                 newCollectionName,
-                1536,
                 "Cosine",
                 newCollectionDescription || undefined
             );

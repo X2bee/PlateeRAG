@@ -55,13 +55,12 @@ export const listCollections = async () => {
 /**
  * 새 컬렉션을 생성하는 함수
  * @param {string} collectionName - 컬렉션 이름
- * @param {number} vectorSize - 벡터 차원 수
  * @param {string} distance - 거리 메트릭 ("Cosine", "Euclidean", "Dot")
  * @param {string} description - 컬렉션 설명 (선택사항)
  * @param {Object} metadata - 커스텀 메타데이터 (선택사항)
  * @returns {Promise<Object>} 생성된 컬렉션 정보
  */
-export const createCollection = async (collectionName, vectorSize, distance = "Cosine", description = null, metadata = null) => {
+export const createCollection = async (collectionName, distance = "Cosine", description = null, metadata = null) => {
     try {
         const response = await fetch(`${API_BASE_URL}/api/retrieval/collections`, {
             method: 'POST',
@@ -70,7 +69,6 @@ export const createCollection = async (collectionName, vectorSize, distance = "C
             },
             body: JSON.stringify({
                 collection_name: collectionName,
-                vector_size: vectorSize,
                 distance: distance,
                 description: description,
                 metadata: metadata
