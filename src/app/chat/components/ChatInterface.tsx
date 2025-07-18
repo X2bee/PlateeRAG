@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fi';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
 import { getWorkflowIOLogs, executeWorkflowById } from '@/app/api/workflowAPI';
+import { executeChatMessage } from '@/app/api/chatAPI';
 import toast from 'react-hot-toast';
 
 interface Workflow {
@@ -130,27 +131,56 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
             const workflowName = existingChatData?.workflowName || workflow.name;
             const workflowId = existingChatData?.workflowId || workflow.id;
             
-            const result: any = await executeWorkflowById(
-                workflowName,
-                workflowId,
-                currentMessage,
-                interactionId,
-            );
+            let result: any;
+            
+            // default_mode인 경우 chatAPI의 executeChatMessage 사용
+            if (workflowId === 'default_mode' && workflowName === 'default_mode') {
+                result = await executeChatMessage({
+                    user_input: currentMessage,
+                    interaction_id: interactionId,
+                    workflow_id: workflowId,
+                    workflow_name: workflowName
+                });
+                
+                // 결과로 임시 메시지 업데이트 (chatAPI 응답 형식)
+                setIOLogs((prev) =>
+                    prev.map((log) =>
+                        String(log.log_id) === tempId
+                            ? {
+                                  ...log,
+                                  output_data: result.ai_response || '응답을 받았습니다.',
+                                  updated_at: result.timestamp || new Date().toISOString(),
+                              }
+                            : log,
+                    ),
+                );
+                
+                toast.success('메시지가 성공적으로 전송되었습니다!');
+            } else {
+                // 기존 방식: executeWorkflowById 사용
+                result = await executeWorkflowById(
+                    workflowName,
+                    workflowId,
+                    currentMessage,
+                    interactionId,
+                );
 
-            // 결과로 임시 메시지 업데이트
-            setIOLogs((prev) =>
-                prev.map((log) =>
-                    String(log.log_id) === tempId
-                        ? {
-                              ...log,
-                              output_data: result.outputs
-                                  ? JSON.stringify(result.outputs)
-                                  : result.message || '처리 완료',
-                              updated_at: new Date().toISOString(),
-                          }
-                        : log,
-                ),
-            );
+                // 결과로 임시 메시지 업데이트 (기존 방식)
+                setIOLogs((prev) =>
+                    prev.map((log) =>
+                        String(log.log_id) === tempId
+                            ? {
+                                  ...log,
+                                  output_data: result.outputs
+                                      ? JSON.stringify(result.outputs)
+                                      : result.message || '처리 완료',
+                                  updated_at: new Date().toISOString(),
+                              }
+                            : log,
+                    ),
+                );
+            }
+            
             setPendingLogId(null);
             
             // 기존 채팅 데이터가 있는 경우 localStorage 업데이트
