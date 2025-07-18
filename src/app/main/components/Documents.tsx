@@ -2,6 +2,22 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../assets/Documents.module.scss';
 import { 
+//     listCollections, 
+//     createCollection, 
+//     uploadDocument, 
+//     searchDocuments,
+//     deleteCollection,
+//     listDocumentsInCollection,
+//     getDocumentDetails,
+//     deleteDocumentFromCollection,
+    isSupportedFileType,
+    isValidFileSize,
+    isValidCollectionName,
+    formatFileSize,
+    getRelativeTime
+} from '@/app/api/ragAPI.js';
+
+import { 
     listCollections, 
     createCollection, 
     uploadDocument, 
@@ -10,12 +26,7 @@ import {
     listDocumentsInCollection,
     getDocumentDetails,
     deleteDocumentFromCollection,
-    isSupportedFileType,
-    isValidFileSize,
-    isValidCollectionName,
-    formatFileSize,
-    getRelativeTime
-} from '@/app/api/ragAPI.js';
+} from '@/app/api/retrievalAPI';
 
 interface Collection {
     name: string;

@@ -808,7 +808,6 @@ export const getEmbeddingDimension = (provider, model) => {
             }
         
         case 'huggingface': {
-            // 일반적인 HuggingFace 모델 차원
             const commonModels = {
                 'sentence-transformers/all-MiniLM-L6-v2': 384,
                 'sentence-transformers/all-MiniLM-L12-v2': 384,

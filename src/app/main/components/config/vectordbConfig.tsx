@@ -4,6 +4,17 @@ import { SiOpenai, SiHuggingface } from 'react-icons/si';
 import { BsRobot } from 'react-icons/bs';
 import BaseConfigPanel, { ConfigItem, FieldConfig } from './BaseConfigPanel';
 import { 
+//     getEmbeddingProviders, 
+//     getEmbeddingStatus, 
+//     switchEmbeddingProvider, 
+//     autoSwitchEmbeddingProvider,
+//     testEmbeddingQuery,
+//     reloadEmbeddingClient,
+//     getEmbeddingConfigStatus,
+//     getEmbeddingDebugInfo,
+    getCurrentEmbeddingDimension
+} from '@/app/api/ragAPI';
+import { 
     getEmbeddingProviders, 
     getEmbeddingStatus, 
     switchEmbeddingProvider, 
@@ -12,8 +23,7 @@ import {
     reloadEmbeddingClient,
     getEmbeddingConfigStatus,
     getEmbeddingDebugInfo,
-    getCurrentEmbeddingDimension
-} from '@/app/api/ragAPI';
+} from '@/app/api/embeddingAPI';
 import styles from '../../assets/Settings.module.scss';
 
 interface VectordbConfigProps {
