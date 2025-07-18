@@ -295,6 +295,127 @@ $white: #ffffff;
     align-items: flex-end;
 }
 
+.buttonGroup {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+}
+
+.attachmentWrapper {
+    position: relative;
+}
+
+.attachmentButton {
+    background: $gray-100;
+    color: $gray-600;
+    border: 2px solid $gray-200;
+    border-radius: 1rem;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+
+    &:hover:not(:disabled) {
+        background: $gray-200;
+        color: $gray-700;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba($gray-400, 0.2);
+    }
+
+    &:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    &.active {
+        background: $primary-blue;
+        color: $white;
+        border-color: $primary-blue;
+    }
+
+    &:disabled {
+        background: $gray-100;
+        color: $gray-400;
+        cursor: not-allowed;
+    }
+
+    svg {
+        font-size: 1.1rem;
+        transition: transform 0.2s ease;
+    }
+
+    &.active svg {
+        transform: rotate(45deg);
+    }
+}
+
+.attachmentMenu {
+    position: absolute;
+    bottom: 100%;
+    left: -5rem;
+    margin-bottom: 0.5rem;
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem;
+    min-width: 140px;
+    z-index: 1000;
+    animation: slideUpFade 0.2s ease;
+}
+
+@keyframes slideUpFade {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.attachmentOption {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    color: $gray-700;
+
+    &:hover:not(:disabled) {
+        background: $gray-50;
+        color: $gray-900;
+    }
+
+    &.disabled {
+        color: $gray-400;
+        cursor: not-allowed;
+        
+        svg {
+            color: $gray-300;
+        }
+    }
+
+    svg {
+        font-size: 1rem;
+        color: $gray-500;
+    }
+
+    span {
+        font-weight: 500;
+    }
+}
+
 .messageInput {
     flex: 1;
     padding: 0.75rem 1rem;
@@ -579,6 +700,72 @@ $white: #ffffff;
 
     svg {
         font-size: 1.25rem;
+    }
+}
+
+// Selected Collection Display
+.selectedCollection {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba($primary-blue, 0.1);
+    border: 1px solid rgba($primary-blue, 0.2);
+    border-radius: 1rem;
+    padding: 0.75rem 1rem;
+    height: 48px;
+    font-size: 0.875rem;
+    color: $primary-blue;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+
+    &:hover {
+        background: rgba($primary-blue, 0.15);
+        border-color: rgba($primary-blue, 0.3);
+    }
+
+    .collectionIcon {
+        font-size: 1rem;
+        color: $primary-blue;
+        flex-shrink: 0;
+    }
+
+    .collectionName {
+        font-weight: 500;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+    }
+
+    .removeCollectionButton {
+        background: rgba($primary-blue, 0.1);
+        border: none;
+        color: $primary-blue;
+        cursor: pointer;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        margin-left: 0.25rem;
+
+        svg {
+            font-size: 12px;
+        }
+
+        &:hover {
+            background: rgba($primary-blue, 0.8);
+            color: $white;
+            transform: scale(1.1);
+        }
+
+        &:active {
+            transform: scale(0.95);
+        }
     }
 }
 

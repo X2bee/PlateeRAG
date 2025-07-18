@@ -29,7 +29,7 @@ interface ChatNewResponse {
 
 interface DefaultChatInterfaceProps {
     onBack?: () => void;
-    onChatStarted?: () => void; // 채팅 시작 후 호출될 콜백
+    onChatStarted?: () => void;
 }
 
 const DefaultChatInterface: React.FC<DefaultChatInterfaceProps> = ({ onBack, onChatStarted }) => {
@@ -38,7 +38,6 @@ const DefaultChatInterface: React.FC<DefaultChatInterfaceProps> = ({ onBack, onC
     const [inputMessage, setInputMessage] = useState<string>('');
     const [interactionId] = useState<string>(() => generateInteractionId('default_chat'));
 
-    // Default workflow 설정 (default_mode) - 일반 채팅용
     const defaultWorkflow = {
         id: 'default_mode',
         name: 'default_mode',
