@@ -51,22 +51,22 @@ const DefaultChatInterface: React.FC<DefaultChatInterfaceProps> = ({ onBack, onC
     const attachmentButtonRef = useRef<HTMLDivElement>(null);
 
     // localStorage에서 선택된 컬렉션 정보 가져오기
-    useEffect(() => {
-        const checkSelectedCollection = () => {
-            try {
-                const storedCollection = localStorage.getItem('selectedCollection');
-                if (storedCollection) {
-                    const collectionData = JSON.parse(storedCollection);
-                    setSelectedCollection(collectionData.name);
-                } else {
-                    setSelectedCollection(null);
-                }
-            } catch (err) {
-                console.error('Failed to load selected collection:', err);
+    const checkSelectedCollection = () => {
+        try {
+            const storedCollection = localStorage.getItem('selectedCollection');
+            if (storedCollection) {
+                const collectionData = JSON.parse(storedCollection);
+                setSelectedCollection(collectionData.name);
+            } else {
                 setSelectedCollection(null);
             }
-        };
+        } catch (err) {
+            console.error('Failed to load selected collection:', err);
+            setSelectedCollection(null);
+        }
+    };
 
+    useEffect(() => {
         checkSelectedCollection();
 
         const handleStorageChange = (e: StorageEvent) => {
@@ -84,20 +84,6 @@ const DefaultChatInterface: React.FC<DefaultChatInterfaceProps> = ({ onBack, onC
 
     useEffect(() => {
         if (!showCollectionModal) {
-            const checkSelectedCollection = () => {
-                try {
-                    const storedCollection = localStorage.getItem('selectedCollection');
-                    if (storedCollection) {
-                        const collectionData = JSON.parse(storedCollection);
-                        setSelectedCollection(collectionData.name);
-                    } else {
-                        setSelectedCollection(null);
-                    }
-                } catch (err) {
-                    console.error('Failed to load selected collection:', err);
-                    setSelectedCollection(null);
-                }
-            };
             checkSelectedCollection();
         }
     }, [showCollectionModal]);
