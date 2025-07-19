@@ -76,7 +76,7 @@ export default function HomePage() {
                         <div className={styles.heroActions}>
                             <Link href="/chat" className={styles.primaryBtn}>
                                 <FiPlay />
-                                Be More Productaive with PlateerRAG
+                                Be More Productive with PlateerRAG
                             </Link>
                         </div>
                     </div>
