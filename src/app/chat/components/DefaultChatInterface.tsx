@@ -73,13 +73,13 @@ const DefaultChatInterface: React.FC<DefaultChatInterfaceProps> = ({ onBack, onC
             if (result.status === 'success') {
                 // 현재 채팅 데이터를 localStorage에 저장
                 const currentChatData = {
-                    interactionId: result.interaction_id,
-                    workflowId: result.workflow_id,
-                    workflowName: result.workflow_name,
+                    interactionId: result.execution_meta.interaction_id,
+                    workflowId: result.execution_meta.workflow_id,
+                    workflowName: result.execution_meta.workflow_name,
                     startedAt: result.timestamp || new Date().toISOString(),
                 };
                 localStorage.setItem('currentChatData', JSON.stringify(currentChatData));
-                
+
                 // 채팅 시작 후 CurrentChatInterface로 전환하도록 부모에게 알림
                 if (onChatStarted) {
                     onChatStarted();
@@ -133,21 +133,21 @@ const DefaultChatInterface: React.FC<DefaultChatInterfaceProps> = ({ onBack, onC
                         <p>일반 채팅 모드로 자유롭게 대화할 수 있습니다.</p>
                         <div className={styles.welcomeActions}>
                             <div className={styles.suggestionChips}>
-                                <button 
+                                <button
                                     className={styles.suggestionChip}
                                     onClick={() => setInputMessage('안녕하세요!')}
                                     disabled={executing}
                                 >
                                     안녕하세요!
                                 </button>
-                                <button 
+                                <button
                                     className={styles.suggestionChip}
                                     onClick={() => setInputMessage('도움이 필요해요')}
                                     disabled={executing}
                                 >
                                     도움이 필요해요
                                 </button>
-                                <button 
+                                <button
                                     className={styles.suggestionChip}
                                     onClick={() => setInputMessage('어떤 기능이 있나요?')}
                                     disabled={executing}

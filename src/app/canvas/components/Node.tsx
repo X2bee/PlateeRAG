@@ -132,6 +132,45 @@ const Node: React.FC<NodeProps> = ({
                         </option>
                     ))}
                 </select>
+            ) : param.type === 'BOOL' ? (
+                <select
+                    value={param.value}
+                    onChange={(e) => {
+                        devLog.log('=== Boolean Parameter Change ===');
+                        devLog.log('Parameter:', param.name, 'Previous value:', param.value, 'New value:', e.target.value);
+                        handleParamValueChange(e, param.id);
+                        devLog.log('=== Boolean Parameter Change Complete ===');
+                    }}
+                    onMouseDown={(e) => {
+                        devLog.log('boolean select onMouseDown');
+                        e.stopPropagation();
+                    }}
+                    onClick={(e) => {
+                        devLog.log('boolean select onClick');
+                        e.stopPropagation();
+                    }}
+                    onFocus={(e) => {
+                        devLog.log('boolean select onFocus - Parameter:', param.name, 'Current value:', param.value);
+                        e.stopPropagation();
+                        // Clear node selection when editing parameter
+                        if (onClearSelection) {
+                            onClearSelection();
+                        }
+                    }}
+                    onBlur={(e) => {
+                        devLog.log('boolean select onBlur - Parameter:', param.name, 'Final value:', e.target.value);
+                        e.stopPropagation();
+                    }}
+                    onKeyDown={(e) => {
+                        // Prevent keyboard event propagation
+                        e.stopPropagation();
+                    }}
+                    className={`${styles.paramSelect} paramSelect`}
+                >
+                    <option value="" disabled>-- Select --</option>
+                    <option value="true">True</option>
+                    <option value="false">False</option>
+                </select>
             ) : (
                 <input
                     type={typeof param.value === 'number' ? 'number' : 'text'}

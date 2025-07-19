@@ -10,7 +10,7 @@ import { API_BASE_URL } from '@/app/config.js';
  */
 export const createNewChat = async ({ interaction_id, input_data = null }) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/chat/new`, {
+        const response = await fetch(`${API_BASE_URL}/api/workflow/execute/based_id`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
