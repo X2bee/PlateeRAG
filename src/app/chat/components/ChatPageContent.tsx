@@ -71,19 +71,24 @@ const ChatPageContent: React.FC = () => {
         setActiveSection('current-chat');
     };
 
+    const handleChatStarted = () => {
+        // 채팅 시작 후 current-chat으로 전환
+        setActiveSection('current-chat');
+    };
+
     const settingSidebarItems = getSettingSidebarItems();
     const chatSidebarItems = getChatSidebarItems();
 
     const renderContent = () => {
         switch (activeSection) {
             case 'new-chat':
-                return <ChatContent />
+                return <ChatContent onChatStarted={handleChatStarted} />
             case 'current-chat':
                 return <CurrentChatInterface />;
             case 'chat-history':
                 return <ChatHistory onSelectChat={handleChatSelect} />
             default:
-                return <ChatContent />
+                return <ChatContent onChatStarted={handleChatStarted} />
         }
     };
 

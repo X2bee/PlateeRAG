@@ -1,5 +1,4 @@
 // Configuration API 호출 함수들을 관리하는 파일
-import { devLog } from '@/app/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
 
 /**
@@ -43,26 +42,35 @@ export const createNewChat = async ({ interaction_id, input_data = null }) => {
  * @param {string} params.interaction_id - The interaction identifier
  * @param {string} [params.workflow_id] - Optional workflow ID (defaults to "default_mode")
  * @param {string} [params.workflow_name] - Optional workflow name (defaults to "default_mode")
+ * @param {string|null} [params.selectedCollection] - Optional selected collection for default_mode
  * @returns {Promise<Object>} A promise that resolves with the chat response
  */
-export const executeChatMessage = async ({ 
-    user_input, 
-    interaction_id, 
-    workflow_id = "default_mode", 
-    workflow_name = "default_mode" 
+export const executeChatMessage = async ({
+    user_input,
+    interaction_id,
+    workflow_id = "default_mode",
+    workflow_name = "default_mode",
+    selectedCollection = null,
 }) => {
     try {
+        const requestBody = {
+            user_input,
+            interaction_id,
+            workflow_id,
+            workflow_name,
+        };
+
+        // selectedCollection이 있으면 body에 추가
+        if (selectedCollection) {
+            requestBody.selected_collection = selectedCollection;
+        }
+
         const response = await fetch(`${API_BASE_URL}/api/chat/execution`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                user_input,
-                interaction_id,
-                workflow_id,
-                workflow_name
-            }),
+            body: JSON.stringify(requestBody),
         });
 
         if (!response.ok) {
@@ -85,10 +93,10 @@ export const executeChatMessage = async ({
  * @param {boolean} [params.isNewChat] - Whether this is a new chat session
  * @returns {Promise<Object>} A promise that resolves with the chat response
  */
-export const sendMessage = async ({ 
-    message, 
-    interaction_id = null, 
-    isNewChat = false 
+export const sendMessage = async ({
+    message,
+    interaction_id = null,
+    isNewChat = false
 }) => {
     try {
         // Generate interaction ID if not provided

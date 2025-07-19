@@ -8,7 +8,11 @@ import ChatInterface from './ChatInterface';
 import NewChatInterface from './NewChatInterface';
 import DefaultChatInterface from './DefaultChatInterface';
 
-const ChatContentInner: React.FC = () => {
+interface ChatContentProps {
+    onChatStarted?: () => void; // 채팅 시작 후 호출될 콜백
+}
+
+const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted }) => {
     const searchParams = useSearchParams();
     const [currentView, setCurrentView] = useState<'welcome' | 'workflow' | 'newChat' | 'existingChat' | 'defaultChat'>('welcome');
     const [selectedWorkflow, setSelectedWorkflow] = useState<any>(null);
@@ -60,6 +64,7 @@ const ChatContentInner: React.FC = () => {
                 <div className={styles.workflowSection}>
                     <DefaultChatInterface 
                         onBack={() => setCurrentView('welcome')}
+                        onChatStarted={onChatStarted}
                     />
                 </div>
             </div>
@@ -74,6 +79,7 @@ const ChatContentInner: React.FC = () => {
                     <NewChatInterface 
                         workflow={selectedWorkflow}
                         onBack={() => setCurrentView('workflow')}
+                        onChatStarted={onChatStarted}
                     />
                 </div>
             </div>
@@ -140,7 +146,7 @@ const ChatContentInner: React.FC = () => {
     );
 };
 
-const ChatContent: React.FC = () => {
+const ChatContent: React.FC<ChatContentProps> = ({ onChatStarted }) => {
     return (
         <Suspense fallback={
             <div className={styles.loadingContainer}>
@@ -148,7 +154,7 @@ const ChatContent: React.FC = () => {
                 <p>Loading chat...</p>
             </div>
         }>
-            <ChatContentInner />
+            <ChatContentInner onChatStarted={onChatStarted} />
         </Suspense>
     );
 };
