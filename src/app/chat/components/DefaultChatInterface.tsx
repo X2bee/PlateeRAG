@@ -13,7 +13,7 @@ import {
     FiX,
 } from 'react-icons/fi';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
-import { createNewChat } from '@/app/api/chatAPI';
+import { executeWorkflowById } from '@/app/api/workflowAPI';
 import { generateInteractionId } from '@/app/api/interactionAPI';
 import toast from 'react-hot-toast';
 import CollectionModal from '@/app/chat/components/CollectionModal';
@@ -146,11 +146,13 @@ const DefaultChatInterface: React.FC<DefaultChatInterfaceProps> = ({ onBack, onC
             }
 
             // 새로운 채팅 세션 생성
-            const result = await createNewChat({
-                interaction_id: interactionId,
-                input_data: currentMessage,
-                selectedCollection: selectedCollection
-            }) as ChatNewResponse;
+            const result = await executeWorkflowById(
+                "default_mode",
+                "default_mode",
+                currentMessage,
+                interactionId,
+                selectedCollection as any
+            ) as ChatNewResponse;
 
             if (result.status === 'success') {
                 // 현재 채팅 데이터를 localStorage에 저장
