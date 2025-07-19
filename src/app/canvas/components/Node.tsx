@@ -92,7 +92,13 @@ const Node: React.FC<NodeProps> = ({
             {param.options && param.options.length > 0 ? (
                 <select
                     value={param.value}
-                    onChange={(e) => handleParamValueChange(e, param.id)}
+                    onChange={(e) => {
+                        devLog.log('=== Select Parameter Change ===');
+                        devLog.log('Parameter:', param.name, 'Previous value:', param.value, 'New value:', e.target.value);
+                        devLog.log('Available options:', param.options);
+                        handleParamValueChange(e, param.id);
+                        devLog.log('=== Select Parameter Change Complete ===');
+                    }}
                     onMouseDown={(e) => {
                         devLog.log('select onMouseDown');
                         e.stopPropagation();
@@ -102,7 +108,7 @@ const Node: React.FC<NodeProps> = ({
                         e.stopPropagation();
                     }}
                     onFocus={(e) => {
-                        devLog.log('select onFocus');
+                        devLog.log('select onFocus - Parameter:', param.name, 'Current value:', param.value);
                         e.stopPropagation();
                         // Clear node selection when editing parameter
                         if (onClearSelection) {
@@ -110,7 +116,7 @@ const Node: React.FC<NodeProps> = ({
                         }
                     }}
                     onBlur={(e) => {
-                        devLog.log('select onBlur');
+                        devLog.log('select onBlur - Parameter:', param.name, 'Final value:', e.target.value);
                         e.stopPropagation();
                     }}
                     onKeyDown={(e) => {
@@ -119,6 +125,7 @@ const Node: React.FC<NodeProps> = ({
                     }}
                     className={`${styles.paramSelect} paramSelect`}
                 >
+                    <option value="" disabled>-- Select --</option>
                     {param.options.map((option, index) => (
                         <option key={index} value={option.value}>
                             {option.label || option.value}
