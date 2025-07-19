@@ -430,8 +430,6 @@ export const getRagConfig = async () => {
 // Utility Functions
 // =============================================================================
 
-import { devLog } from '@/app/utils/logger';
-
 /**
  * 파일 타입이 지원되는지 확인하는 함수
  * @param {File} file - 확인할 파일

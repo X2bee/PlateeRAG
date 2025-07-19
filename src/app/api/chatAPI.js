@@ -45,10 +45,10 @@ export const createNewChat = async ({ interaction_id, input_data = null }) => {
  * @param {string|null} [params.selectedCollection] - Optional selected collection for default_mode
  * @returns {Promise<Object>} A promise that resolves with the chat response
  */
-export const executeChatMessage = async ({ 
-    user_input, 
-    interaction_id, 
-    workflow_id = "default_mode", 
+export const executeChatMessage = async ({
+    user_input,
+    interaction_id,
+    workflow_id = "default_mode",
     workflow_name = "default_mode",
     selectedCollection = null,
 }) => {
@@ -93,10 +93,10 @@ export const executeChatMessage = async ({
  * @param {boolean} [params.isNewChat] - Whether this is a new chat session
  * @returns {Promise<Object>} A promise that resolves with the chat response
  */
-export const sendMessage = async ({ 
-    message, 
-    interaction_id = null, 
-    isNewChat = false 
+export const sendMessage = async ({
+    message,
+    interaction_id = null,
+    isNewChat = false
 }) => {
     try {
         // Generate interaction ID if not provided
