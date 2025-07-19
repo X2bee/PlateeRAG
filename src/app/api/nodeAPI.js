@@ -46,3 +46,26 @@ export const exportNodes = async () => {
         throw error;
     }
 };
+
+/**
+ * @returns {Promise<Array<Object>>} 노드 객체의 배열을 반환하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const refreshNodes = async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/node/refresh`);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
+        }
+
+        // force_refresh 후, 최신 노드 리스트를 다시 불러옵니다.
+        return await getNodes();
+    } catch (error) {
+        devLog.error('Failed to get nodes:', error);
+        throw error; // 에러를 호출한 쪽으로 다시 던져서 UI에서 처리할 수 있도록 합니다.
+    }
+};

@@ -14,7 +14,6 @@ import {
 } from 'react-icons/fi';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
 import { getWorkflowIOLogs, executeWorkflowById } from '@/app/api/workflowAPI';
-import { executeChatMessage } from '@/app/api/chatAPI';
 import toast from 'react-hot-toast';
 import CollectionModal from '@/app/chat/components/CollectionModal';
 
@@ -137,11 +136,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
         try {
             setLoading(true);
             setError(null);
-            
+
             const interactionId = existingChatData?.interactionId || 'default';
             const workflowName = existingChatData?.workflowName || workflow.name;
             const workflowId = existingChatData?.workflowId || workflow.id;
-            
+
             const logs = await getWorkflowIOLogs(workflowName, workflowId, interactionId);
             setIOLogs((logs as any).in_out_logs || []);
             setPendingLogId(null);
@@ -189,64 +188,36 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
         setInputMessage('');
 
         try {
-            // existingChatData가 있으면 해당 interaction_id 사용
             const interactionId = existingChatData?.interactionId || 'default';
             const workflowName = existingChatData?.workflowName || workflow.name;
             const workflowId = existingChatData?.workflowId || workflow.id;
-            
-            let result: any;
-            
-            // default_mode인 경우 chatAPI의 executeChatMessage 사용
-            if (workflowId === 'default_mode' && workflowName === 'default_mode') {
-                result = await executeChatMessage({
-                    user_input: currentMessage,
-                    interaction_id: interactionId,
-                    workflow_id: workflowId,
-                    workflow_name: workflowName,
-                    selectedCollection: selectedCollection
-                });
-                
-                // 결과로 임시 메시지 업데이트 (chatAPI 응답 형식)
-                setIOLogs((prev) =>
-                    prev.map((log) =>
-                        String(log.log_id) === tempId
-                            ? {
-                                  ...log,
-                                  output_data: result.ai_response || '응답을 받았습니다.',
-                                  updated_at: result.timestamp || new Date().toISOString(),
-                              }
-                            : log,
-                    ),
-                );
-                
-                toast.success('메시지가 성공적으로 전송되었습니다!');
-            } else {
-                // 기존 방식: executeWorkflowById 사용
-                result = await executeWorkflowById(
-                    workflowName,
-                    workflowId,
-                    currentMessage,
-                    interactionId,
-                );
 
-                // 결과로 임시 메시지 업데이트 (기존 방식)
-                setIOLogs((prev) =>
-                    prev.map((log) =>
-                        String(log.log_id) === tempId
-                            ? {
-                                  ...log,
-                                  output_data: result.outputs
-                                      ? JSON.stringify(result.outputs)
-                                      : result.message || '처리 완료',
-                                  updated_at: new Date().toISOString(),
-                              }
-                            : log,
-                    ),
-                );
-            }
-            
+            const result: any = await executeWorkflowById(
+                workflowName,
+                workflowId,
+                currentMessage,
+                interactionId,
+                selectedCollection as any,
+            );
+
+            // 결과로 임시 메시지 업데이트 (chatAPI 응답 형식)
+            setIOLogs((prev) =>
+                prev.map((log) =>
+                    String(log.log_id) === tempId
+                        ? {
+                                ...log,
+                                output_data: result.outputs
+                                    ? JSON.stringify(result.outputs)
+                                    : result.message || '처리 완료',
+                                updated_at: new Date().toISOString(),
+                            }
+                        : log,
+                ),
+            );
+
+            toast.success('메시지가 성공적으로 전송되었습니다!');
             setPendingLogId(null);
-            
+
             // 기존 채팅 데이터가 있는 경우 localStorage 업데이트
             if (existingChatData) {
                 const currentChatData = {
@@ -291,7 +262,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
     const handleAttachmentOption = (option: string) => {
         console.log('Selected option:', option);
         setShowAttachmentMenu(false);
-        
+
         if (option === 'collection') {
             setShowCollectionModal(true);
         }
@@ -407,7 +378,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
                                         <div className={styles.selectedCollection}>
                                             <FiBookmark className={styles.collectionIcon} />
                                             <span className={styles.collectionName}>{selectedCollection}</span>
-                                            <button 
+                                            <button
                                                 className={styles.removeCollectionButton}
                                                 onClick={handleRemoveCollection}
                                                 title="컬렉션 해제"
@@ -484,9 +455,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
             </div>
 
             {/* Collection Modal */}
-            <CollectionModal 
-                isOpen={showCollectionModal} 
-                onClose={() => setShowCollectionModal(false)} 
+            <CollectionModal
+                isOpen={showCollectionModal}
+                onClose={() => setShowCollectionModal(false)}
             />
         </div>
     );
