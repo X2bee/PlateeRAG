@@ -4,13 +4,13 @@ import { SiOpenai, SiHuggingface } from 'react-icons/si';
 import { BsRobot } from 'react-icons/bs';
 import toast from 'react-hot-toast';
 import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/BaseConfigPanel';
-import { 
+import {
     getCurrentEmbeddingDimension
-} from '@/app/api/ragAPI';
-import { 
-    getEmbeddingProviders, 
-    getEmbeddingStatus, 
-    switchEmbeddingProvider, 
+} from '@/app/api/retrievalAPI';
+import {
+    getEmbeddingProviders,
+    getEmbeddingStatus,
+    switchEmbeddingProvider,
     autoSwitchEmbeddingProvider,
     testEmbeddingQuery,
     reloadEmbeddingClient,
@@ -216,7 +216,7 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
             setEmbeddingStatus(status as EmbeddingStatus);
             setCurrentProvider((configStatus as any).current_provider || '');
             setDimensionInfo(dimensionData);
-            
+
             const providerStatuses = EMBEDDING_PROVIDERS.map(provider => ({
                 provider: provider.name,
                 available: (configStatus as any)[provider.name]?.available || false,
@@ -224,7 +224,7 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
                 status: (configStatus as any)[provider.name]?.status || 'unknown',
                 error: (configStatus as any)[provider.name]?.error
             }));
-            
+
             setProvidersStatus(providerStatuses);
         } catch (err) {
             setError('임베딩 상태를 불러오는데 실패했습니다.');
@@ -243,7 +243,7 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
         // 확인 toast를 통해 사용자에게 변경 의사 확인
         const currentProviderDisplayName = EMBEDDING_PROVIDERS.find(p => p.name === currentProvider)?.displayName || currentProvider;
         const newProviderDisplayName = EMBEDDING_PROVIDERS.find(p => p.name === providerName)?.displayName || providerName;
-        
+
         toast((t) => (
             <div
                 style={{
@@ -459,7 +459,7 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
                         <div className={styles.statusCard}>
                             <div className={styles.statusInfo}>
                                 <div className={styles.providerInfo}>
-                                    <span 
+                                    <span
                                         className={styles.providerIcon}
                                         style={{ color: getProviderColor(currentProvider) }}
                                     >
@@ -483,7 +483,7 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
                                     <span>{embeddingStatus.available ? '정상 작동' : '연결 오류'}</span>
                                 </div>
                             </div>
-                            
+
                             <div className={styles.statusActions}>
                                 <button
                                     onClick={handleTestEmbedding}
@@ -514,7 +514,7 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
                     {EMBEDDING_PROVIDERS.map((provider) => {
                         const providerStatus = providersStatus.find(p => p.provider === provider.name);
                         const isActive = currentProvider === provider.name;
-                        
+
                         return (
                             <div
                                 key={provider.name}
@@ -526,7 +526,7 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
                                 }}
                             >
                                 <div className={styles.providerHeader}>
-                                    <div 
+                                    <div
                                         className={styles.providerIcon}
                                         style={{ color: provider.color }}
                                     >
@@ -541,7 +541,7 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
                                         {isActive && <span className={styles.activeBadge}>활성</span>}
                                     </div>
                                 </div>
-                                
+
                                 {providerStatus && (
                                     <div className={styles.providerDetails}>
                                         <span className={styles.statusText}>
@@ -581,7 +581,7 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
                 <h3>벡터 데이터베이스 설정</h3>
                 <p>Qdrant 벡터 데이터베이스 연결을 설정합니다.</p>
             </div>
-            
+
             <BaseConfigPanel
                 configData={configData}
                 fieldConfigs={VECTORDATABASE_CONFIG_FIELDS}
