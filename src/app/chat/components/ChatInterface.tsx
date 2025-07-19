@@ -191,9 +191,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
             const interactionId = existingChatData?.interactionId || 'default';
             const workflowName = existingChatData?.workflowName || workflow.name;
             const workflowId = existingChatData?.workflowId || workflow.id;
-            let result: any;
 
-            result = await executeWorkflowById(
+            const result: any = await executeWorkflowById(
                 workflowName,
                 workflowId,
                 currentMessage,
