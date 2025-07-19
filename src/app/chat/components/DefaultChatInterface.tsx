@@ -1,15 +1,22 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     FiSend,
     FiMessageSquare,
     FiClock,
     FiArrowLeft,
+    FiPlus,
+    FiFolder,
+    FiImage,
+    FiMic,
+    FiBookmark,
+    FiX,
 } from 'react-icons/fi';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
 import { createNewChat } from '@/app/api/chatAPI';
 import { generateInteractionId } from '@/app/api/interactionAPI';
 import toast from 'react-hot-toast';
+import CollectionModal from '@/app/chat/components/CollectionModal';
 
 interface ChatNewResponse {
     status: string;
@@ -37,6 +44,80 @@ const DefaultChatInterface: React.FC<DefaultChatInterfaceProps> = ({ onBack, onC
     const [error, setError] = useState<string | null>(null);
     const [inputMessage, setInputMessage] = useState<string>('');
     const [interactionId] = useState<string>(() => generateInteractionId('default_chat'));
+    const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
+    const [showCollectionModal, setShowCollectionModal] = useState(false);
+    const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+
+    const attachmentButtonRef = useRef<HTMLDivElement>(null);
+
+    // localStorage에서 선택된 컬렉션 정보 가져오기
+    useEffect(() => {
+        const checkSelectedCollection = () => {
+            try {
+                const storedCollection = localStorage.getItem('selectedCollection');
+                if (storedCollection) {
+                    const collectionData = JSON.parse(storedCollection);
+                    setSelectedCollection(collectionData.name);
+                } else {
+                    setSelectedCollection(null);
+                }
+            } catch (err) {
+                console.error('Failed to load selected collection:', err);
+                setSelectedCollection(null);
+            }
+        };
+
+        checkSelectedCollection();
+
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'selectedCollection') {
+                checkSelectedCollection();
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!showCollectionModal) {
+            const checkSelectedCollection = () => {
+                try {
+                    const storedCollection = localStorage.getItem('selectedCollection');
+                    if (storedCollection) {
+                        const collectionData = JSON.parse(storedCollection);
+                        setSelectedCollection(collectionData.name);
+                    } else {
+                        setSelectedCollection(null);
+                    }
+                } catch (err) {
+                    console.error('Failed to load selected collection:', err);
+                    setSelectedCollection(null);
+                }
+            };
+            checkSelectedCollection();
+        }
+    }, [showCollectionModal]);
+
+    // 첨부 메뉴 외부 클릭 시 닫기
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (attachmentButtonRef.current && !attachmentButtonRef.current.contains(event.target as Node)) {
+                setShowAttachmentMenu(false);
+            }
+        };
+
+        if (showAttachmentMenu) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showAttachmentMenu]);
 
     const defaultWorkflow = {
         id: 'default_mode',
@@ -67,7 +148,8 @@ const DefaultChatInterface: React.FC<DefaultChatInterfaceProps> = ({ onBack, onC
             // 새로운 채팅 세션 생성
             const result = await createNewChat({
                 interaction_id: interactionId,
-                input_data: currentMessage
+                input_data: currentMessage,
+                selectedCollection: selectedCollection
             }) as ChatNewResponse;
 
             if (result.status === 'success') {
@@ -94,6 +176,25 @@ const DefaultChatInterface: React.FC<DefaultChatInterfaceProps> = ({ onBack, onC
         } finally {
             setExecuting(false);
         }
+    };
+
+    const handleAttachmentClick = () => {
+        setShowAttachmentMenu(!showAttachmentMenu);
+    };
+
+    const handleAttachmentOption = (option: string) => {
+        console.log('Selected option:', option);
+        setShowAttachmentMenu(false);
+
+        if (option === 'collection') {
+            setShowCollectionModal(true);
+        }
+        // TODO: 다른 옵션들에 대한 구현
+    };
+
+    const handleRemoveCollection = () => {
+        localStorage.removeItem('selectedCollection');
+        setSelectedCollection(null);
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -171,17 +272,73 @@ const DefaultChatInterface: React.FC<DefaultChatInterfaceProps> = ({ onBack, onC
                             disabled={executing}
                             className={styles.messageInput}
                         />
-                        <button
-                            onClick={executeWorkflow}
-                            disabled={executing || !inputMessage.trim()}
-                            className={`${styles.sendButton} ${executing || !inputMessage.trim() ? styles.disabled : ''}`}
-                        >
-                            {executing ? (
-                                <div className={styles.miniSpinner}></div>
-                            ) : (
-                                <FiSend />
+                        <div className={styles.buttonGroup}>
+                            {selectedCollection && (
+                                <div className={styles.selectedCollection}>
+                                    <FiBookmark className={styles.collectionIcon} />
+                                    <span className={styles.collectionName}>{selectedCollection}</span>
+                                    <button
+                                        className={styles.removeCollectionButton}
+                                        onClick={handleRemoveCollection}
+                                        title="컬렉션 해제"
+                                    >
+                                        <FiX />
+                                    </button>
+                                </div>
                             )}
-                        </button>
+                            <div className={styles.attachmentWrapper} ref={attachmentButtonRef}>
+                                <button
+                                    onClick={handleAttachmentClick}
+                                    className={`${styles.attachmentButton} ${showAttachmentMenu ? styles.active : ''}`}
+                                    disabled={executing}
+                                >
+                                    <FiPlus />
+                                </button>
+                                {showAttachmentMenu && (
+                                    <div className={styles.attachmentMenu}>
+                                        <button
+                                            className={styles.attachmentOption}
+                                            onClick={() => handleAttachmentOption('collection')}
+                                        >
+                                            <FiBookmark />
+                                            <span>컬렉션</span>
+                                        </button>
+                                        <button
+                                            className={`${styles.attachmentOption} ${styles.disabled}`}
+                                            disabled
+                                        >
+                                            <FiFolder />
+                                            <span>파일</span>
+                                        </button>
+                                        <button
+                                            className={`${styles.attachmentOption} ${styles.disabled}`}
+                                            disabled
+                                        >
+                                            <FiImage />
+                                            <span>사진</span>
+                                        </button>
+                                        <button
+                                            className={`${styles.attachmentOption} ${styles.disabled}`}
+                                            disabled
+                                        >
+                                            <FiMic />
+                                            <span>음성</span>
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            <button
+                                onClick={executeWorkflow}
+                                disabled={executing || !inputMessage.trim()}
+                                className={`${styles.sendButton} ${executing || !inputMessage.trim() ? styles.disabled : ''}`}
+                            >
+                                {executing ? (
+                                    <div className={styles.miniSpinner}></div>
+                                ) : (
+                                    <FiSend />
+                                )}
+                            </button>
+                        </div>
                     </div>
                     {executing && (
                         <p className={styles.executingNote}>
@@ -193,6 +350,12 @@ const DefaultChatInterface: React.FC<DefaultChatInterfaceProps> = ({ onBack, onC
                     )}
                 </div>
             </div>
+
+            {/* Collection Modal */}
+            <CollectionModal
+                isOpen={showCollectionModal}
+                onClose={() => setShowCollectionModal(false)}
+            />
         </div>
     );
 };

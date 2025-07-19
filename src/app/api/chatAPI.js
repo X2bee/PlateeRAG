@@ -6,21 +6,28 @@ import { API_BASE_URL } from '@/app/config.js';
  * @param {Object} params - The chat creation parameters
  * @param {string} params.interaction_id - Unique interaction identifier
  * @param {string} [params.input_data] - Optional initial message
+ * @param {string|null} [params.selectedCollection] - Optional selected collection
  * @returns {Promise<Object>} A promise that resolves with the chat creation response
  */
-export const createNewChat = async ({ interaction_id, input_data = null }) => {
+export const createNewChat = async ({ interaction_id, input_data = null, selectedCollection = null }) => {
     try {
+        const requestBody = {
+            workflow_name: "default_mode",
+            workflow_id: "default_mode",
+            interaction_id,
+            input_data
+        };
+
+        if (selectedCollection) {
+            requestBody.selected_collection = selectedCollection;
+        }
+
         const response = await fetch(`${API_BASE_URL}/api/workflow/execute/based_id`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                workflow_name: "default_mode",
-                workflow_id: "default_mode",
-                interaction_id,
-                input_data
-            }),
+            body: JSON.stringify(requestBody),
         });
 
         if (!response.ok) {
