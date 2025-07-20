@@ -36,12 +36,41 @@ $white: #ffffff;
         }
     }
 
-    :global(h1) { font-size: 1.5rem; }
-    :global(h2) { font-size: 1.3rem; }
-    :global(h3) { font-size: 1.1rem; }
-    :global(h4) { font-size: 1rem; }
-    :global(h5) { font-size: 0.9rem; }
-    :global(h6) { font-size: 0.8rem; }
+    :global(h1) { 
+        font-size: 1.5rem;
+        color: $gray-800;
+        border-bottom: 2px solid $gray-200;
+        padding-bottom: 0.25rem;
+    }
+    
+    :global(h2) { 
+        font-size: 1.3rem;
+        color: $gray-800;
+        border-bottom: 1px solid $gray-200;
+        padding-bottom: 0.2rem;
+    }
+    
+    :global(h3) { 
+        font-size: 1.1rem;
+        color: $gray-700;
+    }
+    
+    :global(h4) { 
+        font-size: 1rem;
+        color: $gray-700;
+    }
+    
+    :global(h5) { 
+        font-size: 0.9rem;
+        color: $gray-600;
+    }
+    
+    :global(h6) { 
+        font-size: 0.8rem;
+        color: $gray-600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
 
     :global(strong) {
         font-weight: 600;
@@ -101,316 +130,316 @@ $white: #ffffff;
     :global(br) {
         line-height: 1.5;
     }
-}
 
-// 코드 블록 스타일
-:global(.code-block-container) {
-    margin: 0.75rem 0;
-    border-radius: 8px;
-    overflow: hidden;
-    border: 1px solid $gray-200;
-    background: $white;
-
-    :global(.code-block-header) {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.5rem 1rem;
-        background: $gray-100;
-        border-bottom: 1px solid $gray-200;
-        font-size: 0.875rem;
-
-        :global(.code-language) {
-            font-weight: 600;
-            color: $gray-700;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
-        }
-
-        :global(.copy-button) {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 28px;
-            height: 22px;
-            background: transparent;
-            border: 1px solid $gray-300;
-            border-radius: 4px;
-            cursor: pointer;
-            color: $gray-600;
-            font-size: 0.875rem;
-            transition: all 0.2s ease;
-
-            &:hover {
-                background: $white;
-                border-color: $gray-400;
-                color: $gray-700;
-            }
-
-            &:active {
-                transform: scale(0.95);
-            }
-
-            svg {
-                width: 12px;
-                height: 12px;
-            }
-        }
-    }
-
-    :global(.code-block) {
-        margin: 0;
-        padding: 1rem;
+    // 코드 블록 스타일
+    :global(.code-block-container) {
+        margin: 0.75rem 0;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid $gray-200;
         background: $white;
-        overflow-x: auto;
-        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-        font-size: 0.875rem;
-        line-height: 1.5;
-        color: $gray-800;
-        border: none;
 
-        code {
-            background: none;
-            padding: 0;
+        :global(.code-block-header) {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: $gray-100;
+            border-bottom: 1px solid $gray-200;
+            font-size: 0.875rem;
+
+            :global(.code-language) {
+                font-weight: 600;
+                color: $gray-700;
+                text-transform: uppercase;
+                font-size: 0.75rem;
+                letter-spacing: 0.05em;
+            }
+
+            :global(.copy-button) {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 28px;
+                height: 22px;
+                background: transparent;
+                border: 1px solid $gray-300;
+                border-radius: 4px;
+                cursor: pointer;
+                color: $gray-600;
+                font-size: 0.875rem;
+                transition: all 0.2s ease;
+
+                &:hover {
+                    background: $white;
+                    border-color: $gray-400;
+                    color: $gray-700;
+                }
+
+                &:active {
+                    transform: scale(0.95);
+                }
+
+                svg {
+                    width: 12px;
+                    height: 12px;
+                }
+            }
+        }
+
+        :global(.code-block) {
+            margin: 0;
+            padding: 1rem;
+            background: $white;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: $gray-800;
             border: none;
-            font-family: inherit;
-            color: inherit;
-            white-space: pre;
-            display: block;
-            width: 100%;
+
+            code {
+                background: none;
+                padding: 0;
+                border: none;
+                font-family: inherit;
+                color: inherit;
+                white-space: pre;
+                display: block;
+                width: 100%;
+            }
         }
     }
-}
 
-// 언어별 테마
-:global(.code-block-python) {
-    border-color: #306998;
+    // 언어별 테마
+    :global(.code-block-python) {
+        border-color: #306998;
 
-    :global(.code-block-header) {
-        background: #f8f9fa;
-        color: #306998;
-        border-left: 4px solid #306998;
-
-        :global(.code-language) {
+        :global(.code-block-header) {
+            background: #f8f9fa;
             color: #306998;
-            font-weight: 700;
-        }
+            border-left: 4px solid #306998;
 
-        :global(.copy-button) {
-            border-color: #306998;
-            color: #306998;
+            :global(.code-language) {
+                color: #306998;
+                font-weight: 700;
+            }
 
-            &:hover {
-                background: #306998;
+            :global(.copy-button) {
                 border-color: #306998;
-                color: white;
+                color: #306998;
+
+                &:hover {
+                    background: #306998;
+                    border-color: #306998;
+                    color: white;
+                }
             }
         }
     }
-}
 
-:global(.code-block-javascript) {
-    border-color: #f7df1e;
+    :global(.code-block-javascript) {
+        border-color: #f7df1e;
 
-    :global(.code-block-header) {
-        background: #f8f9fa;
-        color: #b8860b;
-        border-left: 4px solid #f7df1e;
-
-        :global(.code-language) {
+        :global(.code-block-header) {
+            background: #f8f9fa;
             color: #b8860b;
-            font-weight: 700;
-        }
+            border-left: 4px solid #f7df1e;
 
-        :global(.copy-button) {
-            border-color: #b8860b;
-            color: #b8860b;
+            :global(.code-language) {
+                color: #b8860b;
+                font-weight: 700;
+            }
 
-            &:hover {
-                background: #b8860b;
+            :global(.copy-button) {
                 border-color: #b8860b;
-                color: white;
+                color: #b8860b;
+
+                &:hover {
+                    background: #b8860b;
+                    border-color: #b8860b;
+                    color: white;
+                }
             }
         }
     }
-}
 
-:global(.code-block-java) {
-    border-color: #ed8b00;
+    :global(.code-block-java) {
+        border-color: #ed8b00;
 
-    :global(.code-block-header) {
-        background: #f8f9fa;
-        color: #ed8b00;
-        border-left: 4px solid #ed8b00;
-
-        :global(.code-language) {
+        :global(.code-block-header) {
+            background: #f8f9fa;
             color: #ed8b00;
-            font-weight: 700;
-        }
+            border-left: 4px solid #ed8b00;
 
-        :global(.copy-button) {
-            border-color: #ed8b00;
-            color: #ed8b00;
+            :global(.code-language) {
+                color: #ed8b00;
+                font-weight: 700;
+            }
 
-            &:hover {
-                background: #ed8b00;
+            :global(.copy-button) {
                 border-color: #ed8b00;
-                color: white;
+                color: #ed8b00;
+
+                &:hover {
+                    background: #ed8b00;
+                    border-color: #ed8b00;
+                    color: white;
+                }
             }
         }
     }
-}
 
-:global(.code-block-html) {
-    border-color: #e34f26;
+    :global(.code-block-html) {
+        border-color: #e34f26;
 
-    :global(.code-block-header) {
-        background: #f8f9fa;
-        color: #e34f26;
-        border-left: 4px solid #e34f26;
-
-        :global(.code-language) {
+        :global(.code-block-header) {
+            background: #f8f9fa;
             color: #e34f26;
-            font-weight: 700;
-        }
+            border-left: 4px solid #e34f26;
 
-        :global(.copy-button) {
-            border-color: #e34f26;
-            color: #e34f26;
+            :global(.code-language) {
+                color: #e34f26;
+                font-weight: 700;
+            }
 
-            &:hover {
-                background: #e34f26;
+            :global(.copy-button) {
                 border-color: #e34f26;
-                color: white;
+                color: #e34f26;
+
+                &:hover {
+                    background: #e34f26;
+                    border-color: #e34f26;
+                    color: white;
+                }
             }
         }
     }
-}
 
-:global(.code-block-css) {
-    border-color: #1572b6;
+    :global(.code-block-css) {
+        border-color: #1572b6;
 
-    :global(.code-block-header) {
-        background: #f8f9fa;
-        color: #1572b6;
-        border-left: 4px solid #1572b6;
-
-        :global(.code-language) {
+        :global(.code-block-header) {
+            background: #f8f9fa;
             color: #1572b6;
-            font-weight: 700;
-        }
+            border-left: 4px solid #1572b6;
 
-        :global(.copy-button) {
-            border-color: #1572b6;
-            color: #1572b6;
+            :global(.code-language) {
+                color: #1572b6;
+                font-weight: 700;
+            }
 
-            &:hover {
-                background: #1572b6;
+            :global(.copy-button) {
                 border-color: #1572b6;
-                color: white;
+                color: #1572b6;
+
+                &:hover {
+                    background: #1572b6;
+                    border-color: #1572b6;
+                    color: white;
+                }
             }
         }
     }
-}
 
-:global(.code-block-text) {
-    border-color: $gray-300;
+    :global(.code-block-text) {
+        border-color: $gray-300;
 
-    :global(.code-block-header) {
-        background: $gray-100;
-        color: $gray-700;
-
-        :global(.code-language) {
+        :global(.code-block-header) {
+            background: $gray-100;
             color: $gray-700;
-        }
 
-        :global(.copy-button) {
-            border-color: $gray-300;
-            color: $gray-600;
-
-            &:hover {
-                background: $white;
-                border-color: $gray-400;
+            :global(.code-language) {
                 color: $gray-700;
             }
+
+            :global(.copy-button) {
+                border-color: $gray-300;
+                color: $gray-600;
+
+                &:hover {
+                    background: $white;
+                    border-color: $gray-400;
+                    color: $gray-700;
+                }
+            }
         }
     }
-}
 
-:global(.code-block-sql) {
-    border-color: #336791;
+    :global(.code-block-sql) {
+        border-color: #336791;
 
-    :global(.code-block-header) {
-        background: #f8f9fa;
-        color: #336791;
-        border-left: 4px solid #336791;
-
-        :global(.code-language) {
+        :global(.code-block-header) {
+            background: #f8f9fa;
             color: #336791;
-            font-weight: 700;
-        }
+            border-left: 4px solid #336791;
 
-        :global(.copy-button) {
-            border-color: #336791;
-            color: #336791;
+            :global(.code-language) {
+                color: #336791;
+                font-weight: 700;
+            }
 
-            &:hover {
-                background: #336791;
+            :global(.copy-button) {
                 border-color: #336791;
-                color: white;
+                color: #336791;
+
+                &:hover {
+                    background: #336791;
+                    border-color: #336791;
+                    color: white;
+                }
             }
         }
     }
-}
 
-:global(.code-block-cpp) {
-    border-color: #00599c;
+    :global(.code-block-cpp) {
+        border-color: #00599c;
 
-    :global(.code-block-header) {
-        background: #f8f9fa;
-        color: #00599c;
-        border-left: 4px solid #00599c;
-
-        :global(.code-language) {
+        :global(.code-block-header) {
+            background: #f8f9fa;
             color: #00599c;
-            font-weight: 700;
-        }
+            border-left: 4px solid #00599c;
 
-        :global(.copy-button) {
-            border-color: #00599c;
-            color: #00599c;
+            :global(.code-language) {
+                color: #00599c;
+                font-weight: 700;
+            }
 
-            &:hover {
-                background: #00599c;
+            :global(.copy-button) {
                 border-color: #00599c;
-                color: white;
+                color: #00599c;
+
+                &:hover {
+                    background: #00599c;
+                    border-color: #00599c;
+                    color: white;
+                }
             }
         }
     }
-}
 
-:global(.code-block-markdown) {
-    border-color: #083fa1;
+    :global(.code-block-markdown) {
+        border-color: #083fa1;
 
-    :global(.code-block-header) {
-        background: #f8f9fa;
-        color: #083fa1;
-        border-left: 4px solid #083fa1;
-
-        :global(.code-language) {
+        :global(.code-block-header) {
+            background: #f8f9fa;
             color: #083fa1;
-            font-weight: 700;
-        }
+            border-left: 4px solid #083fa1;
 
-        :global(.copy-button) {
-            border-color: #083fa1;
-            color: #083fa1;
+            :global(.code-language) {
+                color: #083fa1;
+                font-weight: 700;
+            }
 
-            &:hover {
-                background: #083fa1;
+            :global(.copy-button) {
                 border-color: #083fa1;
-                color: white;
+                color: #083fa1;
+
+                &:hover {
+                    background: #083fa1;
+                    border-color: #083fa1;
+                    color: white;
+                }
             }
         }
     }

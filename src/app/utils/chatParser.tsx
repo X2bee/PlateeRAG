@@ -243,7 +243,7 @@ const parseSimpleMarkdown = (text: string, startKey: number): React.ReactNode[] 
     const lines = text.split('\n');
 
     lines.forEach((line, lineIndex) => {
-        let processed = line;
+        const processed = line;
         const key = `${startKey}-line-${lineIndex}`;
 
         // 수평선 처리 (---, ***, ___)
