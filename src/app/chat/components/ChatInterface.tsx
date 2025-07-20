@@ -14,6 +14,7 @@ import {
 } from 'react-icons/fi';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
 import { getWorkflowIOLogs, executeWorkflowById } from '@/app/api/workflowAPI';
+import { MessageRenderer } from '@/app/utils/chatParser';
 import toast from 'react-hot-toast';
 import CollectionModal from '@/app/chat/components/CollectionModal';
 
@@ -159,6 +160,20 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
             hour: '2-digit',
             minute: '2-digit',
         });
+    };
+
+    /**
+     * 메시지 콘텐츠를 렌더링하는 헬퍼 함수
+     */
+    const renderMessageContent = (content: string, isUserMessage: boolean = false) => {
+        if (!content) return null;
+
+        return (
+            <MessageRenderer
+                content={content}
+                isUserMessage={isUserMessage}
+            />
+        );
     };
 
     const executeWorkflow = async () => {
@@ -335,7 +350,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
                                         {/* User Message */}
                                         <div className={styles.userMessage}>
                                             <div className={styles.messageContent}>
-                                                {log.input_data}
+                                                {renderMessageContent(log.input_data, true)}
                                             </div>
                                             <div className={styles.messageTime}>
                                                 {formatDate(log.updated_at)}
@@ -352,7 +367,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
                                                         <span></span>
                                                     </div>
                                                 ) : (
-                                                    log.output_data
+                                                    renderMessageContent(log.output_data)
                                                 )}
                                             </div>
                                         </div>
@@ -360,6 +375,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
                                 ))
                             )}
                         </div>
+
 
                         {/* Input Area */}
                         <div className={styles.inputArea}>
