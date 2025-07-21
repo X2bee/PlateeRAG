@@ -258,6 +258,92 @@ export const getWorkflowPerformance = async (workflowName, workflowId) => {
 };
 
 /**
+ * 워크플로우 내 각 노드별 로그 개수를 조회합니다.
+ * @param {string} workflowName - 워크플로우 이름
+ * @param {string} workflowId - 워크플로우 ID
+ * @returns {Promise<Object>} 노드별 로그 개수 데이터
+ */
+export const getWorkflowNodeCounts = async (workflowName, workflowId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/workflow/performance/counts/${workflowName}/${workflowId}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        devLog.error('Failed to get node log counts:', error);
+        throw error;
+    }
+};
+
+/**
+ * 파이 차트 데이터를 가져옵니다.
+ * @param {string} workflowName - 워크플로우 이름
+ * @param {string} workflowId - 워크플로우 ID
+ * @param {number} limit - 분석할 최근 로그 개수
+ * @returns {Promise<Object>} 파이 차트 데이터
+ */
+export const getPieChartData = async (workflowName, workflowId, limit) => {
+    try {
+        const params = new URLSearchParams({ limit });
+        const response = await fetch(`${API_BASE_URL}/workflow/performance/charts/pie/${workflowName}/${workflowId}?${params}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        devLog.error('Failed to get pie chart data:', error);
+        throw error;
+    }
+};
+
+/**
+ * 바 차트 데이터를 가져옵니다.
+ * @param {string} workflowName - 워크플로우 이름
+ * @param {string} workflowId - 워크플로우 ID
+ * @param {number} limit - 분석할 최근 로그 개수
+ * @returns {Promise<Object>} 바 차트 데이터
+ */
+export const getBarChartData = async (workflowName, workflowId, limit) => {
+    try {
+        const params = new URLSearchParams({ limit });
+        const response = await fetch(`${API_BASE_URL}/workflow/performance/charts/bar/${workflowName}/${workflowId}?${params}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        devLog.error('Failed to get bar chart data:', error);
+        throw error;
+    }
+};
+
+/**
+ * 라인 차트 데이터를 가져옵니다.
+ * @param {string} workflowName - 워크플로우 이름
+ * @param {string} workflowId - 워크플로우 ID
+ * @param {number} limit - 분석할 최근 로그 개수
+ * @returns {Promise<Object>} 라인 차트 데이터
+ */
+export const getLineChartData = async (workflowName, workflowId, limit) => {
+    try {
+        const params = new URLSearchParams({ limit });
+        const response = await fetch(`${API_BASE_URL}/workflow/performance/charts/line/${workflowName}/${workflowId}?${params}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        devLog.error('Failed to get line chart data:', error);
+        throw error;
+    }
+};
+
+/**
  * 특정 워크플로우의 실행 기록 데이터를 가져옵니다.
  * @param {string} workflowName - 워크플로우 이름 (.json 확장자 제외)
  * @param {string} workflowId - 워크플로우 ID
