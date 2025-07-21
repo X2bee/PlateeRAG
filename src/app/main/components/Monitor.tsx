@@ -1,10 +1,12 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { FiTrash2 } from 'react-icons/fi';
+import { FiBarChart2 } from 'react-icons/fi';
 import { getWorkflowPerformance, deleteWorkflowPerformance } from '@/app/api/workflowAPI';
 import { devLog } from '@/app/utils/logger';
 import toast from 'react-hot-toast';
 import styles from '@/app/main/assets/Monitor.module.scss';
+import ChartDashboard from './charts/ChartDashboard';
 
 interface Workflow {
     filename: string;
@@ -55,6 +57,7 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
     const [deletingPerformance, setDeletingPerformance] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [noPerformanceData, setNoPerformanceData] = useState(false); // 실행 기록이 없는 경우를 위한 상태
+    const [isChartDashboardOpen, setIsChartDashboardOpen] = useState(false);
 
     useEffect(() => {
         loadPerformanceData(workflow);
@@ -283,6 +286,14 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                                 {performanceData.workflow_name} 성능 모니터링
                             </h3>
                             <div className={styles.headerActions}>
+                                <button
+                                    onClick={() => setIsChartDashboardOpen(true)}
+                                    className={`${styles.refreshButton} ${styles.chartButton}`}
+                                    disabled={performanceLoading}
+                                >
+                                    <FiBarChart2 style={{marginRight: '8px'}} />
+                                    차트 보기
+                                </button>
                                 <button
                                     onClick={() =>
                                         loadPerformanceData(selectedWorkflow)
@@ -520,6 +531,11 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                     </div>
                 )}
             </div>
+            <ChartDashboard
+                isOpen={isChartDashboardOpen}
+                onClose={() => setIsChartDashboardOpen(false)}
+                workflow={selectedWorkflow}
+            />
         </>
     );
 };
