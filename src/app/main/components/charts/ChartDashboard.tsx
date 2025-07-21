@@ -68,6 +68,7 @@ const Chart = dynamic(() => import('./Chart'), {
 interface Workflow {
     filename: string;
     workflow_id: string;
+    node_count: number;
 }
 
 interface ChartDashboardProps {
@@ -128,11 +129,12 @@ const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workfl
             const fetchChartData = async () => {
                 setIsLoading(true);
                 setError(null);
+                const apiLimit = logLimit * (workflow.node_count || 1);
                 try {
                     const [pieResponse, barResponse, lineResponse] = await Promise.all([
-                        getPieChartData(workflowName!, workflow.workflow_id, logLimit) as Promise<PieChartResponse>,
-                        getBarChartData(workflowName!, workflow.workflow_id, logLimit) as Promise<BarChartResponse>,
-                        getLineChartData(workflowName!, workflow.workflow_id, logLimit) as Promise<LineChartResponse>
+                        getPieChartData(workflowName!, workflow.workflow_id, apiLimit) as Promise<PieChartResponse>,
+                        getBarChartData(workflowName!, workflow.workflow_id, apiLimit) as Promise<BarChartResponse>,
+                        getLineChartData(workflowName!, workflow.workflow_id, apiLimit) as Promise<LineChartResponse>
                     ]);
                     setChartData({
                         pie: pieResponse.data,
