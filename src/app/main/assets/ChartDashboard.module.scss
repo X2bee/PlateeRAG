@@ -92,6 +92,51 @@
     padding: 1.5rem;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.chartPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: #adb5bd;
+  text-align: center;
+  padding: 1rem;
+
+  svg {
+    margin-bottom: 1rem;
+    color: #ced4da;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    color: #495057;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+  
+  .placeholderSubtext {
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    color: #ced4da;
+  }
+}
+
+.chartLoader {
+    color: #6c757d;
+    font-size: 1rem;
 }
 
 .loader, .error {

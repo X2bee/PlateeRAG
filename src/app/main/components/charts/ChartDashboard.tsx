@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { FiX, FiLoader } from 'react-icons/fi';
 import { 
     getWorkflowNodeCounts, 
@@ -9,24 +10,33 @@ import {
     getBarChartData, 
     getLineChartData 
 } from '@/app/api/workflowAPI';
-import Chart from './Chart';
 import styles from '@/app/main/assets/ChartDashboard.module.scss';
 import { devLog } from '@/app/utils/logger';
+import ChartPlaceholder from './ChartPlaceholder';
+
+interface NodeCount {
+  node_name: string;
+  count: number;
+}
+interface NodeCountsData {
+  workflow_name: string;
+  workflow_id: string;
+  node_counts: NodeCount[];
+  message?: string;
+}
+interface NodeCountsResponse {
+  success: boolean;
+  data: NodeCountsData;
+}
 
 interface ChartDataSet {
     label: string;
-    data: any[]; // number[] 또는 {x: string, y: number}[]
+    data: any[];
 }
-
 interface ChartData {
     title: string;
     labels?: string[];
     datasets: ChartDataSet[];
-}
-
-interface NodeCountsResponse {
-    success: boolean;
-    data: Record<string, number>;
 }
 
 interface PieChartResponse {
@@ -50,6 +60,11 @@ interface LineChartResponse {
     };
 }
 
+const Chart = dynamic(() => import('./Chart'), {
+    ssr: false,
+    loading: () => <div className={styles.chartLoader}>Loading Chart...</div>
+});
+
 interface Workflow {
     filename: string;
     workflow_id: string;
@@ -61,9 +76,14 @@ interface ChartDashboardProps {
     workflow: Workflow | null;
 }
 
+const isDataAvailable = (data: any): boolean => {
+  return !!(data?.datasets && data.datasets.some((ds: any) => ds.data && ds.data.length > 0));
+};
+
+
 const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workflow }) => {
-    const [logLimit, setLogLimit] = useState(10);
-    const [maxLogLimit, setMaxLogLimit] = useState(100);
+    const [logLimit, setLogLimit] = useState(0);
+    const [maxLogLimit, setMaxLogLimit] = useState(0);
     const [chartData, setChartData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -76,16 +96,21 @@ const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workfl
             const fetchMaxCount = async () => {
                 try {
                     const countsResponse = await getWorkflowNodeCounts(workflowName!, workflow.workflow_id) as NodeCountsResponse;
-                    
-                    // Find the maximum count among all nodes to set the slider limit
-                    const logCounts: number[] = Object.values(countsResponse.data || {}).map(Number);
-                    const maxCount = logCounts.length > 0 ? Math.max(...logCounts) : 100;
+
+                    let maxCount = 0;
+                    const nodeCounts = countsResponse.data?.node_counts;
+
+                    if (nodeCounts && nodeCounts.length > 0) {
+                        const counts = nodeCounts.map(item => item.count);
+                        maxCount = Math.max(...counts);
+                    }
                     
                     setMaxLogLimit(maxCount);
+                    setLogLimit(prevLimit => Math.min(prevLimit, maxCount > 0 ? maxCount : 10));
                     devLog.log(`Max log count set to: ${maxCount}`);
                 } catch (err) {
                     devLog.error("Failed to fetch node counts", err);
-                    setMaxLogLimit(100); // fallback
+                    setMaxLogLimit(0); // fallback
                 }
             };
             fetchMaxCount();
@@ -125,13 +150,13 @@ const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workfl
 
     const chartColors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'];
     const prepareChartJsData = (data: any, type: 'pie' | 'bar' | 'line') => {
-        if (!data) return { labels: [], datasets: [] };
+        if (!data?.datasets) return { labels: [], datasets: [] };
         
         const datasets = data.datasets.map((ds: any, index: number) => ({
             ...ds,
-            backgroundColor: type === 'pie' ? chartColors : chartColors[index % chartColors.length],
+            backgroundColor: type === 'pie' ? chartColors : (chartColors[index % chartColors.length] + '80'),
             borderColor: type === 'pie' ? '#fff' : chartColors[index % chartColors.length],
-            borderWidth: type === 'pie' ? 2 : 1,
+            borderWidth: type === 'pie' ? 2 : 1.5,
             fill: type === 'line' ? false : undefined,
             tension: type === 'line' ? 0.1 : undefined,
         }));
@@ -152,7 +177,7 @@ const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workfl
                     <input
                         type="range"
                         id="logLimit"
-                        min="1"
+                        min="0"
                         max={maxLogLimit}
                         value={logLimit}
                         onChange={(e) => setLogLimit(Number(e.target.value))}
@@ -165,22 +190,43 @@ const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workfl
                         <div className={styles.loader}><FiLoader /><span>Loading Charts...</span></div>
                     ) : error ? (
                         <div className={styles.error}>{error}</div>
-                    ) : chartData && (
+                    ) : (
                         <div className={styles.chartGrid}>
+                            {/* 각 차트마다 isDataAvailable 함수로 확인 후 조건부 렌더링 */}
                             <div className={styles.chartCard}>
-                                {chartData.pie && <Chart type="pie" data={prepareChartJsData(chartData.pie, 'pie')} title={chartData.pie.title} />}
-                            </div>
-                            <div className={styles.chartCard}>
-                                {chartData.bar?.processingTime && <Chart type="bar" data={prepareChartJsData(chartData.bar.processingTime, 'bar')} title={chartData.bar.processingTime.title} />}
-                            </div>
-                             <div className={styles.chartCard}>
-                                {chartData.bar?.cpuUsage && <Chart type="bar" data={prepareChartJsData(chartData.bar.cpuUsage, 'bar')} title={chartData.bar.cpuUsage.title} />}
-                            </div>
-                             <div className={styles.chartCard}>
-                                {chartData.line?.cpuOverTime && <Chart type="line" data={prepareChartJsData(chartData.line.cpuOverTime, 'line')} title={chartData.line.cpuOverTime.title} />}
+                                {isDataAvailable(chartData?.pie) ? (
+                                    <Chart type="pie" data={prepareChartJsData(chartData.pie, 'pie')} title={chartData.pie.title} />
+                                ) : (
+                                    <ChartPlaceholder title={chartData?.pie?.title || 'Node Average Processing Time'} />
+                                )}
                             </div>
                             <div className={styles.chartCard}>
-                                {chartData.line?.processingTimeOverTime && <Chart type="line" data={prepareChartJsData(chartData.line.processingTimeOverTime, 'line')} title={chartData.line.processingTimeOverTime.title} />}
+                                {isDataAvailable(chartData?.bar?.processingTime) ? (
+                                    <Chart type="bar" data={prepareChartJsData(chartData.bar.processingTime, 'bar')} title={chartData.bar.processingTime.title} />
+                                ) : (
+                                    <ChartPlaceholder title={chartData?.bar?.processingTime?.title || 'Average Processing Time'} />
+                                )}
+                            </div>
+                            <div className={styles.chartCard}>
+                                {isDataAvailable(chartData?.bar?.cpuUsage) ? (
+                                    <Chart type="bar" data={prepareChartJsData(chartData.bar.cpuUsage, 'bar')} title={chartData.bar.cpuUsage.title} />
+                                ) : (
+                                    <ChartPlaceholder title={chartData?.bar?.cpuUsage?.title || 'Average CPU Usage'} />
+                                )}
+                            </div>
+                            <div className={styles.chartCard}>
+                                {isDataAvailable(chartData?.line?.cpuOverTime) ? (
+                                    <Chart type="line" data={prepareChartJsData(chartData.line.cpuOverTime, 'line')} title={chartData.line.cpuOverTime.title} />
+                                ) : (
+                                    <ChartPlaceholder title={chartData?.line?.cpuOverTime?.title || 'CPU Usage Over Time'} />
+                                )}
+                            </div>
+                            <div className={styles.chartCard}>
+                                {isDataAvailable(chartData?.line?.processingTimeOverTime) ? (
+                                    <Chart type="line" data={prepareChartJsData(chartData.line.processingTimeOverTime, 'line')} title={chartData.line.processingTimeOverTime.title} />
+                                ) : (
+                                    <ChartPlaceholder title={chartData?.line?.processingTimeOverTime?.title || 'Processing Time Over Time'} />
+                                )}
                             </div>
                         </div>
                     )}
