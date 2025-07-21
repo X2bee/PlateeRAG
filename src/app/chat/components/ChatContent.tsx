@@ -5,8 +5,6 @@ import { LuWorkflow } from "react-icons/lu";
 import { IoChatbubblesOutline } from "react-icons/io5";
 import WorkflowSelection from './WorkflowSelection';
 import ChatInterface from './ChatInterface';
-import NewChatInterface from './NewChatInterface';
-import DefaultChatInterface from './DefaultChatInterface';
 
 interface ChatContentProps {
     onChatStarted?: () => void; // 채팅 시작 후 호출될 콜백
@@ -49,57 +47,46 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted }) => {
 
     const handleWorkflowSelect = (workflow: any) => {
         setSelectedWorkflow(workflow);
-        // 새로운 채팅으로 시작 (항상 NewChatInterface 사용)
         setCurrentView('newChat');
     };
 
     const handleDefaultChatStart = () => {
+        setSelectedWorkflow({
+            id: 'default_mode',
+            name: 'default_mode',
+            filename: 'default_chat',
+            author: 'System',
+            nodeCount: 1,
+            status: 'active' as const,
+        });
         setCurrentView('defaultChat');
     };
 
-    // 일반 채팅 화면 (DefaultChatInterface)
-    if (currentView === 'defaultChat') {
-        return (
-            <div className={styles.chatContainer}>
-                <div className={styles.workflowSection}>
-                    <DefaultChatInterface 
-                        onBack={() => setCurrentView('welcome')}
-                        onChatStarted={onChatStarted}
-                    />
-                </div>
-            </div>
-        );
-    }
+    const getChatMode = () => {
+        if (currentView === 'existingChat' && selectedWorkflow) return 'existing';
+        if (currentView === 'newChat'&& selectedWorkflow) return 'new-workflow';
+        if (currentView === 'defaultChat') return 'new-default';
+        return null;
+    };
 
-    // 새로운 채팅 화면 (NewChatInterface)
-    if (currentView === 'newChat' && selectedWorkflow) {
-        return (
-            <div className={styles.chatContainer}>
-                <div className={styles.workflowSection}>
-                    <NewChatInterface 
-                        workflow={selectedWorkflow}
-                        onBack={() => setCurrentView('workflow')}
-                        onChatStarted={onChatStarted}
-                    />
-                </div>
-            </div>
-        );
-    }
+    const chatMode = getChatMode();
 
-    // 기존 채팅 화면 (ChatInterface)
-    if (currentView === 'existingChat' && selectedWorkflow) {
+    if (chatMode) {
         return (
-            <div className={styles.chatContainer}>
-                <div className={styles.workflowSection}>
-                    <ChatInterface 
-                        workflow={selectedWorkflow}
-                        existingChatData={existingChatData}
-                        onBack={() => setCurrentView('workflow')}
-                    />
-                </div>
+            <div className="h-full">
+            {chatMode && (
+                <ChatInterface
+                    key={chatMode === 'existing' ? existingChatData?.interactionId : chatMode}
+                    mode={chatMode}
+                    workflow={selectedWorkflow}
+                    existingChatData={chatMode === 'existing' ? existingChatData : undefined}
+                    onChatStarted={chatMode === 'existing' ? undefined : onChatStarted}
+                    onBack={currentView === 'defaultChat' ? () => setCurrentView('welcome') : () => setCurrentView('workflow')}
+                />
+            )}
             </div>
         );
-    }
+    };
 
     // 워크플로우 선택 화면
     if (currentView === 'workflow') {

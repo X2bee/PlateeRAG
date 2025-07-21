@@ -83,6 +83,7 @@ const CurrentChatInterface: React.FC<CurrentChatInterfaceProps> = ({ onBack }) =
         <div className={chatContentStyles.chatContainer}>
             <div className={chatContentStyles.workflowSection}>
                 <ChatInterface
+                    mode="existing"
                     workflow={workflow}
                     existingChatData={existingChatData}
                     hideBackButton={true}
