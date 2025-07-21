@@ -88,7 +88,7 @@ const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workfl
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const workflowName = useMemo(() => workflow?.filename, [workflow]);
+    const workflowName = useMemo(() => workflow?.filename.replace('.json', ''), [workflow]);
 
     useEffect(() => {
         if (isOpen && workflow) {
@@ -101,8 +101,13 @@ const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workfl
                     const nodeCounts = countsResponse.data?.node_counts;
 
                     if (nodeCounts && nodeCounts.length > 0) {
-                        const counts = nodeCounts.map(item => item.count);
-                        maxCount = Math.max(...counts);
+                        const inputStringNode = nodeCounts.find(
+                            (item) => item.node_name === "Input String"
+                        );
+
+                        if (inputStringNode) {
+                            maxCount = inputStringNode.count;
+                        }
                     }
                     
                     setMaxLogLimit(maxCount);
