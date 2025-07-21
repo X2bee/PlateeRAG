@@ -5,10 +5,18 @@ import {
     FiArrowLeft,
     FiMessageSquare,
     FiClock,
+    FiPlus,
+    FiFolder,
+    FiImage,
+    FiMic,
+    FiBookmark,
+    FiX,
 } from 'react-icons/fi';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
 import { getWorkflowIOLogs, executeWorkflowById } from '@/app/api/workflowAPI';
+import { MessageRenderer } from '@/app/utils/chatParser';
 import toast from 'react-hot-toast';
+import CollectionModal from '@/app/chat/components/CollectionModal';
 
 interface Workflow {
     id: string;
@@ -50,8 +58,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
     const [error, setError] = useState<string | null>(null);
     const [inputMessage, setInputMessage] = useState<string>('');
     const [pendingLogId, setPendingLogId] = useState<string | null>(null);
+    const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
+    const [showCollectionModal, setShowCollectionModal] = useState(false);
+    const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
 
     const messagesRef = useRef<HTMLDivElement>(null);
+    const attachmentButtonRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (workflow?.id && existingChatData?.interactionId) {
@@ -63,6 +75,58 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
         scrollToBottom();
     }, [ioLogs]);
 
+    // localStorage에서 선택된 컬렉션 정보 가져오기
+    useEffect(() => {
+        const checkSelectedCollection = () => {
+            try {
+                const storedCollection = localStorage.getItem('selectedCollection');
+                if (storedCollection) {
+                    const collectionData = JSON.parse(storedCollection);
+                    setSelectedCollection(collectionData.name);
+                } else {
+                    setSelectedCollection(null);
+                }
+            } catch (err) {
+                console.error('Failed to load selected collection:', err);
+                setSelectedCollection(null);
+            }
+        };
+
+        checkSelectedCollection();
+
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'selectedCollection') {
+                checkSelectedCollection();
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!showCollectionModal) {
+            const checkSelectedCollection = () => {
+                try {
+                    const storedCollection = localStorage.getItem('selectedCollection');
+                    if (storedCollection) {
+                        const collectionData = JSON.parse(storedCollection);
+                        setSelectedCollection(collectionData.name);
+                    } else {
+                        setSelectedCollection(null);
+                    }
+                } catch (err) {
+                    console.error('Failed to load selected collection:', err);
+                    setSelectedCollection(null);
+                }
+            };
+            checkSelectedCollection();
+        }
+    }, [showCollectionModal]);
+
     const scrollToBottom = () => {
         if (messagesRef.current) {
             messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
@@ -73,11 +137,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
         try {
             setLoading(true);
             setError(null);
-            
+
             const interactionId = existingChatData?.interactionId || 'default';
             const workflowName = existingChatData?.workflowName || workflow.name;
             const workflowId = existingChatData?.workflowId || workflow.id;
-            
+
             const logs = await getWorkflowIOLogs(workflowName, workflowId, interactionId);
             setIOLogs((logs as any).in_out_logs || []);
             setPendingLogId(null);
@@ -96,6 +160,20 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
             hour: '2-digit',
             minute: '2-digit',
         });
+    };
+
+    /**
+     * 메시지 콘텐츠를 렌더링하는 헬퍼 함수
+     */
+    const renderMessageContent = (content: string, isUserMessage: boolean = false) => {
+        if (!content) return null;
+
+        return (
+            <MessageRenderer
+                content={content}
+                isUserMessage={isUserMessage}
+            />
+        );
     };
 
     const executeWorkflow = async () => {
@@ -125,34 +203,36 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
         setInputMessage('');
 
         try {
-            // existingChatData가 있으면 해당 interaction_id 사용
             const interactionId = existingChatData?.interactionId || 'default';
             const workflowName = existingChatData?.workflowName || workflow.name;
             const workflowId = existingChatData?.workflowId || workflow.id;
-            
+
             const result: any = await executeWorkflowById(
                 workflowName,
                 workflowId,
                 currentMessage,
                 interactionId,
+                selectedCollection as any,
             );
 
-            // 결과로 임시 메시지 업데이트
+            // 결과로 임시 메시지 업데이트 (chatAPI 응답 형식)
             setIOLogs((prev) =>
                 prev.map((log) =>
                     String(log.log_id) === tempId
                         ? {
-                              ...log,
-                              output_data: result.outputs
-                                  ? JSON.stringify(result.outputs)
-                                  : result.message || '처리 완료',
-                              updated_at: new Date().toISOString(),
-                          }
+                                ...log,
+                                output_data: result.outputs
+                                    ? JSON.stringify(result.outputs)
+                                    : result.message || '처리 완료',
+                                updated_at: new Date().toISOString(),
+                            }
                         : log,
                 ),
             );
+
+            toast.success('메시지가 성공적으로 전송되었습니다!');
             setPendingLogId(null);
-            
+
             // 기존 채팅 데이터가 있는 경우 localStorage 업데이트
             if (existingChatData) {
                 const currentChatData = {
@@ -190,6 +270,42 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
         }
     };
 
+    const handleAttachmentClick = () => {
+        setShowAttachmentMenu(!showAttachmentMenu);
+    };
+
+    const handleAttachmentOption = (option: string) => {
+        console.log('Selected option:', option);
+        setShowAttachmentMenu(false);
+
+        if (option === 'collection') {
+            setShowCollectionModal(true);
+        }
+        // TODO: 다른 옵션들에 대한 구현
+    };
+
+    const handleRemoveCollection = () => {
+        localStorage.removeItem('selectedCollection');
+        setSelectedCollection(null);
+    };
+
+    // 첨부 메뉴 외부 클릭 시 닫기
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (attachmentButtonRef.current && !attachmentButtonRef.current.contains(event.target as Node)) {
+                setShowAttachmentMenu(false);
+            }
+        };
+
+        if (showAttachmentMenu) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showAttachmentMenu]);
+
     return (
         <div className={styles.container}>
             {/* Header */}
@@ -201,7 +317,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
                         </button>
                     )}
                     <div>
-                        <h2>{workflow.name}</h2>
+                        <h2>{workflow.name === 'default_mode' ? '일반 채팅' : workflow.name}</h2>
                         <p>{hideBackButton ? '현재 채팅을 계속하세요' : '기존 대화를 계속하세요'}</p>
                     </div>
                 </div>
@@ -234,7 +350,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
                                         {/* User Message */}
                                         <div className={styles.userMessage}>
                                             <div className={styles.messageContent}>
-                                                {log.input_data}
+                                                {renderMessageContent(log.input_data, true)}
                                             </div>
                                             <div className={styles.messageTime}>
                                                 {formatDate(log.updated_at)}
@@ -251,7 +367,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
                                                         <span></span>
                                                     </div>
                                                 ) : (
-                                                    log.output_data
+                                                    renderMessageContent(log.output_data)
                                                 )}
                                             </div>
                                         </div>
@@ -259,6 +375,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
                                 ))
                             )}
                         </div>
+
 
                         {/* Input Area */}
                         <div className={styles.inputArea}>
@@ -272,17 +389,73 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
                                     disabled={executing}
                                     className={styles.messageInput}
                                 />
-                                <button
-                                    onClick={executeWorkflow}
-                                    disabled={executing || !inputMessage.trim()}
-                                    className={`${styles.sendButton} ${executing || !inputMessage.trim() ? styles.disabled : ''}`}
-                                >
-                                    {executing ? (
-                                        <div className={styles.miniSpinner}></div>
-                                    ) : (
-                                        <FiSend />
+                                <div className={styles.buttonGroup}>
+                                    {selectedCollection && (
+                                        <div className={styles.selectedCollection}>
+                                            <FiBookmark className={styles.collectionIcon} />
+                                            <span className={styles.collectionName}>{selectedCollection}</span>
+                                            <button
+                                                className={styles.removeCollectionButton}
+                                                onClick={handleRemoveCollection}
+                                                title="컬렉션 해제"
+                                            >
+                                                <FiX />
+                                            </button>
+                                        </div>
                                     )}
-                                </button>
+                                    <div className={styles.attachmentWrapper} ref={attachmentButtonRef}>
+                                        <button
+                                            onClick={handleAttachmentClick}
+                                            className={`${styles.attachmentButton} ${showAttachmentMenu ? styles.active : ''}`}
+                                            disabled={executing}
+                                        >
+                                            <FiPlus />
+                                        </button>
+                                        {showAttachmentMenu && (
+                                            <div className={styles.attachmentMenu}>
+                                                <button
+                                                    className={styles.attachmentOption}
+                                                    onClick={() => handleAttachmentOption('collection')}
+                                                >
+                                                    <FiBookmark />
+                                                    <span>컬렉션</span>
+                                                </button>
+                                                <button
+                                                    className={`${styles.attachmentOption} ${styles.disabled}`}
+                                                    disabled
+                                                >
+                                                    <FiFolder />
+                                                    <span>파일</span>
+                                                </button>
+                                                <button
+                                                    className={`${styles.attachmentOption} ${styles.disabled}`}
+                                                    disabled
+                                                >
+                                                    <FiImage />
+                                                    <span>사진</span>
+                                                </button>
+                                                <button
+                                                    className={`${styles.attachmentOption} ${styles.disabled}`}
+                                                    disabled
+                                                >
+                                                    <FiMic />
+                                                    <span>음성</span>
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={executeWorkflow}
+                                        disabled={executing || !inputMessage.trim()}
+                                        className={`${styles.sendButton} ${executing || !inputMessage.trim() ? styles.disabled : ''}`}
+                                    >
+                                        {executing ? (
+                                            <div className={styles.miniSpinner}></div>
+                                        ) : (
+                                            <FiSend />
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                             {executing && (
                                 <p className={styles.executingNote}>
@@ -296,6 +469,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ workflow, onBack, hideBac
                     </>
                 )}
             </div>
+
+            {/* Collection Modal */}
+            <CollectionModal
+                isOpen={showCollectionModal}
+                onClose={() => setShowCollectionModal(false)}
+            />
         </div>
     );
 };

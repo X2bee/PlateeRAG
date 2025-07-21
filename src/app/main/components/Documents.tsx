@@ -1,21 +1,22 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import styles from '../assets/Documents.module.scss';
-import { 
-    listCollections, 
-    createCollection, 
-    uploadDocument, 
+
+import {
+    isSupportedFileType,
+    isValidFileSize,
+    isValidCollectionName,
+    formatFileSize,
+    getRelativeTime,
+    listCollections,
+    createCollection,
+    uploadDocument,
     searchDocuments,
     deleteCollection,
     listDocumentsInCollection,
     getDocumentDetails,
     deleteDocumentFromCollection,
-    isSupportedFileType,
-    isValidFileSize,
-    isValidCollectionName,
-    formatFileSize,
-    getRelativeTime
-} from '@/app/api/ragAPI.js';
+} from '@/app/api/retrievalAPI';
 
 interface Collection {
     name: string;
@@ -108,18 +109,18 @@ const Documents: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
     const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
-    
+
     // 모달 상태
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showDeleteDocModal, setShowDeleteDocModal] = useState(false);
     const [collectionToDelete, setCollectionToDelete] = useState<Collection | null>(null);
     const [documentToDelete, setDocumentToDelete] = useState<DocumentInCollection | null>(null);
-    
+
     // 폼 상태
     const [newCollectionName, setNewCollectionName] = useState('');
     const [newCollectionDescription, setNewCollectionDescription] = useState('');
-    
+
     // 로딩 및 에러 상태
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -223,7 +224,6 @@ const Documents: React.FC = () => {
             setError(null);
             await createCollection(
                 newCollectionName,
-                1536,
                 "Cosine",
                 newCollectionDescription || undefined
             );
@@ -254,13 +254,13 @@ const Documents: React.FC = () => {
             await deleteCollection(collectionToDelete.name);
             setShowDeleteModal(false);
             setCollectionToDelete(null);
-            
+
             if (selectedCollection?.name === collectionToDelete.name) {
                 setSelectedCollection(null);
                 setDocumentsInCollection([]);
                 setViewMode('collections');
             }
-            
+
             await loadCollections();
         } catch (err) {
             setError('컬렉션 삭제에 실패했습니다.');
@@ -285,13 +285,13 @@ const Documents: React.FC = () => {
             await deleteDocumentFromCollection(selectedCollection.name, documentToDelete.document_id);
             setShowDeleteDocModal(false);
             setDocumentToDelete(null);
-            
+
             if (selectedDocument?.document_id === documentToDelete.document_id) {
                 setSelectedDocument(null);
                 setDocumentDetails(null);
                 setViewMode('documents');
             }
-            
+
             await loadDocumentsInCollection(selectedCollection.name);
         } catch (err) {
             setError('문서 삭제에 실패했습니다.');
@@ -315,7 +315,7 @@ const Documents: React.FC = () => {
     // 문서 선택
     const handleSelectDocument = async (document: DocumentInCollection) => {
         if (!selectedCollection) return;
-        
+
         setSelectedDocument(document);
         setSearchQuery('');
         setSearchResults([]);
@@ -370,7 +370,7 @@ const Documents: React.FC = () => {
         for (let i = 0; i < validFiles.length; i++) {
             const file = validFiles[i];
             try {
-                setUploadProgress(prev => prev.map((item, index) => 
+                setUploadProgress(prev => prev.map((item, index) =>
                     index === i ? { ...item, progress: 50 } : item
                 ));
 
@@ -383,14 +383,14 @@ const Documents: React.FC = () => {
                     { upload_type: isFolder ? 'folder' : 'single' }
                 );
 
-                setUploadProgress(prev => prev.map((item, index) => 
+                setUploadProgress(prev => prev.map((item, index) =>
                     index === i ? { ...item, status: 'success', progress: 100 } : item
                 ));
             } catch (err) {
-                setUploadProgress(prev => prev.map((item, index) => 
-                    index === i ? { 
-                        ...item, 
-                        status: 'error', 
+                setUploadProgress(prev => prev.map((item, index) =>
+                    index === i ? {
+                        ...item,
+                        status: 'error',
                         progress: 0,
                         error: '업로드 실패'
                     } : item
@@ -475,17 +475,17 @@ const Documents: React.FC = () => {
                     ) : (
                         <div className={styles.collectionGrid}>
                             {collections.map((collection) => (
-                                <div 
+                                <div
                                     key={collection.name}
                                     className={styles.collectionCard}
                                 >
-                                    <div 
+                                    <div
                                         className={styles.collectionContent}
                                         onClick={() => handleSelectCollection(collection)}
                                     >
                                         <h4>{collection.name}</h4>
                                     </div>
-                                    <button 
+                                    <button
                                         className={`${styles.deleteButton}`}
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -536,22 +536,22 @@ const Documents: React.FC = () => {
                         ) : (
                             <div className={styles.documentGrid}>
                                 {documentsInCollection.map((doc) => (
-                                    <div 
+                                    <div
                                         key={doc.document_id}
                                         className={styles.documentCard}
                                     >
-                                        <div 
+                                        <div
                                             className={styles.documentContent}
                                             onClick={() => handleSelectDocument(doc)}
                                         >
                                             <h4>{doc.file_name}</h4>
                                             <p className={styles.docInfo}>
-                                                타입: {doc.file_type.toUpperCase()} | 
-                                                청크: {doc.actual_chunks}개 | 
+                                                타입: {doc.file_type.toUpperCase()} |
+                                                청크: {doc.actual_chunks}개 |
                                                 업로드: {getRelativeTime(doc.processed_at)}
                                             </p>
                                         </div>
-                                        <button 
+                                        <button
                                             className={`${styles.deleteButton}`}
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -582,7 +582,7 @@ const Documents: React.FC = () => {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className={styles.searchInput}
                             />
-                            <button 
+                            <button
                                 onClick={handleDocumentSearch}
                                 disabled={isSearching || !searchQuery.trim()}
                                 className={`${styles.button} ${styles.primary}`}
@@ -697,17 +697,17 @@ const Documents: React.FC = () => {
                             이 작업은 되돌릴 수 없으며, 컬렉션에 포함된 모든 문서가 삭제됩니다.
                         </p>
                         <div className={styles.modalActions}>
-                            <button 
+                            <button
                                 onClick={() => {
                                     setShowDeleteModal(false);
                                     setCollectionToDelete(null);
-                                }} 
+                                }}
                                 className={`${styles.button} ${styles.secondary}`}
                             >
                                 취소
                             </button>
-                            <button 
-                                onClick={handleConfirmDeleteCollection} 
+                            <button
+                                onClick={handleConfirmDeleteCollection}
                                 className={`${styles.button} ${styles.danger}`}
                             >
                                 삭제
@@ -727,17 +727,17 @@ const Documents: React.FC = () => {
                             이 작업은 되돌릴 수 없으며, 문서의 모든 청크가 삭제됩니다.
                         </p>
                         <div className={styles.modalActions}>
-                            <button 
+                            <button
                                 onClick={() => {
                                     setShowDeleteDocModal(false);
                                     setDocumentToDelete(null);
-                                }} 
+                                }}
                                 className={`${styles.button} ${styles.secondary}`}
                             >
                                 취소
                             </button>
-                            <button 
-                                onClick={handleConfirmDeleteDocument} 
+                            <button
+                                onClick={handleConfirmDeleteDocument}
                                 className={`${styles.button} ${styles.danger}`}
                             >
                                 삭제

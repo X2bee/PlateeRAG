@@ -169,7 +169,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
                                     <div className={styles.metaItem}>
                                         <FiUser />
                                         <span className={styles.interactionId}>
-                                            {chat.workflow_name}
+                                            {chat.workflow_name === 'default_mode' ? '일반 채팅' : chat.workflow_name }
                                         </span>
                                     </div>
                                 </div>

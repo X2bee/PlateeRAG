@@ -703,7 +703,7 @@ $white: #ffffff;
             }
         }
     }
-} 
+}
 
 // =============================================================================
 // BaseConfigPanel Styles
@@ -848,8 +848,8 @@ $white: #ffffff;
         border-color: $primary-green;
 
         &:hover:not(:disabled) {
-            background: darken($primary-green, 10%);
-            border-color: darken($primary-green, 10%);
+            background: color.adjust($primary-green, $lightness: -10%);
+            border-color: color.adjust($primary-green, $lightness: -10%);
         }
     }
 
@@ -859,8 +859,8 @@ $white: #ffffff;
         border-color: $primary-red;
 
         &:hover:not(:disabled) {
-            background: darken($primary-red, 10%);
-            border-color: darken($primary-red, 10%);
+            background: color.adjust($primary-red, $lightness: -10%);
+            border-color: color.adjust($primary-red, $lightness: -10%);
         }
     }
 }
@@ -910,8 +910,8 @@ $white: #ffffff;
     transition: all 0.2s ease;
 
     &:hover:not(:disabled) {
-        background: darken($primary-blue, 10%);
-        border-color: darken($primary-blue, 10%);
+        background: color.adjust($primary-blue, $lightness: -10%);
+        border-color: color.adjust($primary-blue, $lightness: -10%);
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba($primary-blue, 0.3);
     }
@@ -946,4 +946,4 @@ $white: #ffffff;
     .formActions {
         justify-content: center;
     }
-} 
+}

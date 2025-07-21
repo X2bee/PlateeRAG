@@ -432,6 +432,7 @@ export const deleteWorkflowIOLogs = async (workflowName, workflowId, interaction
  * @param {string} workflowName - 워크플로우 이름 (.json 확장자 제외)
  * @param {string} workflowId - 워크플로우 ID
  * @param {string} inputData - 실행에 사용할 입력 데이터 (선택사항)
+ * @param {string|null} [params.selectedCollection] - Optional selected collection
  * @returns {Promise<Object>} 실행 결과를 포함하는 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
@@ -440,30 +441,30 @@ export const executeWorkflowById = async (
     workflowId,
     inputData = '',
     interaction_id = 'default',
+    selectedCollection = null,
 ) => {
     try {
-        const body = {
+        const requestBody = {
             workflow_name: workflowName,
             workflow_id: workflowId,
             input_data: inputData || '',
             interaction_id: interaction_id || 'default',
         };
-        const response = await fetch(
-            `${API_BASE_URL}/api/workflow/execute/based_id`,
-            {
+        if (selectedCollection) {
+            requestBody.selected_collection = selectedCollection;
+        }
+        const response = await fetch(`${API_BASE_URL}/api/workflow/execute/based_id`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(body),
+                body: JSON.stringify(requestBody),
             },
         );
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(
-                errorData.detail || `HTTP error! status: ${response.status}`,
-            );
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
         }
 
         const result = await response.json();

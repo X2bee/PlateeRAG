@@ -2,19 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiCheck, FiX, FiAlertCircle, FiPlay, FiSettings, FiServer, FiDatabase } from 'react-icons/fi';
 import { SiOpenai, SiHuggingface } from 'react-icons/si';
 import { BsRobot } from 'react-icons/bs';
-import BaseConfigPanel, { ConfigItem, FieldConfig } from './BaseConfigPanel';
-import { 
-    getEmbeddingProviders, 
-    getEmbeddingStatus, 
-    switchEmbeddingProvider, 
+import toast from 'react-hot-toast';
+import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/BaseConfigPanel';
+import {
+    getCurrentEmbeddingDimension
+} from '@/app/api/retrievalAPI';
+import {
+    getEmbeddingProviders,
+    getEmbeddingStatus,
+    switchEmbeddingProvider,
     autoSwitchEmbeddingProvider,
     testEmbeddingQuery,
     reloadEmbeddingClient,
     getEmbeddingConfigStatus,
     getEmbeddingDebugInfo,
-    getCurrentEmbeddingDimension
-} from '@/app/api/ragAPI';
-import styles from '../../assets/Settings.module.scss';
+} from '@/app/api/embeddingAPI';
+import styles from '@/app/main/assets/Settings.module.scss';
 
 interface VectordbConfigProps {
     configData?: ConfigItem[];
@@ -202,17 +205,18 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
         setLoading(true);
         setError(null);
         try {
-            const [status, configStatus, dimensionData] = await Promise.all([
+            const [status, configStatus] = await Promise.all([
                 getEmbeddingStatus(),
                 getEmbeddingConfigStatus(),
-                getCurrentEmbeddingDimension()
             ]);
-            
+            const provider = (status as any).provider_info?.provider || 'openai';
+            const model = (status as any).provider_info?.model || 'text-embedding-3-small';
+            const dimensionData = await getCurrentEmbeddingDimension(provider, model);
+
             setEmbeddingStatus(status as EmbeddingStatus);
             setCurrentProvider((configStatus as any).current_provider || '');
             setDimensionInfo(dimensionData);
-            
-            // 제공자별 상태 정보 구성
+
             const providerStatuses = EMBEDDING_PROVIDERS.map(provider => ({
                 provider: provider.name,
                 available: (configStatus as any)[provider.name]?.available || false,
@@ -220,7 +224,7 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
                 status: (configStatus as any)[provider.name]?.status || 'unknown',
                 error: (configStatus as any)[provider.name]?.error
             }));
-            
+
             setProvidersStatus(providerStatuses);
         } catch (err) {
             setError('임베딩 상태를 불러오는데 실패했습니다.');
@@ -231,6 +235,107 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
     };
 
     const handleProviderSwitch = async (providerName: string) => {
+        // 현재 provider와 동일한 경우 아무 동작하지 않음
+        if (currentProvider === providerName) {
+            return;
+        }
+
+        // 확인 toast를 통해 사용자에게 변경 의사 확인
+        const currentProviderDisplayName = EMBEDDING_PROVIDERS.find(p => p.name === currentProvider)?.displayName || currentProvider;
+        const newProviderDisplayName = EMBEDDING_PROVIDERS.find(p => p.name === providerName)?.displayName || providerName;
+
+        toast((t) => (
+            <div
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                }}
+            >
+                <div
+                    style={{
+                        fontWeight: '600',
+                        color: '#dc2626',
+                        fontSize: '1rem',
+                    }}
+                >
+                    임베딩 제공자 변경
+                </div>
+                <div
+                    style={{
+                        fontSize: '0.9rem',
+                        color: '#374151',
+                        lineHeight: '1.4',
+                    }}
+                >
+                    현재: <strong>{currentProviderDisplayName}</strong> → 변경: <strong>{newProviderDisplayName}</strong>
+                    <br />
+                    변경 시 백엔드에서 재설정 작업이 수행됩니다.
+                </div>
+                <div
+                    style={{
+                        display: 'flex',
+                        gap: '8px',
+                        justifyContent: 'flex-end',
+                        marginTop: '4px',
+                    }}
+                >
+                    <button
+                        onClick={() => toast.dismiss(t.id)}
+                        style={{
+                            padding: '8px 16px',
+                            backgroundColor: '#ffffff',
+                            border: '2px solid #6b7280',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            fontWeight: '500',
+                            color: '#374151',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                        }}
+                    >
+                        취소
+                    </button>
+                    <button
+                        onClick={() => {
+                            toast.dismiss(t.id);
+                            confirmProviderSwitch(providerName);
+                        }}
+                        style={{
+                            padding: '8px 16px',
+                            backgroundColor: '#dc2626',
+                            color: 'white',
+                            border: '2px solid #b91c1c',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            fontWeight: '500',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                        }}
+                    >
+                        변경
+                    </button>
+                </div>
+            </div>
+        ), {
+            duration: Infinity,
+            style: {
+                maxWidth: '420px',
+                padding: '20px',
+                backgroundColor: '#f9fafb',
+                border: '2px solid #374151',
+                borderRadius: '12px',
+                boxShadow:
+                    '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
+                color: '#374151',
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+            },
+        });
+    };
+
+    const confirmProviderSwitch = async (providerName: string) => {
         setSwitching(true);
         setError(null);
         try {
@@ -238,11 +343,14 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
             if (result.success) {
                 setCurrentProvider(providerName);
                 await loadEmbeddingStatus(); // 이 함수가 dimensionInfo도 업데이트함
+                toast.success(`임베딩 제공자가 ${EMBEDDING_PROVIDERS.find(p => p.name === providerName)?.displayName || providerName}로 변경되었습니다.`);
             } else {
                 setError(result.message || '제공자 변경에 실패했습니다.');
+                toast.error(result.message || '제공자 변경에 실패했습니다.');
             }
         } catch (err) {
             setError('제공자 변경 중 오류가 발생했습니다.');
+            toast.error('제공자 변경 중 오류가 발생했습니다.');
             console.error('Failed to switch provider:', err);
         } finally {
             setSwitching(false);
@@ -351,7 +459,7 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
                         <div className={styles.statusCard}>
                             <div className={styles.statusInfo}>
                                 <div className={styles.providerInfo}>
-                                    <span 
+                                    <span
                                         className={styles.providerIcon}
                                         style={{ color: getProviderColor(currentProvider) }}
                                     >
@@ -375,7 +483,7 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
                                     <span>{embeddingStatus.available ? '정상 작동' : '연결 오류'}</span>
                                 </div>
                             </div>
-                            
+
                             <div className={styles.statusActions}>
                                 <button
                                     onClick={handleTestEmbedding}
@@ -406,15 +514,19 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
                     {EMBEDDING_PROVIDERS.map((provider) => {
                         const providerStatus = providersStatus.find(p => p.provider === provider.name);
                         const isActive = currentProvider === provider.name;
-                        
+
                         return (
                             <div
                                 key={provider.name}
                                 className={`${styles.providerCard} ${isActive ? styles.active : ''}`}
                                 onClick={() => !switching && handleProviderSwitch(provider.name)}
+                                style={{
+                                    cursor: switching ? 'not-allowed' : (isActive ? 'default' : 'pointer'),
+                                    opacity: switching ? 0.7 : 1
+                                }}
                             >
                                 <div className={styles.providerHeader}>
-                                    <div 
+                                    <div
                                         className={styles.providerIcon}
                                         style={{ color: provider.color }}
                                     >
@@ -429,7 +541,7 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
                                         {isActive && <span className={styles.activeBadge}>활성</span>}
                                     </div>
                                 </div>
-                                
+
                                 {providerStatus && (
                                     <div className={styles.providerDetails}>
                                         <span className={styles.statusText}>
@@ -469,7 +581,7 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
                 <h3>벡터 데이터베이스 설정</h3>
                 <p>Qdrant 벡터 데이터베이스 연결을 설정합니다.</p>
             </div>
-            
+
             <BaseConfigPanel
                 configData={configData}
                 fieldConfigs={VECTORDATABASE_CONFIG_FIELDS}

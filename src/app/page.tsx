@@ -26,11 +26,11 @@ export default function HomePage() {
                             <h1>PlateerRAG</h1>
                         </div>
                         <div className={styles.navActions}>
-                            <Link href="/main" className={styles.secondaryBtn}>
+                            {/* <Link href="/main" className={styles.secondaryBtn}>
                                 관리센터
-                            </Link>
+                            </Link> */}
                             <Link
-                                href="/canvas"
+                                href="/chat"
                                 className={styles.getStartedBtn}
                             >
                                 Get Started
@@ -49,16 +49,15 @@ export default function HomePage() {
                             <span>🚀 Next-Gen AI Workflow Platform</span>
                         </div>
                         <h1 className={styles.heroTitle}>
-                            Build Intelligent AI Workflows
+                            Build Intelligent <br /><i>AI Workflows</i>
                             <span className={styles.highlight}>
                                 with Visual Simplicity
                             </span>
                         </h1>
                         <p className={styles.heroDescription}>
-                            PlateerRAG는 차세대 AI 워크플로우 플랫폼입니다. 
-                            드래그 앤 드롭으로 복잡한 AI 파이프라인을 구축하고, 
-                            실시간 채팅으로 AI와 상호작용하며, 
-                            강력한 관리도구로 워크플로우를 효율적으로 운영하세요.
+                            PlateerRAG는 차세대 AI 워크플로우 플랫폼입니다.<br />
+                            드래그 앤 드롭으로 만드는 나만의 AI Agent를 경험하세요. <br />
+                            당신의 아이디어를 실현하는 가장 강력한 에디터입니다.
                         </p>
                         <div className={styles.heroStats}>
                             <div className={styles.statItem}>
@@ -75,13 +74,9 @@ export default function HomePage() {
                             </div>
                         </div>
                         <div className={styles.heroActions}>
-                            <Link href="/canvas" className={styles.primaryBtn}>
+                            <Link href="/chat" className={styles.primaryBtn}>
                                 <FiPlay />
-                                워크플로우 만들기
-                            </Link>
-                            <Link href="/chat" className={styles.secondaryBtn}>
-                                <FiMessageCircle />
-                                AI 채팅 체험
+                                Be More Productive with PlateerRAG
                             </Link>
                         </div>
                     </div>

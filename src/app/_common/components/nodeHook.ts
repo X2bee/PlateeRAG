@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
     getNodes as apiGetNodes,
     exportNodes as apiExportNodes,
+    refreshNodes as apiRefreshNodes
 } from '@/app/api/nodeAPI';
 import { toast } from 'react-hot-toast';
 
@@ -86,7 +87,7 @@ export const useNodes = (): UseNodesReturn => {
         setIsLoading(true);
         setError(null);
         try {
-            const data = await apiExportNodes();
+            const data = await apiRefreshNodes();
             setNodes(data as NodeCategory[]);
             toast.success('노드 목록 새로고침 완료!');
         } catch (err: any) {

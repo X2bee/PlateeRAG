@@ -12,7 +12,7 @@ import { API_BASE_URL } from '@/app/config.js';
  */
 export const checkRagHealth = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/rag/health`);
+        const response = await fetch(`${API_BASE_URL}/api/retrieval/health`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -37,7 +37,7 @@ export const checkRagHealth = async () => {
  */
 export const listCollections = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/rag/collections`);
+        const response = await fetch(`${API_BASE_URL}/api/retrieval/collections`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -55,22 +55,20 @@ export const listCollections = async () => {
 /**
  * 새 컬렉션을 생성하는 함수
  * @param {string} collectionName - 컬렉션 이름
- * @param {number} vectorSize - 벡터 차원 수
  * @param {string} distance - 거리 메트릭 ("Cosine", "Euclidean", "Dot")
  * @param {string} description - 컬렉션 설명 (선택사항)
  * @param {Object} metadata - 커스텀 메타데이터 (선택사항)
  * @returns {Promise<Object>} 생성된 컬렉션 정보
  */
-export const createCollection = async (collectionName, vectorSize, distance = "Cosine", description = null, metadata = null) => {
+export const createCollection = async (collectionName, distance = "Cosine", description = null, metadata = null) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/rag/collections`, {
+        const response = await fetch(`${API_BASE_URL}/api/retrieval/collections`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 collection_name: collectionName,
-                vector_size: vectorSize,
                 distance: distance,
                 description: description,
                 metadata: metadata
@@ -97,7 +95,7 @@ export const createCollection = async (collectionName, vectorSize, distance = "C
  */
 export const deleteCollection = async (collectionName) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/rag/collections`, {
+        const response = await fetch(`${API_BASE_URL}/api/retrieval/collections`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -127,7 +125,7 @@ export const deleteCollection = async (collectionName) => {
  */
 export const getCollectionInfo = async (collectionName) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/rag/collections/${collectionName}`);
+        const response = await fetch(`${API_BASE_URL}/api/retrieval/collections/${collectionName}`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -164,12 +162,12 @@ export const uploadDocument = async (file, collectionName, chunkSize = 1000, chu
         formData.append('chunk_size', chunkSize.toString());
         formData.append('chunk_overlap', chunkOverlap.toString());
         formData.append('process_chunks', processChunks.toString());
-        
+
         if (metadata) {
             formData.append('metadata', JSON.stringify(metadata));
         }
 
-        const response = await fetch(`${API_BASE_URL}/rag/documents/upload`, {
+        const response = await fetch(`${API_BASE_URL}/api/retrieval/documents/upload`, {
             method: 'POST',
             body: formData,
         });
@@ -198,7 +196,7 @@ export const uploadDocument = async (file, collectionName, chunkSize = 1000, chu
  */
 export const searchDocuments = async (collectionName, queryText, limit = 5, scoreThreshold = 0.7, filter = null) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/rag/documents/search`, {
+        const response = await fetch(`${API_BASE_URL}/api/retrieval/documents/search`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -232,7 +230,7 @@ export const searchDocuments = async (collectionName, queryText, limit = 5, scor
  */
 export const listDocumentsInCollection = async (collectionName) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/rag/collections/${collectionName}/documents`);
+        const response = await fetch(`${API_BASE_URL}/api/retrieval/collections/${collectionName}/documents`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -255,7 +253,7 @@ export const listDocumentsInCollection = async (collectionName) => {
  */
 export const getDocumentDetails = async (collectionName, documentId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/rag/collections/${collectionName}/documents/${documentId}`);
+        const response = await fetch(`${API_BASE_URL}/api/retrieval/collections/${collectionName}/documents/${documentId}`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -278,7 +276,7 @@ export const getDocumentDetails = async (collectionName, documentId) => {
  */
 export const deleteDocumentFromCollection = async (collectionName, documentId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/rag/collections/${collectionName}/documents/${documentId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/retrieval/collections/${collectionName}/documents/${documentId}`, {
             method: 'DELETE',
         });
 
@@ -307,7 +305,7 @@ export const deleteDocumentFromCollection = async (collectionName, documentId) =
  */
 export const insertPoints = async (collectionName, points) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/rag/points`, {
+        const response = await fetch(`${API_BASE_URL}/api/retrieval/points`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -332,6 +330,38 @@ export const insertPoints = async (collectionName, points) => {
 };
 
 /**
+ * 벡터 포인트를 삭제하는 함수
+ * @param {string} collectionName - 대상 컬렉션 이름
+ * @param {Array} pointIds - 삭제할 포인트 ID 배열
+ * @returns {Promise<Object>} 삭제 결과
+ */
+export const deletePoints = async (collectionName, pointIds) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/retrieval/points`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                collection_name: collectionName,
+                point_ids: pointIds
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Points deleted:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to delete points:', error);
+        throw error;
+    }
+};
+
+/**
  * 벡터 유사도 검색을 수행하는 함수
  * @param {string} collectionName - 검색할 컬렉션 이름
  * @param {Array<number>} queryVector - 검색 벡터
@@ -342,7 +372,7 @@ export const insertPoints = async (collectionName, points) => {
  */
 export const searchPoints = async (collectionName, queryVector, limit = 10, scoreThreshold = null, filter = null) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/rag/search`, {
+        const response = await fetch(`${API_BASE_URL}/api/retrieval/search`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -371,38 +401,6 @@ export const searchPoints = async (collectionName, queryVector, limit = 10, scor
     }
 };
 
-/**
- * 벡터 포인트를 삭제하는 함수
- * @param {string} collectionName - 대상 컬렉션 이름
- * @param {Array} pointIds - 삭제할 포인트 ID 배열
- * @returns {Promise<Object>} 삭제 결과
- */
-export const deletePoints = async (collectionName, pointIds) => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/rag/points`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                collection_name: collectionName,
-                point_ids: pointIds
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        devLog.info('Points deleted:', data);
-        return data;
-    } catch (error) {
-        devLog.error('Failed to delete points:', error);
-        throw error;
-    }
-};
-
 // =============================================================================
 // Configuration
 // =============================================================================
@@ -413,7 +411,7 @@ export const deletePoints = async (collectionName, pointIds) => {
  */
 export const getRagConfig = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/rag/config`);
+        const response = await fetch(`${API_BASE_URL}/api/retrieval/config`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -424,225 +422,6 @@ export const getRagConfig = async () => {
         return data;
     } catch (error) {
         devLog.error('Failed to fetch RAG config:', error);
-        throw error;
-    }
-};
-
-// =============================================================================
-// Embedding Provider Management
-// =============================================================================
-
-/**
- * 사용 가능한 임베딩 제공자 목록을 조회하는 함수
- * @returns {Promise<Object>} 임베딩 제공자 목록
- */
-export const getEmbeddingProviders = async () => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/rag/embedding/providers`);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        devLog.info('Embedding providers fetched:', data);
-        return data;
-    } catch (error) {
-        devLog.error('Failed to fetch embedding providers:', error);
-        throw error;
-    }
-};
-
-/**
- * 모든 임베딩 제공자를 테스트하는 함수
- * @returns {Promise<Object>} 테스트 결과
- */
-export const testEmbeddingProviders = async () => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/rag/embedding/test`);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        devLog.info('Embedding providers tested:', data);
-        return data;
-    } catch (error) {
-        devLog.error('Failed to test embedding providers:', error);
-        throw error;
-    }
-};
-
-/**
- * 현재 임베딩 클라이언트 상태를 조회하는 함수
- * @returns {Promise<Object>} 임베딩 클라이언트 상태
- */
-export const getEmbeddingStatus = async () => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/rag/embedding/status`);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        devLog.info('Embedding status fetched:', data);
-        return data;
-    } catch (error) {
-        devLog.error('Failed to fetch embedding status:', error);
-        throw error;
-    }
-};
-
-/**
- * 임베딩 생성을 테스트하는 함수
- * @param {string} queryText - 테스트할 쿼리 텍스트 (기본값: "Hello, world!")
- * @returns {Promise<Object>} 임베딩 테스트 결과
- */
-export const testEmbeddingQuery = async (queryText = "Hello, world!") => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/rag/embedding/test-query`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                query_text: queryText
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        devLog.info('Embedding query test completed:', data);
-        return data;
-    } catch (error) {
-        devLog.error('Failed to test embedding query:', error);
-        throw error;
-    }
-};
-
-/**
- * 임베딩 클라이언트를 강제로 재로드하는 함수
- * @returns {Promise<Object>} 재로드 결과
- */
-export const reloadEmbeddingClient = async () => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/rag/embedding/reload`, {
-            method: 'POST',
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        devLog.info('Embedding client reloaded:', data);
-        return data;
-    } catch (error) {
-        devLog.error('Failed to reload embedding client:', error);
-        throw error;
-    }
-};
-
-/**
- * 임베딩 제공자를 변경하는 함수
- * @param {string} newProvider - 새로운 제공자 이름 ("openai", "huggingface", "custom_http")
- * @returns {Promise<Object>} 제공자 변경 결과
- */
-export const switchEmbeddingProvider = async (newProvider) => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/rag/embedding/switch-provider`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                new_provider: newProvider
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        devLog.info('Embedding provider switched:', data);
-        return data;
-    } catch (error) {
-        devLog.error('Failed to switch embedding provider:', error);
-        throw error;
-    }
-};
-
-/**
- * 자동으로 최적의 임베딩 제공자로 전환하는 함수
- * @returns {Promise<Object>} 자동 전환 결과
- */
-export const autoSwitchEmbeddingProvider = async () => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/rag/embedding/auto-switch`, {
-            method: 'POST',
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        devLog.info('Embedding provider auto-switched:', data);
-        return data;
-    } catch (error) {
-        devLog.error('Failed to auto-switch embedding provider:', error);
-        throw error;
-    }
-};
-
-/**
- * 임베딩 설정 상태를 조회하는 함수
- * @returns {Promise<Object>} 임베딩 설정 상태
- */
-export const getEmbeddingConfigStatus = async () => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/rag/embedding/config-status`);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        devLog.info('Embedding config status fetched:', data);
-        return data;
-    } catch (error) {
-        devLog.error('Failed to fetch embedding config status:', error);
-        throw error;
-    }
-};
-
-// =============================================================================
-// Debug Functions
-// =============================================================================
-
-/**
- * 디버깅을 위한 임베딩 상세 정보를 조회하는 함수
- * @returns {Promise<Object>} 임베딩 디버그 정보
- */
-export const getEmbeddingDebugInfo = async () => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/rag/debug/embedding-info`);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        devLog.info('Embedding debug info fetched:', data);
-        return data;
-    } catch (error) {
-        devLog.error('Failed to fetch embedding debug info:', error);
         throw error;
     }
 };
@@ -686,30 +465,6 @@ export const isValidCollectionName = (name) => {
     // 영문자, 숫자, 언더스코어, 하이픈만 허용, 3-63자
     const regex = /^[a-zA-Z0-9_-]{3,63}$/;
     return regex.test(name);
-};
-
-/**
- * RAG 시스템의 전체 상태를 확인하는 함수
- * @returns {Promise<Object>} 전체 시스템 상태
- */
-export const getRagSystemStatus = async () => {
-    try {
-        const [healthData, configData, collectionsData] = await Promise.all([
-            checkRagHealth(),
-            getRagConfig(),
-            listCollections()
-        ]);
-
-        return {
-            health: healthData,
-            config: configData,
-            collections: collectionsData,
-            timestamp: new Date().toISOString()
-        };
-    } catch (error) {
-        devLog.error('Failed to get RAG system status:', error);
-        throw error;
-    }
 };
 
 /**
@@ -768,7 +523,7 @@ export const formatFileSize = (bytes, decimals = 2) => {
  */
 export const getRelativeTime = (dateString) => {
     if (!dateString) return '알 수 없음';
-    
+
     const date = new Date(dateString);
     const now = new Date();
     const diffInSeconds = Math.floor((now - date) / 1000);
@@ -806,9 +561,8 @@ export const getEmbeddingDimension = (provider, model) => {
                 default:
                     return 1536;
             }
-        
+
         case 'huggingface': {
-            // 일반적인 HuggingFace 모델 차원
             const commonModels = {
                 'sentence-transformers/all-MiniLM-L6-v2': 384,
                 'sentence-transformers/all-MiniLM-L12-v2': 384,
@@ -818,6 +572,7 @@ export const getEmbeddingDimension = (provider, model) => {
                 'BAAI/bge-large-en-v1.5': 1024,
                 'BAAI/bge-base-en-v1.5': 768,
                 'BAAI/bge-small-en-v1.5': 384,
+                "Qwen/Qwen3-Embedding-0.6B": 1024,
             };
             return commonModels[model] || 768; // 일반적인 기본값
         }
@@ -836,28 +591,14 @@ export const getEmbeddingDimension = (provider, model) => {
  * 현재 설정된 임베딩 제공자와 모델에 따른 벡터 차원을 조회하는 함수
  * @returns {Promise<Object>} 벡터 차원 정보
  */
-export const getCurrentEmbeddingDimension = async () => {
+export const getCurrentEmbeddingDimension = async (provider, model) => {
     try {
-        const status = await getEmbeddingStatus();
-        
-        if (status && status.provider_info) {
-            const provider = status.provider_info.provider || 'openai';
-            const model = status.provider_info.model || 'text-embedding-3-small';
-            const dimension = getEmbeddingDimension(provider, model);
-            
-            return {
-                provider,
-                model,
-                dimension,
-                auto_detected: true
-            };
-        }
-        
+        const dimension = getEmbeddingDimension(provider, model);
         return {
-            provider: 'openai',
-            model: 'text-embedding-3-small', 
-            dimension: 1536,
-            auto_detected: false
+            provider,
+            model,
+            dimension,
+            auto_detected: true
         };
     } catch (error) {
         devLog.error('Failed to get current embedding dimension:', error);
@@ -871,3 +612,41 @@ export const getCurrentEmbeddingDimension = async () => {
     }
 };
 
+// /**
+//  * 현재 설정된 임베딩 제공자와 모델에 따른 벡터 차원을 조회하는 함수
+//  * @returns {Promise<Object>} 벡터 차원 정보
+//  */
+// export const getCurrentEmbeddingDimension = async () => {
+//     try {
+//         const status = await getEmbeddingStatus();
+
+//         if (status && status.provider_info) {
+//             const provider = status.provider_info.provider || 'openai';
+//             const model = status.provider_info.model || 'text-embedding-3-small';
+//             const dimension = getEmbeddingDimension(provider, model);
+
+//             return {
+//                 provider,
+//                 model,
+//                 dimension,
+//                 auto_detected: true
+//             };
+//         }
+
+//         return {
+//             provider: 'openai',
+//             model: 'text-embedding-3-small',
+//             dimension: 1536,
+//             auto_detected: false
+//         };
+//     } catch (error) {
+//         devLog.error('Failed to get current embedding dimension:', error);
+//         return {
+//             provider: 'openai',
+//             model: 'text-embedding-3-small',
+//             dimension: 1536,
+//             auto_detected: false,
+//             error: error.message
+//         };
+//     }
+// };
