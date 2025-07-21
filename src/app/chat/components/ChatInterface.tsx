@@ -20,6 +20,7 @@ import CollectionModal from '@/app/chat/components/CollectionModal';
 import { IOLog, ChatInterfaceProps } from './types';
 import ChatHeader from './ChatHeader';
 import { ChatArea } from './ChatArea';
+import { DeploymentModal } from './DeploymentModal';
 
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, hideBackButton = false, existingChatData }) => {
@@ -32,6 +33,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, h
     const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
     const [showCollectionModal, setShowCollectionModal] = useState(false);
     const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+    const [showDeploymentModal, setShowDeploymentModal] = useState(false);
+
 
     const messagesRef = useRef<HTMLDivElement>(null);
     const attachmentButtonRef = useRef<HTMLDivElement>(null);
@@ -284,6 +287,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, h
                 ioLogs={ioLogs} 
                 onBack={onBack}
                 hideBackButton={hideBackButton}
+                onDeploy={() => setShowDeploymentModal(true)}
             ></ChatHeader>
 
             {/* Chat Area */}
@@ -401,6 +405,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, h
                     </div>
                 </>
             </div>
+            <DeploymentModal
+                isOpen={showDeploymentModal}
+                onClose={() => setShowDeploymentModal(false)}
+                workflow={workflow}
+            />
 
             {/* Collection Modal */}
             <CollectionModal

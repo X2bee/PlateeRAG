@@ -1,8 +1,8 @@
-import { FiArrowLeft, FiMessageSquare } from 'react-icons/fi';
+import { FiArrowLeft, FiMessageSquare, FiUpload } from 'react-icons/fi';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
 import { ChatHeaderProps } from './types';
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ mode, workflow, ioLogs, onBack, hideBackButton }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({ mode, workflow, ioLogs, onBack, hideBackButton, onDeploy }) => {
     let title = '';
     let subtitle = '';
     let chatCountText = '';
@@ -39,9 +39,15 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ mode, workflow, ioLogs, onBack,
                 </div>
             </div>
             <div className={styles.chatCount}>
+                <button className={styles.deployButton} onClick={onDeploy}>
+                    <FiUpload />
+                    <span>배포</span>
+                </button>
                 <FiMessageSquare />
                 <span>{chatCountText}</span>
+                
             </div>
+            
         </div>
     );
 };

@@ -39,4 +39,5 @@ export interface ChatHeaderProps {
     ioLogs: IOLog[];
     onBack: () => void;
     hideBackButton?: boolean;
+    onDeploy?: () => void;
 }
