@@ -265,7 +265,7 @@ export const getWorkflowPerformance = async (workflowName, workflowId) => {
  */
 export const getWorkflowNodeCounts = async (workflowName, workflowId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/workflow/performance/counts/${workflowName}/${workflowId}`);
+        const response = await fetch(`${API_BASE_URL}/api/performance/counts/${workflowName}/${workflowId}`);
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
@@ -287,7 +287,7 @@ export const getWorkflowNodeCounts = async (workflowName, workflowId) => {
 export const getPieChartData = async (workflowName, workflowId, limit) => {
     try {
         const params = new URLSearchParams({ limit });
-        const response = await fetch(`${API_BASE_URL}/workflow/performance/charts/pie/${workflowName}/${workflowId}?${params}`);
+        const response = await fetch(`${API_BASE_URL}/api/performance/charts/pie/${workflowName}/${workflowId}?${params}`);
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
@@ -309,7 +309,7 @@ export const getPieChartData = async (workflowName, workflowId, limit) => {
 export const getBarChartData = async (workflowName, workflowId, limit) => {
     try {
         const params = new URLSearchParams({ limit });
-        const response = await fetch(`${API_BASE_URL}/workflow/performance/charts/bar/${workflowName}/${workflowId}?${params}`);
+        const response = await fetch(`${API_BASE_URL}/api/performance/charts/bar/${workflowName}/${workflowId}?${params}`);
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
@@ -331,7 +331,7 @@ export const getBarChartData = async (workflowName, workflowId, limit) => {
 export const getLineChartData = async (workflowName, workflowId, limit) => {
     try {
         const params = new URLSearchParams({ limit });
-        const response = await fetch(`${API_BASE_URL}/workflow/performance/charts/line/${workflowName}/${workflowId}?${params}`);
+        const response = await fetch(`${API_BASE_URL}/api/performance/charts/line/${workflowName}/${workflowId}?${params}`);
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);

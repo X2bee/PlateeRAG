@@ -16,7 +16,6 @@ import {
     ArcElement,
     TimeScale
 } from 'chart.js';
-import 'chartjs-adapter-date-fns';
 
 // 필요한 모든 Chart.js 모듈 등록
 ChartJS.register(

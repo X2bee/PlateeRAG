@@ -13,6 +13,43 @@ import Chart from './Chart';
 import styles from '@/app/main/assets/ChartDashboard.module.scss';
 import { devLog } from '@/app/utils/logger';
 
+interface ChartDataSet {
+    label: string;
+    data: any[]; // number[] 또는 {x: string, y: number}[]
+}
+
+interface ChartData {
+    title: string;
+    labels?: string[];
+    datasets: ChartDataSet[];
+}
+
+interface NodeCountsResponse {
+    success: boolean;
+    data: Record<string, number>;
+}
+
+interface PieChartResponse {
+    success: boolean;
+    data: ChartData;
+}
+
+interface BarChartResponse {
+    success: boolean;
+    data: {
+        processingTime: ChartData;
+        cpuUsage: ChartData;
+    };
+}
+
+interface LineChartResponse {
+    success: boolean;
+    data: {
+        cpuOverTime: ChartData;
+        processingTimeOverTime: ChartData;
+    };
+}
+
 interface Workflow {
     filename: string;
     workflow_id: string;
@@ -31,16 +68,19 @@ const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workfl
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const workflowName = useMemo(() => workflow?.filename.replace('.json', ''), [workflow]);
+    const workflowName = useMemo(() => workflow?.filename, [workflow]);
 
     useEffect(() => {
         if (isOpen && workflow) {
             // Fetch max log count when dashboard opens
             const fetchMaxCount = async () => {
                 try {
-                    const counts = await getWorkflowNodeCounts(workflowName!, workflow.workflow_id);
+                    const countsResponse = await getWorkflowNodeCounts(workflowName!, workflow.workflow_id) as NodeCountsResponse;
+                    
                     // Find the maximum count among all nodes to set the slider limit
-                    const maxCount = Math.max(...Object.values(counts.data || {})) || 100;
+                    const logCounts: number[] = Object.values(countsResponse.data || {}).map(Number);
+                    const maxCount = logCounts.length > 0 ? Math.max(...logCounts) : 100;
+                    
                     setMaxLogLimit(maxCount);
                     devLog.log(`Max log count set to: ${maxCount}`);
                 } catch (err) {
@@ -59,12 +99,16 @@ const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workfl
                 setIsLoading(true);
                 setError(null);
                 try {
-                    const [pieData, barData, lineData] = await Promise.all([
-                        getPieChartData(workflowName!, workflow.workflow_id, logLimit),
-                        getBarChartData(workflowName!, workflow.workflow_id, logLimit),
-                        getLineChartData(workflowName!, workflow.workflow_id, logLimit)
+                    const [pieResponse, barResponse, lineResponse] = await Promise.all([
+                        getPieChartData(workflowName!, workflow.workflow_id, logLimit) as Promise<PieChartResponse>,
+                        getBarChartData(workflowName!, workflow.workflow_id, logLimit) as Promise<BarChartResponse>,
+                        getLineChartData(workflowName!, workflow.workflow_id, logLimit) as Promise<LineChartResponse>
                     ]);
-                    setChartData({ pie: pieData.data, bar: barData.data, line: lineData.data });
+                    setChartData({
+                        pie: pieResponse.data,
+                        bar: barResponse.data,
+                        line: lineResponse.data
+                    });
                 } catch (err) {
                     const errorMessage = err instanceof Error ? err.message : "Unknown error";
                     setError(`Failed to load chart data: ${errorMessage}`);
