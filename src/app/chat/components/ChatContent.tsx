@@ -24,7 +24,6 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted }) => {
         const workflowName = searchParams.get('workflow_name');
 
         if (mode === 'existing' && interactionId && workflowId && workflowName) {
-            // 기존 채팅 정보를 설정하고 바로 채팅 화면으로 이동
             const existingWorkflow = {
                 id: workflowId,
                 name: workflowName,

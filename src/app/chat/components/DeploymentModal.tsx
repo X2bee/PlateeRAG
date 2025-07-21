@@ -1,7 +1,7 @@
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
 import { FiCode, FiExternalLink, FiX } from 'react-icons/fi';
 import { Workflow } from './types';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface DeploymentModalProps {
     isOpen: boolean;
@@ -9,6 +9,21 @@ interface DeploymentModalProps {
     workflow: Workflow;
 }
 export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClose, workflow }) => {
+    const [baseUrl, setBaseUrl] = useState('');
+    const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setBaseUrl(window.location.origin);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (isOpen) {
+            setTimeout(() => closeButtonRef.current?.focus(), 100);
+        }
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
     const handleBackdropKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -18,8 +33,9 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
     };
 
     const chatId = workflow.id;
-    const apiEndpoint = `https://polar-comfy.x2bee.com/api/v1/prediction/${chatId}`;
-    const webPageUrl = `https://polar-comfy.x2bee.com/chatbot/${chatId}`;
+    const workflowName = encodeURIComponent(workflow.name);
+    const apiEndpoint = `${baseUrl}/api/v1/prediction/${chatId}`;
+    const webPageUrl = `${baseUrl}/chatbot/${chatId}?workflowName=${workflowName}`;
 
     const pythonApiCode = `import requests
 
@@ -52,12 +68,6 @@ query({"question": "Hey, how are you?"}).then((response) => {
 });
 `;
 
-    const closeButtonRef = useRef<HTMLButtonElement>(null);
-        useEffect(() => {
-            if (isOpen) {
-                closeButtonRef.current?.focus();
-            }
-        }, [isOpen]);
 
     return (
         <div
@@ -65,12 +75,11 @@ query({"question": "Hey, how are you?"}).then((response) => {
             onClick={onClose}
             onKeyDown={handleBackdropKeyDown}
             role="button"
-            tabIndex={-1} 
+            tabIndex={-1}
             aria-label="Close deployment modal"
         >
             <div
                 className={styles.deploymentModalContainer}
-                onClick={(e) => e.stopPropagation()}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="deployment-modal-title"
