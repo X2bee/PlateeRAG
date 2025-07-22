@@ -30,7 +30,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     formatDate,
 }) => {
     // 1. 로딩 상태 처리 (existing 모드 전용)
-    if (mode === 'existing' || mode === 'deploy' && loading) {
+    if (mode === 'existing' && loading) {
         return (
             <div className={styles.chatContainer}>
                 <div className={styles.loadingState}>
