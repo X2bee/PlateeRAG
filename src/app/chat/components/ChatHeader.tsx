@@ -17,6 +17,10 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ mode, workflow, ioLogs, onBack,
         title = '일반 채팅';
         subtitle = '자유롭게 대화를 시작하세요';
         chatCountText = '새 채팅';
+    } else if (mode === 'new-workflow') {
+        title = workflow.name;
+        subtitle = '새로운 대화를 시작하세요';
+        chatCountText = '새 채팅';
     } else {
         title = workflow.name;
         subtitle = '새로운 대화를 시작하세요';
@@ -39,10 +43,14 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ mode, workflow, ioLogs, onBack,
                 </div>
             </div>
             <div className={styles.chatCount}>
-                <button className={styles.deployButton} onClick={onDeploy}>
-                    <FiUpload />
-                    <span>배포</span>
-                </button>
+                { mode === 'deploy' ? (
+                    <span></span>
+                ) : (
+                    <button className={styles.deployButton} onClick={onDeploy}>
+                        <FiUpload />
+                        <span>배포</span>
+                    </button>
+                )}
                 <FiMessageSquare />
                 <span>{chatCountText}</span>
                 

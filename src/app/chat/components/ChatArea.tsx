@@ -5,7 +5,7 @@ import { EmptyState } from './EmptyState';
 import { IOLog, Workflow } from './types';
 
 interface ChatAreaProps {
-    mode: "existing" | "new-workflow" | "new-default";
+    mode: "existing" | "new-workflow" | "new-default" | "deploy";
     loading: boolean;
     ioLogs: IOLog[];
     workflow: Workflow;

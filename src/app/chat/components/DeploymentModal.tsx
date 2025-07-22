@@ -10,6 +10,7 @@ interface DeploymentModalProps {
 }
 export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClose, workflow }) => {
     const [baseUrl, setBaseUrl] = useState('');
+    const [activeTab, setActiveTab] = useState('website');
     const closeButtonRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
@@ -20,6 +21,7 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
 
     useEffect(() => {
         if (isOpen) {
+            setActiveTab('website');
             setTimeout(() => closeButtonRef.current?.focus(), 100);
         }
     }, [isOpen]);
@@ -34,7 +36,7 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
 
     const chatId = workflow.id;
     const workflowName = encodeURIComponent(workflow.name);
-    const apiEndpoint = `${baseUrl}/api/v1/prediction/${chatId}`;
+    const apiEndpoint = `${baseUrl}/api/workflow/execute/based_id`;
     const webPageUrl = `${baseUrl}/chatbot/${chatId}?workflowName=${workflowName}`;
 
     const pythonApiCode = `import requests
@@ -46,7 +48,11 @@ def query(payload):
     return response.json()
 
 output = query({
-    "question": "Hey, how are you?",
+    "workflow_name": ${workflowName},
+    "workflow_id": ${chatId},
+    "input_data": "안녕하세요",
+    "interaction_id": "default",
+    "selected_collection": "string"
 })
 `;
 
@@ -63,7 +69,13 @@ output = query({
     return result;
 }
 
-query({"question": "Hey, how are you?"}).then((response) => {
+query({
+    "workflow_name": ${workflowName},
+    "workflow_id": ${chatId},
+    "input_data": "안녕하세요",
+    "interaction_id": "default",
+    "selected_collection": "string"
+}).then((response) => {
     console.log(response);
 });
 `;
@@ -72,8 +84,6 @@ query({"question": "Hey, how are you?"}).then((response) => {
     return (
         <div
             className={styles.deploymentModalBackdrop}
-            onClick={onClose}
-            onKeyDown={handleBackdropKeyDown}
             role="button"
             tabIndex={-1}
             aria-label="Close deployment modal"
@@ -95,23 +105,50 @@ query({"question": "Hey, how are you?"}).then((response) => {
                         <FiX />
                     </button>
                 </div>
+
+                {/* 탭 버튼 UI */}
+                <div className={styles.tabContainer}>
+                    <button
+                        className={`${styles.tabButton} ${activeTab === 'website' ? styles.active : ''}`}
+                        onClick={() => setActiveTab('website')}
+                        role="tab"
+                        aria-selected={activeTab === 'website'}
+                    >
+                        <FiExternalLink /> 웹페이지
+                    </button>
+                    <button
+                        className={`${styles.tabButton} ${activeTab === 'api' ? styles.active : ''}`}
+                        onClick={() => setActiveTab('api')}
+                        role="tab"
+                        aria-selected={activeTab === 'api'}
+                    >
+                        <FiCode /> API 연동
+                    </button>
+                </div>
+
+                {/* 탭 컨텐츠 */}
                 <div className={styles.deploymentModalContent}>
-                    <div className={styles.deploymentSection}>
-                        <h4><FiExternalLink /> 독립 웹페이지</h4>
-                        <p>아래 링크를 통해 독립된 웹페이지에서 채팅을 사용할 수 있습니다.</p>
-                        <div className={styles.webPageUrl}>
-                            <a href={webPageUrl} target="_blank" rel="noopener noreferrer">{webPageUrl}</a>
-                            <button onClick={() => navigator.clipboard.writeText(webPageUrl)}>Copy</button>
+                    {activeTab === 'website' && (
+                        <div className={styles.tabPanel}>
+                            <p>아래 링크를 통해 독립된 웹페이지에서 채팅을 사용할 수 있습니다.</p>
+                            <div className={styles.webPageUrl}>
+                                <a href={baseUrl ? webPageUrl : '#'} target="_blank" rel="noopener noreferrer">
+                                    {baseUrl ? webPageUrl : 'URL 생성 중...'}
+                                </a>
+                                <button onClick={() => navigator.clipboard.writeText(webPageUrl)} disabled={!baseUrl}>Copy</button>
+                            </div>
                         </div>
-                    </div>
-                    <div className={styles.deploymentSection}>
-                        <h4><FiCode /> API 연동</h4>
-                        <p>아래 코드를 사용하여 API를 통해 워크플로우를 호출할 수 있습니다.</p>
-                        <h5>Python</h5>
-                        <pre className={styles.codeSnippet}>{pythonApiCode}</pre>
-                        <h5>JavaScript</h5>
-                        <pre className={styles.codeSnippet}>{jsApiCode}</pre>
-                    </div>
+                    )}
+
+                    {activeTab === 'api' && (
+                        <div className={styles.tabPanel}>
+                             <p>아래 코드를 사용하여 API를 통해 워크플로우를 호출할 수 있습니다.</p>
+                            <h5>Python</h5>
+                            <pre className={styles.codeSnippet}>{baseUrl ? pythonApiCode : '코드 생성 중...'}</pre>
+                            <h5>JavaScript</h5>
+                            <pre className={styles.codeSnippet}>{baseUrl ? jsApiCode : '코드 생성 중...'}</pre>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

@@ -833,6 +833,30 @@ $white: #ffffff;
     }
 }
 
+.closeButton {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    margin: -0.5rem;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $gray-500;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: $gray-100;
+        color: $gray-800;
+    }
+
+    svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
 .deploymentModalContent {
     padding: 1.5rem;
     overflow-y: auto;
@@ -894,6 +918,59 @@ $white: #ffffff;
     white-space: pre-wrap;
     word-break: break-all;
     font-size: 0.875rem;
+}
+
+.tabContainer {
+    display: flex;
+    border-bottom: 1px solid $gray-200;
+    padding: 0 1.5rem;
+    margin-top: 0.5rem;
+}
+
+.tabButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: $gray-500;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease-in-out;
+    margin-bottom: -1px;
+
+    &:hover {
+        color: $gray-800;
+    }
+
+    &.active {
+        color: $primary-blue;
+        border-bottom-color: $primary-blue;
+    }
+}
+
+.deploymentModalContent {
+    padding: 0;
+    overflow-y: auto;
+    max-height: calc(80vh - 120px);
+}
+
+.tabPanel {
+    padding: 1.5rem;
+
+    p {
+        font-size: 0.875rem;
+        color: $gray-600;
+        margin: 0 0 1rem 0;
+    }
+
+    h5 {
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
 }
 
 // Responsive Design
