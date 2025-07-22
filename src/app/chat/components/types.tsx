@@ -21,7 +21,7 @@ export interface IOLog {
 }
 
 export interface ChatInterfaceProps {
-    mode: 'existing' | 'new-workflow' | 'new-default';
+    mode: 'existing' | 'new-workflow' | 'new-default' | 'deploy';
     workflow: Workflow;
     onChatStarted?: (newInteractionId: string) => void;
     onBack: () => void;
@@ -34,9 +34,10 @@ export interface ChatInterfaceProps {
 }
 
 export interface ChatHeaderProps {
-    mode: 'existing' | 'new-workflow' | 'new-default';
+    mode: 'existing' | 'new-workflow' | 'new-default' | 'deploy';
     workflow: Workflow;
     ioLogs: IOLog[];
     onBack: () => void;
     hideBackButton?: boolean;
+    onDeploy?: () => void;
 }

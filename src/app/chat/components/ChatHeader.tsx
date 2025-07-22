@@ -1,8 +1,8 @@
-import { FiArrowLeft, FiMessageSquare } from 'react-icons/fi';
+import { FiArrowLeft, FiMessageSquare, FiUpload } from 'react-icons/fi';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
 import { ChatHeaderProps } from './types';
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ mode, workflow, ioLogs, onBack, hideBackButton }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({ mode, workflow, ioLogs, onBack, hideBackButton, onDeploy }) => {
     let title = '';
     let subtitle = '';
     let chatCountText = '';
@@ -16,6 +16,10 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ mode, workflow, ioLogs, onBack,
     } else if (mode === 'new-default') {
         title = '일반 채팅';
         subtitle = '자유롭게 대화를 시작하세요';
+        chatCountText = '새 채팅';
+    } else if (mode === 'new-workflow') {
+        title = workflow.name;
+        subtitle = '새로운 대화를 시작하세요';
         chatCountText = '새 채팅';
     } else {
         title = workflow.name;
@@ -39,9 +43,19 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ mode, workflow, ioLogs, onBack,
                 </div>
             </div>
             <div className={styles.chatCount}>
+                { mode === 'deploy' ? (
+                    <span></span>
+                ) : (
+                    <button className={styles.deployButton} onClick={onDeploy}>
+                        <FiUpload />
+                        <span>배포</span>
+                    </button>
+                )}
                 <FiMessageSquare />
                 <span>{chatCountText}</span>
+                
             </div>
+            
         </div>
     );
 };
