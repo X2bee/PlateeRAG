@@ -7,12 +7,12 @@ import toast from 'react-hot-toast';
 import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/BaseConfigPanel';
 import styles from '@/app/main/assets/Settings.module.scss';
 import {
-        getLLMStatus,
-        switchLLMProvider,
-        testOpenAIConnection,
-        testVLLMConnection,
-        testSGLConnection,
-    } from '@/app/api/llmAPI';
+    getLLMStatus,
+    switchLLMProvider,
+    testOpenAIConnection,
+    testVLLMConnection,
+    testSGLConnection,
+} from '@/app/api/llmAPI';
 
 interface LLMConfigProps {
     configData?: ConfigItem[];
@@ -381,7 +381,7 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
     const [error, setError] = useState<string | null>(null);
     const [llmStatus, setLLMStatus] = useState<LLMStatus | null>(null);
     const [providerAvailability, setProviderAvailability] = useState<{ [key: string]: boolean }>({});
-    
+
     // 초기 데이터 로드
     useEffect(() => {
         loadLLMStatus();
@@ -392,15 +392,17 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
         const checkAvailability = async () => {
             const current = getCurrentDefaultProvider();
             try {
-                if(current === 'openai'){
+                if (current === 'openai') {
                     const ok = await testOpenAIConnection();
                     const res = ok as { status?: string };
                     setProviderAvailability({ [current]: res && res.status === "success" });
-                } else if(current === 'vllm'){
+                } else if (current === 'vllm') {
                     const ok = await testVLLMConnection();
                     const res = ok as { status?: string };
                     setProviderAvailability({ [current]: res && res.status === "success" });
-                } else if(current === 'sgl'){
+
+
+                } else if (current === 'sgl') {
                     const ok = await testSGLConnection();
                     const res = ok as { status?: string };
                     setProviderAvailability({ [current]: res && res.status === "success" });
@@ -468,7 +470,7 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
 
     const handleProviderSwitch = async (providerName: string) => {
         const currentProvider = getCurrentDefaultProvider();
-        
+
         // 현재 provider와 동일한 경우 아무 동작하지 않음
         if (currentProvider === providerName) {
             return;
@@ -616,7 +618,7 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
 
     const renderDefaultProviderTab = () => {
         const currentDefaultProvider = getCurrentDefaultProvider();
-    
+
         return (
             <div className={styles.defaultProviderConfig}>
                 {/* 기본 제공자 설정 */}
@@ -624,7 +626,7 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                     <h3>기본 LLM 제공자 설정</h3>
                     <p>워크플로우에서 기본적으로 사용할 LLM 제공자를 선택하세요.</p>
                 </div>
-    
+
                 <BaseConfigPanel
                     configData={configData}
                     fieldConfigs={DEFAULT_PROVIDER_CONFIG_FIELDS}
@@ -633,20 +635,20 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                     testConnectionLabel="기본 제공자 테스트"
                     testConnectionCategory="llm"
                 />
-    
+
                 {/* 현재 제공자 상태 */}
                 <div className={styles.currentProviderSection}>
                     <div className={styles.sectionTitle}>
                         <h4>현재 활성 제공자</h4>
                         <span className={styles.activeBadgeGlow}>ACTIVE</span>
                     </div>
-                    
+
                     <div className={styles.currentProviderCard}>
                         <div className={styles.providerMainInfo}>
                             <div className={styles.providerIconLarge}>
                                 <span
                                     className={styles.iconWrapper}
-                                    style={{ 
+                                    style={{
                                         color: getProviderColor(currentDefaultProvider),
                                         background: `${getProviderColor(currentDefaultProvider)}15`
                                     }}
@@ -667,326 +669,325 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                                         기본 제공자
                                     </span>
                                 </div>
-                                </div>
-                       </div>
-                       
-                       <div className={styles.statusSection}>
-                           {(() => {
-                               const status = getProviderStatus(currentDefaultProvider);
-                               const statusClass = status.configured && status.connected 
-                                   ? styles.statusSuccess 
-                                   : status.configured 
-                                       ? styles.statusWarning 
-                                       : styles.statusError;
-                               
-                               return (
-                                   <div className={`${styles.statusIndicatorLarge} ${statusClass}`}>
-                                       <div className={styles.statusIconWrapper}>
-                                           {getStatusIcon(status.configured, status.connected)}
-                                       </div>
-                                       <div className={styles.statusText}>
-                                           <span className={styles.statusLabel}>
-                                               {getStatusText(status.configured, status.connected)}
-                                           </span>
-                                           <span className={styles.statusSubtext}>
-                                               {status.configured && status.connected 
-                                                   ? '모든 기능을 사용할 수 있습니다' 
-                                                   : status.configured 
-                                                       ? '설정을 확인해 주세요'
-                                                       : '설정이 필요합니다'}
-                                           </span>
-                                           {/* SGL 경고 메시지 표시 */}
-                                           {status.warnings && status.warnings.length > 0 && (
-                                               <div className={styles.warningMessages}>
-                                                   {status.warnings.map((warning, index) => (
-                                                       <span key={index} className={styles.warningText}>
-                                                           <FiAlertCircle />
-                                                           {warning}
-                                                       </span>
-                                                   ))}
-                                               </div>
-                                           )}
-                                       </div>
-                                   </div>
-                               );
-                           })()}
-                           
-                           <div className={styles.statusActions}>
-                               <button
-                                   onClick={() => handleTestConnection(currentDefaultProvider)}
-                                   className={`${styles.button} ${styles.primary} ${styles.testButton}`}
-                                   disabled={testing}
-                               >
-                                   <FiPlay />
-                                   {testing ? '테스트 중...' : '연결 테스트'}
-                               </button>
-                           </div>
-                       </div>
-                   </div>
-               </div>
-   
-               {/* 제공자 선택 카드 */}
-               <div className={styles.providersSection}>
-                   <div className={styles.sectionTitle}>
-                       <h4>사용 가능한 LLM 제공자</h4>
-                       <span className={styles.sectionSubtitle}>
-                           제공자를 클릭하여 상세 설정으로 이동하세요
-                       </span>
-                   </div>
-                   
-                   <div className={styles.providersGrid}>
-                       {LLM_PROVIDERS.map((provider) => {
-                           const status = getProviderStatus(provider.name);
-                           const isDefault = currentDefaultProvider === provider.name;
-   
-                           return (
-                               <div
-                                   key={provider.name}
-                                   className={`${styles.providerCard} ${isDefault ? styles.activeProvider : ''} ${status.configured ? styles.configuredProvider : styles.unconfiguredProvider}`}
-                                   onClick={() => !switching && handleProviderSwitch(provider.name)}
-                                   style={{
-                                       cursor: switching ? 'not-allowed' : (isDefault ? 'default' : 'pointer'),
-                                       opacity: switching ? 0.7 : 1
-                                   }}
-                               >
-                                   {/* 카드 헤더 */}
-                                   <div className={styles.cardHeader}>
-                                       <div className={styles.providerIconMedium}>
-                                           <span
-                                               className={styles.iconWrapper}
-                                               style={{ 
-                                                   color: provider.color,
-                                                   background: `${provider.color}15`
-                                               }}
-                                           >
-                                               {provider.icon}
-                                           </span>
-                                       </div>
-                                       
-                                       <div className={styles.cardBadges}>
-                                           {isDefault && (
-                                               <span className={styles.defaultBadge}>
-                                                   <FiCheck />
-                                                   기본
-                                               </span>
-                                           )}
-                                           <div className={`${styles.statusBadge} ${
-                                               status.configured && status.connected 
-                                                   ? styles.statusBadgeSuccess 
-                                                   : status.configured 
-                                                       ? styles.statusBadgeWarning 
-                                                       : styles.statusBadgeError
-                                           }`}>
-                                               {getStatusIcon(status.configured, status.connected)}
-                                           </div>
-                                       </div>
-                                   </div>
-   
-                                   {/* 카드 내용 */}
-                                   <div className={styles.cardContent}>
-                                       <h4 className={styles.cardTitle}>{provider.displayName}</h4>
-                                       <p className={styles.cardDescription}>{provider.description}</p>
-                                       
-                                       {/* SGL 경고 메시지 표시 */}
-                                       {provider.name === 'sgl' && status.warnings && status.warnings.length > 0 && (
-                                           <div className={styles.cardWarnings}>
-                                               {status.warnings.slice(0, 1).map((warning, index) => (
-                                                   <span key={index} className={styles.cardWarningText}>
-                                                       <FiAlertCircle />
-                                                       {warning}
-                                                   </span>
-                                               ))}
-                                           </div>
-                                       )}
-                                       
-                                       <div className={styles.cardFooter}>
-                                           <span className={styles.statusLabel}>
-                                               {getStatusText(status.configured, status.connected)}
-                                           </span>
-                                           
-                                           <div className={styles.cardActions}>
-                                               <button
-                                                   onClick={(e) => {
-                                                       e.stopPropagation();
-                                                       handleTestConnection(provider.name);
-                                                   }}
-                                                   className={`${styles.button} ${styles.small} ${styles.ghost}`}
-                                                   disabled={testing || !status.configured}
-                                                   title="연결 테스트"
-                                               >
-                                                   <FiPlay />
-                                               </button>
-                                               <button
-                                                  onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      setActiveTab(provider.name as 'openai' | 'vllm' | 'sgl');
-                                                  }}
-                                                  className={`${styles.button} ${styles.small} ${styles.secondary}`}
-                                                  title="설정으로 이동"
-                                              >
-                                                  <FiSettings />
-                                                  설정
-                                              </button>
-                                          </div>
-                                      </div>
-                                  </div>
-  
-                                  {/* 호버 효과를 위한 오버레이 */}
-                                  <div className={styles.cardOverlay}></div>
-                              </div>
-                          );
-                      })}
-                  </div>
-              </div>
-          </div>
-      );
-  };
+                            </div>
+                        </div>
 
-  const renderOpenAITab = () => (
-      <div className={styles.openaiConfig}>
-          <div className={styles.sectionHeader}>
-              <h3>OpenAI 설정</h3>
-              <p>OpenAI API 키와 모델 설정을 구성합니다.</p>
-          </div>
+                        <div className={styles.statusSection}>
+                            {(() => {
+                                const status = getProviderStatus(currentDefaultProvider);
+                                const statusClass = status.configured && status.connected
+                                    ? styles.statusSuccess
+                                    : status.configured
+                                        ? styles.statusWarning
+                                        : styles.statusError;
 
-          <BaseConfigPanel
-              configData={configData}
-              fieldConfigs={OPENAI_CONFIG_FIELDS}
-              filterPrefix="openai"
-              onTestConnection={(category) => handleTestConnection('openai')}
-              testConnectionLabel="OpenAI 연결 테스트"
-              testConnectionCategory="openai"
-          />
-      </div>
-  );
+                                return (
+                                    <div className={`${styles.statusIndicatorLarge} ${statusClass}`}>
+                                        <div className={styles.statusIconWrapper}>
+                                            {getStatusIcon(status.configured, status.connected)}
+                                        </div>
+                                        <div className={styles.statusText}>
+                                            <span className={styles.statusLabel}>
+                                                {getStatusText(status.configured, status.connected)}
+                                            </span>
+                                            <span className={styles.statusSubtext}>
+                                                {status.configured && status.connected
+                                                    ? '모든 기능을 사용할 수 있습니다'
+                                                    : status.configured
+                                                        ? '설정을 확인해 주세요'
+                                                        : '설정이 필요합니다'}
+                                            </span>
+                                            {/* SGL 경고 메시지 표시 */}
+                                            {status.warnings && status.warnings.length > 0 && (
+                                                <div className={styles.warningMessages}>
+                                                    {status.warnings.map((warning, index) => (
+                                                        <span key={index} className={styles.warningText}>
+                                                            <FiAlertCircle />
+                                                            {warning}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
 
-  const renderVLLMTab = () => (
-      <div className={styles.vllmConfig}>
-          <div className={styles.sectionHeader}>
-              <h3>vLLM 설정</h3>
-              <p>vLLM 서버 연결 및 모델 설정을 구성합니다.</p>
-          </div>
-
-          <BaseConfigPanel
-              configData={configData}
-              fieldConfigs={VLLM_CONFIG_FIELDS}
-              filterPrefix="vllm"
-              onTestConnection={(category) => handleTestConnection('vllm')}
-              testConnectionLabel="vLLM 연결 테스트"
-              testConnectionCategory="vllm"
-          />
-      </div>
-  );
-
-  const renderSGLTab = () => {
-    // 디버깅: SGL 관련 설정이 있는지 확인
-    const sglConfigs = configData.filter(item => 
-        item.env_name.startsWith('SGL_')
-    );
-    
-    console.log('All configData:', configData.map(c => c.env_name));
-    console.log('SGL configs found:', sglConfigs.map(c => c.env_name));
-
-    return (
-        <div className={styles.sglConfig}>
-            <div className={styles.sectionHeader}>
-                <h3>SGLang 설정</h3>
-                <p>SGLang 서버 연결 및 모델 설정을 구성합니다.</p>
-            </div>
-
-            {/* 디버깅 정보 표시 (개발 시에만) */}
-            {process.env.NODE_ENV === 'development' && (
-                <div style={{ 
-                    background: '#f3f4f6', 
-                    padding: '10px', 
-                    margin: '10px 0',
-                    borderRadius: '4px',
-                    fontSize: '12px'
-                }}>
-                    <strong>Debug Info:</strong>
-                    <br />
-                    Total configs: {configData.length}
-                    <br />
-                    SGL configs: {sglConfigs.length}
-                    <br />
-                    SGL config names: {sglConfigs.map(c => c.env_name).join(', ')}
+                            <div className={styles.statusActions}>
+                                <button
+                                    onClick={() => handleTestConnection(currentDefaultProvider)}
+                                    className={`${styles.button} ${styles.primary} ${styles.testButton}`}
+                                    disabled={testing}
+                                >
+                                    <FiPlay />
+                                    {testing ? '테스트 중...' : '연결 테스트'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            )}
+
+                {/* 제공자 선택 카드 */}
+                <div className={styles.providersSection}>
+                    <div className={styles.sectionTitle}>
+                        <h4>사용 가능한 LLM 제공자</h4>
+                        <span className={styles.sectionSubtitle}>
+                            제공자를 클릭하여 상세 설정으로 이동하세요
+                        </span>
+                    </div>
+
+                    <div className={styles.providersGrid}>
+                        {LLM_PROVIDERS.map((provider) => {
+                            const status = getProviderStatus(provider.name);
+                            const isDefault = currentDefaultProvider === provider.name;
+
+                            return (
+                                <div
+                                    key={provider.name}
+                                    className={`${styles.providerCard} ${isDefault ? styles.activeProvider : ''} ${status.configured ? styles.configuredProvider : styles.unconfiguredProvider}`}
+                                    onClick={() => !switching && handleProviderSwitch(provider.name)}
+                                    style={{
+                                        cursor: switching ? 'not-allowed' : (isDefault ? 'default' : 'pointer'),
+                                        opacity: switching ? 0.7 : 1
+                                    }}
+                                >
+                                    {/* 카드 헤더 */}
+                                    <div className={styles.cardHeader}>
+                                        <div className={styles.providerIconMedium}>
+                                            <span
+                                                className={styles.iconWrapper}
+                                                style={{
+                                                    color: provider.color,
+                                                    background: `${provider.color}15`
+                                                }}
+                                            >
+                                                {provider.icon}
+                                            </span>
+                                        </div>
+
+                                        <div className={styles.cardBadges}>
+                                            {isDefault && (
+                                                <span className={styles.defaultBadge}>
+                                                    <FiCheck />
+                                                    기본
+                                                </span>
+                                            )}
+                                            <div className={`${styles.statusBadge} ${status.configured && status.connected
+                                                    ? styles.statusBadgeSuccess
+                                                    : status.configured
+                                                        ? styles.statusBadgeWarning
+                                                        : styles.statusBadgeError
+                                                }`}>
+                                                {getStatusIcon(status.configured, status.connected)}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* 카드 내용 */}
+                                    <div className={styles.cardContent}>
+                                        <h4 className={styles.cardTitle}>{provider.displayName}</h4>
+                                        <p className={styles.cardDescription}>{provider.description}</p>
+
+                                        {/* SGL 경고 메시지 표시 */}
+                                        {provider.name === 'sgl' && status.warnings && status.warnings.length > 0 && (
+                                            <div className={styles.cardWarnings}>
+                                                {status.warnings.slice(0, 1).map((warning, index) => (
+                                                    <span key={index} className={styles.cardWarningText}>
+                                                        <FiAlertCircle />
+                                                        {warning}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        <div className={styles.cardFooter}>
+                                            <span className={styles.statusLabel}>
+                                                {getStatusText(status.configured, status.connected)}
+                                            </span>
+
+                                            <div className={styles.cardActions}>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleTestConnection(provider.name);
+                                                    }}
+                                                    className={`${styles.button} ${styles.small} ${styles.ghost}`}
+                                                    disabled={testing || !status.configured}
+                                                    title="연결 테스트"
+                                                >
+                                                    <FiPlay />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setActiveTab(provider.name as 'openai' | 'vllm' | 'sgl');
+                                                    }}
+                                                    className={`${styles.button} ${styles.small} ${styles.secondary}`}
+                                                    title="설정으로 이동"
+                                                >
+                                                    <FiSettings />
+                                                    설정
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* 호버 효과를 위한 오버레이 */}
+                                    <div className={styles.cardOverlay}></div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const renderOpenAITab = () => (
+        <div className={styles.openaiConfig}>
+            <div className={styles.sectionHeader}>
+                <h3>OpenAI 설정</h3>
+                <p>OpenAI API 키와 모델 설정을 구성합니다.</p>
+            </div>
 
             <BaseConfigPanel
                 configData={configData}
-                fieldConfigs={SGL_CONFIG_FIELDS}
-                filterPrefix="SGL_"  // 대문자로 변경하고 언더스코어 포함
-                onTestConnection={(category) => handleTestConnection('sgl')}
-                testConnectionLabel="SGLang 연결 테스트"
-                testConnectionCategory="sgl"
+                fieldConfigs={OPENAI_CONFIG_FIELDS}
+                filterPrefix="openai"
+                onTestConnection={(category) => handleTestConnection('openai')}
+                testConnectionLabel="OpenAI 연결 테스트"
+                testConnectionCategory="openai"
             />
         </div>
     );
-};
 
-  return (
-      <div className={styles.llmContainer}>
-          {/* 탭 네비게이션 */}
-          <div className={styles.tabNavigation}>
-              <button
-                  className={`${styles.tabButton} ${activeTab === 'default' ? styles.active : ''}`}
-                  onClick={() => setActiveTab('default')}
-              >
-                  <FiServer />
-                  기본 설정
-              </button>
-              <button
-                  className={`${styles.tabButton} ${activeTab === 'openai' ? styles.active : ''}`}
-                  onClick={() => setActiveTab('openai')}
-              >
-                  <SiOpenai />
-                  OpenAI
-              </button>
-              <button
-                  className={`${styles.tabButton} ${activeTab === 'vllm' ? styles.active : ''}`}
-                  onClick={() => setActiveTab('vllm')}
-              >
-                  <BsCpu />
-                  vLLM
-              </button>
-              <button
-                  className={`${styles.tabButton} ${activeTab === 'sgl' ? styles.active : ''}`}
-                  onClick={() => setActiveTab('sgl')}
-              >
-                  <TbBrandGolang />
-                  SGLang
-              </button>
-          </div>
+    const renderVLLMTab = () => (
+        <div className={styles.vllmConfig}>
+            <div className={styles.sectionHeader}>
+                <h3>vLLM 설정</h3>
+                <p>vLLM 서버 연결 및 모델 설정을 구성합니다.</p>
+            </div>
 
-          {/* 에러 표시 */}
-          {error && (
-              <div className={styles.errorBanner}>
-                  <FiAlertCircle />
-                  <span>{error}</span>
-                  <button onClick={() => setError(null)}>
-                      <FiX />
-                  </button>
-              </div>
-          )}
+            <BaseConfigPanel
+                configData={configData}
+                fieldConfigs={VLLM_CONFIG_FIELDS}
+                filterPrefix="vllm"
+                onTestConnection={(category) => handleTestConnection('vllm')}
+                testConnectionLabel="vLLM 연결 테스트"
+                testConnectionCategory="vllm"
+            />
+        </div>
+    );
 
-          {/* 로딩 상태 */}
-          {loading && (
-              <div className={styles.loadingState}>
-                  <FiRefreshCw className={styles.spinning} />
-                  <p>LLM 상태를 불러오는 중...</p>
-              </div>
-          )}
+    const renderSGLTab = () => {
+        // 디버깅: SGL 관련 설정이 있는지 확인
+        const sglConfigs = configData.filter(item =>
+            item.env_name.startsWith('SGL_')
+        );
 
-          {/* 탭 콘텐츠 */}
-          <div className={styles.tabContent}>
-              {activeTab === 'default' && renderDefaultProviderTab()}
-              {activeTab === 'openai' && renderOpenAITab()}
-              {activeTab === 'vllm' && renderVLLMTab()}
-              {activeTab === 'sgl' && renderSGLTab()}
-          </div>
-      </div>
-  );
+        console.log('All configData:', configData.map(c => c.env_name));
+        console.log('SGL configs found:', sglConfigs.map(c => c.env_name));
+
+        return (
+            <div className={styles.sglConfig}>
+                <div className={styles.sectionHeader}>
+                    <h3>SGLang 설정</h3>
+                    <p>SGLang 서버 연결 및 모델 설정을 구성합니다.</p>
+                </div>
+
+                {/* 디버깅 정보 표시 (개발 시에만) */}
+                {process.env.NODE_ENV === 'development' && (
+                    <div style={{
+                        background: '#f3f4f6',
+                        padding: '10px',
+                        margin: '10px 0',
+                        borderRadius: '4px',
+                        fontSize: '12px'
+                    }}>
+                        <strong>Debug Info:</strong>
+                        <br />
+                        Total configs: {configData.length}
+                        <br />
+                        SGL configs: {sglConfigs.length}
+                        <br />
+                        SGL config names: {sglConfigs.map(c => c.env_name).join(', ')}
+                    </div>
+                )}
+
+                <BaseConfigPanel
+                    configData={configData}
+                    fieldConfigs={SGL_CONFIG_FIELDS}
+                    filterPrefix="SGL_"  // 대문자로 변경하고 언더스코어 포함
+                    onTestConnection={(category) => handleTestConnection('sgl')}
+                    testConnectionLabel="SGLang 연결 테스트"
+                    testConnectionCategory="sgl"
+                />
+            </div>
+        );
+    };
+
+    return (
+        <div className={styles.llmContainer}>
+            {/* 탭 네비게이션 */}
+            <div className={styles.tabNavigation}>
+                <button
+                    className={`${styles.tabButton} ${activeTab === 'default' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('default')}
+                >
+                    <FiServer />
+                    기본 설정
+                </button>
+                <button
+                    className={`${styles.tabButton} ${activeTab === 'openai' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('openai')}
+                >
+                    <SiOpenai />
+                    OpenAI
+                </button>
+                <button
+                    className={`${styles.tabButton} ${activeTab === 'vllm' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('vllm')}
+                >
+                    <BsCpu />
+                    vLLM
+                </button>
+                <button
+                    className={`${styles.tabButton} ${activeTab === 'sgl' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('sgl')}
+                >
+                    <TbBrandGolang />
+                    SGLang
+                </button>
+            </div>
+
+            {/* 에러 표시 */}
+            {error && (
+                <div className={styles.errorBanner}>
+                    <FiAlertCircle />
+                    <span>{error}</span>
+                    <button onClick={() => setError(null)}>
+                        <FiX />
+                    </button>
+                </div>
+            )}
+
+            {/* 로딩 상태 */}
+            {loading && (
+                <div className={styles.loadingState}>
+                    <FiRefreshCw className={styles.spinning} />
+                    <p>LLM 상태를 불러오는 중...</p>
+                </div>
+            )}
+
+            {/* 탭 콘텐츠 */}
+            <div className={styles.tabContent}>
+                {activeTab === 'default' && renderDefaultProviderTab()}
+                {activeTab === 'openai' && renderOpenAITab()}
+                {activeTab === 'vllm' && renderVLLMTab()}
+                {activeTab === 'sgl' && renderSGLTab()}
+            </div>
+        </div>
+    );
 };
 
 export default LLMConfig;

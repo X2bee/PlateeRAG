@@ -7,6 +7,7 @@ import {
     FiPlay,
 } from 'react-icons/fi';
 import { listInteractions } from '@/app/api/interactionAPI';
+import { deleteWorkflowIOLogs } from '@/app/api/workflowAPI';
 import { devLog } from '@/app/utils/logger';
 import styles from '@/app/chat/assets/ChatHistory.module.scss';
 import toast from 'react-hot-toast';
@@ -39,10 +40,10 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
         try {
             setLoading(true);
             setError(null);
-            
+
             const result = await listInteractions({ limit: 50 });
             setChatList((result as any).execution_meta_list || []);
-            
+
             devLog.log('Chat history loaded:', result);
         } catch (err) {
             setError('채팅 기록을 불러오는데 실패했습니다.');
@@ -58,11 +59,11 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
         const now = new Date();
         const diffMs = now.getTime() - date.getTime();
         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        
+
         if (diffDays === 0) {
-            return date.toLocaleTimeString('ko-KR', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
+            return date.toLocaleTimeString('ko-KR', {
+                hour: '2-digit',
+                minute: '2-digit'
             });
         } else if (diffDays === 1) {
             return '어제';
@@ -85,9 +86,81 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
             startedAt: chat.created_at,
         };
         localStorage.setItem('currentChatData', JSON.stringify(currentChatData));
-        
+
         onSelectChat(chat);
         toast.success(`"${chat.workflow_name}" 대화를 현재 채팅으로 설정했습니다!`);
+    };
+
+    const handleDeleteChat = async (chat: ExecutionMeta) => {
+        // 삭제 확인
+        const confirmDelete = () => new Promise((resolve) => {
+            toast((t) => (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div>
+                        <strong>"{chat.workflow_name}"</strong> 채팅을 정말 삭제하시겠습니까?
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        <button
+                            onClick={() => {
+                                toast.dismiss(t.id);
+                                resolve(false);
+                            }}
+                            style={{
+                                padding: '4px 12px',
+                                backgroundColor: '#6b7280',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            취소
+                        </button>
+                        <button
+                            onClick={() => {
+                                toast.dismiss(t.id);
+                                resolve(true);
+                            }}
+                            style={{
+                                padding: '4px 12px',
+                                backgroundColor: '#ef4444',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            삭제
+                        </button>
+                    </div>
+                </div>
+            ), {
+                duration: Infinity,
+                style: {
+                    maxWidth: '400px',
+                },
+            });
+        });
+
+        try {
+            const shouldDelete = await confirmDelete();
+            if (!shouldDelete) return;
+
+            // 삭제 API 호출
+            await deleteWorkflowIOLogs(
+                chat.workflow_name,
+                chat.workflow_id,
+                chat.interaction_id
+            );
+
+            toast.success(`"${chat.workflow_name}" 채팅이 삭제되었습니다.`);
+            
+            // 채팅 목록 새로고침
+            await loadChatHistory();
+        } catch (error) {
+            devLog.error('Failed to delete chat:', error);
+            toast.error('채팅 삭제에 실패했습니다.');
+        }
     };
 
     const handleContinueChat = (chat: ExecutionMeta) => {
@@ -99,7 +172,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
             startedAt: chat.created_at,
         };
         localStorage.setItem('currentChatData', JSON.stringify(currentChatData));
-        
+
         // onSelectChat을 통해 부모 컴포넌트에서 current-chat 모드로 변경
         onSelectChat(chat);
         toast.success(`"${chat.workflow_name}" 대화를 현재 채팅으로 설정했습니다!`);
@@ -160,7 +233,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
                                         {formatDate(chat.updated_at)}
                                     </span>
                                 </div>
-                                
+
                                 <div className={styles.cardMeta}>
                                     <div className={styles.metaItem}>
                                         <FiMessageSquare />
@@ -176,10 +249,10 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
 
                                 <div className={styles.cardActions}>
                                     <button
-                                        onClick={() => handleChatSelect(chat)}
+                                        onClick={() => handleDeleteChat(chat)}
                                         className={styles.selectButton}
                                     >
-                                        선택
+                                        삭제
                                     </button>
                                     <button
                                         onClick={() => handleContinueChat(chat)}
