@@ -204,30 +204,6 @@ const Settings: React.FC = () => {
         }
     };
 
-    const renderOpenAIConfig = () => {
-        const config = configs.openai || {};
-        return (
-            <OpenAIConfig
-                config={config}
-                onConfigChange={handleConfigChange}
-                onTestConnection={handleTestConnection}
-                configData={configData}
-            />
-        );
-    };
-
-    const renderVLLMConfig = () => {
-        const config = configs.vllm || {};
-        return (
-            <VLLMConfig
-                config={config}
-                onConfigChange={handleConfigChange}
-                onTestConnection={handleTestConnection}
-                configData={configData}
-            />
-        );
-    };
-
     const renderWorkflowConfig = () => {
         return (
             <WorkflowConfig
