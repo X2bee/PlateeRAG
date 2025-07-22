@@ -281,10 +281,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, h
 
     return (
         <div className={styles.container}>
-            <ChatHeader 
-                mode={mode} 
-                workflow={workflow} 
-                ioLogs={ioLogs} 
+            <ChatHeader
+                mode={mode}
+                workflow={workflow}
+                ioLogs={ioLogs}
                 onBack={onBack}
                 hideBackButton={hideBackButton}
                 onDeploy={() => setShowDeploymentModal(true)}
@@ -293,16 +293,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, h
             {/* Chat Area */}
             <div className={styles.chatContainer}>
                 {/* Chat Area */}
-                <ChatArea 
+                <ChatArea
                     mode={mode}
                     loading={loading}
                     ioLogs={ioLogs}
                     workflow={workflow}
-                    executing={executing} 
-                    setInputMessage={setInputMessage} 
-                    messagesRef={messagesRef} 
-                    pendingLogId={pendingLogId} 
-                    renderMessageContent={renderMessageContent} 
+                    executing={executing}
+                    setInputMessage={setInputMessage}
+                    messagesRef={messagesRef}
+                    pendingLogId={pendingLogId}
+                    renderMessageContent={renderMessageContent}
                     formatDate={formatDate}
                 ></ChatArea>
 
@@ -397,7 +397,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, h
                                     워크플로우를 실행 중입니다...
                                 </p>
                             )
-                            
+
                         )}
                         {error && (
                             <p className={styles.errorNote}>{error}</p>
