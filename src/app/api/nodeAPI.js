@@ -1,5 +1,6 @@
 import { devLog } from '@/app/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
+import { apiClient } from './apiClient';
 
 /**
  * @returns {Promise<Array<Object>>} 노드 객체의 배열을 반환하는 프로미스
@@ -7,7 +8,7 @@ import { API_BASE_URL } from '@/app/config.js';
  */
 export const getNodes = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/node/get`);
+        const response = await apiClient(`${API_BASE_URL}/api/node/get`);
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -30,7 +31,7 @@ export const getNodes = async () => {
  */
 export const exportNodes = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/node/export`);
+        const response = await apiClient(`${API_BASE_URL}/api/node/export`);
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -53,7 +54,7 @@ export const exportNodes = async () => {
  */
 export const refreshNodes = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/node/refresh`);
+        const response = await apiClient(`${API_BASE_URL}/api/node/refresh`);
 
         if (!response.ok) {
             const errorData = await response.json();

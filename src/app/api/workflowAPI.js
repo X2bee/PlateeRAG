@@ -1,5 +1,6 @@
 import { devLog } from '@/app/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
+import { apiClient } from './apiClient';
 
 /**
  * 주어진 워크플로우 데이터를 백엔드로 전송하여 실행합니다.
@@ -9,7 +10,7 @@ import { API_BASE_URL } from '@/app/config.js';
  */
 export const executeWorkflow = async (workflowData) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/workflow/execute`, {
+        const response = await apiClient(`${API_BASE_URL}/api/workflow/execute`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -51,7 +52,7 @@ export const saveWorkflow = async (workflowId, workflowContent) => {
             Object.keys(workflowContent),
         );
 
-        const response = await fetch(`${API_BASE_URL}/api/workflow/save`, {
+        const response = await apiClient(`${API_BASE_URL}/api/workflow/save`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -84,7 +85,7 @@ export const saveWorkflow = async (workflowId, workflowContent) => {
  */
 export const listWorkflows = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/workflow/list`);
+        const response = await apiClient(`${API_BASE_URL}/api/workflow/list`);
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -108,7 +109,7 @@ export const listWorkflows = async () => {
  */
 export const listWorkflowsDetail = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/workflow/list/detail`);
+        const response = await apiClient(`${API_BASE_URL}/api/workflow/list/detail`);
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -138,7 +139,7 @@ export const loadWorkflow = async (workflowId) => {
             ? workflowId.slice(0, -5)
             : workflowId;
 
-        const response = await fetch(
+        const response = await apiClient(
             `${API_BASE_URL}/api/workflow/load/${encodeURIComponent(cleanWorkflowId)}`,
         );
 
@@ -165,7 +166,7 @@ export const loadWorkflow = async (workflowId) => {
  */
 export const deleteWorkflow = async (workflowId) => {
     try {
-        const response = await fetch(
+        const response = await apiClient(
             `${API_BASE_URL}/api/workflow/delete/${encodeURIComponent(workflowId)}`,
             {
                 method: 'DELETE',
@@ -194,7 +195,7 @@ export const deleteWorkflow = async (workflowId) => {
  */
 export const getWorkflowList = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/workflow/list/detail`, {
+        const response = await apiClient(`${API_BASE_URL}/api/workflow/list/detail`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -231,7 +232,7 @@ export const getWorkflowPerformance = async (workflowName, workflowId) => {
             workflow_id: workflowId,
         });
 
-        const response = await fetch(
+        const response = await apiClient(
             `${API_BASE_URL}/api/workflow/performance?${params}`,
             {
                 method: 'GET',
@@ -265,7 +266,7 @@ export const getWorkflowPerformance = async (workflowName, workflowId) => {
  */
 export const getWorkflowNodeCounts = async (workflowName, workflowId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/performance/counts/${workflowName}/${workflowId}`);
+        const response = await apiClient(`${API_BASE_URL}/api/performance/counts/${workflowName}/${workflowId}`);
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
@@ -287,7 +288,7 @@ export const getWorkflowNodeCounts = async (workflowName, workflowId) => {
 export const getPieChartData = async (workflowName, workflowId, limit) => {
     try {
         const params = new URLSearchParams({ limit });
-        const response = await fetch(`${API_BASE_URL}/api/performance/charts/pie/${workflowName}/${workflowId}?${params}`);
+        const response = await apiClient(`${API_BASE_URL}/api/performance/charts/pie/${workflowName}/${workflowId}?${params}`);
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
@@ -309,7 +310,7 @@ export const getPieChartData = async (workflowName, workflowId, limit) => {
 export const getBarChartData = async (workflowName, workflowId, limit) => {
     try {
         const params = new URLSearchParams({ limit });
-        const response = await fetch(`${API_BASE_URL}/api/performance/charts/bar/${workflowName}/${workflowId}?${params}`);
+        const response = await apiClient(`${API_BASE_URL}/api/performance/charts/bar/${workflowName}/${workflowId}?${params}`);
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
@@ -331,7 +332,7 @@ export const getBarChartData = async (workflowName, workflowId, limit) => {
 export const getLineChartData = async (workflowName, workflowId, limit) => {
     try {
         const params = new URLSearchParams({ limit });
-        const response = await fetch(`${API_BASE_URL}/api/performance/charts/line/${workflowName}/${workflowId}?${params}`);
+        const response = await apiClient(`${API_BASE_URL}/api/performance/charts/line/${workflowName}/${workflowId}?${params}`);
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
@@ -359,7 +360,7 @@ export const getWorkflowIOLogs = async (workflowName, workflowId, interactionId 
             interaction_id: interactionId,
         });
 
-        const response = await fetch(
+        const response = await apiClient(
             `${API_BASE_URL}/api/workflow/io_logs?${params}`,
             {
                 method: 'GET',
@@ -401,7 +402,7 @@ export const deleteWorkflowIOLogs = async (workflowName, workflowId, interaction
             interaction_id: interactionId,
         });
 
-        const response = await fetch(
+        const response = await apiClient(
             `${API_BASE_URL}/api/workflow/io_logs?${params}`,
             {
                 method: 'DELETE',
@@ -453,7 +454,7 @@ export const executeWorkflowById = async (
         if (selectedCollection) {
             requestBody.selected_collection = selectedCollection;
         }
-        const response = await fetch(`${API_BASE_URL}/api/workflow/execute/based_id`, {
+        const response = await apiClient(`${API_BASE_URL}/api/workflow/execute/based_id`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -490,7 +491,7 @@ export const deleteWorkflowPerformance = async (workflowName, workflowId) => {
             workflow_id: workflowId,
         });
 
-        const response = await fetch(
+        const response = await apiClient(
             `${API_BASE_URL}/api/workflow/performance?${params}`,
             {
                 method: 'DELETE',

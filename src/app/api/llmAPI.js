@@ -1,6 +1,7 @@
 // LLM API 호출 함수들을 관리하는 파일
 import { devLog } from '@/app/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
+import { apiClient } from './apiClient';
 
 /**
  * LLM 제공자 상태 정보를 가져오는 함수
@@ -8,7 +9,7 @@ import { API_BASE_URL } from '@/app/config.js';
  */
 export const getLLMStatus = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/config/llm/status`);
+        const response = await apiClient(`${API_BASE_URL}/api/config/llm/status`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -34,7 +35,7 @@ export const switchLLMProvider = async (provider) => {
             throw new Error('Invalid provider. Must be "openai", "vllm", or "sgl"');
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/config/llm/switch-provider`, {
+        const response = await apiClient(`${API_BASE_URL}/api/config/llm/switch-provider`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -63,7 +64,7 @@ export const switchLLMProvider = async (provider) => {
  */
 export const autoSwitchLLMProvider = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/config/llm/auto-switch`, {
+        const response = await apiClient(`${API_BASE_URL}/api/config/llm/auto-switch`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -91,7 +92,7 @@ export const testLLMConnection = async () => {
     try {
         devLog.info('Testing current LLM provider connection...');
 
-        const response = await fetch(`${API_BASE_URL}/api/config/test/llm`, {
+        const response = await apiClient(`${API_BASE_URL}/api/config/test/llm`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -121,7 +122,7 @@ export const testOpenAIConnection = async () => {
     try {
         devLog.info('Testing OpenAI connection...');
 
-        const response = await fetch(`${API_BASE_URL}/api/config/test/openai`, {
+        const response = await apiClient(`${API_BASE_URL}/api/config/test/openai`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -151,7 +152,7 @@ export const testVLLMConnection = async () => {
     try {
         devLog.info('Testing vLLM connection...');
 
-        const response = await fetch(`${API_BASE_URL}/api/config/test/vllm`, {
+        const response = await apiClient(`${API_BASE_URL}/api/config/test/vllm`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -181,7 +182,7 @@ export const testSGLConnection = async () => {
     try {
         devLog.info('Testing SGL connection...');
 
-        const response = await fetch(`${API_BASE_URL}/api/config/test/sgl`, {
+        const response = await apiClient(`${API_BASE_URL}/api/config/test/sgl`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -214,7 +215,7 @@ export const validateLLMProvider = async (provider) => {
             throw new Error('Invalid provider. Must be "openai", "vllm", or "sgl"');
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/config/llm/validate/${provider}`, {
+        const response = await apiClient(`${API_BASE_URL}/api/config/llm/validate/${provider}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -263,7 +264,7 @@ export const getLLMModels = async (provider) => {
 
         devLog.info(`Fetching models for ${provider}...`);
 
-        const response = await fetch(`${API_BASE_URL}/api/config/llm/models/${provider}`, {
+        const response = await apiClient(`${API_BASE_URL}/api/config/llm/models/${provider}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

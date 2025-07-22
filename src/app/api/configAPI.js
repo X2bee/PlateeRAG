@@ -1,6 +1,7 @@
 // Configuration API 호출 함수들을 관리하는 파일
 import { devLog } from '@/app/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
+import { apiClient } from './apiClient';
 
 /**
  * 백엔드에서 모든 설정 정보를 가져오는 함수
@@ -8,7 +9,7 @@ import { API_BASE_URL } from '@/app/config.js';
  */
 export const fetchAllConfigs = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/app/config/persistent`);
+        const response = await apiClient(`${API_BASE_URL}/app/config/persistent`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -30,7 +31,7 @@ export const fetchAllConfigs = async () => {
  */
 export const updateConfig = async (configName, value) => {
     try {
-        const response = await fetch(
+        const response = await apiClient(
             `${API_BASE_URL}/app/config/persistent/${configName}`,
             {
                 method: 'PUT',
@@ -61,7 +62,7 @@ export const updateConfig = async (configName, value) => {
  */
 export const refreshConfigs = async () => {
     try {
-        const response = await fetch(
+        const response = await apiClient(
             `${API_BASE_URL}/app/config/persistent/refresh`,
             {
                 method: 'POST',
@@ -139,7 +140,7 @@ export const testConnection = async (category) => {
  */
 export const saveConfigs = async () => {
     try {
-        const response = await fetch(
+        const response = await apiClient(
             `${API_BASE_URL}/app/config/persistent/save`,
             {
                 method: 'POST',
@@ -167,7 +168,7 @@ export const saveConfigs = async () => {
  */
 export const fetchAppConfig = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/app/config`);
+        const response = await apiClient(`${API_BASE_URL}/app/config`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
