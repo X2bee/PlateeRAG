@@ -98,11 +98,13 @@ export const testLLMConnection = async () => {
             },
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        
+        // HTTP 상태 코드와 응답 데이터 모두 확인
+        if (!response.ok || data.status !== 'success') {
+            throw new Error(data.message || `HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
         devLog.info('LLM connection test completed:', data);
         return data;
     } catch (error) {
@@ -126,11 +128,13 @@ export const testOpenAIConnection = async () => {
             },
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        
+        // HTTP 상태 코드와 응답 데이터 모두 확인
+        if (!response.ok || data.status !== 'success') {
+            throw new Error(data.message || `HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
         devLog.info('OpenAI connection test completed:', data);
         return data;
     } catch (error) {
@@ -154,11 +158,13 @@ export const testVLLMConnection = async () => {
             },
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        
+        // HTTP 상태 코드와 응답 데이터 모두 확인
+        if (!response.ok || data.status !== 'success') {
+            throw new Error(data.message || `HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
         devLog.info('vLLM connection test completed:', data);
         return data;
     } catch (error) {
@@ -182,11 +188,13 @@ export const testSGLConnection = async () => {
             },
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        
+        // HTTP 상태 코드와 응답 데이터 모두 확인
+        if (!response.ok || data.status !== 'success') {
+            throw new Error(data.message || `HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
         devLog.info('SGL connection test completed:', data);
         return data;
     } catch (error) {
