@@ -24,7 +24,7 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "NEXT_PUBLIC_BACKEND_PORT=${{ secrets.NEXT_PUBLIC_BACKEND_HOST }}" >> .env
+          echo "NEXT_PUBLIC_BACKEND_HOST=${{ secrets.NEXT_PUBLIC_BACKEND_HOST }}" >> .env
           echo "NEXT_PUBLIC_BACKEND_PORT=${{ secrets.NEXT_PUBLIC_BACKEND_PORT }}" >> .env
 
       - name: Use Node.js ${{ matrix.node-version }}
