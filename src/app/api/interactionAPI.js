@@ -1,5 +1,6 @@
 import { devLog } from '@/app/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
+import { apiClient } from './apiClient';
 
 /**
  * ExecutionMeta 정보들을 리스트 형태로 반환합니다.
@@ -20,7 +21,7 @@ export const listInteractions = async (filters = {}) => {
         if (workflow_id) params.append('workflow_id', workflow_id);
         params.append('limit', limit.toString());
 
-        const response = await fetch(
+        const response = await apiClient(
             `${API_BASE_URL}/api/interaction/list?${params}`,
             {
                 method: 'GET',
@@ -74,7 +75,7 @@ export const executeWorkflowNew = async (requestData) => {
 
         devLog.log('Executing new workflow with data:', requestBody);
 
-        const response = await fetch(`${API_BASE_URL}/api/interaction/new`, {
+        const response = await apiClient(`${API_BASE_URL}/api/interaction/new`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

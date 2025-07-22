@@ -1,6 +1,7 @@
 // RAG API 호출 함수들을 관리하는 파일
 import { devLog } from '@/app/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
+import { apiClient } from './apiClient';
 
 // =============================================================================
 // Health Check
@@ -12,7 +13,7 @@ import { API_BASE_URL } from '@/app/config.js';
  */
 export const checkRagHealth = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/retrieval/health`);
+        const response = await apiClient(`${API_BASE_URL}/api/retrieval/health`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -37,7 +38,7 @@ export const checkRagHealth = async () => {
  */
 export const listCollections = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/retrieval/collections`);
+        const response = await apiClient(`${API_BASE_URL}/api/retrieval/collections`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -62,7 +63,7 @@ export const listCollections = async () => {
  */
 export const createCollection = async (collectionName, distance = "Cosine", description = null, metadata = null) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/retrieval/collections`, {
+        const response = await apiClient(`${API_BASE_URL}/api/retrieval/collections`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -95,7 +96,7 @@ export const createCollection = async (collectionName, distance = "Cosine", desc
  */
 export const deleteCollection = async (collectionName) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/retrieval/collections`, {
+        const response = await apiClient(`${API_BASE_URL}/api/retrieval/collections`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -125,7 +126,7 @@ export const deleteCollection = async (collectionName) => {
  */
 export const getCollectionInfo = async (collectionName) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/retrieval/collections/${collectionName}`);
+        const response = await apiClient(`${API_BASE_URL}/api/retrieval/collections/${collectionName}`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -167,7 +168,7 @@ export const uploadDocument = async (file, collectionName, chunkSize = 1000, chu
             formData.append('metadata', JSON.stringify(metadata));
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/retrieval/documents/upload`, {
+        const response = await apiClient(`${API_BASE_URL}/api/retrieval/documents/upload`, {
             method: 'POST',
             body: formData,
         });
@@ -196,7 +197,7 @@ export const uploadDocument = async (file, collectionName, chunkSize = 1000, chu
  */
 export const searchDocuments = async (collectionName, queryText, limit = 5, scoreThreshold = 0.7, filter = null) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/retrieval/documents/search`, {
+        const response = await apiClient(`${API_BASE_URL}/api/retrieval/documents/search`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -230,7 +231,7 @@ export const searchDocuments = async (collectionName, queryText, limit = 5, scor
  */
 export const listDocumentsInCollection = async (collectionName) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/retrieval/collections/${collectionName}/documents`);
+        const response = await apiClient(`${API_BASE_URL}/api/retrieval/collections/${collectionName}/documents`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -253,7 +254,7 @@ export const listDocumentsInCollection = async (collectionName) => {
  */
 export const getDocumentDetails = async (collectionName, documentId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/retrieval/collections/${collectionName}/documents/${documentId}`);
+        const response = await apiClient(`${API_BASE_URL}/api/retrieval/collections/${collectionName}/documents/${documentId}`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -276,7 +277,7 @@ export const getDocumentDetails = async (collectionName, documentId) => {
  */
 export const deleteDocumentFromCollection = async (collectionName, documentId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/retrieval/collections/${collectionName}/documents/${documentId}`, {
+        const response = await apiClient(`${API_BASE_URL}/api/retrieval/collections/${collectionName}/documents/${documentId}`, {
             method: 'DELETE',
         });
 
@@ -305,7 +306,7 @@ export const deleteDocumentFromCollection = async (collectionName, documentId) =
  */
 export const insertPoints = async (collectionName, points) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/retrieval/points`, {
+        const response = await apiClient(`${API_BASE_URL}/api/retrieval/points`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -337,7 +338,7 @@ export const insertPoints = async (collectionName, points) => {
  */
 export const deletePoints = async (collectionName, pointIds) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/retrieval/points`, {
+        const response = await apiClient(`${API_BASE_URL}/api/retrieval/points`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -372,7 +373,7 @@ export const deletePoints = async (collectionName, pointIds) => {
  */
 export const searchPoints = async (collectionName, queryVector, limit = 10, scoreThreshold = null, filter = null) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/retrieval/search`, {
+        const response = await apiClient(`${API_BASE_URL}/api/retrieval/search`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -411,7 +412,7 @@ export const searchPoints = async (collectionName, queryVector, limit = 10, scor
  */
 export const getRagConfig = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/retrieval/config`);
+        const response = await apiClient(`${API_BASE_URL}/api/retrieval/config`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);

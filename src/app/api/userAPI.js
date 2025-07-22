@@ -1,5 +1,6 @@
 import { devLog } from '@/app/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
+import { apiClient } from './apiClient';
 
 /**
  * 신규 사용자 정보를 백엔드로 전송하여 회원가입을 요청합니다.
@@ -9,7 +10,7 @@ import { API_BASE_URL } from '@/app/config.js';
  */
 export const registerUser = async (userData) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/signup`, {
+        const response = await apiClient(`${API_BASE_URL}/api/signup`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -40,7 +41,7 @@ export const registerUser = async (userData) => {
  */
 export const requestPasswordReset = async (data) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/forgot-password`, {
+        const response = await apiClient(`${API_BASE_URL}/api/forgot-password`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -70,7 +71,7 @@ export const requestPasswordReset = async (data) => {
  */
 export const resetPassword = async (data) => {
     try {
-        const response = await fetch(`/api/reset-password`, {
+        const response = await apiClient(`/api/reset-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
