@@ -1,6 +1,7 @@
 // RAG API 호출 함수들을 관리하는 파일
 import { devLog } from '@/app/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
+import { apiClient } from './apiClient';
 
 /**
  * 사용 가능한 임베딩 제공자 목록을 조회하는 함수
@@ -8,7 +9,7 @@ import { API_BASE_URL } from '@/app/config.js';
  */
 export const getEmbeddingProviders = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/embedding/providers`);
+        const response = await apiClient(`${API_BASE_URL}/api/embedding/providers`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -29,7 +30,7 @@ export const getEmbeddingProviders = async () => {
  */
 export const testEmbeddingProviders = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/embedding/test`);
+        const response = await apiClient(`${API_BASE_URL}/api/embedding/test`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -50,7 +51,7 @@ export const testEmbeddingProviders = async () => {
  */
 export const getEmbeddingStatus = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/embedding/status`);
+        const response = await apiClient(`${API_BASE_URL}/api/embedding/status`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -72,7 +73,7 @@ export const getEmbeddingStatus = async () => {
  */
 export const testEmbeddingQuery = async (queryText = "Hello, world!") => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/embedding/test-query`, {
+        const response = await apiClient(`${API_BASE_URL}/api/embedding/test-query`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -101,7 +102,7 @@ export const testEmbeddingQuery = async (queryText = "Hello, world!") => {
  */
 export const reloadEmbeddingClient = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/embedding/reload`, {
+        const response = await apiClient(`${API_BASE_URL}/api/embedding/reload`, {
             method: 'POST',
         });
 
@@ -125,7 +126,7 @@ export const reloadEmbeddingClient = async () => {
  */
 export const switchEmbeddingProvider = async (newProvider) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/embedding/switch-provider`, {
+        const response = await apiClient(`${API_BASE_URL}/api/embedding/switch-provider`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -154,7 +155,7 @@ export const switchEmbeddingProvider = async (newProvider) => {
  */
 export const autoSwitchEmbeddingProvider = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/embedding/auto-switch`, {
+        const response = await apiClient(`${API_BASE_URL}/api/embedding/auto-switch`, {
             method: 'POST',
         });
 
@@ -177,7 +178,7 @@ export const autoSwitchEmbeddingProvider = async () => {
  */
 export const getEmbeddingConfigStatus = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/embedding/config-status`);
+        const response = await apiClient(`${API_BASE_URL}/api/embedding/config-status`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -202,7 +203,7 @@ export const getEmbeddingConfigStatus = async () => {
  */
 export const getEmbeddingDebugInfo = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/debug/info`);
+        const response = await apiClient(`${API_BASE_URL}/api/debug/info`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
