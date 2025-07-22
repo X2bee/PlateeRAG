@@ -48,15 +48,15 @@ const Sidebar: React.FC<SidebarProps> = ({
     return (
         <aside className={`${styles.sidebar} ${className}`}>
             <div className={styles.sidebarHeader}>
-                <button 
+                <button
                     className={styles.logoButton}
                     onClick={handleLogoClick}
                 >
-                    <h2>PlateerRAG</h2>
+                    <h2>Prague</h2>
                 </button>
             </div>
 
-            <button 
+            <button
                 className={styles.sidebarToggle}
                 onClick={toggleChatExpanded}
             >
@@ -86,7 +86,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </nav>
             )}
 
-            <button 
+            <button
                 className={styles.sidebarToggle}
                 onClick={toggleExpanded}
             >

@@ -23,7 +23,7 @@ export default function HomePage() {
                 <nav className={styles.nav}>
                     <div className={styles.navContent}>
                         <div className={styles.logo}>
-                            <h1>PlateerRAG</h1>
+                            <h1>Prague</h1>
                         </div>
                         <div className={styles.navActions}>
                             {/* <Link href="/main" className={styles.secondaryBtn}>
@@ -55,7 +55,7 @@ export default function HomePage() {
                             </span>
                         </h1>
                         <p className={styles.heroDescription}>
-                            PlateerRAG는 차세대 AI 워크플로우 플랫폼입니다.<br />
+                            Prague는 차세대 AI 워크플로우 플랫폼입니다.<br />
                             드래그 앤 드롭으로 만드는 나만의 AI Agent를 경험하세요. <br />
                             당신의 아이디어를 실현하는 가장 강력한 에디터입니다.
                         </p>
@@ -76,7 +76,7 @@ export default function HomePage() {
                         <div className={styles.heroActions}>
                             <Link href="/chat" className={styles.primaryBtn}>
                                 <FiPlay />
-                                Be More Productive with PlateerRAG
+                                Be More Productive with Prague
                             </Link>
                         </div>
                     </div>
@@ -89,7 +89,7 @@ export default function HomePage() {
                                         <span></span>
                                         <span></span>
                                     </div>
-                                    <span>PlateerRAG Canvas</span>
+                                    <span>Prague Canvas</span>
                                 </div>
                                 <div className={styles.mockupContent}>
                                     <div className={styles.mockupNodes}>
@@ -117,7 +117,7 @@ export default function HomePage() {
                 {/* Feature Cards */}
                 <div id="features" className={styles.featuresSection}>
                     <div className={styles.featuresHeader}>
-                        <h2>왜 PlateerRAG인가요?</h2>
+                        <h2>왜 Prague인가요?</h2>
                         <p>
                             AI 워크플로우 구축의 새로운 표준을 제시하는 혁신적인 기능들
                         </p>
@@ -132,7 +132,7 @@ export default function HomePage() {
                                     <h3>비주얼 캔버스 에디터</h3>
                                 </div>
                                 <p className={styles.cardDescription}>
-                                    직관적인 드래그 앤 드롭으로 복잡한 AI 워크플로우를 
+                                    직관적인 드래그 앤 드롭으로 복잡한 AI 워크플로우를
                                     시각적으로 구성하고 실시간으로 미리보기할 수 있습니다.
                                 </p>
                                 <div className={styles.cardFeatures}>
@@ -151,7 +151,7 @@ export default function HomePage() {
                                     <h3>실시간 AI 채팅</h3>
                                 </div>
                                 <p className={styles.cardDescription}>
-                                    완성된 워크플로우와 자연스럽게 대화하며 
+                                    완성된 워크플로우와 자연스럽게 대화하며
                                     AI의 응답을 실시간으로 확인할 수 있습니다.
                                 </p>
                                 <div className={styles.cardFeatures}>
@@ -170,7 +170,7 @@ export default function HomePage() {
                                     <h3>스마트 관리센터</h3>
                                 </div>
                                 <p className={styles.cardDescription}>
-                                    워크플로우 성능 모니터링, 실행 로그 분석, 
+                                    워크플로우 성능 모니터링, 실행 로그 분석,
                                     그리고 팀 협업을 위한 통합 관리 환경을 제공합니다.
                                 </p>
                                 <div className={styles.cardFeatures}>
@@ -189,7 +189,7 @@ export default function HomePage() {
                                     <h3>고성능 실행 엔진</h3>
                                 </div>
                                 <p className={styles.cardDescription}>
-                                    최적화된 실행 엔진으로 대규모 워크플로우도 
+                                    최적화된 실행 엔진으로 대규모 워크플로우도
                                     빠르고 안정적으로 처리합니다.
                                 </p>
                                 <div className={styles.cardFeatures}>
@@ -208,7 +208,7 @@ export default function HomePage() {
                                     <h3>엔터프라이즈 보안</h3>
                                 </div>
                                 <p className={styles.cardDescription}>
-                                    기업급 보안과 데이터 보호 기능으로 
+                                    기업급 보안과 데이터 보호 기능으로
                                     안전한 AI 워크플로우 환경을 보장합니다.
                                 </p>
                                 <div className={styles.cardFeatures}>
@@ -227,7 +227,7 @@ export default function HomePage() {
                                     <h3>개방형 생태계</h3>
                                 </div>
                                 <p className={styles.cardDescription}>
-                                    다양한 AI 모델과 서비스를 쉽게 연동하고 
+                                    다양한 AI 모델과 서비스를 쉽게 연동하고
                                     확장 가능한 플러그인 시스템을 제공합니다.
                                 </p>
                                 <div className={styles.cardFeatures}>
@@ -270,7 +270,7 @@ export default function HomePage() {
                 <div className={styles.footerContent}>
                     <div className={styles.footerTop}>
                         <div className={styles.footerBrand}>
-                            <h3>PlateerRAG</h3>
+                            <h3>Prague</h3>
                             <p>Next Generation AI Workflow</p>
                         </div>
                         <div className={styles.footerSocial}>
