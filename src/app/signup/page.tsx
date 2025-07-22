@@ -34,10 +34,9 @@ const SignupPage = () => {
       await registerUser(userData); 
       
       alert('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
-      return <Link href="/login" replace />;
+      router.push('/login');
 
     } catch (err: any) {
-      // 3. API 함수에서 던져진 에러를 여기서 잡아 UI에 표시합니다.
       setError(err.message);
     } finally {
       setIsLoading(false);
@@ -99,7 +98,7 @@ const SignupPage = () => {
         </form>
 
         <div className={styles.links}>
-          <Link href="/login" replace>이미 계정이 있으신가요? 로그인</Link>
+          <Link href="/login">이미 계정이 있으신가요? 로그인</Link>
         </div>
       </div>
     </div>
