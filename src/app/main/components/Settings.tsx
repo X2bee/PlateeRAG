@@ -174,20 +174,6 @@ const Settings: React.FC = () => {
         setSelectedCategory(null);
     };
 
-    const handleConfigChange = (
-        categoryId: string,
-        field: string,
-        value: string | number,
-    ) => {
-        setConfigs((prev) => ({
-            ...prev,
-            [categoryId]: {
-                ...prev[categoryId],
-                [field]: value,
-            },
-        }));
-    };
-
     const handleTestConnection = async (categoryId: string) => {
         try {
             devLog.info(
