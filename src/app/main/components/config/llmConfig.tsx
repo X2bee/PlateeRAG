@@ -40,6 +40,11 @@ interface LLMStatus {
     };
 }
 
+interface ConnectionResult {
+    status: 'success' | 'error' | string;
+    [key: string]: any; 
+}
+
 // OpenAI 관련 설정 필드
 const OPENAI_CONFIG_FIELDS: Record<string, FieldConfig> = {
     OPENAI_API_KEY: {
@@ -406,7 +411,7 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                         result = await testSGLConnection();
                     }
                     
-                    results[provider] = result?.status === 'success';
+                    results[provider] = (result as { status: string })?.status === 'success';
                     tested[provider] = true;
                 } catch {
                     results[provider] = false;
