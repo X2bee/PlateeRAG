@@ -331,6 +331,7 @@ checkEnvironment();
 <div align="center">
 
 ### 🎨 캔버스 에디터
+
 <img src="./img/canvas.png" alt="캔버스 에디터" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
 <img src="./img/template.png" alt="템플릿 선택" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
 
@@ -391,6 +392,7 @@ npm run format
 - **CocoRoF** - 장하렴
 - **haesookimDev** - 김해수
 - **SonAIengine** - 손성준 (AI-LAB Part Leader)
+- **daunle** - 이다운
 
 ## 🔗 관련 링크
 
