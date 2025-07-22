@@ -154,7 +154,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
             );
 
             toast.success(`"${chat.workflow_name}" 채팅이 삭제되었습니다.`);
-            
+
             // 채팅 목록 새로고침
             await loadChatHistory();
         } catch (error) {
