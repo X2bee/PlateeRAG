@@ -23,7 +23,7 @@ export interface IOLog {
 export interface ChatInterfaceProps {
     mode: 'existing' | 'new-workflow' | 'new-default' | 'deploy';
     workflow: Workflow;
-    onChatStarted?: (newInteractionId: string) => void;
+    onChatStarted?: () => void;
     onBack: () => void;
     hideBackButton?: boolean;
     existingChatData?: {

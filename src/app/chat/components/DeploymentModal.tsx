@@ -28,12 +28,6 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
 
     if (!isOpen) return null;
 
-    const handleBackdropKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-        if (event.key === 'Escape') {
-            onClose();
-        }
-    };
-
     const chatId = workflow.id;
     const workflowName = encodeURIComponent(workflow.name);
     const apiEndpoint = `${baseUrl}/api/workflow/execute/based_id`;

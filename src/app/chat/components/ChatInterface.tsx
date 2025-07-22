@@ -21,9 +21,10 @@ import { IOLog, ChatInterfaceProps } from './types';
 import ChatHeader from './ChatHeader';
 import { ChatArea } from './ChatArea';
 import { DeploymentModal } from './DeploymentModal';
+import { generateInteractionId, normalizeWorkflowName } from '@/app/api/interactionAPI';
 
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, hideBackButton = false, existingChatData }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, onChatStarted, hideBackButton = false, existingChatData }) => {
     const [ioLogs, setIOLogs] = useState<IOLog[]>([]);
     const [loading, setLoading] = useState(false);
     const [executing, setExecuting] = useState(false);
@@ -59,7 +60,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, h
                 setLoading(false);
             }
         };
-        if (mode === 'existing' || mode === 'deploy' && workflow?.id && existingChatData?.interactionId) {
+        if (mode === 'existing' && workflow?.id && existingChatData?.interactionId) {
             loadChatLogs();
         }
     }, [mode, existingChatData?.interactionId, workflow.id, workflow.name, existingChatData?.workflowName, existingChatData?.workflowId]);
@@ -176,7 +177,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, h
         setInputMessage('');
 
         try {
-            const interactionId = existingChatData?.interactionId || 'default';
+            const interactionId = existingChatData?.interactionId || generateInteractionId();
             const workflowName = existingChatData?.workflowName || workflow.name;
             const workflowId = existingChatData?.workflowId || workflow.id;
 
@@ -215,6 +216,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, h
                     startedAt: new Date().toISOString(),
                 };
                 localStorage.setItem('currentChatData', JSON.stringify(currentChatData));
+            } else {
+                const currentChatData = {
+                    interactionId: interactionId,
+                    workflowId: workflow.id,
+                    workflowName: normalizeWorkflowName(workflow.name),
+                    startedAt: new Date().toISOString(),
+                };
+                localStorage.setItem('currentChatData', JSON.stringify(currentChatData));
+            }
+            if (onChatStarted) {
+                onChatStarted();
             }
         } catch (err) {
             // 에러로 임시 메시지 업데이트

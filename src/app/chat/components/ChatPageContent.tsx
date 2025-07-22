@@ -71,7 +71,6 @@ const ChatPageContent: React.FC = () => {
     };
 
     const handleChatStarted = () => {
-        // 채팅 시작 후 current-chat으로 전환
         setActiveSection('current-chat');
     };
 
