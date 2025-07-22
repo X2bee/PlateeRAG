@@ -31,3 +31,33 @@ export const registerUser = async (userData) => {
         throw error;
     }
 };
+
+/**
+ * 이메일 주소를 백엔드로 전송하여 비밀번호 재설정 이메일 발송을 요청합니다.
+ * @param {object} data - email을 포함하는 객체.
+ * @returns {Promise<object>} API 성공 응답 객체를 포함하는 프로미스.
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const requestPasswordReset = async (data) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/forgot-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || `HTTP error! status: ${response.status}`);
+        }
+
+        return result;
+
+    } catch (error) {
+        console.error('Failed to request password reset:', error);
+        throw error;
+    }
+};
