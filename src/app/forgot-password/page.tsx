@@ -62,7 +62,7 @@ const ForgotPasswordPage = () => {
         </form>
 
         <div className={styles.links}>
-          <Link href="/login">로그인 페이지로 돌아가기</Link>
+          <Link href="/login" replace>로그인 페이지로 돌아가기</Link>
         </div>
       </div>
     </div>

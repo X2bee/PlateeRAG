@@ -51,8 +51,8 @@ const LoginPage = () => {
         </form>
 
         <div className={styles.links}>
-          <Link href="/forgot-password">비밀번호를 잊으셨나요?</Link>
-          <Link href="/signup">회원가입</Link>
+          <Link href="/forgot-password" replace>비밀번호를 잊으셨나요?</Link>
+          <Link href="/signup" replace>회원가입</Link>
         </div>
       </div>
     </div>
