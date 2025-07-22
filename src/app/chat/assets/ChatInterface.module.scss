@@ -909,15 +909,8 @@ $white: #ffffff;
     }
 }
 
-.codeSnippet {
-    background: $gray-800;
-    color: $gray-100;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    font-family: monospace;
-    white-space: pre-wrap;
-    word-break: break-all;
-    font-size: 0.875rem;
+.codeBlockWrapper {
+    position: relative; 
 }
 
 .tabContainer {
@@ -993,6 +986,42 @@ $white: #ffffff;
     }
 }
 
+.nestedTabContainer {
+    display: flex;
+    gap: 0.5rem;
+    background-color: $gray-100;
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    width: fit-content; // 컨텐츠 크기에 맞게 너비 조절
+}
+
+.langTabButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.8rem;
+    border: none;
+    background-color: transparent;
+    color: $gray-600;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        color: $gray-800;
+    }
+
+    &.active {
+        background-color: $white;
+        color: $primary-blue;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+}
+
 .codeBlockHeader {
     display: flex;
     justify-content: space-between;
@@ -1008,26 +1037,29 @@ $white: #ffffff;
 }
 
 .copyButton {
-    display: inline-flex;
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 1;
+
+    display: flex;
     align-items: center;
     gap: 0.35rem;
-    background-color: $gray-200;
-    border: 1px solid $gray-300;
-    color: $gray-700;
-    padding: 0.25rem 0.6rem;
+
+    background-color: rgba(75, 85, 99, 0.7);
+    border: 1px solid rgba(107, 114, 128, 0.5);
+    color: $white;
+    padding: 0.3rem 0.6rem;
     border-radius: 0.375rem;
     font-size: 0.8rem;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
+    opacity: 0.8;
 
     &:hover {
-        background-color: $gray-300;
-        border-color: $gray-400;
-    }
-
-    &:active {
-        transform: scale(0.97);
+        opacity: 1;
+        background-color: rgba(55, 65, 81, 0.9);
     }
 }
 

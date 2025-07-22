@@ -1,8 +1,11 @@
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
+import { Prism } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { FiCode, FiExternalLink, FiX, FiTerminal, FiCopy } from 'react-icons/fi';
+import { SiPython, SiJavascript } from "react-icons/si";
 import toast from 'react-hot-toast'; 
 import { Workflow } from './types';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Children, isValidElement, ReactNode } from 'react';
 
 interface DeploymentModalProps {
     isOpen: boolean;
@@ -12,6 +15,7 @@ interface DeploymentModalProps {
 export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClose, workflow }) => {
     const [baseUrl, setBaseUrl] = useState('');
     const [activeTab, setActiveTab] = useState('website');
+    const [activeApiLang, setActiveApiLang] = useState('python');
     const [curlPayload, setCurlPayload] = useState('');
     const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -24,6 +28,8 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
     useEffect(() => {
         if (isOpen) {
             setActiveTab('website');
+            setActiveApiLang('python');
+
             const defaultPayload = JSON.stringify({
                 workflow_name: workflow.name,
                 workflow_id: workflow.id,
@@ -91,17 +97,37 @@ query({
     -H 'Content-Type: application/json' \\
     -d '${curlPayload.replace(/'/g, "'\\''")}'`;
 
-    const handleCopy = (text: string) => {
-        if (!text || !navigator.clipboard) {
-            toast.error('클립보드를 사용할 수 없습니다.');
-            return;
+    const CodeBlockWithCopyButton = ({ children, ...props }: { children: ReactNode; [key: string]: any }) => {
+        let codeString = '';
+        const child = Children.toArray(children)[0];
+        if (isValidElement(child)) {
+            const elementProps = child.props as { children: ReactNode };
+            const codeContent = Children.toArray(elementProps.children)[0];
+            if (typeof codeContent === 'string') {
+                codeString = codeContent;
+            }
         }
-        navigator.clipboard.writeText(text).then(() => {
-            toast.success('클립보드에 복사되었습니다!');
-        }, (err) => {
-            toast.error('복사에 실패했습니다.');
-            console.error('클립보드 복사 실패:', err);
-        });
+        
+        const handleCopy = () => {
+            if (!codeString) return;
+            navigator.clipboard.writeText(codeString).then(() => {
+                toast.success('클립보드에 복사되었습니다!');
+            }, (err) => {
+                toast.error('복사에 실패했습니다.');
+            });
+        };
+
+        return (
+            <div className={styles.codeBlockWrapper}>
+                <pre {...props}>
+                    {children}
+                </pre>
+                <button className={styles.copyButton} onClick={handleCopy}>
+                    <FiCopy />
+                    <span>Copy</span>
+                </button>
+            </div>
+        );
     };
 
     return (
@@ -173,22 +199,52 @@ query({
 
                     {activeTab === 'api' && (
                         <div className={styles.tabPanel}>
-                             <p>아래 코드를 사용하여 API를 통해 워크플로우를 호출할 수 있습니다.</p>
-                            <div className={styles.codeBlockHeader}>
-                                <h5>Python</h5>
-                                <button className={styles.copyButton} onClick={() => handleCopy(pythonApiCode)}>
-                                    <FiCopy /> Copy
+                             <p>사용하시는 언어를 선택하여 아래 코드를 통해 API를 호출할 수 있습니다.</p>
+                             
+                             {/* API 언어 탭 컨테이너 */}
+                             <div className={styles.nestedTabContainer}>
+                                <button 
+                                    className={`${styles.langTabButton} ${activeApiLang === 'python' ? styles.active : ''}`}
+                                    onClick={() => setActiveApiLang('python')}
+                                >
+                                    <SiPython />Python
+                                </button>
+                                <button 
+                                    className={`${styles.langTabButton} ${activeApiLang === 'javascript' ? styles.active : ''}`}
+                                    onClick={() => setActiveApiLang('javascript')}
+                                >
+                                    <SiJavascript />JavaScript
                                 </button>
                              </div>
-                             <pre className={styles.codeSnippet}>{baseUrl ? pythonApiCode : '코드 생성 중...'}</pre>
 
-                            <div className={styles.codeBlockHeader}>
-                                <h5>JavaScript</h5>
-                                <button className={styles.copyButton} onClick={() => handleCopy(jsApiCode)}>
-                                    <FiCopy /> Copy
-                                </button>
-                             </div>
-                            <pre className={styles.codeSnippet}>{baseUrl ? jsApiCode : '코드 생성 중...'}</pre>
+                             {/* 선택된 언어의 코드 블록만 렌더링 */}
+                             {activeApiLang === 'python' && (
+                                <div className={styles.codeBlockWrapper}>
+                                    <Prism
+                                        PreTag={CodeBlockWithCopyButton}
+                                        language="python"
+                                        style={vscDarkPlus}
+                                        showLineNumbers={true}
+                                        customStyle={{ margin: 0, borderRadius: '0.5rem' }}
+                                    >
+                                        {baseUrl ? pythonApiCode : '코드 생성 중...'}
+                                    </Prism>
+                                </div>
+                             )}
+
+                             {activeApiLang === 'javascript' && (
+                                <div className={styles.codeBlockWrapper}>
+                                    <Prism
+                                        PreTag={CodeBlockWithCopyButton}
+                                        language="javascript"
+                                        style={vscDarkPlus}
+                                        showLineNumbers={true}
+                                        customStyle={{ margin: 0, borderRadius: '0.5rem' }}
+                                    >
+                                        {baseUrl ? jsApiCode : '코드 생성 중...'}
+                                    </Prism>
+                                </div>
+                             )}
                         </div>
                     )}
 
@@ -202,13 +258,18 @@ query({
                                 rows={10}
                                 spellCheck="false"
                              />
-                             <div className={styles.codeBlockHeader}>
+                             <div className={styles.codeBlockWrapper}>
                                 <h5>생성된 cURL 명령어:</h5>
-                                <button className={styles.copyButton} onClick={() => handleCopy(curlCode)}>
-                                    <FiCopy /> Copy
-                                </button>
-                             </div>
-                             <pre className={styles.codeSnippet}>{baseUrl ? curlCode : '코드 생성 중...'}</pre>
+                                <Prism
+                                    PreTag={CodeBlockWithCopyButton}
+                                    language="bash"
+                                    style={vscDarkPlus}
+                                    customStyle={{ margin: 0, borderRadius: '0.5rem' }}
+                                    wrapLines={true}
+                                >
+                                    {baseUrl ? curlCode : '코드 생성 중...'}
+                                </Prism>
+                            </div>
                         </div>
                     )}
                 </div>
