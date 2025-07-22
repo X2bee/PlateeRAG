@@ -22,6 +22,11 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
+      - name: Create .env file
+        run: |
+          echo "NEXT_PUBLIC_BACKEND_HOST=${{ secrets.NEXT_PUBLIC_BACKEND_HOST }}" >> .env
+          echo "NEXT_PUBLIC_BACKEND_PORT=${{ secrets.NEXT_PUBLIC_BACKEND_PORT }}" >> .env
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
