@@ -59,7 +59,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, h
                 setLoading(false);
             }
         };
-        if (mode === 'existing' && workflow?.id && existingChatData?.interactionId) {
+        if (mode === 'existing' || mode === 'deploy' && workflow?.id && existingChatData?.interactionId) {
             loadChatLogs();
         }
     }, [mode, existingChatData?.interactionId, workflow.id, workflow.name, existingChatData?.workflowName, existingChatData?.workflowId]);
