@@ -61,3 +61,29 @@ export const requestPasswordReset = async (data) => {
         throw error;
     }
 };
+
+/**
+ * 토큰과 새 비밀번호를 백엔드로 전송하여 비밀번호 변경을 요청합니다.
+ * @param {ResetPasswordData} data - token과 password를 포함하는 객체.
+ * @returns {Promise<object>} API 성공 응답 객체를 포함하는 프로미스.
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const resetPassword = async (data) => {
+    try {
+        const response = await fetch(`/api/reset-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || `HTTP error! status: ${response.status}`);
+        }
+        return result;
+    } catch (error) {
+        console.error('Failed to reset password:', error);
+        throw error;
+    }
+};
