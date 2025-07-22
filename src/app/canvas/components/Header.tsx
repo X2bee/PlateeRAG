@@ -15,14 +15,14 @@ interface HeaderProps {
     onWorkflowNameChange?: (name: string) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ 
-    onMenuClick, 
-    onSave, 
-    onLoad, 
-    onExport, 
-    onNewWorkflow, 
-    workflowName: externalWorkflowName, 
-    onWorkflowNameChange 
+const Header: React.FC<HeaderProps> = ({
+    onMenuClick,
+    onSave,
+    onLoad,
+    onExport,
+    onNewWorkflow,
+    workflowName: externalWorkflowName,
+    onWorkflowNameChange
 }) => {
     const [workflowName, setWorkflowName] = useState<string>('Workflow');
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -55,12 +55,12 @@ const Header: React.FC<HeaderProps> = ({
         const finalValue = trimmedValue || 'Workflow';
         setWorkflowName(finalValue);
         saveWorkflowName(finalValue);
-        
+
         // Notify parent component of changes
         if (onWorkflowNameChange) {
             onWorkflowNameChange(finalValue);
         }
-        
+
         setIsEditing(false);
     };
 
@@ -86,7 +86,7 @@ const Header: React.FC<HeaderProps> = ({
             <div className={styles.leftSection}>
                 <Link href="/main" className={styles.logoLink}>
                     <div className={styles.logo}>
-                        PlateeRAG
+                        Prague
                     </div>
                 </Link>
                 <div className={styles.workflowNameSection}>
@@ -101,14 +101,14 @@ const Header: React.FC<HeaderProps> = ({
                                 className={styles.workflowInput}
                                 placeholder="Workflow name..."
                             />
-                            <button 
+                            <button
                                 onClick={handleSaveClick}
                                 className={`${styles.editButton} ${styles.saveButton}`}
                                 title="Save name"
                             >
                                 <LuCheck />
                             </button>
-                            <button 
+                            <button
                                 onClick={handleCancelClick}
                                 className={`${styles.editButton} ${styles.cancelButton}`}
                                 title="Cancel"
@@ -119,7 +119,7 @@ const Header: React.FC<HeaderProps> = ({
                     ) : (
                         <div className={styles.displayMode}>
                             <span className={styles.workflowName}>{workflowName}</span>
-                            <button 
+                            <button
                                 onClick={handleEditClick}
                                 className={styles.editButton}
                                 title="Edit workflow name"

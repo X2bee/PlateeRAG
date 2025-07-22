@@ -1,7 +1,7 @@
-# 🚀 PlateerRAG
+# 🚀 Prague
 
 <div align="center">
-  <img src="./img/main.png" alt="PlateerRAG 메인 화면" width="100%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);" />
+  <img src="./img/main.png" alt="Prague 메인 화면" width="100%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);" />
 </div>
 
 <br />
@@ -13,14 +13,14 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![SCSS](https://img.shields.io/badge/SCSS-Styling-pink?style=flat-square&logo=sass)](https://sass-lang.com/)
 
-PlateerRAG는 **비주얼 워크플로우 에디터**로 AI 애플리케이션을 구축할 수 있는 혁신적인 플랫폼입니다. 복잡한 코딩 없이 **드래그 앤 드롭**만으로 LangChain 기반의 AI 파이프라인을 설계하고, **실시간 채팅**으로 AI와 자연스럽게 소통할 수 있습니다.
+Prague는 **비주얼 워크플로우 에디터**로 AI 애플리케이션을 구축할 수 있는 혁신적인 플랫폼입니다. 복잡한 코딩 없이 **드래그 앤 드롭**만으로 LangChain 기반의 AI 파이프라인을 설계하고, **실시간 채팅**으로 AI와 자연스럽게 소통할 수 있습니다.
 
 ## ✨ 주요 기능
 
 ### 🎨 **비주얼 캔버스 에디터**
 
 <div align="center">
-  <img src="./img/canvas.png" alt="PlateerRAG 캔버스 에디터" width="80%" style="border-radius: 8px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1);" />
+  <img src="./img/canvas.png" alt="Prague 캔버스 에디터" width="80%" style="border-radius: 8px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1);" />
   <p><em>🖱️ 직관적인 드래그 앤 드롭 인터페이스로 AI 워크플로우를 시각적으로 구성</em></p>
 </div>
 
@@ -144,7 +144,7 @@ plateerag/
 ````
 ## 🤖 지원하는 AI 노드 (예정)
 
-PlateerRAG는 **LangChain** 생태계의 다양한 AI 노드를 지원합니다:
+Prague는 **LangChain** 생태계의 다양한 AI 노드를 지원합니다:
 
 ### 💬 **Chat Models**
 - **ChatOpenAI**: GPT-4o, GPT-4, GPT-3.5 Turbo 지원
@@ -195,7 +195,7 @@ yarn dev
 
 ### 3. 브라우저에서 확인
 
-[http://localhost:3000](http://localhost:3000)에서 PlateerRAG를 만나보세요! 🎉
+[http://localhost:3000](http://localhost:3000)에서 Prague를 만나보세요! 🎉
 
 ## 📖 사용 가이드
 
@@ -295,7 +295,7 @@ npm run format
 
 ### 🔍 디버그 시스템
 
-PlateerRAG는 **스마트 디버그 로거**를 제공합니다:
+Prague는 **스마트 디버그 로거**를 제공합니다:
 
 ```javascript
 import { devLog, prodLog } from '@/app/utils/logger';
@@ -329,8 +329,9 @@ checkEnvironment();
 ## 📸 스크린샷 갤러리
 
 <div align="center">
-  
+
 ### 🎨 캔버스 에디터
+
 <img src="./img/canvas.png" alt="캔버스 에디터" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
 <img src="./img/template.png" alt="템플릿 선택" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
 
@@ -357,7 +358,7 @@ checkEnvironment();
 
 ## 🤝 기여하기
 
-PlateerRAG 프로젝트에 기여해주셔서 감사합니다!
+Prague 프로젝트에 기여해주셔서 감사합니다!
 
 ### 기여 방법
 
@@ -391,10 +392,11 @@ npm run format
 - **CocoRoF** - 장하렴
 - **haesookimDev** - 김해수
 - **SonAIengine** - 손성준 (AI-LAB Part Leader)
+- **daunle** - 이다운
 
 ## 🔗 관련 링크
 
-- **GitHub 저장소**: [PlateerRAG Repository](https://github.com/plateer/plateerag)
+- **GitHub 저장소**: [Prague Repository](https://github.com/plateer/plateerag)
 - **개발 문서**: [`DEBUG_GUIDE.md`](DEBUG_GUIDE.md) - 디버그 시스템 사용법
 - **이슈 리포트**: GitHub Issues를 통한 버그 신고 및 기능 요청
 - **기술 블로그**: [Plateer 기술 블로그](https://x2bee.tistory.com/)
