@@ -1188,18 +1188,6 @@ $white: #ffffff;
             align-items: flex-start;
             position: relative;
             
-            &::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 3px;
-                background: linear-gradient(90deg, #10b981, #34d399);
-                opacity: 0;
-                transition: opacity 0.3s ease;
-            }
-            
             .providerIconMedium {
                 .iconWrapper {
                     display: flex;
