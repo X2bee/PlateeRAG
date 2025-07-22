@@ -40,6 +40,11 @@ interface LLMStatus {
     };
 }
 
+interface ConnectionResult {
+    status: 'success' | 'error' | string;
+    [key: string]: any;
+}
+
 // OpenAI 관련 설정 필드
 const OPENAI_CONFIG_FIELDS: Record<string, FieldConfig> = {
     OPENAI_API_KEY: {
@@ -380,39 +385,48 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
     const [switching, setSwitching] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [llmStatus, setLLMStatus] = useState<LLMStatus | null>(null);
-    const [providerAvailability, setProviderAvailability] = useState<{ [key: string]: boolean }>({});
+    const [providerAvailability, setProviderAvailability] = useState<{ [key: string]: boolean | null }>({});
+    const [connectionTested, setConnectionTested] = useState<{ [key: string]: boolean }>({});
 
     // 초기 데이터 로드
     useEffect(() => {
         loadLLMStatus();
     }, []);
 
-    // 마운트 시 현재 활성 제공자에 대해서만 연결 테스트
+    // 마운트 시 모든 제공자에 대해 연결 테스트 실행
     useEffect(() => {
-        const checkAvailability = async () => {
-            const current = getCurrentDefaultProvider();
-            try {
-                if (current === 'openai') {
-                    const ok = await testOpenAIConnection();
-                    const res = ok as { status?: string };
-                    setProviderAvailability({ [current]: res && res.status === "success" });
-                } else if (current === 'vllm') {
-                    const ok = await testVLLMConnection();
-                    const res = ok as { status?: string };
-                    setProviderAvailability({ [current]: res && res.status === "success" });
+        const checkAllProviders = async () => {
+            const providers = ['openai', 'vllm', 'sgl'];
+            const results: { [key: string]: boolean | null } = {};
+            const tested: { [key: string]: boolean } = {};
 
+            for (const provider of providers) {
+                try {
+                    let result;
+                    if (provider === 'openai') {
+                        result = await testOpenAIConnection();
+                    } else if (provider === 'vllm') {
+                        result = await testVLLMConnection();
+                    } else if (provider === 'sgl') {
+                        result = await testSGLConnection();
+                    }
 
-                } else if (current === 'sgl') {
-                    const ok = await testSGLConnection();
-                    const res = ok as { status?: string };
-                    setProviderAvailability({ [current]: res && res.status === "success" });
+                    results[provider] = (result as { status: string })?.status === 'success';
+                    tested[provider] = true;
+                } catch {
+                    results[provider] = false;
+                    tested[provider] = true;
                 }
-            } catch {
-                setProviderAvailability({ [current]: false });
             }
+
+            setProviderAvailability(results);
+            setConnectionTested(tested);
         };
-        checkAvailability();
-    }, [llmStatus, configData]);
+
+        if (llmStatus) {
+            checkAllProviders();
+        }
+    }, [llmStatus]);
 
     const loadLLMStatus = async () => {
         setLoading(true);
@@ -440,32 +454,41 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
         return defaultProviderConfig?.current_value || 'openai';
     };
 
-    // 제공자별 연결 상태 확인 (API 또는 fallback)
-    const getProviderStatus = (providerName: string): { configured: boolean; connected: boolean; warnings?: string[] } => {
+    // 제공자별 연결 상태 확인 (수정된 버전)
+    const getProviderStatus = (providerName: string): {
+        configured: boolean;
+        connected: boolean | null;
+        warnings?: string[];
+        tested: boolean;
+    } => {
+        let configured = false;
+        let connected: boolean | null = null;
+        let warnings: string[] | undefined = undefined;
+
         if (llmStatus && llmStatus.providers[providerName]) {
             const providerStatus = llmStatus.providers[providerName];
-            return {
-                configured: providerStatus.configured,
-                connected: providerStatus.available,
-                warnings: providerStatus.warnings
-            };
+            configured = providerStatus.configured;
+            warnings = providerStatus.warnings;
+        } else {
+            // Fallback: configData에서 가져오기
+            if (providerName === 'openai') {
+                configured = !!configData.find(item => item.env_name === 'OPENAI_API_KEY')?.current_value;
+            } else if (providerName === 'vllm') {
+                configured = !!configData.find(item => item.env_name === 'VLLM_API_BASE_URL')?.current_value;
+            } else if (providerName === 'sgl') {
+                const hasUrl = !!configData.find(item => item.env_name === 'SGL_API_BASE_URL')?.current_value;
+                const hasModel = !!configData.find(item => item.env_name === 'SGL_MODEL_NAME')?.current_value;
+                configured = hasUrl && hasModel;
+            }
         }
 
-        // Fallback: configData에서 가져오기
-        let configured = false;
-        if (providerName === 'openai') {
-            configured = !!configData.find(item => item.env_name === 'OPENAI_API_KEY')?.current_value;
-        } else if (providerName === 'vllm') {
-            configured = !!configData.find(item => item.env_name === 'VLLM_API_BASE_URL')?.current_value;
-        } else if (providerName === 'sgl') {
-            const hasUrl = !!configData.find(item => item.env_name === 'SGL_API_BASE_URL')?.current_value;
-            const hasModel = !!configData.find(item => item.env_name === 'SGL_MODEL_NAME')?.current_value;
-            configured = hasUrl && hasModel;
+        // 연결 테스트 결과
+        const tested = connectionTested[providerName] || false;
+        if (tested) {
+            connected = providerAvailability[providerName] || false;
         }
 
-        // 실제 연결 테스트 결과
-        const connected = !!providerAvailability[providerName];
-        return { configured, connected };
+        return { configured, connected, warnings, tested };
     };
 
     const handleProviderSwitch = async (providerName: string) => {
@@ -577,14 +600,35 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                     return;
                 }
             }
-            const res = result as { status?: string };
 
-            if (res && res.status === "success") {
-                toast.success(`${providerName} 연결 테스트 성공!`);
+            const isSuccess = (result as any)?.status === 'success';
+
+            // 테스트 결과 업데이트
+            setProviderAvailability(prev => ({
+                ...prev,
+                [providerName]: isSuccess
+            }));
+            setConnectionTested(prev => ({
+                ...prev,
+                [providerName]: true
+            }));
+
+            if (isSuccess) {
+                toast.success(`${LLM_PROVIDERS.find(p => p.name === providerName)?.displayName} 연결 테스트 성공!`);
             } else {
-                toast.error(`${providerName} 연결 테스트 실패`);
+                toast.error(`${LLM_PROVIDERS.find(p => p.name === providerName)?.displayName} 연결 테스트 실패`);
             }
         } catch (err) {
+            // 테스트 실패 결과 업데이트
+            setProviderAvailability(prev => ({
+                ...prev,
+                [providerName]: false
+            }));
+            setConnectionTested(prev => ({
+                ...prev,
+                [providerName]: true
+            }));
+
             const errorMessage = err instanceof Error ? err.message : `${providerName} 연결 테스트에 실패했습니다.`;
             setError(errorMessage);
             toast.error(errorMessage);
@@ -604,16 +648,20 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
         return provider ? provider.color : '#6b7280';
     };
 
-    const getStatusIcon = (configured: boolean, connected: boolean) => {
-        if (configured && connected) return <FiCheck className={styles.statusConnected} />;
-        if (configured) return <FiAlertCircle className={styles.statusWarning} />;
-        return <FiX className={styles.statusError} />;
+    const getStatusIcon = (configured: boolean, connected: boolean | null, tested: boolean) => {
+        if (!configured) return <FiX className={styles.statusError} />;
+        if (!tested) return <FiAlertCircle className={styles.statusWarning} />;
+        if (connected === true) return <FiCheck className={styles.statusConnected} />;
+        if (connected === false) return <FiX className={styles.statusError} />;
+        return <FiAlertCircle className={styles.statusWarning} />;
     };
 
-    const getStatusText = (configured: boolean, connected: boolean) => {
-        if (configured && connected) return '사용 가능';
-        if (configured) return '설정됨';
-        return '설정 필요';
+    const getStatusText = (configured: boolean, connected: boolean | null, tested: boolean) => {
+        if (!configured) return '설정 필요';
+        if (!tested) return '테스트 대기';
+        if (connected === true) return '사용 가능';
+        if (connected === false) return '연결 실패';
+        return '상태 확인 중';
     };
 
     const renderDefaultProviderTab = () => {
@@ -636,28 +684,29 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                     testConnectionCategory="llm"
                 />
 
-                {/* 현재 제공자 상태 */}
+                {/* 현재 제공자 상태 - ACTIVE 바 제거 */}
                 <div className={styles.currentProviderSection}>
                     <div className={styles.sectionTitle}>
                         <h4>현재 활성 제공자</h4>
-                        <span className={styles.activeBadgeGlow}>ACTIVE</span>
+                        {/* activeBadgeGlow span 제거됨 */}
                     </div>
 
-                    <div className={styles.currentProviderCard}>
+                    <div className={`${styles.currentProviderCard} ${styles.activeProviderCard}`}>
                         <div className={styles.providerMainInfo}>
                             <div className={styles.providerIconLarge}>
                                 <span
                                     className={styles.iconWrapper}
                                     style={{
                                         color: getProviderColor(currentDefaultProvider),
-                                        background: `${getProviderColor(currentDefaultProvider)}15`
+                                        background: `${getProviderColor(currentDefaultProvider)}25`,
+                                        border: `2px solid ${getProviderColor(currentDefaultProvider)}`
                                     }}
                                 >
                                     {getProviderIcon(currentDefaultProvider)}
                                 </span>
                             </div>
                             <div className={styles.providerDetails}>
-                                <h3>
+                                <h3 style={{ color: getProviderColor(currentDefaultProvider) }}>
                                     {LLM_PROVIDERS.find(p => p.name === currentDefaultProvider)?.displayName || currentDefaultProvider}
                                 </h3>
                                 <p className={styles.providerDescription}>
@@ -675,27 +724,31 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                         <div className={styles.statusSection}>
                             {(() => {
                                 const status = getProviderStatus(currentDefaultProvider);
-                                const statusClass = status.configured && status.connected
+                                const statusClass = status.configured && status.connected === true
                                     ? styles.statusSuccess
-                                    : status.configured
-                                        ? styles.statusWarning
-                                        : styles.statusError;
+                                    : status.configured && status.connected === false
+                                        ? styles.statusError
+                                        : status.configured
+                                            ? styles.statusWarning
+                                            : styles.statusError;
 
                                 return (
                                     <div className={`${styles.statusIndicatorLarge} ${statusClass}`}>
                                         <div className={styles.statusIconWrapper}>
-                                            {getStatusIcon(status.configured, status.connected)}
+                                            {getStatusIcon(status.configured, status.connected, status.tested)}
                                         </div>
                                         <div className={styles.statusText}>
                                             <span className={styles.statusLabel}>
-                                                {getStatusText(status.configured, status.connected)}
+                                                {getStatusText(status.configured, status.connected, status.tested)}
                                             </span>
                                             <span className={styles.statusSubtext}>
-                                                {status.configured && status.connected
+                                                {status.configured && status.connected === true
                                                     ? '모든 기능을 사용할 수 있습니다'
-                                                    : status.configured
-                                                        ? '설정을 확인해 주세요'
-                                                        : '설정이 필요합니다'}
+                                                    : status.configured && status.connected === false
+                                                        ? '연결을 확인해 주세요'
+                                                        : status.configured
+                                                            ? '연결 테스트를 진행해 주세요'
+                                                            : '설정이 필요합니다'}
                                             </span>
                                             {/* SGL 경고 메시지 표시 */}
                                             {status.warnings && status.warnings.length > 0 && (
@@ -727,121 +780,135 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                     </div>
                 </div>
 
-                {/* 제공자 선택 카드 */}
-                <div className={styles.providersSection}>
-                    <div className={styles.sectionTitle}>
-                        <h4>사용 가능한 LLM 제공자</h4>
-                        <span className={styles.sectionSubtitle}>
-                            제공자를 클릭하여 상세 설정으로 이동하세요
-                        </span>
-                    </div>
+               {/* 제공자 선택 카드 */}
+               <div className={styles.providersSection}>
+                   <div className={styles.sectionTitle}>
+                       <h4>사용 가능한 LLM 제공자</h4>
+                       <span className={styles.sectionSubtitle}>
+                           제공자를 클릭하여 기본 제공자로 변경하거나 상세 설정으로 이동하세요
+                       </span>
+                   </div>
 
-                    <div className={styles.providersGrid}>
-                        {LLM_PROVIDERS.map((provider) => {
-                            const status = getProviderStatus(provider.name);
-                            const isDefault = currentDefaultProvider === provider.name;
+                   <div className={styles.providersGrid}>
+                       {LLM_PROVIDERS.map((provider) => {
+                           const status = getProviderStatus(provider.name);
+                           const isDefault = currentDefaultProvider === provider.name;
 
-                            return (
-                                <div
-                                    key={provider.name}
-                                    className={`${styles.providerCard} ${isDefault ? styles.activeProvider : ''} ${status.configured ? styles.configuredProvider : styles.unconfiguredProvider}`}
-                                    onClick={() => !switching && handleProviderSwitch(provider.name)}
-                                    style={{
-                                        cursor: switching ? 'not-allowed' : (isDefault ? 'default' : 'pointer'),
-                                        opacity: switching ? 0.7 : 1
-                                    }}
-                                >
-                                    {/* 카드 헤더 */}
-                                    <div className={styles.cardHeader}>
-                                        <div className={styles.providerIconMedium}>
-                                            <span
-                                                className={styles.iconWrapper}
-                                                style={{
-                                                    color: provider.color,
-                                                    background: `${provider.color}15`
-                                                }}
-                                            >
-                                                {provider.icon}
-                                            </span>
-                                        </div>
+                           return (
+                               <div
+                                   key={provider.name}
+                                   className={`${styles.providerCard} ${isDefault ? styles.activeProvider : ''} ${status.configured ? styles.configuredProvider : styles.unconfiguredProvider}`}
+                                   onClick={() => !switching && handleProviderSwitch(provider.name)}
+                                   style={{
+                                       cursor: switching ? 'not-allowed' : (isDefault ? 'default' : 'pointer'),
+                                       opacity: switching ? 0.7 : 1,
+                                       borderColor: isDefault ? provider.color : undefined,
+                                       backgroundColor: isDefault ? `${provider.color}08` : undefined
+                                   }}
+                               >
+                                   {/* 카드 헤더 */}
+                                   <div className={styles.cardHeader}>
+                                       <div className={styles.providerIconMedium}>
+                                           <span
+                                               className={styles.iconWrapper}
+                                               style={{
+                                                   color: provider.color,
+                                                   background: `${provider.color}15`,
+                                                   border: isDefault ? `2px solid ${provider.color}` : undefined
+                                               }}
+                                           >
+                                               {provider.icon}
+                                           </span>
+                                       </div>
 
-                                        <div className={styles.cardBadges}>
-                                            {isDefault && (
-                                                <span className={styles.defaultBadge}>
-                                                    <FiCheck />
-                                                    기본
-                                                </span>
-                                            )}
-                                            <div className={`${styles.statusBadge} ${status.configured && status.connected
-                                                    ? styles.statusBadgeSuccess
-                                                    : status.configured
-                                                        ? styles.statusBadgeWarning
-                                                        : styles.statusBadgeError
-                                                }`}>
-                                                {getStatusIcon(status.configured, status.connected)}
-                                            </div>
-                                        </div>
-                                    </div>
+                                       <div className={styles.cardBadges}>
+                                           {isDefault && (
+                                               <span
+                                                   className={styles.defaultBadge}
+                                                   style={{ backgroundColor: provider.color }}
+                                               >
+                                                   <FiCheck />
+                                                   기본
+                                               </span>
+                                           )}
+                                           <div className={`${styles.statusBadge} ${
+                                               status.configured && status.connected === true
+                                                   ? styles.statusBadgeSuccess
+                                                   : status.configured && status.connected === false
+                                                       ? styles.statusBadgeError
+                                                       : status.configured
+                                                           ? styles.statusBadgeWarning
+                                                           : styles.statusBadgeError
+                                           }`}>
+                                               {getStatusIcon(status.configured, status.connected, status.tested)}
+                                           </div>
+                                       </div>
+                                   </div>
 
-                                    {/* 카드 내용 */}
-                                    <div className={styles.cardContent}>
-                                        <h4 className={styles.cardTitle}>{provider.displayName}</h4>
-                                        <p className={styles.cardDescription}>{provider.description}</p>
+                                   {/* 카드 내용 */}
+                                   <div className={styles.cardContent}>
+                                       <h4
+                                           className={styles.cardTitle}
+                                           style={{ color: isDefault ? provider.color : undefined }}
+                                       >
+                                           {provider.displayName}
+                                       </h4>
+                                       <p className={styles.cardDescription}>{provider.description}</p>
 
-                                        {/* SGL 경고 메시지 표시 */}
-                                        {provider.name === 'sgl' && status.warnings && status.warnings.length > 0 && (
-                                            <div className={styles.cardWarnings}>
-                                                {status.warnings.slice(0, 1).map((warning, index) => (
-                                                    <span key={index} className={styles.cardWarningText}>
-                                                        <FiAlertCircle />
-                                                        {warning}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
+                                       {/* SGL 경고 메시지 표시 */}
+                                       {provider.name === 'sgl' && status.warnings && status.warnings.length > 0 && (
+                                           <div className={styles.cardWarnings}>
+                                               {status.warnings.slice(0, 1).map((warning, index) => (
+                                                   <span key={index} className={styles.cardWarningText}>
+                                                       <FiAlertCircle />
+                                                       {warning}
+                                                   </span>
+                                               ))}
+                                           </div>
+                                       )}
 
-                                        <div className={styles.cardFooter}>
-                                            <span className={styles.statusLabel}>
-                                                {getStatusText(status.configured, status.connected)}
-                                            </span>
+                                       <div className={styles.cardFooter}>
+                                           <span className={styles.statusLabel}>
+                                               {getStatusText(status.configured, status.connected, status.tested)}
+                                           </span>
 
-                                            <div className={styles.cardActions}>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleTestConnection(provider.name);
-                                                    }}
-                                                    className={`${styles.button} ${styles.small} ${styles.ghost}`}
-                                                    disabled={testing || !status.configured}
-                                                    title="연결 테스트"
-                                                >
-                                                    <FiPlay />
-                                                </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setActiveTab(provider.name as 'openai' | 'vllm' | 'sgl');
-                                                    }}
-                                                    className={`${styles.button} ${styles.small} ${styles.secondary}`}
-                                                    title="설정으로 이동"
-                                                >
-                                                    <FiSettings />
-                                                    설정
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
+                                           <div className={styles.cardActions}>
+                                               <button
+                                                   onClick={(e) => {
+                                                       e.stopPropagation();
+                                                       handleTestConnection(provider.name);
+                                                   }}
+                                                   className={`${styles.button} ${styles.small} ${styles.ghost}`}
+                                                   disabled={testing || !status.configured}
+                                                   title="연결 테스트"
+                                               >
+                                                   <FiPlay />
+                                               </button>
+                                               <button
+                                                  onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      setActiveTab(provider.name as 'openai' | 'vllm' | 'sgl');
+                                                  }}
+                                                  className={`${styles.button} ${styles.small} ${styles.secondary}`}
+                                                  title="설정으로 이동"
+                                              >
+                                                  <FiSettings />
+                                                  설정
+                                              </button>
+                                          </div>
+                                      </div>
+                                  </div>
 
-                                    {/* 호버 효과를 위한 오버레이 */}
-                                    <div className={styles.cardOverlay}></div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            </div>
-        );
-    };
+                                  {/* 호버 효과를 위한 오버레이 */}
+                                  <div className={styles.cardOverlay}></div>
+                              </div>
+                          );
+                      })}
+                  </div>
+              </div>
+          </div>
+      );
+  };
 
     const renderOpenAITab = () => (
         <div className={styles.openaiConfig}>
@@ -879,52 +946,52 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
         </div>
     );
 
-    const renderSGLTab = () => {
-        // 디버깅: SGL 관련 설정이 있는지 확인
-        const sglConfigs = configData.filter(item =>
-            item.env_name.startsWith('SGL_')
-        );
+  const renderSGLTab = () => {
+      // 디버깅: SGL 관련 설정이 있는지 확인
+      const sglConfigs = configData.filter(item =>
+          item.env_name.startsWith('SGL_')
+      );
 
-        console.log('All configData:', configData.map(c => c.env_name));
-        console.log('SGL configs found:', sglConfigs.map(c => c.env_name));
+      console.log('All configData:', configData.map(c => c.env_name));
+      console.log('SGL configs found:', sglConfigs.map(c => c.env_name));
 
-        return (
-            <div className={styles.sglConfig}>
-                <div className={styles.sectionHeader}>
-                    <h3>SGLang 설정</h3>
-                    <p>SGLang 서버 연결 및 모델 설정을 구성합니다.</p>
-                </div>
+      return (
+          <div className={styles.sglConfig}>
+              <div className={styles.sectionHeader}>
+                  <h3>SGLang 설정</h3>
+                  <p>SGLang 서버 연결 및 모델 설정을 구성합니다.</p>
+              </div>
 
-                {/* 디버깅 정보 표시 (개발 시에만) */}
-                {process.env.NODE_ENV === 'development' && (
-                    <div style={{
-                        background: '#f3f4f6',
-                        padding: '10px',
-                        margin: '10px 0',
-                        borderRadius: '4px',
-                        fontSize: '12px'
-                    }}>
-                        <strong>Debug Info:</strong>
-                        <br />
-                        Total configs: {configData.length}
-                        <br />
-                        SGL configs: {sglConfigs.length}
-                        <br />
-                        SGL config names: {sglConfigs.map(c => c.env_name).join(', ')}
-                    </div>
-                )}
+              {/* 디버깅 정보 표시 (개발 시에만) */}
+              {process.env.NODE_ENV === 'development' && (
+                  <div style={{
+                      background: '#f3f4f6',
+                      padding: '10px',
+                      margin: '10px 0',
+                      borderRadius: '4px',
+                      fontSize: '12px'
+                  }}>
+                      <strong>Debug Info:</strong>
+                      <br />
+                      Total configs: {configData.length}
+                      <br />
+                      SGL configs: {sglConfigs.length}
+                      <br />
+                      SGL config names: {sglConfigs.map(c => c.env_name).join(', ')}
+                  </div>
+              )}
 
-                <BaseConfigPanel
-                    configData={configData}
-                    fieldConfigs={SGL_CONFIG_FIELDS}
-                    filterPrefix="SGL_"  // 대문자로 변경하고 언더스코어 포함
-                    onTestConnection={(category) => handleTestConnection('sgl')}
-                    testConnectionLabel="SGLang 연결 테스트"
-                    testConnectionCategory="sgl"
-                />
-            </div>
-        );
-    };
+              <BaseConfigPanel
+                  configData={configData}
+                  fieldConfigs={SGL_CONFIG_FIELDS}
+                  filterPrefix="SGL_"  // 대문자로 변경하고 언더스코어 포함
+                  onTestConnection={(category) => handleTestConnection('sgl')}
+                  testConnectionLabel="SGLang 연결 테스트"
+                  testConnectionCategory="sgl"
+              />
+          </div>
+      );
+  };
 
     return (
         <div className={styles.llmContainer}>
