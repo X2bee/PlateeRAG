@@ -947,3 +947,382 @@ $white: #ffffff;
         justify-content: center;
     }
 }
+
+// 현재 제공자 섹션
+.currentProviderSection {
+    margin: 2rem 0;
+    
+    .sectionTitle {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        
+        h4 {
+            margin: 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+        }
+    }
+    
+    .activeBadgeGlow {
+        background: linear-gradient(135deg, #10b981, #34d399);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        animation: pulse 2s infinite;
+    }
+    
+    .currentProviderCard {
+        background: linear-gradient(135deg, #ffffff, #f8fafc);
+        border: 2px solid #e5e7eb;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+        position: relative;
+        overflow: hidden;
+        
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7);
+        }
+        
+        .providerMainInfo {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex: 1;
+        }
+        
+        .providerIconLarge {
+            .iconWrapper {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 4rem;
+                height: 4rem;
+                border-radius: 1rem;
+                font-size: 2rem;
+                border: 2px solid currentColor;
+            }
+        }
+        
+        .providerDetails {
+            h3 {
+                margin: 0 0 0.5rem 0;
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #111827;
+            }
+            
+            .providerDescription {
+                margin: 0 0 1rem 0;
+                color: #6b7280;
+                line-height: 1.5;
+            }
+            
+            .providerMetadata {
+                display: flex;
+                gap: 1rem;
+                
+                .metadataItem {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.25rem;
+                    font-size: 0.875rem;
+                    color: #6b7280;
+                    
+                    .metadataIcon {
+                        font-size: 1rem;
+                    }
+                }
+            }
+        }
+        
+        .statusSection {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 1rem;
+        }
+        
+        .statusIndicatorLarge {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            
+            &.statusSuccess {
+                background: rgba(16, 185, 129, 0.1);
+                border: 1px solid rgba(16, 185, 129, 0.3);
+            }
+            
+            &.statusWarning {
+                background: rgba(245, 158, 11, 0.1);
+                border: 1px solid rgba(245, 158, 11, 0.3);
+            }
+            
+            &.statusError {
+                background: rgba(239, 68, 68, 0.1);
+                border: 1px solid rgba(239, 68, 68, 0.3);
+            }
+            
+            .statusIconWrapper {
+                font-size: 1.5rem;
+            }
+            
+            .statusText {
+                text-align: right;
+                
+                .statusLabel {
+                    display: block;
+                    font-weight: 600;
+                    color: #111827;
+                    margin-bottom: 0.25rem;
+                }
+                
+                .statusSubtext {
+                    display: block;
+                    font-size: 0.875rem;
+                    color: #6b7280;
+                }
+            }
+        }
+        
+        .testButton {
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            
+            &:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            }
+        }
+    }
+}
+
+// 제공자 선택 섹션
+.providersSection {
+    margin: 3rem 0;
+    
+    .sectionTitle {
+        margin-bottom: 1.5rem;
+        
+        h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+        }
+        
+        .sectionSubtitle {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+    }
+    
+    .providersGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .providerCard {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 1rem;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        
+        &:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            border-color: #d1d5db;
+            
+            .cardOverlay {
+                opacity: 1;
+            }
+        }
+        
+        &.activeProvider {
+            border-color: #10b981;
+            box-shadow: 0 0 0 1px #10b981, 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            
+            .cardHeader::before {
+                opacity: 1;
+            }
+        }
+        
+        &.configuredProvider {
+            border-color: #10b981;
+        }
+        
+        &.unconfiguredProvider {
+            border-color: #ef4444;
+            opacity: 0.8;
+        }
+        
+        .cardHeader {
+            padding: 1.5rem 1.5rem 0 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            position: relative;
+            
+            &::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(90deg, #10b981, #34d399);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+            
+            .providerIconMedium {
+                .iconWrapper {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 3rem;
+                    height: 3rem;
+                    border-radius: 0.75rem;
+                    font-size: 1.5rem;
+                    border: 2px solid currentColor;
+                }
+            }
+            
+            .cardBadges {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-end;
+            }
+            
+            .defaultBadge {
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+                background: #10b981;
+                color: white;
+                padding: 0.25rem 0.75rem;
+                border-radius: 1rem;
+                font-size: 0.75rem;
+                font-weight: 600;
+            }
+            
+            .statusBadge {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 2rem;
+                height: 2rem;
+                border-radius: 50%;
+                
+                &.statusBadgeSuccess {
+                    background: rgba(16, 185, 129, 0.1);
+                    color: #10b981;
+                }
+                
+                &.statusBadgeWarning {
+                    background: rgba(245, 158, 11, 0.1);
+                    color: #f59e0b;
+                }
+                
+                &.statusBadgeError {
+                    background: rgba(239, 68, 68, 0.1);
+                    color: #ef4444;
+                }
+            }
+        }
+        
+        .cardContent {
+            padding: 1rem 1.5rem 1.5rem 1.5rem;
+            
+            .cardTitle {
+                margin: 0 0 0.5rem 0;
+                font-size: 1.125rem;
+                font-weight: 600;
+                color: #111827;
+            }
+            
+            .cardDescription {
+                margin: 0 0 1.5rem 0;
+                color: #6b7280;
+                line-height: 1.5;
+                font-size: 0.875rem;
+            }
+            
+            .cardFooter {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                
+                .statusLabel {
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                    color: #6b7280;
+                }
+                
+                .cardActions {
+                    display: flex;
+                    gap: 0.5rem;
+                    
+                    .button.ghost {
+                        background: transparent;
+                        border: 1px solid #e5e7eb;
+                        color: #6b7280;
+                        
+                        &:hover {
+                            background: #f9fafb;
+                            border-color: #d1d5db;
+                        }
+                    }
+                }
+            }
+        }
+        
+        .cardOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(52, 211, 153, 0.05));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+    }
+}
+
+// 애니메이션
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
+    }
+}

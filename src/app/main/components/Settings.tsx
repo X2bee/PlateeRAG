@@ -10,6 +10,7 @@ import {
 import { BsDatabaseUp } from 'react-icons/bs';
 import { SiOpenai } from 'react-icons/si';
 import { BsGear } from 'react-icons/bs'; // Workflow 아이콘으로 사용
+import { BsCpu } from 'react-icons/bs'; // vLLM 아이콘으로 사용
 import {
     testConnection,
     fetchAllConfigs,
@@ -18,7 +19,7 @@ import { devLog } from '@/app/utils/logger';
 import styles from '@/app/main/assets/Settings.module.scss';
 
 // Import config components
-import OpenAIConfig from '@/app/main/components/config/openAIConfig';
+import LLMConfig from '@/app/main/components/config/llmConfig'; // 새로 추가
 import WorkflowConfig from '@/app/main/components/config/workflowConfig';
 import DatabaseConfig from '@/app/main/components/config/databaseConfig';
 import VectordbConfig from '@/app/main/components/config/vectordbConfig';
@@ -47,6 +48,22 @@ interface ApiConfig {
     temperature?: number;
     maxTokens?: number;
     organization?: string;
+    // vLLM specific fields
+    baseUrl?: string;
+    modelName?: string;
+    topP?: number;
+    topK?: number;
+    frequencyPenalty?: number;
+    presencePenalty?: number;
+    repetitionPenalty?: number;
+    bestOf?: number;
+    useBeamSearch?: boolean;
+    stopSequences?: string;
+    seed?: number;
+    timeout?: number;
+    stream?: boolean;
+    logprobs?: number;
+    echo?: boolean;
 }
 
 const Settings: React.FC = () => {
@@ -114,12 +131,12 @@ const Settings: React.FC = () => {
 
     const toolCategories: ToolCategory[] = [
         {
-            id: 'openai',
-            name: 'OpenAI',
-            description: 'GPT-4, GPT-3.5, DALL-E 등 OpenAI 서비스',
+            id: 'llm',
+            name: 'LLM 모델',
+            description: 'OpenAI, vLLM 등 언어모델 서비스 설정',
             icon: <SiOpenai />,
             color: '#10a37f',
-            status: configs.openai?.apiKey ? 'connected' : 'disconnected',
+            status: configs.openai?.apiKey || configs.vllm?.baseUrl ? 'connected' : 'disconnected',
         },
         {
             id: 'workflow',
@@ -199,6 +216,18 @@ const Settings: React.FC = () => {
         );
     };
 
+    const renderVLLMConfig = () => {
+        const config = configs.vllm || {};
+        return (
+            <VLLMConfig
+                config={config}
+                onConfigChange={handleConfigChange}
+                onTestConnection={handleTestConnection}
+                configData={configData}
+            />
+        );
+    };
+
     const renderWorkflowConfig = () => {
         return (
             <WorkflowConfig
@@ -226,10 +255,18 @@ const Settings: React.FC = () => {
         );
     };
 
+    const llmconfig = () => {
+        return (
+            <LLMConfig
+            configData={configData}
+            onTestConnection={handleTestConnection}
+        />
+        )
+    }
     const renderConfigForm = (categoryId: string) => {
         switch (categoryId) {
-            case 'openai':
-                return renderOpenAIConfig();
+            case 'llm':
+                return llmconfig();
             case 'workflow':
                 return renderWorkflowConfig();
             case 'database':
@@ -400,7 +437,7 @@ const Settings: React.FC = () => {
 
 // 현재 localStorage와 백엔드 API를 모두 활용하는 하이브리드 방식으로 구현
 // 백엔드에서 추가로 필요한 API:
-// - POST /app/config/test/{category} - 연결 테스트
+// - POST /app/config/test/{category} - 연결 테스트 (OpenAI, vLLM 포함)
 // - POST /app/config/reset/{category} - 카테고리별 리셋
 // - PUT /app/config/batch/{category} - 카테고리별 일괄 업데이트
 
