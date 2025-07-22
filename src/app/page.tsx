@@ -26,9 +26,10 @@ export default function HomePage() {
                             <h1>Prague</h1>
                         </div>
                         <div className={styles.navActions}>
-                            {/* <Link href="/main" className={styles.secondaryBtn}>
-                                관리센터
-                            </Link> */}
+                            <Link href="/login" className={styles.loginBtn}>
+                                Login
+                                <FiArrowRight />
+                            </Link>
                             <Link
                                 href="/chat"
                                 className={styles.getStartedBtn}
