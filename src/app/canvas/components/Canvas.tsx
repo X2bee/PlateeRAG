@@ -1,19 +1,20 @@
 "use client";
 
-import React, { 
-    useRef, 
-    useEffect, 
-    useState, 
-    forwardRef, 
-    useImperativeHandle, 
-    useCallback, 
-    memo, 
-    useLayoutEffect 
+import React, {
+    useRef,
+    useEffect,
+    useState,
+    forwardRef,
+    useImperativeHandle,
+    useCallback,
+    memo,
+    useLayoutEffect
 } from 'react';
 import styles from '@/app/canvas/assets/Canvas.module.scss';
 import Node from '@/app/canvas/components/Node';
 import Edge from '@/app/canvas/components/Edge';
 import { devLog } from '@/app/utils/logger';
+import { useNodes } from '@/app/_common/components/nodeHook';
 import type {
     Position,
     View,
@@ -51,11 +52,11 @@ const validateRequiredInputs = (nodes: CanvasNode[], edges: CanvasEdge[]): Valid
         if (!node.data.inputs || node.data.inputs.length === 0) continue;
         for (const input of node.data.inputs) {
             if (input.required) {
-                const hasConnection = edges.some(edge => 
-                    edge.target.nodeId === node.id && 
+                const hasConnection = edges.some(edge =>
+                    edge.target.nodeId === node.id &&
                     edge.target.portId === input.id
                 );
-                
+
                 if (!hasConnection) {
                     return {
                         isValid: false,
@@ -73,6 +74,7 @@ const validateRequiredInputs = (nodes: CanvasNode[], edges: CanvasEdge[]): Valid
 const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProps }, ref) => {
     const contentRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const { exportAndRefreshNodes } = useNodes();
 
     const [view, setView] = useState<View>({ x: 0, y: 0, scale: 1 });
     const [nodes, setNodes] = useState<CanvasNode[]>([]);
@@ -129,6 +131,20 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
         }
     }, [nodes, edges, view, onStateChange]);
 
+    useEffect(() => {
+        const initializeNodes = async () => {
+            try {
+                devLog.log('Canvas mounted, calling exportAndRefreshNodes...');
+                await exportAndRefreshNodes();
+                devLog.log('exportAndRefreshNodes completed successfully');
+            } catch (error) {
+                devLog.error('Error calling exportAndRefreshNodes:', error);
+            }
+        };
+
+        initializeNodes();
+    }, []); // Empty dependency array means this runs only once on mount
+
     const registerPortRef = useCallback((nodeId: string, portId: string, portType: string, el: HTMLElement | null) => {
         const key = `${nodeId}__PORTKEYDELIM__${portId}__PORTKEYDELIM__${portType}`;
         if (el) {
@@ -141,28 +157,28 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
     const getCenteredView = useCallback((): View => {
         const container = containerRef.current;
         const content = contentRef.current;
-        
+
         if (container && content) {
             const containerWidth = container.clientWidth;
             const containerHeight = container.clientHeight;
             const contentWidth = content.offsetWidth;
             const contentHeight = content.offsetHeight;
-            
+
             if (containerWidth <= 0 || containerHeight <= 0) {
                 devLog.log('Container not ready for centered view calculation, using default');
                 return { x: 0, y: 0, scale: 1 };
             }
-            
+
             const centeredView: View = {
                 x: (containerWidth - contentWidth) / 2,
                 y: (containerHeight - contentHeight) / 2,
                 scale: 1
             };
-            
+
             devLog.log('Calculated centered view:', centeredView, 'container:', { containerWidth, containerHeight }, 'content:', { contentWidth, contentHeight });
             return centeredView;
         }
-        
+
         devLog.log('Container or content not ready for centered view calculation');
         return { x: 0, y: 0, scale: 1 };
     }, []);
@@ -197,7 +213,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
                 hasView: !!state.view,
                 view: state.view
             });
-            
+
             if (state.nodes) {
                 devLog.log('Setting nodes:', state.nodes.length);
                 setNodes(state.nodes);
@@ -210,7 +226,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
                 devLog.log('Setting view:', state.view);
                 setView(state.view);
             }
-            
+
             devLog.log('Canvas loadWorkflowState completed');
         },
         getCenteredView,
@@ -259,7 +275,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
                     y: copiedNode.position.y + 50
                 }
             };
-            
+
             setNodes(prev => [...prev, newNode]);
             setSelectedNodeId(newNode.id);
             devLog.log('Node pasted:', newNode.data.nodeName);
@@ -269,45 +285,45 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
     const handleParameterChange = useCallback((nodeId: string, paramId: string, value: string | number): void => {
         devLog.log('=== Canvas Parameter Change ===');
         devLog.log('Received:', { nodeId, paramId, value });
-        
+
         setNodes(prevNodes => {
             devLog.log('Previous nodes count:', prevNodes.length);
-            
+
             const targetNodeIndex = prevNodes.findIndex(node => node.id === nodeId);
             if (targetNodeIndex === -1) {
                 devLog.warn('Target node not found:', nodeId);
                 return prevNodes;
             }
-            
+
             const targetNode = prevNodes[targetNodeIndex];
             devLog.log('Found target node:', targetNode.data.nodeName);
-            
+
             if (!targetNode.data.parameters || !Array.isArray(targetNode.data.parameters)) {
                 devLog.warn('No parameters found in target node');
                 return prevNodes;
             }
-            
+
             const targetParamIndex = targetNode.data.parameters.findIndex(param => param.id === paramId);
             if (targetParamIndex === -1) {
                 devLog.warn('Target parameter not found:', paramId);
                 return prevNodes;
             }
-            
+
             const targetParam = targetNode.data.parameters[targetParamIndex];
             const newValue = typeof targetParam.value === 'number' ? Number(value) : value;
-            
+
             if (targetParam.value === newValue) {
                 devLog.log('Parameter value unchanged, skipping update');
                 return prevNodes;
             }
-            
-            devLog.log('Updating parameter:', { 
+
+            devLog.log('Updating parameter:', {
                 paramName: targetParam.name,
-                paramId, 
-                oldValue: targetParam.value, 
-                newValue 
+                paramId,
+                oldValue: targetParam.value,
+                newValue
             });
-            
+
             const newNodes = [...prevNodes];
             newNodes[targetNodeIndex] = {
                 ...targetNode,
@@ -320,7 +336,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
                     ]
                 }
             };
-            
+
             devLog.log('Parameter update completed successfully');
             devLog.log('=== End Canvas Parameter Change ===');
             return newNodes;
@@ -330,26 +346,26 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
     const handleNodeNameChange = useCallback((nodeId: string, newName: string): void => {
         devLog.log('=== Canvas Node Name Change ===');
         devLog.log('Received:', { nodeId, newName });
-        
+
         setNodes(prevNodes => {
             const targetNodeIndex = prevNodes.findIndex(node => node.id === nodeId);
             if (targetNodeIndex === -1) {
                 devLog.warn('Target node not found:', nodeId);
                 return prevNodes;
             }
-            
+
             const targetNode = prevNodes[targetNodeIndex];
             if (targetNode.data.nodeName === newName) {
                 devLog.log('Node name unchanged, skipping update');
                 return prevNodes;
             }
-            
-            devLog.log('Updating node name:', { 
+
+            devLog.log('Updating node name:', {
                 nodeId,
-                oldName: targetNode.data.nodeName, 
-                newName 
+                oldName: targetNode.data.nodeName,
+                newName
             });
-            
+
             const newNodes = [
                 ...prevNodes.slice(0, targetNodeIndex),
                 {
@@ -361,7 +377,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
                 },
                 ...prevNodes.slice(targetNodeIndex + 1)
             ];
-            
+
             devLog.log('Node name update completed successfully');
             devLog.log('=== End Canvas Node Name Change ===');
             return newNodes;
@@ -378,11 +394,11 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
     const handleCanvasMouseDown = (e: React.MouseEvent<HTMLDivElement>): void => {
         const target = e.target as HTMLElement;
         const isParameterInput = target.matches('input, select, option') ||
-                                target.classList.contains('paramInput') || 
+                                target.classList.contains('paramInput') ||
                                 target.classList.contains('paramSelect') ||
                                 target.closest('.param') ||
                                 target.closest('[class*="param"]');
-        
+
         if (isParameterInput) {
             devLog.log('Canvas mousedown blocked for parameter input:', target);
             return;
@@ -461,7 +477,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
         if (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'TEXTAREA') {
             return;
         }
-        
+
         const isCtrlOrCmd = e.ctrlKey || e.metaKey;
 
         if (isCtrlOrCmd && e.key === 'c') {
@@ -599,7 +615,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
 
     const handlePortMouseDown = useCallback((data: PortMouseEventData): void => {
         const { nodeId, portId, portType, isMulti, type } = data;
-        
+
         if (portType === 'input') {
             let existingEdge: CanvasEdge | undefined;
             if (!isMulti) {
@@ -616,7 +632,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
                 const targetPos = portPositions[targetPosKey];
 
                 const sourcePortData = findPortData(existingEdge.source.nodeId, existingEdge.source.portId, existingEdge.source.portType);
-                
+
                 if (sourcePos && sourcePortData) {
                     setEdgePreview({
                         source: { ...existingEdge.source, type: sourcePortData.type },
@@ -624,7 +640,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
                         targetPos: targetPos
                     });
                 }
-                
+
                 setEdges(prevEdges => prevEdges.filter(e => e.id !== existingEdge.id));
                 return;
             }
@@ -676,7 +692,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
         if (container) {
             container.addEventListener('keydown', handleKeyDown);
             container.setAttribute('tabindex', '0');
-            
+
             return () => {
                 container.removeEventListener('keydown', handleKeyDown);
             };
@@ -710,7 +726,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
             if (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'TEXTAREA') {
                 return;
             }
-            
+
             if (e.key === 'Delete' || e.key === 'Backspace') {
                 e.preventDefault(); // Prevent page back navigation
                 if (selectedNodeId) {
@@ -736,8 +752,8 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
             onClick={() => containerRef.current?.focus()}
-            tabIndex={0} 
-            style={{ outline: 'none' }} 
+            tabIndex={0}
+            style={{ outline: 'none' }}
         >
             <div
                 ref={contentRef}
