@@ -3,18 +3,19 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import styles from './SignupPage.module.scss';
-import { registerUser } from '../api/userAPI';
+import styles from '@/app/signup/SignupPage.module.scss';
+import { signup } from '@/app/api/authAPI';
 
 const SignupPage = () => {
   const [username, setUsername] = useState('');
-  const [userId, setUserId] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
-  
+  const [fullName, setFullName] = useState('');
+
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const router = useRouter();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -26,18 +27,27 @@ const SignupPage = () => {
       return;
     }
 
+    if (!email || !username || !password) {
+      setError('모든 필수 항목을 입력해주세요.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const userData = { username, userId, password };
-      // 2. API 호출 로직이 단순한 함수 호출로 변경되었습니다.
-      await registerUser(userData); 
-      
+      const signupData = {
+        username,
+        email,
+        password,
+        full_name: fullName || undefined
+      };
+
+      await signup(signupData);
+
       alert('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
-      return <Link href="/login" replace />;
+      router.push('/login');
 
     } catch (err: any) {
-      // 3. API 함수에서 던져진 에러를 여기서 잡아 UI에 표시합니다.
       setError(err.message);
     } finally {
       setIsLoading(false);
@@ -48,10 +58,19 @@ const SignupPage = () => {
     <div className={styles.signupPage}>
       <div className={styles.signupBox}>
         <h1 className={styles.title}>회원가입</h1>
-        
+
         <form onSubmit={handleSubmit} className={styles.signupForm}>
           <div className={styles.inputGroup}>
-            <label htmlFor="username">이름</label>
+            <label htmlFor="fullName">이름 (선택사항)</label>
+            <input
+              type="text"
+              id="fullName"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+            />
+          </div>
+          <div className={styles.inputGroup}>
+            <label htmlFor="username">사용자명</label>
             <input
               type="text"
               id="username"
@@ -61,12 +80,12 @@ const SignupPage = () => {
             />
           </div>
           <div className={styles.inputGroup}>
-            <label htmlFor="userId">아이디</label>
+            <label htmlFor="email">이메일</label>
             <input
-              type="text"
-              id="userId"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>

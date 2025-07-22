@@ -19,7 +19,7 @@ const LoginPage = () => {
       <div className={styles.loginBox}>
         <h1 className={styles.title}>로그인</h1>
         <p className={styles.subtitle}>서비스를 이용하려면 로그인해 주세요.</p>
-        
+
         <form onSubmit={handleSubmit} className={styles.loginForm}>
           <div className={styles.inputGroup}>
             <label htmlFor="email">이메일</label>
