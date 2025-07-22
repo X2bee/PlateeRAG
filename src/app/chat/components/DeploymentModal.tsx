@@ -1,5 +1,6 @@
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
-import { FiCode, FiExternalLink, FiX } from 'react-icons/fi';
+import { FiCode, FiExternalLink, FiX, FiTerminal, FiCopy } from 'react-icons/fi';
+import toast from 'react-hot-toast'; 
 import { Workflow } from './types';
 import { useEffect, useRef, useState } from 'react';
 
@@ -11,6 +12,7 @@ interface DeploymentModalProps {
 export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClose, workflow }) => {
     const [baseUrl, setBaseUrl] = useState('');
     const [activeTab, setActiveTab] = useState('website');
+    const [curlPayload, setCurlPayload] = useState('');
     const closeButtonRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
@@ -22,6 +24,15 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
     useEffect(() => {
         if (isOpen) {
             setActiveTab('website');
+            const defaultPayload = JSON.stringify({
+                workflow_name: workflow.name,
+                workflow_id: workflow.id,
+                input_data: "안녕하세요",
+                interaction_id: "default",
+                selected_collection: "string"
+            }, null, 2);
+            setCurlPayload(defaultPayload);
+
             setTimeout(() => closeButtonRef.current?.focus(), 100);
         }
     }, [isOpen]);
@@ -74,6 +85,24 @@ query({
 });
 `;
 
+    const curlCode = `curl -X 'POST' \\
+    '${baseUrl}/api/workflow/execute/based_id' \\
+    -H 'accept: application/json' \\
+    -H 'Content-Type: application/json' \\
+    -d '${curlPayload.replace(/'/g, "'\\''")}'`;
+
+    const handleCopy = (text: string) => {
+        if (!text || !navigator.clipboard) {
+            toast.error('클립보드를 사용할 수 없습니다.');
+            return;
+        }
+        navigator.clipboard.writeText(text).then(() => {
+            toast.success('클립보드에 복사되었습니다!');
+        }, (err) => {
+            toast.error('복사에 실패했습니다.');
+            console.error('클립보드 복사 실패:', err);
+        });
+    };
 
     return (
         <div
@@ -118,6 +147,14 @@ query({
                     >
                         <FiCode /> API 연동
                     </button>
+                    <button
+                        className={`${styles.tabButton} ${activeTab === 'curl' ? styles.active : ''}`}
+                        onClick={() => setActiveTab('curl')}
+                        role="tab"
+                        aria-selected={activeTab === 'curl'}
+                    >
+                        <FiTerminal /> cURL
+                    </button>
                 </div>
 
                 {/* 탭 컨텐츠 */}
@@ -137,10 +174,41 @@ query({
                     {activeTab === 'api' && (
                         <div className={styles.tabPanel}>
                              <p>아래 코드를 사용하여 API를 통해 워크플로우를 호출할 수 있습니다.</p>
-                            <h5>Python</h5>
-                            <pre className={styles.codeSnippet}>{baseUrl ? pythonApiCode : '코드 생성 중...'}</pre>
-                            <h5>JavaScript</h5>
+                            <div className={styles.codeBlockHeader}>
+                                <h5>Python</h5>
+                                <button className={styles.copyButton} onClick={() => handleCopy(pythonApiCode)}>
+                                    <FiCopy /> Copy
+                                </button>
+                             </div>
+                             <pre className={styles.codeSnippet}>{baseUrl ? pythonApiCode : '코드 생성 중...'}</pre>
+
+                            <div className={styles.codeBlockHeader}>
+                                <h5>JavaScript</h5>
+                                <button className={styles.copyButton} onClick={() => handleCopy(jsApiCode)}>
+                                    <FiCopy /> Copy
+                                </button>
+                             </div>
                             <pre className={styles.codeSnippet}>{baseUrl ? jsApiCode : '코드 생성 중...'}</pre>
+                        </div>
+                    )}
+
+                    {activeTab === 'curl' && (
+                        <div className={styles.tabPanel}>
+                             <p>아래 텍스트 영역에서 Payload를 직접 수정하여 cURL 명령어를 완성할 수 있습니다.</p>
+                             <textarea
+                                className={styles.payloadTextarea}
+                                value={curlPayload}
+                                onChange={(e) => setCurlPayload(e.target.value)}
+                                rows={10}
+                                spellCheck="false"
+                             />
+                             <div className={styles.codeBlockHeader}>
+                                <h5>생성된 cURL 명령어:</h5>
+                                <button className={styles.copyButton} onClick={() => handleCopy(curlCode)}>
+                                    <FiCopy /> Copy
+                                </button>
+                             </div>
+                             <pre className={styles.codeSnippet}>{baseUrl ? curlCode : '코드 생성 중...'}</pre>
                         </div>
                     )}
                 </div>
