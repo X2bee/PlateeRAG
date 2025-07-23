@@ -44,7 +44,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ mode, workflow, ioLogs, onBack,
                 </div>
             </div>
             <div className={styles.chatCount}>
-                { mode === 'deploy' ? (
+                { mode === 'deploy' || mode === 'new-default' || workflow.name === 'default_mode' ? (
                     <span></span>
                 ) : (
                     <button className={styles.deployButton} onClick={onDeploy}>
