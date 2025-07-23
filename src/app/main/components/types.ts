@@ -8,6 +8,8 @@ export interface SidebarItem {
 }
 
 export interface SidebarProps {
+    isOpen: boolean;
+    onToggle: () => void;
     items: SidebarItem[];
     chatItems?: SidebarItem[];
     activeItem: string;

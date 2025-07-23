@@ -13,11 +13,14 @@ import { getChatSidebarItems, getSettingSidebarItems, createChatItemClickHandler
 import styles from '@/app/main/assets/MainPage.module.scss';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import Documents from '@/app/main/components/Documents';
+import { FiChevronRight } from 'react-icons/fi';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const MainPageContent: React.FC = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true); 
     const [activeSection, setActiveSection] = useState<string>('canvas');
     const [execTab, setExecTab] = useState<'executor' | 'monitoring'>(
         'executor',
@@ -84,6 +87,9 @@ const MainPageContent: React.FC = () => {
             // 설정 관련 아이템인 경우 현재 페이지에서 섹션 변경
             setActiveSection(id);
         }
+    };
+    const toggleSidebar = () => {
+        setIsSidebarOpen(!isSidebarOpen);
     };
 
     const handleChatSelect = (executionMeta: any) => {
@@ -211,15 +217,33 @@ const MainPageContent: React.FC = () => {
     };
     return (
         <div className={styles.container}>
-            <Sidebar
-                items={settingSidebarItems}
-                chatItems={chatSidebarItems}
-                activeItem={activeSection}
-                onItemClick={handleSidebarItemClick}
-                initialChatExpanded={false}
-                initialSettingExpanded={true}
-            />
-            <main className={styles.mainContent}>{renderContent()}</main>
+            <AnimatePresence>
+                {isSidebarOpen ? (
+                    <Sidebar 
+                    key="sidebar-panel" 
+                    isOpen={isSidebarOpen}
+                    onToggle={toggleSidebar}
+                    items={settingSidebarItems}
+                    chatItems={chatSidebarItems}
+                    activeItem={activeSection}
+                    onItemClick={handleSidebarItemClick}
+                    initialChatExpanded={false}
+                    initialSettingExpanded={true}/>
+                ) : (
+                    <motion.button
+                        key="sidebar-open-button"
+                        onClick={toggleSidebar}
+                        className={styles.openOnlyBtn}
+                        initial={{ opacity: 0 }} // 열기 버튼도 페이드인 효과 추가
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <FiChevronRight />
+                    </motion.button>
+                )}
+            </AnimatePresence>
+            <main className={`${styles.mainContent} ${!isSidebarOpen ? styles.mainContentPushed  : ''}` }>
+                {renderContent()}</main>
         </div>
     );
 };

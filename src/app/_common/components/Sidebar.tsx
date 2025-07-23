@@ -6,9 +6,12 @@ import { SidebarProps } from '@/app/main/components/types';
 import styles from '@/app/main/assets/MainPage.module.scss';
 import { logout } from '@/app/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
-import { FiLogOut } from 'react-icons/fi';
+import { FiChevronLeft, FiLogOut } from 'react-icons/fi';
+import { motion } from 'framer-motion';
 
 const Sidebar: React.FC<SidebarProps> = ({
+    isOpen,
+    onToggle,
     items,
     chatItems = [],
     activeItem,
@@ -68,43 +71,53 @@ const Sidebar: React.FC<SidebarProps> = ({
     };
 
     return (
-        <aside className={`${styles.sidebar} ${className}`}>
-            <div className={styles.sidebarHeader}>
-                <button
-                    className={styles.logoButton}
-                    onClick={handleLogoClick}
-                >
-                    <h2>Prague</h2>
-                </button>
-                {user && (
-                    <div className={styles.userInfo}>
-                        <div className={styles.welcomeText}>
-                            <span>환영합니다</span>
-                            <span className={styles.username}>{user.username}님</span>
-                        </div>
-                        <button
-                            onClick={handleLogout}
-                            className={styles.logoutButton}
-                            title="로그아웃"
-                        >
-                            <FiLogOut />
-                        </button>
-                    </div>
-                )}
-            </div>
-
-            <button
-                className={styles.sidebarToggle}
-                onClick={toggleChatExpanded}
-            >
-                <span>채팅하기</span>
-                <span className={`${styles.toggleIcon} ${isChatExpanded ? styles.expanded : ''}`}>
-                    ▼
-                </span>
+        <motion.aside 
+            className={`${styles.sidebar} ${className} ${isOpen ? styles.open : styles.closed}`}
+            initial={{ x: "-100%" }}
+            animate={{ x: 0 }} 
+            exit={{ x: "-100%" }} 
+            transition={{ type: "tween", duration: 0.3 }}
+        
+        >
+            <button onClick={onToggle} className={styles.closeOnlyBtn}>
+                <FiChevronLeft />
             </button>
+            <div className={styles.sidebarContent}>
+                <div className={styles.sidebarHeader}>
+                    <button
+                        className={styles.logoButton}
+                        onClick={handleLogoClick}
+                    >
+                        <h2>Prague</h2>
+                    </button>
+                    {user && (
+                        <div className={styles.userInfo}>
+                            <div className={styles.welcomeText}>
+                                <span>환영합니다</span>
+                                <span className={styles.username}>{user.username}님</span>
+                            </div>
+                            <button
+                                onClick={handleLogout}
+                                className={styles.logoutButton}
+                                title="로그아웃"
+                            >
+                                <FiLogOut />
+                            </button>
+                        </div>
+                    )}
+                </div>
 
-            {isChatExpanded && (
-                <nav className={styles.sidebarNav}>
+                <button
+                    className={styles.sidebarToggle}
+                    onClick={toggleChatExpanded}
+                >
+                    <span>채팅하기</span>
+                    <span className={`${styles.toggleIcon} ${isChatExpanded ? styles.expanded : ''}`}>
+                        ▼
+                    </span>
+                </button>
+
+                <nav className={`${styles.sidebarNav} ${isChatExpanded ? styles.expanded : ''}`}>
                     {chatItems.map((item) => (
                         <button
                             key={item.id}
@@ -121,20 +134,18 @@ const Sidebar: React.FC<SidebarProps> = ({
                         </button>
                     ))}
                 </nav>
-            )}
 
-            <button
-                className={styles.sidebarToggle}
-                onClick={toggleExpanded}
-            >
-                <span>AI 워크플로우 관리 센터</span>
-                <span className={`${styles.toggleIcon} ${isSettingExpanded ? styles.expanded : ''}`}>
-                    ▼
-                </span>
-            </button>
+                <button
+                    className={styles.sidebarToggle}
+                    onClick={toggleExpanded}
+                >
+                    <span>AI 워크플로우 관리 센터</span>
+                    <span className={`${styles.toggleIcon} ${isSettingExpanded ? styles.expanded : ''}`}>
+                        ▼
+                    </span>
+                </button>
 
-            {isSettingExpanded && (
-                <nav className={styles.sidebarNav}>
+                <nav className={`${styles.sidebarNav} ${isSettingExpanded ? styles.expanded : ''}`}>
                     {items.map((item) => (
                         <button
                             key={item.id}
@@ -151,8 +162,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                         </button>
                     ))}
                 </nav>
-            )}
-        </aside>
+            </div>
+        </motion.aside>
     );
 };
 

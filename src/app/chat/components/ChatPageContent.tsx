@@ -1,17 +1,20 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/app/_common/components/Sidebar';
+import { motion, AnimatePresence } from 'framer-motion';
 import ChatHistory from '@/app/chat/components/ChatHistory';
 import CurrentChatInterface from '@/app/chat/components/CurrentChatInterface';
 import ChatContent from '@/app/chat/components/ChatContent';
 import { getChatSidebarItems, getSettingSidebarItems, createItemClickHandler } from '@/app/_common/components/sidebarConfig';
 import styles from '@/app/main/assets/MainPage.module.scss';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { FiChevronRight } from 'react-icons/fi';
 
 const ChatPageContent: React.FC = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true); 
     const [activeSection, setActiveSection] = useState<string>('new-chat');
     const [initialLoad, setInitialLoad] = useState(true);
 
@@ -65,6 +68,10 @@ const ChatPageContent: React.FC = () => {
         }
     };
 
+    const toggleSidebar = () => {
+        setIsSidebarOpen(!isSidebarOpen);
+    };
+
     const handleChatSelect = (executionMeta: any) => {
         console.log('Selected chat:', executionMeta);
         setActiveSection('current-chat');
@@ -92,15 +99,33 @@ const ChatPageContent: React.FC = () => {
 
     return (
         <div className={styles.container}>
-            <Sidebar
-                items={settingSidebarItems}
-                chatItems={chatSidebarItems}
-                activeItem={activeSection}
-                onItemClick={handleSidebarItemClick}
-                initialChatExpanded={true}
-                initialSettingExpanded={false}
-            />
-            <main className={styles.mainContent}>{renderContent()}</main>
+            <AnimatePresence>
+                {isSidebarOpen ? (
+                    <Sidebar 
+                    key="sidebar-panel" 
+                    isOpen={isSidebarOpen}
+                    onToggle={toggleSidebar}
+                    items={settingSidebarItems}
+                    chatItems={chatSidebarItems}
+                    activeItem={activeSection}
+                    onItemClick={handleSidebarItemClick}
+                    initialChatExpanded={false}
+                    initialSettingExpanded={true}/>
+                ) : (
+                    <motion.button
+                        key="sidebar-open-button"
+                        onClick={toggleSidebar}
+                        className={styles.openOnlyBtn}
+                        initial={{ opacity: 0 }} // 열기 버튼도 페이드인 효과 추가
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <FiChevronRight />
+                    </motion.button>
+                )}
+            </AnimatePresence>
+            <main className={`${styles.mainContent} ${!isSidebarOpen ? styles.mainContentPushed  : ''}` }>
+                {renderContent()}</main>
         </div>
     );
 };

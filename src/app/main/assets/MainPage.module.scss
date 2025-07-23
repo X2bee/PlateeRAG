@@ -24,27 +24,84 @@ $white: #ffffff;
 .mainContent {
   flex: 1;
   padding: 2rem;
-  margin-left: 280px; // 사이드바 width만큼 좌측 여백 추가
+  margin-left: 280px;
   overflow-y: auto;
   min-height: 100vh;
+  transition: margin-left 0.3s ease-in-out; 
+
+  position: relative;
+  z-index: 1;
 }
 
 .sidebar {
+  position: relative;
   position: fixed;
   top: 0;
   left: 0;
   width: 280px;
-  height: 100vh;
+  height: 100%;
   background: $white;
   border-right: 1px solid $gray-200;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
-  z-index: 1000;
+  flex-shrink: 0;
+  z-index: 100;
+  transform: translateX(0);
+}
+
+.sidebarContent {
+  height: 100%;
+  width: 100%;
   overflow-y: auto;
 }
 
-// Sidebar Header
+.openOnlyBtn {
+  position: fixed;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  
+  width: 24px;
+  height: 48px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-left: none;
+  border-radius: 0 100px 100px 0;
+  cursor: pointer;
+  z-index: 101;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+.closeOnlyBtn {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translate(50%, -50%);
+
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid #e0e0e0;
+    cursor: pointer;
+    z-index: 101;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar.closed .closeOnlyBtn {
+    transform: translate(0, -50%);
+}
+
+.mainContentPushed {
+  margin-left: 0;
+}
+
 .sidebarHeader {
   padding: 1.2rem;
   border-bottom: 1px solid $gray-200;
@@ -162,7 +219,24 @@ $white: #ffffff;
 
 // Sidebar Navigation
 .sidebarNav {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
   padding: 0;
+  margin: 0;
+}
+.sidebarNav.expanded {
+  max-height: 500px;
+  opacity: 1;
+}
+
+.toggleIcon {
+  transition: transform 0.3s ease-in-out;
+}
+
+.toggleIcon.expanded {
+  transform: rotate(180deg);
 }
 
 .navItem {
@@ -220,6 +294,7 @@ $white: #ffffff;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   padding: 2rem;
   min-height: calc(100vh - 4rem);
+  transition: margin-left 0.3s ease-in-out;
 }
 
 .contentHeader {
