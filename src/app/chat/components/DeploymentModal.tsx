@@ -1,7 +1,7 @@
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
 import { Prism } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { FiCode, FiExternalLink, FiX, FiTerminal, FiCopy } from 'react-icons/fi';
+import { FiCode, FiExternalLink, FiX, FiTerminal, FiCopy, FiShare2 } from 'react-icons/fi';
 import { SiPython, SiJavascript } from "react-icons/si";
 import toast from 'react-hot-toast'; 
 import { Workflow } from './types';
@@ -97,6 +97,23 @@ query({
     -H 'Content-Type: application/json' \\
     -d '${curlPayload.replace(/'/g, "'\\''")}'`;
 
+    const popupHtmlCode = `<script type="module">
+    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js"
+    Chatbot.init({
+        chatid: "${chatId}",
+        apiHost: "${baseUrl}",
+    })
+</script>`;
+
+    const fullPageHtmlCode = `<flowise-fullchatbot></flowise-fullchatbot>
+<script type="module">
+    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js"
+    Chatbot.initFull({
+        chatid: "${chatId}",
+        apiHost: "${baseUrl}",
+    })
+</script>`;
+
     const CodeBlockWithCopyButton = ({ children, ...props }: { children: ReactNode; [key: string]: any }) => {
         let codeString = '';
         const child = Children.toArray(children)[0];
@@ -180,6 +197,14 @@ query({
                         aria-selected={activeTab === 'curl'}
                     >
                         <FiTerminal /> cURL
+                    </button>
+                    <button
+                        className={`${styles.tabButton} ${activeTab === 'embed' ? styles.active : ''}`}
+                        onClick={() => setActiveTab('embed')}
+                        role="tab"
+                        aria-selected={activeTab === 'embed'}
+                    >
+                        <FiShare2 /> 임베드
                     </button>
                 </div>
 
@@ -270,6 +295,32 @@ query({
                                     {baseUrl ? curlCode : '코드 생성 중...'}
                                 </Prism>
                             </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'embed' && (
+                        <div className={styles.tabPanel}>
+                            <p>웹사이트에 챗봇을 임베드하려면 아래 HTML 코드를 사용하세요.</p>
+                            
+                            <h5>팝업(Popup) 형태</h5>
+                            <Prism
+                                PreTag={CodeBlockWithCopyButton}
+                                language="html"
+                                style={vscDarkPlus}
+                                customStyle={{ margin: 0, borderRadius: '0.5rem' }}
+                            >
+                                {baseUrl ? popupHtmlCode : '코드 생성 중...'}
+                            </Prism>
+
+                            <h5 style={{ marginTop: '1.5rem' }}>전체 페이지(Full Page) 형태</h5>
+                            <Prism
+                                PreTag={CodeBlockWithCopyButton}
+                                language="html"
+                                style={vscDarkPlus}
+                                customStyle={{ margin: 0, borderRadius: '0.5rem' }}
+                            >
+                                {baseUrl ? fullPageHtmlCode : '코드 생성 중...'}
+                            </Prism>
                         </div>
                     )}
                 </div>
