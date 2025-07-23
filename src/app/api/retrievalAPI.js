@@ -13,7 +13,9 @@ import { apiClient } from '@/app/api/apiClient';
  */
 export const checkRagHealth = async () => {
     try {
-        const response = await apiClient(`${API_BASE_URL}/api/retrieval/health`);
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/health`,
+        );
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -38,7 +40,9 @@ export const checkRagHealth = async () => {
  */
 export const listCollections = async () => {
     try {
-        const response = await apiClient(`${API_BASE_URL}/api/retrieval/collections`);
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/collections`,
+        );
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -61,20 +65,28 @@ export const listCollections = async () => {
  * @param {Object} metadata - 커스텀 메타데이터 (선택사항)
  * @returns {Promise<Object>} 생성된 컬렉션 정보
  */
-export const createCollection = async (collectionName, distance = "Cosine", description = null, metadata = null) => {
+export const createCollection = async (
+    collectionName,
+    distance = 'Cosine',
+    description = null,
+    metadata = null,
+) => {
     try {
-        const response = await apiClient(`${API_BASE_URL}/api/retrieval/collections`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/collections`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    collection_name: collectionName,
+                    distance: distance,
+                    description: description,
+                    metadata: metadata,
+                }),
             },
-            body: JSON.stringify({
-                collection_name: collectionName,
-                distance: distance,
-                description: description,
-                metadata: metadata
-            }),
-        });
+        );
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -96,15 +108,18 @@ export const createCollection = async (collectionName, distance = "Cosine", desc
  */
 export const deleteCollection = async (collectionName) => {
     try {
-        const response = await apiClient(`${API_BASE_URL}/api/retrieval/collections`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/collections`,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    collection_name: collectionName,
+                }),
             },
-            body: JSON.stringify({
-                collection_name: collectionName
-            }),
-        });
+        );
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -126,7 +141,9 @@ export const deleteCollection = async (collectionName) => {
  */
 export const getCollectionInfo = async (collectionName) => {
     try {
-        const response = await apiClient(`${API_BASE_URL}/api/retrieval/collections/${collectionName}`);
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/collections/${collectionName}`,
+        );
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -155,7 +172,14 @@ export const getCollectionInfo = async (collectionName) => {
  * @param {Object} metadata - 문서 메타데이터 (선택사항)
  * @returns {Promise<Object>} 업로드 결과
  */
-export const uploadDocument = async (file, collectionName, chunkSize = 1000, chunkOverlap = 200, processChunks = true, metadata = null) => {
+export const uploadDocument = async (
+    file,
+    collectionName,
+    chunkSize = 1000,
+    chunkOverlap = 200,
+    processChunks = true,
+    metadata = null,
+) => {
     try {
         const formData = new FormData();
         formData.append('file', file);
@@ -168,10 +192,13 @@ export const uploadDocument = async (file, collectionName, chunkSize = 1000, chu
             formData.append('metadata', JSON.stringify(metadata));
         }
 
-        const response = await apiClient(`${API_BASE_URL}/api/retrieval/documents/upload`, {
-            method: 'POST',
-            body: formData,
-        });
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/documents/upload`,
+            {
+                method: 'POST',
+                body: formData,
+            },
+        );
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -195,21 +222,30 @@ export const uploadDocument = async (file, collectionName, chunkSize = 1000, chu
  * @param {Object} filter - 검색 필터 (선택사항)
  * @returns {Promise<Object>} 검색 결과
  */
-export const searchDocuments = async (collectionName, queryText, limit = 5, scoreThreshold = 0.7, filter = null) => {
+export const searchDocuments = async (
+    collectionName,
+    queryText,
+    limit = 5,
+    scoreThreshold = 0.7,
+    filter = null,
+) => {
     try {
-        const response = await apiClient(`${API_BASE_URL}/api/retrieval/documents/search`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/documents/search`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    collection_name: collectionName,
+                    query_text: queryText,
+                    limit: limit,
+                    score_threshold: scoreThreshold,
+                    filter: filter,
+                }),
             },
-            body: JSON.stringify({
-                collection_name: collectionName,
-                query_text: queryText,
-                limit: limit,
-                score_threshold: scoreThreshold,
-                filter: filter
-            }),
-        });
+        );
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -231,7 +267,9 @@ export const searchDocuments = async (collectionName, queryText, limit = 5, scor
  */
 export const listDocumentsInCollection = async (collectionName) => {
     try {
-        const response = await apiClient(`${API_BASE_URL}/api/retrieval/collections/${collectionName}/documents`);
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/collections/${collectionName}/documents`,
+        );
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -254,7 +292,9 @@ export const listDocumentsInCollection = async (collectionName) => {
  */
 export const getDocumentDetails = async (collectionName, documentId) => {
     try {
-        const response = await apiClient(`${API_BASE_URL}/api/retrieval/collections/${collectionName}/documents/${documentId}`);
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/collections/${collectionName}/documents/${documentId}`,
+        );
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -275,11 +315,17 @@ export const getDocumentDetails = async (collectionName, documentId) => {
  * @param {string} documentId - 삭제할 문서 ID
  * @returns {Promise<Object>} 삭제 결과
  */
-export const deleteDocumentFromCollection = async (collectionName, documentId) => {
+export const deleteDocumentFromCollection = async (
+    collectionName,
+    documentId,
+) => {
     try {
-        const response = await apiClient(`${API_BASE_URL}/api/retrieval/collections/${collectionName}/documents/${documentId}`, {
-            method: 'DELETE',
-        });
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/collections/${collectionName}/documents/${documentId}`,
+            {
+                method: 'DELETE',
+            },
+        );
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -306,16 +352,19 @@ export const deleteDocumentFromCollection = async (collectionName, documentId) =
  */
 export const insertPoints = async (collectionName, points) => {
     try {
-        const response = await apiClient(`${API_BASE_URL}/api/retrieval/points`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/points`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    collection_name: collectionName,
+                    points: points,
+                }),
             },
-            body: JSON.stringify({
-                collection_name: collectionName,
-                points: points
-            }),
-        });
+        );
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -338,16 +387,19 @@ export const insertPoints = async (collectionName, points) => {
  */
 export const deletePoints = async (collectionName, pointIds) => {
     try {
-        const response = await apiClient(`${API_BASE_URL}/api/retrieval/points`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/points`,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    collection_name: collectionName,
+                    point_ids: pointIds,
+                }),
             },
-            body: JSON.stringify({
-                collection_name: collectionName,
-                point_ids: pointIds
-            }),
-        });
+        );
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -371,23 +423,32 @@ export const deletePoints = async (collectionName, pointIds) => {
  * @param {Object} filter - 검색 필터 (선택사항)
  * @returns {Promise<Object>} 검색 결과
  */
-export const searchPoints = async (collectionName, queryVector, limit = 10, scoreThreshold = null, filter = null) => {
+export const searchPoints = async (
+    collectionName,
+    queryVector,
+    limit = 10,
+    scoreThreshold = null,
+    filter = null,
+) => {
     try {
-        const response = await apiClient(`${API_BASE_URL}/api/retrieval/search`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/search`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    collection_name: collectionName,
+                    query: {
+                        vector: queryVector,
+                        limit: limit,
+                        score_threshold: scoreThreshold,
+                        filter: filter,
+                    },
+                }),
             },
-            body: JSON.stringify({
-                collection_name: collectionName,
-                query: {
-                    vector: queryVector,
-                    limit: limit,
-                    score_threshold: scoreThreshold,
-                    filter: filter
-                }
-            }),
-        });
+        );
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -412,7 +473,9 @@ export const searchPoints = async (collectionName, queryVector, limit = 10, scor
  */
 export const getRagConfig = async () => {
     try {
-        const response = await apiClient(`${API_BASE_URL}/api/retrieval/config`);
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/config`,
+        );
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -441,7 +504,7 @@ export const isSupportedFileType = (file) => {
         'application/pdf',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'application/msword',
-        'text/plain'
+        'text/plain',
     ];
     return supportedTypes.includes(file.type);
 };
@@ -463,8 +526,8 @@ export const isValidFileSize = (file, maxSizeMB = 50) => {
  * @returns {boolean} 유효성 여부
  */
 export const isValidCollectionName = (name) => {
-    // 영문자, 숫자, 언더스코어, 하이픈만 허용, 3-63자
-    const regex = /^[a-zA-Z0-9_-]{3,63}$/;
+    // 한글, 영문, 숫자, 언더스코어, 하이픈만 허용 (3~63자)
+    const regex = /^[\uAC00-\uD7A3a-zA-Z0-9_-]{3,63}$/;
     return regex.test(name);
 };
 
@@ -475,10 +538,10 @@ export const isValidCollectionName = (name) => {
  */
 export const getProviderDisplayName = (provider) => {
     const providerNames = {
-        'openai': 'OpenAI',
-        'huggingface': 'HuggingFace',
-        'custom_http': '커스텀 HTTP',
-        'local': '로컬'
+        openai: 'OpenAI',
+        huggingface: 'HuggingFace',
+        custom_http: '커스텀 HTTP',
+        local: '로컬',
     };
     return providerNames[provider?.toLowerCase()] || provider;
 };
@@ -491,10 +554,10 @@ export const getProviderDisplayName = (provider) => {
 export const getMimeTypeFromFilename = (filename) => {
     const extension = filename.split('.').pop().toLowerCase();
     const mimeTypes = {
-        'pdf': 'application/pdf',
-        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'doc': 'application/msword',
-        'txt': 'text/plain'
+        pdf: 'application/pdf',
+        docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        doc: 'application/msword',
+        txt: 'text/plain',
     };
     return mimeTypes[extension] || 'application/octet-stream';
 };
@@ -573,7 +636,7 @@ export const getEmbeddingDimension = (provider, model) => {
                 'BAAI/bge-large-en-v1.5': 1024,
                 'BAAI/bge-base-en-v1.5': 768,
                 'BAAI/bge-small-en-v1.5': 384,
-                "Qwen/Qwen3-Embedding-0.6B": 1024,
+                'Qwen/Qwen3-Embedding-0.6B': 1024,
             };
             return commonModels[model] || 768; // 일반적인 기본값
         }
@@ -599,7 +662,7 @@ export const getCurrentEmbeddingDimension = async (provider, model) => {
             provider,
             model,
             dimension,
-            auto_detected: true
+            auto_detected: true,
         };
     } catch (error) {
         devLog.error('Failed to get current embedding dimension:', error);
@@ -608,7 +671,7 @@ export const getCurrentEmbeddingDimension = async (provider, model) => {
             model: 'text-embedding-3-small',
             dimension: 1536,
             auto_detected: false,
-            error: error.message
+            error: error.message,
         };
     }
 };

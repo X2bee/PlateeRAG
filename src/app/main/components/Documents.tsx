@@ -215,7 +215,7 @@ const Documents: React.FC = () => {
     // 컬렉션 생성
     const handleCreateCollection = async () => {
         if (!isValidCollectionName(newCollectionName)) {
-            setError('컬렉션 이름은 3-63자의 영문자, 숫자, 언더스코어, 하이픈만 허용됩니다.');
+            setError('컬렉션 이름은 한글, 영문, 숫자, 밑줄(_), 하이픈(-)만 사용할 수 있습니다.');
             return;
         }
 
