@@ -25,10 +25,10 @@ interface Workflow {
 }
 
 interface WorkflowDetailResponse {
-    filename: string;
+    workflow_name: string;
     workflow_id: string;
     node_count: number;
-    last_modified: string;
+    updated_at: string;
     has_startnode: boolean;
     has_endnode: boolean;
     error?: string;
@@ -63,12 +63,12 @@ const WorkflowSelection: React.FC<WorkflowSelectionProps> = ({ onBack, onSelectW
 
                     return {
                         id: detail.workflow_id,
-                        name: detail.filename.replace('.json', '') || detail.workflow_id,
+                        name: detail.workflow_name.replace('.json', '') || detail.workflow_id,
                         author: 'AI-LAB',
                         nodeCount: detail.node_count,
-                        lastModified: detail.last_modified,
+                        lastModified: detail.updated_at,
                         status: status,
-                        filename: detail.filename,
+                        workflow_name: detail.workflow_name,
                         error: detail.error,
                     };
                 },
