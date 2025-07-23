@@ -62,7 +62,7 @@ const EmbedChatContent = () => {
     return (
         <div className={styles.embedContainer}>
             <ChatInterface
-                mode="existing"
+                mode="deploy"
                 onBack={() => { } }
                 onChatStarted={() => { } }
                 hideBackButton={true}

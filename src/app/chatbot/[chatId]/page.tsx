@@ -80,7 +80,7 @@ const StandaloneChatPage = () => {
         <div className={styles.chatContainer}>
             <div className={styles.workflowSection}>
                     <ChatInterface
-                        mode="existing"
+                        mode="deploy"
                         workflow={workflow}
                         onBack={() => {}}
                         onChatStarted={() => {}}
