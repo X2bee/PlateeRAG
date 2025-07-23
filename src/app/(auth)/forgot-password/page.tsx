@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import styles from './ForgotPassword.module.scss';
 import { requestPasswordReset } from '@/app/api/userAPI'; // API 요청 함수 (아래에서 생성)
+import ReverseAuthGuard from '@/app/_common/components/ReverseAuthGuard';
 
 interface ApiResponse {
   message?: string | null;
@@ -69,4 +70,11 @@ const ForgotPasswordPage = () => {
   );
 };
 
-export default ForgotPasswordPage;
+// ReverseAuthGuard로 감싸서 내보내기
+export default function Page() {
+  return (
+    <ReverseAuthGuard>
+      <ForgotPasswordPage />
+    </ReverseAuthGuard>
+  );
+}

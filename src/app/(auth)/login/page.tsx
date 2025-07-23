@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import styles from './LoginPage.module.scss';
 import { login, createGuestAccountAndLogin } from '../../api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
+import ReverseAuthGuard from '@/app/_common/components/ReverseAuthGuard';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -47,8 +48,22 @@ const LoginPage = () => {
       // 로그인 성공
       toast.success(`로그인 성공! 환영합니다, ${result.username}님!`);
 
-      // 메인 페이지 또는 대시보드로 리다이렉트
-      router.replace('/');
+      // 이전 페이지로 리다이렉트 (URL 파라미터 확인)
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectUrl = urlParams.get('redirect');
+      
+      if (redirectUrl) {
+        router.replace(decodeURIComponent(redirectUrl));
+      } else {
+        // sessionStorage에서 이전 페이지 확인
+        const previousPage = sessionStorage.getItem('previousPage');
+        if (previousPage) {
+          sessionStorage.removeItem('previousPage'); // 사용 후 제거
+          router.replace(previousPage);
+        } else {
+          router.replace('/');
+        }
+      }
 
     } catch (err: any) {
       setError(err.message || '로그인에 실패했습니다.');
@@ -81,7 +96,7 @@ const LoginPage = () => {
       toast.success(`게스트로 입장하였습니다! 환영합니다, ${result.username}님!`,
         { id: 'guest-creation' });
 
-      // 메인 페이지로 리다이렉트
+      // 게스트는 main 페이지로 고정 리다이렉트
       router.replace('/main');
 
     } catch (err: any) {
@@ -150,4 +165,11 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+// ReverseAuthGuard로 감싸서 내보내기
+export default function Page() {
+  return (
+    <ReverseAuthGuard>
+      <LoginPage />
+    </ReverseAuthGuard>
+  );
+}

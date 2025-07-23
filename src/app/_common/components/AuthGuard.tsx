@@ -34,6 +34,13 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback, redirectTo = 
     // CookieProvider의 useAuth 훅 사용
     const { user, clearAuth, refreshAuth, isInitialized, isLoggingOut } = useAuth();
 
+    // 현재 페이지를 sessionStorage에 저장 (로그인 후 돌아올 수 있도록)
+    useEffect(() => {
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('/login') && !window.location.pathname.includes('/signup')) {
+            sessionStorage.setItem('previousPage', window.location.href);
+        }
+    }, []);
+
     useEffect(() => {
         const checkAuthentication = async () => {
             try {
@@ -109,7 +116,10 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback, redirectTo = 
         // 인증되지 않은 상태이고 로딩이 완료되면 지정된 페이지로 리다이렉트
         if (isAuthenticated === false && !isLoading) {
             devLog.log(`AuthGuard: Redirecting to ${redirectTo}...`);
-            router.push(redirectTo);
+            // 현재 페이지를 redirect 파라미터로 추가
+            const currentUrl = encodeURIComponent(window.location.href);
+            const loginUrl = `${redirectTo}?redirect=${currentUrl}`;
+            router.push(loginUrl);
         }
     }, [isAuthenticated, isLoading, router, redirectTo, isLoggingOut]);
 
