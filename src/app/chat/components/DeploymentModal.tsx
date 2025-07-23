@@ -98,19 +98,21 @@ query({
     -d '${curlPayload.replace(/'/g, "'\\''")}'`;
 
     const popupHtmlCode = `<script type="module">
-    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js"
+    import {Chatbot} from "${baseUrl}/chatbot-embed.js"
     Chatbot.init({
-        chatid: "${chatId}",
+        chatflowid: "${chatId}",
         apiHost: "${baseUrl}",
+        workflowName: "${workflowName}"
     })
 </script>`;
 
-    const fullPageHtmlCode = `<flowise-fullchatbot></flowise-fullchatbot>
+    const fullPageHtmlCode = `<fullchatbot style="width: 100%; height: 100%;"></flowise-fullchatbot>
 <script type="module">
-    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js"
+    import {Chatbot} from "${baseUrl}/chatbot-embed.js"
     Chatbot.initFull({
-        chatid: "${chatId}",
+        chatflowid: "${chatId}",
         apiHost: "${baseUrl}",
+        workflowName: "${workflowName}"
     })
 </script>`;
 
