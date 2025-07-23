@@ -90,8 +90,8 @@ export interface WorkflowState {
 
 // ========== Template Types ==========
 export interface RawTemplate {
-    id: string;
-    name: string;
+    workflow_id: string;
+    workflow_name: string;
     description?: string;
     tags?: string[];
     contents?: WorkflowData;

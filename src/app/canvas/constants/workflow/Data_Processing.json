@@ -1,6 +1,6 @@
 {
-    "id": "Data_Processing",
-    "name": "Data Processing",
+    "workflow_id": "Data_Processing",
+    "workflow_name": "Data Processing",
     "description": "데이터 처리를 위한 기본 워크플로우입니다. 숫자 입력을 받아 수학적 계산을 수행하고 결과를 출력합니다.",
     "tags": [
         "Math",

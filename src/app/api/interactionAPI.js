@@ -1,6 +1,6 @@
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
-import { apiClient } from './apiClient';
+import { apiClient } from '@/app/api/apiClient';
 
 /**
  * ExecutionMeta 정보들을 리스트 형태로 반환합니다.
@@ -43,58 +43,6 @@ export const listInteractions = async (filters = {}) => {
         return result;
     } catch (error) {
         devLog.error('Failed to list interactions:', error);
-        throw error;
-    }
-};
-
-/**
- * 새로운 워크플로우 실행을 시작하고 ExecutionMeta에 메타데이터를 저장합니다.
- * @param {Object} requestData - 워크플로우 실행 요청 데이터
- * @param {string} requestData.workflow_name - 워크플로우 이름
- * @param {string} requestData.workflow_id - 워크플로우 ID
- * @param {string} requestData.interaction_id - 상호작용 ID
- * @param {string} [requestData.input_data] - 입력 데이터 (선택적)
- * @returns {Promise<Object>} 워크플로우 실행 결과를 포함하는 프로미스
- * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
- */
-export const executeWorkflowNew = async (requestData) => {
-    try {
-        const { workflow_name, workflow_id, interaction_id, input_data } = requestData;
-
-        // 필수 파라미터 검증
-        if (!workflow_name || !workflow_id || !interaction_id) {
-            throw new Error('workflow_name, workflow_id, interaction_id는 필수 파라미터입니다.');
-        }
-
-        const requestBody = {
-            workflow_name,
-            workflow_id,
-            interaction_id,
-            ...(input_data && { input_data }),
-        };
-
-        devLog.log('Executing new workflow with data:', requestBody);
-
-        const response = await apiClient(`${API_BASE_URL}/api/interaction/new`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(
-                errorData.detail || `HTTP error! status: ${response.status}`,
-            );
-        }
-
-        const result = await response.json();
-        devLog.log('Workflow executed successfully:', result);
-        return result;
-    } catch (error) {
-        devLog.error('Failed to execute new workflow:', error);
         throw error;
     }
 };
