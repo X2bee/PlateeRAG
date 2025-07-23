@@ -109,8 +109,8 @@ const ChatPageContent: React.FC = () => {
                     chatItems={chatSidebarItems}
                     activeItem={activeSection}
                     onItemClick={handleSidebarItemClick}
-                    initialChatExpanded={false}
-                    initialSettingExpanded={true}/>
+                    initialChatExpanded={true}
+                    initialSettingExpanded={false}/>
                 ) : (
                     <motion.button
                         key="sidebar-open-button"
