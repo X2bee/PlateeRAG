@@ -951,8 +951,21 @@ $white: #ffffff;
     max-height: calc(80vh - 120px);
 }
 
+@keyframes fadeInSmooth {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .tabPanel {
     padding: 1.5rem;
+
+    animation: fadeInSmooth 0.3s ease-in-out;
 
     p {
         font-size: 0.875rem;
@@ -995,6 +1008,7 @@ $white: #ffffff;
     margin-top: 1.5rem;
     margin-bottom: 1rem;
     width: fit-content; // 컨텐츠 크기에 맞게 너비 조절
+
 }
 
 .langTabButton {
@@ -1010,6 +1024,8 @@ $white: #ffffff;
     border-radius: 0.375rem;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
+
+    animation: fadeInSmooth 0.3s ease-in-out;
 
     &:hover {
         color: $gray-800;
