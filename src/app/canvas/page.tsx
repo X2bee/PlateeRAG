@@ -6,6 +6,7 @@ import Header from '@/app/canvas/components/Header';
 import SideMenu from '@/app/canvas/components/SideMenu';
 import ExecutionPanel from '@/app/canvas/components/ExecutionPanel';
 import AuthGuard from '@/app/_common/components/AuthGuard';
+import { useAuth } from '@/app/_common/components/CookieProvider';
 import styles from '@/app/canvas/assets/PlateeRAG.module.scss';
 import {
     executeWorkflow,
@@ -24,6 +25,9 @@ import { devLog } from '@/app/_common/utils/logger';
 import { generateWorkflowHash } from '@/app/_common/utils/generateSha1Hash';
 
 function CanvasPageContent() {
+    // CookieProvider의 useAuth 훅 사용
+    const { user, isAuthenticated } = useAuth();
+
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLElement | null>(null);
     const canvasRef = useRef(null);

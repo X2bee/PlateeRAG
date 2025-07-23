@@ -71,6 +71,12 @@ $box-shadow-color: rgba(0, 0, 0, 0.1);
   }
 }
 
+.buttons{
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .loginButton {
   width: 100%;
   padding: 0.875rem;
@@ -85,6 +91,32 @@ $box-shadow-color: rgba(0, 0, 0, 0.1);
 
   &:hover {
     background-color: $primary-hover-color;
+  }
+}
+
+.guestButton {
+  width: 100%;
+  padding: 0.625rem 1.25rem;
+  border: 2px solid $primary-color;
+  border-radius: 8px;
+  background-color: transparent;
+  color: $primary-color;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-self: center;
+  margin-top: 0.5rem;
+
+  &:hover {
+    background-color: $primary-color;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba($primary-color, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 

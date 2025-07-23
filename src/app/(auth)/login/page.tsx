@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import styles from './LoginPage.module.scss';
-import { login } from '../../api/authAPI';
+import { login, createGuestAccountAndLogin } from '../../api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 
 const LoginPage = () => {
@@ -13,6 +13,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
 
   const router = useRouter();
 
@@ -57,6 +58,41 @@ const LoginPage = () => {
     }
   };
 
+  const handleGuestLogin = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    setError(null);
+    setIsGuestLoading(true);
+
+    try {
+      toast.loading('게스트 계정을 생성하는 중...', { id: 'guest-creation' });
+
+      const result = await createGuestAccountAndLogin() as any;
+
+      // CookieProvider에 사용자 정보 설정
+      if (result.user_id && result.username && result.access_token) {
+        setUser({
+          user_id: result.user_id,
+          username: result.username,
+          access_token: result.access_token,
+        });
+      }
+
+      // 게스트 로그인 성공
+      toast.success(`게스트로 입장하였습니다! 환영합니다, ${result.username}님!`,
+        { id: 'guest-creation' });
+
+      // 메인 페이지로 리다이렉트
+      router.push('/main');
+
+    } catch (err: any) {
+      toast.error(err.message || '게스트 계정 생성에 실패했습니다.',
+        { id: 'guest-creation' });
+      setError(err.message || '게스트 계정 생성에 실패했습니다.');
+    } finally {
+      setIsGuestLoading(false);
+    }
+  };
+
   return (
     <div className={styles.loginPage}>
       <div className={styles.loginBox}>
@@ -90,12 +126,17 @@ const LoginPage = () => {
 
           {error && <p className={styles.error}>{error}</p>}
 
-          <div>
-            <button type="submit" className={styles.loginButton} disabled={isLoading}>
+          <div className={styles.buttons} >
+            <button type="submit" className={styles.loginButton} disabled={isLoading || isGuestLoading}>
               {isLoading ? '로그인 중...' : '로그인'}
             </button>
-            <button type="submit" className={styles.loginButton} disabled={isLoading}>
-              게스트로 입장
+            <button
+              type="button"
+              className={styles.guestButton}
+              disabled={isLoading || isGuestLoading}
+              onClick={handleGuestLogin}
+            >
+              {isGuestLoading ? '게스트 계정 생성 중...' : '게스트로 입장'}
             </button>
           </div>
         </form>

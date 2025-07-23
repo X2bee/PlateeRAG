@@ -1,6 +1,7 @@
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
 import { apiClient } from './apiClient';
+import { getAuthCookie } from '@/app/_common/utils/cookieUtils';
 
 /**
  * 주어진 워크플로우 데이터를 백엔드로 전송하여 실행합니다.
@@ -37,16 +38,20 @@ export const executeWorkflow = async (workflowData) => {
 
 /**
  * 워크플로우 데이터를 백엔드 서버에 저장합니다.
- * @param {string} workflowId - 워크플로우 식별자 (파일명으로 사용됨)
+ * @param {string} workflowName - 워크플로우 식별자 (파일명으로 사용됨)
  * @param {Object} workflowContent - 저장할 워크플로우 데이터 (노드, 엣지, 뷰 정보 포함)
  * @returns {Promise<Object>} API 응답 객체를 포함하는 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
-export const saveWorkflow = async (workflowId, workflowContent) => {
+export const saveWorkflow = async (workflowName, workflowContent) => {
     try {
+        // 쿠키에서 user_id 가져오기
+        const userId = getAuthCookie('user_id');
+
         devLog.log('SaveWorkflow called with:');
-        devLog.log('- workflowId (name):', workflowId);
+        devLog.log('- workflowName (name):', workflowName);
         devLog.log('- workflowContent.id:', workflowContent.id);
+        devLog.log('- userId from cookie:', userId);
         devLog.log(
             '- Full workflowContent keys:',
             Object.keys(workflowContent),
@@ -58,7 +63,8 @@ export const saveWorkflow = async (workflowId, workflowContent) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                workflow_id: workflowId,
+                user_id: userId,
+                workflow_name: workflowName,
                 content: workflowContent,
             }),
         });
