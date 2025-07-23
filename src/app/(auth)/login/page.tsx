@@ -47,7 +47,7 @@ const LoginPage = () => {
       toast.success(`로그인 성공! 환영합니다, ${result.username}님!`);
 
       // 메인 페이지 또는 대시보드로 리다이렉트
-      router.push('/');
+      router.replace('/');
 
     } catch (err: any) {
       setError(err.message || '로그인에 실패했습니다.');
@@ -94,7 +94,7 @@ const LoginPage = () => {
             <button type="submit" className={styles.loginButton} disabled={isLoading}>
               {isLoading ? '로그인 중...' : '로그인'}
             </button>
-            <button type="submit" className={styles.loginButton} disabled={isLoading}>
+            <button type="submit" className={styles.guestLoginButton} disabled={isLoading}>
               게스트로 입장
             </button>
           </div>

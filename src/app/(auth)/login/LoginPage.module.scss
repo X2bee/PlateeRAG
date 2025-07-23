@@ -87,6 +87,25 @@ $box-shadow-color: rgba(0, 0, 0, 0.1);
     background-color: $primary-hover-color;
   }
 }
+.guestLoginButton {
+  width: 100%;
+  padding: 0.875rem;
+  margin-top: 0.75rem;
+  border: 1px solid $primary-color;
+  border-radius: 8px;
+  background-color: transparent;
+  color: $primary-color;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+    border-color: $primary-hover-color;
+    color: $primary-hover-color;
+  }
+}
 
 .links {
   margin-top: 1.5rem;
