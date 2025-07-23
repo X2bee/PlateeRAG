@@ -45,25 +45,21 @@ export const executeWorkflow = async (workflowData) => {
  */
 export const saveWorkflow = async (workflowName, workflowContent) => {
     try {
-        // 쿠키에서 user_id 가져오기
-        const userId = getAuthCookie('user_id');
-
         devLog.log('SaveWorkflow called with:');
         devLog.log('- workflowName (name):', workflowName);
         devLog.log('- workflowContent.id:', workflowContent.id);
-        devLog.log('- userId from cookie:', userId);
         devLog.log(
             '- Full workflowContent keys:',
             Object.keys(workflowContent),
         );
 
+        // apiClient가 자동으로 Authorization header와 X-User-ID header를 추가합니다
         const response = await apiClient(`${API_BASE_URL}/api/workflow/save`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                user_id: userId,
                 workflow_name: workflowName,
                 content: workflowContent,
             }),
@@ -115,6 +111,7 @@ export const listWorkflows = async () => {
  */
 export const listWorkflowsDetail = async () => {
     try {
+        // apiClient가 자동으로 Authorization header와 X-User-ID header를 추가합니다
         const response = await apiClient(`${API_BASE_URL}/api/workflow/list/detail`);
 
         if (!response.ok) {
@@ -201,6 +198,7 @@ export const deleteWorkflow = async (workflowId) => {
  */
 export const getWorkflowList = async () => {
     try {
+        // apiClient가 자동으로 Authorization header와 X-User-ID header를 추가합니다
         const response = await apiClient(`${API_BASE_URL}/api/workflow/list/detail`, {
             method: 'GET',
             headers: {

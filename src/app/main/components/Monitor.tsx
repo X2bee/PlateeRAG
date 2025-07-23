@@ -9,10 +9,10 @@ import styles from '@/app/main/assets/Monitor.module.scss';
 import ChartDashboard from './charts/ChartDashboard';
 
 interface Workflow {
-    filename: string;
+    workflow_name: string;
     workflow_id: string;
     node_count: number;
-    last_modified: string;
+    updated_at: string;
     has_startnode: boolean;
     has_endnode: boolean;
 }
@@ -70,7 +70,7 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                 setPerformanceLoading(true);
                 setError(null);
                 setNoPerformanceData(false);
-                const workflowName = workflow.filename.replace('.json', '');
+                const workflowName = workflow.workflow_name.replace('.json', '');
                 const data = (await getWorkflowPerformance(
                     workflowName,
                     workflow.workflow_id,
@@ -121,7 +121,7 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
             return;
         }
 
-        const workflowName = selectedWorkflow.filename.replace('.json', '');
+        const workflowName = selectedWorkflow.workflow_name.replace('.json', '');
 
         const confirmToast = toast(
             (t) => (
@@ -262,7 +262,7 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                         <p>
                             &quot;
                             <strong>
-                                {selectedWorkflow.filename.replace('.json', '')}
+                                {selectedWorkflow.workflow_name.replace('.json', '')}
                             </strong>
                             &quot; 워크플로우의 실행 기록이 없습니다.
                             <br />

@@ -12,10 +12,11 @@ interface PlaygroundProps {
     onTabChange: (tab: 'executor' | 'monitoring') => void;
 }
 interface Workflow {
-    filename: string;
+    id: number;
+    workflow_name: string;
     workflow_id: string;
     node_count: number;
-    last_modified: string;
+    updated_at: string;
     has_startnode: boolean;
     has_endnode: boolean;
 }
@@ -41,7 +42,7 @@ const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
             // Find the workflow in the loaded list
             const workflow = workflows.find(
                 (w) =>
-                    w.filename.replace('.json', '') === workflowName &&
+                    w.workflow_name.replace('.json', '') === workflowName &&
                     w.workflow_id === workflowId,
             );
 
@@ -115,8 +116,8 @@ const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
                         <div className={styles.workflowItems}>
                             {workflows.map((workflow) => (
                                 <div
-                                    key={workflow.filename}
-                                    className={`${styles.workflowItem} ${selectedWorkflow?.filename === workflow.filename ? styles.selected : ''}`}
+                                    key={workflow.id}
+                                    className={`${styles.workflowItem} ${selectedWorkflow?.id === workflow.id ? styles.selected : ''}`}
                                     onClick={() => loadChatLogs(workflow)}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' || e.key === ' ') {
@@ -128,14 +129,14 @@ const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
                                     tabIndex={0}
                                 >
                                     <div className={styles.workflowName}>
-                                        {workflow.filename.replace('.json', '')}
+                                        {workflow.workflow_name.replace('.json', '')}
                                     </div>
                                     <div className={styles.workflowInfo}>
                                         <span>
                                             {workflow.node_count}개 노드
                                         </span>
                                         <span>
-                                            {formatDate(workflow.last_modified)}
+                                            {formatDate(workflow.updated_at)}
                                         </span>
                                     </div>
                                 </div>

@@ -66,7 +66,7 @@ const Chart = dynamic(() => import('./Chart'), {
 });
 
 interface Workflow {
-    filename: string;
+    workflow_name: string;
     workflow_id: string;
     node_count: number;
 }
@@ -89,7 +89,7 @@ const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workfl
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const workflowName = useMemo(() => workflow?.filename.replace('.json', ''), [workflow]);
+    const workflowName = useMemo(() => workflow?.workflow_name.replace('.json', ''), [workflow]);
 
     useEffect(() => {
         if (isOpen && workflow) {

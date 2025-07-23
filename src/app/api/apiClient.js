@@ -1,9 +1,19 @@
+import { getAuthCookie } from '@/app/_common/utils/cookieUtils';
+
 /**
- * 로컬 스토리지에서 인증 토큰을 가져옵니다.
+ * 쿠키에서 인증 토큰을 가져옵니다.
  * @returns {string|null}
  */
 const getToken = () => {
-    return localStorage.getItem('accessToken');
+    return getAuthCookie('accessToken');
+};
+
+/**
+ * 쿠키에서 사용자 ID를 가져옵니다.
+ * @returns {string|null}
+ */
+const getUserId = () => {
+    return getAuthCookie('user_id');
 };
 
 /**
@@ -14,6 +24,7 @@ const getToken = () => {
  */
 export const apiClient = async (url, options = {}) => {
     const token = getToken();
+    const userId = getUserId();
 
     const defaultHeaders = {
         'Content-Type': 'application/json',
@@ -21,6 +32,11 @@ export const apiClient = async (url, options = {}) => {
 
     if (token) {
         defaultHeaders['Authorization'] = `Bearer ${token}`;
+    }
+
+    // user_id가 있으면 별도의 헤더로 추가
+    if (userId) {
+        defaultHeaders['X-User-ID'] = userId;
     }
 
     const mergedOptions = {

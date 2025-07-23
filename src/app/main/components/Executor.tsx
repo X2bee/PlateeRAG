@@ -16,10 +16,10 @@ import toast from 'react-hot-toast';
 import styles from '@/app/main/assets/Executor.module.scss';
 
 interface Workflow {
-    filename: string;
+    workflow_name: string;
     workflow_id: string;
     node_count: number;
-    last_modified: string;
+    updated_at: string;
     has_startnode: boolean;
     has_endnode: boolean;
 }
@@ -71,7 +71,7 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
             try {
                 setExecutorLoading(true);
                 setError(null);
-                const workflowName = workflow.filename.replace('.json', '');
+                const workflowName = workflow.workflow_name.replace('.json', '');
                 const logs = await getWorkflowIOLogs(
                     workflowName,
                     workflow.workflow_id,
@@ -101,7 +101,7 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
             return;
         }
 
-        const workflowName = selectedWorkflow.filename.replace('.json', '');
+        const workflowName = selectedWorkflow.workflow_name.replace('.json', '');
 
         const confirmToast = toast(
             (t) => (
@@ -237,7 +237,7 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
             ...prev,
             {
                 log_id: tempId,
-                workflow_name: selectedWorkflow.filename.replace('.json', ''),
+                workflow_name: selectedWorkflow.workflow_name.replace('.json', ''),
                 workflow_id: selectedWorkflow.workflow_id,
                 input_data: inputMessage,
                 output_data: '',
@@ -246,7 +246,7 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
         ]);
         setInputMessage('');
         try {
-            const workflowName = selectedWorkflow.filename.replace('.json', '');
+            const workflowName = selectedWorkflow.workflow_name.replace('.json', '');
             const result: any = await executeWorkflowById(
                 workflowName,
                 selectedWorkflow.workflow_id,
@@ -312,7 +312,7 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                     <div className={styles.executorData}>
                         <div className={styles.executorHeader}>
                             <h3>
-                                {selectedWorkflow.filename.replace('.json', '')}{' '}
+                                {selectedWorkflow.workflow_name.replace('.json', '')}{' '}
                                 실행 로그
                             </h3>
                             <div className={styles.headerActions}>

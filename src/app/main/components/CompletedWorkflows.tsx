@@ -25,13 +25,15 @@ interface Workflow {
     status: 'active' | 'draft' | 'archived';
     filename?: string;
     error?: string;
+    key_value?: number;
 }
 
 interface WorkflowDetailResponse {
-    filename: string;
+    id: number;
+    workflow_name: string;
     workflow_id: string;
     node_count: number;
-    last_modified: string;
+    updated_at: string;
     has_startnode: boolean;
     has_endnode: boolean;
     error?: string;
@@ -64,15 +66,15 @@ const CompletedWorkflows: React.FC = () => {
                     }
 
                     return {
+                        key_value: detail.id,
                         id: detail.workflow_id,
                         name:
-                            detail.filename.replace('.json', '') ||
-                            detail.workflow_id,
+                            detail.workflow_name,
                         author: 'AI-LAB',
                         nodeCount: detail.node_count,
-                        lastModified: detail.last_modified,
+                        lastModified: detail.updated_at,
                         status: status,
-                        filename: detail.filename,
+                        filename: `${detail.workflow_name}.json`,
                         error: detail.error,
                     };
                 },
@@ -312,7 +314,7 @@ const CompletedWorkflows: React.FC = () => {
                 <div className={styles.workflowsGrid}>
                     {filteredWorkflows.map((workflow) => (
                         <div
-                            key={workflow.name}
+                            key={workflow.key_value}
                             className={styles.workflowCard}
                         >
                             <div className={styles.cardHeader}>
