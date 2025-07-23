@@ -41,8 +41,8 @@ const TemplatePanel: React.FC<TemplatePanelProps> = ({ onBack, onLoadWorkflow })
                 devLog.log('templateList:', templateList);
 
                 const formattedTemplates: Template[] = templateList.map((template: RawTemplate) => ({
-                    id: template.id,
-                    name: template.name,
+                    id: template.workflow_id,
+                    name: template.workflow_name,
                     description: template.description || 'No description available',
                     tags: template.tags || [],
                     nodes: template.contents?.nodes?.length || 0,
