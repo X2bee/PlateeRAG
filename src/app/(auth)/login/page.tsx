@@ -51,7 +51,7 @@ const LoginPage = () => {
       // 이전 페이지로 리다이렉트 (URL 파라미터 확인)
       const urlParams = new URLSearchParams(window.location.search);
       const redirectUrl = urlParams.get('redirect');
-      
+
       if (redirectUrl) {
         router.replace(decodeURIComponent(redirectUrl));
       } else {

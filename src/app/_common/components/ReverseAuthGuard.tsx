@@ -20,10 +20,10 @@ interface TokenValidationResult {
  * 역방향 인증 가드 컴포넌트
  * 이미 인증된 사용자가 로그인/회원가입 페이지에 접근할 때 이전 페이지로 리다이렉트
  */
-const ReverseAuthGuard: React.FC<ReverseAuthGuardProps> = ({ 
-    children, 
-    fallback, 
-    redirectTo 
+const ReverseAuthGuard: React.FC<ReverseAuthGuardProps> = ({
+    children,
+    fallback,
+    redirectTo
 }) => {
     const router = useRouter();
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);

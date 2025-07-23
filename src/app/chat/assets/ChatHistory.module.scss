@@ -16,39 +16,58 @@ $gray-800: #1f2937;
 $gray-900: #111827;
 $white: #ffffff;
 
-.container {
-    width: 100%;
+.chatContainer {
     height: 100%;
     display: flex;
     flex-direction: column;
     background: $white;
-    border-radius: 8px;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.workflowSection {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem;
+    transition: all 0.5s ease;
     overflow: hidden;
+    height: 100vh;
+    max-height: 100vh;
+
+    .container {
+        width: 100%;
+        margin: 0 auto;
+        height: 100%;
+    }
 }
 
 .header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    padding: 2rem;
+    align-items: center;
+    padding: 1rem 1.5rem;
     border-bottom: 1px solid $gray-200;
-    background: $gray-50;
+    flex-shrink: 0;
+    background: $white;
 }
 
 .headerInfo {
-    flex: 1;
+    align-items: center;
+    gap: 1rem;
 
     h2 {
-        font-size: 1.875rem;
+        font-size: 1.5rem;
         font-weight: 700;
         color: $gray-900;
-        margin: 0 0 0.5rem 0;
+        margin: 0;
     }
 
     p {
         color: $gray-600;
         margin: 0;
-        line-height: 1.6;
+        font-size: 0.9rem;
     }
 }
 
@@ -88,8 +107,13 @@ $white: #ffffff;
 }
 
 @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .content {

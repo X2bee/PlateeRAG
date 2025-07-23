@@ -40,7 +40,7 @@ const ForgotPasswordPage = () => {
         <p className={styles.subtitle}>
           가입 시 사용한 이메일 주소를 입력하시면, 비밀번호 재설정 안내 메일을 보내드립니다.
         </p>
-        
+
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.inputGroup}>
             <label htmlFor="email">이메일</label>

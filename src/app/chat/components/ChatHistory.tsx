@@ -179,93 +179,97 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
     };
 
     return (
-        <div className={styles.container}>
-            <div className={styles.header}>
-                <div className={styles.headerInfo}>
-                    <h2>기존 채팅 불러오기</h2>
-                    <p>이전 대화를 선택하여 계속하거나 새로운 창에서 열어보세요.</p>
-                </div>
-                <button
-                    onClick={loadChatHistory}
-                    className={`${styles.refreshButton} ${loading ? styles.loading : ''}`}
-                    disabled={loading}
-                    title="새로고침"
-                >
-                    <FiRefreshCw />
-                    {loading ? '로딩 중...' : '새로고침'}
-                </button>
-            </div>
-
-            <div className={styles.content}>
-                {loading && (
-                    <div className={styles.loadingState}>
-                        <div className={styles.loadingSpinner}></div>
-                        <p>채팅 기록을 불러오는 중...</p>
-                    </div>
-                )}
-
-                {error && (
-                    <div className={styles.errorState}>
-                        <p>{error}</p>
-                        <button onClick={loadChatHistory} className={styles.retryButton}>
-                            다시 시도
+        <div className={styles.chatContainer}>
+            <div className={styles.workflowSection}>
+                <div className={styles.container}>
+                    <div className={styles.header}>
+                        <div className={styles.headerInfo}>
+                            <h2>기존 채팅 불러오기</h2>
+                            <p>이전 대화를 선택하여 계속하거나 새로운 창에서 열어보세요.</p>
+                        </div>
+                        <button
+                            onClick={loadChatHistory}
+                            className={`${styles.refreshButton} ${loading ? styles.loading : ''}`}
+                            disabled={loading}
+                            title="새로고침"
+                        >
+                            <FiRefreshCw />
+                            {loading ? '로딩 중...' : '새로고침'}
                         </button>
                     </div>
-                )}
 
-                {!loading && !error && chatList.length === 0 && (
-                    <div className={styles.emptyState}>
-                        <FiMessageSquare className={styles.emptyIcon} />
-                        <h3>아직 채팅 기록이 없습니다</h3>
-                        <p>새로운 대화를 시작해보세요!</p>
-                    </div>
-                )}
-
-                {!loading && !error && chatList.length > 0 && (
-                    <div className={styles.chatGrid}>
-                        {chatList.map((chat) => (
-                            <div key={chat.id} className={styles.chatCard}>
-                                <div className={styles.cardHeader}>
-                                    <h3 className={styles.workflowName}>
-                                        {chat.metadata.placeholder || chat.workflow_name}
-                                    </h3>
-                                    <span className={styles.chatDate}>
-                                        {formatDate(chat.updated_at)}
-                                    </span>
-                                </div>
-
-                                <div className={styles.cardMeta}>
-                                    <div className={styles.metaItem}>
-                                        <FiMessageSquare />
-                                        <span>{chat.interaction_count}회 대화</span>
-                                    </div>
-                                    <div className={styles.metaItem}>
-                                        <FiUser />
-                                        <span className={styles.interactionId}>
-                                            {chat.workflow_name === 'default_mode' ? '일반 채팅' : chat.workflow_name }
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className={styles.cardActions}>
-                                    <button
-                                        onClick={() => handleDeleteChat(chat)}
-                                        className={styles.selectButton}
-                                    >
-                                        삭제
-                                    </button>
-                                    <button
-                                        onClick={() => handleContinueChat(chat)}
-                                        className={styles.continueButton}
-                                    >
-                                        <FiPlay />
-                                        대화 계속하기
-                                    </button>
-                                </div>
+                    <div className={styles.content}>
+                        {loading && (
+                            <div className={styles.loadingState}>
+                                <div className={styles.loadingSpinner}></div>
+                                <p>채팅 기록을 불러오는 중...</p>
                             </div>
-                        ))}
+                        )}
+
+                        {error && (
+                            <div className={styles.errorState}>
+                                <p>{error}</p>
+                                <button onClick={loadChatHistory} className={styles.retryButton}>
+                                    다시 시도
+                                </button>
+                            </div>
+                        )}
+
+                        {!loading && !error && chatList.length === 0 && (
+                            <div className={styles.emptyState}>
+                                <FiMessageSquare className={styles.emptyIcon} />
+                                <h3>아직 채팅 기록이 없습니다</h3>
+                                <p>새로운 대화를 시작해보세요!</p>
+                            </div>
+                        )}
+
+                        {!loading && !error && chatList.length > 0 && (
+                            <div className={styles.chatGrid}>
+                                {chatList.map((chat) => (
+                                    <div key={chat.id} className={styles.chatCard}>
+                                        <div className={styles.cardHeader}>
+                                            <h3 className={styles.workflowName}>
+                                                {chat.metadata.placeholder || chat.workflow_name}
+                                            </h3>
+                                            <span className={styles.chatDate}>
+                                                {formatDate(chat.updated_at)}
+                                            </span>
+                                        </div>
+
+                                        <div className={styles.cardMeta}>
+                                            <div className={styles.metaItem}>
+                                                <FiMessageSquare />
+                                                <span>{chat.interaction_count}회 대화</span>
+                                            </div>
+                                            <div className={styles.metaItem}>
+                                                <FiUser />
+                                                <span className={styles.interactionId}>
+                                                    {chat.workflow_name === 'default_mode' ? '일반 채팅' : chat.workflow_name}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.cardActions}>
+                                            <button
+                                                onClick={() => handleDeleteChat(chat)}
+                                                className={styles.selectButton}
+                                            >
+                                                삭제
+                                            </button>
+                                            <button
+                                                onClick={() => handleContinueChat(chat)}
+                                                className={styles.continueButton}
+                                            >
+                                                <FiPlay />
+                                                대화 계속하기
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
-                )}
+                </div>
             </div>
         </div>
     );
