@@ -1,6 +1,6 @@
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
-import { apiClient } from './apiClient';
+import { apiClient } from '@/app/api/apiClient';
 
 /**
  * 신규 사용자 정보를 백엔드로 전송하여 회원가입을 요청합니다.
