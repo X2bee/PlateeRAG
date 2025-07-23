@@ -8,6 +8,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ mode, workflow, ioLogs, onBack,
     let chatCountText = '';
 
     const isExistingMode = mode === 'existing';
+    const isDeployMode = mode === 'deploy';
 
     if (isExistingMode) {
         title = workflow.name === 'default_mode' ? '일반 채팅' : workflow.name;
@@ -27,7 +28,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ mode, workflow, ioLogs, onBack,
         chatCountText = '새 채팅';
     }
 
-    const showBackButton = (!isExistingMode || !hideBackButton);
+    const showBackButton = ((!isExistingMode && !isDeployMode) || !hideBackButton);
 
     return (
         <div className={styles.header}>

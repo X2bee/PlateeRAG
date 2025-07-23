@@ -43,7 +43,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
     // 2. 각 모드에 맞는 컨텐츠 렌더링
     const renderContent = () => {
-        if (mode === 'existing') {
+        if (mode === 'existing' || mode === 'deploy') {
             return ioLogs.length === 0 ? (
                 <EmptyState title="대화 기록이 없습니다">
                     <p>&quot;{workflow.name}&quot; 워크플로우의 이전 대화를 불러올 수 없습니다.</p>
@@ -60,7 +60,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             );
         }
 
-        if (mode === 'new-workflow' || mode === 'deploy') {
+        if (mode === 'new-workflow') {
             return (
                 <EmptyState
                     title="첫 대화를 시작해보세요!"
