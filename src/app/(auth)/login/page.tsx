@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import styles from './LoginPage.module.scss';
-import { login } from '../api/authAPI';
+import { login } from '../../api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 
 const LoginPage = () => {
@@ -90,9 +90,14 @@ const LoginPage = () => {
 
           {error && <p className={styles.error}>{error}</p>}
 
-          <button type="submit" className={styles.loginButton} disabled={isLoading}>
-            {isLoading ? '로그인 중...' : '로그인'}
-          </button>
+          <div>
+            <button type="submit" className={styles.loginButton} disabled={isLoading}>
+              {isLoading ? '로그인 중...' : '로그인'}
+            </button>
+            <button type="submit" className={styles.loginButton} disabled={isLoading}>
+              게스트로 입장
+            </button>
+          </div>
         </form>
 
         <div className={styles.links}>
