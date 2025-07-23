@@ -46,7 +46,7 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
     if (!isOpen) return null;
 
     const chatId = workflow.id;
-    const workflowName = encodeURIComponent(workflow.name);
+    const workflowName = workflow.name;
     const apiEndpoint = `${baseUrl}/api/workflow/execute/based_id`;
     const webPageUrl = `${baseUrl}/chatbot/${chatId}?workflowName=${workflowName}`;
 
@@ -117,18 +117,37 @@ query({
 </script>`;
 
     const CodeBlockWithCopyButton = ({ children, ...props }: { children: ReactNode; [key: string]: any }) => {
-        let codeString = '';
-        const child = Children.toArray(children)[0];
-        if (isValidElement(child)) {
-            const elementProps = child.props as { children: ReactNode };
-            const codeContent = Children.toArray(elementProps.children)[0];
-            if (typeof codeContent === 'string') {
-                codeString = codeContent;
+        
+        /**
+         * 중첩된 React 노드에서 모든 텍스트를 재귀적으로 추출하는 함수
+         * @param nodes 추출할 React 노드
+         * @returns 합쳐진 전체 텍스트 문자열
+         */
+        const getTextFromChildren = (nodes: ReactNode): string => {
+            if (typeof nodes === 'string') {
+                return nodes;
             }
-        }
+            if (Array.isArray(nodes)) {
+                return nodes.map(getTextFromChildren).join('');
+            }
+            if (isValidElement(nodes)) {
+                const elementProps = nodes.props as { children?: ReactNode };
+
+                if (elementProps.children) {
+                    return getTextFromChildren(elementProps.children);
+                }
+            }
+            return '';
+        };
+
+        const codeString = getTextFromChildren(children);
         
         const handleCopy = () => {
-            if (!codeString) return;
+            if (!codeString) {
+                console.error("복사할 코드를 찾을 수 없습니다.");
+                return;
+            };
+            
             navigator.clipboard.writeText(codeString).then(() => {
                 toast.success('클립보드에 복사되었습니다!');
             }, (err) => {
