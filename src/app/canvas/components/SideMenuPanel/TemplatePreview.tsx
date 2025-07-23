@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import styles from '@/app/canvas/assets/TemplatePreview.module.scss';
 import MiniCanvas from '@/app/canvas/components/SideMenuPanel/MiniCanvas';
 import { LuX, LuCopy } from "react-icons/lu";
-import { devLog } from '@/app/utils/logger';
+import { devLog } from '@/app/_common/utils/logger';
 import type {
     Position,
     Port,
@@ -40,7 +40,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onClose, on
         devLog.log('=== TemplatePreview Use Template clicked ===');
         devLog.log('Template:', template);
         devLog.log('onUseTemplate function:', onUseTemplate);
-        
+
         try {
             // Use TemplatePanel's confirmation logic by calling directly
             onUseTemplate(template);
@@ -96,8 +96,8 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onClose, on
 
     const modalContent = (
         <div className={styles.overlay} onClick={handleOverlayClick}>
-            <div 
-                className={styles.previewContainer} 
+            <div
+                className={styles.previewContainer}
                 ref={previewRef}
                 data-template-preview="true"
                 onClick={handlePreviewContainerClick}
@@ -115,7 +115,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onClose, on
                         </div>
                     </div>
                     <div className={styles.actions}>
-                        <button 
+                        <button
                             className={styles.useButton}
                             onClick={handleUseButtonClick}
                             onMouseDown={handleUseButtonMouseDown}
@@ -124,7 +124,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onClose, on
                             <LuCopy />
                             Use Template
                         </button>
-                        <button 
+                        <button
                             className={styles.closeButton}
                             onClick={handleCloseButtonClick}
                             onMouseDown={handleCloseButtonMouseDown}

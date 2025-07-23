@@ -5,6 +5,7 @@ import Canvas from '@/app/canvas/components/Canvas';
 import Header from '@/app/canvas/components/Header';
 import SideMenu from '@/app/canvas/components/SideMenu';
 import ExecutionPanel from '@/app/canvas/components/ExecutionPanel';
+import AuthGuard from '@/app/_common/components/AuthGuard';
 import styles from '@/app/canvas/assets/PlateeRAG.module.scss';
 import {
     executeWorkflow,
@@ -18,11 +19,11 @@ import {
     ensureValidWorkflowState,
     saveWorkflowName,
     startNewWorkflow,
-} from '@/app/_common/components/workflowStorage';
-import { devLog } from '@/app/utils/logger';
-import { generateWorkflowHash } from '@/app/utils/generateSha1Hash';
+} from '@/app/_common/utils/workflowStorage';
+import { devLog } from '@/app/_common/utils/logger';
+import { generateWorkflowHash } from '@/app/_common/utils/generateSha1Hash';
 
-export default function CanvasPage() {
+function CanvasPageContent() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLElement | null>(null);
     const canvasRef = useRef(null);
@@ -750,5 +751,47 @@ export default function CanvasPage() {
                 onChange={handleFileChange}
             />
         </div>
+    );
+}
+
+const LoadingFallback = () => (
+    <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        flexDirection: 'column',
+        gap: '1rem',
+        backgroundColor: '#f8fafc'
+    }}>
+        <div style={{
+            width: '40px',
+            height: '40px',
+            border: '4px solid #e2e8f0',
+            borderTop: '4px solid #3b82f6',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+        }}></div>
+        <p style={{
+            color: '#64748b',
+            fontSize: '0.875rem',
+            margin: 0
+        }}>
+            Canvas를 불러오는 중...
+        </p>
+        <style jsx>{`
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `}</style>
+    </div>
+);
+
+export default function CanvasPage() {
+    return (
+        <AuthGuard fallback={<LoadingFallback />}>
+            <CanvasPageContent />
+        </AuthGuard>
     );
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import '@/app/globals.css';
 import ToastProvider from '@/app/_common/components/ToastProvider';
+import CookieProvider from '@/app/_common/components/CookieProvider';
 
 export const metadata: Metadata = {
     title: 'Prague',
@@ -15,8 +16,10 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body>
-                <ToastProvider />
-                {children}
+                <CookieProvider>
+                    <ToastProvider />
+                    {children}
+                </CookieProvider>
             </body>
         </html>
     );

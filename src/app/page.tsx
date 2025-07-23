@@ -1,5 +1,7 @@
 'use client';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import {
     FiArrowRight,
     FiGithub,
@@ -12,10 +14,34 @@ import {
     FiTrendingUp,
     FiShield,
     FiGlobe,
+    FiLogOut,
 } from 'react-icons/fi';
 import styles from '@/app/HomePage.module.scss';
+import { logout } from '@/app/api/authAPI';
+import { useAuth } from '@/app/_common/components/CookieProvider';
 
 export default function HomePage() {
+    // CookieProvider의 useAuth 훅 사용
+    const { user, clearAuth, refreshAuth } = useAuth();
+
+    useEffect(() => {
+        // 컴포넌트가 마운트될 때 인증 상태 새로고침
+        refreshAuth();
+    }, [refreshAuth]);
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            clearAuth(); // CookieProvider를 통한 인증 정보 정리
+            toast.success('로그아웃되었습니다.');
+        } catch (error) {
+            console.error('Logout failed:', error);
+            // 로그아웃 실패해도 UI는 업데이트 (스토리지는 이미 정리됨)
+            clearAuth();
+            toast.error('로그아웃 처리 중 오류가 발생했습니다.');
+        }
+    };
+
     return (
         <div className={styles.container}>
             {/* Header */}
@@ -26,10 +52,25 @@ export default function HomePage() {
                             <h1>Prague</h1>
                         </div>
                         <div className={styles.navActions}>
-                            <Link href="/login" className={styles.loginBtn}>
-                                Login
-                                <FiArrowRight />
-                            </Link>
+                            {user ? (
+                                <div className={styles.userSection}>
+                                    <span className={styles.welcomeMessage}>
+                                        환영합니다, {user.username}님!
+                                    </span>
+                                    <button
+                                        onClick={handleLogout}
+                                        className={styles.logoutBtn}
+                                        title="로그아웃"
+                                    >
+                                        <FiLogOut />
+                                    </button>
+                                </div>
+                            ) : (
+                                <Link href="/login" className={styles.loginBtn}>
+                                    Login
+                                    <FiArrowRight />
+                                </Link>
+                            )}
                             <Link
                                 href="/chat"
                                 className={styles.getStartedBtn}

@@ -13,8 +13,8 @@ import React, {
 import styles from '@/app/canvas/assets/Canvas.module.scss';
 import Node from '@/app/canvas/components/Node';
 import Edge from '@/app/canvas/components/Edge';
-import { devLog } from '@/app/utils/logger';
-import { useNodes } from '@/app/_common/components/nodeHook';
+import { devLog } from '@/app/_common/utils/logger';
+import { useNodes } from '@/app/_common/utils/nodeHook';
 import type {
     Position,
     View,

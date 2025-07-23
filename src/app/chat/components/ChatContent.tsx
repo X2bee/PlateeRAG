@@ -109,7 +109,7 @@ return (
         <div className={styles.welcomeSection}>
             <div className={styles.welcomeContent}>
                 <h1>채팅을 시작하세요! 🚀</h1>
-                <p>AI와 대화하며 궁금한  물어보세요.</p>
+                <p>당신만의 AI와 대화해보세요.</p>
                 <div className={styles.buttonContainer}>
                     <button
                         className={styles.workflowButton}

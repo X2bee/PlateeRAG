@@ -1,5 +1,5 @@
 // LLM API 호출 함수들을 관리하는 파일
-import { devLog } from '@/app/utils/logger';
+import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
 import { apiClient } from './apiClient';
 
@@ -100,7 +100,7 @@ export const testLLMConnection = async () => {
         });
 
         const data = await response.json();
-        
+
         // HTTP 상태 코드와 응답 데이터 모두 확인
         if (!response.ok || data.status !== 'success') {
             throw new Error(data.message || `HTTP error! status: ${response.status}`);
@@ -130,7 +130,7 @@ export const testOpenAIConnection = async () => {
         });
 
         const data = await response.json();
-        
+
         // HTTP 상태 코드와 응답 데이터 모두 확인
         if (!response.ok || data.status !== 'success') {
             throw new Error(data.message || `HTTP error! status: ${response.status}`);
@@ -160,7 +160,7 @@ export const testVLLMConnection = async () => {
         });
 
         const data = await response.json();
-        
+
         // HTTP 상태 코드와 응답 데이터 모두 확인
         if (!response.ok || data.status !== 'success') {
             throw new Error(data.message || `HTTP error! status: ${response.status}`);
@@ -190,7 +190,7 @@ export const testSGLConnection = async () => {
         });
 
         const data = await response.json();
-        
+
         // HTTP 상태 코드와 응답 데이터 모두 확인
         if (!response.ok || data.status !== 'success') {
             throw new Error(data.message || `HTTP error! status: ${response.status}`);
@@ -232,7 +232,7 @@ export const validateLLMProvider = async (provider) => {
     } catch (error) {
         // Fallback to status-based validation if the endpoint is not available
         devLog.warn(`Validation endpoint failed, falling back to status check for ${provider}:`, error);
-        
+
         try {
             const status = await getLLMStatus();
             const providerStatus = status.providers[provider];
@@ -394,7 +394,7 @@ export const testMultipleLLMConnections = async (providers = ['openai', 'vllm', 
         });
 
         const results = await Promise.allSettled(testPromises);
-        
+
         const testResults = {};
         results.forEach((result, index) => {
             const provider = providers[index];
@@ -426,7 +426,7 @@ export const checkLLMProviderHealth = async (provider) => {
     try {
         const validation = await validateLLMProvider(provider);
         const status = await getLLMStatus();
-        
+
         return {
             provider,
             healthy: validation.valid && status.providers[provider].available,

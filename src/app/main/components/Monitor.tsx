@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { FiTrash2 } from 'react-icons/fi';
 import { FiBarChart2 } from 'react-icons/fi';
 import { getWorkflowPerformance, deleteWorkflowPerformance } from '@/app/api/workflowAPI';
-import { devLog } from '@/app/utils/logger';
+import { devLog } from '@/app/_common/utils/logger';
 import toast from 'react-hot-toast';
 import styles from '@/app/main/assets/Monitor.module.scss';
 import ChartDashboard from './charts/ChartDashboard';

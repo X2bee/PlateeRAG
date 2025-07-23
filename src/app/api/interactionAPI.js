@@ -1,4 +1,4 @@
-import { devLog } from '@/app/utils/logger';
+import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
 import { apiClient } from './apiClient';
 
@@ -14,7 +14,7 @@ import { apiClient } from './apiClient';
 export const listInteractions = async (filters = {}) => {
     try {
         const { interaction_id, workflow_id, limit = 100 } = filters;
-        
+
         // URL 파라미터 구성
         const params = new URLSearchParams();
         if (interaction_id) params.append('interaction_id', interaction_id);

@@ -51,7 +51,7 @@ $white: #ffffff;
     min-height: 100vh;
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
     position: relative;
-    
+
     &::before {
         content: '';
         position: absolute;
@@ -59,7 +59,7 @@ $white: #ffffff;
         left: 0;
         right: 0;
         bottom: 0;
-        background: 
+        background:
             radial-gradient(circle at 20% 30%, rgba(148, 163, 184, 0.08) 0%, transparent 50%),
             radial-gradient(circle at 80% 70%, rgba(100, 116, 139, 0.06) 0%, transparent 50%);
         pointer-events: none;
@@ -143,46 +143,92 @@ $white: #ffffff;
         height: 1rem;
         transition: transform 0.2s ease;
     }
-    
+
     &:hover svg {
         transform: translateX(2px);
     }
 }
 
 .loginBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
-  color: #333333;
-  padding: 0.625rem 1.25rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  text-decoration: none; 
-  cursor: pointer;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    color: #333333;
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
 
-  transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
 
-  svg {
-    width: 20px;
-    height: 20px;
-  }
+    svg {
+        width: 20px;
+        height: 20px;
+    }
 
-  &:hover {
-    background-color: #f8f9fa;
-    border-color: #cccccc; 
-    transform: translateY(-2px); 
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  }
+    &:hover {
+        background-color: #f8f9fa;
+        border-color: #cccccc;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
 
-  &:active {
-    transform: translateY(0);
-    box-shadow: none;
-  }
+    &:active {
+        transform: translateY(0);
+        box-shadow: none;
+    }
+}
+
+.welcomeMessage {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
+    color: #03141d;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.userSection {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logoutBtn {
+    background: rgba(107, 114, 128, 0.1);
+    border: 1px solid rgba(107, 114, 128, 0.2);
+    color: #374151;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+
+    &:hover {
+        background: rgba(107, 114, 128, 0.2);
+        border-color: rgba(107, 114, 128, 0.3);
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+
+    svg {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
 }
 
 // Main Content
@@ -208,7 +254,7 @@ $white: #ffffff;
     border-radius: 24px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.8);
-    
+
     @media (min-width: 1024px) {
         width: 85vw;
         padding: 5rem 4rem;
@@ -240,7 +286,7 @@ $white: #ffffff;
 .heroLabel {
     display: inline-block;
     margin-bottom: 1.5rem;
-    
+
     span {
         background: linear-gradient(135deg, $gray-100, $gray-50);
         border: 1px solid $gray-200;
@@ -286,7 +332,7 @@ $white: #ffffff;
     color: $gray-600;
     margin-bottom: 2rem;
     max-width: 600px;
-    
+
     @media (min-width: 1024px) {
         margin-bottom: 2.5rem;
     }
@@ -298,7 +344,7 @@ $white: #ffffff;
     margin-bottom: 2.5rem;
     justify-content: center;
     flex-wrap: wrap;
-    
+
     @media (min-width: 1024px) {
         justify-content: flex-start;
     }
@@ -310,7 +356,7 @@ $white: #ffffff;
     background: $gray-50;
     border-radius: 12px;
     border: 1px solid $gray-100;
-    
+
     strong {
         display: block;
         font-size: 1.5rem;
@@ -318,7 +364,7 @@ $white: #ffffff;
         color: $gray-900;
         margin-bottom: 0.25rem;
     }
-    
+
     span {
         font-size: 0.875rem;
         color: $gray-600;
@@ -331,7 +377,7 @@ $white: #ffffff;
     gap: 1rem;
     flex-wrap: wrap;
     justify-content: center;
-    
+
     @media (min-width: 1024px) {
         justify-content: flex-start;
     }
@@ -339,7 +385,7 @@ $white: #ffffff;
 
 .heroVisual {
     display: none;
-    
+
     @media (min-width: 1024px) {
         display: block;
         position: relative;
@@ -349,7 +395,7 @@ $white: #ffffff;
 .heroImage {
     position: relative;
     perspective: 1000px;
-    
+
     &::before {
         content: '';
         position: absolute;
@@ -357,7 +403,7 @@ $white: #ffffff;
         left: -50%;
         width: 200%;
         height: 200%;
-        background: 
+        background:
             radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
         animation: float 6s ease-in-out infinite;
         pointer-events: none;
@@ -371,11 +417,11 @@ $white: #ffffff;
     border-radius: 16px;
     overflow: hidden;
     transform: rotateY(-5deg) rotateX(2deg);
-    box-shadow: 
+    box-shadow:
         0 25px 50px rgba(0, 0, 0, 0.25),
         0 0 0 1px rgba(255, 255, 255, 0.1);
     transition: transform 0.3s ease;
-    
+
     &:hover {
         transform: rotateY(-2deg) rotateX(1deg) scale(1.02);
     }
@@ -388,7 +434,7 @@ $white: #ffffff;
     display: flex;
     align-items: center;
     gap: 1rem;
-    
+
     span {
         color: $white;
         font-size: 0.875rem;
@@ -399,15 +445,23 @@ $white: #ffffff;
 .mockupDots {
     display: flex;
     gap: 0.5rem;
-    
+
     span {
         width: 12px;
         height: 12px;
         border-radius: 50%;
-        
-        &:nth-child(1) { background: #ff5f57; }
-        &:nth-child(2) { background: #ffbd2e; }
-        &:nth-child(3) { background: #28ca42; }
+
+        &:nth-child(1) {
+            background: #ff5f57;
+        }
+
+        &:nth-child(2) {
+            background: #ffbd2e;
+        }
+
+        &:nth-child(3) {
+            background: #28ca42;
+        }
     }
 }
 
@@ -433,42 +487,42 @@ $white: #ffffff;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     transition: all 0.3s ease;
-    
+
     svg {
         width: 24px;
         height: 24px;
     }
-    
+
     span {
         font-size: 0.75rem;
         color: $white;
         font-weight: 500;
     }
-    
+
     &.input {
         background: rgba(37, 99, 235, 0.2);
         color: #60a5fa;
-        
+
         &:hover {
             background: rgba(37, 99, 235, 0.3);
             transform: translateY(-2px);
         }
     }
-    
+
     &.ai {
         background: rgba(124, 58, 237, 0.2);
         color: #a78bfa;
-        
+
         &:hover {
             background: rgba(124, 58, 237, 0.3);
             transform: translateY(-2px);
         }
     }
-    
+
     &.output {
         background: rgba(5, 150, 105, 0.2);
         color: #34d399;
-        
+
         &:hover {
             background: rgba(5, 150, 105, 0.3);
             transform: translateY(-2px);
@@ -481,7 +535,7 @@ $white: #ffffff;
     height: 2px;
     background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.8), transparent);
     position: relative;
-    
+
     &::after {
         content: '';
         position: absolute;
@@ -496,8 +550,15 @@ $white: #ffffff;
 }
 
 @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
 }
 
 .primaryBtn {
@@ -546,7 +607,7 @@ $white: #ffffff;
     border-radius: 24px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.8);
-    
+
     @media (min-width: 640px) {
         width: 88vw;
         padding: 6rem 3rem;
@@ -639,15 +700,15 @@ $white: #ffffff;
         &.green {
             background: linear-gradient(135deg, $primary-green, $primary-blue);
         }
-        
+
         &.orange {
             background: linear-gradient(135deg, $primary-orange, #f59e0b);
         }
-        
+
         &.pink {
             background: linear-gradient(135deg, $primary-pink, $primary-purple);
         }
-        
+
         &.indigo {
             background: linear-gradient(135deg, $primary-indigo, $primary-blue);
         }
@@ -658,7 +719,7 @@ $white: #ffffff;
             opacity: 0.15;
             transform: scale(1.02);
         }
-        
+
         .cardContent {
             transform: translateY(-4px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
@@ -689,12 +750,29 @@ $white: #ffffff;
             flex-shrink: 0;
             margin-top: 0.25rem;
 
-            &.blue { color: $primary-blue; }
-            &.purple { color: $primary-purple; }
-            &.green { color: $primary-green; }
-            &.orange { color: $primary-orange; }
-            &.pink { color: $primary-pink; }
-            &.indigo { color: $primary-indigo; }
+            &.blue {
+                color: $primary-blue;
+            }
+
+            &.purple {
+                color: $primary-purple;
+            }
+
+            &.green {
+                color: $primary-green;
+            }
+
+            &.orange {
+                color: $primary-orange;
+            }
+
+            &.pink {
+                color: $primary-pink;
+            }
+
+            &.indigo {
+                color: $primary-indigo;
+            }
         }
 
         h3 {
@@ -713,18 +791,18 @@ $white: #ffffff;
         font-size: 1rem;
         flex-grow: 1;
     }
-    
+
     .cardFeatures {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
-        
+
         span {
             font-size: 0.875rem;
             color: $gray-500;
             display: flex;
             align-items: center;
-            
+
             &::before {
                 content: '✓';
                 color: $primary-green;
@@ -747,7 +825,7 @@ $white: #ffffff;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.8);
     overflow: hidden;
-    
+
     &::before {
         content: '';
         position: absolute;
@@ -755,7 +833,7 @@ $white: #ffffff;
         left: 0;
         right: 0;
         bottom: 0;
-        background: 
+        background:
             linear-gradient(135deg, $gray-50 0%, $white 100%),
             radial-gradient(circle at 30% 20%, rgba(37, 99, 235, 0.03) 0%, transparent 50%),
             radial-gradient(circle at 70% 80%, rgba(124, 58, 237, 0.03) 0%, transparent 50%);
@@ -795,10 +873,10 @@ $white: #ffffff;
             padding: 10rem 5rem;
         }
     }
-    
+
     .ctaLabel {
         margin-bottom: 1.5rem;
-        
+
         span {
             background: linear-gradient(135deg, $gray-100, $gray-50);
             border: 1px solid $gray-200;
@@ -830,7 +908,7 @@ $white: #ffffff;
         margin-bottom: 3rem;
         line-height: 1.6;
     }
-    
+
     .ctaActions {
         display: flex;
         gap: 1rem;
@@ -838,7 +916,7 @@ $white: #ffffff;
         flex-wrap: wrap;
         margin-bottom: 2rem;
     }
-    
+
     .ctaNote {
         span {
             font-size: 0.875rem;
@@ -857,7 +935,7 @@ $white: #ffffff;
     font-weight: 600;
     padding: 1rem 2rem;
     border-radius: 12px;
-    
+
     &:hover {
         background: linear-gradient(135deg, #1d4ed8, #6d28d9);
         transform: translateY(-2px);
@@ -879,14 +957,14 @@ $white: #ffffff;
     font-weight: 600;
     padding: 1rem 2rem;
     border-radius: 12px;
-    
+
     &:hover {
         background: $white;
         color: $gray-900;
         transform: translateY(-2px);
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     }
-    
+
     svg {
         margin-right: 0.5rem;
         width: 1.25rem;
@@ -901,7 +979,7 @@ $white: #ffffff;
     position: relative;
     width: 100vw;
     margin-left: calc(-50vw + 50%);
-    
+
     &::before {
         content: '';
         position: absolute;
@@ -909,7 +987,7 @@ $white: #ffffff;
         left: 0;
         right: 0;
         bottom: 0;
-        background: 
+        background:
             radial-gradient(circle at 20% 50%, rgba(37, 99, 235, 0.1) 0%, transparent 50%),
             radial-gradient(circle at 80% 50%, rgba(124, 58, 237, 0.1) 0%, transparent 50%);
         pointer-events: none;

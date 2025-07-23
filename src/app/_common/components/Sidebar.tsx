@@ -1,8 +1,12 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import toast from 'react-hot-toast';
 import { SidebarProps } from '@/app/main/components/types';
 import styles from '@/app/main/assets/MainPage.module.scss';
+import { logout } from '@/app/api/authAPI';
+import { useAuth } from '@/app/_common/components/CookieProvider';
+import { FiLogOut } from 'react-icons/fi';
 
 const Sidebar: React.FC<SidebarProps> = ({
     items,
@@ -17,6 +21,24 @@ const Sidebar: React.FC<SidebarProps> = ({
     const pathname = usePathname();
     const [isSettingExpanded, setIsSettingExpanded] = useState(initialSettingExpanded);
     const [isChatExpanded, setIsChatExpanded] = useState(initialChatExpanded);
+
+    // CookieProvider의 useAuth 훅 사용 (AuthGuard에서 이미 인증 검증을 수행하므로 refreshAuth 호출 불필요)
+    const { user, isAuthenticated, clearAuth } = useAuth();
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            clearAuth(); // CookieProvider를 통한 인증 정보 정리
+            toast.success('로그아웃되었습니다.');
+            router.push('/'); // 홈페이지로 리다이렉트
+        } catch (error) {
+            console.error('Logout failed:', error);
+            // 로그아웃 실패해도 UI는 업데이트 (스토리지는 이미 정리됨)
+            clearAuth();
+            toast.error('로그아웃 처리 중 오류가 발생했습니다.');
+            router.push('/'); // 홈페이지로 리다이렉트
+        }
+    };
 
     const toggleExpanded = () => {
         setIsSettingExpanded(!isSettingExpanded);
@@ -54,6 +76,21 @@ const Sidebar: React.FC<SidebarProps> = ({
                 >
                     <h2>Prague</h2>
                 </button>
+                {user && (
+                    <div className={styles.userInfo}>
+                        <div className={styles.welcomeText}>
+                            <span>환영합니다</span>
+                            <span className={styles.username}>{user.username}님</span>
+                        </div>
+                        <button
+                            onClick={handleLogout}
+                            className={styles.logoutButton}
+                            title="로그아웃"
+                        >
+                            <FiLogOut />
+                        </button>
+                    </div>
+                )}
             </div>
 
             <button

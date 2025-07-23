@@ -1,5 +1,11 @@
-import { devLog } from '@/app/utils/logger';
+import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
+import {
+    setCookieAuth,
+    removeAuthCookie,
+    getAuthCookie,
+    clearAllAuth
+} from '@/app/_common/utils/cookieUtils';
 
 /**
  * 회원가입 API
@@ -61,18 +67,18 @@ export const login = async (loginData) => {
             );
         }
 
-        // 토큰을 localStorage에 저장
+        // 토큰을 쿠키에만 저장 (localStorage 사용 안 함)
         if (result.access_token) {
-            localStorage.setItem('access_token', result.access_token);
+            setCookieAuth('access_token', result.access_token);
         }
         if (result.refresh_token) {
-            localStorage.setItem('refresh_token', result.refresh_token);
+            setCookieAuth('refresh_token', result.refresh_token);
         }
         if (result.user_id) {
-            localStorage.setItem('user_id', result.user_id.toString());
+            setCookieAuth('user_id', result.user_id.toString());
         }
         if (result.username) {
-            localStorage.setItem('username', result.username);
+            setCookieAuth('username', result.username);
         }
 
         devLog.log('Login successful:', result);
@@ -90,12 +96,24 @@ export const login = async (loginData) => {
  */
 export const logout = async (token = null) => {
     try {
-        const authToken = token || localStorage.getItem('access_token');
+        const authToken = token || getAuthCookie('access_token');
 
         if (!authToken) {
             throw new Error('No token found');
         }
 
+        // 먼저 토큰이 유효한지 확인
+        const tokenValidation = await validateToken(authToken);
+
+        if (!tokenValidation.valid) {
+            // 토큰이 이미 유효하지 않으면 서버 요청 없이 쿠키 정리만 수행
+            clearAllAuth();
+
+            devLog.log('Token already invalid, cookie cleanup completed');
+            return { message: 'Already logged out (token was invalid)' };
+        }
+
+        // 토큰이 유효하면 서버에 로그아웃 요청
         const response = await fetch(`${API_BASE_URL}/auth/logout`, {
             method: 'POST',
             headers: {
@@ -112,21 +130,15 @@ export const logout = async (token = null) => {
             );
         }
 
-        // localStorage에서 모든 인증 관련 데이터 삭제
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user_id');
-        localStorage.removeItem('username');
+        // 쿠키에서 모든 인증 관련 데이터 삭제
+        clearAllAuth();
 
         devLog.log('Logout successful:', result);
         return result;
     } catch (error) {
         devLog.error('Failed to logout:', error);
-        // 로그아웃 실패해도 로컬 저장소는 정리
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user_id');
-        localStorage.removeItem('username');
+        // 로그아웃 실패해도 쿠키는 정리
+        clearAllAuth();
         throw error;
     }
 };
@@ -138,7 +150,7 @@ export const logout = async (token = null) => {
  */
 export const validateToken = async (token = null) => {
     try {
-        const authToken = token || localStorage.getItem('access_token');
+        const authToken = token || getAuthCookie('access_token');
 
         if (!authToken) {
             return { valid: false };
@@ -176,7 +188,7 @@ export const validateToken = async (token = null) => {
  */
 export const refreshToken = async (refreshToken = null) => {
     try {
-        const refToken = refreshToken || localStorage.getItem('refresh_token');
+        const refToken = refreshToken || getAuthCookie('refresh_token');
 
         if (!refToken) {
             throw new Error('No refresh token found');
@@ -198,9 +210,9 @@ export const refreshToken = async (refreshToken = null) => {
             );
         }
 
-        // 새로운 액세스 토큰을 localStorage에 저장
+        // 새로운 액세스 토큰을 쿠키에만 저장
         if (result.access_token) {
-            localStorage.setItem('access_token', result.access_token);
+            setCookieAuth('access_token', result.access_token);
         }
 
         devLog.log('Token refresh successful:', result);
@@ -217,9 +229,9 @@ export const refreshToken = async (refreshToken = null) => {
  */
 export const getCurrentUser = () => {
     try {
-        const userId = localStorage.getItem('user_id');
-        const username = localStorage.getItem('username');
-        const accessToken = localStorage.getItem('access_token');
+        const userId = getAuthCookie('user_id');
+        const username = getAuthCookie('username');
+        const accessToken = getAuthCookie('access_token');
 
         if (!userId || !username || !accessToken) {
             return null;
@@ -250,7 +262,7 @@ export const isLoggedIn = () => {
  * @returns {Object} Authorization 헤더 객체
  */
 export const getAuthHeaders = () => {
-    const token = localStorage.getItem('access_token');
+    const token = getAuthCookie('access_token');
     if (!token) {
         return {};
     }

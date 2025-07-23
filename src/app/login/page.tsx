@@ -2,16 +2,59 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import styles from './LoginPage.module.scss';
+import { login } from '../api/authAPI';
+import { useAuth } from '@/app/_common/components/CookieProvider';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const router = useRouter();
+
+  // CookieProvider의 useAuth 훅 사용
+  const { setUser } = useAuth();
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log('로그인 시도:', { email, password });
-    alert(`이메일: ${email}\n비밀번호: ${password}\n로그인을 시도합니다.`);
+    setError(null);
+
+    if (!email || !password) {
+      setError('이메일과 비밀번호를 모두 입력해주세요.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const loginData = { email, password };
+      const result = await login(loginData) as any;
+
+      // CookieProvider에 사용자 정보 설정
+      if (result.user_id && result.username && result.access_token) {
+        setUser({
+          user_id: result.user_id,
+          username: result.username,
+          access_token: result.access_token,
+        });
+      }
+
+      // 로그인 성공
+      toast.success(`로그인 성공! 환영합니다, ${result.username}님!`);
+
+      // 메인 페이지 또는 대시보드로 리다이렉트
+      router.push('/');
+
+    } catch (err: any) {
+      setError(err.message || '로그인에 실패했습니다.');
+      toast.error(err.message || '로그인에 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -45,8 +88,10 @@ const LoginPage = () => {
             />
           </div>
 
-          <button type="submit" className={styles.loginButton}>
-            로그인
+          {error && <p className={styles.error}>{error}</p>}
+
+          <button type="submit" className={styles.loginButton} disabled={isLoading}>
+            {isLoading ? '로그인 중...' : '로그인'}
           </button>
         </form>
 

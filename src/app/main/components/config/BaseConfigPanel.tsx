@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiEdit3, FiCheck, FiX } from 'react-icons/fi';
 import { updateConfig } from '@/app/api/configAPI';
-import { devLog } from '@/app/utils/logger';
+import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/main/assets/Settings.module.scss';
 
 export interface ConfigItem {

@@ -16,7 +16,7 @@ import {
 import { BsDatabaseUp } from 'react-icons/bs';
 import { SiOpenai } from 'react-icons/si';
 import { fetchAllConfigs, updateConfig } from '@/app/api/configAPI';
-import { devLog } from '@/app/utils/logger';
+import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/main/assets/ConfigViewer.module.scss';
 
 interface ConfigItem {

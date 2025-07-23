@@ -18,7 +18,7 @@ const ChatPageContent: React.FC = () => {
     useEffect(() => {
         const mode = searchParams.get('mode');
         const interactionId = searchParams.get('interaction_id');
-        
+
         if (mode === 'current') {
             setActiveSection('current-chat');
         } else if (mode === 'existing' && interactionId) {

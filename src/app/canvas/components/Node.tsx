@@ -1,6 +1,6 @@
 import React, { memo, useState, useEffect, ChangeEvent, KeyboardEvent } from 'react';
 import styles from '@/app/canvas/assets/Node.module.scss';
-import { devLog } from '@/app/utils/logger';
+import { devLog } from '@/app/_common/utils/logger';
 import type {
     Parameter,
     NodeProps

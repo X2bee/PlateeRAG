@@ -32,7 +32,7 @@ $box-shadow-color: rgba(0, 0, 0, 0.1);
     color: $text-color;
     margin-bottom: 0.5rem;
   }
-  
+
   .subtitle {
     color: $label-color;
     margin-bottom: 2rem;
@@ -136,6 +136,17 @@ $box-shadow-color: rgba(0, 0, 0, 0.1);
   color: #721c24;
   background-color: #f8d7da;
   border: 1px solid #f5c6cb;
+}
+
+.error {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
+  text-align: center;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 0.75rem;
 }
 
 .actionLink {

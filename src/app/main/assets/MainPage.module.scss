@@ -46,7 +46,7 @@ $white: #ffffff;
 
 // Sidebar Header
 .sidebarHeader {
-  padding: 1.5rem;
+  padding: 1.2rem;
   border-bottom: 1px solid $gray-200;
   background: linear-gradient(135deg, $primary-blue 0%, $primary-purple 100%);
   color: $white;
@@ -74,6 +74,55 @@ $white: #ffffff;
   }
 }
 
+.userInfo {
+  margin-top: 0.2rem;
+  padding-top: 0.2rem;
+  border-top: 1px solid rgba($white, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.welcomeText {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.875rem;
+
+  span:first-child {
+    opacity: 0.8;
+    margin-bottom: 0.125rem;
+  }
+
+  .username {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+}
+
+.logoutButton {
+  background: rgba($white, 0.1);
+  border: 1px solid rgba($white, 0.2);
+  color: $white;
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: rgba($white, 0.2);
+    border-color: rgba($white, 0.3);
+    transform: translateY(-1px);
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
 // Sidebar Toggle Button
 .sidebarToggle {
   width: 100%;
@@ -89,12 +138,12 @@ $white: #ffffff;
   font-weight: 500;
   transition: background-color 0.2s ease;
   border-bottom: 1px solid $gray-200;
-  
+
   &:hover {
     background-color: $gray-50;
     color: $primary-blue;
   }
-  
+
   span {
     pointer-events: none;
   }
@@ -104,7 +153,7 @@ $white: #ffffff;
   transition: transform 0.2s ease;
   font-size: 12px;
   color: $gray-500;
-  
+
   &.expanded {
     transform: rotate(180deg);
     color: $primary-blue;

@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import styles from '@/app/canvas/assets/WorkflowPanel.module.scss';
-import sideMenuStyles from '@/app/canvas/assets/SideMenu.module.scss'; 
+import sideMenuStyles from '@/app/canvas/assets/SideMenu.module.scss';
 import { LuArrowLeft, LuFolderOpen, LuDownload, LuRefreshCw, LuCalendar, LuTrash2 } from "react-icons/lu";
 import { listWorkflows, loadWorkflow, deleteWorkflow } from '@/app/api/workflowAPI';
-import { getWorkflowState } from '@/app/_common/components/workflowStorage';
-import { devLog } from '@/app/utils/logger';
+import { getWorkflowState } from '@/app/_common/utils/workflowStorage';
+import { devLog } from '@/app/_common/utils/logger';
 import type {
     WorkflowData,
     WorkflowState,
@@ -44,10 +44,10 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
     const handleLoadWorkflow = async (filename: string): Promise<void> => {
         const currentState: WorkflowState | null = getWorkflowState();
         const hasCurrentWorkflow = currentState && ((currentState.nodes?.length || 0) > 0 || (currentState.edges?.length || 0) > 0);
-        
+
         if (hasCurrentWorkflow) {
             const workflowName = getWorkflowDisplayName(filename);
-            
+
             const confirmToast = toast(
                 (t) => (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -125,7 +125,7 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
         try {
             const workflowId = filename.replace('.json', '');
             const workflowData: WorkflowData = await loadWorkflow(workflowId);
-            
+
             if (onLoadWorkflow) {
                 // Pass workflow data along with workflow name
                 onLoadWorkflow(workflowData, workflowId);
@@ -139,7 +139,7 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
 
     const handleDeleteWorkflow = async (filename: string): Promise<void> => {
         const workflowName = getWorkflowDisplayName(filename);
-        
+
         const confirmToast = toast(
             (t) => (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -212,13 +212,13 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
 
     const performDelete = async (filename: string, workflowName: string): Promise<void> => {
         const toastId = toast.loading(`Deleting "${workflowName}"...`);
-        
+
         try {
             const workflowId = filename.replace('.json', '');
             await deleteWorkflow(workflowId);
-            
+
             await fetchWorkflows();
-            
+
             toast.success(`Workflow "${workflowName}" deleted successfully!`, { id: toastId });
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -242,8 +242,8 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
                     <LuArrowLeft />
                 </button>
                 <h3>Workflow</h3>
-                <button 
-                    onClick={handleRefresh} 
+                <button
+                    onClick={handleRefresh}
                     className={`${sideMenuStyles.refreshButton} ${isLoading ? sideMenuStyles.loading : ''}`}
                     disabled={isLoading}
                     title="Refresh Workflow List"
@@ -303,7 +303,7 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
                                     </div>
                                 </div>
                                 <div className={styles.workflowActions}>
-                                    <button 
+                                    <button
                                         className={styles.loadButton}
                                         title={`Load ${getWorkflowDisplayName(filename)}`}
                                         onClick={() => handleLoadWorkflow(filename)}

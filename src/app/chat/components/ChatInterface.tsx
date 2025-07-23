@@ -14,7 +14,7 @@ import {
 } from 'react-icons/fi';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
 import { getWorkflowIOLogs, executeWorkflowById } from '@/app/api/workflowAPI';
-import { MessageRenderer } from '@/app/utils/chatParser';
+import { MessageRenderer } from '@/app/_common/components/ChatParser';
 import toast from 'react-hot-toast';
 import CollectionModal from '@/app/chat/components/CollectionModal';
 import { IOLog, ChatInterfaceProps } from './types';

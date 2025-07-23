@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect, MouseEvent } from 'react';
 import Node from '@/app/canvas/components/Node';
 import Edge from '@/app/canvas/components/Edge';
-import { devLog } from '@/app/utils/logger';
+import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/canvas/assets/MiniCanvas.module.scss';
 import type {
     Position,
@@ -53,9 +53,9 @@ const MiniCanvas: React.FC<MiniCanvasProps> = ({ template }) => {
         setIsDragging(true);
         const rect = canvasRef.current?.getBoundingClientRect();
         if (rect) {
-            setDragStart({ 
-                x: e.clientX - rect.left - offset.x, 
-                y: e.clientY - rect.top - offset.y 
+            setDragStart({
+                x: e.clientX - rect.left - offset.x,
+                y: e.clientY - rect.top - offset.y
             });
         }
     };
@@ -67,7 +67,7 @@ const MiniCanvas: React.FC<MiniCanvasProps> = ({ template }) => {
         e.stopPropagation();
         const rect = canvasRef.current?.getBoundingClientRect();
         if (!rect) return;
-        
+
         setOffset({
             x: e.clientX - rect.left - dragStart.x,
             y: e.clientY - rect.top - dragStart.y
@@ -88,7 +88,7 @@ const MiniCanvas: React.FC<MiniCanvasProps> = ({ template }) => {
 
         const wheelHandler = (e: WheelEvent) => handleWheel(e);
         canvas.addEventListener('wheel', wheelHandler, { passive: false });
-        
+
         return () => {
             canvas.removeEventListener('wheel', wheelHandler);
         };
@@ -100,7 +100,7 @@ const MiniCanvas: React.FC<MiniCanvasProps> = ({ template }) => {
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
         }
-        
+
         return () => {
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
@@ -133,13 +133,13 @@ const MiniCanvas: React.FC<MiniCanvasProps> = ({ template }) => {
     };
 
     return (
-        <div 
+        <div
             className={`${styles.miniCanvas} miniCanvas`}
             ref={canvasRef}
             style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
             onMouseDown={handleMouseDown}
         >
-            <div 
+            <div
                 className={styles.canvasContent}
                 style={{
                     transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
@@ -150,7 +150,7 @@ const MiniCanvas: React.FC<MiniCanvasProps> = ({ template }) => {
                 <div className={styles.grid} />
 
                 {/* Edge rendering */}
-                <svg 
+                <svg
                     className={styles.edgesSvg}
                     style={{
                         width: '2000px',
@@ -165,7 +165,7 @@ const MiniCanvas: React.FC<MiniCanvasProps> = ({ template }) => {
                     {edges.map(edge => {
                         const sourceNode = adjustedNodes.find(n => n.id === edge.source.nodeId);
                         const targetNode = adjustedNodes.find(n => n.id === edge.target.nodeId);
-                        
+
                         if (!sourceNode || !targetNode) {
                             devLog.warn('Missing node for edge:', edge.id);
                             return null;
@@ -174,7 +174,7 @@ const MiniCanvas: React.FC<MiniCanvasProps> = ({ template }) => {
                         // Simple port position calculation for mini canvas scale
                         const nodeWidth = 350 * 0.8; // 280px
                         const nodeHeight = 120 * 0.8; // Approximate node height
-                        
+
                         // Apply SVG coordinate offset
                         const sourcePos: Position = {
                             x: sourceNode.position.x + nodeWidth + 500,  // SVG offset + node right end
@@ -219,14 +219,14 @@ const MiniCanvas: React.FC<MiniCanvasProps> = ({ template }) => {
 
             {/* Zoom controls */}
             <div className={styles.zoomControls}>
-                <button 
+                <button
                     className={styles.zoomButton}
                     onClick={handleZoomIn}
                 >
                     +
                 </button>
                 <span className={styles.zoomLevel}>{Math.round(scale * 100)}%</span>
-                <button 
+                <button
                     className={styles.zoomButton}
                     onClick={handleZoomOut}
                 >

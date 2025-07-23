@@ -4,14 +4,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { FiX, FiLoader } from 'react-icons/fi';
-import { 
-    getWorkflowNodeCounts, 
-    getPieChartData, 
-    getBarChartData, 
-    getLineChartData 
+import {
+    getWorkflowNodeCounts,
+    getPieChartData,
+    getBarChartData,
+    getLineChartData
 } from '@/app/api/workflowAPI';
 import styles from '@/app/main/assets/ChartDashboard.module.scss';
-import { devLog } from '@/app/utils/logger';
+import { devLog } from '@/app/_common/utils/logger';
 import ChartPlaceholder from './ChartPlaceholder';
 
 interface NodeCount {
@@ -110,7 +110,7 @@ const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workfl
                             maxCount = inputStringNode.count;
                         }
                     }
-                    
+
                     setMaxLogLimit(maxCount);
                     setLogLimit(prevLimit => Math.min(prevLimit, maxCount > 0 ? maxCount : 10));
                     devLog.log(`Max log count set to: ${maxCount}`);
@@ -158,7 +158,7 @@ const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workfl
     const chartColors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'];
     const prepareChartJsData = (data: any, type: 'pie' | 'bar' | 'line') => {
         if (!data?.datasets) return { labels: [], datasets: [] };
-        
+
         const datasets = data.datasets.map((ds: any, index: number) => ({
             ...ds,
             backgroundColor: type === 'pie' ? chartColors : (chartColors[index % chartColors.length] + '80'),
@@ -178,7 +178,7 @@ const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workfl
                     <h2>{workflowName} - Performance Charts</h2>
                     <button onClick={onClose} className={styles.closeButton}><FiX /></button>
                 </div>
-                
+
                 <div className={styles.controls}>
                     <label htmlFor="logLimit">최근 실행 로그 <strong>{logLimit}</strong>개 기준</label>
                     <input

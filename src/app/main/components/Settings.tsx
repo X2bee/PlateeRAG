@@ -15,7 +15,7 @@ import {
     testConnection,
     fetchAllConfigs,
 } from '@/app/api/configAPI';
-import { devLog } from '@/app/utils/logger';
+import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/main/assets/Settings.module.scss';
 
 // Import config components

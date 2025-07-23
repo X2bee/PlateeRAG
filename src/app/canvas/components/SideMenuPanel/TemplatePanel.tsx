@@ -5,8 +5,8 @@ import styles from '@/app/canvas/assets/WorkflowPanel.module.scss';
 import sideMenuStyles from '@/app/canvas/assets/SideMenu.module.scss';
 import { LuArrowLeft, LuLayoutTemplate, LuPlay, LuCopy } from "react-icons/lu";
 import TemplatePreview from '@/app/canvas/components/SideMenuPanel/TemplatePreview';
-import { getWorkflowState } from '@/app/_common/components/workflowStorage';
-import { devLog } from '@/app/utils/logger';
+import { getWorkflowState } from '@/app/_common/utils/workflowStorage';
+import { devLog } from '@/app/_common/utils/logger';
 
 import Basic_Chatbot from '@/app/canvas/constants/workflow/Basic_Chatbot.json';
 import Data_Processing from '@/app/canvas/constants/workflow/Data_Processing.json';
@@ -39,7 +39,7 @@ const TemplatePanel: React.FC<TemplatePanelProps> = ({ onBack, onLoadWorkflow })
                 setIsLoading(true);
 
                 devLog.log('templateList:', templateList);
-                
+
                 const formattedTemplates: Template[] = templateList.map((template: RawTemplate) => ({
                     id: template.id,
                     name: template.name,
@@ -63,10 +63,10 @@ const TemplatePanel: React.FC<TemplatePanelProps> = ({ onBack, onLoadWorkflow })
 
     const handleUseTemplate = (template: Template | null): void => {
         if (!template) return;
-        
+
         const currentState: WorkflowState | null = getWorkflowState();
         const hasCurrentWorkflow = currentState && ((currentState.nodes?.length || 0) > 0 || (currentState.edges?.length || 0) > 0);
-        
+
         if (hasCurrentWorkflow) {
             const confirmToast = toast(
                 (t) => (
@@ -146,7 +146,7 @@ const TemplatePanel: React.FC<TemplatePanelProps> = ({ onBack, onLoadWorkflow })
         devLog.log('Template:', template);
         devLog.log('onLoadWorkflow exists:', !!onLoadWorkflow);
         devLog.log('Template data exists:', !!template?.data);
-        
+
         if (onLoadWorkflow && template.data) {
             devLog.log('Calling onLoadWorkflow with:', template.data, template.name);
             onLoadWorkflow(template.data, template.name);
@@ -216,8 +216,8 @@ const TemplatePanel: React.FC<TemplatePanelProps> = ({ onBack, onLoadWorkflow })
                                 <div className={styles.templateInfo}>
                                     <h4 className={styles.templateName}>{template.name}</h4>
                                     <p className={styles.templateDescription}>
-                                        {template.description && template.description.length > 20 
-                                            ? `${template.description.substring(0, 20)}...` 
+                                        {template.description && template.description.length > 20
+                                            ? `${template.description.substring(0, 20)}...`
                                             : template.description
                                         }
                                     </p>
@@ -239,14 +239,14 @@ const TemplatePanel: React.FC<TemplatePanelProps> = ({ onBack, onLoadWorkflow })
                                 </div>
                             </div>
                             <div className={styles.templateActions}>
-                                <button 
+                                <button
                                     className={styles.templateActionButton}
                                     onClick={() => handlePreviewTemplate(template)}
                                     title="Preview Template"
                                 >
                                     <LuCopy />
                                 </button>
-                                <button 
+                                <button
                                     className={styles.templateActionButton}
                                     onClick={() => handleUseTemplate(template)}
                                     title="Use Template"

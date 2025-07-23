@@ -8,7 +8,7 @@ import {
 } from 'react-icons/fi';
 import { listInteractions } from '@/app/api/interactionAPI';
 import { deleteWorkflowIOLogs } from '@/app/api/workflowAPI';
-import { devLog } from '@/app/utils/logger';
+import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/chat/assets/ChatHistory.module.scss';
 import toast from 'react-hot-toast';
 
