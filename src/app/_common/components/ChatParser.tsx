@@ -3,6 +3,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiCopy, FiCheck } from 'react-icons/fi';
 import styles from '@/app/chat/assets/chatParser.module.scss';
+import { Prism } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 export interface ParsedContent {
     html: string;
@@ -57,9 +59,19 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ language, code, className 
                     {copied ? <FiCheck /> : <FiCopy />}
                 </button>
             </div>
-            <pre className="code-block">
-                <code ref={codeRef}>{code}</code>
-            </pre>
+            <Prism
+                language={language.toLowerCase()} 
+                style={vscDarkPlus}
+                customStyle={{ 
+                    margin: 0, 
+                    borderRadius: '0 0 0.5rem 0.5rem',
+                    border: 'none',
+                    padding: '1rem'
+                }}
+                showLineNumbers
+            >
+                {code}
+            </Prism>
         </div>
     );
 };
