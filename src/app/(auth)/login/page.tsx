@@ -48,7 +48,7 @@ const LoginPage = () => {
       toast.success(`로그인 성공! 환영합니다, ${result.username}님!`);
 
       // 메인 페이지 또는 대시보드로 리다이렉트
-      router.push('/');
+      router.replace('/');
 
     } catch (err: any) {
       setError(err.message || '로그인에 실패했습니다.');
@@ -82,7 +82,7 @@ const LoginPage = () => {
         { id: 'guest-creation' });
 
       // 메인 페이지로 리다이렉트
-      router.push('/main');
+      router.replace('/main');
 
     } catch (err: any) {
       toast.error(err.message || '게스트 계정 생성에 실패했습니다.',

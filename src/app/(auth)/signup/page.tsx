@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import styles from '@/app/signup/SignupPage.module.scss';
+import styles from '@/app/(auth)/signup/SignupPage.module.scss';
 import { signup } from '@/app/api/authAPI';
 
 const SignupPage = () => {

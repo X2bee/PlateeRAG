@@ -96,23 +96,20 @@ $box-shadow-color: rgba(0, 0, 0, 0.1);
 
 .guestButton {
   width: 100%;
-  padding: 0.625rem 1.25rem;
-  border: 2px solid $primary-color;
+  padding: 0.875rem;
+  border: 1px solid $primary-color;
   border-radius: 8px;
   background-color: transparent;
   color: $primary-color;
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  align-self: center;
-  margin-top: 0.5rem;
+  transition: all 0.2s;
 
   &:hover {
-    background-color: $primary-color;
-    color: white;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba($primary-color, 0.2);
+    background-color: rgba(0, 123, 255, 0.1);
+    border-color: $primary-hover-color;
+    color: $primary-hover-color;
   }
 
   &:active {
