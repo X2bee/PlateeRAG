@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FiTrash2 } from 'react-icons/fi';
 import { FiBarChart2 } from 'react-icons/fi';
 import { getWorkflowPerformance, deleteWorkflowPerformance } from '@/app/api/workflowAPI';
@@ -7,6 +7,7 @@ import { devLog } from '@/app/_common/utils/logger';
 import toast from 'react-hot-toast';
 import styles from '@/app/main/assets/Monitor.module.scss';
 import ChartDashboard from './charts/ChartDashboard';
+import { usePagesLayout } from '@/app/_common/components/PagesLayoutContent';
 
 interface Workflow {
     workflow_name: string;
@@ -48,6 +49,9 @@ interface WorkflowPartsProps {
 }
 
 const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
+    const layoutContext = usePagesLayout();
+    const sidebarWasOpenRef = useRef<boolean | null>(null);
+
     const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(
         null,
     );
@@ -58,6 +62,27 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
     const [error, setError] = useState<string | null>(null);
     const [noPerformanceData, setNoPerformanceData] = useState(false); // 실행 기록이 없는 경우를 위한 상태
     const [isChartDashboardOpen, setIsChartDashboardOpen] = useState(false);
+
+    const isAnyModalOpen = isChartDashboardOpen
+
+    useEffect(() => {
+            if (layoutContext) {
+                const { isSidebarOpen, setIsSidebarOpen } = layoutContext;
+                if (isAnyModalOpen) {
+                    if (sidebarWasOpenRef.current === null) {
+                        sidebarWasOpenRef.current = isSidebarOpen;
+                        if (isSidebarOpen) {
+                            setIsSidebarOpen(false);
+                        }
+                    }
+                } else {
+                    if (sidebarWasOpenRef.current === true) {
+                        setIsSidebarOpen(true);
+                    }
+                    sidebarWasOpenRef.current = null;
+                }
+            }
+        }, [isAnyModalOpen, layoutContext]);
 
     useEffect(() => {
         loadPerformanceData(workflow);

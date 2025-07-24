@@ -1,4 +1,22 @@
-// /src/app/main/assets/ChartDashboard.module.scss
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInRight {
+   from {
+       opacity: 0;
+       transform: translateX(0px);
+   }
+   to {
+       opacity: 1;
+       transform: translateX(0);
+   }
+}
 
 .overlay {
     position: fixed;
@@ -12,6 +30,7 @@
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
 }
 
 .dashboardContainer {
@@ -24,6 +43,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    animation: fadeInRight 0.3s ease-out;
 }
 
 .header {
@@ -49,10 +69,12 @@
     color: #6c757d;
     padding: 0.5rem;
     border-radius: 50%;
+    transition: all 0.2s ease;
     
     &:hover {
         background-color: #f1f3f5;
         color: #212529;
+        transform: scale(1.1);
     }
 }
 
