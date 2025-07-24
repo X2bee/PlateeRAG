@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import styles from '../assets/Documents.module.scss';
-import { useSidebar } from '@/app/_common/components/PagesLayoutContent';
+import { usePagesLayout, useSidebar } from '@/app/_common/components/PagesLayoutContent';
 
 import {
     isSupportedFileType,
@@ -101,7 +101,7 @@ interface SearchResponse {
 type ViewMode = 'collections' | 'documents' | 'document-detail';
 
 const Documents: React.FC = () => {
-    const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
+    const layoutContext = usePagesLayout();
     const sidebarWasOpenRef = useRef<boolean | null>(null);
 
     const [viewMode, setViewMode] = useState<ViewMode>('collections');
@@ -133,20 +133,23 @@ const Documents: React.FC = () => {
     const isAnyModalOpen = showCreateModal || showDeleteModal || showDeleteDocModal;
 
     useEffect(() => {
-        if (isAnyModalOpen) {
-            if (sidebarWasOpenRef.current === null) {
-                sidebarWasOpenRef.current = isSidebarOpen;
-                if (isSidebarOpen) {
-                    setIsSidebarOpen(false);
+        if (layoutContext) {
+            const { isSidebarOpen, setIsSidebarOpen } = layoutContext;
+            if (isAnyModalOpen) {
+                if (sidebarWasOpenRef.current === null) {
+                    sidebarWasOpenRef.current = isSidebarOpen;
+                    if (isSidebarOpen) {
+                        setIsSidebarOpen(false);
+                    }
                 }
+            } else {
+                if (sidebarWasOpenRef.current === true) {
+                    setIsSidebarOpen(true);
+                }
+                sidebarWasOpenRef.current = null;
             }
-        } else {
-            if (sidebarWasOpenRef.current === true) {
-                setIsSidebarOpen(true);
-            }
-            sidebarWasOpenRef.current = null;
         }
-    }, [isAnyModalOpen, isSidebarOpen, setIsSidebarOpen]);
+    }, [isAnyModalOpen, layoutContext]);
 
 
     // 컬렉션 목록 로드
