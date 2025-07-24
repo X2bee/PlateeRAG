@@ -19,10 +19,12 @@ import {
 } from '@/app/api/retrievalAPI';
 
 interface Collection {
-    name: string;
+    collection_make_name: string;
     vector_size?: number;
     points_count?: number;
     description?: string;
+    registered_at: string;
+    updated_at: string;
 }
 
 interface DocumentInCollection {
@@ -476,14 +478,17 @@ const Documents: React.FC = () => {
                         <div className={styles.collectionGrid}>
                             {collections.map((collection) => (
                                 <div
-                                    key={collection.name}
+                                    key={collection.collection_make_name}
                                     className={styles.collectionCard}
                                 >
                                     <div
                                         className={styles.collectionContent}
                                         onClick={() => handleSelectCollection(collection)}
                                     >
-                                        <h4>{collection.name}</h4>
+                                        <h4>{collection.collection_make_name}</h4>
+                                        <p className={styles.docInfo}>
+                                            {collection.description}
+                                        </p>
                                     </div>
                                     <button
                                         className={`${styles.deleteButton}`}
