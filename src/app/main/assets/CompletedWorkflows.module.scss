@@ -32,6 +32,7 @@ $white: #ffffff;
 }
 
 .headerInfo {
+  display: flex;
   h2 {
     font-size: 1.875rem;
     font-weight: 700;
@@ -51,7 +52,6 @@ $white: #ffffff;
   align-items: center;
   gap: 1rem;
   margin-left: auto;
-  margin-right: 0;
 }
 
 // Filters

@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useSidebar } from '@/app/_common/components/PagesLayoutContent';
 import {
     FiSend,
     FiArrowLeft,
@@ -25,6 +26,9 @@ import { generateInteractionId, normalizeWorkflowName } from '@/app/api/interact
 
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, onChatStarted, hideBackButton = false, existingChatData }) => {
+    const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
+    const sidebarWasOpenRef = useRef<boolean | null>(null);
+    
     const [ioLogs, setIOLogs] = useState<IOLog[]>([]);
     const [loading, setLoading] = useState(false);
     const [executing, setExecuting] = useState(false);
@@ -39,6 +43,24 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
 
     const messagesRef = useRef<HTMLDivElement>(null);
     const attachmentButtonRef = useRef<HTMLDivElement>(null);
+
+    const isAnyModalOpen = showDeploymentModal || showCollectionModal;
+    
+        useEffect(() => {
+            if (isAnyModalOpen) {
+                if (sidebarWasOpenRef.current === null) {
+                    sidebarWasOpenRef.current = isSidebarOpen;
+                    if (isSidebarOpen) {
+                        setIsSidebarOpen(false);
+                    }
+                }
+            } else {
+                if (sidebarWasOpenRef.current === true) {
+                    setIsSidebarOpen(true);
+                }
+                sidebarWasOpenRef.current = null;
+            }
+        }, [isAnyModalOpen, isSidebarOpen, setIsSidebarOpen]);
 
     useEffect(() => {
         const loadChatLogs = async () => {
