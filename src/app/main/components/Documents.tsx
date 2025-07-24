@@ -1,6 +1,7 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from '../assets/Documents.module.scss';
+import { useSidebar } from '@/app/_common/components/PagesLayoutContent';
 
 import {
     isSupportedFileType,
@@ -100,6 +101,9 @@ interface SearchResponse {
 type ViewMode = 'collections' | 'documents' | 'document-detail';
 
 const Documents: React.FC = () => {
+    const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
+    const sidebarWasOpenRef = useRef<boolean | null>(null);
+
     const [viewMode, setViewMode] = useState<ViewMode>('collections');
     const [collections, setCollections] = useState<Collection[]>([]);
     const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
@@ -125,6 +129,25 @@ const Documents: React.FC = () => {
     // 로딩 및 에러 상태
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const isAnyModalOpen = showCreateModal || showDeleteModal || showDeleteDocModal;
+
+    useEffect(() => {
+        if (isAnyModalOpen) {
+            if (sidebarWasOpenRef.current === null) {
+                sidebarWasOpenRef.current = isSidebarOpen;
+                if (isSidebarOpen) {
+                    setIsSidebarOpen(false);
+                }
+            }
+        } else {
+            if (sidebarWasOpenRef.current === true) {
+                setIsSidebarOpen(true);
+            }
+            sidebarWasOpenRef.current = null;
+        }
+    }, [isAnyModalOpen, isSidebarOpen, setIsSidebarOpen]);
+
 
     // 컬렉션 목록 로드
     useEffect(() => {
