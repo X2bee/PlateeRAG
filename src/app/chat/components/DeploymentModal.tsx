@@ -106,7 +106,7 @@ query({
     })
 </script>`;
 
-    const fullPageHtmlCode = `<fullchatbot style="width: 100%; height: 100%;"></flowise-fullchatbot>
+    const fullPageHtmlCode = `<fullchatbot style="width: 100%; height: 100%;"></fullchatbot>
 <script type="module">
     import {Chatbot} from "${baseUrl}/chatbot-embed.js"
     Chatbot.initFull({

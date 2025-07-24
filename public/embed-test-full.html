@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Embed Test</title>
+    <style>
+        body { font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; flex-direction: column; }
+        h1 { color: #333; }
+        p { color: #666; }
+    </style>
+</head>
+<body>
+    <h1>챗봇 임베드 테스트 페이지</h1>
+    <p>이 페이지는 커스텀 임베드 스크립트의 동작을 확인하기 위한 테스트 페이지입니다.</p>
+    <p>오른쪽 아래에 팝업 버튼이 나타나야 합니다.</p>
+
+    <fullchatbot style="width: 100%; height: 100%;"></fullchatbot>
+<script type="module">
+    import {Chatbot} from "http://localhost:3001/chatbot-embed.js"
+    Chatbot.initFull({
+        chatflowid: "workflow_66d37b61846fe241693bfe400de6bb7db2f62767",
+        apiHost: "http://localhost:3001",
+        workflowName: "test"
+    })
+</script>
+</body>
+</html>
+</body>
+</html>
+</body>
+</html>

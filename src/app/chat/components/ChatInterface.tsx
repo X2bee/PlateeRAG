@@ -253,10 +253,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
             const workflowName = existingChatData?.workflowName || workflow.name;
             const workflowId = existingChatData?.workflowId || workflow.id;
 
-            if (onChatStarted) {
-                onChatStarted();
-            }
-
             const result: any = await executeWorkflowById(
                 workflowName,
                 workflowId,
