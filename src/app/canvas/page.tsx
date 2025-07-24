@@ -89,6 +89,18 @@ function CanvasPageContent() {
         setIsCanvasReady(true);
     }, []);
 
+    useEffect(() => {
+        setWorkflow({
+            id: workflowId,
+            name: currentWorkflowName,
+            filename: currentWorkflowName,
+            author: 'Unknown',
+            nodeCount: 0,
+            status: 'active' as const,
+        });
+        setIsDeploy(false)
+    }, [workflowId, currentWorkflowName])
+
     // Canvas가 준비되고 노드가 초기화된 후 상태 복원을 위한 useEffect
     useEffect(() => {
         if (!isCanvasReady || !canvasRef.current || !nodesInitialized) {
@@ -324,8 +336,6 @@ function CanvasPageContent() {
     const performNewWorkflow = () => {
         try {
             devLog.log('Starting new workflow...');
-
-            setIsDeploy(false)
 
             // localStorage 데이터 초기화
             startNewWorkflow();
