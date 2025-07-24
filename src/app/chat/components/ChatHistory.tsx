@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     FiMessageSquare,
     FiRefreshCw,
@@ -12,6 +12,7 @@ import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/chat/assets/ChatHistory.module.scss';
 import toast from 'react-hot-toast';
 import HistoryModal from './HistoryModal';
+import { usePagesLayout } from '@/app/_common/components/PagesLayoutContent';
 
 interface ExecutionMeta {
     id: string;
@@ -42,6 +43,9 @@ interface ChatHistoryProps {
 }
 
 const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
+    const layoutContext = usePagesLayout();
+    const sidebarWasOpenRef = useRef<boolean | null>(null);
+
     const [chatList, setChatList] = useState<ExecutionMeta[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -51,9 +55,31 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
     const [selectedChatForHistory, setSelectedChatForHistory] = useState<ExecutionMeta | null>(null);
 
+    const isAnyModalOpen = isHistoryModalOpen;
+
+
     useEffect(() => {
         loadChatHistory();
     }, []);
+
+    useEffect(() => {
+            if (layoutContext) {
+                const { isSidebarOpen, setIsSidebarOpen } = layoutContext;
+                if (isAnyModalOpen) {
+                    if (sidebarWasOpenRef.current === null) {
+                        sidebarWasOpenRef.current = isSidebarOpen;
+                        if (isSidebarOpen) {
+                            setIsSidebarOpen(false);
+                        }
+                    }
+                } else {
+                    if (sidebarWasOpenRef.current === true) {
+                        setIsSidebarOpen(true);
+                    }
+                    sidebarWasOpenRef.current = null;
+                }
+            }
+        }, [isAnyModalOpen, layoutContext]);
 
     // 필터링된 채팅 리스트
     const filteredChatList = chatList.filter(chat => {
