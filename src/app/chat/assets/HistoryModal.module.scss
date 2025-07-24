@@ -1,3 +1,5 @@
+@use "sass:color";
+
 // Variables (ChatInterface.module.scss와 동일)
 $primary-blue: #2563eb;
 $gray-50: #f9fafb;
@@ -237,7 +239,7 @@ $white: #ffffff;
     transition: background-color 0.2s ease;
 
     &:hover {
-        background: darken($primary-blue, 10%);
+        background: color.adjust($primary-blue, $lightness: -10%);
     }
 }
 
