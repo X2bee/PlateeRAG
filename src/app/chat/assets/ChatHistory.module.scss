@@ -23,6 +23,7 @@ $white: #ffffff;
     background: $white;
     border-radius: 0.75rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    // max-width: 80vw;
 }
 
 .workflowSection {
@@ -31,7 +32,7 @@ $white: #ffffff;
     align-items: flex-start;
     justify-content: center;
     padding: 2rem;
-    transition: all 0.5s ease;
+    transition: all 0.3s ease;
     overflow: hidden;
     height: 100vh;
     max-height: 100vh;

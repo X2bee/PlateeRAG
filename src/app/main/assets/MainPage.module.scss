@@ -27,10 +27,10 @@ $white: #ffffff;
   margin-left: 280px;
   overflow-y: auto;
   min-height: 100vh;
-  transition: margin-left 0.3s ease-in-out; 
-
+  transition: margin-left 0.3s ease-in-out;
   position: relative;
   z-index: 1;
+  max-width: 85vw;
 }
 
 .sidebar {
@@ -61,7 +61,7 @@ $white: #ffffff;
   top: 50%;
   left: 0;
   transform: translateY(-50%);
-  
+
   width: 24px;
   height: 48px;
   background: white;

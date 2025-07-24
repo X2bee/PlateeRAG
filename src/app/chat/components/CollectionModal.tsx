@@ -5,10 +5,14 @@ import styles from '@/app/chat/assets/CollectionModal.module.scss';
 import { listCollections, listDocumentsInCollection } from '@/app/api/retrievalAPI';
 
 interface Collection {
-    name: string;
+    id?: number;
+    user_id?: number;
+    collection_make_name: string;
+    collection_name: string;
     total_documents?: number;
     total_chunks?: number;
     documents?: any[];
+    created_at?: string;
 }
 
 interface CollectionModalProps {
@@ -37,12 +41,9 @@ const CollectionModal: React.FC<CollectionModalProps> = ({ isOpen, onClose }) =>
             setLoading(true);
             setError(null);
             const response = await listCollections() as any;
-            
-            if (response.collections) {
-                const collectionsData = response.collections.map((name: string) => ({
-                    name
-                }));
-                setCollections(collectionsData);
+
+            if (response) {
+                setCollections(response || []);
             }
         } catch (err) {
             setError('컬렉션을 불러오는데 실패했습니다.');
@@ -52,19 +53,20 @@ const CollectionModal: React.FC<CollectionModalProps> = ({ isOpen, onClose }) =>
         }
     };
 
-    const fetchCollectionDetails = async (collectionName: string) => {
+    const fetchCollectionDetails = async (collectionName: string, collection_make_name: string) => {
         try {
             setLoading(true);
             setError(null);
             const response = await listDocumentsInCollection(collectionName) as any;
-            
+
             const collectionWithDetails = {
-                name: collectionName,
+                collection_name: collectionName,
+                collection_make_name: collection_make_name,
                 total_documents: response.total_documents,
                 total_chunks: response.total_chunks,
                 documents: response.documents
             };
-            
+
             setSelectedCollection(collectionWithDetails);
             setView('details');
         } catch (err) {
@@ -78,17 +80,17 @@ const CollectionModal: React.FC<CollectionModalProps> = ({ isOpen, onClose }) =>
     const handleCollectionSelect = (collection: Collection) => {
         // localStorage에 선택된 컬렉션 저장
         localStorage.setItem('selectedCollection', JSON.stringify({
-            name: collection.name,
+            name: collection.collection_name,
             selectedAt: new Date().toISOString()
         }));
-        
+
         // 모달 닫기
         onClose();
     };
 
-    const handleDetailsView = (collectionName: string) => {
+    const handleDetailsView = (collectionName: string, collection_make_name: string) => {
         // 단순히 상세 정보만 표시 (localStorage 저장하지 않음)
-        fetchCollectionDetails(collectionName);
+        fetchCollectionDetails(collectionName, collection_make_name);
     };
 
     const handleBackToList = () => {
@@ -120,19 +122,19 @@ const CollectionModal: React.FC<CollectionModalProps> = ({ isOpen, onClose }) =>
                 <div className={styles.modalHeader}>
                     <div className={styles.headerContent}>
                         {view === 'details' && (
-                            <button 
-                                className={styles.backButton} 
+                            <button
+                                className={styles.backButton}
                                 onClick={handleBackToList}
                             >
                                 <FiChevronRight style={{ transform: 'rotate(180deg)' }} />
                             </button>
                         )}
                         <h3>
-                            {view === 'list' ? '컬렉션' : selectedCollection?.name}
+                            {view === 'list' ? '컬렉션' : selectedCollection?.collection_make_name}
                         </h3>
                         {view === 'list' && (
-                            <button 
-                                className={styles.refreshButton} 
+                            <button
+                                className={styles.refreshButton}
                                 onClick={fetchCollections}
                                 disabled={loading}
                             >
@@ -144,14 +146,14 @@ const CollectionModal: React.FC<CollectionModalProps> = ({ isOpen, onClose }) =>
                         <FiX />
                     </button>
                 </div>
-                
+
                 <div className={styles.modalContent}>
                     {error && (
                         <div className={styles.errorMessage}>
                             {error}
                         </div>
                     )}
-                    
+
                     {loading ? (
                         <div className={styles.loadingState}>
                             <div className={styles.loadingSpinner}></div>
@@ -167,24 +169,24 @@ const CollectionModal: React.FC<CollectionModalProps> = ({ isOpen, onClose }) =>
                                 </div>
                             ) : (
                                 collections.map((collection) => (
-                                    <div 
-                                        key={collection.name}
+                                    <div
+                                        key={collection.id}
                                         className={styles.collectionItem}
                                     >
                                         <div className={styles.collectionIcon}>
                                             <FiFolder />
                                         </div>
                                         <div className={styles.collectionInfo}>
-                                            <h4>{collection.name}</h4>
+                                            <h4>{collection.collection_make_name}</h4>
                                         </div>
                                         <div className={styles.collectionActions}>
-                                            <button 
+                                            <button
                                                 className={styles.detailsButton}
-                                                onClick={() => handleDetailsView(collection.name)}
+                                                onClick={() => handleDetailsView(collection.collection_name, collection.collection_make_name)}
                                             >
                                                 상세정보
                                             </button>
-                                            <button 
+                                            <button
                                                 className={styles.selectButton}
                                                 onClick={() => handleCollectionSelect(collection)}
                                             >
@@ -213,7 +215,7 @@ const CollectionModal: React.FC<CollectionModalProps> = ({ isOpen, onClose }) =>
                                             </span>
                                         </div>
                                     </div>
-                                    
+
                                     <div className={styles.documentsSection}>
                                         <h4>문서 목록</h4>
                                         {selectedCollection.documents && selectedCollection.documents.length > 0 ? (
