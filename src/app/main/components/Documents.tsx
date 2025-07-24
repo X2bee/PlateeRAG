@@ -19,6 +19,7 @@ import {
 } from '@/app/api/retrievalAPI';
 
 interface Collection {
+    collection_name: string;
     collection_make_name: string;
     vector_size?: number;
     points_count?: number;
@@ -137,7 +138,7 @@ const Documents: React.FC = () => {
             setLoading(true);
             setError(null);
             const response = await listCollections() as CollectionsResponse;
-            const collectionObjects = (response.collections || []).map(name => ({ name }));
+            const collectionObjects = (response.collections || []).map(name => ({ collection_name: name, collection_make_name: name, registered_at: '', updated_at: '', description: '' }));
             setCollections(collectionObjects);
         } catch (err) {
             setError('컬렉션 목록을 불러오는데 실패했습니다.');
@@ -186,7 +187,7 @@ const Documents: React.FC = () => {
             setIsSearching(true);
             setError(null);
             const response = await searchDocuments(
-                selectedCollection.name,
+                selectedCollection.collection_name,
                 searchQuery,
                 10, // limit
                 0.0,
@@ -253,11 +254,11 @@ const Documents: React.FC = () => {
         try {
             setLoading(true);
             setError(null);
-            await deleteCollection(collectionToDelete.name);
+            await deleteCollection(collectionToDelete.collection_name);
             setShowDeleteModal(false);
             setCollectionToDelete(null);
 
-            if (selectedCollection?.name === collectionToDelete.name) {
+            if (selectedCollection?.collection_name === collectionToDelete.collection_name) {
                 setSelectedCollection(null);
                 setDocumentsInCollection([]);
                 setViewMode('collections');
@@ -284,7 +285,7 @@ const Documents: React.FC = () => {
         try {
             setLoading(true);
             setError(null);
-            await deleteDocumentFromCollection(selectedCollection.name, documentToDelete.document_id);
+            await deleteDocumentFromCollection(selectedCollection.collection_name, documentToDelete.document_id);
             setShowDeleteDocModal(false);
             setDocumentToDelete(null);
 
@@ -294,7 +295,7 @@ const Documents: React.FC = () => {
                 setViewMode('documents');
             }
 
-            await loadDocumentsInCollection(selectedCollection.name);
+            await loadDocumentsInCollection(selectedCollection.collection_name);
         } catch (err) {
             setError('문서 삭제에 실패했습니다.');
             console.error('Failed to delete document:', err);
@@ -311,7 +312,7 @@ const Documents: React.FC = () => {
         setSearchQuery('');
         setSearchResults([]);
         setViewMode('documents');
-        await loadDocumentsInCollection(collection.name);
+        await loadDocumentsInCollection(collection.collection_name);
     };
 
     // 문서 선택
@@ -322,7 +323,7 @@ const Documents: React.FC = () => {
         setSearchQuery('');
         setSearchResults([]);
         setViewMode('document-detail');
-        await loadDocumentDetails(selectedCollection.name, document.document_id);
+        await loadDocumentDetails(selectedCollection.collection_name, document.document_id);
     };
 
     // 뒤로 가기
@@ -378,7 +379,7 @@ const Documents: React.FC = () => {
 
                 await uploadDocument(
                     file,
-                    selectedCollection.name,
+                    selectedCollection.collection_name,
                     1000,
                     200,
                     true,
@@ -403,7 +404,7 @@ const Documents: React.FC = () => {
 
         setTimeout(() => {
             if (selectedCollection) {
-                loadDocumentsInCollection(selectedCollection.name);
+                loadDocumentsInCollection(selectedCollection.collection_name);
             }
             setUploadProgress([]);
         }, 2000);
@@ -444,7 +445,7 @@ const Documents: React.FC = () => {
                     )}
                     <h2>
                         {viewMode === 'collections' && '컬렉션 관리'}
-                        {viewMode === 'documents' && `${selectedCollection?.name} - 문서 목록`}
+                        {viewMode === 'documents' && `${selectedCollection?.collection_make_name} - 문서 목록`}
                         {viewMode === 'document-detail' && `${selectedDocument?.file_name} - 문서 상세`}
                     </h2>
                 </div>
@@ -698,7 +699,7 @@ const Documents: React.FC = () => {
                     <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                         <h3>컬렉션 삭제 확인</h3>
                         <p>
-                            '<strong>{collectionToDelete.name}</strong>' 컬렉션을 정말로 삭제하시겠습니까?<br/>
+                            '<strong>{collectionToDelete.collection_name}</strong>' 컬렉션을 정말로 삭제하시겠습니까?<br/>
                             이 작업은 되돌릴 수 없으며, 컬렉션에 포함된 모든 문서가 삭제됩니다.
                         </p>
                         <div className={styles.modalActions}>
