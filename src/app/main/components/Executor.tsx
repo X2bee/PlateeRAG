@@ -7,7 +7,6 @@ import {
     FiTrash2,
 } from 'react-icons/fi';
 import {
-    listWorkflowsDetail,
     getWorkflowIOLogs,
     executeWorkflowById,
     deleteWorkflowIOLogs,
