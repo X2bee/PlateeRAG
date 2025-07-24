@@ -63,7 +63,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
             }, 50);
         }
     }, []);
-    
+
     useEffect(() => {
         if (layoutContext) {
             const { isSidebarOpen, setIsSidebarOpen } = layoutContext;
@@ -148,7 +148,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
                 const storedCollection = localStorage.getItem('selectedCollection');
                 if (storedCollection) {
                     const collectionData = JSON.parse(storedCollection);
-                    setSelectedCollection(collectionData.name);
+                    setSelectedCollection(collectionData.make_name);
                 } else {
                     setSelectedCollection(null);
                 }
@@ -180,7 +180,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
                     const storedCollection = localStorage.getItem('selectedCollection');
                     if (storedCollection) {
                         const collectionData = JSON.parse(storedCollection);
-                        setSelectedCollection(collectionData.name);
+                        setSelectedCollection(collectionData.make_name);
                     } else {
                         setSelectedCollection(null);
                     }
@@ -301,7 +301,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
             if (onChatStarted) {
                 onChatStarted();
             }
-            
+
         } catch (err) {
             // 에러로 임시 메시지 업데이트
             setIOLogs((prev) =>

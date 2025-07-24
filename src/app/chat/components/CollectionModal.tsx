@@ -81,6 +81,7 @@ const CollectionModal: React.FC<CollectionModalProps> = ({ isOpen, onClose }) =>
         // localStorage에 선택된 컬렉션 저장
         localStorage.setItem('selectedCollection', JSON.stringify({
             name: collection.collection_name,
+            make_name: collection.collection_make_name,
             selectedAt: new Date().toISOString()
         }));
 

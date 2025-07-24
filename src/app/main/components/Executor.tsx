@@ -312,7 +312,7 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                         <div className={styles.executorHeader}>
                             <h3>
                                 {selectedWorkflow.workflow_name.replace('.json', '')}{' '}
-                                실행 로그
+                                - 테스트 로그
                             </h3>
                             <div className={styles.headerActions}>
                                 <div className={styles.logCount}>
@@ -341,8 +341,8 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                                 {ioLogs.length === 0 ? (
                                     <div className={styles.emptyexecutorState}>
                                         <FiClock className={styles.emptyIcon} />
-                                        <p>아직 실행 기록이 없습니다.</p>
-                                        <p>워크플로우를 실행해보세요.</p>
+                                        <p>테스트를 실행한 기록이 없습니다.</p>
+                                        <p>아래 채팅에서 테스트를 진행해 보세요.</p>
                                     </div>
                                 ) : (
                                     ioLogs.map((log) => (

@@ -125,7 +125,7 @@ const Node: React.FC<NodeProps> = ({
                     }}
                     className={`${styles.paramSelect} paramSelect`}
                 >
-                    <option value="" disabled>-- Select --</option>
+                    <option value="">-- Select --</option>
                     {param.options.map((option, index) => (
                         <option key={index} value={option.value}>
                             {option.label || option.value}
