@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import styles from './LoginPage.module.scss';
-import { login, createGuestAccountAndLogin } from '../../api/authAPI';
+import styles from '@/app/(auth)/login/LoginPage.module.scss';
+import { login, createGuestAccountAndLogin } from '@/app/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import ReverseAuthGuard from '@/app/_common/components/ReverseAuthGuard';
 

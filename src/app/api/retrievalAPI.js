@@ -59,14 +59,14 @@ export const listCollections = async () => {
 
 /**
  * 새 컬렉션을 생성하는 함수
- * @param {string} collectionName - 컬렉션 이름
+ * @param {string} collectionMakeName - 컬렉션 이름
  * @param {string} distance - 거리 메트릭 ("Cosine", "Euclidean", "Dot")
  * @param {string} description - 컬렉션 설명 (선택사항)
  * @param {Object} metadata - 커스텀 메타데이터 (선택사항)
  * @returns {Promise<Object>} 생성된 컬렉션 정보
  */
 export const createCollection = async (
-    collectionName,
+    collectionMakeName,
     distance = 'Cosine',
     description = null,
     metadata = null,
@@ -80,7 +80,7 @@ export const createCollection = async (
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    collection_name: collectionName,
+                    collection_make_name: collectionMakeName,
                     distance: distance,
                     description: description,
                     metadata: metadata,
@@ -168,7 +168,6 @@ export const getCollectionInfo = async (collectionName) => {
  * @param {string} collectionName - 대상 컬렉션 이름
  * @param {number} chunkSize - 청크 크기 (기본값: 1000)
  * @param {number} chunkOverlap - 청크 겹침 크기 (기본값: 200)
- * @param {boolean} processChunks - 청크 처리 여부 (기본값: true)
  * @param {Object} metadata - 문서 메타데이터 (선택사항)
  * @returns {Promise<Object>} 업로드 결과
  */
@@ -177,7 +176,6 @@ export const uploadDocument = async (
     collectionName,
     chunkSize = 1000,
     chunkOverlap = 200,
-    processChunks = true,
     metadata = null,
 ) => {
     try {
@@ -186,13 +184,12 @@ export const uploadDocument = async (
         formData.append('collection_name', collectionName);
         formData.append('chunk_size', chunkSize.toString());
         formData.append('chunk_overlap', chunkOverlap.toString());
-        formData.append('process_chunks', processChunks.toString());
 
         if (metadata) {
             formData.append('metadata', JSON.stringify(metadata));
         }
 
-        const response = await apiClient(
+        const response = await fetch(
             `${API_BASE_URL}/api/retrieval/documents/upload`,
             {
                 method: 'POST',

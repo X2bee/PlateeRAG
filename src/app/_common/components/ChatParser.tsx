@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { FiCopy, FiCheck } from 'react-icons/fi';
+import { FiCopy, FiCheck, FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import styles from '@/app/chat/assets/chatParser.module.scss';
 import { Prism } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -60,10 +60,10 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ language, code, className 
                 </button>
             </div>
             <Prism
-                language={language.toLowerCase()} 
+                language={language.toLowerCase()}
                 style={vscDarkPlus}
-                customStyle={{ 
-                    margin: 0, 
+                customStyle={{
+                    margin: 0,
                     borderRadius: '0 0 0.5rem 0.5rem',
                     border: 'none',
                     padding: '1rem'
@@ -189,6 +189,34 @@ const findCodeBlocks = (content: string): CodeBlockInfo[] => {
 };
 
 /**
+ * Think 블록 정보
+ */
+interface ThinkBlockInfo {
+    start: number;
+    end: number;
+    content: string;
+}
+
+/**
+ * <think></think> 블록 찾기
+ */
+const findThinkBlocks = (content: string): ThinkBlockInfo[] => {
+    const blocks: ThinkBlockInfo[] = [];
+    const thinkRegex = /<think>([\s\S]*?)<\/think>/gi;
+    let match;
+
+    while ((match = thinkRegex.exec(content)) !== null) {
+        blocks.push({
+            start: match.index,
+            end: match.index + match[0].length,
+            content: match[1].trim()
+        });
+    }
+
+    return blocks;
+};
+
+/**
  * 컨텐츠를 React 엘리먼트로 파싱
  */
 const parseContentToReactElements = (content: string): React.ReactNode[] => {
@@ -198,6 +226,18 @@ const parseContentToReactElements = (content: string): React.ReactNode[] => {
     processed = processed.replace(/\\n/g, '\n');
     processed = processed.replace(/\\t/g, '\t');
     processed = processed.replace(/\\r/g, '\r');
+
+    // 불필요한 따옴표 제거 (문장 전체를 감싸는 따옴표)
+    processed = processed.trim();
+    if ((processed.startsWith('"') && processed.endsWith('"')) ||
+        (processed.startsWith("'") && processed.endsWith("'"))) {
+        // 전체를 감싸는 따옴표인지 확인 (중간에 닫는 따옴표가 없어야 함)
+        const quote = processed[0];
+        const inner = processed.slice(1, -1);
+        if (!inner.includes(quote) || inner.lastIndexOf(quote) < inner.length - 1) {
+            processed = inner;
+        }
+    }
 
     // JSON 형태 처리
     if (processed.trim().startsWith('{') || processed.trim().startsWith('[')) {
@@ -214,24 +254,41 @@ const parseContentToReactElements = (content: string): React.ReactNode[] => {
     const elements: React.ReactNode[] = [];
     let currentIndex = 0;
 
-    // 개선된 코드 블록 파싱 - 네스티드 백틱 처리
+    // Think 블록 먼저 처리
+    const thinkBlocks = findThinkBlocks(processed);
+    // 코드 블록 처리
     const codeBlocks = findCodeBlocks(processed);
 
-    for (const block of codeBlocks) {
-        // 코드 블록 이전 텍스트 처리
+    // 모든 블록을 시작 위치 순으로 정렬
+    const allBlocks = [
+        ...thinkBlocks.map(block => ({ ...block, type: 'think' as const })),
+        ...codeBlocks.map(block => ({ ...block, type: 'code' as const }))
+    ].sort((a, b) => a.start - b.start);
+
+    for (const block of allBlocks) {
+        // 블록 이전 텍스트 처리
         if (block.start > currentIndex) {
             const beforeText = processed.slice(currentIndex, block.start);
             elements.push(...parseSimpleMarkdown(beforeText, elements.length));
         }
 
-        // 코드 블록 컴포넌트 추가
-        elements.push(
-            <CodeBlock
-                key={`code-${elements.length}`}
-                language={block.language}
-                code={block.code}
-            />
-        );
+        // 블록 타입에 따라 컴포넌트 추가
+        if (block.type === 'think') {
+            elements.push(
+                <ThinkBlock
+                    key={`think-${elements.length}`}
+                    content={block.content}
+                />
+            );
+        } else if (block.type === 'code') {
+            elements.push(
+                <CodeBlock
+                    key={`code-${elements.length}`}
+                    language={block.language}
+                    code={block.code}
+                />
+            );
+        }
 
         currentIndex = block.end;
     }
@@ -254,7 +311,23 @@ const parseSimpleMarkdown = (text: string, startKey: number): React.ReactNode[] 
     const elements: React.ReactNode[] = [];
     const lines = text.split('\n');
 
-    lines.forEach((line, lineIndex) => {
+    // 연속된 빈 줄을 하나로 축소하여 처리
+    const processedLines: string[] = [];
+    let lastWasEmpty = false;
+
+    for (const line of lines) {
+        const isEmpty = !line.trim();
+
+        if (isEmpty && lastWasEmpty) {
+            // 연속된 빈 줄은 건너뜀
+            continue;
+        }
+
+        processedLines.push(line);
+        lastWasEmpty = isEmpty;
+    }
+
+    processedLines.forEach((line, lineIndex) => {
         const processed = line;
         const key = `${startKey}-line-${lineIndex}`;
 
@@ -333,6 +406,7 @@ const parseSimpleMarkdown = (text: string, startKey: number): React.ReactNode[] 
                 />
             );
         } else {
+            // 빈 줄은 하나의 <br>만 추가 (연속된 빈 줄은 이미 필터링됨)
             elements.push(<br key={key} />);
         }
     });
@@ -387,4 +461,79 @@ export const detectCodeLanguage = (code: string): string => {
 export const truncateText = (text: string, maxLength: number = 100): string => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
+};
+
+/**
+ * Think 블록 컴포넌트 - 접힐 수 있는 사고 과정 표시
+ */
+interface ThinkBlockProps {
+    content: string;
+    className?: string;
+}
+
+export const ThinkBlock: React.FC<ThinkBlockProps> = ({ content, className = '' }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    const toggleExpanded = () => {
+        setIsExpanded(!isExpanded);
+    };
+
+    return (
+        <div className={`think-block-container ${className}`} style={{
+            border: '1px solid #e5e7eb',
+            borderRadius: '0.5rem',
+            margin: '0.5rem 0',
+            backgroundColor: '#f9fafb'
+        }}>
+            <button
+                onClick={toggleExpanded}
+                style={{
+                    width: '100%',
+                    padding: '0.75rem 1rem',
+                    border: 'none',
+                    background: 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    color: '#6b7280',
+                    borderRadius: '0.5rem'
+                }}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#f3f4f6';
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+            >
+                {isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
+                <span>💭 사고 과정</span>
+                {!isExpanded && (
+                    <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>
+                        (클릭하여 보기)
+                    </span>
+                )}
+            </button>
+            {isExpanded && (
+                <div style={{
+                    padding: '0 1rem 1rem 1rem',
+                    borderTop: '1px solid #e5e7eb',
+                    marginTop: '-1px'
+                }}>
+                    <div style={{
+                        backgroundColor: '#ffffff',
+                        padding: '1rem',
+                        borderRadius: '0.375rem',
+                        fontSize: '0.875rem',
+                        lineHeight: '1.5',
+                        color: '#374151',
+                        whiteSpace: 'pre-wrap'
+                    }}>
+                        {content}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 };

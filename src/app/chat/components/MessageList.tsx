@@ -1,5 +1,5 @@
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
-import { IOLog } from './types';
+import { IOLog } from '@/app/chat/components/types';
 
 interface MessageListProps {
     ioLogs: IOLog[];

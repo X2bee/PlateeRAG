@@ -53,6 +53,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
                 const logs = await getWorkflowIOLogs(workflowName, workflowId, interactionId);
                 setIOLogs((logs as any).in_out_logs || []);
                 setPendingLogId(null);
+                localStorage.removeItem('selectedCollection');
+                setSelectedCollection(null);
             } catch (err) {
                 setError('채팅 기록을 불러오는데 실패했습니다.');
                 setIOLogs([]);

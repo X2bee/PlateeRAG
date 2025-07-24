@@ -81,9 +81,7 @@ interface UploadProgress {
     error?: string;
 }
 
-interface CollectionsResponse {
-    collections: string[];
-}
+interface CollectionsResponse extends Array<Collection> {}
 
 interface DocumentsInCollectionResponse {
     collection_name: string;
@@ -138,8 +136,7 @@ const Documents: React.FC = () => {
             setLoading(true);
             setError(null);
             const response = await listCollections() as CollectionsResponse;
-            const collectionObjects = (response.collections || []).map(name => ({ collection_name: name, collection_make_name: name, registered_at: '', updated_at: '', description: '' }));
-            setCollections(collectionObjects);
+            setCollections(response);
         } catch (err) {
             setError('컬렉션 목록을 불러오는데 실패했습니다.');
             console.error('Failed to load collections:', err);
@@ -382,7 +379,6 @@ const Documents: React.FC = () => {
                     selectedCollection.collection_name,
                     1000,
                     200,
-                    true,
                     { upload_type: isFolder ? 'folder' : 'single' }
                 );
 
