@@ -18,6 +18,10 @@ interface SideMenuProps {
     onLoad: () => void;
     onExport: () => void;
     onLoadWorkflow: (workflowData: any) => void;
+    nodeSpecs?: any[];
+    nodesLoading?: boolean;
+    nodesError?: string | null;
+    onRefreshNodes?: () => Promise<void>;
 }
 
 // Main menu UI
@@ -59,7 +63,11 @@ const SideMenu: React.FC<SideMenuProps> = ({
     menuRef,
     onLoad,
     onExport,
-    onLoadWorkflow
+    onLoadWorkflow,
+    nodeSpecs,
+    nodesLoading,
+    nodesError,
+    onRefreshNodes
 }) => {
     const [view, setView] = useState<MenuView>('main');
 
@@ -75,7 +83,15 @@ const SideMenu: React.FC<SideMenuProps> = ({
         // menuRef is used for external click detection
         <aside ref={menuRef} className={styles.sideMenuContainer} data-view={view}>
             {view === 'main' && <MainMenu onNavigate={handleNavigate} />}
-            {view === 'addNodes' && <AddNodePanel onBack={handleBackToMain} />}
+            {view === 'addNodes' && (
+                <AddNodePanel
+                    onBack={handleBackToMain}
+                    nodeSpecs={nodeSpecs}
+                    nodesLoading={nodesLoading}
+                    nodesError={nodesError}
+                    onRefreshNodes={onRefreshNodes}
+                />
+            )}
             {view === 'workflow' && (
                 <WorkflowPanel
                     onBack={handleBackToMain}

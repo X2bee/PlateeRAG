@@ -14,7 +14,6 @@ import styles from '@/app/canvas/assets/Canvas.module.scss';
 import Node from '@/app/canvas/components/Node';
 import Edge from '@/app/canvas/components/Edge';
 import { devLog } from '@/app/_common/utils/logger';
-import { useNodes } from '@/app/_common/utils/nodeHook';
 import type {
     Position,
     View,
@@ -71,10 +70,9 @@ const validateRequiredInputs = (nodes: CanvasNode[], edges: CanvasEdge[]): Valid
     return { isValid: true };
 };
 
-const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProps }, ref) => {
+const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitialized = false, ...otherProps }, ref) => {
     const contentRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    const { exportAndRefreshNodes } = useNodes();
 
     const [view, setView] = useState<View>({ x: 0, y: 0, scale: 1 });
     const [nodes, setNodes] = useState<CanvasNode[]>([]);
@@ -132,18 +130,13 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, ...otherProp
     }, [nodes, edges, view, onStateChange]);
 
     useEffect(() => {
-        const initializeNodes = async () => {
-            try {
-                devLog.log('Canvas mounted, calling exportAndRefreshNodes...');
-                await exportAndRefreshNodes();
-                devLog.log('exportAndRefreshNodes completed successfully');
-            } catch (error) {
-                devLog.error('Error calling exportAndRefreshNodes:', error);
-            }
-        };
-
-        initializeNodes();
-    }, []); // Empty dependency array means this runs only once on mount
+        // 페이지 레벨에서 노드 초기화를 관리하므로 Canvas에서는 상태만 확인
+        if (!nodesInitialized) {
+            devLog.log('Canvas mounted, waiting for nodes initialization...');
+        } else {
+            devLog.log('Canvas mounted, nodes already initialized');
+        }
+    }, [nodesInitialized]); // nodesInitialized 의존성으로 변경
 
     const registerPortRef = useCallback((nodeId: string, portId: string, portType: string, el: HTMLElement | null) => {
         const key = `${nodeId}__PORTKEYDELIM__${portId}__PORTKEYDELIM__${portType}`;

@@ -82,7 +82,7 @@ interface UploadProgress {
     error?: string;
 }
 
-interface CollectionsResponse extends Array<Collection> {}
+type CollectionsResponse = Collection[];
 
 interface DocumentsInCollectionResponse {
     collection_name: string;
@@ -498,7 +498,7 @@ const Documents: React.FC = () => {
                         <div className={styles.collectionGrid}>
                             {collections.map((collection) => (
                                 <div
-                                    key={collection.collection_make_name}
+                                    key={collection.collection_name}
                                     className={styles.collectionCard}
                                 >
                                     <div
@@ -718,7 +718,7 @@ const Documents: React.FC = () => {
                     <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                         <h3>컬렉션 삭제 확인</h3>
                         <p>
-                            '<strong>{collectionToDelete.collection_name}</strong>' 컬렉션을 정말로 삭제하시겠습니까?<br/>
+                            '<strong>{collectionToDelete.collection_make_name}</strong>' 컬렉션을 정말로 삭제하시겠습니까?<br/>
                             이 작업은 되돌릴 수 없으며, 컬렉션에 포함된 모든 문서가 삭제됩니다.
                         </p>
                         <div className={styles.modalActions}>

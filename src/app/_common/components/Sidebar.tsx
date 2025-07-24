@@ -6,6 +6,7 @@ import { SidebarProps } from '@/app/main/components/types';
 import styles from '@/app/main/assets/MainPage.module.scss';
 import { logout } from '@/app/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
+import { useQuickLogout } from '@/app/_common/utils/logoutUtils';
 import { FiChevronLeft, FiLogOut } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 
@@ -26,20 +27,19 @@ const Sidebar: React.FC<SidebarProps> = ({
     const [isChatExpanded, setIsChatExpanded] = useState(initialChatExpanded);
 
     // CookieProvider의 useAuth 훅 사용 (AuthGuard에서 이미 인증 검증을 수행하므로 refreshAuth 호출 불필요)
-    const { user, isAuthenticated, clearAuth } = useAuth();
+    const { user, isAuthenticated } = useAuth();
+    const { quickLogout } = useQuickLogout();
 
     const handleLogout = async () => {
         try {
+            // 서버에 로그아웃 요청
             await logout();
-            clearAuth(); // CookieProvider를 통한 인증 정보 정리
-            toast.success('로그아웃되었습니다.');
-            router.push('/'); // 홈페이지로 리다이렉트
+            // 통합 로그아웃 처리 (localStorage 정리 포함)
+            quickLogout();
         } catch (error) {
-            console.error('Logout failed:', error);
-            // 로그아웃 실패해도 UI는 업데이트 (스토리지는 이미 정리됨)
-            clearAuth();
-            toast.error('로그아웃 처리 중 오류가 발생했습니다.');
-            router.push('/'); // 홈페이지로 리다이렉트
+            console.error('Logout API failed:', error);
+            // API 실패해도 클라이언트는 로그아웃 처리
+            quickLogout();
         }
     };
 
@@ -51,13 +51,13 @@ const Sidebar: React.FC<SidebarProps> = ({
     };
 
     return (
-        <motion.aside 
+        <motion.aside
             className={`${styles.sidebar} ${className} ${isOpen ? styles.open : styles.closed}`}
             initial={{ x: "-100%" }}
-            animate={{ x: 0 }} 
-            exit={{ x: "-100%" }} 
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
             transition={{ type: "tween", duration: 0.3 }}
-        
+
         >
             <button onClick={onToggle} className={styles.closeOnlyBtn}>
                 <FiChevronLeft />

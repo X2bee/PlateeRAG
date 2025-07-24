@@ -9,6 +9,7 @@ import {
     removeAuthCookie,
     clearAllAuth
 } from '@/app/_common/utils/cookieUtils';
+import { clearAllUserData } from '@/app/_common/utils/storageUtils';
 import { devLog } from '@/app/_common/utils/logger';
 
 interface User {
@@ -29,7 +30,7 @@ interface CookieContextType {
     isInitialized: boolean; // 초기화 완료 여부
     isLoggingOut: boolean; // 의도적인 로그아웃 중인지 여부
     setUser: (user: User | null) => void;
-    clearAuth: () => void;
+    clearAuth: (clearStorage?: boolean) => void;
     refreshAuth: () => void;
 
     // 인증 쿠키 전용
@@ -94,8 +95,8 @@ export const CookieProvider: React.FC<CookieProviderProps> = ({ children }) => {
             setIsAuthenticated(false);
             devLog.log('User data cleared');
         }
-    }, []);    // 인증 정보 완전 삭제
-    const clearAuth = useCallback(() => {
+    }, []);    // 인증 정보 완전 삭제 (로그아웃 시 localStorage도 함께 정리)
+    const clearAuth = useCallback((clearStorage = true) => {
         try {
             // 의도적인 로그아웃임을 표시
             setIsLoggingOut(true);
@@ -105,6 +106,16 @@ export const CookieProvider: React.FC<CookieProviderProps> = ({ children }) => {
             setUser(null);
             setIsAuthenticated(false);
             devLog.log('Auth cleared completely');
+
+            // localStorage의 사용자 데이터도 함께 정리 (설정 제외)
+            if (clearStorage) {
+                const result = clearAllUserData(false); // 설정은 보존
+                if (result && result.success) {
+                    devLog.log('User data cleared from localStorage:', result.message);
+                } else {
+                    devLog.warn('Failed to clear user data:', result?.message || 'Unknown error');
+                }
+            }
 
             // 짧은 시간 후 로그아웃 상태 해제 (리다이렉트 후)
             setTimeout(() => {

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { validateToken, refreshToken } from '@/app/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
+import { useSessionExpiredLogout } from '@/app/_common/utils/logoutUtils';
 import { devLog } from '@/app/_common/utils/logger';
 
 interface AuthGuardProps {
@@ -33,6 +34,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback, redirectTo = 
 
     // CookieProvider의 useAuth 훅 사용
     const { user, clearAuth, refreshAuth, isInitialized, isLoggingOut } = useAuth();
+    const { sessionExpiredLogout } = useSessionExpiredLogout();
 
     // 현재 페이지를 sessionStorage에 저장 (로그인 후 돌아올 수 있도록)
     useEffect(() => {
@@ -86,7 +88,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback, redirectTo = 
                     // Refresh token도 실패하면 로그아웃 처리
                     devLog.log('AuthGuard: All tokens invalid, clearing auth');
                     setIsAuthenticated(false);
-                    clearAuth();
+                    clearAuth(true); // localStorage도 함께 정리
                 } else {
                     devLog.log('AuthGuard: Token validation successful');
                     setIsAuthenticated(true);
@@ -97,7 +99,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback, redirectTo = 
                 setIsAuthenticated(false);
 
                 // 에러 발생시 인증 정보 정리
-                clearAuth();
+                clearAuth(true); // localStorage도 함께 정리
             } finally {
                 setIsLoading(false);
             }
