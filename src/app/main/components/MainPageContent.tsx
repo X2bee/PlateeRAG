@@ -1,106 +1,35 @@
 'use client';
+
 import React, { useState, useEffect } from 'react';
-import Sidebar from '@/app/_common/components/Sidebar';
 import ContentArea from '@/app/main/components/ContentArea';
 import CanvasIntroduction from '@/app/main/components/CanvasIntroduction';
 import CompletedWorkflows from '@/app/main/components/CompletedWorkflows';
 import Playground from '@/app/main/components/Playground';
 import Settings from '@/app/main/components/Settings';
 import ConfigViewer from '@/app/main/components/ConfigViewer';
-import ChatHistory from '@/app/chat/components/ChatHistory';
-import CurrentChatInterface from '@/app/chat/components/CurrentChatInterface';
-import { getChatSidebarItems, getSettingSidebarItems, createChatItemClickHandler } from '@/app/_common/components/sidebarConfig';
-import styles from '@/app/main/assets/MainPage.module.scss';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import Documents from '@/app/main/components/Documents';
-import { FiChevronRight } from 'react-icons/fi';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useSearchParams } from 'next/navigation';
+import styles from '@/app/main/assets/MainPage.module.scss';
 
-const MainPageContent: React.FC = () => {
+const MainPage: React.FC = () => {
     const searchParams = useSearchParams();
-    const router = useRouter();
-    const pathname = usePathname();
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true); 
     const [activeSection, setActiveSection] = useState<string>('canvas');
-    const [execTab, setExecTab] = useState<'executor' | 'monitoring'>(
-        'executor',
-    );
-    const [initialLoad, setInitialLoad] = useState(true);
+    const [execTab, setExecTab] = useState<'executor' | 'monitoring'>('executor');
 
     useEffect(() => {
         const view = searchParams.get('view');
-        const workflowName = searchParams.get('workflowName');
-        const workflowId = searchParams.get('workflowId');
-        
-        if (view === 'playground') {
-            setActiveSection('exec-monitor');
-            if (workflowName && workflowId) {
-                setExecTab('executor');
-            } else {
-                const savedTab = localStorage.getItem('execMonitorTab');
-                if (savedTab === 'executor' || savedTab === 'monitoring') {
-                    setExecTab(savedTab as 'executor' | 'monitoring');
-                }
-            }
-            setInitialLoad(false);
+        if (view && ['canvas', 'workflows', 'exec-monitor', 'settings', 'config-viewer', 'documents'].includes(view)) {
+            setActiveSection(view);
         } else {
-            const savedActiveSection = localStorage.getItem('activeSection');
-            if (savedActiveSection && ['canvas', 'workflows', 'exec-monitor', 'settings', 'config-viewer'].includes(savedActiveSection)) {
-                setActiveSection(savedActiveSection);
-                localStorage.removeItem('activeSection');
-            }
-            
-            const savedTab = localStorage.getItem('execMonitorTab');
-            if (savedTab === 'executor' || savedTab === 'monitoring') {
-                setExecTab(savedTab as 'executor' | 'monitoring');
-            }
-            setInitialLoad(false);
+            setActiveSection('canvas'); // 기본값 설정
         }
     }, [searchParams]);
-
-    useEffect(() => {
-        if (!initialLoad && activeSection !== 'exec-monitor') {
-            const currentParams = new URLSearchParams(searchParams.toString());
-            if (
-                currentParams.has('view') ||
-                currentParams.has('workflowName') ||
-                currentParams.has('workflowId')
-            ) {
-                router.replace(pathname);
-            }
-        }
-    }, [activeSection, initialLoad, pathname, router, searchParams]);
 
     const handleTabChange = (tab: 'executor' | 'monitoring') => {
         setExecTab(tab);
         localStorage.setItem('execMonitorTab', tab);
     };
 
-    const handleSidebarItemClick = (id: string) => {
-        // 채팅 관련 아이템인지 확인
-        const chatItems = ['new-chat', 'current-chat', 'chat-history'];
-        if (chatItems.includes(id)) {
-            // 채팅 아이템인 경우 localStorage에 저장하고 /chat으로 이동
-            const chatItemClickHandler = createChatItemClickHandler(router);
-            chatItemClickHandler(id);
-        } else {
-            // 설정 관련 아이템인 경우 현재 페이지에서 섹션 변경
-            setActiveSection(id);
-        }
-    };
-    const toggleSidebar = () => {
-        setIsSidebarOpen(!isSidebarOpen);
-    };
-
-    const handleChatSelect = (executionMeta: any) => {
-        console.log('Selected chat:', executionMeta);
-        setActiveSection('current-chat');
-    };
-
-    const settingSidebarItems = getSettingSidebarItems();
-    const chatSidebarItems = getChatSidebarItems();
-
-    // 헤더에 표시할 토글 버튼
     const renderExecMonitorToggleButtons = () => (
         <div className={styles.tabToggleContainer}>
             <button
@@ -186,24 +115,6 @@ const MainPageContent: React.FC = () => {
                     <Documents />
                 </ContentArea>
             );
-        case 'chat-history':
-            return (
-                <ContentArea
-                    title="기존 채팅 불러오기"
-                    description="이전 대화 기록을 확인하고 계속 진행하세요."
-                >
-                    <ChatHistory onSelectChat={handleChatSelect} />
-                </ContentArea>
-            );
-        case 'current-chat':
-            return (
-                <ContentArea
-                    title="현재 채팅"
-                    description="진행 중인 대화를 계속하세요."
-                >
-                    <CurrentChatInterface />
-                </ContentArea>
-            );
         default:
             return (
                 <ContentArea
@@ -215,37 +126,8 @@ const MainPageContent: React.FC = () => {
             );
         }
     };
-    return (
-        <div className={styles.container}>
-            <AnimatePresence>
-                {isSidebarOpen ? (
-                    <Sidebar 
-                    key="sidebar-panel" 
-                    isOpen={isSidebarOpen}
-                    onToggle={toggleSidebar}
-                    items={settingSidebarItems}
-                    chatItems={chatSidebarItems}
-                    activeItem={activeSection}
-                    onItemClick={handleSidebarItemClick}
-                    initialChatExpanded={false}
-                    initialSettingExpanded={true}/>
-                ) : (
-                    <motion.button
-                        key="sidebar-open-button"
-                        onClick={toggleSidebar}
-                        className={styles.openOnlyBtn}
-                        initial={{ opacity: 0 }} // 열기 버튼도 페이드인 효과 추가
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                    >
-                        <FiChevronRight />
-                    </motion.button>
-                )}
-            </AnimatePresence>
-            <main className={`${styles.mainContent} ${!isSidebarOpen ? styles.mainContentPushed  : ''}` }>
-                {renderContent()}</main>
-        </div>
-    );
+
+    return <>{renderContent()}</>;
 };
 
-export default MainPageContent;
+export default MainPage;

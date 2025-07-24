@@ -43,31 +43,11 @@ const Sidebar: React.FC<SidebarProps> = ({
         }
     };
 
-    const toggleExpanded = () => {
-        setIsSettingExpanded(!isSettingExpanded);
-        if (!isSettingExpanded) {
-            setIsChatExpanded(false);
-        }
-    };
-
-    const toggleChatExpanded = () => {
-        setIsChatExpanded(!isChatExpanded);
-        if (!isChatExpanded) {
-            setIsSettingExpanded(false);
-        }
-    };
+    const toggleExpanded = () => setIsSettingExpanded(!isSettingExpanded);
+    const toggleChatExpanded = () => setIsChatExpanded(!isChatExpanded);
 
     const handleLogoClick = () => {
         router.push('/');
-    };
-
-    const handleChatItemClick = (itemId: string) => {
-        onItemClick(itemId);
-        // /chat 페이지가 아닌 경우에만 localStorage에 저장하고 라우팅
-        if (pathname !== '/chat') {
-            localStorage.setItem('activeChatSection', itemId);
-            router.push('/chat');
-        }
     };
 
     return (
@@ -121,7 +101,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     {chatItems.map((item) => (
                         <button
                             key={item.id}
-                            onClick={() => handleChatItemClick(item.id)}
+                            onClick={() => onItemClick(item.id)}
                             className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
                         >
                             {item.icon}
