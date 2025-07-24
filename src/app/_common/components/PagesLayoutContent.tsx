@@ -8,20 +8,19 @@ import styles from '@/app/main/assets/MainPage.module.scss';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FiChevronRight } from 'react-icons/fi';
 
-interface SidebarContextType {
+interface PagesLayoutContextType {
     isSidebarOpen: boolean;
     setIsSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    navigateToChatMode: (mode: 'new-chat' | 'current-chat' | 'chat-history') => void;
 }
 
-const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
+const PagesLayoutContext = createContext<PagesLayoutContextType | undefined>(undefined);
 
-export const useSidebar = () => {
-    const context = useContext(SidebarContext);
-    if (context === undefined) {
-        throw new Error('useSidebar must be used within a SidebarProvider');
-    }
-    return context;
+export const usePagesLayout = () => {
+    return useContext(PagesLayoutContext);
 };
+
+export const useSidebar = usePagesLayout;
 
 export default function PagesLayoutContent({ children }: { children: React.ReactNode }) {
     const router = useRouter();
@@ -29,6 +28,10 @@ export default function PagesLayoutContent({ children }: { children: React.React
     const searchParams = useSearchParams();
     
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+    const navigateToChatMode = (mode: 'new-chat' | 'current-chat' | 'chat-history') => {
+        router.replace(`/chat?mode=${mode}`);
+    };
 
     const activeItem = useMemo(() => {
         if (pathname === '/chat') {
@@ -45,9 +48,9 @@ export default function PagesLayoutContent({ children }: { children: React.React
         const mainItems = ['canvas', 'workflows', 'exec-monitor', 'settings', 'config-viewer', 'documents'];
 
         if (chatItems.includes(id)) {
-            router.push(`/chat?mode=${id}`);
+            navigateToChatMode(id as 'new-chat' | 'current-chat' | 'chat-history');
         } else if (mainItems.includes(id)) {
-            router.push(`/main?view=${id}`);
+            router.replace(`/main?view=${id}`);
         }
     };
 
@@ -59,7 +62,7 @@ export default function PagesLayoutContent({ children }: { children: React.React
     const chatSidebarItems = getChatSidebarItems();
 
     return (
-        <SidebarContext.Provider value={{ isSidebarOpen, setIsSidebarOpen }}>
+        <PagesLayoutContext.Provider value={{ isSidebarOpen, setIsSidebarOpen, navigateToChatMode }}>
             <div className={styles.container}>
                 <AnimatePresence>
                     {isSidebarOpen ? (
@@ -91,6 +94,6 @@ export default function PagesLayoutContent({ children }: { children: React.React
                     {children}
                 </main>
             </div>
-        </SidebarContext.Provider>
+        </PagesLayoutContext.Provider>
     );
 }
