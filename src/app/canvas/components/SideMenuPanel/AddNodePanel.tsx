@@ -1,14 +1,11 @@
 "use client";
-import React, { useState, useEffect, ReactElement } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from '@/app/canvas/assets/SideMenu.module.scss';
 import NodeList from '@/app/canvas/components/Helper/NodeList';
 import DraggableNodeItem from '@/app/canvas/components/Helper/DraggableNodeItem';
 import { LuSearch, LuArrowLeft, LuBrainCircuit, LuShare2, LuWrench, LuX, LuRefreshCw } from 'react-icons/lu';
 import { SiLangchain } from "react-icons/si";
-import { useNodes } from '@/app/_common/utils/nodeHook';
 import type {
-    Port,
-    Parameter,
     NodeData,
     NodeFunction,
     NodeCategory,
@@ -23,8 +20,13 @@ const iconMap: IconMapType = {
     SiLangchain: <SiLangchain />,
 };
 
-const AddNodePanel: React.FC<AddNodePanelProps> = ({ onBack }) => {
-    const { nodes: nodeSpecs, isLoading, error, exportAndRefreshNodes } = useNodes();
+const AddNodePanel: React.FC<AddNodePanelProps> = ({
+    onBack,
+    nodeSpecs = [],
+    nodesLoading = false,
+    nodesError = null,
+    onRefreshNodes
+}) => {
     const [activeTab, setActiveTab] = useState<string | null>(null);
 
     useEffect(() => {
@@ -35,7 +37,7 @@ const AddNodePanel: React.FC<AddNodePanelProps> = ({ onBack }) => {
 
     const activeTabData = (nodeSpecs as NodeCategory[]).find((tab: NodeCategory) => tab.categoryId === activeTab);
 
-    if (isLoading) {
+    if (nodesLoading) {
         return (
             <>
                 <div className={styles.header}>
@@ -47,14 +49,14 @@ const AddNodePanel: React.FC<AddNodePanelProps> = ({ onBack }) => {
         );
     }
 
-    if (error) {
+    if (nodesError) {
         return (
             <>
                 <div className={styles.header}>
                     <button onClick={onBack} className={styles.backButton}><LuArrowLeft /></button>
                     <h3>Add Nodes</h3>
                 </div>
-                <div className={styles.errorContainer}>Error: {error}</div>
+                <div className={styles.errorContainer}>Error: {nodesError}</div>
             </>
         );
     }
@@ -66,14 +68,16 @@ const AddNodePanel: React.FC<AddNodePanelProps> = ({ onBack }) => {
                     <LuArrowLeft />
                 </button>
                 <h3>Add Nodes</h3>
-                <button
-                    onClick={exportAndRefreshNodes}
-                    className={`${styles.refreshButton} ${isLoading ? styles.loading : ''}`}
-                    disabled={isLoading}
-                    title="Refresh Node List"
-                >
-                    <LuRefreshCw />
-                </button>
+                {onRefreshNodes && (
+                    <button
+                        onClick={onRefreshNodes}
+                        className={`${styles.refreshButton} ${nodesLoading ? styles.loading : ''}`}
+                        disabled={nodesLoading}
+                        title="Refresh Node List"
+                    >
+                        <LuRefreshCw />
+                    </button>
+                )}
             </div>
 
             <div className={styles.searchBar}>

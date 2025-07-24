@@ -15,8 +15,9 @@ import type {
 
 const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
     const [workflows, setWorkflows] = useState<string[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState<boolean>(false); // 초기값을 false로 변경
     const [error, setError] = useState<string | null>(null);
+    const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
     const fetchWorkflows = async (): Promise<void> => {
         setIsLoading(true);
@@ -24,6 +25,7 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
         try {
             const workflowList: string[] = await listWorkflows();
             setWorkflows(workflowList);
+            setIsInitialized(true);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
             setError(errorMessage);
@@ -32,9 +34,12 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
         }
     };
 
+    // 패널이 열릴 때만 데이터 로드 (지연 로딩)
     useEffect(() => {
-        fetchWorkflows();
-    }, []);
+        if (!isInitialized) {
+            fetchWorkflows();
+        }
+    }, []); // 한 번만 실행
 
     const handleRefresh = (): void => {
         fetchWorkflows();

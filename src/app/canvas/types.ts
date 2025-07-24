@@ -192,6 +192,10 @@ export interface DraggableNodeItemProps {
 // ========== Panel Props Types ==========
 export interface AddNodePanelProps {
     onBack: () => void;
+    nodeSpecs?: NodeCategory[];
+    nodesLoading?: boolean;
+    nodesError?: string | null;
+    onRefreshNodes?: () => Promise<void>;
 }
 
 export interface TemplatePanelProps {
@@ -230,6 +234,7 @@ export interface DeletedItem {
 
 export interface CanvasProps {
     onStateChange?: (state: CanvasState) => void;
+    nodesInitialized?: boolean;
 }
 
 export interface CanvasRef {

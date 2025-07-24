@@ -7,6 +7,7 @@ import SideMenu from '@/app/canvas/components/SideMenu';
 import ExecutionPanel from '@/app/canvas/components/ExecutionPanel';
 import AuthGuard from '@/app/_common/components/AuthGuard';
 import { useAuth } from '@/app/_common/components/CookieProvider';
+import { useNodes } from '@/app/_common/utils/nodeHook';
 import styles from '@/app/canvas/assets/PlateeRAG.module.scss';
 import {
     executeWorkflow,
@@ -28,13 +29,18 @@ function CanvasPageContent() {
     // CookieProvider의 useAuth 훅 사용
     const { user, isAuthenticated } = useAuth();
 
+    // 페이지 레벨에서 노드 초기화 관리 (중복 호출 방지)
+    const { nodes: nodeSpecs, isLoading: nodesLoading, error: nodesError, exportAndRefreshNodes, isInitialized: nodesInitialized } = useNodes();
+
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLElement | null>(null);
     const canvasRef = useRef(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [hasError, setHasError] = useState(false);
-
-    // Error boundary를 위한 useEffect
+    const [executionOutput, setExecutionOutput] = useState<any>(null);
+    const [isExecuting, setIsExecuting] = useState(false);
+    const [currentWorkflowName, setCurrentWorkflowName] = useState('Workflow');
+    const [isCanvasReady, setIsCanvasReady] = useState(false);
     useEffect(() => {
         const handleError = (error: any) => {
             devLog.error('Global error caught:', error);
@@ -59,10 +65,6 @@ function CanvasPageContent() {
         );
     }
 
-    const [executionOutput, setExecutionOutput] = useState<any>(null);
-    const [isExecuting, setIsExecuting] = useState(false);
-    const [currentWorkflowName, setCurrentWorkflowName] = useState('Workflow');
-
     // 컴포넌트 마운트 시 워크플로우 이름과 상태 복원
     useEffect(() => {
         devLog.log('=== Page useEffect: Restoring workflow state ===');
@@ -71,10 +73,20 @@ function CanvasPageContent() {
         const savedName = getWorkflowName();
         devLog.log('Restored workflow name:', savedName);
         setCurrentWorkflowName(savedName);
+        setIsCanvasReady(true);
     }, []);
 
-    // Canvas가 마운트된 후 상태 복원을 위한 별도 useEffect
+    // Canvas가 준비되고 노드가 초기화된 후 상태 복원을 위한 useEffect
     useEffect(() => {
+        if (!isCanvasReady || !canvasRef.current || !nodesInitialized) {
+            devLog.log('Canvas state restoration delayed:', {
+                isCanvasReady,
+                hasCanvasRef: !!canvasRef.current,
+                nodesInitialized
+            });
+            return;
+        }
+
         const restoreWorkflowState = () => {
             devLog.log(
                 'restoreWorkflowState called, canvasRef.current:',
@@ -107,19 +119,13 @@ function CanvasPageContent() {
                     hasSavedState: !!savedState,
                     hasCanvasRef: !!canvasRef.current,
                 });
-
-                // Canvas가 아직 준비되지 않았다면 다시 시도
-                if (!canvasRef.current && savedState) {
-                    devLog.log('Canvas not ready, retrying in 200ms...');
-                    setTimeout(restoreWorkflowState, 200);
-                }
             }
         };
 
-        // 최초 시도
-        const timer = setTimeout(restoreWorkflowState, 100);
+        // Canvas가 준비되고 노드가 초기화된 후 상태 복원
+        const timer = setTimeout(restoreWorkflowState, 200);
         return () => clearTimeout(timer);
-    }, [canvasRef.current]); // canvasRef.current 변경 시 재실행
+    }, [isCanvasReady, nodesInitialized]); // 노드 초기화 상태도 의존성에 추가
 
     // 워크플로우 상태 변경 시 자동 저장
     const handleCanvasStateChange = (state: any) => {
@@ -730,6 +736,7 @@ function CanvasPageContent() {
                 <Canvas
                     ref={canvasRef}
                     onStateChange={handleCanvasStateChange}
+                    nodesInitialized={nodesInitialized}
                     {...({} as any)}
                 />
                 {isMenuOpen && (
@@ -738,6 +745,10 @@ function CanvasPageContent() {
                         onLoad={handleLoadClick}
                         onExport={handleExport}
                         onLoadWorkflow={handleLoadWorkflow}
+                        nodeSpecs={nodeSpecs}
+                        nodesLoading={nodesLoading}
+                        nodesError={nodesError}
+                        onRefreshNodes={exportAndRefreshNodes}
                     />
                 )}
                 <ExecutionPanel

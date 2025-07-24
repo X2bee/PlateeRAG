@@ -28,7 +28,7 @@ import { generateInteractionId, normalizeWorkflowName } from '@/app/api/interact
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, onChatStarted, hideBackButton = false, existingChatData }) => {
     const layoutContext = usePagesLayout();
     const sidebarWasOpenRef = useRef<boolean | null>(null);
-    
+
     const [ioLogs, setIOLogs] = useState<IOLog[]>([]);
     const [loading, setLoading] = useState(false);
     const [executing, setExecuting] = useState(false);
@@ -45,6 +45,27 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
     const attachmentButtonRef = useRef<HTMLDivElement>(null);
 
     const isAnyModalOpen = showDeploymentModal || showCollectionModal;
+
+    // 강화된 스크롤 함수
+    const scrollToBottom = useCallback(() => {
+        if (messagesRef.current) {
+            // 강제로 스크롤을 최하단으로 이동
+            const scrollElement = messagesRef.current;
+
+            // 즉시 스크롤
+            scrollElement.scrollTop = scrollElement.scrollHeight;
+
+            // 약간의 지연 후 다시 스크롤 (DOM 업데이트 대기)
+            requestAnimationFrame(() => {
+                scrollElement.scrollTop = scrollElement.scrollHeight;
+            });
+
+            // 추가 보장을 위한 setTimeout
+            setTimeout(() => {
+                scrollElement.scrollTop = scrollElement.scrollHeight;
+            }, 50);
+        }
+    }, []);
     
     useEffect(() => {
         if (layoutContext) {
@@ -96,6 +117,32 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
     useEffect(() => {
         scrollToBottom();
     }, [ioLogs]);
+
+    // ioLogs 변경 시 강제 스크롤 (스트리밍 중에도 작동)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            scrollToBottom();
+        }, 100);
+        return () => clearTimeout(timer);
+    }, [ioLogs, executing]);
+
+    // 실행 중일 때 주기적으로 스크롤 (스트리밍 대응)
+    useEffect(() => {
+        let scrollInterval: NodeJS.Timeout;
+
+        if (executing) {
+            // 실행 중일 때 0.5초마다 스크롤 체크
+            scrollInterval = setInterval(() => {
+                scrollToBottom();
+            }, 500);
+        }
+
+        return () => {
+            if (scrollInterval) {
+                clearInterval(scrollInterval);
+            }
+        };
+    }, [executing, scrollToBottom]);
 
     // localStorage에서 선택된 컬렉션 정보 가져오기
     useEffect(() => {
@@ -149,12 +196,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
         }
     }, [showCollectionModal]);
 
-    const scrollToBottom = () => {
-        if (messagesRef.current) {
-            messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
-        }
-    };
-
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleString('ko-KR', {
             month: 'short',
@@ -201,6 +242,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
             },
         ]);
 
+        // 메시지 추가 후 즉시 스크롤
+        setTimeout(() => scrollToBottom(), 0);
+
         const currentMessage = inputMessage;
         setInputMessage('');
 
@@ -235,6 +279,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
                         : log,
                 ),
             );
+
+            // 결과 업데이트 후 스크롤
+            setTimeout(() => scrollToBottom(), 100);
 
             toast.success('메시지가 성공적으로 전송되었습니다!');
             setPendingLogId(null);
@@ -275,6 +322,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
                         : log,
                 ),
             );
+
+            // 에러 업데이트 후 스크롤
+            setTimeout(() => scrollToBottom(), 100);
+
             setPendingLogId(null);
             toast.error('메시지 처리 중 오류가 발생했습니다.');
         } finally {
