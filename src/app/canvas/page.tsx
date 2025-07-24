@@ -6,6 +6,7 @@ import Header from '@/app/canvas/components/Header';
 import SideMenu from '@/app/canvas/components/SideMenu';
 import ExecutionPanel from '@/app/canvas/components/ExecutionPanel';
 import AuthGuard from '@/app/_common/components/AuthGuard';
+import { DeploymentModal } from '@/app/chat/components/DeploymentModal';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useNodes } from '@/app/_common/utils/nodeHook';
 import styles from '@/app/canvas/assets/PlateeRAG.module.scss';
@@ -36,11 +37,23 @@ function CanvasPageContent() {
     const menuRef = useRef<HTMLElement | null>(null);
     const canvasRef = useRef(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [workflowId, setWorkflowId] = useState('None')
     const [hasError, setHasError] = useState(false);
     const [executionOutput, setExecutionOutput] = useState<any>(null);
     const [isExecuting, setIsExecuting] = useState(false);
     const [currentWorkflowName, setCurrentWorkflowName] = useState('Workflow');
+    const [workflow, setWorkflow] = useState({
+                id: workflowId,
+                name: currentWorkflowName,
+                filename: currentWorkflowName,
+                author: 'Unknown',
+                nodeCount: 0,
+                status: 'active' as const,
+            });
     const [isCanvasReady, setIsCanvasReady] = useState(false);
+    const [showDeploymentModal, setShowDeploymentModal] = useState(false);
+    const [isDeploy, setIsDeploy] = useState(false);
+
     useEffect(() => {
         const handleError = (error: any) => {
             devLog.error('Global error caught:', error);
@@ -312,6 +325,8 @@ function CanvasPageContent() {
         try {
             devLog.log('Starting new workflow...');
 
+            setIsDeploy(false)
+
             // localStorage 데이터 초기화
             startNewWorkflow();
 
@@ -376,6 +391,7 @@ function CanvasPageContent() {
         const workflowName = getWorkflowName();
 
         const workflowId = `workflow_${generateWorkflowHash(canvasState)}`;
+        setWorkflowId(workflowId)
         canvasState = { ...canvasState, workflow_id: workflowId };
         canvasState = { ...canvasState, workflow_name: workflowName };
 
@@ -683,6 +699,15 @@ function CanvasPageContent() {
 
             const result = await executeWorkflow(workflowData);
             setExecutionOutput(result);
+            setWorkflow({
+                id: workflowId,
+                name: workflowName,
+                filename: workflowName,
+                author: 'Unknown',
+                nodeCount: 0,
+                status: 'active' as const,
+            });
+            setIsDeploy(true)
             toast.success('Workflow executed successfully!', { id: toastId });
         } catch (error: any) {
             devLog.error('Execution failed:', error);
@@ -731,6 +756,8 @@ function CanvasPageContent() {
                 workflowName={currentWorkflowName}
                 onWorkflowNameChange={handleWorkflowNameChange}
                 onNewWorkflow={handleNewWorkflow}
+                onDeploy={workflow.id==='None' ? () => setShowDeploymentModal(false) : () => setShowDeploymentModal(true)}
+                isDeploy={isDeploy}
             />
             <main className={styles.mainContent}>
                 <Canvas
@@ -758,6 +785,11 @@ function CanvasPageContent() {
                     isLoading={isExecuting}
                 />
             </main>
+            <DeploymentModal
+                isOpen={showDeploymentModal}
+                onClose={() => setShowDeploymentModal(false)}
+                workflow={workflow}
+            />
             <input
                 type="file"
                 ref={fileInputRef}

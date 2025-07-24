@@ -3,6 +3,7 @@ import Link from 'next/link';
 import styles from '@/app/canvas/assets/Header.module.scss';
 import { LuPanelRightOpen, LuSave, LuCheck, LuX, LuPencil, LuFileText } from "react-icons/lu";
 import { getWorkflowName, saveWorkflowName } from '@/app/_common/utils/workflowStorage';
+import { FiUpload } from 'react-icons/fi';
 
 // Type definitions
 interface HeaderProps {
@@ -13,6 +14,8 @@ interface HeaderProps {
     onNewWorkflow: () => void;
     workflowName?: string;
     onWorkflowNameChange?: (name: string) => void;
+    onDeploy: () => void;
+    isDeploy?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -22,7 +25,9 @@ const Header: React.FC<HeaderProps> = ({
     onExport,
     onNewWorkflow,
     workflowName: externalWorkflowName,
-    onWorkflowNameChange
+    onWorkflowNameChange,
+    onDeploy,
+    isDeploy
 }) => {
     const [workflowName, setWorkflowName] = useState<string>('Workflow');
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -131,6 +136,10 @@ const Header: React.FC<HeaderProps> = ({
                 </div>
             </div>
             <div className={styles.rightSection}>
+                <button className={styles.deployButton} onClick={onDeploy} disabled={!isDeploy}>
+                    <FiUpload />
+                    <span>배포</span>
+                </button>
                 <button onClick={onNewWorkflow} className={styles.menuButton} title="New Workflow">
                     <LuFileText />
                 </button>

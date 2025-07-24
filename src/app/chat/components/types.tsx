@@ -26,6 +26,7 @@ export interface ChatInterfaceProps {
     onChatStarted?: () => void;
     onBack: () => void;
     hideBackButton?: boolean;
+    firstChat?: boolean;
     existingChatData?: {
         interactionId: string;
         workflowId: string;
