@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useSidebar } from '@/app/_common/components/PagesLayoutContent';
+import { usePagesLayout, useSidebar } from '@/app/_common/components/PagesLayoutContent';
 import {
     FiSend,
     FiArrowLeft,
@@ -26,7 +26,7 @@ import { generateInteractionId, normalizeWorkflowName } from '@/app/api/interact
 
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, onChatStarted, hideBackButton = false, existingChatData }) => {
-    const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
+    const layoutContext = usePagesLayout();
     const sidebarWasOpenRef = useRef<boolean | null>(null);
     
     const [ioLogs, setIOLogs] = useState<IOLog[]>([]);
@@ -46,7 +46,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
 
     const isAnyModalOpen = showDeploymentModal || showCollectionModal;
     
-        useEffect(() => {
+    useEffect(() => {
+        if (layoutContext) {
+            const { isSidebarOpen, setIsSidebarOpen } = layoutContext;
             if (isAnyModalOpen) {
                 if (sidebarWasOpenRef.current === null) {
                     sidebarWasOpenRef.current = isSidebarOpen;
@@ -60,7 +62,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
                 }
                 sidebarWasOpenRef.current = null;
             }
-        }, [isAnyModalOpen, isSidebarOpen, setIsSidebarOpen]);
+        }
+    }, [isAnyModalOpen, layoutContext]);
+
 
     useEffect(() => {
         const loadChatLogs = async () => {
@@ -205,6 +209,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
             const workflowName = existingChatData?.workflowName || workflow.name;
             const workflowId = existingChatData?.workflowId || workflow.id;
 
+            if (onChatStarted) {
+                onChatStarted();
+            }
+
             const result: any = await executeWorkflowById(
                 workflowName,
                 workflowId,
@@ -249,9 +257,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
                 };
                 localStorage.setItem('currentChatData', JSON.stringify(currentChatData));
             }
+
             if (onChatStarted) {
                 onChatStarted();
             }
+            
         } catch (err) {
             // 에러로 임시 메시지 업데이트
             setIOLogs((prev) =>
