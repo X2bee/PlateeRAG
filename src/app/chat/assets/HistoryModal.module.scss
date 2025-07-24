@@ -1,0 +1,302 @@
+@use "sass:color";
+
+// Variables (ChatInterface.module.scss와 동일)
+$primary-blue: #2563eb;
+$gray-50: #f9fafb;
+$gray-100: #f3f4f6;
+$gray-200: #e5e7eb;
+$gray-300: #d1d5db;
+$gray-400: #9ca3af;
+$gray-500: #6b7280;
+$gray-600: #4b5563;
+$gray-700: #374151;
+$gray-800: #1f2937;
+$gray-900: #111827;
+$white: #ffffff;
+
+// Modal Overlay
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+// Modal Content
+.modalContent {
+    background: $white;
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 90vw;
+    max-width: 800px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+// Modal Header
+.modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-bottom: 1px solid $gray-200;
+    background: $gray-50;
+}
+
+.modalTitle {
+    h2 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: $gray-900;
+    }
+
+    p {
+        margin: 0.25rem 0 0 0;
+        font-size: 0.875rem;
+        color: $gray-600;
+    }
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    color: $gray-500;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: $gray-200;
+        color: $gray-700;
+    }
+
+    svg {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
+// Modal Body
+.modalBody {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+// Chat Container (ChatInterface와 동일한 구조)
+.chatContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.messagesArea {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    background: $gray-50;
+
+    // 스크롤바 스타일
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba($gray-400, 0.5);
+        border-radius: 3px;
+
+        &:hover {
+            background: rgba($gray-400, 0.8);
+        }
+    }
+}
+
+// Message Exchange (ChatInterface.module.scss와 동일)
+.messageExchange {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.userMessage {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding-right: 1rem;
+
+    .messageContent {
+        background: linear-gradient(135deg, $primary-blue, #3b82f6);
+        color: $white;
+        padding: 0.75rem 1rem;
+        border-radius: 1rem 1rem 0.25rem 1rem;
+        max-width: 70%;
+        word-wrap: break-word;
+        box-shadow: 0 2px 8px rgba($primary-blue, 0.25);
+    }
+
+    .messageTime {
+        font-size: 0.75rem;
+        color: $gray-500;
+        margin-top: 0.25rem;
+    }
+}
+
+.botMessage {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    .messageContent {
+        background: $white;
+        border: 1px solid $gray-200;
+        color: $gray-900;
+        padding: 0.75rem 1rem;
+        border-radius: 1rem 1rem 1rem 0.25rem;
+        max-width: 70%;
+        word-wrap: break-word;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+}
+
+// Loading State
+.loadingState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    color: $gray-600;
+
+    p {
+        margin: 1rem 0 0 0;
+        font-size: 0.875rem;
+    }
+}
+
+.loadingSpinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid $gray-200;
+    border-top: 3px solid $primary-blue;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+// Error State
+.errorState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    color: $gray-600;
+
+    p {
+        margin: 0 0 1rem 0;
+        text-align: center;
+    }
+}
+
+.retryButton {
+    background: $primary-blue;
+    color: $white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background: color.adjust($primary-blue, $lightness: -10%);
+    }
+}
+
+// Empty State
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    color: $gray-600;
+    text-align: center;
+
+    h3 {
+        margin: 1rem 0 0.5rem 0;
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: $gray-900;
+    }
+
+    p {
+        margin: 0;
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+}
+
+.emptyIcon {
+    width: 3rem;
+    height: 3rem;
+    color: $gray-400;
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+    .modalContent {
+        width: 95vw;
+        max-height: 90vh;
+        margin: 1rem;
+    }
+
+    .modalHeader {
+        padding: 1rem;
+    }
+
+    .messagesArea {
+        padding: 1rem;
+    }
+
+    .userMessage,
+    .botMessage {
+        .messageContent {
+            max-width: 85%;
+        }
+    }
+
+    .userMessage {
+        padding-right: 0.5rem;
+    }
+}
