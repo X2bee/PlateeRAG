@@ -257,10 +257,6 @@ const CompletedWorkflows: React.FC = () => {
         <div className={styles.container}>
             {/* Header with Filters */}
             <div className={styles.header}>
-                <div className={styles.headerInfo}>
-                    <h2>완성된 워크플로우</h2>
-                    <p>저장된 워크플로우를 확인하고 관리하세요.</p>
-                </div>
 
                 <div className={styles.headerActions}>
                     <div className={styles.filters}>
