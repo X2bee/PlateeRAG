@@ -1,11 +1,8 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { usePagesLayout, useSidebar } from '@/app/_common/components/PagesLayoutContent';
+import { usePagesLayout} from '@/app/_common/components/PagesLayoutContent';
 import {
     FiSend,
-    FiArrowLeft,
-    FiMessageSquare,
-    FiClock,
     FiPlus,
     FiFolder,
     FiImage,
@@ -25,7 +22,7 @@ import { DeploymentModal } from './DeploymentModal';
 import { generateInteractionId, normalizeWorkflowName } from '@/app/api/interactionAPI';
 
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, onChatStarted, hideBackButton = false, existingChatData }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, onChatStarted, hideBackButton = false, firstChat = false, existingChatData }) => {
     const layoutContext = usePagesLayout();
     const sidebarWasOpenRef = useRef<boolean | null>(null);
 
@@ -109,10 +106,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
                 setLoading(false);
             }
         };
-        if (mode === 'existing' && workflow?.id && existingChatData?.interactionId) {
+        if (mode === 'existing' && workflow?.id && existingChatData?.interactionId && !firstChat) {
             loadChatLogs();
         }
-    }, [mode, existingChatData?.interactionId, workflow.id, workflow.name, existingChatData?.workflowName, existingChatData?.workflowId]);
+    }, [mode, existingChatData?.interactionId, workflow.id, workflow.name, existingChatData?.workflowName, existingChatData?.workflowId, firstChat]);
 
     useEffect(() => {
         scrollToBottom();

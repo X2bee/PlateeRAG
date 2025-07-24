@@ -80,6 +80,7 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted }) => {
                             mode={chatMode}
                             workflow={selectedWorkflow}
                             existingChatData={chatMode === 'existing' ? existingChatData : undefined}
+                            firstChat={chatMode === 'existing' ? false : true}
                             onChatStarted={chatMode === 'existing' ? undefined : onChatStarted}
                             onBack={currentView === 'defaultChat' ? () => setCurrentView('welcome') : () => setCurrentView('workflow')}
                         />
