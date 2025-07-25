@@ -43,9 +43,9 @@ function CanvasPageContent() {
     const [isExecuting, setIsExecuting] = useState(false);
     const [currentWorkflowName, setCurrentWorkflowName] = useState('Workflow');
     const [workflow, setWorkflow] = useState({
-                id: workflowId,
-                name: currentWorkflowName,
-                filename: currentWorkflowName,
+                id: 'None',
+                name: 'None',
+                filename: 'None',
                 author: 'Unknown',
                 nodeCount: 0,
                 status: 'active' as const,
@@ -710,9 +710,9 @@ function CanvasPageContent() {
             const result = await executeWorkflow(workflowData);
             setExecutionOutput(result);
             setWorkflow({
-                id: workflowId,
-                name: workflowName,
-                filename: workflowName,
+                id: workflowData.workflow_id,
+                name: workflowData.workflow_name,
+                filename: workflowData.workflow_name,
                 author: 'Unknown',
                 nodeCount: 0,
                 status: 'active' as const,
