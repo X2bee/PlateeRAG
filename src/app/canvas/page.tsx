@@ -31,7 +31,7 @@ import { generateWorkflowHash } from '@/app/_common/utils/generateSha1Hash';
 function CanvasPageContent() {
     // CookieProvider의 useAuth 훅 사용
     const { user, isAuthenticated } = useAuth();
-    
+
     // URL 파라미터 처리
     const searchParams = useSearchParams();
 
@@ -89,13 +89,13 @@ function CanvasPageContent() {
 
         // URL 파라미터에서 load할 워크플로우 이름 확인
         const loadWorkflowName = searchParams.get('load');
-        
+
         if (loadWorkflowName) {
             // URL 파라미터로 워크플로우 이름이 전달된 경우
             devLog.log('Loading workflow from URL parameter:', loadWorkflowName);
             const decodedWorkflowName = decodeURIComponent(loadWorkflowName);
             setCurrentWorkflowName(decodedWorkflowName);
-            
+
             // 해당 워크플로우를 자동으로 로드
             const loadFromServer = async () => {
                 try {
@@ -108,7 +108,7 @@ function CanvasPageContent() {
                     toast.error(`Failed to load workflow: ${decodedWorkflowName}`);
                 }
             };
-            
+
             // Canvas가 준비될 때까지 대기
             setTimeout(loadFromServer, 1000);
         } else {
@@ -117,7 +117,7 @@ function CanvasPageContent() {
             devLog.log('Restored workflow name:', savedName);
             setCurrentWorkflowName(savedName);
         }
-        
+
         setIsCanvasReady(true);
     }, [searchParams]);
 

@@ -175,6 +175,13 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
         }
     };
 
+    const truncateText = (text: string, maxLength: number = 15) => {
+        if (text.length <= maxLength) {
+            return text;
+        }
+        return text.substring(0, maxLength) + '...';
+    };
+
     const handleChatSelect = (chat: ExecutionMeta) => {
         // 선택한 채팅을 현재 채팅으로 설정
         const currentChatData = {
@@ -384,7 +391,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
                                         <div key={chat.id} className={styles.chatCard}>
                                             <div className={styles.cardHeader}>
                                                 <h3 className={`${styles.workflowName} ${chat.isWorkflowDeleted ? styles.deletedWorkflow : ''}`}>
-                                                    {chat.metadata.placeholder || chat.workflow_name}
+                                                    {truncateText(chat.metadata.placeholder || chat.workflow_name)}
                                                     {chat.isWorkflowDeleted && (
                                                         <span className={styles.deletedBadge}>원본 워크플로우 삭제됨</span>
                                                     )}

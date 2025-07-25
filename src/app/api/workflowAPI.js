@@ -437,7 +437,8 @@ export const deleteWorkflowIOLogs = async (workflowName, workflowId, interaction
  * @param {string} workflowName - 워크플로우 이름 (.json 확장자 제외)
  * @param {string} workflowId - 워크플로우 ID
  * @param {string} inputData - 실행에 사용할 입력 데이터 (선택사항)
- * @param {string|null} [params.selectedCollection] - Optional selected collection
+ * @param {string} interaction_id - 상호작용 ID (기본값: 'default')
+ * @param {Array<string>|null} selectedCollections - 선택된 컬렉션 배열 (선택사항)
  * @returns {Promise<Object>} 실행 결과를 포함하는 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
@@ -446,7 +447,7 @@ export const executeWorkflowById = async (
     workflowId,
     inputData = '',
     interaction_id = 'default',
-    selectedCollection = null,
+    selectedCollections = null,
 ) => {
     try {
         const requestBody = {
@@ -455,9 +456,12 @@ export const executeWorkflowById = async (
             input_data: inputData || '',
             interaction_id: interaction_id || 'default',
         };
-        if (selectedCollection) {
-            requestBody.selected_collection = selectedCollection;
+
+        // selectedCollections가 배열이면 그대로 사용, 아니면 null
+        if (selectedCollections && Array.isArray(selectedCollections) && selectedCollections.length > 0) {
+            requestBody.selected_collections = selectedCollections;
         }
+
         const response = await apiClient(`${API_BASE_URL}/api/workflow/execute/based_id`, {
                 method: 'POST',
                 headers: {

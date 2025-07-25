@@ -250,6 +250,8 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                 workflowName,
                 selectedWorkflow.workflow_id,
                 inputMessage,
+                'default', // interaction_id
+                null, // selectedCollections - Executor에서는 컬렉션을 사용하지 않음
             );
             setIOLogs((prev) =>
                 prev.map((log) =>

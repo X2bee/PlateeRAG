@@ -281,6 +281,113 @@ $white: #ffffff;
     }
 }
 
+// Collections Display Area (위치: 입력창 위쪽)
+.collectionsDisplayArea {
+    flex-shrink: 0;
+    background: $gray-50;
+    border-top: 1px solid $gray-200;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0;
+}
+
+.collectionsLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: $gray-700;
+    font-size: 0.875rem;
+    font-weight: 500;
+
+    .labelIcon {
+        color: $primary-blue;
+        font-size: 1rem;
+    }
+}
+
+.selectedCollections {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.5rem;
+
+    // 반응형 처리
+    @media (max-width: 1024px) {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (max-width: 768px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.selectedCollection {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    background: $white;
+    border: 1px solid $gray-300;
+    border-radius: 0.375rem;
+    padding: 0.375rem 0.5rem;
+    font-size: 0.875rem;
+    color: $gray-700;
+    box-shadow: 0 1px 2px rgba($gray-400, 0.1);
+    transition: all 0.2s ease;
+    width: 100%;
+    min-width: 0;
+
+    &:hover {
+        border-color: $primary-blue;
+        box-shadow: 0 2px 4px rgba($primary-blue, 0.1);
+    }
+
+    .collectionIcon {
+        color: $primary-blue;
+        font-size: 0.875rem;
+        flex-shrink: 0;
+    }
+
+    .collectionName {
+        color: $gray-800;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1; // 남은 공간을 모두 사용
+        min-width: 0; // flexbox 오버플로우 처리
+    }
+}
+
+.removeCollectionButton {
+    background: none;
+    border: none;
+    color: $gray-400;
+    cursor: pointer;
+    padding: 0.125rem;
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    margin-left: 0.25rem;
+
+    &:hover {
+        background: $gray-100;
+        color: $gray-600;
+    }
+
+    &:active {
+        background: $gray-200;
+    }
+
+    svg {
+        font-size: 0.75rem;
+    }
+}
+
 // Input Area
 .inputArea {
     flex-shrink: 0;
@@ -703,72 +810,6 @@ $white: #ffffff;
     }
 }
 
-// Selected Collection Display
-.selectedCollection {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba($primary-blue, 0.1);
-    border: 1px solid rgba($primary-blue, 0.2);
-    border-radius: 1rem;
-    padding: 0.75rem 1rem;
-    height: 48px;
-    font-size: 0.875rem;
-    color: $primary-blue;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
-
-    &:hover {
-        background: rgba($primary-blue, 0.15);
-        border-color: rgba($primary-blue, 0.3);
-    }
-
-    .collectionIcon {
-        font-size: 1rem;
-        color: $primary-blue;
-        flex-shrink: 0;
-    }
-
-    .collectionName {
-        font-weight: 500;
-        max-width: 120px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        flex: 1;
-    }
-
-    .removeCollectionButton {
-        background: rgba($primary-blue, 0.1);
-        border: none;
-        color: $primary-blue;
-        cursor: pointer;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-        flex-shrink: 0;
-        margin-left: 0.25rem;
-
-        svg {
-            font-size: 12px;
-        }
-
-        &:hover {
-            background: rgba($primary-blue, 0.8);
-            color: $white;
-            transform: scale(1.1);
-        }
-
-        &:active {
-            transform: scale(0.95);
-        }
-    }
-}
-
 .headerActions {
     display: flex;
     align-items: center;
@@ -873,7 +914,7 @@ $white: #ffffff;
         font-weight: 600;
         margin: 0 0 0.75rem 0;
     }
-    
+
     p {
         font-size: 0.875rem;
         color: $gray-600;
@@ -910,7 +951,7 @@ $white: #ffffff;
 }
 
 .codeBlockWrapper {
-    position: relative; 
+    position: relative;
 }
 
 .tabContainer {
