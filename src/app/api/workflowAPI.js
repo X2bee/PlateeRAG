@@ -482,6 +482,68 @@ export const executeWorkflowById = async (
 };
 
 /**
+ * WebSocket을 통해 워크플로우를 스트리밍 방식으로 실행합니다.
+ * @param {object} params - 워크플로우 실행에 필요한 파라미터.
+ * @param {string} params.workflow_name - 워크플로우 이름.
+ * @param {string} params.workflow_id - 워크플로우 ID.
+ * @param {string} params.input_data - 입력 데이터.
+ * @param {string} params.interaction_id - 상호작용 ID.
+ * @param {string} params.selected_collection - 선택된 컬렉션.
+ * @param {object} callbacks - 이벤트 콜백 함수 객체.
+ * @param {function} callbacks.onOpen - WebSocket 연결 성공 시 호출될 함수.
+ * @param {function} callbacks.onMessage - 메시지 수신 시 호출될 함수.
+ * @param {function} callbacks.onClose - WebSocket 연결 종료 시 호출될 함수.
+ * @param {function} callbacks.onError - 에러 발생 시 호출될 함수.
+ * @returns {WebSocket} 생성된 WebSocket 인스턴스.
+ */
+export const executeWorkflowByStream = (
+  { workflow_name, workflow_id, input_data, interaction_id, selected_collection },
+  { onOpen, onMessage, onClose, onError },
+) => {
+  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsBaseUrl = API_BASE_URL.replace(/^https?:/, '');
+  const wsUrl = `${wsProtocol}${wsBaseUrl}/api/workflow/execute/stream`;
+
+  const socket = new WebSocket(wsUrl);
+
+  socket.onopen = event => {
+    console.log('WebSocket connection opened:', event);
+    socket.send(
+      JSON.stringify({
+        workflow_name,
+        workflow_id,
+        input_data,
+        interaction_id,
+        selected_collection,
+      }),
+    );
+    if (onOpen) onOpen(event);
+  };
+
+  socket.onmessage = event => {
+    try {
+      const data = JSON.parse(event.data);
+      if (onMessage) onMessage(data);
+    } catch (error) {
+      console.error('Error parsing WebSocket message:', error);
+      if (onError) onError(error);
+    }
+  };
+
+  socket.onerror = error => {
+    console.error('WebSocket error:', error);
+    if (onError) onError(error);
+  };
+
+  socket.onclose = event => {
+    console.log('WebSocket connection closed:', event);
+    if (onClose) onClose(event);
+  };
+
+  return socket;
+};
+
+/**
  * 워크플로우의 성능 데이터를 삭제합니다.
  * @param {string} workflowName - 워크플로우 이름 (.json 확장자 제외)
  * @param {string} workflowId - 워크플로우 ID

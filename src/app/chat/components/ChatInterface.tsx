@@ -11,7 +11,7 @@ import {
     FiX,
 } from 'react-icons/fi';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
-import { getWorkflowIOLogs, executeWorkflowById } from '@/app/api/workflowAPI';
+import { getWorkflowIOLogs, executeWorkflowById, executeWorkflowByStream } from '@/app/api/workflowAPI';
 import { MessageRenderer } from '@/app/_common/components/ChatParser';
 import toast from 'react-hot-toast';
 import CollectionModal from '@/app/chat/components/CollectionModal';
@@ -250,36 +250,67 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
             const workflowName = existingChatData?.workflowName || workflow.name;
             const workflowId = existingChatData?.workflowId || workflow.id;
 
-            const result: any = await executeWorkflowById(
-                workflowName,
-                workflowId,
-                currentMessage,
-                interactionId,
-                selectedCollection as any,
-            );
+            executeWorkflowByStream(
+                {
+                    workflow_name: workflowName || 'default_mode',
+                    workflow_id: workflowId,
+                    input_data: currentMessage,
+                    interaction_id: interactionId,
+                    selected_collection: selectedCollection as any,
+                },
+                {
+                    onOpen: () => {
+                    console.log('스트리밍 연결 시작');
+                    setIOLogs(prev =>
+                        prev.map(log =>
+                        log.log_id === tempId ? { ...log, output_data: '' } : log,
+                        ),
+                    );
+                    },
+                    onMessage: (data: { type: string; data: string; final_data: any; message: any; }) => {
+                    if (data.type === 'token') {
+                        setIOLogs(prev =>
+                        prev.map(log =>
+                            log.log_id === tempId
+                            ? { ...log, output_data: log.output_data + data.data }
+                            : log,
+                        ),
+                        );
+                    } else if (data.type === 'stream_end') {
+                        console.log('스트림 종료 데이터:', data.final_data);
+                    } else if (data.type === 'error') {
+                        setIOLogs(prev =>
+                        prev.map(log =>
+                            log.log_id === tempId
+                            ? { ...log, output_data: `Error: ${data.message}` }
+                            : log,
+                        ),
+                        );
+                    }
+                    },
+                    onClose: () => {
+                    setExecuting(false);
+                    console.log('스트리밍 연결 종료');
+                    },
+                    onError: (error: any) => {
+                    setExecuting(false);
+                    setIOLogs(prev =>
+                        prev.map(log =>
+                        log.log_id === tempId
+                            ? { ...log, output_data: 'Error: WebSocket connection failed.' }
+                            : log,
+                        ),
+                    );
+                    console.error('스트리밍 에러:', error);
+                    },
+                },
+                );
 
-            // 결과로 임시 메시지 업데이트 (chatAPI 응답 형식)
-            setIOLogs((prev) =>
-                prev.map((log) =>
-                    String(log.log_id) === tempId
-                        ? {
-                                ...log,
-                                output_data: result.outputs
-                                    ? JSON.stringify(result.outputs)
-                                    : result.message || '처리 완료',
-                                updated_at: new Date().toISOString(),
-                            }
-                        : log,
-                ),
-            );
-
-            // 결과 업데이트 후 스크롤
             setTimeout(() => scrollToBottom(), 100);
 
             toast.success('메시지가 성공적으로 전송되었습니다!');
             setPendingLogId(null);
 
-            // 기존 채팅 데이터가 있는 경우 localStorage 업데이트
             if (existingChatData) {
                 const currentChatData = {
                     interactionId: existingChatData.interactionId,
@@ -303,7 +334,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
             }
 
         } catch (err) {
-            // 에러로 임시 메시지 업데이트
             setIOLogs((prev) =>
                 prev.map((log) =>
                     String(log.log_id) === tempId
@@ -316,7 +346,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
                 ),
             );
 
-            // 에러 업데이트 후 스크롤
             setTimeout(() => scrollToBottom(), 100);
 
             setPendingLogId(null);
