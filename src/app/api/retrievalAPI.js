@@ -490,33 +490,6 @@ export const getRagConfig = async () => {
 // =============================================================================
 // Utility Functions
 // =============================================================================
-
-/**
- * 파일 타입이 지원되는지 확인하는 함수
- * @param {File} file - 확인할 파일
- * @returns {boolean} 지원 여부
- */
-export const isSupportedFileType = (file) => {
-    const supportedTypes = [
-        'application/pdf',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/msword',
-        'text/plain',
-    ];
-    return supportedTypes.includes(file.type);
-};
-
-/**
- * 파일 크기가 허용 범위인지 확인하는 함수
- * @param {File} file - 확인할 파일
- * @param {number} maxSizeMB - 최대 크기 (MB, 기본값: 50)
- * @returns {boolean} 허용 여부
- */
-export const isValidFileSize = (file, maxSizeMB = 50) => {
-    const maxSizeBytes = maxSizeMB * 1024 * 1024;
-    return file.size <= maxSizeBytes;
-};
-
 /**
  * 컬렉션 이름의 유효성을 검사하는 함수
  * @param {string} name - 컬렉션 이름
