@@ -20,6 +20,7 @@ import ChatHeader from './ChatHeader';
 import { ChatArea } from './ChatArea';
 import { DeploymentModal } from './DeploymentModal';
 import { generateInteractionId, normalizeWorkflowName } from '@/app/api/interactionAPI';
+import { devLog } from '@/app/_common/utils/logger';
 
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, onChatStarted, hideBackButton = false, firstChat = false, existingChatData }) => {
@@ -35,6 +36,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
     const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
     const [showCollectionModal, setShowCollectionModal] = useState(false);
     const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+    const [selectedCollectionMakeName, setSelectedCollectionMakeName] = useState<string | null>(null);
     const [showDeploymentModal, setShowDeploymentModal] = useState(false);
 
 
@@ -99,6 +101,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
                 setPendingLogId(null);
                 localStorage.removeItem('selectedCollection');
                 setSelectedCollection(null);
+                setSelectedCollectionMakeName(null);
             } catch (err) {
                 setError('채팅 기록을 불러오는데 실패했습니다.');
                 setIOLogs([]);
@@ -141,37 +144,41 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
         };
     }, [executing, scrollToBottom]);
 
-    // localStorage에서 선택된 컬렉션 정보 가져오기
-    useEffect(() => {
-        const checkSelectedCollection = () => {
-            try {
-                const storedCollection = localStorage.getItem('selectedCollection');
-                if (storedCollection) {
-                    const collectionData = JSON.parse(storedCollection);
-                    setSelectedCollection(collectionData.make_name);
-                } else {
-                    setSelectedCollection(null);
-                }
-            } catch (err) {
-                console.error('Failed to load selected collection:', err);
-                setSelectedCollection(null);
-            }
-        };
+    // 아래 제거해도 별 문제 없는 것 같음.
+    // // localStorage에서 선택된 컬렉션 정보 가져오기
+    // useEffect(() => {
+    //     const checkSelectedCollection = () => {
+    //         try {
+    //             const storedCollection = localStorage.getItem('selectedCollection');
+    //             if (storedCollection) {
+    //                 const collectionData = JSON.parse(storedCollection);
+    //                 setSelectedCollection(collectionData.name);
+    //                 setSelectedCollectionMakeName(collectionData.make_name);
+    //             } else {
+    //                 setSelectedCollection(null);
+    //                 setSelectedCollectionMakeName(null);
+    //             }
+    //         } catch (err) {
+    //             console.error('Failed to load selected collection:', err);
+    //             setSelectedCollection(null);
+    //             setSelectedCollectionMakeName(null);
+    //         }
+    //     };
 
-        checkSelectedCollection();
+    //     checkSelectedCollection();
 
-        const handleStorageChange = (e: StorageEvent) => {
-            if (e.key === 'selectedCollection') {
-                checkSelectedCollection();
-            }
-        };
+    //     const handleStorageChange = (e: StorageEvent) => {
+    //         if (e.key === 'selectedCollection') {
+    //             checkSelectedCollection();
+    //         }
+    //     };
 
-        window.addEventListener('storage', handleStorageChange);
+    //     window.addEventListener('storage', handleStorageChange);
 
-        return () => {
-            window.removeEventListener('storage', handleStorageChange);
-        };
-    }, []);
+    //     return () => {
+    //         window.removeEventListener('storage', handleStorageChange);
+    //     };
+    // }, []);
 
     useEffect(() => {
         if (!showCollectionModal) {
@@ -180,13 +187,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
                     const storedCollection = localStorage.getItem('selectedCollection');
                     if (storedCollection) {
                         const collectionData = JSON.parse(storedCollection);
-                        setSelectedCollection(collectionData.make_name);
+                        setSelectedCollection(collectionData.name);
+                        setSelectedCollectionMakeName(collectionData.make_name);
                     } else {
                         setSelectedCollection(null);
+                        setSelectedCollectionMakeName(null);
                     }
                 } catch (err) {
                     console.error('Failed to load selected collection:', err);
                     setSelectedCollection(null);
+                    setSelectedCollectionMakeName(null);
                 }
             };
             checkSelectedCollection();
@@ -350,6 +360,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
     const handleRemoveCollection = () => {
         localStorage.removeItem('selectedCollection');
         setSelectedCollection(null);
+        setSelectedCollectionMakeName(null);
     };
 
     // 첨부 메뉴 외부 클릭 시 닫기
@@ -413,7 +424,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
                                 {selectedCollection && (
                                     <div className={styles.selectedCollection}>
                                         <FiBookmark className={styles.collectionIcon} />
-                                        <span className={styles.collectionName}>{selectedCollection}</span>
+                                        <span className={styles.collectionName}>{selectedCollectionMakeName}</span>
                                         <button
                                             className={styles.removeCollectionButton}
                                             onClick={handleRemoveCollection}
