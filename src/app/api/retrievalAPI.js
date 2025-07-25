@@ -180,32 +180,66 @@ export const uploadDocument = async (
 ) => {
     try {
         const formData = new FormData();
-        formData.append('file', file);
+
+        // 파일명에 폴더 경로가 포함된 경우 처리
+        let fileName = file.name;
+        if (file.webkitRelativePath) {
+            // 폴더 업로드의 경우 전체 상대 경로 사용
+            fileName = file.webkitRelativePath;
+        }
+
+        // 파일을 고유한 이름으로 업로드
+        formData.append('file', file, fileName);
         formData.append('collection_name', collectionName);
         formData.append('chunk_size', chunkSize.toString());
         formData.append('chunk_overlap', chunkOverlap.toString());
 
-        if (metadata) {
-            formData.append('metadata', JSON.stringify(metadata));
-        }
+        // 메타데이터에 파일 경로 정보 추가
+        const enhancedMetadata = {
+            ...(metadata || {}),
+            original_file_name: file.name,
+            file_path: fileName,
+            upload_timestamp: new Date().toISOString(),
+            file_size: file.size,
+            file_type: file.type || 'application/octet-stream',
+        };
+
+        formData.append('metadata', JSON.stringify(enhancedMetadata));
+
+        // 업로드 진행률 추적을 위한 AbortController
+        const controller = new AbortController();
 
         const response = await fetch(
             `${API_BASE_URL}/api/retrieval/documents/upload`,
             {
                 method: 'POST',
                 body: formData,
+                signal: controller.signal,
+                // 타임아웃 설정 (5분)
+                timeout: 300000,
             },
         );
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            throw new Error(
+                `HTTP error! status: ${response.status}, message: ${errorText}`,
+            );
         }
 
         const data = await response.json();
-        devLog.info('Document uploaded:', data);
+        devLog.info('Document uploaded successfully:', {
+            fileName: fileName,
+            collection: collectionName,
+            documentId: data.document_id || 'unknown',
+        });
         return data;
     } catch (error) {
-        devLog.error('Failed to upload document:', error);
+        devLog.error('Failed to upload document:', {
+            fileName: file.name,
+            collection: collectionName,
+            error: error.message,
+        });
         throw error;
     }
 };

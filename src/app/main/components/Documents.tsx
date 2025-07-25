@@ -369,50 +369,131 @@ const Documents: React.FC = () => {
             return;
         }
 
-        const initialProgress: UploadProgress[] = Array.from(files).map(file => ({
+        const fileArray = Array.from(files);
+        const initialProgress: UploadProgress[] = fileArray.map(file => ({
             fileName: file.name,
             status: 'uploading',
             progress: 0
         }));
         setUploadProgress(initialProgress);
 
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            try {
-                setUploadProgress(prev => prev.map((item, index) =>
-                    index === i ? { ...item, progress: 50 } : item
-                ));
+        try {
+            // 폴더 업로드의 경우 병렬 처리
+            if (isFolder) {
+                // Promise.allSettled를 사용하여 모든 파일을 병렬로 업로드
+                const uploadPromises = fileArray.map(async (file, index) => {
+                    try {
+                        // 진행 상태 업데이트 (시작)
+                        setUploadProgress(prev => prev.map((item, idx) =>
+                            idx === index ? { ...item, progress: 10 } : item
+                        ));
 
-                await uploadDocument(
-                    file,
-                    selectedCollection.collection_name,
-                    2000,
-                    300,
-                    { upload_type: isFolder ? 'folder' : 'single' }
-                );
+                        // 폴더 경로 정보를 메타데이터에 포함
+                        const relativePath = file.webkitRelativePath || file.name;
+                        const folderPath = relativePath.substring(0, relativePath.lastIndexOf('/')) || '';
+                        
+                        const metadata = {
+                            upload_type: 'folder',
+                            folder_path: folderPath,
+                            relative_path: relativePath,
+                            original_name: file.name
+                        };
 
-                setUploadProgress(prev => prev.map((item, index) =>
-                    index === i ? { ...item, status: 'success', progress: 100 } : item
-                ));
-            } catch (err) {
-                setUploadProgress(prev => prev.map((item, index) =>
-                    index === i ? {
-                        ...item,
-                        status: 'error',
-                        progress: 0,
-                        error: '업로드 실패'
-                    } : item
-                ));
-                console.error(`Failed to upload file ${file.name}:`, err);
+                        // 진행 상태 업데이트 (업로드 중)
+                        setUploadProgress(prev => prev.map((item, idx) =>
+                            idx === index ? { ...item, progress: 50 } : item
+                        ));
+
+                        const result = await uploadDocument(
+                            file,
+                            selectedCollection.collection_name,
+                            2000,
+                            300,
+                            metadata
+                        );
+
+                        // 성공 시 진행 상태 업데이트
+                        setUploadProgress(prev => prev.map((item, idx) =>
+                            idx === index ? { ...item, status: 'success', progress: 100 } : item
+                        ));
+
+                        return { success: true, fileName: file.name, result };
+                    } catch (error) {
+                        // 실패 시 진행 상태 업데이트
+                        setUploadProgress(prev => prev.map((item, idx) =>
+                            idx === index ? {
+                                ...item,
+                                status: 'error',
+                                progress: 0,
+                                error: error instanceof Error ? error.message : '업로드 실패'
+                            } : item
+                        ));
+                        
+                        console.error(`Failed to upload file ${file.name}:`, error);
+                        return { success: false, fileName: file.name, error };
+                    }
+                });
+
+                // 모든 업로드 작업 완료 대기
+                const results = await Promise.allSettled(uploadPromises);
+                
+                // 결과 통계
+                const successful = results.filter(result => 
+                    result.status === 'fulfilled' && result.value.success
+                ).length;
+                const failed = results.length - successful;
+                
+                if (failed > 0) {
+                    setError(`${successful}개 파일 업로드 성공, ${failed}개 파일 실패`);
+                } else {
+                    setError(null);
+                }
+
+            } else {
+                // 단일 파일 업로드
+                const file = fileArray[0];
+                try {
+                    setUploadProgress(prev => prev.map((item, index) =>
+                        index === 0 ? { ...item, progress: 50 } : item
+                    ));
+
+                    await uploadDocument(
+                        file,
+                        selectedCollection.collection_name,
+                        2000,
+                        300,
+                        { upload_type: 'single' }
+                    );
+
+                    setUploadProgress(prev => prev.map((item, index) =>
+                        index === 0 ? { ...item, status: 'success', progress: 100 } : item
+                    ));
+                } catch (err) {
+                    setUploadProgress(prev => prev.map((item, index) =>
+                        index === 0 ? {
+                            ...item,
+                            status: 'error',
+                            progress: 0,
+                            error: '업로드 실패'
+                        } : item
+                    ));
+                    console.error(`Failed to upload file ${file.name}:`, err);
+                    setError('파일 업로드에 실패했습니다.');
+                }
             }
+
+        } catch (error) {
+            console.error('Upload process failed:', error);
+            setError('업로드 처리 중 오류가 발생했습니다.');
         }
 
+        // 업로드 완료 후 문서 목록 새로고침
         setTimeout(() => {
             if (selectedCollection) {
                 loadDocumentsInCollection(selectedCollection.collection_name);
             }
             setUploadProgress([]);
-        }, 2000);
+        }, 3000); // 3초로 연장하여 사용자가 결과를 확인할 수 있도록
     };
 
     const handleSingleFileUpload = () => {
@@ -517,24 +598,54 @@ const Documents: React.FC = () => {
                 <div className={styles.documentViewContainer}>
                     {uploadProgress.length > 0 && (
                         <div className={styles.uploadProgressContainer}>
-                            <h4>업로드 진행 상태</h4>
-                            {uploadProgress.map((item, index) => (
-                                <div key={index} className={styles.progressItem}>
-                                    <span className={styles.fileName}>{item.fileName}</span>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                        {item.status === 'uploading' && (
-                                            <div className={styles.progressBar}>
-                                                <div style={{ width: `${item.progress}%` }}></div>
-                                            </div>
-                                        )}
-                                        <span className={`${styles.status} ${styles[item.status]}`}>
-                                            {item.status === 'uploading' && '업로드 중...'}
-                                            {item.status === 'success' && '완료'}
-                                            {item.status === 'error' && (item.error || '실패')}
-                                        </span>
-                                    </div>
+                            <div className={styles.progressHeader}>
+                                <h4>업로드 진행 상태</h4>
+                                <div className={styles.progressSummary}>
+                                    <span className={styles.totalCount}>
+                                        총 {uploadProgress.length}개 파일
+                                    </span>
+                                    <span className={styles.successCount}>
+                                        성공: {uploadProgress.filter(item => item.status === 'success').length}
+                                    </span>
+                                    <span className={styles.errorCount}>
+                                        실패: {uploadProgress.filter(item => item.status === 'error').length}
+                                    </span>
+                                    <span className={styles.uploadingCount}>
+                                        진행 중: {uploadProgress.filter(item => item.status === 'uploading').length}
+                                    </span>
                                 </div>
-                            ))}
+                            </div>
+                            <div className={styles.progressList}>
+                                {uploadProgress.map((item, index) => (
+                                    <div key={index} className={`${styles.progressItem} ${styles[item.status]}`}>
+                                        <div className={styles.fileInfo}>
+                                            <span className={styles.fileName} title={item.fileName}>
+                                                {item.fileName}
+                                            </span>
+                                            {item.status === 'uploading' && (
+                                                <span className={styles.progressPercent}>
+                                                    {item.progress}%
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className={styles.progressStatus}>
+                                            {item.status === 'uploading' && (
+                                                <div className={styles.progressBar}>
+                                                    <div 
+                                                        className={styles.progressFill}
+                                                        style={{ width: `${item.progress}%` }}
+                                                    ></div>
+                                                </div>
+                                            )}
+                                            <span className={`${styles.statusText} ${styles[item.status]}`}>
+                                                {item.status === 'uploading' && '📤 업로드 중...'}
+                                                {item.status === 'success' && '✅ 완료'}
+                                                {item.status === 'error' && `❌ ${item.error || '실패'}`}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
 
