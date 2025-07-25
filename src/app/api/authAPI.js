@@ -6,6 +6,7 @@ import {
     getAuthCookie,
     clearAllAuth
 } from '@/app/_common/utils/cookieUtils';
+import { generateSha256Hash } from '@/app/_common/utils/generateSha1Hash';
 
 /**
  * 회원가입 API
@@ -18,12 +19,18 @@ import {
  */
 export const signup = async (signupData) => {
     try {
+        // 패스워드를 SHA256으로 해시화
+        const hashedSignupData = {
+            ...signupData,
+            password: generateSha256Hash(signupData.password)
+        };
+
         const response = await fetch(`${API_BASE_URL}/auth/signup`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(signupData),
+            body: JSON.stringify(hashedSignupData),
         });
 
         const result = await response.json();
@@ -51,12 +58,18 @@ export const signup = async (signupData) => {
  */
 export const login = async (loginData) => {
     try {
+        // 패스워드를 SHA256으로 해시화
+        const hashedLoginData = {
+            ...loginData,
+            password: generateSha256Hash(loginData.password)
+        };
+
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(loginData),
+            body: JSON.stringify(hashedLoginData),
         });
 
         const result = await response.json();
@@ -388,7 +401,7 @@ export const createGuestAccountAndLogin = async () => {
         const signupData = {
             username: guestUsername,
             email: guestEmail,
-            password: guestPassword,
+            password: guestPassword, // 원본 패스워드를 signup 함수에 전달 (signup 함수에서 해시화됨)
             full_name: `Guest User ${randomId}`
         };
 
@@ -398,7 +411,7 @@ export const createGuestAccountAndLogin = async () => {
         // 2. 생성된 계정으로 자동 로그인
         const loginData = {
             email: guestEmail,
-            password: guestPassword
+            password: guestPassword // 원본 패스워드를 login 함수에 전달 (login 함수에서 해시화됨)
         };
 
         const loginResult = await login(loginData);
