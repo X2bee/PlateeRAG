@@ -32,6 +32,7 @@ interface WorkflowDetailResponse {
     id: number;
     workflow_name: string;
     workflow_id: string;
+    user_name: string;
     node_count: number;
     updated_at: string;
     has_startnode: boolean;
@@ -70,7 +71,7 @@ const CompletedWorkflows: React.FC = () => {
                         id: detail.workflow_id,
                         name:
                             detail.workflow_name,
-                        author: 'AI-LAB',
+                        author: detail.user_name,
                         nodeCount: detail.node_count,
                         lastModified: detail.updated_at,
                         status: status,
@@ -125,9 +126,9 @@ const CompletedWorkflows: React.FC = () => {
 
     // Handle workflow execution
     const handleExecute = (workflow: Workflow) => {
-        // 메인 페이지의 실행 탭으로 이동하며 URL 파라미터 설정
+        // 채팅 페이지로 이동하며 새 채팅 모드와 선택된 워크플로우 정보 전달
         router.push(
-            `/main?view=playground&workflowName=${encodeURIComponent(workflow.name)}&workflowId=${encodeURIComponent(workflow.id)}`,
+            `/chat?mode=new-chat&workflowName=${encodeURIComponent(workflow.name)}&workflowId=${encodeURIComponent(workflow.id)}`,
         );
     };
 

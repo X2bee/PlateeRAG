@@ -116,9 +116,7 @@ const Documents: React.FC = () => {
     // 모달 상태
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [showDeleteDocModal, setShowDeleteDocModal] = useState(false);
     const [collectionToDelete, setCollectionToDelete] = useState<Collection | null>(null);
-    const [documentToDelete, setDocumentToDelete] = useState<DocumentInCollection | null>(null);
 
     // 폼 상태
     const [newCollectionName, setNewCollectionName] = useState('');
@@ -128,7 +126,7 @@ const Documents: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const isAnyModalOpen = showCreateModal || showDeleteModal || showDeleteDocModal;
+    const isAnyModalOpen = showCreateModal || showDeleteModal;
 
     useEffect(() => {
         if (layoutContext) {
@@ -294,23 +292,16 @@ const Documents: React.FC = () => {
         }
     };
 
-    // 문서 삭제
-    const handleDeleteDocumentRequest = (document: DocumentInCollection) => {
-        setDocumentToDelete(document);
-        setShowDeleteDocModal(true);
-    };
-
-    const handleConfirmDeleteDocument = async () => {
-        if (!documentToDelete || !selectedCollection) return;
+    // 문서 삭제 (바로 삭제)
+    const handleDeleteDocument = async (document: DocumentInCollection) => {
+        if (!selectedCollection) return;
 
         try {
             setLoading(true);
             setError(null);
-            await deleteDocumentFromCollection(selectedCollection.collection_name, documentToDelete.document_id);
-            setShowDeleteDocModal(false);
-            setDocumentToDelete(null);
+            await deleteDocumentFromCollection(selectedCollection.collection_name, document.document_id);
 
-            if (selectedDocument?.document_id === documentToDelete.document_id) {
+            if (selectedDocument?.document_id === document.document_id) {
                 setSelectedDocument(null);
                 setDocumentDetails(null);
                 setViewMode('documents');
@@ -378,10 +369,15 @@ const Documents: React.FC = () => {
         setUploadProgress(initialProgress);
 
         try {
-            // 폴더 업로드의 경우 병렬 처리
+            // 폴더 업로드의 경우 순차 처리
             if (isFolder) {
-                // Promise.allSettled를 사용하여 모든 파일을 병렬로 업로드
-                const uploadPromises = fileArray.map(async (file, index) => {
+                let successful = 0;
+                let failed = 0;
+
+                // 순차적으로 파일 업로드
+                for (let index = 0; index < fileArray.length; index++) {
+                    const file = fileArray[index];
+                    
                     try {
                         // 진행 상태 업데이트 (시작)
                         setUploadProgress(prev => prev.map((item, idx) =>
@@ -396,7 +392,9 @@ const Documents: React.FC = () => {
                             upload_type: 'folder',
                             folder_path: folderPath,
                             relative_path: relativePath,
-                            original_name: file.name
+                            original_name: file.name,
+                            current_index: index + 1,
+                            total_files: fileArray.length
                         };
 
                         // 진행 상태 업데이트 (업로드 중)
@@ -404,7 +402,7 @@ const Documents: React.FC = () => {
                             idx === index ? { ...item, progress: 50 } : item
                         ));
 
-                        const result = await uploadDocument(
+                        await uploadDocument(
                             file,
                             selectedCollection.collection_name,
                             2000,
@@ -417,7 +415,8 @@ const Documents: React.FC = () => {
                             idx === index ? { ...item, status: 'success', progress: 100 } : item
                         ));
 
-                        return { success: true, fileName: file.name, result };
+                        successful++;
+                        
                     } catch (error) {
                         // 실패 시 진행 상태 업데이트
                         setUploadProgress(prev => prev.map((item, idx) =>
@@ -430,19 +429,16 @@ const Documents: React.FC = () => {
                         ));
                         
                         console.error(`Failed to upload file ${file.name}:`, error);
-                        return { success: false, fileName: file.name, error };
+                        failed++;
                     }
-                });
 
-                // 모든 업로드 작업 완료 대기
-                const results = await Promise.allSettled(uploadPromises);
+                    // 잠시 대기 (서버 부하 방지)
+                    if (index < fileArray.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                }
                 
-                // 결과 통계
-                const successful = results.filter(result => 
-                    result.status === 'fulfilled' && result.value.success
-                ).length;
-                const failed = results.length - successful;
-                
+                // 결과 통계 표시
                 if (failed > 0) {
                     setError(`${successful}개 파일 업로드 성공, ${failed}개 파일 실패`);
                 } else {
@@ -675,7 +671,7 @@ const Documents: React.FC = () => {
                                             className={`${styles.deleteButton}`}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleDeleteDocumentRequest(doc);
+                                                handleDeleteDocument(doc);
                                             }}
                                             title="문서 삭제"
                                         >
@@ -849,35 +845,7 @@ const Documents: React.FC = () => {
                 </div>
             )}
 
-            {/* 문서 삭제 모달 */}
-            {showDeleteDocModal && documentToDelete && (
-                <div className={styles.modalBackdrop} onClick={() => setShowDeleteDocModal(false)}>
-                    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-                        <h3>문서 삭제 확인</h3>
-                        <p>
-                            '<strong>{documentToDelete.file_name}</strong>' 문서를 정말로 삭제하시겠습니까?<br/>
-                            이 작업은 되돌릴 수 없으며, 문서의 모든 청크가 삭제됩니다.
-                        </p>
-                        <div className={styles.modalActions}>
-                            <button
-                                onClick={() => {
-                                    setShowDeleteDocModal(false);
-                                    setDocumentToDelete(null);
-                                }}
-                                className={`${styles.button} ${styles.secondary}`}
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={handleConfirmDeleteDocument}
-                                className={`${styles.button} ${styles.danger}`}
-                            >
-                                삭제
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+
         </div>
     );
 };
