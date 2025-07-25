@@ -77,16 +77,18 @@ const StandaloneChatPage = () => {
     }
 
     return (
-        <div className={styles.chatContainer}>
-            <div className={styles.workflowSection}>
+        <div className={styles.mainContent}>
+            <div className={styles.chatContainer}>
+                <div className={styles.workflowSection}>
                     <ChatInterface
                         mode="deploy"
                         workflow={workflow}
-                        onBack={() => {}}
-                        onChatStarted={() => {}}
+                        onBack={() => { }}
+                        onChatStarted={() => { }}
                         hideBackButton={true}
                         existingChatData={undefined}
                     />
+                </div>
             </div>
         </div>
     );
