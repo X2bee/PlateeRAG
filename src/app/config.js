@@ -3,12 +3,18 @@
  */
 
 const host_url = process.env.NEXT_PUBLIC_BACKEND_HOST || 'http://localhost'
-const port = process.env.NEXT_PUBLIC_BACKEND_PORT || '8000'
+const port = process.env.NEXT_PUBLIC_BACKEND_PORT || null
 
-console.log(`Backend server running at ${host_url}:${port}`);
+let BASE_URL = `${host_url}:${port}`
+
+if (!port) {
+    BASE_URL = host_url
+}
+
+console.log(`Backend server running at ${BASE_URL}`);
 // API Configuration
 export const API_CONFIG = {
-    BASE_URL: `${host_url}:${port}`,
+    BASE_URL: BASE_URL,
     TIMEOUT: 30000, // 30 seconds
     DEFAULT_HEADERS: {
         'Content-Type': 'application/json',

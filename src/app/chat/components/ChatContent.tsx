@@ -23,6 +23,10 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted }) => {
         const workflowId = searchParams.get('workflow_id');
         const workflowName = searchParams.get('workflow_name');
 
+        // handleExecute에서 전달된 워크플로우 정보 확인
+        const executeWorkflowId = searchParams.get('workflowId');
+        const executeWorkflowName = searchParams.get('workflowName');
+
         if (mode === 'existing' && interactionId && workflowId && workflowName) {
             const existingWorkflow = {
                 id: workflowId,
@@ -41,6 +45,19 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted }) => {
 
             setSelectedWorkflow(existingWorkflow);
             setCurrentView('existingChat');
+        } else if (mode === 'new-chat' && executeWorkflowId && executeWorkflowName) {
+            // 워크플로우 실행 모드: URL 파라미터에서 받은 워크플로우를 자동 선택
+            const selectedWorkflowFromExecute = {
+                id: executeWorkflowId,
+                name: executeWorkflowName,
+                filename: executeWorkflowName,
+                author: 'AI-LAB',
+                nodeCount: 0,
+                status: 'active' as const,
+            };
+
+            setSelectedWorkflow(selectedWorkflowFromExecute);
+            setCurrentView('newChat');
         }
     }, [searchParams]);
 

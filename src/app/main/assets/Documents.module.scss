@@ -226,11 +226,48 @@ $white: #ffffff;
     padding: 1.5rem;
     margin-bottom: 2rem;
 
-    h4 {
-        font-size: 1.125rem;
-        font-weight: 600;
-        margin: 0 0 1rem 0;
-        color: $gray-800;
+    .progressHeader {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+
+        h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin: 0;
+            color: $gray-800;
+        }
+
+        .progressSummary {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+
+            .totalCount {
+                color: $gray-700;
+            }
+
+            .successCount {
+                color: $primary-green;
+            }
+
+            .errorCount {
+                color: $primary-red;
+            }
+
+            .uploadingCount {
+                color: $primary-blue;
+            }
+        }
+    }
+
+    .progressList {
+        max-height: 300px;
+        overflow-y: auto;
     }
 }
 
@@ -238,38 +275,79 @@ $white: #ffffff;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid $gray-200;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    background: $white;
+    border: 1px solid $gray-200;
+    transition: all 0.2s ease-in-out;
 
-    &:last-child {
-        border-bottom: none;
+    &.uploading {
+        border-color: $primary-blue;
+        background: color.mix($primary-blue, $white, 5%);
     }
 
-    .fileName {
-        font-weight: 500;
-        color: $gray-700;
+    &.success {
+        border-color: $primary-green;
+        background: color.mix($primary-green, $white, 5%);
     }
 
-    .status {
-        font-size: 0.875rem;
-        font-weight: 600;
-        
-        &.uploading { color: $primary-blue; }
-        &.success { color: $primary-green; }
-        &.error { color: $primary-red; }
+    &.error {
+        border-color: $primary-red;
+        background: color.mix($primary-red, $white, 5%);
     }
-    
-    .progressBar {
-        width: 100px;
-        height: 8px;
-        background: $gray-200;
-        border-radius: 4px;
-        overflow: hidden;
-        
-        div {
-            height: 100%;
-            background: $primary-green;
-            transition: width 0.3s ease;
+
+    .fileInfo {
+        flex: 1;
+        min-width: 0;
+        margin-right: 1rem;
+
+        .fileName {
+            font-weight: 500;
+            color: $gray-700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .progressPercent {
+            font-size: 0.75rem;
+            color: $gray-500;
+            font-weight: 600;
+        }
+    }
+
+    .progressStatus {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-shrink: 0;
+
+        .progressBar {
+            width: 100px;
+            height: 6px;
+            background: $gray-200;
+            border-radius: 3px;
+            overflow: hidden;
+            
+            .progressFill {
+                height: 100%;
+                background: linear-gradient(90deg, $primary-blue, color.adjust($primary-blue, $lightness: 10%));
+                transition: width 0.3s ease;
+                border-radius: 3px;
+            }
+        }
+
+        .statusText {
+            font-size: 0.875rem;
+            font-weight: 600;
+            white-space: nowrap;
+            
+            &.uploading { color: $primary-blue; }
+            &.success { color: $primary-green; }
+            &.error { color: $primary-red; }
         }
     }
 }

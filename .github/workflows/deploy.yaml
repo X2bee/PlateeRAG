@@ -1,0 +1,23 @@
+name: Deploy Front
+
+on:
+  push:
+    branches: [ deploy ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Pull latest code
+        run: |
+          cd /home/plateerag
+          git pull origin deploy
+          echo "✅ Pulled latest source code."
+
+      - name: Install dependencies & Restart server
+        run: |
+          cd /home/plateerag
+          npm install
+          npm run build
+          pm2 reload frontend
+          echo "🚀 Frontend server restarted."

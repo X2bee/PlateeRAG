@@ -1,11 +1,9 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import styles from '../assets/Documents.module.scss';
-import { usePagesLayout, useSidebar } from '@/app/_common/components/PagesLayoutContent';
+import { usePagesLayout } from '@/app/_common/components/PagesLayoutContent';
 
 import {
-    isSupportedFileType,
-    isValidFileSize,
     isValidCollectionName,
     formatFileSize,
     getRelativeTime,
@@ -118,9 +116,7 @@ const Documents: React.FC = () => {
     // 모달 상태
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [showDeleteDocModal, setShowDeleteDocModal] = useState(false);
     const [collectionToDelete, setCollectionToDelete] = useState<Collection | null>(null);
-    const [documentToDelete, setDocumentToDelete] = useState<DocumentInCollection | null>(null);
 
     // 폼 상태
     const [newCollectionName, setNewCollectionName] = useState('');
@@ -130,7 +126,7 @@ const Documents: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const isAnyModalOpen = showCreateModal || showDeleteModal || showDeleteDocModal;
+    const isAnyModalOpen = showCreateModal || showDeleteModal;
 
     useEffect(() => {
         if (layoutContext) {
@@ -296,23 +292,16 @@ const Documents: React.FC = () => {
         }
     };
 
-    // 문서 삭제
-    const handleDeleteDocumentRequest = (document: DocumentInCollection) => {
-        setDocumentToDelete(document);
-        setShowDeleteDocModal(true);
-    };
-
-    const handleConfirmDeleteDocument = async () => {
-        if (!documentToDelete || !selectedCollection) return;
+    // 문서 삭제 (바로 삭제)
+    const handleDeleteDocument = async (document: DocumentInCollection) => {
+        if (!selectedCollection) return;
 
         try {
             setLoading(true);
             setError(null);
-            await deleteDocumentFromCollection(selectedCollection.collection_name, documentToDelete.document_id);
-            setShowDeleteDocModal(false);
-            setDocumentToDelete(null);
+            await deleteDocumentFromCollection(selectedCollection.collection_name, document.document_id);
 
-            if (selectedDocument?.document_id === documentToDelete.document_id) {
+            if (selectedDocument?.document_id === document.document_id) {
                 setSelectedDocument(null);
                 setDocumentDetails(null);
                 setViewMode('documents');
@@ -372,70 +361,140 @@ const Documents: React.FC = () => {
         }
 
         const fileArray = Array.from(files);
-        const validFiles = fileArray.filter(file => {
-            if (!isSupportedFileType(file)) {
-                setError(`지원되지 않는 파일 형식입니다: ${file.name}`);
-                return false;
-            }
-            if (!isValidFileSize(file, 50)) {
-                setError(`파일 크기가 50MB를 초과합니다: ${file.name}`);
-                return false;
-            }
-            return true;
-        });
-
-        if (validFiles.length === 0) return;
-
-        const initialProgress: UploadProgress[] = validFiles.map(file => ({
+        const initialProgress: UploadProgress[] = fileArray.map(file => ({
             fileName: file.name,
             status: 'uploading',
             progress: 0
         }));
         setUploadProgress(initialProgress);
 
-        for (let i = 0; i < validFiles.length; i++) {
-            const file = validFiles[i];
-            try {
-                setUploadProgress(prev => prev.map((item, index) =>
-                    index === i ? { ...item, progress: 50 } : item
-                ));
+        try {
+            // 폴더 업로드의 경우 순차 처리
+            if (isFolder) {
+                let successful = 0;
+                let failed = 0;
 
-                await uploadDocument(
-                    file,
-                    selectedCollection.collection_name,
-                    1000,
-                    200,
-                    { upload_type: isFolder ? 'folder' : 'single' }
-                );
+                // 순차적으로 파일 업로드
+                for (let index = 0; index < fileArray.length; index++) {
+                    const file = fileArray[index];
+                    
+                    try {
+                        // 진행 상태 업데이트 (시작)
+                        setUploadProgress(prev => prev.map((item, idx) =>
+                            idx === index ? { ...item, progress: 10 } : item
+                        ));
 
-                setUploadProgress(prev => prev.map((item, index) =>
-                    index === i ? { ...item, status: 'success', progress: 100 } : item
-                ));
-            } catch (err) {
-                setUploadProgress(prev => prev.map((item, index) =>
-                    index === i ? {
-                        ...item,
-                        status: 'error',
-                        progress: 0,
-                        error: '업로드 실패'
-                    } : item
-                ));
-                console.error(`Failed to upload file ${file.name}:`, err);
+                        // 폴더 경로 정보를 메타데이터에 포함
+                        const relativePath = file.webkitRelativePath || file.name;
+                        const folderPath = relativePath.substring(0, relativePath.lastIndexOf('/')) || '';
+                        
+                        const metadata = {
+                            upload_type: 'folder',
+                            folder_path: folderPath,
+                            relative_path: relativePath,
+                            original_name: file.name,
+                            current_index: index + 1,
+                            total_files: fileArray.length
+                        };
+
+                        // 진행 상태 업데이트 (업로드 중)
+                        setUploadProgress(prev => prev.map((item, idx) =>
+                            idx === index ? { ...item, progress: 50 } : item
+                        ));
+
+                        await uploadDocument(
+                            file,
+                            selectedCollection.collection_name,
+                            2000,
+                            300,
+                            metadata
+                        );
+
+                        // 성공 시 진행 상태 업데이트
+                        setUploadProgress(prev => prev.map((item, idx) =>
+                            idx === index ? { ...item, status: 'success', progress: 100 } : item
+                        ));
+
+                        successful++;
+                        
+                    } catch (error) {
+                        // 실패 시 진행 상태 업데이트
+                        setUploadProgress(prev => prev.map((item, idx) =>
+                            idx === index ? {
+                                ...item,
+                                status: 'error',
+                                progress: 0,
+                                error: error instanceof Error ? error.message : '업로드 실패'
+                            } : item
+                        ));
+                        
+                        console.error(`Failed to upload file ${file.name}:`, error);
+                        failed++;
+                    }
+
+                    // 잠시 대기 (서버 부하 방지)
+                    if (index < fileArray.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                }
+                
+                // 결과 통계 표시
+                if (failed > 0) {
+                    setError(`${successful}개 파일 업로드 성공, ${failed}개 파일 실패`);
+                } else {
+                    setError(null);
+                }
+
+            } else {
+                // 단일 파일 업로드
+                const file = fileArray[0];
+                try {
+                    setUploadProgress(prev => prev.map((item, index) =>
+                        index === 0 ? { ...item, progress: 50 } : item
+                    ));
+
+                    await uploadDocument(
+                        file,
+                        selectedCollection.collection_name,
+                        2000,
+                        300,
+                        { upload_type: 'single' }
+                    );
+
+                    setUploadProgress(prev => prev.map((item, index) =>
+                        index === 0 ? { ...item, status: 'success', progress: 100 } : item
+                    ));
+                } catch (err) {
+                    setUploadProgress(prev => prev.map((item, index) =>
+                        index === 0 ? {
+                            ...item,
+                            status: 'error',
+                            progress: 0,
+                            error: '업로드 실패'
+                        } : item
+                    ));
+                    console.error(`Failed to upload file ${file.name}:`, err);
+                    setError('파일 업로드에 실패했습니다.');
+                }
             }
+
+        } catch (error) {
+            console.error('Upload process failed:', error);
+            setError('업로드 처리 중 오류가 발생했습니다.');
         }
 
+        // 업로드 완료 후 문서 목록 새로고침
         setTimeout(() => {
             if (selectedCollection) {
                 loadDocumentsInCollection(selectedCollection.collection_name);
             }
             setUploadProgress([]);
-        }, 2000);
+        }, 3000); // 3초로 연장하여 사용자가 결과를 확인할 수 있도록
     };
 
     const handleSingleFileUpload = () => {
         const input = document.createElement('input');
         input.type = 'file';
-        input.accept = '.pdf,.docx,.doc,.txt';
         input.onchange = (e) => {
             const files = (e.target as HTMLInputElement).files;
             if (files) handleFileUpload(files, false);
@@ -535,24 +594,54 @@ const Documents: React.FC = () => {
                 <div className={styles.documentViewContainer}>
                     {uploadProgress.length > 0 && (
                         <div className={styles.uploadProgressContainer}>
-                            <h4>업로드 진행 상태</h4>
-                            {uploadProgress.map((item, index) => (
-                                <div key={index} className={styles.progressItem}>
-                                    <span className={styles.fileName}>{item.fileName}</span>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                        {item.status === 'uploading' && (
-                                            <div className={styles.progressBar}>
-                                                <div style={{ width: `${item.progress}%` }}></div>
-                                            </div>
-                                        )}
-                                        <span className={`${styles.status} ${styles[item.status]}`}>
-                                            {item.status === 'uploading' && '업로드 중...'}
-                                            {item.status === 'success' && '완료'}
-                                            {item.status === 'error' && (item.error || '실패')}
-                                        </span>
-                                    </div>
+                            <div className={styles.progressHeader}>
+                                <h4>업로드 진행 상태</h4>
+                                <div className={styles.progressSummary}>
+                                    <span className={styles.totalCount}>
+                                        총 {uploadProgress.length}개 파일
+                                    </span>
+                                    <span className={styles.successCount}>
+                                        성공: {uploadProgress.filter(item => item.status === 'success').length}
+                                    </span>
+                                    <span className={styles.errorCount}>
+                                        실패: {uploadProgress.filter(item => item.status === 'error').length}
+                                    </span>
+                                    <span className={styles.uploadingCount}>
+                                        진행 중: {uploadProgress.filter(item => item.status === 'uploading').length}
+                                    </span>
                                 </div>
-                            ))}
+                            </div>
+                            <div className={styles.progressList}>
+                                {uploadProgress.map((item, index) => (
+                                    <div key={index} className={`${styles.progressItem} ${styles[item.status]}`}>
+                                        <div className={styles.fileInfo}>
+                                            <span className={styles.fileName} title={item.fileName}>
+                                                {item.fileName}
+                                            </span>
+                                            {item.status === 'uploading' && (
+                                                <span className={styles.progressPercent}>
+                                                    {item.progress}%
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className={styles.progressStatus}>
+                                            {item.status === 'uploading' && (
+                                                <div className={styles.progressBar}>
+                                                    <div 
+                                                        className={styles.progressFill}
+                                                        style={{ width: `${item.progress}%` }}
+                                                    ></div>
+                                                </div>
+                                            )}
+                                            <span className={`${styles.statusText} ${styles[item.status]}`}>
+                                                {item.status === 'uploading' && '📤 업로드 중...'}
+                                                {item.status === 'success' && '✅ 완료'}
+                                                {item.status === 'error' && `❌ ${item.error || '실패'}`}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
 
@@ -574,7 +663,6 @@ const Documents: React.FC = () => {
                                         >
                                             <h4>{doc.file_name}</h4>
                                             <p className={styles.docInfo}>
-                                                타입: {doc.file_type.toUpperCase()} |
                                                 청크: {doc.actual_chunks}개 |
                                                 업로드: {getRelativeTime(doc.processed_at)}
                                             </p>
@@ -583,7 +671,7 @@ const Documents: React.FC = () => {
                                             className={`${styles.deleteButton}`}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleDeleteDocumentRequest(doc);
+                                                handleDeleteDocument(doc);
                                             }}
                                             title="문서 삭제"
                                         >
@@ -708,8 +796,20 @@ const Documents: React.FC = () => {
                             />
                         </div>
                         <div className={styles.modalActions}>
-                            <button onClick={() => setShowCreateModal(false)} className={`${styles.button} ${styles.secondary}`}>취소</button>
-                            <button onClick={handleCreateCollection} className={`${styles.button} ${styles.primary}`}>생성</button>
+                            <button 
+                                onClick={() => setShowCreateModal(false)} 
+                                className={`${styles.button} ${styles.secondary}`}
+                                disabled={loading}
+                            >
+                                취소
+                            </button>
+                            <button 
+                                onClick={handleCreateCollection} 
+                                className={`${styles.button} ${styles.primary}`}
+                                disabled={loading}
+                            >
+                                {loading ? '생성 중...' : '생성'}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -745,35 +845,7 @@ const Documents: React.FC = () => {
                 </div>
             )}
 
-            {/* 문서 삭제 모달 */}
-            {showDeleteDocModal && documentToDelete && (
-                <div className={styles.modalBackdrop} onClick={() => setShowDeleteDocModal(false)}>
-                    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-                        <h3>문서 삭제 확인</h3>
-                        <p>
-                            '<strong>{documentToDelete.file_name}</strong>' 문서를 정말로 삭제하시겠습니까?<br/>
-                            이 작업은 되돌릴 수 없으며, 문서의 모든 청크가 삭제됩니다.
-                        </p>
-                        <div className={styles.modalActions}>
-                            <button
-                                onClick={() => {
-                                    setShowDeleteDocModal(false);
-                                    setDocumentToDelete(null);
-                                }}
-                                className={`${styles.button} ${styles.secondary}`}
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={handleConfirmDeleteDocument}
-                                className={`${styles.button} ${styles.danger}`}
-                            >
-                                삭제
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+
         </div>
     );
 };

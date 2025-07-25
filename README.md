@@ -1,405 +1,408 @@
 # 🚀 Prague
 
 <div align="center">
-  <img src="./img/main.png" alt="Prague 메인 화면" width="100%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);" />
+  <img src="./img/main.png" alt="Prague Main Screen" width="100%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);" />
 </div>
 
 <br />
 
-> **차세대 AI 워크플로우 플랫폼** - 드래그 앤 드롭으로 AI 파이프라인을 구축하고 실시간으로 상호작용하세요
+> **Next-Generation AI Workflow Platform** - Build AI pipelines with drag-and-drop and interact in real-time
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.3.2-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.0.0-blue?style=flat-square&logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![SCSS](https://img.shields.io/badge/SCSS-Styling-pink?style=flat-square&logo=sass)](https://sass-lang.com/)
 
-Prague는 **비주얼 워크플로우 에디터**로 AI 애플리케이션을 구축할 수 있는 혁신적인 플랫폼입니다. 복잡한 코딩 없이 **드래그 앤 드롭**만으로 LangChain 기반의 AI 파이프라인을 설계하고, **실시간 채팅**으로 AI와 자연스럽게 소통할 수 있습니다.
+Prague is an innovative platform that allows you to build AI applications with a **visual workflow editor**. You can design LangChain-based AI pipelines simply through **drag-and-drop** without complex coding, and communicate naturally with AI through **real-time chat**.
 
-## ✨ 주요 기능
+## ✨ Key Features
 
-### 🎨 **비주얼 캔버스 에디터**
-
-<div align="center">
-  <img src="./img/canvas.png" alt="Prague 캔버스 에디터" width="80%" style="border-radius: 8px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1);" />
-  <p><em>🖱️ 직관적인 드래그 앤 드롭 인터페이스로 AI 워크플로우를 시각적으로 구성</em></p>
-</div>
-
-- **LangChain 노드 지원**: ChatOpenAI, ChatAnthropic, VectorStore 등 풍부한 AI 노드
-- **드래그 앤 드롭**: 직관적인 인터페이스로 워크플로우 구성
-- **실시간 연결**: 노드 간 데이터 흐름을 시각적으로 표현
-- **자동 저장**: LocalStorage 기반으로 작업 내용 보존
-- **템플릿 시스템**: 미리 제작된 워크플로우 템플릿 제공
+### 🎨 **Visual Canvas Editor**
 
 <div align="center">
-  <img src="./img/template.png" alt="워크플로우 템플릿" width="60%" style="border-radius: 8px; margin: 10px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.08);" />
-  <p><em>⚡ 다양한 템플릿으로 빠르게 워크플로우 시작하기</em></p>
+  <img src="./img/canvas.png" alt="Prague Canvas Editor" width="80%" style="border-radius: 8px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1);" />
+  <p><em>🖱️ Visually compose AI workflows with intuitive drag-and-drop interface</em></p>
 </div>
 
-### 💬 **AI 채팅 인터페이스**
-
-- **워크플로우 연동**: 구축한 워크플로우와 실시간 대화
-- **타이핑 애니메이션**: 세련된 UI로 AI 응답 표시
-- **다중 워크플로우**: 여러 워크플로우 중 선택하여 대화
-- **대화 히스토리**: 채팅 기록 저장 및 관리
-- **React Hot Toast**: 알림 시스템으로 사용자 경험 향상
-
-### 📊 **통합 관리센터**
+- **LangChain Node Support**: Rich AI nodes including ChatOpenAI, ChatAnthropic, VectorStore
+- **Drag & Drop**: Intuitive interface for workflow composition
+- **Real-time Connections**: Visual representation of data flow between nodes
+- **Auto Save**: Preserve work content with LocalStorage-based system
+- **Template System**: Pre-built workflow templates provided
 
 <div align="center">
-  <img src="./img/chatdemo.png" alt="관리센터 채팅 데모" width="70%" style="border-radius: 8px; margin: 15px 0; box-shadow: 0 3px 12px rgba(0,0,0,0.1);" />
-  <p><em>💬 관리센터에서 바로 워크플로우 테스트 및 채팅 확인</em></p>
+  <img src="./img/template.png" alt="Workflow Templates" width="60%" style="border-radius: 8px; margin: 10px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.08);" />
+  <p><em>⚡ Quickly start workflows with various templates</em></p>
 </div>
 
-- **실행 모니터링**: 워크플로우 실행 상태 및 성능 추적
-- **디버그 도구**: 개발 환경에서의 상세 로그 시스템
-- **설정 관리**: 글로벌 설정 및 API 키 관리
-- **워크플로우 플레이그라운드**: 테스트 환경 제공
-- **완료된 워크플로우**: 실행 완료된 작업들의 이력 관리
+### 💬 **AI Chat Interface**
+
+- **Workflow Integration**: Real-time conversation with built workflows
+- **Typing Animation**: Elegant UI for displaying AI responses
+- **Multi-Workflow**: Select from multiple workflows for conversation
+- **Chat History**: Save and manage conversation records
+- **React Hot Toast**: Enhanced user experience with notification system
+
+### 📊 **Integrated Management Center**
 
 <div align="center">
-  <img src="./img/resource_monitoring.png" alt="리소스 모니터링" width="70%" style="border-radius: 8px; margin: 15px 0; box-shadow: 0 3px 12px rgba(0,0,0,0.1);" />
-  <p><em>📈 실시간 워크플로우 실행 상태 및 리소스 모니터링</em></p>
+  <img src="./img/chatdemo.png" alt="Management Center Chat Demo" width="70%" style="border-radius: 8px; margin: 15px 0; box-shadow: 0 3px 12px rgba(0,0,0,0.1);" />
+  <p><em>💬 Test workflows and check chats directly in the management center</em></p>
 </div>
 
-### ⚡ **고성능 아키텍처**
+- **Execution Monitoring**: Track workflow execution status and performance
+- **Debug Tools**: Detailed logging system for development environment
+- **Settings Management**: Global settings and API key management
+- **Workflow Playground**: Test environment provided
+- **Completed Workflows**: History management of executed tasks
 
-- **FastAPI 백엔드**: Python 기반의 고성능 API 서버
-- **Turbopack**: Next.js 15의 빠른 번들러 활용
-- **모듈화 설계**: 컴포넌트 기반의 확장 가능한 구조
-- **타입 안전성**: TypeScript로 개발 생산성 및 안정성 확보
+<div align="center">
+  <img src="./img/resource_monitoring.png" alt="Resource Monitoring" width="70%" style="border-radius: 8px; margin: 15px 0; box-shadow: 0 3px 12px rgba(0,0,0,0.1);" />
+  <p><em>📈 Real-time workflow execution status and resource monitoring</em></p>
+</div>
 
-## 🏗️ 프로젝트 구조
+### ⚡ **High-Performance Architecture**
+
+- **FastAPI Backend**: High-performance API server based on Python
+- **Turbopack**: Fast bundler utilizing Next.js 15
+- **Modular Design**: Scalable component-based structure
+- **Type Safety**: Enhanced development productivity and stability with TypeScript
+
+## 🏗️ Project Structure
 
 ```
 plateerag/
 ├── src/
 │   ├── app/
-│   │   ├── page.tsx              # 메인 랜딩 페이지
-│   │   ├── layout.tsx            # 루트 레이아웃
-│   │   ├── globals.css           # 글로벌 스타일
-│   │   ├── HomePage.module.scss  # 홈페이지 전용 스타일
-│   │   ├── config.js             # 설정 파일 (API_BASE_URL 등)
-│   │   ├── canvas/               # 🎨 비주얼 워크플로우 에디터
-│   │   │   ├── page.tsx          # 캔버스 메인 페이지
-│   │   │   ├── types.ts          # 캔버스 타입 정의
-│   │   │   ├── components/       # 캔버스 핵심 컴포넌트
-│   │   │   │   ├── Canvas.tsx    # 메인 캔버스 (ReactFlow 기반)
-│   │   │   │   ├── Node.tsx      # AI 노드 컴포넌트
-│   │   │   │   ├── Edge.tsx      # 연결선 컴포넌트
-│   │   │   │   ├── Header.tsx    # 캔버스 헤더 (저장/불러오기)
-│   │   │   │   ├── SideMenu.tsx  # 사이드 메뉴 컨테이너
-│   │   │   │   └── ExecutionPanel.tsx # 워크플로우 실행 패널
-│   │   │   ├── constants/        # 노드 정의 및 상수
-│   │   │   │   ├── nodes.js      # LangChain 노드 데이터
-│   │   │   │   └── workflow/     # 워크플로우 템플릿
-│   │   │   └── assets/          # 캔버스 스타일 (SCSS Modules)
-│   │   ├── chat/                # 💬 AI 채팅 인터페이스
-│   │   │   ├── page.tsx         # 채팅 메인 페이지
-│   │   │   ├── components/      # 채팅 관련 컴포넌트
-│   │   │   │   ├── ChatInterface.tsx    # 메인 채팅 UI
-│   │   │   │   ├── ChatContent.tsx      # 채팅 내용 표시
-│   │   │   │   └── WorkflowSelection.tsx # 워크플로우 선택기
-│   │   │   └── assets/          # 채팅 스타일
-│   │   ├── main/                # 📊 통합 관리센터
-│   │   │   ├── page.tsx         # 관리센터 메인
-│   │   │   ├── components/      # 관리 도구 컴포넌트
-│   │   │   │   ├── MainPageContent.tsx  # 메인 대시보드
-│   │   │   │   ├── Sidebar.tsx          # 사이드바 네비게이션
-│   │   │   │   ├── ContentArea.tsx      # 콘텐츠 영역
-│   │   │   │   ├── Executor.tsx         # 워크플로우 실행기
-│   │   │   │   ├── Monitor.tsx          # 실행 모니터링
-│   │   │   │   ├── Settings.tsx         # 설정 관리
-│   │   │   │   ├── Playground.tsx       # 테스트 환경
-│   │   │   │   ├── ConfigViewer.tsx     # 설정 뷰어
-│   │   │   │   ├── CompletedWorkflows.tsx # 완료 워크플로우
-│   │   │   │   └── CanvasIntroduction.tsx # 캔버스 소개
-│   │   │   └── assets/          # 관리센터 스타일
-│   │   ├── api/                 # 🔗 API 클라이언트
-│   │   │   ├── workflowAPI.js   # 워크플로우 실행 API
-│   │   │   ├── chatAPI.js       # 채팅 API
-│   │   │   ├── nodeAPI.js       # 노드 관리 API
-│   │   │   └── configAPI.js     # 설정 API
-│   │   ├── data/                # 📊 데이터 관리
-│   │   │   └── chatData.js      # 채팅 데이터 모델
-│   │   ├── utils/               # 🛠️ 공통 유틸리티
-│   │   │   ├── logger.ts        # 디버그 로거 시스템
-│   │   │   ├── generateSha1Hash.ts # 해시 생성기
-│   │   │   └── debug-guide.js   # 디버그 가이드
-│   │   └── _common/             # 공통 컴포넌트
+│   │   ├── page.tsx              # Main landing page
+│   │   ├── layout.tsx            # Root layout
+│   │   ├── globals.css           # Global styles
+│   │   ├── HomePage.module.scss  # Homepage-specific styles
+│   │   ├── config.js             # Configuration file (API_BASE_URL, etc.)
+│   │   ├── canvas/               # 🎨 Visual workflow editor
+│   │   │   ├── page.tsx          # Canvas main page
+│   │   │   ├── types.ts          # Canvas type definitions
+│   │   │   ├── components/       # Canvas core components
+│   │   │   │   ├── Canvas.tsx    # Main canvas (ReactFlow-based)
+│   │   │   │   ├── Node.tsx      # AI node component
+│   │   │   │   ├── Edge.tsx      # Connection line component
+│   │   │   │   ├── Header.tsx    # Canvas header (save/load)
+│   │   │   │   ├── SideMenu.tsx  # Side menu container
+│   │   │   │   └── ExecutionPanel.tsx # Workflow execution panel
+│   │   │   ├── constants/        # Node definitions and constants
+│   │   │   │   ├── nodes.js      # LangChain node data
+│   │   │   │   └── workflow/     # Workflow templates
+│   │   │   └── assets/          # Canvas styles (SCSS Modules)
+│   │   ├── chat/                # 💬 AI chat interface
+│   │   │   ├── page.tsx         # Chat main page
+│   │   │   ├── components/      # Chat-related components
+│   │   │   │   ├── ChatInterface.tsx    # Main chat UI
+│   │   │   │   ├── ChatContent.tsx      # Chat content display
+│   │   │   │   └── WorkflowSelection.tsx # Workflow selector
+│   │   │   └── assets/          # Chat styles
+│   │   ├── main/                # 📊 Integrated management center
+│   │   │   ├── page.tsx         # Management center main
+│   │   │   ├── components/      # Management tool components
+│   │   │   │   ├── MainPageContent.tsx  # Main dashboard
+│   │   │   │   ├── Sidebar.tsx          # Sidebar navigation
+│   │   │   │   ├── ContentArea.tsx      # Content area
+│   │   │   │   ├── Executor.tsx         # Workflow executor
+│   │   │   │   ├── Monitor.tsx          # Execution monitoring
+│   │   │   │   ├── Settings.tsx         # Settings management
+│   │   │   │   ├── Playground.tsx       # Test environment
+│   │   │   │   ├── ConfigViewer.tsx     # Configuration viewer
+│   │   │   │   ├── CompletedWorkflows.tsx # Completed workflows
+│   │   │   │   └── CanvasIntroduction.tsx # Canvas introduction
+│   │   │   └── assets/          # Management center styles
+│   │   ├── api/                 # 🔗 API client
+│   │   │   ├── workflowAPI.js   # Workflow execution API
+│   │   │   ├── chatAPI.js       # Chat API
+│   │   │   ├── nodeAPI.js       # Node management API
+│   │   │   └── configAPI.js     # Configuration API
+│   │   ├── data/                # 📊 Data management
+│   │   │   └── chatData.js      # Chat data model
+│   │   ├── utils/               # 🛠️ Common utilities
+│   │   │   ├── logger.ts        # Debug logger system
+│   │   │   ├── generateSha1Hash.ts # Hash generator
+│   │   │   └── debug-guide.js   # Debug guide
+│   │   └── _common/             # Common components
 │   │       └── components/
-│   │           ├── ToastProvider.jsx    # 알림 시스템
-│   │           ├── nodeHook.ts          # 노드 관리 훅
-│   │           ├── sidebarConfig.ts     # 사이드바 설정
-│   │           └── workflowStorage.js   # 워크플로우 저장소
-│   └── public/                  # 정적 파일 (아이콘, 이미지)
-├── package.json                 # 프로젝트 설정 및 의존성
-├── next.config.ts              # Next.js 설정
-├── tsconfig.json               # TypeScript 설정
-├── eslint.config.mjs           # ESLint 설정
-├── postcss.config.mjs          # PostCSS 설정
-├── DEBUG_GUIDE.md              # 디버그 시스템 사용법
-└── README.md                   # 프로젝트 문서
+│   │           ├── ToastProvider.jsx    # Notification system
+│   │           ├── nodeHook.ts          # Node management hook
+│   │           ├── sidebarConfig.ts     # Sidebar configuration
+│   │           └── workflowStorage.js   # Workflow storage
+│   └── public/                  # Static files (icons, images)
+├── package.json                 # Project configuration and dependencies
+├── next.config.ts              # Next.js configuration
+├── tsconfig.json               # TypeScript configuration
+├── eslint.config.mjs           # ESLint configuration
+├── postcss.config.mjs          # PostCSS configuration
+├── DEBUG_GUIDE.md              # Debug system usage guide
+└── README.md                   # Project documentation
 ```
 
-````
-## 🤖 지원하는 AI 노드 (예정)
+## 🤖 Supported AI Nodes (Planned)
 
-Prague는 **LangChain** 생태계의 다양한 AI 노드를 지원합니다:
+Prague supports various AI nodes from the **LangChain** ecosystem:
 
 ### 💬 **Chat Models**
-- **ChatOpenAI**: GPT-4o, GPT-4, GPT-3.5 Turbo 지원
-- **ChatAnthropic**: Claude 모델 시리즈
-- **Temperature 조절**: 창의성과 일관성 제어
-- **Stop Sequence**: 출력 제어 옵션
+
+- **ChatOpenAI**: Support for GPT-4o, GPT-4, GPT-3.5 Turbo
+- **ChatAnthropic**: Claude model series
+- **Temperature Control**: Control creativity and consistency
+- **Stop Sequence**: Output control options
 
 ### 🔗 **Chains & Agents**
-- **LLMChain**: 기본 언어모델 체인
-- **ConversationChain**: 대화형 체인
-- **Agent**: 자율적 AI 에이전트
-- **Tools**: 외부 도구 연동
+
+- **LLMChain**: Basic language model chain
+- **ConversationChain**: Conversational chain
+- **Agent**: Autonomous AI agent
+- **Tools**: External tool integration
 
 ### 📚 **Memory & Storage**
-- **VectorStore**: 벡터 기반 문서 저장소
-- **Memory**: 대화 기억 관리
-- **Document Loaders**: 다양한 문서 형식 로드
+
+- **VectorStore**: Vector-based document storage
+- **Memory**: Conversation memory management
+- **Document Loaders**: Load various document formats
 
 ### 🔄 **Utility Nodes**
-- **Input/Output**: 데이터 입출력 노드
-- **Transform**: 데이터 변환 노드
-- **Conditional**: 조건부 분기 노드
 
-## 🚀 빠른 시작
+- **Input/Output**: Data input/output nodes
+- **Transform**: Data transformation nodes
+- **Conditional**: Conditional branching nodes
 
-### 1. 환경 요구사항
+## 🚀 Quick Start
 
-- **Node.js** 18.17 이상
-- **npm**, **yarn**, **pnpm** 또는 **bun**
+### 1. Environment Requirements
 
-### 2. 설치 및 실행
+- **Node.js** 18.17 or higher
+- **npm**, **yarn**, **pnpm** or **bun**
+
+### 2. Installation and Running
 
 ```bash
-# 저장소 클론
+# Clone repository
 git clone https://github.com/your-org/plateerag.git
 cd plateerag
 
-# 의존성 설치
+# Install dependencies
 npm install
-# 또는
+# or
 yarn install
 
-# 개발 서버 실행
+# Run development server
 npm run dev
-# 또는
+# or
 yarn dev
-````
+```
 
-### 3. 브라우저에서 확인
+### 3. Check in Browser
 
-[http://localhost:3000](http://localhost:3000)에서 Prague를 만나보세요! 🎉
+Meet Prague at [http://localhost:3000](http://localhost:3000)! 🎉
 
-## 📖 사용 가이드
+## 📖 Usage Guide
 
-### 🎯 워크플로우 생성하기
+### 🎯 Creating Workflows
 
-1. **캔버스 에디터** 접속 (`/canvas`)
-2. 좌측 노드 패널에서 **AI 노드 선택**
-3. **드래그 앤 드롭**으로 캔버스에 배치
-4. 노드 간 **연결선 생성**으로 워크플로우 구성
-5. **저장** 후 **실행 테스트**
+1. Access **Canvas Editor** (`/canvas`)
+2. Select **AI Node** from left node panel
+3. Place on canvas with **drag & drop**
+4. Create **connections** between nodes to compose workflow
+5. **Save** and **run test**
 
-### 💬 AI와 채팅하기
+### 💬 Chatting with AI
 
-1. **채팅 인터페이스** 접속 (`/chat`)
-2. **워크플로우 선택** 버튼 클릭
-3. 원하는 워크플로우 선택
-4. **자연어로 대화** 시작
-5. 실시간으로 AI 응답 확인
+1. Access **Chat Interface** (`/chat`)
+2. Click **Select Workflow** button
+3. Choose desired workflow
+4. Start **natural language conversation**
+5. Check AI responses in real-time
 
-### 📊 워크플로우 관리하기
-
-<div align="center">
-  <img src="./img/workflow_control.png" alt="워크플로우 제어 및 관리" width="75%" style="border-radius: 8px; margin: 15px 0; box-shadow: 0 3px 12px rgba(0,0,0,0.1);" />
-  <p><em>🎛️ 직관적인 인터페이스로 워크플로우를 손쉽게 관리하고 제어</em></p>
-</div>
-
-1. **관리센터** 접속 (`/main`)
-2. **성능 대시보드**에서 실행 현황 확인
-3. **실행 로그**에서 디버깅 정보 분석
-4. **설정**에서 워크플로우 최적화
+### 📊 Managing Workflows
 
 <div align="center">
-  <img src="./img/setting.png" alt="설정 관리" width="70%" style="border-radius: 8px; margin: 15px 0; box-shadow: 0 3px 12px rgba(0,0,0,0.1);" />
-  <p><em>⚙️ 필요한 모든 설정을 한 곳에서 간편하게 관리</em></p>
+  <img src="./img/workflow_control.png" alt="Workflow Control and Management" width="75%" style="border-radius: 8px; margin: 15px 0; box-shadow: 0 3px 12px rgba(0,0,0,0.1);" />
+  <p><em>🎛️ Easily manage and control workflows with intuitive interface</em></p>
 </div>
 
-## 🛠️ 개발 가이드
+1. Access **Management Center** (`/main`)
+2. Check execution status in **Performance Dashboard**
+3. Analyze debugging information in **Execution Logs**
+4. Optimize workflows in **Settings**
 
-### 스크립트 명령어
+<div align="center">
+  <img src="./img/setting.png" alt="Settings Management" width="70%" style="border-radius: 8px; margin: 15px 0; box-shadow: 0 3px 12px rgba(0,0,0,0.1);" />
+  <p><em>⚙️ Conveniently manage all necessary settings in one place</em></p>
+</div>
+
+## 🛠️ Development Guide
+
+### Script Commands
 
 ```bash
-# 개발 서버 (Turbopack 사용)
+# Development server (using Turbopack)
 npm run dev
 
-# 프로덕션 빌드
+# Production build
 npm run build
 
-# 프로덕션 서버 실행
+# Run production server
 npm run start
 
-# 코드 린팅
+# Code linting
 npm run lint
 
-# 코드 자동 수정
+# Auto fix code
 npm run lint:fix
 
-# 코드 포매팅
+# Code formatting
 npm run format
 ```
 
-### 기술 스택
+### Tech Stack
 
-#### 🎨 **프론트엔드**
+#### 🎨 **Frontend**
 
-- **Next.js 15.3.2**: App Router 기반의 풀스택 React 프레임워크
-- **React 19**: 최신 React 기능 활용 (Concurrent Features, Server Components)
-- **TypeScript**: 타입 안전성과 개발 생산성 향상
-- **SCSS Modules**: 컴포넌트 기반 스타일 캡슐화
-- **React Icons**: Feather Icons 세트 활용
-- **React Hot Toast**: 세련된 알림 시스템
+- **Next.js 15.3.2**: Full-stack React framework based on App Router
+- **React 19**: Utilizing latest React features (Concurrent Features, Server Components)
+- **TypeScript**: Enhanced type safety and development productivity
+- **SCSS Modules**: Component-based style encapsulation
+- **React Icons**: Utilizing Feather Icons set
+- **React Hot Toast**: Elegant notification system
 
-#### 🔧 **개발 도구**
+#### 🔧 **Development Tools**
 
-- **Turbopack**: Next.js 15의 고속 번들러 (dev 모드)
-- **ESLint**: 코드 품질 및 일관성 관리
-- **Prettier**: 자동 코드 포매팅
-- **Husky**: Git 훅을 통한 품질 관리
+- **Turbopack**: Fast bundler for Next.js 15 (dev mode)
+- **ESLint**: Code quality and consistency management
+- **Prettier**: Automatic code formatting
+- **Husky**: Quality management through Git hooks
 
-#### 🌐 **백엔드 연동**
+#### 🌐 **Backend Integration**
 
-- **FastAPI**: Python 기반 고성능 API 서버
-- **LangChain**: AI 체인 구성을 위한 프레임워크
-- **RESTful API**: 표준 HTTP API 통신
+- **FastAPI**: High-performance API server based on Python
+- **LangChain**: Framework for AI chain composition
+- **RESTful API**: Standard HTTP API communication
 
-#### 📊 **데이터 관리**
+#### 📊 **Data Management**
 
-- **LocalStorage**: 클라이언트 사이드 데이터 저장
-- **React State**: 애플리케이션 상태 관리
-- **JSON**: 데이터 직렬화 및 API 통신
+- **LocalStorage**: Client-side data storage
+- **React State**: Application state management
+- **JSON**: Data serialization and API communication
 
-### 코딩 스타일
+### Coding Style
 
-- **TypeScript** 엄격 모드 사용
-- **ESLint + Prettier** 자동 포매팅
-- **SCSS Modules**로 스타일 캡슐화
-- **컴포넌트 기반** 아키텍처
+- Use **TypeScript** strict mode
+- **ESLint + Prettier** automatic formatting
+- Style encapsulation with **SCSS Modules**
+- **Component-based** architecture
 
-### 🔍 디버그 시스템
+### 🔍 Debug System
 
-Prague는 **스마트 디버그 로거**를 제공합니다:
+Prague provides a **smart debug logger**:
 
 ```javascript
 import { devLog, prodLog } from '@/app/utils/logger';
 
-// 개발 환경에서만 출력
-devLog.log('디버그 정보');
-devLog.error('개발용 에러');
+// Output only in development environment
+devLog.log('Debug information');
+devLog.error('Development error');
 
-// 항상 출력 (중요한 에러용)
-prodLog.error('심각한 에러');
+// Always output (for critical errors)
+prodLog.error('Critical error');
 ```
 
-#### 브라우저 콘솔 제어
+#### Browser Console Control
 
 ```javascript
-// 디버그 로그 강제 활성화
+// Force enable debug logs
 enableDebugLogs();
 
-// 디버그 로그 비활성화
+// Disable debug logs
 disableDebugLogs();
 
-// 환경 설정으로 리셋
+// Reset to environment settings
 resetDebugLogs();
 
-// 현재 환경 정보 확인
+// Check current environment info
 checkEnvironment();
 ```
 
-상세한 사용법은 [`DEBUG_GUIDE.md`](DEBUG_GUIDE.md)를 참조하세요.
+For detailed usage, refer to [`DEBUG_GUIDE.md`](DEBUG_GUIDE.md).
 
-## 📸 스크린샷 갤러리
+## 📸 Screenshot Gallery
 
 <div align="center">
 
-### 🎨 캔버스 에디터
+### 🎨 Canvas Editor
 
-<img src="./img/canvas.png" alt="캔버스 에디터" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
-<img src="./img/template.png" alt="템플릿 선택" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
+<img src="./img/canvas.png" alt="Canvas Editor" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
+<img src="./img/template.png" alt="Template Selection" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
 
-### 📊 관리센터
+### 📊 Management Center
 
-<img src="./img/chatdemo.png" alt="채팅 데모" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
-<img src="./img/resource_monitoring.png" alt="리소스 모니터링" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
+<img src="./img/chatdemo.png" alt="Chat Demo" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
+<img src="./img/resource_monitoring.png" alt="Resource Monitoring" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
 
-### ⚙️ 워크플로우 관리
+### ⚙️ Workflow Management
 
-<img src="./img/workflow_control.png" alt="워크플로우 제어" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
-<img src="./img/setting.png" alt="설정 관리" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
+<img src="./img/workflow_control.png" alt="Workflow Control" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
+<img src="./img/setting.png" alt="Settings Management" width="45%" style="display: inline-block; margin: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" />
 
 </div>
 
-## 🌟 주요 페이지
+## 🌟 Main Pages
 
-| 페이지       | 경로      | 설명                          |
-| ------------ | --------- | ----------------------------- |
-| **홈**       | `/`       | 프로젝트 소개 및 메인 랜딩    |
-| **캔버스**   | `/canvas` | 비주얼 워크플로우 에디터      |
-| **채팅**     | `/chat`   | AI 워크플로우 채팅 인터페이스 |
-| **관리센터** | `/main`   | 워크플로우 관리 및 모니터링   |
+| Page           | Path      | Description                           |
+| -------------- | --------- | ------------------------------------- |
+| **Home**       | `/`       | Project introduction and main landing |
+| **Canvas**     | `/canvas` | Visual workflow editor                |
+| **Chat**       | `/chat`   | AI workflow chat interface            |
+| **Management** | `/main`   | Workflow management and monitoring    |
 
-## 🤝 기여하기
+## 🤝 Contributing
 
-Prague 프로젝트에 기여해주셔서 감사합니다!
+Thank you for contributing to the Prague project!
 
-### 기여 방법
+### How to Contribute
 
-1. **Fork** 이 저장소
-2. **Feature 브랜치** 생성 (`git checkout -b feature/amazing-feature`)
-3. **변경사항 커밋** (`git commit -m 'Add amazing feature'`)
-4. **브랜치에 Push** (`git push origin feature/amazing-feature`)
-5. **Pull Request** 생성
+1. **Fork** this repository
+2. Create **Feature branch** (`git checkout -b feature/amazing-feature`)
+3. **Commit changes** (`git commit -m 'Add amazing feature'`)
+4. **Push to branch** (`git push origin feature/amazing-feature`)
+5. Create **Pull Request**
 
-### 개발 환경 설정
+### Development Environment Setup
 
 ```bash
-# 개발 의존성 설치
+# Install development dependencies
 npm install
 
-# pre-commit 훅 설정
+# Setup pre-commit hooks
 npm run prepare
 
-# 코드 품질 확인
+# Check code quality
 npm run lint
 npm run format
 ```
 
-## 📄 라이선스
+## 📄 License
 
-이 프로젝트는 [GPL-3.0](LICENSE)를 따릅니다.
+This project follows [GPL-3.0](LICENSE).
 
-## 👥 개발팀
+## 👥 Development Team
 
 - **Plateer AI-LAB**
-- **CocoRoF** - 장하렴
-- **haesookimDev** - 김해수
-- **SonAIengine** - 손성준 (AI-LAB Part Leader)
-- **daunle** - 이다운
+- **CocoRoF** - Jang Ha-ryeom
+- **haesookimDev** - Kim Hae-su
+- **SonAIengine** - Son Seong-jun (AI-LAB Part Leader)
+- **daunle** - Lee Da-un
 
-## 🔗 관련 링크
+## 🔗 Related Links
 
-- **GitHub 저장소**: [Prague Repository](https://github.com/plateer/plateerag)
-- **개발 문서**: [`DEBUG_GUIDE.md`](DEBUG_GUIDE.md) - 디버그 시스템 사용법
-- **이슈 리포트**: GitHub Issues를 통한 버그 신고 및 기능 요청
-- **기술 블로그**: [Plateer 기술 블로그](https://x2bee.tistory.com/)
+- **GitHub Repository**: [Prague Repository](https://github.com/plateer/plateerag)
+- **Development Documentation**: [`DEBUG_GUIDE.md`](DEBUG_GUIDE.md) - Debug system usage guide
+- **Issue Reports**: Bug reports and feature requests through GitHub Issues
+- **Tech Blog**: [Plateer Tech Blog](https://x2bee.tistory.com/)
 
 ---
 

@@ -2,6 +2,8 @@
  * 쿠키 관련 유틸리티 함수들
  */
 
+import { devLog } from '@/app/_common/utils/logger';
+
 /**
  * 쿠키 설정
  * @param {string} name - 쿠키 이름

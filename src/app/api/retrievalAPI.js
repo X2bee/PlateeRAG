@@ -180,32 +180,86 @@ export const uploadDocument = async (
 ) => {
     try {
         const formData = new FormData();
-        formData.append('file', file);
+
+        // 파일명은 항상 원본 파일명 사용 (서버 경로 충돌 방지)
+        const originalFileName = file.name;
+
+        // 폴더 구조 정보 추출
+        let folderPath = '';
+        let relativePath = originalFileName;
+
+        if (file.webkitRelativePath) {
+            relativePath = file.webkitRelativePath;
+            const lastSlashIndex = relativePath.lastIndexOf('/');
+            if (lastSlashIndex !== -1) {
+                folderPath = relativePath.substring(0, lastSlashIndex);
+            }
+        }
+
+        // 파일은 원본 파일명으로 업로드
+        formData.append('file', file, originalFileName);
         formData.append('collection_name', collectionName);
         formData.append('chunk_size', chunkSize.toString());
         formData.append('chunk_overlap', chunkOverlap.toString());
 
-        if (metadata) {
-            formData.append('metadata', JSON.stringify(metadata));
-        }
+        // 메타데이터에 폴더 구조 정보 포함
+        const enhancedMetadata = {
+            ...(metadata || {}),
+            original_file_name: originalFileName,
+            relative_path: relativePath,
+            folder_path: folderPath,
+            upload_timestamp: new Date().toISOString(),
+            file_size: file.size,
+            file_type: file.type || 'application/octet-stream',
+        };
+
+        formData.append('metadata', JSON.stringify(enhancedMetadata));
+
+        // 업로드 진행률 추적을 위한 AbortController
+        const controller = new AbortController();
 
         const response = await fetch(
             `${API_BASE_URL}/api/retrieval/documents/upload`,
             {
                 method: 'POST',
                 body: formData,
+                signal: controller.signal,
+                // 타임아웃 설정 (5분)
+                timeout: 300000,
             },
         );
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            let errorMessage = `HTTP error! status: ${response.status}`;
+
+            try {
+                const errorData = JSON.parse(errorText);
+                if (errorData.detail) {
+                    errorMessage += `, detail: ${errorData.detail}`;
+                }
+            } catch (e) {
+                errorMessage += `, message: ${errorText}`;
+            }
+
+            throw new Error(errorMessage);
         }
 
         const data = await response.json();
-        devLog.info('Document uploaded:', data);
+        devLog.info('Document uploaded successfully:', {
+            fileName: originalFileName,
+            relativePath: relativePath,
+            collection: collectionName,
+            documentId: data.document_id || 'unknown',
+        });
         return data;
     } catch (error) {
-        devLog.error('Failed to upload document:', error);
+        devLog.error('Failed to upload document:', {
+            fileName: file.name,
+            relativePath: file.webkitRelativePath || file.name,
+            collection: collectionName,
+            error: error.message,
+        });
         throw error;
     }
 };
@@ -490,33 +544,6 @@ export const getRagConfig = async () => {
 // =============================================================================
 // Utility Functions
 // =============================================================================
-
-/**
- * 파일 타입이 지원되는지 확인하는 함수
- * @param {File} file - 확인할 파일
- * @returns {boolean} 지원 여부
- */
-export const isSupportedFileType = (file) => {
-    const supportedTypes = [
-        'application/pdf',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/msword',
-        'text/plain',
-    ];
-    return supportedTypes.includes(file.type);
-};
-
-/**
- * 파일 크기가 허용 범위인지 확인하는 함수
- * @param {File} file - 확인할 파일
- * @param {number} maxSizeMB - 최대 크기 (MB, 기본값: 50)
- * @returns {boolean} 허용 여부
- */
-export const isValidFileSize = (file, maxSizeMB = 50) => {
-    const maxSizeBytes = maxSizeMB * 1024 * 1024;
-    return file.size <= maxSizeBytes;
-};
-
 /**
  * 컬렉션 이름의 유효성을 검사하는 함수
  * @param {string} name - 컬렉션 이름
@@ -524,7 +551,7 @@ export const isValidFileSize = (file, maxSizeMB = 50) => {
  */
 export const isValidCollectionName = (name) => {
     // 한글, 영문, 숫자, 언더스코어, 하이픈만 허용 (3~63자)
-    const regex = /^[\uAC00-\uD7A3a-zA-Z0-9_-]{3,63}$/;
+    const regex = /^[\uAC00-\uD7A3a-zA-Z0-9_-]+$/;
     return regex.test(name);
 };
 
