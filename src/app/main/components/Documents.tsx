@@ -690,8 +690,20 @@ const Documents: React.FC = () => {
                             />
                         </div>
                         <div className={styles.modalActions}>
-                            <button onClick={() => setShowCreateModal(false)} className={`${styles.button} ${styles.secondary}`}>취소</button>
-                            <button onClick={handleCreateCollection} className={`${styles.button} ${styles.primary}`}>생성</button>
+                            <button 
+                                onClick={() => setShowCreateModal(false)} 
+                                className={`${styles.button} ${styles.secondary}`}
+                                disabled={loading}
+                            >
+                                취소
+                            </button>
+                            <button 
+                                onClick={handleCreateCollection} 
+                                className={`${styles.button} ${styles.primary}`}
+                                disabled={loading}
+                            >
+                                {loading ? '생성 중...' : '생성'}
+                            </button>
                         </div>
                     </div>
                 </div>
