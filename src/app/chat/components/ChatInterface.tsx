@@ -35,8 +35,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
     const [pendingLogId, setPendingLogId] = useState<string | null>(null);
     const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
     const [showCollectionModal, setShowCollectionModal] = useState(false);
-    const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+    const [selectedCollection, setSelectedCollection] = useState<string[]>([]);
     const [selectedCollectionMakeName, setSelectedCollectionMakeName] = useState<string | null>(null);
+    const [collectionMapping, setCollectionMapping] = useState<{[key: string]: string}>({});
     const [showDeploymentModal, setShowDeploymentModal] = useState(false);
 
 
@@ -100,7 +101,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
                 setIOLogs((logs as any).in_out_logs || []);
                 setPendingLogId(null);
                 localStorage.removeItem('selectedCollection');
-                setSelectedCollection(null);
+                setSelectedCollection([]);
                 setSelectedCollectionMakeName(null);
             } catch (err) {
                 setError('채팅 기록을 불러오는데 실패했습니다.');
@@ -184,18 +185,47 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
         if (!showCollectionModal) {
             const checkSelectedCollection = () => {
                 try {
+                    // 먼저 다중 선택 데이터를 확인
+                    const storedMultipleCollections = localStorage.getItem('selectedCollections');
+                    if (storedMultipleCollections) {
+                        const multipleData = JSON.parse(storedMultipleCollections);
+                        if (multipleData.isMultiple && Array.isArray(multipleData.collections)) {
+                            setSelectedCollection(multipleData.collections);
+                            setCollectionMapping(multipleData.mapping || {});
+                            setSelectedCollectionMakeName(multipleData.collections[0]); // 첫 번째를 대표로 표시
+
+                            devLog.log('Loaded multiple collections from localStorage:', {
+                                collections: multipleData.collections,
+                                mapping: multipleData.mapping,
+                                count: multipleData.collections.length
+                            });
+                            return;
+                        }
+                    }
+
+                    // 기존 단일 선택 데이터 확인 (호환성)
                     const storedCollection = localStorage.getItem('selectedCollection');
                     if (storedCollection) {
                         const collectionData = JSON.parse(storedCollection);
-                        setSelectedCollection(collectionData.name);
+                        setSelectedCollection([collectionData.name]);
+                        setCollectionMapping({[collectionData.name]: collectionData.make_name});
                         setSelectedCollectionMakeName(collectionData.make_name);
+
+                        devLog.log('Loaded single collection from localStorage (legacy):', {
+                            collection: collectionData.name,
+                            makeName: collectionData.make_name
+                        });
                     } else {
-                        setSelectedCollection(null);
+                        setSelectedCollection([]);
+                        setCollectionMapping({});
                         setSelectedCollectionMakeName(null);
+
+                        devLog.log('No collections found in localStorage');
                     }
                 } catch (err) {
                     console.error('Failed to load selected collection:', err);
-                    setSelectedCollection(null);
+                    setSelectedCollection([]);
+                    setCollectionMapping({});
                     setSelectedCollectionMakeName(null);
                 }
             };
@@ -259,14 +289,27 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
             const interactionId = existingChatData?.interactionId || generateInteractionId();
             const workflowName = existingChatData?.workflowName || workflow.name;
             const workflowId = existingChatData?.workflowId || workflow.id;
+            const collectionsToSend = selectedCollection.length > 0 ? selectedCollection : null;
+
+            devLog.log('Executing workflow with collections:', {
+                workflowName,
+                workflowId,
+                currentMessage,
+                interactionId,
+                selectedCollection,
+                collectionsToSend,
+                collectionsCount: selectedCollection.length
+            });
 
             const result: any = await executeWorkflowById(
                 workflowName,
                 workflowId,
                 currentMessage,
                 interactionId,
-                selectedCollection as any,
+                collectionsToSend,
             );
+
+            devLog.log('Workflow execution result:', result);
 
             // 결과로 임시 메시지 업데이트 (chatAPI 응답 형식)
             setIOLogs((prev) =>
@@ -359,7 +402,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
 
     const handleRemoveCollection = () => {
         localStorage.removeItem('selectedCollection');
-        setSelectedCollection(null);
+        setSelectedCollection([]);
         setSelectedCollectionMakeName(null);
     };
 
@@ -408,6 +451,79 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
                 ></ChatArea>
 
                 <>
+                    {/* Collections Display Area - 입력창 위에 위치 */}
+                    {selectedCollection.length > 0 && (
+                        <div className={styles.collectionsDisplayArea}>
+                            <div className={styles.collectionsLabel}>
+                                <FiBookmark className={styles.labelIcon} />
+                                <span>선택된 컬렉션</span>
+                            </div>
+                            <div className={styles.selectedCollections}>
+                                {selectedCollection.map((collection, index) => (
+                                    <div key={index} className={styles.selectedCollection}>
+                                        <FiBookmark className={styles.collectionIcon} />
+                                        <span className={styles.collectionName}>
+                                            {collectionMapping[collection] || collection}
+                                        </span>
+                                        <button
+                                            className={styles.removeCollectionButton}
+                                            onClick={() => {
+                                                const removedCollection = selectedCollection[index];
+                                                const updatedCollections = selectedCollection.filter((_, i) => i !== index);
+
+                                                devLog.log('Removing individual collection:', {
+                                                    removedCollection,
+                                                    previousCollections: selectedCollection,
+                                                    updatedCollections,
+                                                    remainingCount: updatedCollections.length
+                                                });
+
+                                                setSelectedCollection(updatedCollections);
+
+                                                // 매핑에서도 제거된 컬렉션 정보 삭제
+                                                const updatedMapping = { ...collectionMapping };
+                                                delete updatedMapping[removedCollection];
+                                                setCollectionMapping(updatedMapping);
+
+                                                if (updatedCollections.length === 0) {
+                                                    // 모든 컬렉션이 제거된 경우
+                                                    localStorage.removeItem('selectedCollections');
+                                                    localStorage.removeItem('selectedCollection');
+                                                    setSelectedCollectionMakeName(null);
+                                                    devLog.log('All collections removed from localStorage');
+                                                } else {
+                                                    // 일부 컬렉션이 남아있는 경우
+                                                    const multipleCollectionsData = {
+                                                        collections: updatedCollections,
+                                                        mapping: updatedMapping,
+                                                        selectedAt: new Date().toISOString(),
+                                                        isMultiple: true
+                                                    };
+                                                    localStorage.setItem('selectedCollections', JSON.stringify(multipleCollectionsData));
+
+                                                    // 첫 번째 컬렉션을 단일 선택 형태로도 저장 (호환성)
+                                                    const firstCollection = updatedCollections[0];
+                                                    const firstMakeName = updatedMapping[firstCollection] || firstCollection;
+                                                    localStorage.setItem('selectedCollection', JSON.stringify({
+                                                        name: firstCollection,
+                                                        make_name: firstMakeName,
+                                                        selectedAt: new Date().toISOString()
+                                                    }));
+                                                    setSelectedCollectionMakeName(firstMakeName);
+
+                                                    devLog.log('Updated collections in localStorage:', multipleCollectionsData);
+                                                }
+                                            }}
+                                            title="컬렉션 해제"
+                                        >
+                                            <FiX />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Input Area */}
                     <div className={styles.inputArea} style={{ pointerEvents: loading ? 'none' : 'auto' }}>
                         <div className={styles.inputContainer}>
@@ -421,19 +537,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
                                 className={styles.messageInput}
                             />
                             <div className={styles.buttonGroup}>
-                                {selectedCollection && (
-                                    <div className={styles.selectedCollection}>
-                                        <FiBookmark className={styles.collectionIcon} />
-                                        <span className={styles.collectionName}>{selectedCollectionMakeName}</span>
-                                        <button
-                                            className={styles.removeCollectionButton}
-                                            onClick={handleRemoveCollection}
-                                            title="컬렉션 해제"
-                                        >
-                                            <FiX />
-                                        </button>
-                                    </div>
-                                )}
                                 <div className={styles.attachmentWrapper} ref={attachmentButtonRef}>
                                     <button
                                         onClick={handleAttachmentClick}
@@ -516,6 +619,53 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
             <CollectionModal
                 isOpen={showCollectionModal}
                 onClose={() => setShowCollectionModal(false)}
+                onSelectCollections={(collections, mapping = {}) => {
+                    devLog.log('Collections selected from modal:', {
+                        selectedCollections: collections,
+                        count: collections.length,
+                        previousSelections: selectedCollection,
+                        mapping
+                    });
+
+                    setSelectedCollection(collections);
+                    setCollectionMapping(mapping);
+
+                    // 선택된 컬렉션들을 localStorage에 배열로 저장
+                    if (collections.length > 0) {
+                        // 다중 선택 데이터를 저장 (매핑 정보 포함)
+                        const multipleCollectionsData = {
+                            collections: collections,
+                            mapping: mapping,
+                            selectedAt: new Date().toISOString(),
+                            isMultiple: true
+                        };
+                        localStorage.setItem('selectedCollections', JSON.stringify(multipleCollectionsData));
+
+                        // 기존 호환성을 위해 첫 번째 컬렉션을 단일 선택 형태로도 저장
+                        const firstCollection = collections[0];
+                        const firstMakeName = mapping[firstCollection] || firstCollection;
+                        localStorage.setItem('selectedCollection', JSON.stringify({
+                            name: firstCollection,
+                            make_name: firstMakeName,
+                            selectedAt: new Date().toISOString()
+                        }));
+                        setSelectedCollectionMakeName(firstMakeName);
+
+                        devLog.log('Collections saved to localStorage:', {
+                            multipleData: multipleCollectionsData,
+                            singleCompatibility: firstCollection
+                        });
+                    } else {
+                        // 선택 해제
+                        localStorage.removeItem('selectedCollections');
+                        localStorage.removeItem('selectedCollection');
+                        setSelectedCollectionMakeName(null);
+                        setCollectionMapping({});
+
+                        devLog.log('All collections cleared from localStorage');
+                    }
+                }}
+                selectedCollections={selectedCollection}
             />
         </div>
     );

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { FiX, FiFolder, FiFileText, FiChevronRight, FiRefreshCw } from 'react-icons/fi';
 import styles from '@/app/chat/assets/CollectionModal.module.scss';
 import { listCollections, listDocumentsInCollection } from '@/app/api/retrievalAPI';
+import { devLog } from '@/app/_common/utils/logger';
 
 interface Collection {
     id?: number;
@@ -18,11 +19,19 @@ interface Collection {
 interface CollectionModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onSelectCollections?: (collections: string[], mapping?: {[key: string]: string}) => void; // 매핑 정보 추가
+    selectedCollections?: string[]; // 현재 선택된 컬렉션들
 }
 
-const CollectionModal: React.FC<CollectionModalProps> = ({ isOpen, onClose }) => {
+const CollectionModal: React.FC<CollectionModalProps> = ({
+    isOpen,
+    onClose,
+    onSelectCollections,
+    selectedCollections = []
+}) => {
     const [collections, setCollections] = useState<Collection[]>([]);
     const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
+    const [checkedCollections, setCheckedCollections] = useState<string[]>(selectedCollections);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [view, setView] = useState<'list' | 'details'>('list');
@@ -31,10 +40,11 @@ const CollectionModal: React.FC<CollectionModalProps> = ({ isOpen, onClose }) =>
         if (isOpen) {
             setView('list');
             setSelectedCollection(null);
+            setCheckedCollections(selectedCollections); // 전달받은 선택된 컬렉션들로 초기화
             setError(null);
             fetchCollections();
         }
-    }, [isOpen]);
+    }, [isOpen, selectedCollections]);
 
     const fetchCollections = async () => {
         try {
@@ -86,6 +96,44 @@ const CollectionModal: React.FC<CollectionModalProps> = ({ isOpen, onClose }) =>
         }));
 
         // 모달 닫기
+        onClose();
+    };
+
+    const handleCollectionToggle = (collectionName: string) => {
+        setCheckedCollections(prev => {
+            const newCollections = prev.includes(collectionName)
+                ? prev.filter(name => name !== collectionName)
+                : [...prev, collectionName];
+
+            devLog.log('Collection toggled:', {
+                collectionName,
+                previousSelections: prev,
+                newSelections: newCollections,
+                action: prev.includes(collectionName) ? 'removed' : 'added'
+            });
+
+            return newCollections;
+        });
+    };
+
+    const handleConfirmSelection = () => {
+        devLog.log('Confirming collection selection:', {
+            selectedCollections: checkedCollections,
+            count: checkedCollections.length
+        });
+
+        if (onSelectCollections) {
+            // collection_name -> collection_make_name 매핑 생성
+            const mapping: {[key: string]: string} = {};
+            checkedCollections.forEach(collectionName => {
+                const collection = collections.find(c => c.collection_name === collectionName);
+                if (collection) {
+                    mapping[collectionName] = collection.collection_make_name;
+                }
+            });
+
+            onSelectCollections(checkedCollections, mapping);
+        }
         onClose();
     };
 
@@ -174,6 +222,12 @@ const CollectionModal: React.FC<CollectionModalProps> = ({ isOpen, onClose }) =>
                                         key={collection.id}
                                         className={styles.collectionItem}
                                     >
+                                        <input
+                                            type="checkbox"
+                                            checked={checkedCollections.includes(collection.collection_name)}
+                                            onChange={() => handleCollectionToggle(collection.collection_name)}
+                                            className={styles.collectionCheckbox}
+                                        />
                                         <div className={styles.collectionIcon}>
                                             <FiFolder />
                                         </div>
@@ -256,6 +310,19 @@ const CollectionModal: React.FC<CollectionModalProps> = ({ isOpen, onClose }) =>
                         </div>
                     )}
                 </div>
+
+                {/* 다중 선택 확인 버튼 */}
+                {view === 'list' && onSelectCollections && (
+                    <div className={styles.modalFooter}>
+                        <button
+                            className={styles.confirmButton}
+                            onClick={handleConfirmSelection}
+                            disabled={checkedCollections.length === 0}
+                        >
+                            선택한 컬렉션 사용 ({checkedCollections.length}개)
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
