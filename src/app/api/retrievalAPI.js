@@ -497,7 +497,7 @@ export const getRagConfig = async () => {
  */
 export const isValidCollectionName = (name) => {
     // 한글, 영문, 숫자, 언더스코어, 하이픈만 허용 (3~63자)
-    const regex = /^[\uAC00-\uD7A3a-zA-Z0-9_-]{3,63}$/;
+    const regex = /^[\uAC00-\uD7A3a-zA-Z0-9_-]+$/;
     return regex.test(name);
 };
 
