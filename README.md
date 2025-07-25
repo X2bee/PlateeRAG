@@ -146,23 +146,27 @@ plateerag/
 Prague supports various AI nodes from the **LangChain** ecosystem:
 
 ### 💬 **Chat Models**
+
 - **ChatOpenAI**: Support for GPT-4o, GPT-4, GPT-3.5 Turbo
 - **ChatAnthropic**: Claude model series
 - **Temperature Control**: Control creativity and consistency
 - **Stop Sequence**: Output control options
 
 ### 🔗 **Chains & Agents**
+
 - **LLMChain**: Basic language model chain
 - **ConversationChain**: Conversational chain
 - **Agent**: Autonomous AI agent
 - **Tools**: External tool integration
 
 ### 📚 **Memory & Storage**
+
 - **VectorStore**: Vector-based document storage
 - **Memory**: Conversation memory management
 - **Document Loaders**: Load various document formats
 
 ### 🔄 **Utility Nodes**
+
 - **Input/Output**: Data input/output nodes
 - **Transform**: Data transformation nodes
 - **Conditional**: Conditional branching nodes
@@ -190,7 +194,7 @@ yarn install
 npm run dev
 # or
 yarn dev
-````
+```
 
 ### 3. Check in Browser
 
@@ -348,12 +352,12 @@ For detailed usage, refer to [`DEBUG_GUIDE.md`](DEBUG_GUIDE.md).
 
 ## 🌟 Main Pages
 
-| Page            | Path      | Description                           |
-| --------------- | --------- | ------------------------------------- |
-| **Home**        | `/`       | Project introduction and main landing |
-| **Canvas**      | `/canvas` | Visual workflow editor                |
-| **Chat**        | `/chat`   | AI workflow chat interface           |
-| **Management**  | `/main`   | Workflow management and monitoring    |
+| Page           | Path      | Description                           |
+| -------------- | --------- | ------------------------------------- |
+| **Home**       | `/`       | Project introduction and main landing |
+| **Canvas**     | `/canvas` | Visual workflow editor                |
+| **Chat**       | `/chat`   | AI workflow chat interface            |
+| **Management** | `/main`   | Workflow management and monitoring    |
 
 ## 🤝 Contributing
 
