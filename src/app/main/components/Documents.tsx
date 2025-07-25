@@ -416,6 +416,11 @@ const Documents: React.FC = () => {
                         ));
 
                         successful++;
+
+                        // 파일 업로드 성공 시 즉시 문서 목록 새로고침
+                        if (selectedCollection) {
+                            loadDocumentsInCollection(selectedCollection.collection_name);
+                        }
                         
                     } catch (error) {
                         // 실패 시 진행 상태 업데이트
@@ -464,6 +469,11 @@ const Documents: React.FC = () => {
                     setUploadProgress(prev => prev.map((item, index) =>
                         index === 0 ? { ...item, status: 'success', progress: 100 } : item
                     ));
+
+                    // 단일 파일 업로드 성공 시 즉시 문서 목록 새로고침
+                    if (selectedCollection) {
+                        loadDocumentsInCollection(selectedCollection.collection_name);
+                    }
                 } catch (err) {
                     setUploadProgress(prev => prev.map((item, index) =>
                         index === 0 ? {
@@ -483,13 +493,10 @@ const Documents: React.FC = () => {
             setError('업로드 처리 중 오류가 발생했습니다.');
         }
 
-        // 업로드 완료 후 문서 목록 새로고침
+        // 업로드 완료 후 진행 상태 정리
         setTimeout(() => {
-            if (selectedCollection) {
-                loadDocumentsInCollection(selectedCollection.collection_name);
-            }
             setUploadProgress([]);
-        }, 3000); // 3초로 연장하여 사용자가 결과를 확인할 수 있도록
+        }, 3000); // 3초 후 업로드 진행 상태 숨김
     };
 
     const handleSingleFileUpload = () => {
