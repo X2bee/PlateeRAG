@@ -1,11 +1,9 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import styles from '../assets/Documents.module.scss';
-import { usePagesLayout, useSidebar } from '@/app/_common/components/PagesLayoutContent';
+import { usePagesLayout } from '@/app/_common/components/PagesLayoutContent';
 
 import {
-    isSupportedFileType,
-    isValidFileSize,
     isValidCollectionName,
     formatFileSize,
     getRelativeTime,
@@ -371,30 +369,15 @@ const Documents: React.FC = () => {
             return;
         }
 
-        const fileArray = Array.from(files);
-        const validFiles = fileArray.filter(file => {
-            if (!isSupportedFileType(file)) {
-                setError(`지원되지 않는 파일 형식입니다: ${file.name}`);
-                return false;
-            }
-            if (!isValidFileSize(file, 50)) {
-                setError(`파일 크기가 50MB를 초과합니다: ${file.name}`);
-                return false;
-            }
-            return true;
-        });
-
-        if (validFiles.length === 0) return;
-
-        const initialProgress: UploadProgress[] = validFiles.map(file => ({
+        const initialProgress: UploadProgress[] = Array.from(files).map(file => ({
             fileName: file.name,
             status: 'uploading',
             progress: 0
         }));
         setUploadProgress(initialProgress);
 
-        for (let i = 0; i < validFiles.length; i++) {
-            const file = validFiles[i];
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
             try {
                 setUploadProgress(prev => prev.map((item, index) =>
                     index === i ? { ...item, progress: 50 } : item
@@ -403,8 +386,8 @@ const Documents: React.FC = () => {
                 await uploadDocument(
                     file,
                     selectedCollection.collection_name,
-                    1000,
-                    200,
+                    2000,
+                    300,
                     { upload_type: isFolder ? 'folder' : 'single' }
                 );
 
@@ -435,7 +418,6 @@ const Documents: React.FC = () => {
     const handleSingleFileUpload = () => {
         const input = document.createElement('input');
         input.type = 'file';
-        input.accept = '.pdf,.docx,.doc,.txt';
         input.onchange = (e) => {
             const files = (e.target as HTMLInputElement).files;
             if (files) handleFileUpload(files, false);
