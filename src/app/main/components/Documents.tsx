@@ -116,9 +116,7 @@ const Documents: React.FC = () => {
     // 모달 상태
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [showDeleteDocModal, setShowDeleteDocModal] = useState(false);
     const [collectionToDelete, setCollectionToDelete] = useState<Collection | null>(null);
-    const [documentToDelete, setDocumentToDelete] = useState<DocumentInCollection | null>(null);
 
     // 폼 상태
     const [newCollectionName, setNewCollectionName] = useState('');
@@ -128,7 +126,7 @@ const Documents: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const isAnyModalOpen = showCreateModal || showDeleteModal || showDeleteDocModal;
+    const isAnyModalOpen = showCreateModal || showDeleteModal;
 
     useEffect(() => {
         if (layoutContext) {
@@ -294,23 +292,16 @@ const Documents: React.FC = () => {
         }
     };
 
-    // 문서 삭제
-    const handleDeleteDocumentRequest = (document: DocumentInCollection) => {
-        setDocumentToDelete(document);
-        setShowDeleteDocModal(true);
-    };
-
-    const handleConfirmDeleteDocument = async () => {
-        if (!documentToDelete || !selectedCollection) return;
+    // 문서 삭제 (바로 삭제)
+    const handleDeleteDocument = async (document: DocumentInCollection) => {
+        if (!selectedCollection) return;
 
         try {
             setLoading(true);
             setError(null);
-            await deleteDocumentFromCollection(selectedCollection.collection_name, documentToDelete.document_id);
-            setShowDeleteDocModal(false);
-            setDocumentToDelete(null);
+            await deleteDocumentFromCollection(selectedCollection.collection_name, document.document_id);
 
-            if (selectedDocument?.document_id === documentToDelete.document_id) {
+            if (selectedDocument?.document_id === document.document_id) {
                 setSelectedDocument(null);
                 setDocumentDetails(null);
                 setViewMode('documents');
@@ -680,7 +671,7 @@ const Documents: React.FC = () => {
                                             className={`${styles.deleteButton}`}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleDeleteDocumentRequest(doc);
+                                                handleDeleteDocument(doc);
                                             }}
                                             title="문서 삭제"
                                         >
@@ -854,35 +845,7 @@ const Documents: React.FC = () => {
                 </div>
             )}
 
-            {/* 문서 삭제 모달 */}
-            {showDeleteDocModal && documentToDelete && (
-                <div className={styles.modalBackdrop} onClick={() => setShowDeleteDocModal(false)}>
-                    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-                        <h3>문서 삭제 확인</h3>
-                        <p>
-                            '<strong>{documentToDelete.file_name}</strong>' 문서를 정말로 삭제하시겠습니까?<br/>
-                            이 작업은 되돌릴 수 없으며, 문서의 모든 청크가 삭제됩니다.
-                        </p>
-                        <div className={styles.modalActions}>
-                            <button
-                                onClick={() => {
-                                    setShowDeleteDocModal(false);
-                                    setDocumentToDelete(null);
-                                }}
-                                className={`${styles.button} ${styles.secondary}`}
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={handleConfirmDeleteDocument}
-                                className={`${styles.button} ${styles.danger}`}
-                            >
-                                삭제
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+
         </div>
     );
 };
