@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './ResetPassword.module.scss';
-import { resetPassword } from '@/app/api/userAPI';
+// import { resetPassword } from '@/app/api/userAPI';
 
 interface ApiResponse {
   message?: string | null;
@@ -48,8 +48,8 @@ function ResetPasswordComponent() {
     setIsLoading(true);
 
     try {
-      const result: ApiResponse = await resetPassword({ token, password });
-      setMessage(result.message + ' 3초 후 로그인 페이지로 이동합니다.');
+      // const result: ApiResponse = await resetPassword({ token, password });
+      // setMessage(result.message + ' 3초 후 로그인 페이지로 이동합니다.');
       
       setTimeout(() => {
         router.replace('/login');
