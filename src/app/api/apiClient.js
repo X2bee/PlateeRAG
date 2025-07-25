@@ -1,11 +1,12 @@
 import { getAuthCookie } from '@/app/_common/utils/cookieUtils';
+import { devLog } from '@/app/_common/utils/logger';
 
 /**
  * 쿠키에서 인증 토큰을 가져옵니다.
  * @returns {string|null}
  */
 const getToken = () => {
-    return getAuthCookie('accessToken');
+    return getAuthCookie('access_token');
 };
 
 /**
@@ -25,6 +26,7 @@ const getUserId = () => {
 export const apiClient = async (url, options = {}) => {
     const token = getToken();
     const userId = getUserId();
+    devLog.log(`token: ${token}, userId: ${userId}`);
 
     const defaultHeaders = {
         'Content-Type': 'application/json',
