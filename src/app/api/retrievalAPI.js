@@ -181,24 +181,33 @@ export const uploadDocument = async (
     try {
         const formData = new FormData();
 
-        // 파일명에 폴더 경로가 포함된 경우 처리
-        let fileName = file.name;
+        // 파일명은 항상 원본 파일명 사용 (서버 경로 충돌 방지)
+        const originalFileName = file.name;
+
+        // 폴더 구조 정보 추출
+        let folderPath = '';
+        let relativePath = originalFileName;
+
         if (file.webkitRelativePath) {
-            // 폴더 업로드의 경우 전체 상대 경로 사용
-            fileName = file.webkitRelativePath;
+            relativePath = file.webkitRelativePath;
+            const lastSlashIndex = relativePath.lastIndexOf('/');
+            if (lastSlashIndex !== -1) {
+                folderPath = relativePath.substring(0, lastSlashIndex);
+            }
         }
 
-        // 파일을 고유한 이름으로 업로드
-        formData.append('file', file, fileName);
+        // 파일은 원본 파일명으로 업로드
+        formData.append('file', file, originalFileName);
         formData.append('collection_name', collectionName);
         formData.append('chunk_size', chunkSize.toString());
         formData.append('chunk_overlap', chunkOverlap.toString());
 
-        // 메타데이터에 파일 경로 정보 추가
+        // 메타데이터에 폴더 구조 정보 포함
         const enhancedMetadata = {
             ...(metadata || {}),
-            original_file_name: file.name,
-            file_path: fileName,
+            original_file_name: originalFileName,
+            relative_path: relativePath,
+            folder_path: folderPath,
             upload_timestamp: new Date().toISOString(),
             file_size: file.size,
             file_type: file.type || 'application/octet-stream',
@@ -222,14 +231,24 @@ export const uploadDocument = async (
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(
-                `HTTP error! status: ${response.status}, message: ${errorText}`,
-            );
+            let errorMessage = `HTTP error! status: ${response.status}`;
+
+            try {
+                const errorData = JSON.parse(errorText);
+                if (errorData.detail) {
+                    errorMessage += `, detail: ${errorData.detail}`;
+                }
+            } catch (e) {
+                errorMessage += `, message: ${errorText}`;
+            }
+
+            throw new Error(errorMessage);
         }
 
         const data = await response.json();
         devLog.info('Document uploaded successfully:', {
-            fileName: fileName,
+            fileName: originalFileName,
+            relativePath: relativePath,
             collection: collectionName,
             documentId: data.document_id || 'unknown',
         });
@@ -237,6 +256,7 @@ export const uploadDocument = async (
     } catch (error) {
         devLog.error('Failed to upload document:', {
             fileName: file.name,
+            relativePath: file.webkitRelativePath || file.name,
             collection: collectionName,
             error: error.message,
         });

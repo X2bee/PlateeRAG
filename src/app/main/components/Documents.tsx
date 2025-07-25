@@ -667,7 +667,6 @@ const Documents: React.FC = () => {
                                         >
                                             <h4>{doc.file_name}</h4>
                                             <p className={styles.docInfo}>
-                                                타입: {doc.file_type.toUpperCase()} |
                                                 청크: {doc.actual_chunks}개 |
                                                 업로드: {getRelativeTime(doc.processed_at)}
                                             </p>
