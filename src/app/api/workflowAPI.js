@@ -142,21 +142,28 @@ export const loadWorkflow = async (workflowId) => {
             ? workflowId.slice(0, -5)
             : workflowId;
 
+        devLog.log('Loading workflow with cleaned ID:', cleanWorkflowId);
+
         const response = await apiClient(
             `${API_BASE_URL}/api/workflow/load/${encodeURIComponent(cleanWorkflowId)}`,
         );
 
+        devLog.log('Workflow load response status:', response.status);
+
         if (!response.ok) {
             const errorData = await response.json();
+            devLog.error('Workflow load error data:', errorData);
             throw new Error(
                 errorData.detail || `HTTP error! status: ${response.status}`,
             );
         }
 
         const workflowData = await response.json();
+        devLog.log('Successfully loaded workflow data:', workflowData);
         return workflowData;
     } catch (error) {
         devLog.error('Failed to load workflow:', error);
+        devLog.error('Workflow ID that failed:', workflowId);
         throw error;
     }
 };
