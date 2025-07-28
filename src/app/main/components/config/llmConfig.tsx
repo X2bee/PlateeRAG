@@ -7,12 +7,12 @@ import toast from 'react-hot-toast';
 import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/BaseConfigPanel';
 import styles from '@/app/main/assets/Settings.module.scss';
 import {
-    getLLMStatus,
-    switchLLMProvider,
-    testOpenAIConnection,
-    testVLLMConnection,
-    testSGLConnection,
-} from '@/app/api/llmAPI';
+        getLLMStatus,
+        switchLLMProvider,
+        testOpenAIConnection,
+        testVLLMConnection,
+        testSGLConnection,
+    } from '@/app/api/llmAPI';
 
 interface LLMConfigProps {
     configData?: ConfigItem[];
@@ -38,11 +38,6 @@ interface LLMStatus {
             warnings?: string[];
         };
     };
-}
-
-interface ConnectionResult {
-    status: 'success' | 'error' | string;
-    [key: string]: any;
 }
 
 // OpenAI 관련 설정 필드
@@ -387,7 +382,7 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
     const [llmStatus, setLLMStatus] = useState<LLMStatus | null>(null);
     const [providerAvailability, setProviderAvailability] = useState<{ [key: string]: boolean | null }>({});
     const [connectionTested, setConnectionTested] = useState<{ [key: string]: boolean }>({});
-
+    
     // 초기 데이터 로드
     useEffect(() => {
         loadLLMStatus();
@@ -399,7 +394,7 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
             const providers = ['openai', 'vllm', 'sgl'];
             const results: { [key: string]: boolean | null } = {};
             const tested: { [key: string]: boolean } = {};
-
+            
             for (const provider of providers) {
                 try {
                     let result;
@@ -410,19 +405,19 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                     } else if (provider === 'sgl') {
                         result = await testSGLConnection();
                     }
-
-                    results[provider] = (result as { status: string })?.status === 'success';
+                    
+                    results[provider] = (result as any)?.status === 'success';
                     tested[provider] = true;
                 } catch {
                     results[provider] = false;
                     tested[provider] = true;
                 }
             }
-
+            
             setProviderAvailability(results);
             setConnectionTested(tested);
         };
-
+        
         if (llmStatus) {
             checkAllProviders();
         }
@@ -455,16 +450,16 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
     };
 
     // 제공자별 연결 상태 확인 (수정된 버전)
-    const getProviderStatus = (providerName: string): {
-        configured: boolean;
-        connected: boolean | null;
+    const getProviderStatus = (providerName: string): { 
+        configured: boolean; 
+        connected: boolean | null; 
         warnings?: string[];
         tested: boolean;
     } => {
         let configured = false;
         let connected: boolean | null = null;
         let warnings: string[] | undefined = undefined;
-
+        
         if (llmStatus && llmStatus.providers[providerName]) {
             const providerStatus = llmStatus.providers[providerName];
             configured = providerStatus.configured;
@@ -493,7 +488,7 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
 
     const handleProviderSwitch = async (providerName: string) => {
         const currentProvider = getCurrentDefaultProvider();
-
+        
         // 현재 provider와 동일한 경우 아무 동작하지 않음
         if (currentProvider === providerName) {
             return;
@@ -602,7 +597,7 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
             }
 
             const isSuccess = (result as any)?.status === 'success';
-
+            
             // 테스트 결과 업데이트
             setProviderAvailability(prev => ({
                 ...prev,
@@ -628,7 +623,7 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                 ...prev,
                 [providerName]: true
             }));
-
+            
             const errorMessage = err instanceof Error ? err.message : `${providerName} 연결 테스트에 실패했습니다.`;
             setError(errorMessage);
             toast.error(errorMessage);
@@ -666,7 +661,7 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
 
     const renderDefaultProviderTab = () => {
         const currentDefaultProvider = getCurrentDefaultProvider();
-
+    
         return (
             <div className={styles.defaultProviderConfig}>
                 {/* 기본 제공자 설정 */}
@@ -674,7 +669,7 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                     <h3>기본 LLM 제공자 설정</h3>
                     <p>워크플로우에서 기본적으로 사용할 LLM 제공자를 선택하세요.</p>
                 </div>
-
+    
                 <BaseConfigPanel
                     configData={configData}
                     fieldConfigs={DEFAULT_PROVIDER_CONFIG_FIELDS}
@@ -683,20 +678,20 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                     testConnectionLabel="기본 제공자 테스트"
                     testConnectionCategory="llm"
                 />
-
+    
                 {/* 현재 제공자 상태 - ACTIVE 바 제거 */}
                 <div className={styles.currentProviderSection}>
                     <div className={styles.sectionTitle}>
                         <h4>현재 활성 제공자</h4>
                         {/* activeBadgeGlow span 제거됨 */}
                     </div>
-
+                    
                     <div className={`${styles.currentProviderCard} ${styles.activeProviderCard}`}>
                         <div className={styles.providerMainInfo}>
                             <div className={styles.providerIconLarge}>
                                 <span
                                     className={styles.iconWrapper}
-                                    style={{
+                                    style={{ 
                                         color: getProviderColor(currentDefaultProvider),
                                         background: `${getProviderColor(currentDefaultProvider)}25`,
                                         border: `2px solid ${getProviderColor(currentDefaultProvider)}`
@@ -720,18 +715,18 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                                 </div>
                             </div>
                         </div>
-
+                       
                         <div className={styles.statusSection}>
                             {(() => {
                                 const status = getProviderStatus(currentDefaultProvider);
-                                const statusClass = status.configured && status.connected === true
-                                    ? styles.statusSuccess
+                                const statusClass = status.configured && status.connected === true 
+                                    ? styles.statusSuccess 
                                     : status.configured && status.connected === false
                                         ? styles.statusError
-                                        : status.configured
-                                            ? styles.statusWarning
+                                        : status.configured 
+                                            ? styles.statusWarning 
                                             : styles.statusError;
-
+                                
                                 return (
                                     <div className={`${styles.statusIndicatorLarge} ${statusClass}`}>
                                         <div className={styles.statusIconWrapper}>
@@ -743,10 +738,10 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                                             </span>
                                             <span className={styles.statusSubtext}>
                                                 {status.configured && status.connected === true
-                                                    ? '모든 기능을 사용할 수 있습니다'
+                                                    ? '모든 기능을 사용할 수 있습니다' 
                                                     : status.configured && status.connected === false
                                                         ? '연결을 확인해 주세요'
-                                                        : status.configured
+                                                        : status.configured 
                                                             ? '연결 테스트를 진행해 주세요'
                                                             : '설정이 필요합니다'}
                                             </span>
@@ -765,7 +760,7 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                                     </div>
                                 );
                             })()}
-
+                            
                             <div className={styles.statusActions}>
                                 <button
                                     onClick={() => handleTestConnection(currentDefaultProvider)}
@@ -779,7 +774,7 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                         </div>
                     </div>
                 </div>
-
+  
                {/* 제공자 선택 카드 */}
                <div className={styles.providersSection}>
                    <div className={styles.sectionTitle}>
@@ -788,12 +783,12 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                            제공자를 클릭하여 기본 제공자로 변경하거나 상세 설정으로 이동하세요
                        </span>
                    </div>
-
+                   
                    <div className={styles.providersGrid}>
                        {LLM_PROVIDERS.map((provider) => {
                            const status = getProviderStatus(provider.name);
                            const isDefault = currentDefaultProvider === provider.name;
-
+  
                            return (
                                <div
                                    key={provider.name}
@@ -811,7 +806,7 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                                        <div className={styles.providerIconMedium}>
                                            <span
                                                className={styles.iconWrapper}
-                                               style={{
+                                               style={{ 
                                                    color: provider.color,
                                                    background: `${provider.color}15`,
                                                    border: isDefault ? `2px solid ${provider.color}` : undefined
@@ -820,10 +815,10 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                                                {provider.icon}
                                            </span>
                                        </div>
-
+                                       
                                        <div className={styles.cardBadges}>
                                            {isDefault && (
-                                               <span
+                                               <span 
                                                    className={styles.defaultBadge}
                                                    style={{ backgroundColor: provider.color }}
                                                >
@@ -833,28 +828,28 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                                            )}
                                            <div className={`${styles.statusBadge} ${
                                                status.configured && status.connected === true
-                                                   ? styles.statusBadgeSuccess
+                                                   ? styles.statusBadgeSuccess 
                                                    : status.configured && status.connected === false
                                                        ? styles.statusBadgeError
-                                                       : status.configured
-                                                           ? styles.statusBadgeWarning
+                                                       : status.configured 
+                                                           ? styles.statusBadgeWarning 
                                                            : styles.statusBadgeError
                                            }`}>
                                                {getStatusIcon(status.configured, status.connected, status.tested)}
                                            </div>
                                        </div>
                                    </div>
-
+  
                                    {/* 카드 내용 */}
                                    <div className={styles.cardContent}>
-                                       <h4
+                                       <h4 
                                            className={styles.cardTitle}
                                            style={{ color: isDefault ? provider.color : undefined }}
                                        >
                                            {provider.displayName}
                                        </h4>
                                        <p className={styles.cardDescription}>{provider.description}</p>
-
+                                       
                                        {/* SGL 경고 메시지 표시 */}
                                        {provider.name === 'sgl' && status.warnings && status.warnings.length > 0 && (
                                            <div className={styles.cardWarnings}>
@@ -866,12 +861,12 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                                                ))}
                                            </div>
                                        )}
-
+                                       
                                        <div className={styles.cardFooter}>
                                            <span className={styles.statusLabel}>
                                                {getStatusText(status.configured, status.connected, status.tested)}
                                            </span>
-
+                                           
                                            <div className={styles.cardActions}>
                                                <button
                                                    onClick={(e) => {
@@ -898,7 +893,7 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                                           </div>
                                       </div>
                                   </div>
-
+ 
                                   {/* 호버 효과를 위한 오버레이 */}
                                   <div className={styles.cardOverlay}></div>
                               </div>
@@ -910,48 +905,48 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
       );
   };
 
-    const renderOpenAITab = () => (
-        <div className={styles.openaiConfig}>
-            <div className={styles.sectionHeader}>
-                <h3>OpenAI 설정</h3>
-                <p>OpenAI API 키와 모델 설정을 구성합니다.</p>
-            </div>
+  const renderOpenAITab = () => (
+      <div className={styles.openaiConfig}>
+          <div className={styles.sectionHeader}>
+              <h3>OpenAI 설정</h3>
+              <p>OpenAI API 키와 모델 설정을 구성합니다.</p>
+          </div>
 
-            <BaseConfigPanel
-                configData={configData}
-                fieldConfigs={OPENAI_CONFIG_FIELDS}
-                filterPrefix="openai"
-                onTestConnection={(category) => handleTestConnection('openai')}
-                testConnectionLabel="OpenAI 연결 테스트"
-                testConnectionCategory="openai"
-            />
-        </div>
-    );
+          <BaseConfigPanel
+              configData={configData}
+              fieldConfigs={OPENAI_CONFIG_FIELDS}
+              filterPrefix="openai"
+              onTestConnection={(category) => handleTestConnection('openai')}
+              testConnectionLabel="OpenAI 연결 테스트"
+              testConnectionCategory="openai"
+          />
+      </div>
+  );
 
-    const renderVLLMTab = () => (
-        <div className={styles.vllmConfig}>
-            <div className={styles.sectionHeader}>
-                <h3>vLLM 설정</h3>
-                <p>vLLM 서버 연결 및 모델 설정을 구성합니다.</p>
-            </div>
+  const renderVLLMTab = () => (
+      <div className={styles.vllmConfig}>
+          <div className={styles.sectionHeader}>
+              <h3>vLLM 설정</h3>
+              <p>vLLM 서버 연결 및 모델 설정을 구성합니다.</p>
+          </div>
 
-            <BaseConfigPanel
-                configData={configData}
-                fieldConfigs={VLLM_CONFIG_FIELDS}
-                filterPrefix="vllm"
-                onTestConnection={(category) => handleTestConnection('vllm')}
-                testConnectionLabel="vLLM 연결 테스트"
-                testConnectionCategory="vllm"
-            />
-        </div>
-    );
+          <BaseConfigPanel
+              configData={configData}
+              fieldConfigs={VLLM_CONFIG_FIELDS}
+              filterPrefix="vllm"
+              onTestConnection={(category) => handleTestConnection('vllm')}
+              testConnectionLabel="vLLM 연결 테스트"
+              testConnectionCategory="vllm"
+          />
+      </div>
+  );
 
   const renderSGLTab = () => {
       // 디버깅: SGL 관련 설정이 있는지 확인
-      const sglConfigs = configData.filter(item =>
+      const sglConfigs = configData.filter(item => 
           item.env_name.startsWith('SGL_')
       );
-
+      
       console.log('All configData:', configData.map(c => c.env_name));
       console.log('SGL configs found:', sglConfigs.map(c => c.env_name));
 
@@ -964,9 +959,9 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
 
               {/* 디버깅 정보 표시 (개발 시에만) */}
               {process.env.NODE_ENV === 'development' && (
-                  <div style={{
-                      background: '#f3f4f6',
-                      padding: '10px',
+                  <div style={{ 
+                      background: '#f3f4f6', 
+                      padding: '10px', 
                       margin: '10px 0',
                       borderRadius: '4px',
                       fontSize: '12px'
@@ -993,68 +988,68 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
       );
   };
 
-    return (
-        <div className={styles.llmContainer}>
-            {/* 탭 네비게이션 */}
-            <div className={styles.tabNavigation}>
-                <button
-                    className={`${styles.tabButton} ${activeTab === 'default' ? styles.active : ''}`}
-                    onClick={() => setActiveTab('default')}
-                >
-                    <FiServer />
-                    기본 설정
-                </button>
-                <button
-                    className={`${styles.tabButton} ${activeTab === 'openai' ? styles.active : ''}`}
-                    onClick={() => setActiveTab('openai')}
-                >
-                    <SiOpenai />
-                    OpenAI
-                </button>
-                <button
-                    className={`${styles.tabButton} ${activeTab === 'vllm' ? styles.active : ''}`}
-                    onClick={() => setActiveTab('vllm')}
-                >
-                    <BsCpu />
-                    vLLM
-                </button>
-                <button
-                    className={`${styles.tabButton} ${activeTab === 'sgl' ? styles.active : ''}`}
-                    onClick={() => setActiveTab('sgl')}
-                >
-                    <TbBrandGolang />
-                    SGLang
-                </button>
-            </div>
+  return (
+      <div className={styles.llmContainer}>
+          {/* 탭 네비게이션 */}
+          <div className={styles.tabNavigation}>
+              <button
+                  className={`${styles.tabButton} ${activeTab === 'default' ? styles.active : ''}`}
+                  onClick={() => setActiveTab('default')}
+              >
+                  <FiServer />
+                  기본 설정
+              </button>
+              <button
+                  className={`${styles.tabButton} ${activeTab === 'openai' ? styles.active : ''}`}
+                  onClick={() => setActiveTab('openai')}
+              >
+                  <SiOpenai />
+                  OpenAI
+              </button>
+              <button
+                  className={`${styles.tabButton} ${activeTab === 'vllm' ? styles.active : ''}`}
+                  onClick={() => setActiveTab('vllm')}
+              >
+                  <BsCpu />
+                  vLLM
+              </button>
+              <button
+                  className={`${styles.tabButton} ${activeTab === 'sgl' ? styles.active : ''}`}
+                  onClick={() => setActiveTab('sgl')}
+              >
+                  <TbBrandGolang />
+                  SGLang
+              </button>
+          </div>
 
-            {/* 에러 표시 */}
-            {error && (
-                <div className={styles.errorBanner}>
-                    <FiAlertCircle />
-                    <span>{error}</span>
-                    <button onClick={() => setError(null)}>
-                        <FiX />
-                    </button>
-                </div>
-            )}
+          {/* 에러 표시 */}
+          {error && (
+              <div className={styles.errorBanner}>
+                  <FiAlertCircle />
+                  <span>{error}</span>
+                  <button onClick={() => setError(null)}>
+                      <FiX />
+                  </button>
+              </div>
+          )}
 
-            {/* 로딩 상태 */}
-            {loading && (
-                <div className={styles.loadingState}>
-                    <FiRefreshCw className={styles.spinning} />
-                    <p>LLM 상태를 불러오는 중...</p>
-                </div>
-            )}
+          {/* 로딩 상태 */}
+          {loading && (
+              <div className={styles.loadingState}>
+                  <FiRefreshCw className={styles.spinning} />
+                  <p>LLM 상태를 불러오는 중...</p>
+              </div>
+          )}
 
-            {/* 탭 콘텐츠 */}
-            <div className={styles.tabContent}>
-                {activeTab === 'default' && renderDefaultProviderTab()}
-                {activeTab === 'openai' && renderOpenAITab()}
-                {activeTab === 'vllm' && renderVLLMTab()}
-                {activeTab === 'sgl' && renderSGLTab()}
-            </div>
-        </div>
-    );
+          {/* 탭 콘텐츠 */}
+          <div className={styles.tabContent}>
+              {activeTab === 'default' && renderDefaultProviderTab()}
+              {activeTab === 'openai' && renderOpenAITab()}
+              {activeTab === 'vllm' && renderVLLMTab()}
+              {activeTab === 'sgl' && renderSGLTab()}
+          </div>
+      </div>
+  );
 };
 
 export default LLMConfig;
