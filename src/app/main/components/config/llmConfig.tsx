@@ -406,7 +406,7 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                         result = await testSGLConnection();
                     }
                     
-                    results[provider] = result?.status === 'success';
+                    results[provider] = (result as any)?.status === 'success';
                     tested[provider] = true;
                 } catch {
                     results[provider] = false;
