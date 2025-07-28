@@ -11,6 +11,7 @@ import { BsDatabaseUp } from 'react-icons/bs';
 import { SiOpenai } from 'react-icons/si';
 import { BsGear } from 'react-icons/bs'; // Workflow 아이콘으로 사용
 import { BsCpu } from 'react-icons/bs'; // vLLM 아이콘으로 사용
+import { BsImage } from 'react-icons/bs'; // Collection 아이콘으로 사용
 import {
     testConnection,
     fetchAllConfigs,
@@ -23,6 +24,7 @@ import LLMConfig from '@/app/main/components/config/llmConfig'; // 새로 추가
 import WorkflowConfig from '@/app/main/components/config/workflowConfig';
 import DatabaseConfig from '@/app/main/components/config/databaseConfig';
 import VectordbConfig from '@/app/main/components/config/vectordbConfig';
+import CollectionConfig from '@/app/main/components/config/collectionConfig'; // 추가
 
 interface ConfigItem {
     env_name: string;
@@ -64,6 +66,10 @@ interface ApiConfig {
     stream?: boolean;
     logprobs?: number;
     echo?: boolean;
+    // Collection specific fields
+    imageTextBaseUrl?: string;
+    imageTextApiKey?: string;
+    imageTextModelName?: string;
 }
 
 const Settings: React.FC = () => {
@@ -137,6 +143,14 @@ const Settings: React.FC = () => {
             icon: <SiOpenai />,
             color: '#10a37f',
             status: configs.openai?.apiKey || configs.vllm?.baseUrl ? 'connected' : 'disconnected',
+        },
+        {
+            id: 'collection',
+            name: '컬렉션 관리',
+            description: '이미지-텍스트 모델 및 컬렉션 처리 설정',
+            icon: <BsImage />,
+            color: '#7c3aed',
+            status: configs.collection?.imageTextApiKey ? 'connected' : 'disconnected',
         },
         {
             id: 'workflow',
@@ -217,6 +231,15 @@ const Settings: React.FC = () => {
         );
     };
 
+    const renderCollectionConfig = () => {
+        return (
+            <CollectionConfig
+                configData={configData}
+                onTestConnection={handleTestConnection}
+            />
+        );
+    };
+
     const llmconfig = () => {
         return (
             <LLMConfig
@@ -225,10 +248,13 @@ const Settings: React.FC = () => {
         />
         )
     }
+
     const renderConfigForm = (categoryId: string) => {
         switch (categoryId) {
             case 'llm':
                 return llmconfig();
+            case 'collection':
+                return renderCollectionConfig();
             case 'workflow':
                 return renderWorkflowConfig();
             case 'database':
@@ -399,7 +425,7 @@ const Settings: React.FC = () => {
 
 // 현재 localStorage와 백엔드 API를 모두 활용하는 하이브리드 방식으로 구현
 // 백엔드에서 추가로 필요한 API:
-// - POST /app/config/test/{category} - 연결 테스트 (OpenAI, vLLM 포함)
+// - POST /app/config/test/{category} - 연결 테스트 (OpenAI, vLLM, Collection 포함)
 // - POST /app/config/reset/{category} - 카테고리별 리셋
 // - PUT /app/config/batch/{category} - 카테고리별 일괄 업데이트
 
