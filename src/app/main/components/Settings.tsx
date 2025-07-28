@@ -235,7 +235,6 @@ const Settings: React.FC = () => {
         return (
             <CollectionConfig
                 configData={configData}
-                onTestConnection={handleTestConnection}
             />
         );
     };
