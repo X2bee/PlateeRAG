@@ -1,9 +1,12 @@
 import React, { memo, useState, useEffect, ChangeEvent, KeyboardEvent } from 'react';
 import styles from '@/app/canvas/assets/Node.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
+import { fetchParameterOptions } from '@/app/api/parameterApi';
+import { LuRefreshCw } from 'react-icons/lu';
 import type {
     Parameter,
-    NodeProps
+    NodeProps,
+    ParameterOption
 } from '@/app/canvas/types';
 
 const Node: React.FC<NodeProps> = ({
@@ -27,10 +30,75 @@ const Node: React.FC<NodeProps> = ({
     const [isEditingName, setIsEditingName] = useState<boolean>(false);
     const [editingName, setEditingName] = useState<string>(nodeName);
 
+    // API 기반 옵션을 관리하는 상태
+    const [apiOptions, setApiOptions] = useState<Record<string, ParameterOption[]>>({});
+    const [loadingApiOptions, setLoadingApiOptions] = useState<Record<string, boolean>>({});
+
     // Sync editingName when nodeName changes
     useEffect(() => {
         setEditingName(nodeName);
     }, [nodeName]);
+
+    // API 기반 파라미터의 옵션을 로드하는 함수
+    const loadApiOptions = async (param: Parameter) => {
+        if (!param.is_api || !param.api_name) return;
+
+        const paramKey = `${id}-${param.id}`;
+
+        // 이미 로딩 중이거나 옵션이 이미 있으면 스킵
+        if (loadingApiOptions[paramKey] || apiOptions[paramKey]) return;
+
+        setLoadingApiOptions(prev => ({ ...prev, [paramKey]: true }));
+
+        try {
+            const options = await fetchParameterOptions(data.id, param.api_name);
+            setApiOptions(prev => ({ ...prev, [paramKey]: options }));
+        } catch (error) {
+            devLog.error('Error loading API options for parameter:', param.name, error);
+        } finally {
+            setLoadingApiOptions(prev => ({ ...prev, [paramKey]: false }));
+        }
+    };
+
+    // API 기반 파라미터의 옵션을 강제로 다시 로드하는 함수 (refresh 버튼용)
+    const refreshApiOptions = async (param: Parameter) => {
+        if (!param.is_api || !param.api_name) return;
+
+        const paramKey = `${id}-${param.id}`;
+
+        // 이미 로딩 중이면 스킵
+        if (loadingApiOptions[paramKey]) return;
+
+        setLoadingApiOptions(prev => ({ ...prev, [paramKey]: true }));
+
+        try {
+            // 기존 옵션 삭제하고 새로 로드
+            setApiOptions(prev => {
+                const newOptions = { ...prev };
+                delete newOptions[paramKey];
+                return newOptions;
+            });
+
+            const options = await fetchParameterOptions(data.id, param.api_name);
+            setApiOptions(prev => ({ ...prev, [paramKey]: options }));
+            devLog.log('API options refreshed for parameter:', param.name);
+        } catch (error) {
+            devLog.error('Error refreshing API options for parameter:', param.name, error);
+        } finally {
+            setLoadingApiOptions(prev => ({ ...prev, [paramKey]: false }));
+        }
+    };
+
+    // 컴포넌트 마운트 시 API 기반 파라미터들의 옵션을 로드
+    useEffect(() => {
+        if (!parameters) return;
+
+        parameters.forEach(param => {
+            if (param.is_api && param.api_name) {
+                loadApiOptions(param);
+            }
+        });
+    }, [parameters, data.id]);
 
     // Node name editing functions
     const handleNameDoubleClick = (e: React.MouseEvent): void => {
@@ -84,126 +152,168 @@ const Node: React.FC<NodeProps> = ({
     };
 
     // Parameter rendering function
-    const renderParameter = (param: Parameter) => (
-        <div key={param.id} className={`${styles.param} param`}>
-            <span className={`${styles.paramKey} ${param.required ? styles.required : ''}`}>
-                {param.name}
-            </span>
-            {param.options && param.options.length > 0 ? (
-                <select
-                    value={param.value}
-                    onChange={(e) => {
-                        devLog.log('=== Select Parameter Change ===');
-                        devLog.log('Parameter:', param.name, 'Previous value:', param.value, 'New value:', e.target.value);
-                        devLog.log('Available options:', param.options);
-                        handleParamValueChange(e, param.id);
-                        devLog.log('=== Select Parameter Change Complete ===');
-                    }}
-                    onMouseDown={(e) => {
-                        devLog.log('select onMouseDown');
-                        e.stopPropagation();
-                    }}
-                    onClick={(e) => {
-                        devLog.log('select onClick');
-                        e.stopPropagation();
-                    }}
-                    onFocus={(e) => {
-                        devLog.log('select onFocus - Parameter:', param.name, 'Current value:', param.value);
-                        e.stopPropagation();
-                        // Clear node selection when editing parameter
-                        if (onClearSelection) {
-                            onClearSelection();
-                        }
-                    }}
-                    onBlur={(e) => {
-                        devLog.log('select onBlur - Parameter:', param.name, 'Final value:', e.target.value);
-                        e.stopPropagation();
-                    }}
-                    onKeyDown={(e) => {
-                        // Prevent keyboard event propagation
-                        e.stopPropagation();
-                    }}
-                    className={`${styles.paramSelect} paramSelect`}
-                >
-                    <option value="">-- Select --</option>
-                    {param.options.map((option, index) => (
-                        <option key={index} value={option.value}>
-                            {option.label || option.value}
-                        </option>
-                    ))}
-                </select>
-            ) : param.type === 'BOOL' ? (
-                <select
-                    value={param.value}
-                    onChange={(e) => {
-                        devLog.log('=== Boolean Parameter Change ===');
-                        devLog.log('Parameter:', param.name, 'Previous value:', param.value, 'New value:', e.target.value);
-                        handleParamValueChange(e, param.id);
-                        devLog.log('=== Boolean Parameter Change Complete ===');
-                    }}
-                    onMouseDown={(e) => {
-                        devLog.log('boolean select onMouseDown');
-                        e.stopPropagation();
-                    }}
-                    onClick={(e) => {
-                        devLog.log('boolean select onClick');
-                        e.stopPropagation();
-                    }}
-                    onFocus={(e) => {
-                        devLog.log('boolean select onFocus - Parameter:', param.name, 'Current value:', param.value);
-                        e.stopPropagation();
-                        // Clear node selection when editing parameter
-                        if (onClearSelection) {
-                            onClearSelection();
-                        }
-                    }}
-                    onBlur={(e) => {
-                        devLog.log('boolean select onBlur - Parameter:', param.name, 'Final value:', e.target.value);
-                        e.stopPropagation();
-                    }}
-                    onKeyDown={(e) => {
-                        // Prevent keyboard event propagation
-                        e.stopPropagation();
-                    }}
-                    className={`${styles.paramSelect} paramSelect`}
-                >
-                    <option value="" disabled>-- Select --</option>
-                    <option value="true">True</option>
-                    <option value="false">False</option>
-                </select>
-            ) : (
-                <input
-                    type={typeof param.value === 'number' ? 'number' : 'text'}
-                    value={param.value}
-                    onChange={(e) => handleParamValueChange(e, param.id)}
-                    onMouseDown={(e) => {
-                        devLog.log('input onMouseDown');
-                        e.stopPropagation();
-                    }}
-                    onClick={(e) => {
-                        devLog.log('input onClick');
-                        e.stopPropagation();
-                    }}
-                    onFocus={(e) => {
-                        devLog.log('input onFocus');
-                        e.stopPropagation();
-                        // Clear node selection when editing parameter
-                        if (onClearSelection) {
-                            onClearSelection();
-                        }
-                    }}
-                    onKeyDown={(e) => {
-                        // Prevent keyboard event propagation (backspace, delete, etc.)
-                        e.stopPropagation();
-                    }}
-                    className={`${styles.paramInput} paramInput`}
-                    step={param.step}
-                    min={param.min}
-                    max={param.max}
-                />
-            )}
-        </div>
-    );
+    const renderParameter = (param: Parameter) => {
+        const paramKey = `${id}-${param.id}`;
+        const isApiParam = param.is_api && param.api_name;
+
+        // API 기반 파라미터인 경우 API 옵션을 사용, 아니면 기본 옵션 사용
+        let effectiveOptions = param.options || [];
+        let isLoadingOptions = false;
+
+        if (isApiParam) {
+            effectiveOptions = apiOptions[paramKey] || [];
+            isLoadingOptions = loadingApiOptions[paramKey] || false;
+        }
+
+        return (
+            <div key={param.id} className={`${styles.param} param`}>
+                <span className={`${styles.paramKey} ${param.required ? styles.required : ''}`}>
+                    {param.name}
+                    {isApiParam && (
+                        <button
+                            className={`${styles.refreshButton} ${isLoadingOptions ? styles.loading : ''}`}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                refreshApiOptions(param);
+                            }}
+                            disabled={isLoadingOptions}
+                            title="Refresh options"
+                            type="button"
+                        >
+                            <LuRefreshCw />
+                        </button>
+                    )}
+                </span>
+                {(effectiveOptions.length > 0 || isApiParam) ? (
+                    <select
+                        value={param.value}
+                        onChange={(e) => {
+                            devLog.log('=== Select Parameter Change ===');
+                            devLog.log('Parameter:', param.name, 'Previous value:', param.value, 'New value:', e.target.value);
+                            devLog.log('Available options:', effectiveOptions);
+                            handleParamValueChange(e, param.id);
+                            devLog.log('=== Select Parameter Change Complete ===');
+                        }}
+                        onMouseDown={(e) => {
+                            devLog.log('select onMouseDown');
+                            e.stopPropagation();
+                        }}
+                        onClick={(e) => {
+                            devLog.log('select onClick');
+                            e.stopPropagation();
+
+                            // API 파라미터이고 옵션이 없으면 다시 로드 시도
+                            if (isApiParam && effectiveOptions.length === 0 && !isLoadingOptions) {
+                                loadApiOptions(param);
+                            }
+                        }}
+                        onFocus={(e) => {
+                            devLog.log('select onFocus - Parameter:', param.name, 'Current value:', param.value);
+                            e.stopPropagation();
+                            // Clear node selection when editing parameter
+                            if (onClearSelection) {
+                                onClearSelection();
+                            }
+                        }}
+                        onBlur={(e) => {
+                            devLog.log('select onBlur - Parameter:', param.name, 'Final value:', e.target.value);
+                            e.stopPropagation();
+                        }}
+                        onKeyDown={(e) => {
+                            // Prevent keyboard event propagation
+                            e.stopPropagation();
+                        }}
+                        className={`${styles.paramSelect} paramSelect`}
+                        disabled={isLoadingOptions}
+                    >
+                        {isLoadingOptions ? (
+                            <option value="">Loading...</option>
+                        ) : effectiveOptions.length === 0 ? (
+                            <option value="">-- No options available --</option>
+                        ) : (
+                            <>
+                                <option value="">-- Select --</option>
+                                {effectiveOptions.map((option, index) => (
+                                    <option key={index} value={option.value}>
+                                        {option.label || option.value}
+                                    </option>
+                                ))}
+                            </>
+                        )}
+                    </select>
+                ) : param.type === 'BOOL' ? (
+                    <select
+                        value={param.value}
+                        onChange={(e) => {
+                            devLog.log('=== Boolean Parameter Change ===');
+                            devLog.log('Parameter:', param.name, 'Previous value:', param.value, 'New value:', e.target.value);
+                            handleParamValueChange(e, param.id);
+                            devLog.log('=== Boolean Parameter Change Complete ===');
+                        }}
+                        onMouseDown={(e) => {
+                            devLog.log('boolean select onMouseDown');
+                            e.stopPropagation();
+                        }}
+                        onClick={(e) => {
+                            devLog.log('boolean select onClick');
+                            e.stopPropagation();
+                        }}
+                        onFocus={(e) => {
+                            devLog.log('boolean select onFocus - Parameter:', param.name, 'Current value:', param.value);
+                            e.stopPropagation();
+                            // Clear node selection when editing parameter
+                            if (onClearSelection) {
+                                onClearSelection();
+                            }
+                        }}
+                        onBlur={(e) => {
+                            devLog.log('boolean select onBlur - Parameter:', param.name, 'Final value:', e.target.value);
+                            e.stopPropagation();
+                        }}
+                        onKeyDown={(e) => {
+                            // Prevent keyboard event propagation
+                            e.stopPropagation();
+                        }}
+                        className={`${styles.paramSelect} paramSelect`}
+                    >
+                        <option value="" disabled>-- Select --</option>
+                        <option value="true">True</option>
+                        <option value="false">False</option>
+                    </select>
+                ) : (
+                    <input
+                        type={typeof param.value === 'number' ? 'number' : 'text'}
+                        value={param.value}
+                        onChange={(e) => handleParamValueChange(e, param.id)}
+                        onMouseDown={(e) => {
+                            devLog.log('input onMouseDown');
+                            e.stopPropagation();
+                        }}
+                        onClick={(e) => {
+                            devLog.log('input onClick');
+                            e.stopPropagation();
+                        }}
+                        onFocus={(e) => {
+                            devLog.log('input onFocus');
+                            e.stopPropagation();
+                            // Clear node selection when editing parameter
+                            if (onClearSelection) {
+                                onClearSelection();
+                            }
+                        }}
+                        onKeyDown={(e) => {
+                            // Prevent keyboard event propagation (backspace, delete, etc.)
+                            e.stopPropagation();
+                        }}
+                        className={`${styles.paramInput} paramInput`}
+                        step={param.step}
+                        min={param.min}
+                        max={param.max}
+                    />
+                )}
+            </div>
+        );
+    };
 
     const handleMouseDown = (e: React.MouseEvent): void => {
         if (isPreview) return; // Disable drag in preview mode
@@ -248,7 +358,7 @@ const Node: React.FC<NodeProps> = ({
     const hasOnlyOutputs = hasOutputs && !hasInputs;
 
     // Node name display (add ... if over 20 characters)
-    const displayName = nodeName.length > 20 ? nodeName.substring(0, 20) + '...' : nodeName;
+    const displayName = nodeName.length > 25 ? nodeName.substring(0, 25) + '...' : nodeName;
 
     return (
         <div
