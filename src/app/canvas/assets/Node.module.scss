@@ -1,10 +1,10 @@
 .node {
     position: absolute;
-    min-width: 350px; 
+    min-width: 450px;
     background-color: #ffffff;
     border-radius: 12px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-    border: 2px solid #95979c; 
+    border: 2px solid #95979c;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     user-select: none;
     -webkit-user-select: none;
@@ -48,7 +48,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    
+
     &:hover {
         background-color: rgba(59, 130, 246, 0.1);
     }
@@ -66,7 +66,7 @@
     min-width: 100px;
     max-width: 200px;
     font-family: inherit;
-    
+
     &:focus {
         box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
     }
@@ -86,9 +86,9 @@
 .column {
     display: flex;
     flex-direction: column;
-    gap: 14px; 
+    gap: 14px;
     flex-basis: 48%; // [수정] 너비 미세 조정
-    
+
     // [추가] Output만 있을 때 컬럼 너비를 100%로
     &.fullWidth {
         flex-basis: 100%;
@@ -138,7 +138,7 @@
     padding: 3px 12px;
     border-radius: 6px;
     min-width: 50px;
-    
+
     // 텍스트 스타일
     font-size: 0.8rem;
     font-weight: 600;
@@ -211,11 +211,63 @@
 .paramKey {
     color: #6b7280;
     margin-right: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 
     &.required::after {
         content: " *";
         color: #ef4444;
         font-weight: bold;
+    }
+}
+
+.refreshButton {
+    background: none;
+    border: none;
+    padding: 2px;
+    cursor: pointer;
+    color: #6b7280;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+
+    &:hover {
+        color: #3b82f6;
+        background-color: #f3f4f6;
+    }
+
+    &:active {
+        color: #2563eb;
+        transform: scale(0.95);
+    }
+
+    &.loading {
+        animation: spin 1s linear infinite;
+        color: #3b82f6;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    svg {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
     }
 }
 
@@ -301,13 +353,13 @@
     color: #64748b;
     transition: all 0.2s ease;
     margin-bottom: 8px;
-    
+
     &:hover {
         background-color: #f1f5f9;
         border-color: #cbd5e1;
         color: #475569;
     }
-    
+
     span {
         user-select: none;
     }

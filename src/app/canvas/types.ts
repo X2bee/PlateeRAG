@@ -37,6 +37,8 @@ export interface Parameter {
     step?: number;
     min?: number;
     max?: number;
+    is_api?: boolean;
+    api_name?: string;
 }
 
 // ========== Node Types ==========
