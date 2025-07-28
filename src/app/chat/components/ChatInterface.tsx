@@ -11,7 +11,7 @@ import {
     FiX,
 } from 'react-icons/fi';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
-import { getWorkflowIOLogs, executeWorkflowById } from '@/app/api/workflowAPI';
+import { getWorkflowIOLogs, executeWorkflowById, executeWorkflowByIdStream, loadWorkflow } from '@/app/api/workflowAPI';
 import { MessageRenderer } from '@/app/_common/components/ChatParser';
 import toast from 'react-hot-toast';
 import CollectionModal from '@/app/chat/components/CollectionModal';
@@ -21,6 +21,7 @@ import { ChatArea } from './ChatArea';
 import { DeploymentModal } from './DeploymentModal';
 import { generateInteractionId, normalizeWorkflowName } from '@/app/api/interactionAPI';
 import { devLog } from '@/app/_common/utils/logger';
+import { isStreamingWorkflow } from '@/app/_common/utils/isStreamingWorkflow';
 
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, onChatStarted, hideBackButton = false, firstChat = false, existingChatData }) => {
@@ -286,6 +287,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
         setInputMessage('');
 
         try {
+
+            const workflowData = await loadWorkflow(workflow.name);
+
+            const isStreaming = isStreamingWorkflow(workflowData);
+
             const interactionId = existingChatData?.interactionId || generateInteractionId();
             const workflowName = existingChatData?.workflowName || workflow.name;
             const workflowId = existingChatData?.workflowId || workflow.id;
@@ -301,38 +307,70 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
                 collectionsCount: selectedCollection.length
             });
 
-            const result: any = await executeWorkflowById(
-                workflowName,
-                workflowId,
-                currentMessage,
-                interactionId,
-                collectionsToSend,
-            );
+            if (isStreaming) {
+                if (onChatStarted) {
+                    onChatStarted();
+                }
+                await executeWorkflowByIdStream({
+                    workflowName,
+                    workflowId,
+                    inputData: currentMessage,
+                    interactionId,
+                    selectedCollections: collectionsToSend,
+                    onData: (chunk) => {
+                        setIOLogs((prev) =>
+                            prev.map((log) => {
+                                if (String(log.log_id) !== tempId) return log;
+                                const newOutput = log.output_data === '...' ? chunk : log.output_data + chunk;
+                                return { 
+                                    ...log, 
+                                    output_data: newOutput,
+                                    updated_at: new Date().toISOString(), 
+                                };
+                            })
+                        );
+                        scrollToBottom();
+                    },
+                    onEnd: () => {
+                        toast.success('스트리밍이 완료되었습니다!');
+                        setPendingLogId(null);
+                    },
+                    onError: (err) => {
+                        throw err;
+                    },
+                });
+            } else {
+                const result: any = await executeWorkflowById(
+                    workflowName,
+                    workflowId,
+                    currentMessage,
+                    interactionId,
+                    collectionsToSend,
+                );
 
-            devLog.log('Workflow execution result:', result);
+                if (onChatStarted) {
+                    onChatStarted();
+                }
 
-            // 결과로 임시 메시지 업데이트 (chatAPI 응답 형식)
-            setIOLogs((prev) =>
-                prev.map((log) =>
-                    String(log.log_id) === tempId
-                        ? {
+                devLog.log('Workflow execution result:', result);
+                
+                setIOLogs((prev) =>
+                    prev.map((log) =>
+                        String(log.log_id) === tempId
+                            ? {
                                 ...log,
                                 output_data: result.outputs
-                                    ? JSON.stringify(result.outputs)
+                                    ? JSON.stringify(result.outputs, null, 2)
                                     : result.message || '처리 완료',
                                 updated_at: new Date().toISOString(),
                             }
-                        : log,
-                ),
-            );
+                            : log,
+                    ),
+                );
+                toast.success('메시지가 성공적으로 전송되었습니다!');
+                setPendingLogId(null);
+            }
 
-            // 결과 업데이트 후 스크롤
-            setTimeout(() => scrollToBottom(), 100);
-
-            toast.success('메시지가 성공적으로 전송되었습니다!');
-            setPendingLogId(null);
-
-            // 기존 채팅 데이터가 있는 경우 localStorage 업데이트
             if (existingChatData) {
                 const currentChatData = {
                     interactionId: existingChatData.interactionId,
@@ -349,10 +387,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
                     startedAt: new Date().toISOString(),
                 };
                 localStorage.setItem('currentChatData', JSON.stringify(currentChatData));
-            }
-
-            if (onChatStarted) {
-                onChatStarted();
             }
 
         } catch (err) {
@@ -672,3 +706,4 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
 };
 
 export default ChatInterface;
+

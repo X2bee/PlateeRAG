@@ -16,6 +16,7 @@ import {
     saveWorkflow,
     listWorkflows,
     loadWorkflow,
+    executeWorkflowByIdStream,
 } from '@/app/api/workflowAPI';
 import {
     getWorkflowName,
@@ -27,6 +28,7 @@ import {
 } from '@/app/_common/utils/workflowStorage';
 import { devLog } from '@/app/_common/utils/logger';
 import { generateWorkflowHash } from '@/app/_common/utils/generateSha1Hash';
+import { isStreamingWorkflow } from '../_common/utils/isStreamingWorkflow';
 
 function CanvasPageContent() {
     // CookieProvider의 useAuth 훅 사용
@@ -739,8 +741,31 @@ function CanvasPageContent() {
             workflowData = { ...workflowData, workflow_id: workflowId };
             workflowData = { ...workflowData, workflow_name: workflowName };
 
-            const result = await executeWorkflow(workflowData);
-            setExecutionOutput(result);
+            const isStreaming = isStreamingWorkflow(workflowData);
+
+            if (isStreaming) {
+                toast.loading('Executing streaming workflow...', { id: toastId });
+                setExecutionOutput({ stream: '' });
+                
+                await executeWorkflowByIdStream({
+                    workflowName,
+                    workflowId,
+                    onData: (chunk) => {
+                        setExecutionOutput(prev => ({ ...prev, stream: (prev.stream || '') + chunk }));
+                    },
+                    onEnd: () => {
+                        toast.success('Streaming finished!', { id: toastId });
+                    },
+                    onError: (err) => {
+                        throw err;
+                    }
+                });
+
+            } else {
+                const result = await executeWorkflow(workflowData);
+                setExecutionOutput(result);
+                toast.success('Workflow executed successfully!', { id: toastId });
+            }
             setWorkflow({
                 id: workflowData.workflow_id,
                 name: workflowData.workflow_name,

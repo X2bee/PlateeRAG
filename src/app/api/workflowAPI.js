@@ -486,6 +486,87 @@ export const executeWorkflowById = async (
 };
 
 /**
+ * ID 기반 워크플로우를 스트리밍 방식으로 실행하고, 수신되는 데이터를 콜백으로 처리합니다.
+ * @param {object} params - 실행에 필요한 파라미터 객체.
+ * @param {string} params.workflowName - 워크플로우 이름.
+ * @param {string} params.workflowId - 워크플로우 ID.
+ * @param {string} params.inputData - 사용자 입력 데이터.
+ * @param {string} params.interactionId - 상호작용 ID.
+ * @param {Array<string>|null} params.selectedCollections - 선택된 컬렉션.
+ * @param {function(string): void} params.onData - 데이터 조각(chunk)을 수신할 때마다 호출될 콜백.
+ * @param {function(): void} params.onEnd - 스트림이 정상적으로 종료될 때 호출될 콜백.
+ * @param {function(Error): void} params.onError - 오류 발생 시 호출될 콜백.
+ */
+export const executeWorkflowByIdStream = async ({
+    workflowName,
+    workflowId,
+    inputData = '',
+    interactionId = 'default',
+    selectedCollections = null,
+    onData,
+    onEnd,
+    onError,
+}) => {
+    const requestBody = {
+        workflow_name: workflowName,
+        workflow_id: workflowId,
+        input_data: inputData,
+        interaction_id: interactionId,
+        selected_collections: selectedCollections,
+    };
+
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/workflow/execute/based_id/stream`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+                onEnd();
+                break;
+            }
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n\n');
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const jsonData = line.substring(6);
+                    try {
+                        const parsedData = JSON.parse(jsonData);
+                        if (parsedData.type === 'data') {
+                            onData(parsedData.content);
+                        } else if (parsedData.type === 'end') {
+                            onEnd();
+                            return;
+                        } else if (parsedData.type === 'error') {
+                            throw new Error(parsedData.detail);
+                        }
+                    } catch (e) {
+                        devLog.error('Failed to parse stream data chunk:', jsonData, e);
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        devLog.error('Failed to execute streaming workflow:', error);
+        onError(error);
+    }
+};
+
+/**
  * 워크플로우의 성능 데이터를 삭제합니다.
  * @param {string} workflowName - 워크플로우 이름 (.json 확장자 제외)
  * @param {string} workflowId - 워크플로우 ID

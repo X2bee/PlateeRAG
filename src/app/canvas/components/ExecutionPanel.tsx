@@ -2,22 +2,13 @@
 import React, { useState } from 'react';
 import styles from '@/app/canvas/assets/ExecutionPanel.module.scss';
 import { LuPlay, LuTrash2, LuCircleX, LuChevronUp, LuChevronDown } from 'react-icons/lu';
-import type {
-    ExecutionError,
-    ExecutionSuccess,
-    ExecutionOutput,
-    OutputRendererProps,
-    ExecutionPanelProps
+import {
+    type OutputRendererProps,
+    type ExecutionPanelProps,
+    hasError,
+    hasOutputs,
+    isStreamingOutput
 } from '@/app/canvas/types';
-
-// Type guard functions
-const hasError = (output: ExecutionOutput): output is ExecutionError => {
-    return output !== null && 'error' in output;
-};
-
-const hasOutputs = (output: ExecutionOutput): output is ExecutionSuccess => {
-    return output !== null && 'outputs' in output;
-};
 
 const OutputRenderer: React.FC<OutputRendererProps> = ({ output }) => {
     if (!output) {
@@ -32,6 +23,19 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({ output }) => {
                     <span>Execution Failed</span>
                 </div>
                 <div className={styles.message}>{output.error}</div>
+            </div>
+        );
+    }
+
+    if (isStreamingOutput(output)) {
+        return (
+            <div className={`${styles.resultContainer} ${styles.success}`}>
+                <div className={styles.outputDataSection}>
+                    {/* 스트리밍 데이터를 그대로 표시 */}
+                    <pre className={styles.outputContent}>
+                        {output.stream}
+                    </pre>
+                </div>
             </div>
         );
     }

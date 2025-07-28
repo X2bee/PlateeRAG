@@ -90,31 +90,27 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
     isUserMessage = false,
     className = ''
 }) => {
-    const [parsedElements, setParsedElements] = useState<React.ReactNode[]>([]);
 
-    useEffect(() => {
-        if (!content) {
-            setParsedElements([]);
-            return;
-        }
+    if (!content) {
+        return null;
+    }
 
-        // 사용자 메시지는 일반 텍스트로만 표시
-        if (isUserMessage) {
-            setParsedElements([<span key="user-text">{content}</span>]);
-            return;
-        }
+    if (isUserMessage) {
+        return (
+            <div className={`${styles.markdownContent} ${className}`}>
+                {content}
+            </div>
+        );
+    }
 
-        // 봇 메시지는 마크다운 파싱
-        const elements = parseContentToReactElements(content);
-        setParsedElements(elements);
-    }, [content, isUserMessage]);
+    const parsedElements = parseContentToReactElements(content);
 
     return (
         <div
             className={`${styles.markdownContent} ${className}`}
             style={{
                 wordBreak: 'break-word',
-                overflowWrap: 'break-word'
+                overflowWrap: 'break-word',
             }}
         >
             {parsedElements}
