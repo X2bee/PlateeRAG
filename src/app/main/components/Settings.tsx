@@ -23,6 +23,7 @@ import WorkflowConfig from '@/app/main/components/config/workflowConfig';
 import DatabaseConfig from '@/app/main/components/config/databaseConfig';
 import VectordbConfig from '@/app/main/components/config/vectordbConfig';
 import CollectionConfig from '@/app/main/components/config/collectionConfig';
+import VastAiConfig from '@/app/main/components/config/vastAiConfig';
 
 interface ConfigItem {
     env_name: string;
@@ -143,6 +144,14 @@ const Settings: React.FC = () => {
             status: configs.openai?.apiKey || configs.vllm?.baseUrl ? 'connected' : 'disconnected',
         },
         {
+            id: 'vastai',
+            name: 'Vast.ai GPU',
+            description: 'Vast.ai GPU 인스턴스 및 vLLM 서버 설정',
+            icon: <BsDatabaseUp />,
+            color: '#7c3aed',
+            status: configs.vastai?.apiKey ? 'connected' : 'disconnected',
+        },
+        {
             id: 'collection',
             name: '컬렉션 관리',
             description: '이미지-텍스트 모델 및 컬렉션 처리 설정',
@@ -237,7 +246,7 @@ const Settings: React.FC = () => {
         );
     };
 
-    const llmconfig = () => {
+    const renderLLMconfig = () => {
         return (
             <LLMConfig
             configData={configData}
@@ -246,10 +255,21 @@ const Settings: React.FC = () => {
         )
     }
 
+    const renderVastAiConfig = () => {
+        return (
+            <VastAiConfig
+                configData={configData}
+                onTestConnection={handleTestConnection}
+            />
+        );
+    };
+
     const renderConfigForm = (categoryId: string) => {
         switch (categoryId) {
             case 'llm':
-                return llmconfig();
+                return renderLLMconfig();
+            case 'vastai':
+                return renderVastAiConfig();
             case 'collection':
                 return renderCollectionConfig();
             case 'workflow':

@@ -317,7 +317,6 @@ $white: #ffffff;
 .formGroup {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
     padding: 1rem 0;
     border-bottom: 1px solid $gray-200;
 
@@ -488,9 +487,7 @@ $white: #ffffff;
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
-    padding-top: 1.5rem;
     margin-top: 1rem;
-    border-top: 1px solid $gray-200;
 }
 
 .button.test {
@@ -521,6 +518,322 @@ $white: #ffffff;
     }
 }
 
+// Vast.ai Configuration Styles
+.accessTypeSection {
+    margin-bottom: 2rem;
+
+    .fieldLabel {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: $gray-700;
+        margin-bottom: 0.75rem;
+    }
+}
+
+.radioGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.radioOption {
+    position: relative;
+    cursor: pointer;
+
+    .radioInput {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .radioContent {
+        padding: 1rem;
+        border: 2px solid $gray-200;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+        background: $white;
+
+        &:hover {
+            border-color: $gray-300;
+        }
+    }
+
+    &.selected .radioContent {
+        border-color: $primary-blue;
+        background: rgba($primary-blue, 0.05);
+    }
+
+    .radioIcon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .radioTitle {
+        font-weight: 600;
+        color: $gray-900;
+        margin-bottom: 0.25rem;
+    }
+
+    .radioDescription {
+        font-size: 0.875rem;
+        color: $gray-600;
+        margin-bottom: 0.5rem;
+    }
+
+    .radioFeatures {
+        font-size: 0.75rem;
+        color: $gray-500;
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-bottom: 0.125rem;
+        }
+
+        .checkmark {
+            color: $primary-green;
+        }
+    }
+}
+
+.vastInstanceSection {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: rgba($primary-blue, 0.05);
+    border: 1px solid rgba($primary-blue, 0.2);
+    border-radius: 0.5rem;
+
+    .instanceHeader {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+
+        .instanceTitle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+
+            .instanceIcon {
+                font-size: 1.25rem;
+            }
+
+            h4 {
+                margin: 0;
+                font-size: 0.875rem;
+                font-weight: 500;
+                color: $primary-blue;
+            }
+        }
+
+        .instanceControls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    }
+
+    .statusBadge {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        background: rgba($primary-green, 0.1);
+        color: $primary-green;
+        border-radius: 9999px;
+    }
+
+    .refreshButton {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        background: $gray-100;
+        color: $gray-600;
+        border: none;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+
+        &:hover {
+            background: $gray-200;
+        }
+    }
+
+    .autoRefreshInfo {
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        background: rgba($primary-green, 0.05);
+        border: 1px solid rgba($primary-green, 0.2);
+        border-radius: 0.375rem;
+        font-size: 0.75rem;
+        color: $primary-green;
+    }
+}
+
+.instanceOverview, .hardwareSpecs, .modelControl {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 0.5rem;
+
+    h4 {
+        margin: 0 0 0.75rem 0;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: $gray-900;
+    }
+}
+
+.overviewHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+
+    h4 {
+        margin: 0;
+    }
+}
+
+.statsGrid, .specsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+}
+
+.statItem, .specItem {
+    background: $gray-50;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+
+    .statLabel, .specLabel {
+        font-size: 0.75rem;
+        color: $gray-500;
+        margin-bottom: 0.25rem;
+    }
+
+    .statValue, .specValue {
+        font-family: 'Courier New', monospace;
+        font-weight: 600;
+        color: $gray-900;
+    }
+}
+
+.apiEndpoints {
+    margin-bottom: 1rem;
+
+    .endpointItem {
+        margin-bottom: 0.5rem;
+
+        .endpointLabel {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: $gray-700;
+            margin-bottom: 0.25rem;
+        }
+
+        .endpointUrl {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+
+            code {
+                flex: 1;
+                padding: 0.5rem;
+                background: $gray-100;
+                border-radius: 0.25rem;
+                font-size: 0.75rem;
+                font-family: 'Courier New', monospace;
+            }
+        }
+    }
+}
+
+.copyButton, .testButton {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.copyButton {
+    background: rgba($primary-blue, 0.1);
+    color: $primary-blue;
+
+    &:hover {
+        background: rgba($primary-blue, 0.2);
+    }
+}
+
+.testButton {
+    background: rgba($primary-green, 0.1);
+    color: $primary-green;
+
+    &:hover {
+        background: rgba($primary-green, 0.2);
+    }
+}
+
+.modelActions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.serveButton, .stopButton {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.serveButton {
+    background: #7c3aed;
+    color: $white;
+
+    &:hover:not(:disabled) {
+        background: color.adjust(#7c3aed, $lightness: -10%);
+    }
+
+    &.loading {
+        background: $gray-400;
+    }
+}
+
+.stopButton {
+    background: $primary-red;
+    color: $white;
+
+    &:hover:not(:disabled) {
+        background: color.adjust($primary-red, $lightness: -10%);
+    }
+}
+
 // Responsive adjustments for config forms
 @media (max-width: 768px) {
     .configForm {
@@ -540,5 +853,19 @@ $white: #ffffff;
 
     .formActions {
         justify-content: center;
+    }
+
+    .radioGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .instanceHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .modelActions {
+        flex-direction: column;
     }
 }
