@@ -25,13 +25,10 @@ export const MessageList: React.FC<MessageListProps> = ({ ioLogs, pendingLogId, 
 
                 <div className={styles.botMessage}>
                     <div className={styles.messageContent}>
-                        {isStreamingInProgress && log.output_data === '...' ? (
+                        {isStreamingInProgress && !log.output_data ? (
                             <div className={styles.typingIndicator}>
                                 <span /><span /><span />
                             </div>
-                        ) : 
-                        isStreamingInProgress ? (
-                            <pre className={styles.streamingContent}>{log.output_data}</pre>
                         ) : (
                             renderMessageContent(log.output_data)
                         )}
