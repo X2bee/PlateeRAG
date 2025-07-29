@@ -24,7 +24,7 @@ export const fetchParameterOptions = async (
             ? apiName.substring(4)
             : apiName;
 
-        const endpoint = `${API_BASE_URL}/api/${formattedNodeId}/${formattedApiName}`;
+        const endpoint = `${API_BASE_URL}/api/editor/${formattedNodeId}/${formattedApiName}`;
 
         devLog.log('Calling API:', {
             originalNodeId: nodeId,
@@ -103,7 +103,7 @@ export const fetchParameterOptionsWithData = async (
             ? apiName.substring(4)
             : apiName;
 
-        const endpoint = `${API_BASE_URL}/api/${formattedNodeId}/${formattedApiName}`;
+        const endpoint = `${API_BASE_URL}/api/editor/${formattedNodeId}/${formattedApiName}`;
 
         devLog.log('Calling API (POST):', {
             originalNodeId: nodeId,

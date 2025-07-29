@@ -10,9 +10,7 @@ import {
 import { IoDocumentLock } from "react-icons/io5";
 import { BsDatabaseUp } from 'react-icons/bs';
 import { SiOpenai } from 'react-icons/si';
-import { BsGear } from 'react-icons/bs'; // Workflow 아이콘으로 사용
-import { BsCpu } from 'react-icons/bs'; // vLLM 아이콘으로 사용
-import { BsImage } from 'react-icons/bs'; // Collection 아이콘으로 사용
+import { BsGear } from 'react-icons/bs';
 import {
     testConnection,
     fetchAllConfigs,
@@ -20,12 +18,11 @@ import {
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/main/assets/Settings.module.scss';
 
-// Import config components
-import LLMConfig from '@/app/main/components/config/llmConfig'; // 새로 추가
+import LLMConfig from '@/app/main/components/config/llmConfig';
 import WorkflowConfig from '@/app/main/components/config/workflowConfig';
 import DatabaseConfig from '@/app/main/components/config/databaseConfig';
 import VectordbConfig from '@/app/main/components/config/vectordbConfig';
-import CollectionConfig from '@/app/main/components/config/collectionConfig'; // 추가
+import CollectionConfig from '@/app/main/components/config/collectionConfig';
 
 interface ConfigItem {
     env_name: string;
