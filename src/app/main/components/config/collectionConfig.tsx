@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
-import BaseConfigPanel, { ConfigItem, FieldConfig } from './BaseConfigPanel';
+import BaseConfigPanel, { ConfigItem, FieldConfig } from './baseConfigPanel';
 import {
     testOpenACollectionConnection,
     testVLLMCollectionConnection,

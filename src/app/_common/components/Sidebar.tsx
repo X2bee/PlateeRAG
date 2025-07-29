@@ -14,17 +14,20 @@ const Sidebar: React.FC<SidebarProps> = ({
     isOpen,
     onToggle,
     items,
+    workflowItems = [],
     chatItems = [],
     activeItem,
     onItemClick,
     className = '',
     initialChatExpanded = false,
     initialSettingExpanded = false,
+    initialWorkflowExpanded = false,
 }) => {
     const router = useRouter();
     const pathname = usePathname();
     const [isSettingExpanded, setIsSettingExpanded] = useState(initialSettingExpanded);
     const [isChatExpanded, setIsChatExpanded] = useState(initialChatExpanded);
+    const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(initialWorkflowExpanded);
 
     // CookieProvider의 useAuth 훅 사용 (AuthGuard에서 이미 인증 검증을 수행하므로 refreshAuth 호출 불필요)
     const { user, isAuthenticated } = useAuth();
@@ -45,6 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
     const toggleExpanded = () => setIsSettingExpanded(!isSettingExpanded);
     const toggleChatExpanded = () => setIsChatExpanded(!isChatExpanded);
+    const toggleWorkflowExpanded = () => setIsWorkflowExpanded(!isWorkflowExpanded);
 
     const handleLogoClick = () => {
         router.push('/');
@@ -117,9 +121,37 @@ const Sidebar: React.FC<SidebarProps> = ({
 
                 <button
                     className={styles.sidebarToggle}
+                    onClick={toggleWorkflowExpanded}
+                >
+                    <span>워크플로우</span>
+                    <span className={`${styles.toggleIcon} ${isWorkflowExpanded ? styles.expanded : ''}`}>
+                        ▼
+                    </span>
+                </button>
+
+                <nav className={`${styles.sidebarNav} ${isWorkflowExpanded ? styles.expanded : ''}`}>
+                    {workflowItems.map((item) => (
+                        <button
+                            key={item.id}
+                            onClick={() => onItemClick(item.id)}
+                            className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                        >
+                            {item.icon}
+                            <div className={styles.navText}>
+                                <div className={styles.navTitle}>{item.title}</div>
+                                <div className={styles.navDescription}>
+                                    {item.description}
+                                </div>
+                            </div>
+                        </button>
+                    ))}
+                </nav>
+
+                <button
+                    className={styles.sidebarToggle}
                     onClick={toggleExpanded}
                 >
-                    <span>AI 워크플로우 관리 센터</span>
+                    <span>환경 설정</span>
                     <span className={`${styles.toggleIcon} ${isSettingExpanded ? styles.expanded : ''}`}>
                         ▼
                     </span>

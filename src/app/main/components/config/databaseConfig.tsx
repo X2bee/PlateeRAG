@@ -1,5 +1,5 @@
 import React from 'react';
-import BaseConfigPanel, { ConfigItem, FieldConfig } from './BaseConfigPanel';
+import BaseConfigPanel, { ConfigItem, FieldConfig } from './baseConfigPanel';
 
 interface DatabaseConfigProps {
     configData?: ConfigItem[];

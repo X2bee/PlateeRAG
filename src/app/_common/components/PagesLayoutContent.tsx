@@ -3,7 +3,7 @@
 import React, { useState, useMemo, createContext, useContext } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/app/_common/components/Sidebar';
-import { getChatSidebarItems, getSettingSidebarItems } from '@/app/_common/components/sidebarConfig';
+import { getChatSidebarItems, getSettingSidebarItems, getWorkflowSidebarItems } from '@/app/_common/components/sidebarConfig';
 import styles from '@/app/main/assets/MainPage.module.scss';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FiChevronRight } from 'react-icons/fi';
@@ -26,7 +26,7 @@ export default function PagesLayoutContent({ children }: { children: React.React
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    
+
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     const navigateToChatMode = (mode: 'new-chat' | 'current-chat' | 'chat-history') => {
@@ -59,6 +59,7 @@ export default function PagesLayoutContent({ children }: { children: React.React
     };
 
     const settingSidebarItems = getSettingSidebarItems();
+    const workflowSidebarItems = getWorkflowSidebarItems();
     const chatSidebarItems = getChatSidebarItems();
 
     return (
@@ -66,11 +67,12 @@ export default function PagesLayoutContent({ children }: { children: React.React
             <div className={styles.container}>
                 <AnimatePresence>
                     {isSidebarOpen ? (
-                        <Sidebar 
-                            key="sidebar-panel" 
+                        <Sidebar
+                            key="sidebar-panel"
                             isOpen={isSidebarOpen}
                             onToggle={toggleSidebar}
                             items={settingSidebarItems}
+                            workflowItems={workflowSidebarItems}
                             chatItems={chatSidebarItems}
                             activeItem={activeItem}
                             onItemClick={handleSidebarItemClick}
