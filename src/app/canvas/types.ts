@@ -19,6 +19,7 @@ export interface Port {
     type: string;
     required?: boolean;
     multi?: boolean;
+    stream?: boolean;
 }
 
 export interface ParameterOption {
@@ -258,7 +259,23 @@ export interface ExecutionSuccess {
     outputs: Record<string, any>;
 }
 
-export type ExecutionOutput = ExecutionError | ExecutionSuccess | null;
+export interface ExecutionStream {
+    stream: string;
+}
+
+export type ExecutionOutput = ExecutionError | ExecutionSuccess | ExecutionStream | null;
+
+export const hasError = (output: ExecutionOutput): output is ExecutionError => {
+    return output !== null && typeof (output as ExecutionError).error === 'string';
+};
+
+export const hasOutputs = (output: ExecutionOutput): output is ExecutionSuccess => {
+    return output !== null && typeof (output as ExecutionSuccess).outputs !== 'undefined';
+};
+
+export const isStreamingOutput = (output: ExecutionOutput): output is ExecutionStream => {
+    return output !== null && typeof (output as ExecutionStream).stream === 'string';
+};
 
 export interface OutputRendererProps {
     output: ExecutionOutput;
