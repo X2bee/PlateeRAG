@@ -4,6 +4,8 @@ import ChatInterface from './ChatInterface';
 import { FiMessageSquare } from 'react-icons/fi';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
 import chatContentStyles from '@/app/chat/assets/ChatContent.module.scss';
+import { useSearchParams } from 'next/navigation';
+import { generateInteractionId } from '@/app/api/interactionAPI';
 
 interface CurrentChatInterfaceProps {
     onBack?: () => void;
@@ -12,19 +14,45 @@ interface CurrentChatInterfaceProps {
 const CurrentChatInterface: React.FC<CurrentChatInterfaceProps> = ({ onBack }) => {
     const [currentChatData, setCurrentChatData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const searchParams = useSearchParams();
+
+    const initialMessageToExecute = useMemo(() => searchParams.get('initial_message'), [searchParams]);
 
     useEffect(() => {
-        const savedChatData = localStorage.getItem('currentChatData');
-        if (savedChatData) {
+        setLoading(true);
+        const savedDataString = localStorage.getItem('currentChatData');
+
+        if (savedDataString) {
             try {
-                const chatData = JSON.parse(savedChatData);
-                setCurrentChatData(chatData);
+                setCurrentChatData(JSON.parse(savedDataString));
             } catch (error) {
-                console.error('Failed to parse current chat data:', error);
+                console.error('Failed to parse current chat data, clearing storage.', error);
+                localStorage.removeItem('currentChatData');
+                setCurrentChatData(null);
             }
+            setLoading(false);
+            return;
         }
+
+        const workflowIdFromUrl = searchParams.get('workflowId');
+        const workflowNameFromUrl = searchParams.get('workflowName');
+        const isStartingNewChat = workflowIdFromUrl && workflowNameFromUrl;
+
+        if (isStartingNewChat) {
+            const newChatData = {
+                workflowId: workflowIdFromUrl,
+                workflowName: workflowNameFromUrl,
+                interactionId: generateInteractionId(),
+                startedAt: new Date().toISOString(),
+            };
+            localStorage.setItem('currentChatData', JSON.stringify(newChatData));
+            setCurrentChatData(newChatData);
+        } else {
+            setCurrentChatData(null);
+        }
+
         setLoading(false);
-    }, []);
+    }, [searchParams]);
 
     // Hook들은 항상 같은 순서로 호출되어야 함
     const workflow = useMemo(() => {
@@ -63,7 +91,7 @@ const CurrentChatInterface: React.FC<CurrentChatInterfaceProps> = ({ onBack }) =
         );
     }
 
-    if (!currentChatData || !workflow || !existingChatData) {
+   if (!currentChatData || !workflow ) {
         return (
             <div className={chatContentStyles.chatContainer}>
                 <div className={chatContentStyles.workflowSection}>
@@ -88,6 +116,7 @@ const CurrentChatInterface: React.FC<CurrentChatInterfaceProps> = ({ onBack }) =
                     existingChatData={existingChatData}
                     hideBackButton={true}
                     onBack={onBack || (() => { })}
+                    initialMessageToExecute={initialMessageToExecute}
                 />
             </div>
         </div>

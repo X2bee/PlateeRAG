@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { usePagesLayout} from '@/app/_common/components/PagesLayoutContent';
 import {
     FiSend,
@@ -23,9 +24,24 @@ import { generateInteractionId, normalizeWorkflowName } from '@/app/api/interact
 import { devLog } from '@/app/_common/utils/logger';
 import { isStreamingWorkflow } from '@/app/_common/utils/isStreamingWorkflow';
 
+interface NewChatInterfaceProps extends ChatInterfaceProps {
+    onStartNewChat?: (message: string) => void;
+    initialMessageToExecute?: string | null;
+}
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, onChatStarted, hideBackButton = false, firstChat = false, existingChatData }) => {
+const ChatInterface: React.FC<NewChatInterfaceProps> = (
+    { 
+        mode, 
+        workflow, 
+        onBack, 
+        onChatStarted, 
+        hideBackButton = false, 
+        existingChatData, 
+        onStartNewChat, 
+        initialMessageToExecute 
+    }) => {
     const layoutContext = usePagesLayout();
+    const router = useRouter();
     const sidebarWasOpenRef = useRef<boolean | null>(null);
 
     const [ioLogs, setIOLogs] = useState<IOLog[]>([]);
@@ -40,6 +56,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
     const [selectedCollectionMakeName, setSelectedCollectionMakeName] = useState<string | null>(null);
     const [collectionMapping, setCollectionMapping] = useState<{[key: string]: string}>({});
     const [showDeploymentModal, setShowDeploymentModal] = useState(false);
+    const hasExecutedInitialMessage = useRef(false);
 
 
     const messagesRef = useRef<HTMLDivElement>(null);
@@ -87,34 +104,128 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
         }
     }, [isAnyModalOpen, layoutContext]);
 
+    const executeWorkflow = useCallback(async (messageOverride?: string) => {
+        if (executing) {
+            toast.loading('이전 작업이 완료될 때까지 잠시만 기다려주세요.');
+            return;
+        }
+
+        const currentMessage = messageOverride || inputMessage;
+        if (!currentMessage.trim()) return;
+
+        if (!messageOverride) {
+            setInputMessage('');
+        }
+
+        setExecuting(true);
+        setError(null);
+        const tempId = `pending-${Date.now()}`;
+        setPendingLogId(tempId);
+
+        setIOLogs((prev) => [
+            ...prev,
+            {
+                log_id: tempId,
+                workflow_name: workflow.name,
+                workflow_id: workflow.id,
+                input_data: currentMessage,
+                output_data: '',
+                updated_at: new Date().toISOString(),
+            },
+        ]);
+
+        try {
+            const workflowData = await loadWorkflow(workflow.name);
+            const isStreaming = isStreamingWorkflow(workflowData);
+            const { interactionId, workflowId, workflowName } = existingChatData || {
+                interactionId: generateInteractionId(), 
+                workflowId: workflow.id, workflowName: workflow.name};
+
+            if (!interactionId || !workflowId || !workflowName) {
+                throw new Error("채팅 세션 정보가 유효하지 않습니다.");
+            }
+            
+            if (isStreaming) {
+                await executeWorkflowByIdStream({
+                    workflowName,
+                    workflowId,
+                    inputData: currentMessage,
+                    interactionId,
+                    selectedCollections: null, // 컬렉션 로직 필요 시 추가
+                    onData: (chunk) => {
+                        setIOLogs((prev) =>
+                            prev.map((log) =>
+                                String(log.log_id) === tempId
+                                    ? { ...log, output_data: (log.output_data || '') + chunk }
+                                    : log
+                            )
+                        );
+                        scrollToBottom();
+                    },
+                    onEnd: () => setPendingLogId(null),
+                    onError: (err) => { throw err; },
+                });
+            } else {
+                const result: any = await executeWorkflowById(workflowName, workflowId, currentMessage, interactionId, null);
+                setIOLogs((prev) =>
+                    prev.map((log) =>
+                        String(log.log_id) === tempId
+                            ? { ...log, output_data: result.outputs ? JSON.stringify(result.outputs, null, 2) : result.message || '처리 완료' }
+                            : log
+                    )
+                );
+                setPendingLogId(null);
+            }
+        } catch (err: any) {
+            setIOLogs((prev) =>
+                prev.map((log) =>
+                    String(log.log_id) === tempId
+                        ? { ...log, output_data: err.message || '메시지 처리 중 오류 발생' }
+                        : log
+                )
+            );
+            setPendingLogId(null);
+            toast.error(err.message || '메시지 처리 중 오류가 발생했습니다.');
+        } finally {
+            setExecuting(false);
+            scrollToBottom();
+        }
+    }, [executing, inputMessage, workflow, existingChatData, scrollToBottom]);
 
     useEffect(() => {
-        const loadChatLogs = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-
-                const interactionId = existingChatData?.interactionId || 'default';
-                const workflowName = existingChatData?.workflowName || workflow.name;
-                const workflowId = existingChatData?.workflowId || workflow.id;
-
-                const logs = await getWorkflowIOLogs(workflowName, workflowId, interactionId);
-                setIOLogs((logs as any).in_out_logs || []);
-                setPendingLogId(null);
-                localStorage.removeItem('selectedCollection');
-                setSelectedCollection([]);
-                setSelectedCollectionMakeName(null);
-            } catch (err) {
-                setError('채팅 기록을 불러오는데 실패했습니다.');
+        const initializeChat = async () => {
+            setLoading(true);
+            if (existingChatData?.interactionId) {
+                try {
+                    const { interactionId, workflowId, workflowName } = existingChatData;
+                    const logs = await getWorkflowIOLogs(workflowName, workflowId, interactionId);
+                    setIOLogs((logs as any).in_out_logs || []);
+                } catch (err) {
+                    setError('채팅 기록을 불러오는데 실패했습니다.');
+                    setIOLogs([]);
+                }
+            } else {
                 setIOLogs([]);
-            } finally {
-                setLoading(false);
+            }
+            setLoading(false);
+
+            if (initialMessageToExecute && !hasExecutedInitialMessage.current) {
+                hasExecutedInitialMessage.current = true;
+                
+                await executeWorkflow(initialMessageToExecute);
+                
+                const newSearchParams = new URLSearchParams(window.location.search);
+                newSearchParams.delete('initial_message');
+                router.replace(`${window.location.pathname}?${newSearchParams.toString()}`, { scroll: false });
             }
         };
-        if (mode === 'existing' && workflow?.id && existingChatData?.interactionId && !firstChat) {
-            loadChatLogs();
+
+        if (mode === 'existing' && workflow?.id) {
+            initializeChat();
         }
-    }, [mode, existingChatData?.interactionId, workflow.id, workflow.name, existingChatData?.workflowName, existingChatData?.workflowId, firstChat]);
+    }, [existingChatData, initialMessageToExecute, mode, workflow?.id, router]);
+
+
 
     useEffect(() => {
         scrollToBottom();
@@ -145,42 +256,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
             }
         };
     }, [executing, scrollToBottom]);
-
-    // 아래 제거해도 별 문제 없는 것 같음.
-    // // localStorage에서 선택된 컬렉션 정보 가져오기
-    // useEffect(() => {
-    //     const checkSelectedCollection = () => {
-    //         try {
-    //             const storedCollection = localStorage.getItem('selectedCollection');
-    //             if (storedCollection) {
-    //                 const collectionData = JSON.parse(storedCollection);
-    //                 setSelectedCollection(collectionData.name);
-    //                 setSelectedCollectionMakeName(collectionData.make_name);
-    //             } else {
-    //                 setSelectedCollection(null);
-    //                 setSelectedCollectionMakeName(null);
-    //             }
-    //         } catch (err) {
-    //             console.error('Failed to load selected collection:', err);
-    //             setSelectedCollection(null);
-    //             setSelectedCollectionMakeName(null);
-    //         }
-    //     };
-
-    //     checkSelectedCollection();
-
-    //     const handleStorageChange = (e: StorageEvent) => {
-    //         if (e.key === 'selectedCollection') {
-    //             checkSelectedCollection();
-    //         }
-    //     };
-
-    //     window.addEventListener('storage', handleStorageChange);
-
-    //     return () => {
-    //         window.removeEventListener('storage', handleStorageChange);
-    //     };
-    // }, []);
 
     useEffect(() => {
         if (!showCollectionModal) {
@@ -257,168 +332,23 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
         );
     };
 
-    const executeWorkflow = async () => {
-        if (!inputMessage.trim()) {
-            return;
-        }
-
-        setError(null);
-        setExecuting(true);
-        const tempId = `pending-${Date.now()}`;
-        setPendingLogId(tempId);
-
-        // 임시 메시지 추가
-        setIOLogs((prev) => [
-            ...prev,
-            {
-                log_id: tempId,
-                workflow_name: workflow.name,
-                workflow_id: workflow.id,
-                input_data: inputMessage,
-                output_data: '',
-                updated_at: new Date().toISOString(),
-            },
-        ]);
-
-        // 메시지 추가 후 즉시 스크롤
-        setTimeout(() => scrollToBottom(), 0);
-
-        const currentMessage = inputMessage;
+    const handleStartNewChatFlow = useCallback(() => {
+        if (!inputMessage.trim() || !onStartNewChat) return;
+        const messageToSend = inputMessage;
         setInputMessage('');
+        onStartNewChat(messageToSend);
+    }, [inputMessage, onStartNewChat]);
 
-        try {
-
-            const workflowData = await loadWorkflow(workflow.name);
-
-            const isStreaming = isStreamingWorkflow(workflowData);
-
-            const interactionId = existingChatData?.interactionId || generateInteractionId();
-            const workflowName = existingChatData?.workflowName || workflow.name;
-            const workflowId = existingChatData?.workflowId || workflow.id;
-            const collectionsToSend = selectedCollection.length > 0 ? selectedCollection : null;
-
-            devLog.log('Executing workflow with collections:', {
-                workflowName,
-                workflowId,
-                currentMessage,
-                interactionId,
-                selectedCollection,
-                collectionsToSend,
-                collectionsCount: selectedCollection.length
-            });
-
-            if (isStreaming) {
-                if (onChatStarted) {
-                    onChatStarted();
-                }
-                await executeWorkflowByIdStream({
-                    workflowName,
-                    workflowId,
-                    inputData: currentMessage,
-                    interactionId,
-                    selectedCollections: collectionsToSend,
-                    onData: (chunk) => {
-                        setIOLogs((prev) =>
-                            prev.map((log) => {
-                                if (String(log.log_id) !== tempId) return log;
-                                const newOutput = log.output_data === '...' ? chunk : log.output_data + chunk;
-                                return { 
-                                    ...log, 
-                                    output_data: newOutput,
-                                    updated_at: new Date().toISOString(), 
-                                };
-                            })
-                        );
-                        scrollToBottom();
-                    },
-                    onEnd: () => {
-                        toast.success('스트리밍이 완료되었습니다!');
-                        setPendingLogId(null);
-                    },
-                    onError: (err) => {
-                        throw err;
-                    },
-                });
-            } else {
-                const result: any = await executeWorkflowById(
-                    workflowName,
-                    workflowId,
-                    currentMessage,
-                    interactionId,
-                    collectionsToSend,
-                );
-
-                if (onChatStarted) {
-                    onChatStarted();
-                }
-
-                devLog.log('Workflow execution result:', result);
-                
-                setIOLogs((prev) =>
-                    prev.map((log) =>
-                        String(log.log_id) === tempId
-                            ? {
-                                ...log,
-                                output_data: result.outputs
-                                    ? JSON.stringify(result.outputs, null, 2)
-                                    : result.message || '처리 완료',
-                                updated_at: new Date().toISOString(),
-                            }
-                            : log,
-                    ),
-                );
-                toast.success('메시지가 성공적으로 전송되었습니다!');
-                setPendingLogId(null);
-            }
-
-            if (existingChatData) {
-                const currentChatData = {
-                    interactionId: existingChatData.interactionId,
-                    workflowId: existingChatData.workflowId,
-                    workflowName: existingChatData.workflowName,
-                    startedAt: new Date().toISOString(),
-                };
-                localStorage.setItem('currentChatData', JSON.stringify(currentChatData));
-            } else {
-                const currentChatData = {
-                    interactionId: interactionId,
-                    workflowId: workflow.id,
-                    workflowName: normalizeWorkflowName(workflow.name),
-                    startedAt: new Date().toISOString(),
-                };
-                localStorage.setItem('currentChatData', JSON.stringify(currentChatData));
-            }
-
-        } catch (err) {
-            // 에러로 임시 메시지 업데이트
-            setIOLogs((prev) =>
-                prev.map((log) =>
-                    String(log.log_id) === tempId
-                        ? {
-                              ...log,
-                              output_data: err instanceof Error ? err.message : '처리 중 오류가 발생했습니다.',
-                              updated_at: new Date().toISOString(),
-                          }
-                        : log,
-                ),
-            );
-
-            // 에러 업데이트 후 스크롤
-            setTimeout(() => scrollToBottom(), 100);
-
-            setPendingLogId(null);
-            toast.error('메시지 처리 중 오류가 발생했습니다.');
-        } finally {
-            setExecuting(false);
-        }
-    };
-
-    const handleKeyPress = (e: React.KeyboardEvent) => {
+    const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey && !executing) {
             e.preventDefault();
-            executeWorkflow();
+            if (mode === 'new-default' || mode === 'new-workflow') {
+                handleStartNewChatFlow();
+            } else {
+                executeWorkflow();
+            }
         }
-    };
+    }, [executing, mode, handleStartNewChatFlow, executeWorkflow]);
 
     const handleAttachmentClick = () => {
         setShowAttachmentMenu(!showAttachmentMenu);
@@ -432,12 +362,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
             setShowCollectionModal(true);
         }
         // TODO: 다른 옵션들에 대한 구현
-    };
-
-    const handleRemoveCollection = () => {
-        localStorage.removeItem('selectedCollection');
-        setSelectedCollection([]);
-        setSelectedCollectionMakeName(null);
     };
 
     // 첨부 메뉴 외부 클릭 시 닫기
@@ -613,15 +537,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode, workflow, onBack, o
                                     )}
                                 </div>
                                 <button
-                                    onClick={executeWorkflow}
+                                    onClick={() => {
+                                        if (mode === 'new-default' || mode === 'new-workflow') {
+                                            handleStartNewChatFlow();
+                                        } else {
+                                            executeWorkflow();
+                                        }
+                                    }}
                                     disabled={executing || !inputMessage.trim()}
                                     className={`${styles.sendButton} ${executing || !inputMessage.trim() ? styles.disabled : ''}`}
                                 >
-                                    {executing ? (
-                                        <div className={styles.miniSpinner}></div>
-                                    ) : (
-                                        <FiSend />
-                                    )}
+                                    {executing ? <div className={styles.miniSpinner}></div> : <FiSend />}
                                 </button>
                             </div>
                         </div>

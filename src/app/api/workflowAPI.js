@@ -1,7 +1,6 @@
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
 import { apiClient } from './apiClient';
-import { getAuthCookie } from '@/app/_common/utils/cookieUtils';
 
 /**
  * 주어진 워크플로우 데이터를 백엔드로 전송하여 실행합니다.
