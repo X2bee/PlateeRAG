@@ -1,5 +1,6 @@
 @use "sass:color";
 @import "Settings.Additional.module.scss";
+@import "Settings.Vast.module.scss";
 // Color Variables
 $primary-blue: #2563eb;
 $primary-green: #059669;
@@ -18,7 +19,7 @@ $gray-900: #3369de;
 $white: #ffffff;
 
 .container {
-    max-width: 1200px;
+    max-width: 1450px;
     margin: 0 auto;
 }
 

@@ -3,11 +3,44 @@ import { FiRefreshCw, FiCheck, FiX, FiPlay, FiSquare, FiCopy, FiExternalLink, Fi
 import { BsGpuCard } from 'react-icons/bs';
 import toast from 'react-hot-toast';
 import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/baseConfigPanel';
+import { checkVastHealth, searchVastOffers } from '@/app/api/vastAPI';
+import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/main/assets/Settings.module.scss';
 
 interface VastAiConfigProps {
     configData?: ConfigItem[];
     onTestConnection?: (category: string) => void;
+}
+
+interface VastOffer {
+    id: string;
+    gpu_name: string;
+    num_gpus: number;
+    gpu_ram: number;
+    dph_total: number;
+    rentable: boolean;
+    public_ipaddr?: string;
+}
+
+interface VastOfferSearchResponse {
+    offers: VastOffer[];
+    total: number;
+    filtered_count: number;
+    search_query?: string;
+    sort_info: {
+        sort_by: string;
+        order: string;
+    };
+}
+
+interface SearchParams {
+    gpu_name?: string;
+    max_price?: number;
+    min_gpu_ram?: number;
+    num_gpus?: number;
+    rentable?: boolean;
+    sort_by?: string;
+    limit?: number;
 }
 
 interface VastInstance {
@@ -28,6 +61,12 @@ interface VastInstance {
     status: 'ready' | 'loading' | 'error';
 }
 
+interface VastHealthResponse {
+    status: string;
+    service: string;
+    message: string;
+}
+
 // Vast.ai 관련 설정 필드
 const VAST_AI_CONFIG_FIELDS: Record<string, FieldConfig> = {
     VAST_API_KEY: {
@@ -41,260 +80,76 @@ const VAST_AI_CONFIG_FIELDS: Record<string, FieldConfig> = {
 
 const VastAiConfig: React.FC<VastAiConfigProps> = ({
     configData = [],
-    onTestConnection,
 }) => {
-    const [accessType, setAccessType] = useState<'vast' | 'external'>('vast');
-    const [autoRefresh, setAutoRefresh] = useState(true);
-    const [showAdvanced, setShowAdvanced] = useState(false);
-    const [vastInstance, setVastInstance] = useState<VastInstance | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [searchParams, setSearchParams] = useState<SearchParams>({
+        gpu_name: '',
+        max_price: 2,
+        min_gpu_ram: 16,
+        num_gpus: 1,
+        rentable: true,
+        sort_by: 'price',
+        limit: 20
+    });
+    const [searchResults, setSearchResults] = useState<VastOfferSearchResponse | null>(null);
+    const [isSearching, setIsSearching] = useState(false);
 
-    // 더미 인스턴스 데이터 (실제로는 API에서 가져와야 함)
-    const dummyInstance: VastInstance = {
-        id: '24295720',
-        public_ipaddr: '80.188.223.202',
-        gpu_name: 'A100 SXM4',
-        dph_total: 1.285,
-        cpu_cores: 128,
-        cpu_ram: 515549,
-        gpu_ram: 81920,
-        disk_space: 256,
-        inet_down: 6891.5,
-        inet_up: 6492.4,
-        cuda_max_good: 12.8,
-        reliability: 99.9,
-        verified: false,
-        geolocation: 'Czechia, CZ',
-        status: 'ready'
+    const handleTestConnection = async () => {
+        try {
+            devLog.info('Testing vast.ai connection...');
+            const result = await checkVastHealth() as VastHealthResponse;
+
+            if (result && result.status === 'healthy' && result.service === 'vast') {
+                toast.success(`연결 성공: ${result.message || 'VastAI 서비스가 정상적으로 작동 중입니다'}`);
+                devLog.info('Vast connection test successful:', result);
+            } else {
+                throw new Error('Invalid response format or service not healthy');
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            toast.error(`연결 실패: ${errorMessage}`);
+            devLog.error('Vast connection test failed:', error);
+        }
     };
 
-    useEffect(() => {
-        // 컴포넌트 마운트 시 더미 데이터 설정
-        setVastInstance(dummyInstance);
-    }, []);
+    const handleSearchOffers = async () => {
+        if (!searchParams.gpu_name?.trim()) {
+            toast.error('GPU 이름을 입력해주세요.');
+            return;
+        }
 
-    const handleCopyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text);
-        toast.success('클립보드에 복사되었습니다');
+        setIsSearching(true);
+        try {
+            devLog.info('Searching vast offers with params:', searchParams);
+
+            // 빈 값들을 제거한 검색 파라미터 생성
+            const cleanParams: SearchParams = {};
+            if (searchParams.gpu_name?.trim()) cleanParams.gpu_name = searchParams.gpu_name.trim();
+            if (searchParams.max_price) cleanParams.max_price = searchParams.max_price;
+            if (searchParams.min_gpu_ram) cleanParams.min_gpu_ram = searchParams.min_gpu_ram;
+            if (searchParams.num_gpus) cleanParams.num_gpus = searchParams.num_gpus;
+            if (searchParams.rentable !== undefined) cleanParams.rentable = searchParams.rentable;
+            if (searchParams.sort_by) cleanParams.sort_by = searchParams.sort_by;
+            if (searchParams.limit) cleanParams.limit = searchParams.limit;
+
+            const result = await searchVastOffers(cleanParams) as VastOfferSearchResponse;
+            setSearchResults(result);
+
+            toast.success(`${result.filtered_count}개의 오퍼를 찾았습니다.`);
+            devLog.info('Search results:', result);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            toast.error(`검색 실패: ${errorMessage}`);
+            devLog.error('Failed to search offers:', error);
+        } finally {
+            setIsSearching(false);
+        }
     };
 
-    const handleOpenUrl = (url: string) => {
-        window.open(url, '_blank');
-    };
-
-    const handleServeModel = () => {
-        setIsLoading(true);
-        // 모델 서빙 로직 구현
-        setTimeout(() => {
-            setIsLoading(false);
-            toast.success('모델 서빙이 시작되었습니다');
-        }, 2000);
-    };
-
-    const handleStopModel = () => {
-        toast.success('모델이 중지되었습니다');
-    };
-
-    const renderAccessTypeSelection = () => (
-        <div className={styles.accessTypeSection}>
-            <label className={styles.fieldLabel}>How do you want to access VLLM?</label>
-            <div className={styles.radioGrid}>
-                <label className={`${styles.radioOption} ${accessType === 'vast' ? styles.selected : ''}`}>
-                    <input
-                        type="radio"
-                        value="vast"
-                        checked={accessType === 'vast'}
-                        onChange={(e) => setAccessType(e.target.value as 'vast' | 'external')}
-                        className={styles.radioInput}
-                    />
-                    <div className={styles.radioContent}>
-                        <div className={styles.radioIcon}>🚀</div>
-                        <div className={styles.radioInfo}>
-                            <div className={styles.radioTitle}>Rent GPU from vast.ai</div>
-                            <div className={styles.radioDescription}>
-                                Automatically provision and configure a cloud GPU instance
-                            </div>
-                            <div className={styles.radioFeatures}>
-                                <div className={styles.feature}>
-                                    <span className={styles.checkmark}>✓</span>
-                                    <span>Automatic setup & configuration</span>
-                                </div>
-                                <div className={styles.feature}>
-                                    <span className={styles.checkmark}>✓</span>
-                                    <span>Pay-per-use pricing</span>
-                                </div>
-                                <div className={styles.feature}>
-                                    <span className={styles.checkmark}>✓</span>
-                                    <span>Latest GPU hardware</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </label>
-
-                <label className={`${styles.radioOption} ${accessType === 'external' ? styles.selected : ''}`}>
-                    <input
-                        type="radio"
-                        value="external"
-                        checked={accessType === 'external'}
-                        onChange={(e) => setAccessType(e.target.value as 'vast' | 'external')}
-                        className={styles.radioInput}
-                    />
-                    <div className={styles.radioContent}>
-                        <div className={styles.radioIcon}>🔗</div>
-                        <div className={styles.radioInfo}>
-                            <div className={styles.radioTitle}>Connect to existing server</div>
-                            <div className={styles.radioDescription}>
-                                Use your own VLLM server or another cloud provider
-                            </div>
-                            <div className={styles.radioFeatures}>
-                                <div className={styles.feature}>
-                                    <span className={styles.checkmark}>✓</span>
-                                    <span>Use existing infrastructure</span>
-                                </div>
-                                <div className={styles.feature}>
-                                    <span className={styles.checkmark}>✓</span>
-                                    <span>Full control over configuration</span>
-                                </div>
-                                <div className={styles.feature}>
-                                    <span className={styles.checkmark}>✓</span>
-                                    <span>Works with any VLLM server</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </label>
-            </div>
-        </div>
-    );
-
-    const renderVastInstanceOverview = () => {
-        if (!vastInstance || accessType !== 'vast') return null;
-
-        return (
-            <div className={styles.vastInstanceSection}>
-                <div className={styles.instanceHeader}>
-                    <div className={styles.instanceTitle}>
-                        <span className={styles.instanceIcon}>🚀</span>
-                        <h4>Vast.ai GPU Instance Setup</h4>
-                    </div>
-                    <div className={styles.instanceControls}>
-                        <span className={styles.statusBadge}>✅ Ready</span>
-                        <span className={styles.statusBadge}>🔄 Auto-refresh ON</span>
-                        <button
-                            className={styles.refreshButton}
-                            onClick={() => setAutoRefresh(!autoRefresh)}
-                            title={autoRefresh ? "Disable auto-refresh" : "Enable auto-refresh"}
-                        >
-                            🔄 Auto
-                        </button>
-                        <button className={styles.refreshButton} title="Refresh instance data">
-                            <FiRefreshCw /> Refresh
-                        </button>
-                    </div>
-                </div>
-
-                {autoRefresh && (
-                    <div className={styles.autoRefreshInfo}>
-                        🔄 Auto-refresh is enabled. Instance status will be automatically checked when you return to this page or every 10 minutes.
-                    </div>
-                )}
-
-                <div className={styles.instanceOverview}>
-                    <div className={styles.overviewHeader}>
-                        <h4>🖥️ Instance Overview</h4>
-                        <span className={styles.statusBadge}>✅ Ready</span>
-                    </div>
-                    <div className={styles.statsGrid}>
-                        <div className={styles.statItem}>
-                            <div className={styles.statLabel}>Instance ID</div>
-                            <div className={styles.statValue}>{vastInstance.id}</div>
-                        </div>
-                        <div className={styles.statItem}>
-                            <div className={styles.statLabel}>Public IP</div>
-                            <div className={styles.statValue}>{vastInstance.public_ipaddr}</div>
-                        </div>
-                        <div className={styles.statItem}>
-                            <div className={styles.statLabel}>GPU Type</div>
-                            <div className={styles.statValue}>{vastInstance.gpu_name}</div>
-                        </div>
-                        <div className={styles.statItem}>
-                            <div className={styles.statLabel}>Cost/Hour</div>
-                            <div className={styles.statValue}>${vastInstance.dph_total}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className={styles.hardwareSpecs}>
-                    <h4>⚙️ Hardware Specifications</h4>
-                    <div className={styles.specsGrid}>
-                        <div className={styles.specItem}>
-                            <div className={styles.specLabel}>GPU Count</div>
-                            <div className={styles.specValue}>1</div>
-                        </div>
-                        <div className={styles.specItem}>
-                            <div className={styles.specLabel}>GPU RAM</div>
-                            <div className={styles.specValue}>{vastInstance.gpu_ram} GB</div>
-                        </div>
-                        <div className={styles.specItem}>
-                            <div className={styles.specLabel}>CPU Cores</div>
-                            <div className={styles.specValue}>{vastInstance.cpu_cores}</div>
-                        </div>
-                        <div className={styles.specItem}>
-                            <div className={styles.specLabel}>System RAM</div>
-                            <div className={styles.specValue}>{vastInstance.cpu_ram} GB</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className={styles.modelControl}>
-                    <h4>🤖 Model Control</h4>
-
-                    <div className={styles.apiEndpoints}>
-                        <div className={styles.endpointItem}>
-                            <span className={styles.endpointLabel}>OpenAI Compatible API:</span>
-                            <div className={styles.endpointUrl}>
-                                <code>http://{vastInstance.public_ipaddr}:11405/v1</code>
-                                <button
-                                    onClick={() => handleCopyToClipboard(`http://${vastInstance.public_ipaddr}:11405/v1`)}
-                                    className={styles.copyButton}
-                                >
-                                    <FiCopy /> Copy
-                                </button>
-                            </div>
-                        </div>
-                        <div className={styles.endpointItem}>
-                            <span className={styles.endpointLabel}>Health Check:</span>
-                            <div className={styles.endpointUrl}>
-                                <code>http://{vastInstance.public_ipaddr}:11405/health</code>
-                                <button
-                                    onClick={() => handleOpenUrl(`http://${vastInstance.public_ipaddr}:11405/health`)}
-                                    className={styles.testButton}
-                                >
-                                    <FiExternalLink /> Test
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className={styles.modelActions}>
-                        <button
-                            className={`${styles.serveButton} ${isLoading ? styles.loading : ''}`}
-                            onClick={handleServeModel}
-                            disabled={isLoading}
-                        >
-                            <FiPlay /> {isLoading ? 'Starting...' : 'Serve Model'}
-                        </button>
-                        <button
-                            className={styles.stopButton}
-                            onClick={handleStopModel}
-                        >
-                            <FiSquare /> Stop Model
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
+    const handleParamChange = (field: keyof SearchParams, value: any) => {
+        setSearchParams(prev => ({
+            ...prev,
+            [field]: value
+        }));
     };
 
     return (
@@ -303,12 +158,219 @@ const VastAiConfig: React.FC<VastAiConfigProps> = ({
                 configData={configData}
                 fieldConfigs={VAST_AI_CONFIG_FIELDS}
                 filterPrefix="vast"
-                onTestConnection={onTestConnection}
-                testConnectionLabel="연결 테스트"
+                onTestConnection={() => handleTestConnection()}
+                testConnectionLabel="Vast.ai 연결 테스트"
                 testConnectionCategory="vast"
             />
-            {accessType === 'vast' && renderVastInstanceOverview()}
 
+            {/* GPU 오퍼 검색 패널 */}
+            <div className={styles.configSection}>
+                <h3 className={styles.sectionTitle}>
+                    <BsGpuCard className={styles.sectionIcon} />
+                    GPU 오퍼 검색
+                </h3>
+
+                <div className={styles.searchLayout}>
+                    <div className={styles.searchPanel}>
+                        <div className={styles.searchItem}>
+                            <label className={styles.searchLabel}>GPU 모델명</label>
+                            <div className={styles.inputGroup}>
+                                <select
+                                    className={styles.select}
+                                    value={searchParams.gpu_name || ''}
+                                    onChange={(e) => handleParamChange('gpu_name', e.target.value)}
+                                >
+                                    <option value="">GPU 모델을 선택하세요</option>
+                                    <option value="RTX_4090">RTX 4090</option>
+                                    <option value="RTX_5090">RTX 5090</option>
+                                </select>
+                                <button
+                                    className={`${styles.button} ${styles.primary}`}
+                                    onClick={handleSearchOffers}
+                                    disabled={isSearching || !searchParams.gpu_name?.trim()}
+                                >
+                                    {isSearching ? (
+                                        <>
+                                            <FiRefreshCw className={`${styles.icon} ${styles.spinning}`} />
+                                            검색
+                                        </>
+                                    ) : (
+                                        <>
+                                            <FiPlay className={styles.icon} />
+                                            검색
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* 고급 설정들을 컴팩트하게 배치 */}
+                        <div className={styles.compactRow}>
+                            <div className={styles.advancedFormGroup}>
+                                <label className={styles.label}>최대 가격 ($/시간)</label>
+                                <input
+                                    type="number"
+                                    className={styles.input}
+                                    placeholder="2.0"
+                                    step="0.1"
+                                    min="0"
+                                    value={searchParams.max_price || ''}
+                                    onChange={(e) => handleParamChange('max_price', parseFloat(e.target.value) || undefined)}
+                                />
+                            </div>
+                            <div className={styles.advancedFormGroup}>
+                                <label className={styles.label}>최소 GPU RAM (GB)</label>
+                                <input
+                                    type="number"
+                                    className={styles.input}
+                                    placeholder="16"
+                                    min="1"
+                                    value={searchParams.min_gpu_ram || ''}
+                                    onChange={(e) => handleParamChange('min_gpu_ram', parseInt(e.target.value) || undefined)}
+                                />
+                            </div>
+                        </div>
+
+                        <div className={styles.compactRow}>
+                            <div className={styles.advancedFormGroup}>
+                                <label className={styles.label}>GPU 개수</label>
+                                <input
+                                    type="number"
+                                    className={styles.input}
+                                    placeholder="1"
+                                    min="1"
+                                    value={searchParams.num_gpus || ''}
+                                    onChange={(e) => handleParamChange('num_gpus', parseInt(e.target.value) || undefined)}
+                                />
+                            </div>
+                            <div className={styles.advancedFormGroup}>
+                                <label className={styles.label}>정렬 기준</label>
+                                <select
+                                    className={styles.select}
+                                    value={searchParams.sort_by || 'price'}
+                                    onChange={(e) => handleParamChange('sort_by', e.target.value)}
+                                >
+                                    <option value="price">가격순</option>
+                                    <option value="gpu_ram">GPU RAM순</option>
+                                    <option value="num_gpus">GPU 개수순</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className={styles.compactRow}>
+                            <div className={styles.advancedFormGroup}>
+                                <label className={styles.label}>결과 제한</label>
+                                <input
+                                    type="number"
+                                    className={styles.input}
+                                    placeholder="20"
+                                    min="1"
+                                    max="100"
+                                    value={searchParams.limit || ''}
+                                    onChange={(e) => handleParamChange('limit', parseInt(e.target.value) || undefined)}
+                                />
+                            </div>
+                            <div className={styles.advancedFormGroup}>
+                                <label className={styles.checkboxLabel}>
+                                    <input
+                                        type="checkbox"
+                                        checked={searchParams.rentable ?? true}
+                                        onChange={(e) => handleParamChange('rentable', e.target.checked)}
+                                    />
+                                    렌트 가능한 것만
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 우측 결과 패널 */}
+                    <div className={styles.resultsPanel}>
+                        {searchResults ? (
+                            <div className={styles.resultsSection}>
+                                <div className={styles.resultsHeader}>
+                                    <h4>검색 결과</h4>
+                                    <span className={styles.resultCount}>
+                                        총 {searchResults.total}개 중 {searchResults.filtered_count}개 표시
+                                    </span>
+                                </div>
+
+                                {searchResults.offers.length === 0 ? (
+                                    <div className={styles.noResults}>
+                                        <FiX className={styles.icon} />
+                                        검색 조건에 맞는 오퍼가 없습니다.
+                                    </div>
+                                ) : (
+                                    <div className={styles.offersList}>
+                                        {searchResults.offers.map((offer) => (
+                                            <div key={offer.id} className={styles.offerCard}>
+                                                <div className={styles.offerHeader}>
+                                                    <div className={styles.gpuInfo}>
+                                                        <BsGpuCard className={styles.gpuIcon} />
+                                                        <span className={styles.gpuName}>{offer.gpu_name}</span>
+                                                        {offer.num_gpus > 1 && (
+                                                            <span className={styles.gpuCount}>x{offer.num_gpus}</span>
+                                                        )}
+                                                    </div>
+                                                    <div className={styles.price}>
+                                                        ${offer.dph_total.toFixed(3)}/시간
+                                                    </div>
+                                                </div>
+
+                                                <div className={styles.offerDetails}>
+                                                    <div className={styles.detail}>
+                                                        <span className={styles.detailLabel}>GPU RAM:</span>
+                                                        <span className={styles.detailValue}>{offer.gpu_ram}GB</span>
+                                                    </div>
+                                                    <div className={styles.detail}>
+                                                        <span className={styles.detailLabel}>상태:</span>
+                                                        <span className={`${styles.status} ${offer.rentable ? styles.available : styles.unavailable}`}>
+                                                            {offer.rentable ? (
+                                                                <>
+                                                                    <FiCheck className={styles.statusIcon} />
+                                                                    렌트 가능
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <FiX className={styles.statusIcon} />
+                                                                    렌트 불가
+                                                                </>
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                    {offer.public_ipaddr && (
+                                                        <div className={styles.detail}>
+                                                            <span className={styles.detailLabel}>IP:</span>
+                                                            <span className={styles.detailValue}>{offer.public_ipaddr}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className={styles.offerActions}>
+                                                    <button
+                                                        className={styles.copyButton}
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(offer.id);
+                                                            toast.success('오퍼 ID가 복사되었습니다.');
+                                                        }}
+                                                    >
+                                                        <FiCopy className={styles.icon} />
+                                                        ID 복사
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className={styles.noResults}>
+                                <BsGpuCard className={styles.icon} />
+                                GPU 모델명을 입력하고 검색해주세요.
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

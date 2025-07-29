@@ -24,58 +24,23 @@ export const checkVastHealth = async () => {
 };
 
 /**
- * Vast 설정 조회 API
- * @returns {Promise<Object>} 현재 Vast 설정
+ * GPU 오퍼 검색 API
+ * @param {Object} searchParams - 검색 파라미터
+ * @param {string} [searchParams.gpu_name] - GPU 모델명
+ * @param {number} [searchParams.max_price] - 최대 시간당 가격
+ * @param {number} [searchParams.min_gpu_ram] - 최소 GPU RAM (GB)
+ * @param {number} [searchParams.num_gpus] - GPU 개수
+ * @param {boolean} [searchParams.rentable] - 렌트 가능 여부
+ * @param {string} [searchParams.sort_by] - 정렬 기준 (price, gpu_ram, num_gpus)
+ * @param {number} [searchParams.limit] - 결과 제한 개수
+ * @returns {Promise<Object>} 오퍼 검색 결과
  */
-export const getVastConfig = async () => {
+export const searchVastOffers = async (searchParams = {}) => {
     try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/config`);
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.detail || `HTTP error! status: ${response.status}`);
-        }
-
-        devLog.log('Vast config retrieved:', result);
-        return result;
-    } catch (error) {
-        devLog.error('Failed to get vast config:', error);
-        throw error;
-    }
-};
-
-/**
- * Vast 설정 업데이트 API
- * @param {Object} configUpdates - 업데이트할 설정
- * @returns {Promise<Object>} 업데이트 결과
- */
-export const updateVastConfig = async (configUpdates) => {
-    try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/config`, {
+        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/search-offers`, {
             method: 'POST',
-            body: JSON.stringify({ config_updates: configUpdates }),
+            body: JSON.stringify(searchParams),
         });
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.detail || `HTTP error! status: ${response.status}`);
-        }
-
-        devLog.log('Vast config updated:', result);
-        return result;
-    } catch (error) {
-        devLog.error('Failed to update vast config:', error);
-        throw error;
-    }
-};
-
-/**
- * 사용 가능한 오퍼 검색 API
- * @returns {Promise<Object>} 오퍼 목록
- */
-export const searchVastOffers = async () => {
-    try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/offers`);
         const result = await response.json();
 
         if (!response.ok) {
@@ -94,7 +59,9 @@ export const searchVastOffers = async () => {
  * 새 인스턴스 생성 API
  * @param {Object} options - 인스턴스 생성 옵션
  * @param {string} [options.offer_id] - 특정 오퍼 ID
+ * @param {string} [options.template_name] - 템플릿 이름 (budget, high_performance, research)
  * @param {boolean} [options.auto_destroy] - 자동 삭제 여부
+ * @param {Object} [options.vllm_config] - VLLM 설정
  * @returns {Promise<Object>} 생성 결과
  */
 export const createVastInstance = async (options = {}) => {
@@ -118,13 +85,23 @@ export const createVastInstance = async (options = {}) => {
 };
 
 /**
- * vLLM 자동 실행 API
- * @returns {Promise<Object>} 실행 결과
+ * VLLM 설정 및 실행 API
+ * @param {string} instanceId - 인스턴스 ID
+ * @param {Object} setupConfig - 설정 옵션
+ * @param {string} [setupConfig.script_directory] - 스크립트 디렉토리 경로
+ * @param {string} [setupConfig.hf_token] - HuggingFace 토큰
+ * @param {string} [setupConfig.main_script] - 메인 스크립트 파일명
+ * @param {string} [setupConfig.log_file] - 로그 파일 경로
+ * @param {boolean} [setupConfig.install_requirements] - requirements.txt 설치 여부
+ * @param {Object} setupConfig.vllm_config - VLLM 설정
+ * @param {Object} [setupConfig.additional_env_vars] - 추가 환경변수
+ * @returns {Promise<Object>} 설정 결과
  */
-export const autoRunVLLM = async () => {
+export const setupVLLM = async (instanceId, setupConfig) => {
     try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/instances/auto-run`, {
+        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/instances/${instanceId}/setup-vllm`, {
             method: 'POST',
+            body: JSON.stringify(setupConfig),
         });
         const result = await response.json();
 
@@ -132,21 +109,31 @@ export const autoRunVLLM = async () => {
             throw new Error(result.detail || `HTTP error! status: ${response.status}`);
         }
 
-        devLog.log('vLLM auto run successful:', result);
+        devLog.log('VLLM setup successful:', result);
         return result;
     } catch (error) {
-        devLog.error('Failed to auto run vLLM:', error);
+        devLog.error('Failed to setup VLLM:', error);
         throw error;
     }
 };
 
 /**
  * 인스턴스 목록 조회 API
+ * @param {Object} [options] - 조회 옵션
+ * @param {string} [options.status_filter] - 상태별 필터링
+ * @param {boolean} [options.include_destroyed] - 삭제된 인스턴스 포함
+ * @param {string} [options.sort_by] - 정렬 기준 (created_at, cost)
  * @returns {Promise<Object>} 인스턴스 목록
  */
-export const listVastInstances = async () => {
+export const listVastInstances = async (options = {}) => {
     try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/instances`);
+        const queryParams = new URLSearchParams();
+        if (options.status_filter) queryParams.append('status_filter', options.status_filter);
+        if (options.include_destroyed) queryParams.append('include_destroyed', options.include_destroyed);
+        if (options.sort_by) queryParams.append('sort_by', options.sort_by);
+
+        const url = `${API_BASE_URL}/api/vast/instances${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+        const response = await authenticatedFetch(url);
         const result = await response.json();
 
         if (!response.ok) {
@@ -184,84 +171,26 @@ export const getVastInstanceStatus = async (instanceId) => {
 };
 
 /**
- * 인스턴스 설정 API
- * @param {string} instanceId - 인스턴스 ID
- * @returns {Promise<Object>} 설정 결과
- */
-export const setupVastInstance = async (instanceId) => {
-    try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/instances/${instanceId}/setup`, {
-            method: 'POST',
-        });
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.detail || `HTTP error! status: ${response.status}`);
-        }
-
-        devLog.log('Vast instance setup initiated:', result);
-        return result;
-    } catch (error) {
-        devLog.error('Failed to setup vast instance:', error);
-        throw error;
-    }
-};
-
-/**
- * 인스턴스 로그 조회 API
- * @param {string} instanceId - 인스턴스 ID
- * @returns {Promise<Object>} 로그 정보
- */
-export const getVastInstanceLogs = async (instanceId) => {
-    try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/instances/${instanceId}/logs`);
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.detail || `HTTP error! status: ${response.status}`);
-        }
-
-        devLog.log('Vast instance logs retrieved:', result);
-        return result;
-    } catch (error) {
-        devLog.error('Failed to get vast instance logs:', error);
-        throw error;
-    }
-};
-
-/**
- * 포트 매핑 조회 API
- * @param {string} instanceId - 인스턴스 ID
- * @returns {Promise<Object>} 포트 매핑 정보
- */
-export const getVastPortMappings = async (instanceId) => {
-    try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/instances/${instanceId}/ports`);
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.detail || `HTTP error! status: ${response.status}`);
-        }
-
-        devLog.log('Vast port mappings retrieved:', result);
-        return result;
-    } catch (error) {
-        devLog.error('Failed to get vast port mappings:', error);
-        throw error;
-    }
-};
-
-/**
  * SSH 명령 실행 API
  * @param {string} instanceId - 인스턴스 ID
  * @param {string} command - 실행할 명령
+ * @param {Object} [options] - 실행 옵션
+ * @param {string} [options.working_directory] - 작업 디렉토리
+ * @param {Object} [options.environment_vars] - 환경변수
+ * @param {boolean} [options.background] - 백그라운드 실행 여부
+ * @param {number} [options.timeout] - 타임아웃 (초)
  * @returns {Promise<Object>} 명령 실행 결과
  */
-export const executeVastSSHCommand = async (instanceId, command) => {
+export const executeVastSSHCommand = async (instanceId, command, options = {}) => {
     try {
+        const requestBody = {
+            command,
+            ...options
+        };
+
         const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/instances/${instanceId}/execute`, {
             method: 'POST',
-            body: JSON.stringify({ command }),
+            body: JSON.stringify(requestBody),
         });
         const result = await response.json();
 
@@ -302,23 +231,58 @@ export const destroyVastInstance = async (instanceId) => {
 };
 
 /**
- * 인스턴스 실행 히스토리 조회 API
+ * 로그 조회 API
  * @param {string} instanceId - 인스턴스 ID
- * @returns {Promise<Object>} 실행 히스토리
+ * @param {Object} [options] - 조회 옵션
+ * @param {string} [options.log_file] - 로그 파일 경로
+ * @param {number} [options.lines] - 읽을 줄 수
+ * @returns {Promise<Object>} 로그 정보
  */
-export const getVastInstanceHistory = async (instanceId) => {
+export const getVastInstanceLogs = async (instanceId, options = {}) => {
     try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/instances/${instanceId}/history`);
+        const queryParams = new URLSearchParams();
+        if (options.log_file) queryParams.append('log_file', options.log_file);
+        if (options.lines) queryParams.append('lines', options.lines);
+
+        const url = `${API_BASE_URL}/api/vast/instances/${instanceId}/logs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+        const response = await authenticatedFetch(url);
         const result = await response.json();
 
         if (!response.ok) {
             throw new Error(result.detail || `HTTP error! status: ${response.status}`);
         }
 
-        devLog.log('Vast instance history retrieved:', result);
+        devLog.log('Vast instance logs retrieved:', result);
         return result;
     } catch (error) {
-        devLog.error('Failed to get vast instance history:', error);
+        devLog.error('Failed to get vast instance logs:', error);
+        throw error;
+    }
+};
+
+/**
+ * 프로세스 상태 조회 API
+ * @param {string} instanceId - 인스턴스 ID
+ * @param {string} [processName] - 특정 프로세스 이름
+ * @returns {Promise<Object>} 프로세스 정보
+ */
+export const getVastProcesses = async (instanceId, processName = null) => {
+    try {
+        const queryParams = new URLSearchParams();
+        if (processName) queryParams.append('process_name', processName);
+
+        const url = `${API_BASE_URL}/api/vast/instances/${instanceId}/processes${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+        const response = await authenticatedFetch(url);
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        devLog.log('Vast processes retrieved:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to get vast processes:', error);
         throw error;
     }
 };

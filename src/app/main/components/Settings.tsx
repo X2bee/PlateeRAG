@@ -259,7 +259,6 @@ const Settings: React.FC = () => {
         return (
             <VastAiConfig
                 configData={configData}
-                onTestConnection={handleTestConnection}
             />
         );
     };
