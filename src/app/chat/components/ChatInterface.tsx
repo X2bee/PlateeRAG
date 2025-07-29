@@ -23,6 +23,7 @@ import { DeploymentModal } from './DeploymentModal';
 import { generateInteractionId, normalizeWorkflowName } from '@/app/api/interactionAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import { isStreamingWorkflow } from '@/app/_common/utils/isStreamingWorkflow';
+import { WorkflowData } from '@/app/canvas/types';
 
 interface NewChatInterfaceProps extends ChatInterfaceProps {
     onStartNewChat?: (message: string) => void;
@@ -34,7 +35,6 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         mode, 
         workflow, 
         onBack, 
-        onChatStarted, 
         hideBackButton = false, 
         existingChatData, 
         onStartNewChat, 
@@ -56,8 +56,8 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
     const [selectedCollectionMakeName, setSelectedCollectionMakeName] = useState<string | null>(null);
     const [collectionMapping, setCollectionMapping] = useState<{[key: string]: string}>({});
     const [showDeploymentModal, setShowDeploymentModal] = useState(false);
-    const hasExecutedInitialMessage = useRef(false);
 
+    const hasExecutedInitialMessage = useRef(false);
 
     const messagesRef = useRef<HTMLDivElement>(null);
     const attachmentButtonRef = useRef<HTMLDivElement>(null);
@@ -113,9 +113,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         const currentMessage = messageOverride || inputMessage;
         if (!currentMessage.trim()) return;
 
-        if (!messageOverride) {
-            setInputMessage('');
-        }
+        setInputMessage('');
 
         setExecuting(true);
         setError(null);
@@ -136,7 +134,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
 
         try {
             const workflowData = await loadWorkflow(workflow.name);
-            const isStreaming = isStreamingWorkflow(workflowData);
+            const isStreaming = isStreamingWorkflow(workflowData as WorkflowData);
             const { interactionId, workflowId, workflowName } = existingChatData || {
                 interactionId: generateInteractionId(), 
                 workflowId: workflow.id, workflowName: workflow.name};
@@ -151,7 +149,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                     workflowId,
                     inputData: currentMessage,
                     interactionId,
-                    selectedCollections: null, // 컬렉션 로직 필요 시 추가
+                    selectedCollections: selectedCollection, // 컬렉션 로직 필요 시 추가
                     onData: (chunk) => {
                         setIOLogs((prev) =>
                             prev.map((log) =>
@@ -194,29 +192,31 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
 
     useEffect(() => {
         const initializeChat = async () => {
-            setLoading(true);
-            if (existingChatData?.interactionId) {
-                try {
-                    const { interactionId, workflowId, workflowName } = existingChatData;
-                    const logs = await getWorkflowIOLogs(workflowName, workflowId, interactionId);
-                    setIOLogs((logs as any).in_out_logs || []);
-                } catch (err) {
-                    setError('채팅 기록을 불러오는데 실패했습니다.');
-                    setIOLogs([]);
-                }
-            } else {
-                setIOLogs([]);
-            }
-            setLoading(false);
-
             if (initialMessageToExecute && !hasExecutedInitialMessage.current) {
                 hasExecutedInitialMessage.current = true;
-                
-                await executeWorkflow(initialMessageToExecute);
+
+                setInputMessage(initialMessageToExecute);
                 
                 const newSearchParams = new URLSearchParams(window.location.search);
                 newSearchParams.delete('initial_message');
                 router.replace(`${window.location.pathname}?${newSearchParams.toString()}`, { scroll: false });
+            } 
+            else if (existingChatData?.interactionId) {
+                setLoading(true);
+                
+                getWorkflowIOLogs(existingChatData.workflowName, existingChatData.workflowId, existingChatData.interactionId)
+                    .then(logs => {
+                        setIOLogs((logs as any).in_out_logs || []);
+                    })
+                    .catch(err => {
+                        setError('채팅 기록을 불러오는데 실패했습니다.');
+                        setIOLogs([]);
+                    })
+                    .finally(async () => {
+                        setLoading(false);
+
+                        await executeWorkflow(inputMessage)
+                    });
             }
         };
 

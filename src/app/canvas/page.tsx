@@ -750,8 +750,11 @@ function CanvasPageContent() {
                 await executeWorkflowByIdStream({
                     workflowName,
                     workflowId,
+                    inputData: '',
+                    interactionId : 'default',
+                    selectedCollections : null,
                     onData: (chunk) => {
-                        setExecutionOutput(prev => ({ ...prev, stream: (prev.stream || '') + chunk }));
+                        setExecutionOutput((prev: { stream: any; }) => ({ ...prev, stream: (prev.stream || '') + chunk }));
                     },
                     onEnd: () => {
                         toast.success('Streaming finished!', { id: toastId });

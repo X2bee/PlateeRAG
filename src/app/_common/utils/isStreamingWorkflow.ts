@@ -1,9 +1,11 @@
+import { WorkflowData } from "@/app/canvas/types";
+
 /**
  * 워크플로우 데이터에 스트리밍을 지원하는 'endnode'가 있는지 확인합니다.
  * @param {object} workflowData - 노드 목록을 포함하는 워크플로우 데이터.
  * @returns {boolean} 스트리밍 endnode가 있으면 true, 그렇지 않으면 false.
  */
-export const isStreamingWorkflow = (workflowData) => {
+export const isStreamingWorkflow = (workflowData: WorkflowData) => {
     if (!workflowData || !Array.isArray(workflowData.nodes)) {
         return false;
     }

@@ -85,10 +85,6 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted}) => {
 
         localStorage.removeItem('currentChatData');
 
-        if (onChatStarted) {
-            onChatStarted();
-        }
-
         const params = new URLSearchParams();
         params.set('mode', 'current-chat');
         params.set('workflowId', selectedWorkflow.id);
@@ -97,7 +93,7 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted}) => {
         
         router.replace(`/chat?${params.toString()}`);
 
-    }, [selectedWorkflow, onChatStarted, router]);
+    }, [selectedWorkflow, router]);
 
     const getChatMode = () => {
         if (currentView === 'existingChat' && selectedWorkflow) return 'existing';

@@ -19,6 +19,7 @@ export interface Port {
     type: string;
     required?: boolean;
     multi?: boolean;
+    stream?: boolean;
 }
 
 export interface ParameterOption {
