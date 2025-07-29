@@ -1,3 +1,6 @@
+@use "sass:color";
+
+// Color Variables (VectorDB specific)
 $primary-blue: #2563eb;
 $primary-green: #059669;
 $primary-red: #dc2626;
@@ -11,13 +14,13 @@ $gray-500: #6b7280;
 $gray-600: #4b5563;
 $gray-700: #374151;
 $gray-800: #1f2937;
-$gray-900: #3369de;
+$gray-900: #111827;
 $white: #ffffff;
 
 // ===== VectorDB Config Specific Styles =====
 
 // Container
-.vectordbContainer {
+.llmContainer {
     background: $white;
     border-radius: 0.75rem;
     overflow: hidden;
@@ -101,33 +104,87 @@ $white: #ffffff;
     padding: 2rem;
 }
 
-// Embedding Config Tab
-.embeddingConfig {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
+// Section Header
+.sectionHeader {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid $gray-200;
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 60px;
+        height: 2px;
+        background: linear-gradient(90deg, $primary-green, $primary-blue);
+        border-radius: 1px;
+    }
+
+    h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: $gray-900;
+        margin: 0 0 0.5rem 0;
+        letter-spacing: -0.025em;
+    }
+
+    p {
+        font-size: 1rem;
+        color: $gray-600;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .headerActions {
+        margin-top: 1rem;
+        display: flex;
+        gap: 0.75rem;
+    }
 }
 
 // Status Section
 .statusSection {
     .sectionHeader {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid $gray-200;
+        position: relative;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, $primary-green, $primary-blue);
+            border-radius: 1px;
+        }
 
         h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
+            font-size: 1.5rem;
+            font-weight: 700;
             color: $gray-900;
+            margin: 0 0 0.5rem 0;
+            letter-spacing: -0.025em;
+        }
+
+        p {
+            font-size: 1rem;
+            color: $gray-600;
             margin: 0;
+            line-height: 1.6;
         }
 
         .headerActions {
+            margin-top: 1rem;
             display: flex;
             gap: 0.75rem;
         }
     }
+
 
     .currentStatus {
         .statusCard {
@@ -217,22 +274,34 @@ $white: #ffffff;
     }
 }
 
-// Database Config Tab
-.databaseConfig {
-    .sectionHeader {
+// Providers Section
+.providersSection {
+    margin: 3rem 0;
+
+    .sectionTitle {
         margin-bottom: 1.5rem;
 
-        h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: $gray-900;
+        h4 {
             margin: 0 0 0.5rem 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
         }
 
-        p {
+        .sectionSubtitle {
             font-size: 0.875rem;
-            color: $gray-600;
-            margin: 0;
+            color: #6b7280;
+        }
+    }
+
+    .providersGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+        align-items: stretch;
+
+        @media (max-width: 640px) {
+            grid-template-columns: 1fr;
         }
     }
 }
@@ -299,9 +368,135 @@ $white: #ffffff;
         }
 
         .providerCard {
-            .providerHeader {
-                .providerInfo p {
-                    font-size: 0.8rem;
+            min-width: 320px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+
+            .cardHeader {
+                padding: 1rem 1rem 1rem 1rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                position: relative;
+                min-height: 80px;
+
+                .providerIconMedium {
+                    display: flex;
+                    align-items: center;
+                    flex-shrink: 0;
+
+                    .iconWrapper {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 3rem;
+                        height: 3rem;
+                        border-radius: 0.75rem;
+                        font-size: 1.5rem;
+                        border: 2px solid currentColor;
+                    }
+                }
+
+                .cardBadges {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                    align-items: flex-end;
+                    flex-shrink: 0;
+
+                    .defaultBadge {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.25rem;
+                        background: #10b981;
+                        color: white;
+                        padding: 0.25rem 0.75rem;
+                        border-radius: 1rem;
+                        font-size: 0.75rem;
+                        font-weight: 600;
+                        min-width: 60px;
+                        justify-content: center;
+                    }
+                }
+            }
+
+            .cardContent {
+                padding: 0 1rem 1rem;
+                display: flex;
+                flex-direction: column;
+                flex-grow: 1;
+                justify-content: space-between;
+                min-height: 120px;
+
+                .cardTitle {
+                    margin: 0 0 0.5rem 0;
+                    font-size: 1.125rem;
+                    font-weight: 600;
+                    color: #111827;
+                    min-height: 1.5rem;
+                    display: flex;
+                    align-items: center;
+                }
+
+                .cardDescription {
+                    margin: 0 0 1rem 0;
+                    color: #6b7280;
+                    line-height: 1.5;
+                    font-size: 0.875rem;
+                    flex-grow: 1;
+                    min-height: 2.5rem;
+                    display: flex;
+                    align-items: flex-start;
+                }
+
+                .cardFooter {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-top: auto;
+                    min-height: 40px;
+                    padding-top: 0.5rem;
+                    border-top: 1px solid #f3f4f6;
+
+                    .statusLabel {
+                        font-size: 0.875rem;
+                        font-weight: 500;
+                        color: #6b7280;
+                        flex: 1;
+                        display: flex;
+                        align-items: center;
+                    }
+
+                    .cardActions {
+                        display: flex;
+                        gap: 0.5rem;
+                        flex-shrink: 0;
+
+                        .button {
+                            min-width: 70px;
+                            padding: 0.5rem 1rem;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 0.25rem;
+                            font-size: 0.75rem;
+                            font-weight: 500;
+                            border-radius: 0.5rem;
+                            transition: all 0.2s ease;
+
+                            &.secondary {
+                                background: #f8fafc;
+                                border: 1px solid #e2e8f0;
+                                color: #475569;
+
+                                &:hover {
+                                    background: #f1f5f9;
+                                    border-color: #cbd5e1;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
