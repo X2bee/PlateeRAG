@@ -7,6 +7,7 @@ import {
     FiArrowLeft,
     FiDatabase,
 } from 'react-icons/fi';
+import { IoDocumentLock } from "react-icons/io5";
 import { BsDatabaseUp } from 'react-icons/bs';
 import { SiOpenai } from 'react-icons/si';
 import { BsGear } from 'react-icons/bs'; // Workflow 아이콘으로 사용
@@ -148,7 +149,7 @@ const Settings: React.FC = () => {
             id: 'collection',
             name: '컬렉션 관리',
             description: '이미지-텍스트 모델 및 컬렉션 처리 설정',
-            icon: <BsImage />,
+            icon: <IoDocumentLock />,
             color: '#7c3aed',
             status: configs.collection?.imageTextApiKey ? 'connected' : 'disconnected',
         },

@@ -11,12 +11,14 @@ export interface SidebarProps {
     isOpen: boolean;
     onToggle: () => void;
     items: SidebarItem[];
+    workflowItems?: SidebarItem[];
     chatItems?: SidebarItem[];
     activeItem: string;
     onItemClick: (itemId: string) => void;
     className?: string;
     initialChatExpanded?: boolean;
     initialSettingExpanded?: boolean;
+    initialWorkflowExpanded?: boolean;
 }
 
 export interface ContentAreaProps {

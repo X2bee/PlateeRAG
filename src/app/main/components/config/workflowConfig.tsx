@@ -1,12 +1,11 @@
 import React from 'react';
-import BaseConfigPanel, { ConfigItem, FieldConfig } from './BaseConfigPanel';
+import BaseConfigPanel, { ConfigItem, FieldConfig } from './baseConfigPanel';
 
 interface WorkflowConfigProps {
     configData?: ConfigItem[];
     onTestConnection?: (category: string) => void;
 }
 
-// Workflow 관련 설정 필드의 메타데이터 정의
 const WORKFLOW_CONFIG_FIELDS: Record<string, FieldConfig> = {
     WORKFLOW_ALLOW_PARALLEL: {
         label: '병렬 실행 허용',
