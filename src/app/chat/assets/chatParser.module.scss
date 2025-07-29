@@ -443,4 +443,53 @@ $white: #ffffff;
             }
         }
     }
+
+    :global(table) {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+        font-size: 0.9rem;
+        border: 1px solid $gray-200;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    :global(thead) {
+        background-color: $gray-50;
+
+        :global(th) {
+            font-weight: 600;
+            color: $gray-700;
+        }
+    }
+
+    :global(th), :global(td) {
+        padding: 0.65rem 1rem;
+        border: 1px solid $gray-200;
+        line-height: 1.4;
+    }
+
+    :global(tbody) {
+        :global(tr) {
+            border-bottom: 1px solid $gray-200;
+
+            &:last-child {
+                border-bottom: 0;
+            }
+        }
+        
+        :global(tr:nth-child(even)) {
+            background-color: $gray-50;
+        }
+    }
+    
+    :global(th.align-left), :global(td.align-left) {
+        text-align: left;
+    }
+    :global(th.align-center), :global(td.align-center) {
+        text-align: center;
+    }
+    :global(th.align-right), :global(td.align-right) {
+        text-align: right;
+    }
 }

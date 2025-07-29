@@ -299,6 +299,23 @@ const parseContentToReactElements = (content: string): React.ReactNode[] => {
 };
 
 /**
+ * 테이블 구분자 라인인지 확인하는 헬퍼 함수
+ * (예: |:---|:---:|---:|)
+ */
+const isSeparatorLine = (line: string): boolean => {
+    const trimmedLine = line.trim();
+    if (!trimmedLine.includes('|') || !trimmedLine.includes('-')) {
+        return false;
+    }
+    // 양 끝의 '|'를 제거하고, 각 컬럼을 분리
+    const columns = trimmedLine.replace(/^\|/, '').replace(/\|$/, '').split('|');
+    
+    // 모든 컬럼이 유효한 구분자 형식인지 확인 (최소 3개의 하이픈)
+    return columns.length > 0 && columns.every(col => /^\s*:?-{3,}:?\s*$/.test(col));
+};
+
+
+/**
  * 간단한 마크다운 파싱 (코드 블록 제외)
  */
 const parseSimpleMarkdown = (text: string, startKey: number): React.ReactNode[] => {
@@ -323,89 +340,127 @@ const parseSimpleMarkdown = (text: string, startKey: number): React.ReactNode[] 
         lastWasEmpty = isEmpty;
     }
 
-    processedLines.forEach((line, lineIndex) => {
-        const processed = line;
-        const key = `${startKey}-line-${lineIndex}`;
+    for (let i = 0; i < processedLines.length; i++) {
+        const line = processedLines[i];
+        const key = `${startKey}-block-${i}`;
+
+        // --- 테이블 파싱 로직 (추가된 부분) ---
+        const isTableLine = (str: string) => str.trim().includes('|');
+        const isTableSeparator = (str: string) => /^\s*\|?(\s*:?-+:?\s*\|)+(\s*:?-+:?\s*\|?)\s*$/.test(str.trim());
+
+        const nextLine = processedLines[i + 1];
+        if (isTableLine(line) && nextLine && isTableSeparator(nextLine)) {
+            const headerLine = line;
+            const separatorLine = nextLine;
+            const bodyLines = [];
+
+            let tableEndIndex = i + 2;
+            while (tableEndIndex < processedLines.length && isTableLine(processedLines[tableEndIndex]) && !isTableSeparator(processedLines[tableEndIndex])) {
+                bodyLines.push(processedLines[tableEndIndex]);
+                tableEndIndex++;
+            }
+
+            // 정렬 처리 (이제 separatorLine은 항상 정의되어 있음)
+            const alignments = separatorLine.trim().replace(/^\||\|$/g, '').split('|').map(s => {
+                const trimmed = s.trim();
+                if (trimmed.startsWith(':') && trimmed.endsWith(':')) return 'center';
+                if (trimmed.endsWith(':')) return 'right';
+                return 'left';
+            });
+            
+            // 테이블 셀 파싱 헬퍼 함수
+            const parseTableRow = (rowStr: string) => rowStr.trim().replace(/^\||\|$/g, '').split('|').map(s => s.trim());
+            
+            // 헤더 생성
+            const headers = parseTableRow(headerLine);
+            const headerElement = (
+                 <tr key="header">
+                    {headers.map((header, index) => (
+                        <th key={index} style={{ textAlign: alignments[index] || 'left', padding: '0.5rem 1rem', border: '1px solid #d1d5db' }}>
+                            <div dangerouslySetInnerHTML={{ __html: processInlineMarkdown(header) }} />
+                        </th>
+                    ))}
+                </tr>
+            );
+
+            // 본문 생성
+            const bodyElements = bodyLines.map((bodyLine, rowIndex) => {
+                const cells = parseTableRow(bodyLine);
+                return (
+                    <tr key={rowIndex}>
+                        {cells.map((cell, cellIndex) => (
+                            <td key={cellIndex} style={{ textAlign: alignments[cellIndex] || 'left', padding: '0.5rem 1rem', border: '1px solid #d1d5db' }}>
+                                <div dangerouslySetInnerHTML={{ __html: processInlineMarkdown(cell) }} />
+                            </td>
+                        ))}
+                    </tr>
+                );
+            });
+            
+            elements.push(
+                <table key={key} style={{ borderCollapse: 'collapse', width: '100%', margin: '1rem 0', border: '1px solid #d1d5db' }}>
+                    <thead style={{ background: '#f9fafb' }}>{headerElement}</thead>
+                    <tbody>{bodyElements}</tbody>
+                </table>
+            );
+            
+            // 테이블로 처리된 라인만큼 인덱스를 건너뜀
+            i = tableEndIndex - 1;
+            continue;
+        }
 
         // 수평선 처리 (---, ***, ___)
-        if (/^[-*_]{3,}$/.test(processed.trim())) {
+        if (/^[-*_]{3,}$/.test(line.trim())) {
             elements.push(<hr key={key} style={{ margin: '1rem 0', border: 'none', borderTop: '1px solid #e5e7eb' }} />);
-            return;
+            continue;
         }
 
         // 헤딩 처리
-        const headingMatch = processed.match(/^(#{1,6})\s+(.+)$/);
+        const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
         if (headingMatch) {
             const level = headingMatch[1].length;
             const headingText = processInlineMarkdown(headingMatch[2]);
-
-            const headingElement = React.createElement(
-                `h${level}` as any,
-                { key, dangerouslySetInnerHTML: { __html: headingText } }
-            );
+            const headingElement = React.createElement(`h${level}`, { key, dangerouslySetInnerHTML: { __html: headingText } });
             elements.push(headingElement);
-            return;
+            continue;
         }
 
         // 인용문 처리
-        const blockquoteMatch = processed.match(/^>\s*(.+)$/);
+        const blockquoteMatch = line.match(/^>\s*(.+)$/);
         if (blockquoteMatch) {
             const quoteText = processInlineMarkdown(blockquoteMatch[1]);
             elements.push(
-                <blockquote key={key} style={{
-                    borderLeft: '4px solid #2563eb',
-                    margin: '0.5rem 0',
-                    padding: '0.5rem 0 0.5rem 1rem',
-                    background: 'rgba(37, 99, 235, 0.05)',
-                    borderRadius: '0 0.25rem 0.25rem 0',
-                    fontStyle: 'italic'
-                }}>
+                <blockquote key={key} style={{ borderLeft: '4px solid #2563eb', margin: '0.5rem 0', padding: '0.5rem 0 0.5rem 1rem', background: 'rgba(37, 99, 235, 0.05)', borderRadius: '0 0.25rem 0.25rem 0', fontStyle: 'italic' }}>
                     <div dangerouslySetInnerHTML={{ __html: quoteText }} />
                 </blockquote>
             );
-            return;
+            continue;
         }
 
         // 리스트 항목 처리
-        const listMatch = processed.match(/^(\s*)-\s+(.+)$/);
+        const listMatch = line.match(/^(\s*)-\s+(.+)$/);
         if (listMatch) {
             const indent = listMatch[1].length;
             const listText = processInlineMarkdown(listMatch[2]);
-            const marginLeft = indent * 1.5; // 들여쓰기 계산
-
+            const marginLeft = indent * 1.5;
             elements.push(
-                <div key={key} style={{
-                    marginLeft: `${marginLeft}rem`,
-                    position: 'relative',
-                    paddingLeft: '1.5rem',
-                    margin: '0.25rem 0'
-                }}>
-                    <span style={{
-                        position: 'absolute',
-                        left: '0',
-                        top: '0',
-                        fontWeight: 'bold'
-                    }}>•</span>
+                <div key={key} style={{ marginLeft: `${marginLeft}rem`, position: 'relative', paddingLeft: '1.5rem', margin: '0.25rem 0' }}>
+                    <span style={{ position: 'absolute', left: '0', top: '0', fontWeight: 'bold' }}>•</span>
                     <div dangerouslySetInnerHTML={{ __html: listText }} />
                 </div>
             );
-            return;
+            continue;
         }
 
         // 일반 텍스트 처리
-        if (processed.trim()) {
-            const processedText = processInlineMarkdown(processed);
-            elements.push(
-                <div
-                    key={key}
-                    dangerouslySetInnerHTML={{ __html: processedText }}
-                />
-            );
-        } else {
-            // 빈 줄은 하나의 <br>만 추가 (연속된 빈 줄은 이미 필터링됨)
+        if (line.trim()) {
+            const processedText = processInlineMarkdown(line);
+            elements.push(<div key={key} dangerouslySetInnerHTML={{ __html: processedText }} />);
+        } else if (elements.length > 0 && processedLines[i - 1]?.trim() !== '') {
+            // 연속된 빈 줄이 아닌 경우에만 <br> 추가
             elements.push(<br key={key} />);
         }
-    });
+    }
 
     return elements;
 };
