@@ -1,8 +1,10 @@
 'use client';
 
+import ReactMarkdown from 'react-markdown';
 import React, { useState, useRef, useEffect } from 'react';
 import { FiCopy, FiCheck, FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import styles from '@/app/chat/assets/chatParser.module.scss';
+
 import { Prism } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
@@ -47,6 +49,9 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ language, code, className 
         }
     };
 
+    const displayLanguage = language.toLowerCase();
+
+
     return (
         <div className={`code-block-container code-block-${language} ${className}`}>
             <div className="code-block-header">
@@ -59,18 +64,20 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ language, code, className 
                     {copied ? <FiCheck /> : <FiCopy />}
                 </button>
             </div>
-            <Prism
-                language={language.toLowerCase()}
+            <Prism 
+                language={displayLanguage}
                 style={vscDarkPlus}
                 customStyle={{
                     margin: 0,
                     borderRadius: '0 0 0.5rem 0.5rem',
                     border: 'none',
-                    padding: '1rem'
+                    padding: '1rem',
+                    whiteSpace: 'pre',
+                    lineHeight: '1.5'
                 }}
                 showLineNumbers
             >
-                {code}
+                {String(code).replace(/\n$/, '')}
             </Prism>
         </div>
     );
@@ -119,7 +126,7 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
 };
 
 /**
- * 네스티드 백틱을 고려한 코드 블록 찾기
+ * 스택(Stack)을 이용해 중첩 구조를 완벽히 파악하고 스트리밍을 지원하는 최종 파서
  */
 interface CodeBlockInfo {
     start: number;
@@ -131,53 +138,63 @@ interface CodeBlockInfo {
 const findCodeBlocks = (content: string): CodeBlockInfo[] => {
     const blocks: CodeBlockInfo[] = [];
     const lines = content.split('\n');
-    let currentIndex = 0;
+    
     let inCodeBlock = false;
-    let codeBlockStart = -1;
+    const fenceStack: string[] = [];  // 중첩된 펜스를 추적하기 위한 스택
     let codeBlockLanguage = '';
     let codeBlockContent: string[] = [];
+    let codeBlockStart = -1;
+    let currentIndex = 0;
 
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const trimmedLine = line.trim();
+        const fenceMatch = trimmedLine.match(/^`{3,}|~{3,}/);
 
-        if (!inCodeBlock && trimmedLine.startsWith('```')) {
-            // 코드 블록 시작
+        if (!inCodeBlock && fenceMatch) {
             inCodeBlock = true;
-            codeBlockStart = content.indexOf(line, currentIndex);
-            codeBlockLanguage = trimmedLine.substring(3).trim() || 'text';
-            codeBlockContent = [];
-        } else if (inCodeBlock && trimmedLine === '```') {
-            // 코드 블록 끝 (정확히 ```만 있는 줄)
-            const codeStart = codeBlockStart;
-            const codeEnd = content.indexOf(line, currentIndex) + line.length;
-
-            blocks.push({
-                start: codeStart,
-                end: codeEnd,
-                language: codeBlockLanguage,
-                code: codeBlockContent.join('\n')
-            });
-
-            inCodeBlock = false;
-            codeBlockStart = -1;
-            codeBlockLanguage = '';
+            const fence = fenceMatch[0];
+            fenceStack.push(fence);
+            
+            codeBlockLanguage = trimmedLine.substring(fence.length).trim() || 'text';
+            codeBlockStart = currentIndex;
             codeBlockContent = [];
         } else if (inCodeBlock) {
-            // 코드 블록 내용
             codeBlockContent.push(line);
-        }
 
-        currentIndex = content.indexOf(line, currentIndex) + line.length + 1;
+            if (fenceMatch) {
+                const currentFence = fenceMatch[0];
+                const topOfStack = fenceStack[fenceStack.length - 1];
+
+                if (currentFence.length === topOfStack.length && trimmedLine.length === currentFence.length) {
+                    fenceStack.pop();
+                } else {
+                    fenceStack.push(currentFence);
+                }
+            }
+
+            if (fenceStack.length === 0) {
+                const codeEnd = currentIndex + line.length;
+                blocks.push({
+                    start: codeBlockStart,
+                    end: codeEnd,
+                    language: codeBlockLanguage,
+                    code: codeBlockContent.slice(0, -1).join('\n'),
+                });
+                
+                inCodeBlock = false;
+            }
+        }
+        
+        currentIndex += line.length + 1;
     }
 
-    // 닫히지 않은 코드 블록 처리
-    if (inCodeBlock && codeBlockStart !== -1) {
+    if (inCodeBlock) {
         blocks.push({
             start: codeBlockStart,
             end: content.length,
             language: codeBlockLanguage,
-            code: codeBlockContent.join('\n')
+            code: codeBlockContent.join('\n'),
         });
     }
 
