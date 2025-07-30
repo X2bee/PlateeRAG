@@ -191,39 +191,37 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
     }, [executing, inputMessage, workflow, existingChatData, scrollToBottom]);
 
     useEffect(() => {
-        const initializeChat = async () => {
-            if (initialMessageToExecute && !hasExecutedInitialMessage.current) {
-                hasExecutedInitialMessage.current = true;
+        if (mode === 'existing' && existingChatData?.interactionId && !initialMessageToExecute) {
+            setLoading(true);
+            getWorkflowIOLogs(existingChatData.workflowName, existingChatData.workflowId, existingChatData.interactionId)
+                .then(logs => {
+                    setIOLogs((logs as any).in_out_logs || []);
+                })
+                .catch(err => {
+                    setError('채팅 기록을 불러오는데 실패했습니다.');
+                    setIOLogs([]);
+                })
+                .finally(() => {
+                    setLoading(false);
 
-                setInputMessage(initialMessageToExecute);
-                
-                const newSearchParams = new URLSearchParams(window.location.search);
-                newSearchParams.delete('initial_message');
-                router.replace(`${window.location.pathname}?${newSearchParams.toString()}`, { scroll: false });
-            } 
-            else if (existingChatData?.interactionId) {
-                setLoading(true);
-                
-                getWorkflowIOLogs(existingChatData.workflowName, existingChatData.workflowId, existingChatData.interactionId)
-                    .then(logs => {
-                        setIOLogs((logs as any).in_out_logs || []);
-                    })
-                    .catch(err => {
-                        setError('채팅 기록을 불러오는데 실패했습니다.');
-                        setIOLogs([]);
-                    })
-                    .finally(async () => {
-                        setLoading(false);
-
-                        await executeWorkflow(inputMessage)
-                    });
-            }
-        };
-
-        if (mode === 'existing' && workflow?.id) {
-            initializeChat();
+                    executeWorkflow();
+                });
         }
-    }, [existingChatData, initialMessageToExecute, mode, workflow?.id, router]);
+    }, [mode, existingChatData]);
+
+    useEffect(() => {
+        if (initialMessageToExecute && !hasExecutedInitialMessage.current) {
+            
+            hasExecutedInitialMessage.current = true;
+
+            setInputMessage(initialMessageToExecute);
+
+            const newSearchParams = new URLSearchParams(window.location.search);
+            newSearchParams.delete('initial_message');
+            router.replace(`${window.location.pathname}?${newSearchParams.toString()}`, { scroll: false });
+        }
+    }, [initialMessageToExecute, executeWorkflow, router]);
+
 
 
 
