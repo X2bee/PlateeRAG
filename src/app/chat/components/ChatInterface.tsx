@@ -168,7 +168,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                 setIOLogs((prev) =>
                     prev.map((log) =>
                         String(log.log_id) === tempId
-                            ? { ...log, output_data: result.outputs ? JSON.stringify(result.outputs, null, 2) : result.message || '처리 완료' }
+                            ? { ...log, output_data: result.outputs ? JSON.stringify(result.outputs[0], null, 2) : result.message || '처리 완료' }
                             : log
                     )
                 );
