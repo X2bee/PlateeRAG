@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FiRefreshCw, FiCheck, FiX, FiPlay, FiSquare, FiCopy, FiExternalLink, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FiRefreshCw, FiCheck, FiX, FiPlay, FiSquare, FiCopy, FiExternalLink, FiChevronDown, FiChevronUp, FiServer, FiSettings } from 'react-icons/fi';
 import { BsGpuCard } from 'react-icons/bs';
 import toast from 'react-hot-toast';
 import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/baseConfigPanel';
-import { checkVastHealth, searchVastOffers } from '@/app/api/vastAPI';
+import { checkVastHealth, searchVastOffers, createVastInstance, setupVLLM } from '@/app/api/vastAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/main/assets/Settings.module.scss';
 
@@ -67,6 +67,58 @@ interface VastHealthResponse {
     message: string;
 }
 
+interface VLLMConfig {
+    script_directory: string;
+    hf_hub_token: string;
+    main_script: string;
+    log_file: string;
+    install_requirements: boolean;
+    vllm_config: {
+        vllm_model_name: string;
+        vllm_max_model_len: number;
+        vllm_host_ip: string;
+        vllm_port: number;
+        vllm_controller_port: number;
+        vllm_gpu_memory_utilization: number;
+        vllm_pipeline_parallel_size: number;
+        vllm_tensor_parallel_size: number;
+        vllm_dtype: string;
+        vllm_tool_call_parser: string;
+        vllm_trust_remote_code: boolean;
+        vllm_enforce_eager: boolean;
+        vllm_max_num_seqs: number;
+        vllm_block_size: number;
+        vllm_swap_space: number;
+        vllm_disable_log_stats: boolean;
+    };
+    additional_env_vars: Record<string, string>;
+}
+
+interface VLLMCreateInstanceConfig {
+    offer_id: string;
+    hf_hub_token?: string;
+    template_name?: string;
+    auto_destroy: boolean;
+    vllm_config: {
+        vllm_model_name: string;
+        vllm_max_model_len: number;
+        vllm_host_ip: string;
+        vllm_port: number;
+        vllm_controller_port: number;
+        vllm_gpu_memory_utilization: number;
+        vllm_pipeline_parallel_size: number;
+        vllm_tensor_parallel_size: number;
+        vllm_dtype: string;
+        vllm_tool_call_parser: string;
+        vllm_trust_remote_code: boolean;
+        vllm_enforce_eager: boolean;
+        vllm_max_num_seqs: number;
+        vllm_block_size: number;
+        vllm_swap_space: number;
+        vllm_disable_log_stats: boolean;
+    };
+}
+
 // Vast.ai 관련 설정 필드
 const VAST_AI_CONFIG_FIELDS: Record<string, FieldConfig> = {
     VAST_API_KEY: {
@@ -92,6 +144,34 @@ const VastAiConfig: React.FC<VastAiConfigProps> = ({
     });
     const [searchResults, setSearchResults] = useState<VastOfferSearchResponse | null>(null);
     const [isSearching, setIsSearching] = useState(false);
+    const [selectedOfferId, setSelectedOfferId] = useState<string>('');
+    const [vllmConfig, setVllmConfig] = useState<VLLMConfig>({
+        script_directory: '/vllm/vllm-script',
+        hf_hub_token: '',
+        main_script: 'main.py',
+        log_file: '/tmp/vllm.log',
+        install_requirements: true,
+        vllm_config: {
+            vllm_model_name: 'Qwen/Qwen3-1.7B',
+            vllm_max_model_len: 4096,
+            vllm_host_ip: '0.0.0.0',
+            vllm_port: 11479,
+            vllm_controller_port: 11480,
+            vllm_gpu_memory_utilization: 0.9,
+            vllm_pipeline_parallel_size: 1,
+            vllm_tensor_parallel_size: 1,
+            vllm_dtype: 'auto',
+            vllm_tool_call_parser: 'hermes',
+            vllm_trust_remote_code: true,
+            vllm_enforce_eager: false,
+            vllm_max_num_seqs: 1,
+            vllm_block_size: 16,
+            vllm_swap_space: 4,
+            vllm_disable_log_stats: false,
+        },
+        additional_env_vars: {}
+    });
+    const [isSettingUpVLLM, setIsSettingUpVLLM] = useState(false);
 
     const handleTestConnection = async () => {
         try {
@@ -152,13 +232,118 @@ const VastAiConfig: React.FC<VastAiConfigProps> = ({
         }));
     };
 
+    const handleVLLMConfigChange = (field: keyof VLLMConfig, value: any) => {
+        setVllmConfig(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    const handleVLLMVllmConfigChange = (field: keyof VLLMConfig['vllm_config'], value: any) => {
+        setVllmConfig(prev => ({
+            ...prev,
+            vllm_config: {
+                ...prev.vllm_config,
+                [field]: value
+            }
+        }));
+    };
+
+    const handleSelectOffer = (offerId: string) => {
+        setSelectedOfferId(offerId);
+        toast.success('오퍼가 선택되었습니다. VLLM 설정을 진행해주세요.');
+    };
+
+    const handleCreateInstance = async () => {
+        if (!selectedOfferId.trim()) {
+            toast.error('먼저 GPU 오퍼를 선택해주세요.');
+            return;
+        }
+
+        if (!vllmConfig.vllm_config.vllm_model_name.trim()) {
+            toast.error('모델명을 입력해주세요.');
+            return;
+        }
+
+        if (!vllmConfig.vllm_config.vllm_max_model_len || vllmConfig.vllm_config.vllm_max_model_len <= 0) {
+            toast.error('최대 모델 길이를 입력해주세요.');
+            return;
+        }
+
+        if (!vllmConfig.vllm_config.vllm_gpu_memory_utilization || vllmConfig.vllm_config.vllm_gpu_memory_utilization <= 0 || vllmConfig.vllm_config.vllm_gpu_memory_utilization > 1) {
+            toast.error('GPU 메모리 사용률을 올바르게 입력해주세요 (0.1 ~ 1.0).');
+            return;
+        }
+
+        setIsSettingUpVLLM(true);
+        try {
+            const createInstanceConfig: VLLMCreateInstanceConfig = {
+                offer_id: selectedOfferId,
+                hf_hub_token: vllmConfig.hf_hub_token,
+                auto_destroy: false,
+                vllm_config: vllmConfig.vllm_config
+            };
+
+            devLog.info('Creating VLLM instance with config:', createInstanceConfig);
+
+            const result = await createVastInstance(createInstanceConfig);
+
+            toast.success('VLLM 인스턴스가 생성되었습니다!');
+            devLog.info('VLLM instance creation result:', result);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            toast.error(`VLLM 인스턴스 생성 실패: ${errorMessage}`);
+            devLog.error('Failed to create VLLM instance:', error);
+        } finally {
+            setIsSettingUpVLLM(false);
+        }
+    };
+
+    const handleSetupVLLM = async () => {
+        if (!selectedOfferId.trim()) {
+            toast.error('먼저 GPU 오퍼를 선택해주세요.');
+            return;
+        }
+
+        if (!vllmConfig.vllm_config.vllm_model_name.trim()) {
+            toast.error('모델명을 입력해주세요.');
+            return;
+        }
+
+        if (!vllmConfig.vllm_config.vllm_max_model_len || vllmConfig.vllm_config.vllm_max_model_len <= 0) {
+            toast.error('최대 모델 길이를 입력해주세요.');
+            return;
+        }
+
+        if (!vllmConfig.vllm_config.vllm_gpu_memory_utilization || vllmConfig.vllm_config.vllm_gpu_memory_utilization <= 0 || vllmConfig.vllm_config.vllm_gpu_memory_utilization > 1) {
+            toast.error('GPU 메모리 사용률을 올바르게 입력해주세요 (0.1 ~ 1.0).');
+            return;
+        }
+
+        setIsSettingUpVLLM(true);
+        try {
+            devLog.info('Setting up VLLM with config:', { instanceId: selectedOfferId, config: vllmConfig });
+
+            const result = await setupVLLM(selectedOfferId, vllmConfig);
+
+            toast.success('VLLM 설정이 완료되었습니다!');
+            devLog.info('VLLM setup result:', result);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            toast.error(`VLLM 설정 실패: ${errorMessage}`);
+            devLog.error('Failed to setup VLLM:', error);
+        } finally {
+            setIsSettingUpVLLM(false);
+        }
+    };
+
     return (
         <div className={styles.configPanel}>
             <BaseConfigPanel
                 configData={configData}
                 fieldConfigs={VAST_AI_CONFIG_FIELDS}
                 filterPrefix="vast"
-                onTestConnection={() => handleTestConnection()}
+                onTestConnection={handleTestConnection}
                 testConnectionLabel="Vast.ai 연결 테스트"
                 testConnectionCategory="vast"
             />
@@ -319,7 +504,7 @@ const VastAiConfig: React.FC<VastAiConfigProps> = ({
                                                 <div className={styles.offerDetails}>
                                                     <div className={styles.detail}>
                                                         <span className={styles.detailLabel}>GPU RAM:</span>
-                                                        <span className={styles.detailValue}>{offer.gpu_ram}GB</span>
+                                                        <span className={styles.detailValue}>{(offer.gpu_ram/1024).toFixed(1)}GB</span>
                                                     </div>
                                                     <div className={styles.detail}>
                                                         <span className={styles.detailLabel}>상태:</span>
@@ -347,6 +532,23 @@ const VastAiConfig: React.FC<VastAiConfigProps> = ({
 
                                                 <div className={styles.offerActions}>
                                                     <button
+                                                        className={`${styles.selectButton} ${selectedOfferId === offer.id ? styles.selected : ''}`}
+                                                        onClick={() => handleSelectOffer(offer.id)}
+                                                        disabled={!offer.rentable}
+                                                    >
+                                                        {selectedOfferId === offer.id ? (
+                                                            <>
+                                                                <FiCheck className={styles.icon} />
+                                                                선택됨
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <FiServer className={styles.icon} />
+                                                                선택
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                    <button
                                                         className={styles.copyButton}
                                                         onClick={() => {
                                                             navigator.clipboard.writeText(offer.id);
@@ -370,6 +572,171 @@ const VastAiConfig: React.FC<VastAiConfigProps> = ({
                         )}
                     </div>
                 </div>
+            </div>
+
+            {/* VLLM 설정 섹션 */}
+            <div className={styles.configSection}>
+                <h3 className={styles.sectionTitle}>
+                    <FiSettings className={styles.sectionIcon} />
+                    VLLM 인스턴스 설정
+                </h3>
+
+                {selectedOfferId ? (
+                    <div className={styles.vllmSetupLayout}>
+                        <div className={styles.vllmSetupPanel}>
+                            <div className={styles.selectedOfferInfo}>
+                                <h4>선택된 오퍼 ID: <span className={styles.offerId}>{selectedOfferId}</span></h4>
+                            </div>
+
+                            <div className={styles.vllmSection}>
+                                <h5 className={styles.vllmSectionTitle}>기본 설정</h5>
+
+                                <div className={styles.compactRow}>
+                                    <div className={styles.advancedFormGroup}>
+                                        <label className={styles.label}>HuggingFace 토큰</label>
+                                        <input
+                                            type="password"
+                                            className={styles.input}
+                                            placeholder="선택사항: HuggingFace 토큰을 입력하세요"
+                                            value={vllmConfig.hf_hub_token}
+                                            onChange={(e) => handleVLLMConfigChange('hf_hub_token', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className={styles.checkboxRow}>
+                                    <label className={styles.checkboxLabel}>
+                                        <input
+                                            type="checkbox"
+                                            checked={vllmConfig.install_requirements}
+                                            onChange={(e) => handleVLLMConfigChange('install_requirements', e.target.checked)}
+                                        />
+                                        requirements.txt 설치
+                                    </label>
+                                </div>
+                            </div>
+
+                            {/* VLLM 모델 설정 */}
+                            <div className={styles.vllmSection}>
+                                <h5 className={styles.vllmSectionTitle}>VLLM 모델 설정</h5>
+                                <div className={styles.compactRow}>
+                                    <div className={styles.advancedFormGroup}>
+                                        <label className={styles.label}>모델명 *</label>
+                                        <input
+                                            type="text"
+                                            className={styles.input}
+                                            value={vllmConfig.vllm_config.vllm_model_name}
+                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_model_name', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className={styles.advancedFormGroup}>
+                                        <label className={styles.label}>최대 모델 길이 *</label>
+                                        <input
+                                            type="number"
+                                            className={styles.input}
+                                            value={vllmConfig.vllm_config.vllm_max_model_len}
+                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_max_model_len', parseInt(e.target.value))}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className={styles.compactRow}>
+                                    <div className={styles.advancedFormGroup}>
+                                        <label className={styles.label}>GPU 메모리 사용률 *</label>
+                                        <input
+                                            type="number"
+                                            className={styles.input}
+                                            step="0.1"
+                                            min="0.1"
+                                            max="1.0"
+                                            value={vllmConfig.vllm_config.vllm_gpu_memory_utilization}
+                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_gpu_memory_utilization', parseFloat(e.target.value))}
+                                        />
+                                    </div>
+                                    <div className={styles.advancedFormGroup}>
+                                        <label className={styles.label}>Tensor Parallel Size</label>
+                                        <input
+                                            type="number"
+                                            className={styles.input}
+                                            min="1"
+                                            value={vllmConfig.vllm_config.vllm_tensor_parallel_size}
+                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_tensor_parallel_size', parseInt(e.target.value))}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className={styles.compactRow}>
+                                    <div className={styles.advancedFormGroup}>
+                                        <label className={styles.label}>Tool Call Parser</label>
+                                        <select
+                                            className={styles.select}
+                                            value={vllmConfig.vllm_config.vllm_tool_call_parser}
+                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_tool_call_parser', e.target.value)}
+                                        >
+                                            <option value="none">None</option>
+                                            <option value="hermes">Hermes</option>
+                                            <option value="mistral">Mistral</option>
+                                            <option value="llama3_json">Llama3 JSON</option>
+                                            <option value="internlm">InternLM</option>
+                                            <option value="jamba">Jamba</option>
+                                            <option value="xlam">XLAM</option>
+                                            <option value="minimax_m1">Minimax M1</option>
+                                            <option value="deepseek_v3">DeepSeek V3</option>
+                                            <option value="kimi_k2">Kimi K2</option>
+                                            <option value="pythonic">Pythonic</option>
+                                        </select>
+                                    </div>
+                                    <div className={styles.advancedFormGroup}>
+                                        <label className={styles.label}>데이터 타입</label>
+                                        <select
+                                            className={styles.select}
+                                            value={vllmConfig.vllm_config.vllm_dtype}
+                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_dtype', e.target.value)}
+                                        >
+                                            <option value="auto">Auto</option>
+                                            <option value="float16">Float16</option>
+                                            <option value="bfloat16">BFloat16</option>
+                                            <option value="float32">Float32</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 실행 버튼 */}
+                            <div className={styles.vllmActions}>
+                                <button
+                                    className={`${styles.button} ${styles.primary} ${styles.large}`}
+                                    onClick={handleCreateInstance}
+                                    // onClick={handleSetupVLLM}
+                                    disabled={isSettingUpVLLM ||
+                                        !vllmConfig.vllm_config.vllm_model_name.trim() ||
+                                        !vllmConfig.vllm_config.vllm_max_model_len ||
+                                        vllmConfig.vllm_config.vllm_max_model_len <= 0 ||
+                                        !vllmConfig.vllm_config.vllm_gpu_memory_utilization ||
+                                        vllmConfig.vllm_config.vllm_gpu_memory_utilization <= 0 ||
+                                        vllmConfig.vllm_config.vllm_gpu_memory_utilization > 1}
+                                >
+                                    {isSettingUpVLLM ? (
+                                        <>
+                                            <FiRefreshCw className={`${styles.icon} ${styles.spinning}`} />
+                                            VLLM 설정 중...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <FiPlay className={styles.icon} />
+                                            VLLM 인스턴스 생성
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className={styles.noSelection}>
+                        <FiServer className={styles.icon} />
+                        GPU 오퍼를 먼저 선택해주세요.
+                    </div>
+                )}
             </div>
         </div>
     );

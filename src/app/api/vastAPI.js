@@ -59,6 +59,7 @@ export const searchVastOffers = async (searchParams = {}) => {
  * 새 인스턴스 생성 API
  * @param {Object} options - 인스턴스 생성 옵션
  * @param {string} [options.offer_id] - 특정 오퍼 ID
+ * @param {string} [options.hf_hub_token] - HuggingFace 토큰
  * @param {string} [options.template_name] - 템플릿 이름 (budget, high_performance, research)
  * @param {boolean} [options.auto_destroy] - 자동 삭제 여부
  * @param {Object} [options.vllm_config] - VLLM 설정
@@ -89,7 +90,7 @@ export const createVastInstance = async (options = {}) => {
  * @param {string} instanceId - 인스턴스 ID
  * @param {Object} setupConfig - 설정 옵션
  * @param {string} [setupConfig.script_directory] - 스크립트 디렉토리 경로
- * @param {string} [setupConfig.hf_token] - HuggingFace 토큰
+ * @param {string} [setupConfig.hf_hub_token] - HuggingFace 토큰
  * @param {string} [setupConfig.main_script] - 메인 스크립트 파일명
  * @param {string} [setupConfig.log_file] - 로그 파일 경로
  * @param {boolean} [setupConfig.install_requirements] - requirements.txt 설치 여부
