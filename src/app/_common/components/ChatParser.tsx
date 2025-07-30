@@ -1,6 +1,5 @@
 'use client';
 
-import ReactMarkdown from 'react-markdown';
 import React, { useState, useRef, useEffect } from 'react';
 import { FiCopy, FiCheck, FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import styles from '@/app/chat/assets/chatParser.module.scss';
