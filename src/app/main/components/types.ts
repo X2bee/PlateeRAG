@@ -13,12 +13,14 @@ export interface SidebarProps {
     items: SidebarItem[];
     workflowItems?: SidebarItem[];
     chatItems?: SidebarItem[];
+    trainItem?: SidebarItem[];
     activeItem: string;
     onItemClick: (itemId: string) => void;
     className?: string;
     initialChatExpanded?: boolean;
     initialSettingExpanded?: boolean;
     initialWorkflowExpanded?: boolean;
+    initialTrainExpanded?: boolean;
 }
 
 export interface ContentAreaProps {
