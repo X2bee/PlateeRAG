@@ -8,9 +8,12 @@ import {
     FiClock,
     FiMessageCircle,
     FiFile,
+    FiBarChart2,
 } from 'react-icons/fi';
 import { RiChatSmileAiLine } from "react-icons/ri";
 import { SidebarItem } from '@/app/main/components/types';
+
+export const getChatItems = ['new-chat', 'current-chat', 'chat-history'];
 
 export const getChatSidebarItems = (): SidebarItem[] => [
     {
@@ -33,6 +36,8 @@ export const getChatSidebarItems = (): SidebarItem[] => [
     },
 ];
 
+export const getWorkflowItems = ['canvas', 'workflows', 'documents'];
+
 export const getWorkflowSidebarItems = (): SidebarItem[] => [
     {
         id: 'canvas',
@@ -53,6 +58,37 @@ export const getWorkflowSidebarItems = (): SidebarItem[] => [
         icon: React.createElement(FiFile),
     },
 ];
+
+export const getTrainItems = ['train', 'train-monitor', 'eval', 'model-hub'];
+
+export const getTrainSidebarItems = (): SidebarItem[] => [
+    {
+        id: 'train',
+        title: '모델 훈련',
+        description: '모델 훈련',
+        icon: React.createElement(FiBarChart2),
+    },
+    {
+        id: 'train-monitor',
+        title: '모델 훈련 모니터',
+        description: '모델 훈련 파라미터 모니터링',
+        icon: React.createElement(FiBarChart2),
+    },
+    {
+        id: 'eval',
+        title: '모델 평가',
+        description: '모델 평가',
+        icon: React.createElement(FiBarChart2),
+    },
+    {
+        id: 'model-hub',
+        title: '모델 허브',
+        description: '모델 허브',
+        icon: React.createElement(FiBarChart2),
+    },
+];
+
+export const getSettingItems = ['settings', 'exec-monitor', 'config-viewer'];
 
 export const getSettingSidebarItems = (): SidebarItem[] => [
     {
@@ -81,6 +117,14 @@ export const createItemClickHandler = (router: any) => {
         // 클릭한 섹션을 localStorage에 저장하고 /main으로 이동
         localStorage.setItem('activeSection', itemId);
         router.push('/main');
+    };
+};
+
+export const createTrainItemClickHandler = (router: any) => {
+    return (itemId: string) => {
+        // 클릭한 섹션을 localStorage에 저장하고 /train으로 이동
+        localStorage.setItem('activeSection', itemId);
+        router.push('/train');
     };
 };
 
