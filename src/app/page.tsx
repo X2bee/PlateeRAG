@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import {
     FiArrowRight,
