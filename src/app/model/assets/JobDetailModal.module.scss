@@ -351,36 +351,31 @@
   }
   
   // Status badge classes - these would need to be implemented in your utils
-  :global(.status-completed) {
-    background-color: #dcfce7;
-    border-color: #16a34a;
-    color: #166534;
-  }
-  
-  :global(.status-running) {
-    background-color: #dbeafe;
-    border-color: #2563eb;
-    color: #1e40af;
-  }
-  
-  :global(.status-failed) {
-    background-color: #fee2e2;
-    border-color: #dc2626;
-    color: #991b1b;
-  }
-  
-  :global(.status-pending) {
-    background-color: #fef3c7;
-    border-color: #d97706;
-    color: #92400e;
-  }
-  
-  :global(.status-accepted) {
-    background-color: #e0e7ff;
-    border-color: #6366f1;
-    color: #4338ca;
-  }
-  
+      .status-completed {
+        background-color: #dcfce7;
+        border-color:   #16a34a;
+        color:          #166534;
+      }
+      .status-running {
+        background-color: #dbeafe;
+        border-color:   #2563eb;
+        color:          #1e40af;
+      }
+      .status-failed {
+        background-color: #fee2e2;
+        border-color:   #dc2626;
+        color:          #991b1b;
+      }
+      .status-pending {
+        background-color: #fef3c7;
+        border-color:   #d97706;
+        color:          #92400e;
+      }
+      .status-accepted {
+        background-color: #e0e7ff;
+        border-color:   #6366f1;
+        color:          #4338ca;
+      }
   // 반응형 디자인
   @media (max-width: 768px) {
     .modal {

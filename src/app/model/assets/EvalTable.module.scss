@@ -344,32 +344,32 @@
 }
 
 // Status badge classes - these would need to be implemented in your utils
-:global(.status-completed) {
+.statusCompleted {
   background-color: #dcfce7;
-  border-color: #16a34a;
-  color: #166534;
+  border-color:   #16a34a;
+  color:          #166534;
 }
 
-:global(.status-running) {
+.statusRunning {
   background-color: #dbeafe;
-  border-color: #2563eb;
-  color: #1e40af;
+  border-color:   #2563eb;
+  color:          #1e40af;
 }
 
-:global(.status-failed) {
+.statusFailed {
   background-color: #fee2e2;
-  border-color: #dc2626;
-  color: #991b1b;
+  border-color:   #dc2626;
+  color:          #991b1b;
 }
 
-:global(.status-pending) {
+.statusPending {
   background-color: #fef3c7;
-  border-color: #d97706;
-  color: #92400e;
+  border-color:   #d97706;
+  color:          #92400e;
 }
 
-:global(.status-accepted) {
+.statusAccepted {
   background-color: #e0e7ff;
-  border-color: #6366f1;
-  color: #4338ca;
+  border-color:   #6366f1;
+  color:          #4338ca;
 }
