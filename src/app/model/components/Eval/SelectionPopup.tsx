@@ -34,7 +34,7 @@ const SelectionPopup: React.FC<SelectionPopupProps> = ({
   const [internalSearchQuery, setInternalSearchQuery] = useState(searchQuery);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // 외부 selected, searchQuery 변화 반영
+  // 외부 selected, searchQuery 변경 반영
   useEffect(() => setInternalSearchQuery(searchQuery), [searchQuery]);
   useEffect(() => setInternalSelected(selected), [selected]);
 
@@ -72,11 +72,8 @@ const SelectionPopup: React.FC<SelectionPopupProps> = ({
   }, [internalSelected, options, getItemName, onConfirm]);
 
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) onClose();
-  }, [onClose]);
-
-  const handleBackdropKeydown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') onClose();
+    // backdrop 버튼 자체에만 적용
+    if (e.currentTarget === e.target) onClose();
   }, [onClose]);
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,7 +103,6 @@ const SelectionPopup: React.FC<SelectionPopupProps> = ({
         type="button"
         aria-label="팝업 닫기"
         onClick={handleBackdropClick}
-        onKeyDown={handleBackdropKeydown}
       />
 
       {/* 모달 콘텐츠 */}
@@ -117,8 +113,8 @@ const SelectionPopup: React.FC<SelectionPopupProps> = ({
         aria-modal="true"
         aria-labelledby="popup-title"
         tabIndex={-1}
-        onClick={e => e.stopPropagation()}
       >
+        {/* 헤더 */}
         <div className={styles.header}>
           <h2 id="popup-title" className={styles.title}>{title}</h2>
           <button type="button" className={styles.closeButton} onClick={onClose} aria-label="닫기">
@@ -128,6 +124,7 @@ const SelectionPopup: React.FC<SelectionPopupProps> = ({
           </button>
         </div>
 
+        {/* 검색창 */}
         <div className={styles.searchContainer}>
           <input
             type="text"
@@ -140,6 +137,7 @@ const SelectionPopup: React.FC<SelectionPopupProps> = ({
           />
         </div>
 
+        {/* 리스트 */}
         <div className={styles.content}>
           {loading ? (
             <div className={styles.loadingContainer}><div className={styles.loadingSpinner} /></div>
@@ -149,9 +147,7 @@ const SelectionPopup: React.FC<SelectionPopupProps> = ({
             <div className={styles.itemsGrid}>
               {filteredOptions.map((item, idx) => {
                 const name = getItemName(item);
-                const active = type === 'columns'
-                  ? internalSelected === item
-                  : internalSelected === name;
+                const active = type === 'columns' ? internalSelected === item : internalSelected === name;
                 return (
                   <button
                     key={name + idx}
@@ -165,13 +161,13 @@ const SelectionPopup: React.FC<SelectionPopupProps> = ({
                       <div className={styles.itemDetails}>
                         {item.user_name && item.user_name !== 'Unknown' && <p>생성자: {item.user_name}</p>}
                         {type === 'model' && (
-                          <>   
+                          <>
                             {item.base_model && <p>베이스 모델: {item.base_model}</p>}
                             {item.training_method && <p>학습 방법: {item.training_method}</p>}
                           </>
                         )}
                         {type === 'dataset' && (
-                          <>   
+                          <>
                             {item.main_task && <p>주요 작업: {item.main_task}</p>}
                             {item.number_rows && <p>데이터 수: {item.number_rows}</p>}
                             {item.description && <p className={styles.description}>설명: {item.description}</p>}
@@ -193,6 +189,7 @@ const SelectionPopup: React.FC<SelectionPopupProps> = ({
           )}
         </div>
 
+        {/* 푸터 */}
         <div className={styles.footer}>
           <button type="button" onClick={onClose} className={`${styles.button} ${styles.cancelButton}`}>취소</button>
           <button type="button" onClick={confirmSelection} className={`${styles.button} ${styles.confirmButton}`} disabled={!internalSelected}>선택</button>
