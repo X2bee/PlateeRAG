@@ -158,3 +158,27 @@ export const setVllmConfig = async (vllmConfig) => {
         throw error;
     }
 };
+
+/**
+ * VLLM 다운 API
+ * @param {string} instanceId - 인스턴스 ID
+ * @returns {Promise<Object>} VLLM 다운 결과
+ */
+export const vllmDown = async (instanceId) => {
+    try {
+        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/instances/${instanceId}/vllm-down`, {
+            method: 'POST',
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        devLog.log('VLLM down successful:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to down VLLM:', error);
+        throw error;
+    }
+};

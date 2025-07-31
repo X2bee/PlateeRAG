@@ -129,6 +129,89 @@ export const InstanceManagementModal = () => {
         }
     };
 
+    const handleVllmDown = async (instance: VastInstanceData) => {
+        const vllmControllerEndpoint = getExternalPortInfo(instance.port_mappings, '12435');
+
+        if (!vllmControllerEndpoint) {
+            toast.error('VLLM 컨트롤러 엔드포인트가 준비되지 않았습니다.');
+            return;
+        }
+
+        const vllmControllerUrl = `http://${vllmControllerEndpoint.ip}:${vllmControllerEndpoint.port}`;
+
+        try {
+            devLog.info('Stopping VLLM model:', vllmControllerUrl);
+
+            const response = await fetch(`${vllmControllerUrl}/api/vllm/down`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            toast.success('VLLM 모델이 종료되었습니다.');
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            toast.error(`VLLM 모델 종료 실패: ${errorMessage}`);
+            devLog.error('Failed to stop VLLM model:', error);
+        }
+    };
+
+    const handleVllmServe = async (instance: VastInstanceData, serveConfig?: any) => {
+        const vllmControllerEndpoint = getExternalPortInfo(instance.port_mappings, '12435');
+
+        if (!vllmControllerEndpoint) {
+            toast.error('VLLM 컨트롤러 엔드포인트가 준비되지 않았습니다.');
+            return;
+        }
+
+        const vllmControllerUrl = `http://${vllmControllerEndpoint.ip}:${vllmControllerEndpoint.port}`;
+
+        const defaultServeConfig = {
+            model_id: instance.model_name,
+            tokenizer: instance.model_name,
+            download_dir: "/models/huggingface",
+            host: "0.0.0.0",
+            port: 12434,
+            max_model_len: instance.max_model_length,
+            pipeline_parallel_size: 1,
+            tensor_parallel_size: 1,
+            gpu_memory_utilization: 0.95,
+            dtype: "bfloat16",
+            kv_cache_dtype: "auto",
+            load_local: false,
+            tool_call_parser: "hermes"
+        };
+
+        const finalServeConfig = serveConfig || defaultServeConfig;
+
+        try {
+            devLog.info('Starting VLLM model:', { url: vllmControllerUrl, config: finalServeConfig });
+
+            const response = await fetch(`${vllmControllerUrl}/api/vllm/serve`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(finalServeConfig),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            toast.success('VLLM 모델이 시작되었습니다.');
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            toast.error(`VLLM 모델 시작 실패: ${errorMessage}`);
+            devLog.error('Failed to start VLLM model:', error);
+        }
+    };
+
     const getExternalPortInfo = (portMappings: string | null, targetPort: string) => {
         if (!portMappings) return null;
 
