@@ -1,0 +1,419 @@
+.backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    backdrop-filter: blur(4px);
+    background-color: rgba(17, 24, 39, 0.7);
+  }
+  
+  .modal {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 56rem;
+    overflow: hidden;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+  }
+  
+  .statusBadge {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 9999px;
+    border: 1px solid;
+  }
+  
+  .subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0.25rem 0 0 0;
+  }
+  
+  .closeButton {
+    color: #6b7280;
+    background: none;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+    border-radius: 0.25rem;
+  
+    &:hover {
+      color: #374151;
+    }
+  }
+  
+  .closeIcon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  
+  .loadingContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+  }
+  
+  .loadingSpinner {
+    width: 2rem;
+    height: 2rem;
+    border: 2px solid #3b82f6;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  .content {
+    padding: 1.5rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .section {
+    &:not(:last-child) {
+      margin-bottom: 1.5rem;
+    }
+  }
+  
+  .sectionTitle {
+    font-size: 1.125rem;
+    font-weight: 500;
+    margin: 0 0 1rem 0;
+  }
+  
+  .infoGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    font-size: 0.875rem;
+  
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .infoItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  
+    &.fullWidth {
+      grid-column: span 2;
+  
+      @media (max-width: 768px) {
+        grid-column: span 1;
+      }
+    }
+  }
+  
+  .infoLabel {
+    font-weight: 500;
+    color: #374151;
+  }
+  
+  .infoValue {
+    word-break: break-all;
+    color: #111827;
+  }
+  
+  .resultSection {
+    margin-bottom: 1rem;
+  
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  .resultTitle {
+    font-weight: 500;
+    color: #374151;
+    margin: 0 0 0.5rem 0;
+  }
+  
+  .resultContainer {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background-color: #f9fafb;
+  
+    &.baseModelResult {
+      background-color: #eff6ff;
+      border: 1px solid #dbeafe;
+    }
+  
+    &.comparisonResult {
+      background-color: #f0fdf4;
+      border: 1px solid #dcfce7;
+    }
+  }
+  
+  .resultItem {
+    margin-bottom: 0.75rem;
+  
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  .taskName {
+    font-weight: 500;
+    font-size: 1.125rem;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+  
+  .metricItem {
+    margin-left: 1rem;
+    font-size: 0.875rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .metricValue {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #2563eb;
+  
+    &.baseValue {
+      color: #1e40af;
+    }
+  
+    &.improved {
+      color: #16a34a;
+    }
+  
+    &.degraded {
+      color: #dc2626;
+    }
+  }
+  
+  .errorContainer {
+    background-color: #fef2f2;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #fecaca;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  
+  .errorText {
+    font-size: 0.875rem;
+    color: #b91c1c;
+    white-space: pre-wrap;
+    margin: 0;
+  }
+  
+  .logContainer {
+    background-color: #f9fafb;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  .logItem {
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  
+    &:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+  }
+  
+  .logHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  
+  .logLevel {
+    font-weight: 500;
+    color: #6b7280;
+  }
+  
+  .logTimestamp {
+    color: #6b7280;
+  }
+  
+  .logMessage {
+    margin: 0.25rem 0 0 0;
+    color: #374151;
+    white-space: pre-wrap;
+  }
+  
+  .footer {
+    padding: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+  }
+  
+  .button {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    }
+  
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  }
+  
+  .deleteButton {
+    color: white;
+    background-color: #dc2626;
+  
+    &:hover:not(:disabled) {
+      background-color: #b91c1c;
+    }
+  
+    &:disabled {
+      background-color: #f87171;
+    }
+  }
+  
+  .closeModalButton {
+    background-color: #f3f4f6;
+    color: #1f2937;
+  
+    &:hover {
+      background-color: #e5e7eb;
+    }
+  
+    &:focus {
+      box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.5);
+    }
+  }
+  
+  .buttonIcon {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.5rem;
+  }
+  
+  .buttonSpinner {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid white;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 0.5rem;
+  }
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  // Status badge classes - these would need to be implemented in your utils
+      .status-completed {
+        background-color: #dcfce7;
+        border-color:   #16a34a;
+        color:          #166534;
+      }
+      .status-running {
+        background-color: #dbeafe;
+        border-color:   #2563eb;
+        color:          #1e40af;
+      }
+      .status-failed {
+        background-color: #fee2e2;
+        border-color:   #dc2626;
+        color:          #991b1b;
+      }
+      .status-pending {
+        background-color: #fef3c7;
+        border-color:   #d97706;
+        color:          #92400e;
+      }
+      .status-accepted {
+        background-color: #e0e7ff;
+        border-color:   #6366f1;
+        color:          #4338ca;
+      }
+  // 반응형 디자인
+  @media (max-width: 768px) {
+    .modal {
+      margin: 0.5rem;
+      max-height: calc(100vh - 1rem);
+    }
+  
+    .header {
+      padding: 1rem;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+  
+    .title {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+  
+    .closeButton {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+    }
+  
+    .content {
+      padding: 1rem;
+    }
+  
+    .footer {
+      padding: 1rem;
+      flex-direction: column-reverse;
+      gap: 0.75rem;
+    }
+  
+    .button {
+      width: 100%;
+      justify-content: center;
+    }
+  }

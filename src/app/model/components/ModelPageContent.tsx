@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import MetricsPageContent from './MetricsPageContent';
+import MetricsPageContent from '@/app/model/components/MetricsPageContent';
+import EvalPageContent from '@/app/model/components/EvalPageContent'
 import { getTrainItems } from '@/app/_common/components/sidebarConfig';
 
 const ModelPage: React.FC = () => {
@@ -22,6 +23,8 @@ const ModelPage: React.FC = () => {
         switch (activeSection) {
             case 'train-monitor':
                 return <MetricsPageContent/>;
+            case 'eval':
+                return <EvalPageContent/>;
         }
     };
 
