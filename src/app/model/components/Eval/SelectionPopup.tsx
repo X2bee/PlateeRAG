@@ -138,48 +138,79 @@ const SelectionPopup: React.FC<SelectionPopupProps> = ({
 
   if (!show) return null;
 
+  if (!show) return null;
+
   return (
-    <div 
-      className={styles.backdrop}
-      onClick={handleBackdropClick}
-      onKeyDown={handleKeydown}
-      tabIndex={0}
-    >
-      <div 
+    <>
+      {/* 백드롭 버튼 */}
+      <button
+        className={styles.backdrop}
+        type="button"
+        aria-label="팝업 닫기"
+        onClick={handleBackdropClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            handleBackdropClick(e as any);
+          }
+        }}
+      />
+  
+      {/* 모달 콘텐츠 */}
+      <div
         ref={modalRef}
         className={styles.modal}
-        onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="popup-title"
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* 헤더 */}
         <div className={styles.header}>
-          <h2 id="popup-title" className={styles.title}>{title}</h2>
-          <button 
+          <h2 id="popup-title" className={styles.title}>
+            {title}
+          </h2>
+          <button
             type="button"
-            onClick={closePopup} 
             className={styles.closeButton}
+            onClick={closePopup}
             aria-label="닫기"
           >
-            <svg className={styles.closeIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className={styles.closeIcon}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
-        
+  
         {/* 검색 */}
         <div className={styles.searchContainer}>
-          <input 
-            type="text" 
+          <input
+            type="text"
             value={internalSearchQuery}
             onChange={handleSearchChange}
-            placeholder={`${type === 'model' ? '모델' : type === 'dataset' ? '데이터셋' : '컬럼'} 검색...`}
+            placeholder={
+              type === 'model'
+                ? '모델 검색...'
+                : type === 'dataset'
+                ? '데이터셋 검색...'
+                : '컬럼 검색...'
+            }
             className={styles.searchInput}
           />
         </div>
-        
-        {/* 콘텐츠 */}
+  
+        {/* 본문 리스트 */}
         <div className={styles.content}>
           {loading ? (
             <div className={styles.loadingContainer}>
@@ -194,63 +225,85 @@ const SelectionPopup: React.FC<SelectionPopupProps> = ({
               {filteredOptions.map((item, index) => {
                 const itemKey = getItemName(item) + index;
                 const itemName = getItemName(item);
-                const selected = type === 'columns' ? internalSelected === item : isSelected(item);
-
+                const isActive =
+                  type === 'columns'
+                    ? internalSelected === item
+                    : isSelected(item);
+  
                 return (
                   <button
                     key={itemKey}
                     type="button"
-                    className={`${styles.itemButton} ${selected ? styles.selected : ''}`}
+                    className={`${styles.itemButton} ${
+                      isActive ? styles.selected : ''
+                    }`}
                     onClick={() => selectItem(item)}
                     onDoubleClick={() => handleDoubleClick(item)}
                   >
                     <h3 className={styles.itemName}>
                       {type === 'columns' ? item : itemName}
                     </h3>
-                    
+  
                     {type !== 'columns' && (
                       <div className={styles.itemDetails}>
-                        {item.user_name && item.user_name !== "Unknown" && (
+                        {item.user_name && item.user_name !== 'Unknown' && (
                           <p>생성자: {item.user_name}</p>
                         )}
-                        
                         {type === 'model' && (
                           <>
-                            {item.base_model && item.base_model !== "Unknown" && (
-                              <p>베이스 모델: {item.base_model}</p>
-                            )}
-                            {item.training_method && item.training_method !== "Unknown" && (
-                              <p>학습 방법: {item.training_method}</p>
-                            )}
+                            {item.base_model &&
+                              item.base_model !== 'Unknown' && (
+                                <p>베이스 모델: {item.base_model}</p>
+                              )}
+                            {item.training_method &&
+                              item.training_method !== 'Unknown' && (
+                                <p>학습 방법: {item.training_method}</p>
+                              )}
                           </>
                         )}
-                        
                         {type === 'dataset' && (
                           <>
-                            {item.main_task && item.main_task !== "Unknown" && (
-                              <p>주요 작업: {item.main_task}</p>
-                            )}
-                            {item.number_rows && item.number_rows !== "Unknown" && (
-                              <p>데이터 수: {item.number_rows}</p>
-                            )}
-                            {item.description && item.description !== "Unknown" && (
-                              <p className={styles.description}>설명: {item.description}</p>
-                            )}
+                            {item.main_task &&
+                              item.main_task !== 'Unknown' && (
+                                <p>주요 작업: {item.main_task}</p>
+                              )}
+                            {item.number_rows &&
+                              item.number_rows !== 'Unknown' && (
+                                <p>데이터 수: {item.number_rows}</p>
+                              )}
+                            {item.description &&
+                              item.description !== 'Unknown' && (
+                                <p className={styles.description}>
+                                  설명: {item.description}
+                                </p>
+                              )}
                           </>
                         )}
                       </div>
                     )}
-                    
+  
                     {type === 'model' && (
                       <div className={styles.badges}>
                         {item.use_deepspeed && (
-                          <span className={`${styles.badge} ${styles.deepspeedBadge}`}>DeepSpeed</span>
+                          <span
+                            className={`${styles.badge} ${styles.deepspeedBadge}`}
+                          >
+                            DeepSpeed
+                          </span>
                         )}
                         {item.use_peft && (
-                          <span className={`${styles.badge} ${styles.peftBadge}`}>PEFT</span>
+                          <span
+                            className={`${styles.badge} ${styles.peftBadge}`}
+                          >
+                            PEFT
+                          </span>
                         )}
                         {item.use_flash_attention && (
-                          <span className={`${styles.badge} ${styles.flashAttentionBadge}`}>Flash Attention</span>
+                          <span
+                            className={`${styles.badge} ${styles.flashAttentionBadge}`}
+                          >
+                            Flash Attention
+                          </span>
                         )}
                       </div>
                     )}
@@ -260,19 +313,19 @@ const SelectionPopup: React.FC<SelectionPopupProps> = ({
             </div>
           )}
         </div>
-        
-        {/* 푸터 버튼들 */}
+  
+        {/* 푸터 버튼 */}
         <div className={styles.footer}>
-          <button 
+          <button
             type="button"
-            onClick={closePopup} 
+            onClick={closePopup}
             className={`${styles.button} ${styles.cancelButton}`}
           >
             취소
           </button>
-          <button 
+          <button
             type="button"
-            onClick={confirmSelection} 
+            onClick={confirmSelection}
             className={`${styles.button} ${styles.confirmButton}`}
             disabled={!internalSelected}
           >
@@ -280,8 +333,8 @@ const SelectionPopup: React.FC<SelectionPopupProps> = ({
           </button>
         </div>
       </div>
-    </div>
-  );
+    </>
+  );  
 };
 
 export default SelectionPopup;
