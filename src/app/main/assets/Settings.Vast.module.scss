@@ -34,7 +34,7 @@
     display: grid;
     grid-template-columns: 500px 1fr;
     gap: 1.5rem;
-    height: 40vh;
+    height: 60vh;
 
     @media (max-width: 768px) {
         grid-template-columns: 1fr;
@@ -170,6 +170,7 @@
     from {
         transform: rotate(0deg);
     }
+
     to {
         transform: rotate(360deg);
     }
@@ -188,7 +189,8 @@
         color: $gray-700;
     }
 
-    .input, .select {
+    .input,
+    .select {
         padding: 0.375rem 0.5rem;
         border: 1px solid $gray-300;
         border-radius: 0.25rem;
@@ -329,16 +331,33 @@
             font-size: 0.875rem;
             font-weight: 600;
             color: $gray-900;
+
+            em {
+                font-size: 0.75rem;
+                color: $gray-600;
+            }
         }
 
-        .gpuCount {
+        .gpuDetail {
             background: $primary-blue;
             color: $white;
             font-size: 0.625rem;
             font-weight: 600;
             padding: 0.125rem 0.375rem;
             border-radius: 0.25rem;
+
+
         }
+
+        .gpuCuda {
+            color: $white;
+            font-size: 0.625rem;
+            font-weight: 600;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            background: $primary-green;
+        }
+
     }
 
     .price {
@@ -349,42 +368,92 @@
 }
 
 .offerDetails {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 0.5rem;
     margin-bottom: 0.75rem;
+}
+
+.detailRows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.detailRow {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+
+    .detail:first-child {
+        flex: 2;
+    }
+
+    .detail:nth-child(2) {
+        flex: 1;
+    }
+
+    .detail:nth-child(n+3) {
+        flex: 1;
+    }
+}
+
+.detailGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.5rem;
+    width: 100%;
 }
 
 .detail {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 0.375rem;
+    gap: 0.375rem;
+    padding: 0.375rem 0.5rem;
     background: $gray-50;
     border-radius: 0.25rem;
+    min-height: 2rem;
+    flex: 1;
 
     .detailLabel {
         font-size: 0.6rem;
         color: $gray-500;
         font-weight: 500;
+        line-height: 1;
+        white-space: nowrap;
     }
 
     .detailValue {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 600;
         color: $gray-900;
+        line-height: 1.2;
+        word-break: break-word;
+        flex: 1;
     }
+}
+
+.cpuName {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: $gray-900;
+}
+
+.cpuCores {
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: $gray-600;
+    margin-left: 0.25rem;
 }
 
 .status {
     display: flex;
     align-items: center;
     gap: 0.25rem;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 500;
+    line-height: 1.2;
 
     .statusIcon {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
     }
 
     &.available {
@@ -436,8 +505,8 @@
         border-color: $primary-green;
 
         &:hover {
-            background: darken($primary-green, 10%);
-            border-color: darken($primary-green, 10%);
+            background: color.adjust($primary-green, $lightness: -10%);
+            border-color: color.adjust($primary-green, $lightness: -10%);
         }
     }
 
@@ -471,6 +540,166 @@
 }
 
 // =============================================================================
+// Instance 관리 섹션 스타일
+// =============================================================================
+
+.instanceManagementHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: $gray-50;
+    border: 1px solid $gray-200;
+    border-radius: 0.5rem;
+}
+
+.instanceFilters {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.filterButton {
+    padding: 0.5rem 1rem;
+    border: 1px solid $gray-300;
+    border-radius: 0.375rem;
+    background: $white;
+    color: $gray-700;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: $gray-50;
+        border-color: $gray-400;
+    }
+
+    &.active {
+        background: $primary-blue;
+        color: $white;
+        border-color: $primary-blue;
+    }
+}
+
+.instancesList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.instanceCard {
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    transition: all 0.2s ease;
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border-color: $primary-blue;
+    }
+
+    &.inactive {
+        opacity: 0.7;
+        background: $gray-50;
+        border-color: $gray-300;
+
+        &:hover {
+            transform: none;
+            box-shadow: none;
+            border-color: $gray-300;
+        }
+    }
+}
+
+.instanceHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid $gray-100;
+}
+
+.instanceInfo {
+    flex: 1;
+}
+
+.instanceTitle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.instanceId {
+    font-size: 1rem;
+    font-weight: 600;
+    color: $gray-900;
+    font-family: monospace;
+}
+
+.instanceStatus {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+
+    .statusIcon {
+        font-size: 0.75rem;
+    }
+
+    &.active {
+        background: rgba($primary-green, 0.1);
+        color: $primary-green;
+        border: 1px solid rgba($primary-green, 0.3);
+    }
+
+    &.inactive {
+        background: rgba($gray-500, 0.1);
+        color: $gray-500;
+        border: 1px solid rgba($gray-500, 0.3);
+    }
+}
+
+.instanceMeta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.75rem;
+    color: $gray-600;
+
+    span {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+}
+
+.instanceCost {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: $primary-green;
+    text-align: right;
+}
+
+.instanceDetails {
+    margin-bottom: 0.75rem;
+}
+
+.instanceActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid $gray-100;
+}
+
+// =============================================================================
 // VLLM 설정 섹션 스타일
 // =============================================================================
 
@@ -488,22 +717,137 @@
 }
 
 .selectedOfferInfo {
-    background: $white;
+    background: color.adjust($gray-50, $lightness: 2%);
     border: 1px solid $gray-200;
-    border-radius: 0.375rem;
-    padding: 1rem;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 12px;
 
     h4 {
-        margin: 0;
-        font-size: 0.875rem;
-        color: $gray-700;
+        margin: 0 0 12px 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: $gray-900;
+    }
 
-        .offerId {
-            color: $primary-blue;
-            font-weight: 600;
-            font-family: monospace;
+    .offerInfoGrid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+
+        @media (max-width: 768px) {
+            grid-template-columns: 1fr;
         }
     }
+
+    .offerInfoItem {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid $gray-200;
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+
+    .offerInfoLabel {
+        font-size: 12px;
+        color: $gray-600;
+        font-weight: 500;
+        margin-right: 8px;
+    }
+
+    .offerInfoValue {
+        font-size: 12px;
+        color: $gray-900;
+        font-weight: 600;
+        text-align: right;
+    }
+
+  .offerId {
+    color: $primary-blue;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+  }
+}
+
+// 인스턴스 관리 추가 스타일
+.pendingConnection {
+  color: $gray-500;
+  font-style: italic;
+}
+
+.gpuRam {
+  color: $gray-600;
+  font-size: 11px;
+}
+
+.modelName {
+  color: $gray-900;
+  font-weight: 600;
+}
+
+.modelLength {
+  color: $gray-600;
+  font-size: 11px;
+}
+
+// 위험한 액션을 위한 버튼 스타일
+.button.danger {
+  background: $primary-red;
+  color: $white;
+
+  &:hover:not(:disabled) {
+    background: color.adjust($primary-red, $lightness: -10%);
+    transform: translateY(-1px);
+  }
+
+  .icon {
+    color: $white;
+  }
+}
+
+// 인스턴스 관리 전용 상세 정보 행 스타일
+.instanceDetailRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 8px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    background: color.adjust($gray-50, $lightness: 1%);
+    border-radius: 4px;
+    border: 1px solid $gray-200;
+
+    .detailLabel {
+      font-size: 11px;
+      color: $gray-600;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .detailValue {
+      font-size: 11px;
+      color: $gray-900;
+      font-weight: 600;
+      text-align: right;
+      flex: 1;
+      margin-left: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
 }
 
 .vllmSection {
@@ -562,6 +906,45 @@
     }
 }
 
+// Tab Navigation
+.tabNavigation {
+    display: flex;
+    background: $gray-50;
+    border-bottom: 1px solid $gray-200;
+}
+
+.tabButton {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: none;
+    color: $gray-600;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border-bottom: 2px solid transparent;
+
+    &:hover {
+        background: $gray-100;
+        color: $gray-800;
+    }
+
+    &.active {
+        background: $white;
+        color: $primary-blue;
+        border-bottom-color: $primary-blue;
+    }
+
+    svg {
+        font-size: 1rem;
+    }
+}
+
 // 반응형 스타일
 @media (max-width: 768px) {
     .configSection {
@@ -596,12 +979,75 @@
     }
 
     .offerDetails {
-        grid-template-columns: 1fr;
+        margin-bottom: 0.5rem;
+    }
+
+    .detailRows {
+        gap: 0.375rem;
+    }
+
+    .detailRow {
+        flex-direction: column;
+        gap: 0.375rem;
+        align-items: stretch;
     }
 
     .detail {
+        min-height: 1.75rem;
+        padding: 0.25rem 0.375rem;
+
+        .detailLabel {
+            font-size: 0.55rem;
+        }
+
+        .detailValue {
+            font-size: 0.65rem;
+        }
+    }
+
+    .cpuName {
+        font-size: 0.7rem;
+    }
+
+    .cpuCores {
+        font-size: 0.6rem;
+    }
+
+    .instanceHeader {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .instanceFilters {
+        gap: 0.375rem;
+    }
+
+    .filterButton {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.75rem;
+    }
+
+    .instanceCard {
+        padding: 0.75rem;
+    }
+
+    .instanceTitle {
         flex-direction: column;
         align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .instanceMeta {
+        flex-direction: column;
         gap: 0.25rem;
+    }
+
+    .instanceActions {
+        justify-content: stretch;
+
+        .button {
+            flex: 1;
+        }
     }
 }
