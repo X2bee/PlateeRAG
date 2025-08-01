@@ -1,0 +1,857 @@
+@use "sass:color";
+@use "@/app/_common/_variables" as *;
+
+// ===== VectorDB Config Specific Styles =====
+
+// Container
+.llmContainer {
+    background: $white;
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+// Tab Navigation
+.tabNavigation {
+    display: flex;
+    background: $gray-50;
+    border-bottom: 1px solid $gray-200;
+}
+
+.tabButton {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: none;
+    color: $gray-600;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border-bottom: 2px solid transparent;
+
+    &:hover {
+        background: $gray-100;
+        color: $gray-800;
+    }
+
+    &.active {
+        background: $white;
+        color: $primary-blue;
+        border-bottom-color: $primary-blue;
+    }
+
+    svg {
+        font-size: 1rem;
+    }
+}
+
+// Error Banner
+.errorBanner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    background: color.adjust($primary-red, $alpha: -0.9);
+    color: $primary-red;
+    border-bottom: 1px solid color.adjust($primary-red, $alpha: -0.8);
+
+    svg {
+        font-size: 1.125rem;
+    }
+
+    span {
+        flex: 1;
+        font-weight: 500;
+    }
+
+    button {
+        background: none;
+        border: none;
+        color: $primary-red;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 0.25rem;
+        transition: background-color 0.2s ease-in-out;
+
+        &:hover {
+            background: color.adjust($primary-red, $alpha: -0.8);
+        }
+    }
+}
+
+// Tab Content
+.tabContent {
+    padding: 2rem;
+}
+
+// Section Header
+.sectionHeader {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid $gray-200;
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 60px;
+        height: 2px;
+        background: linear-gradient(90deg, $primary-green, $primary-blue);
+        border-radius: 1px;
+    }
+
+    h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: $gray-900;
+        margin: 0 0 0.5rem 0;
+        letter-spacing: -0.025em;
+    }
+
+    p {
+        font-size: 1rem;
+        color: $gray-600;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .headerActions {
+        margin-top: 1rem;
+        display: flex;
+        gap: 0.75rem;
+    }
+}
+
+// Status Section
+.statusSection {
+    .sectionHeader {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid $gray-200;
+        position: relative;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, $primary-green, $primary-blue);
+            border-radius: 1px;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: $gray-900;
+            margin: 0 0 0.5rem 0;
+            letter-spacing: -0.025em;
+        }
+
+        p {
+            font-size: 1rem;
+            color: $gray-600;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .headerActions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.75rem;
+        }
+    }
+
+
+    .currentStatus {
+        .statusCard {
+            background: $gray-50;
+            border: 1px solid $gray-200;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+
+            .statusInfo {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                flex: 1;
+
+                .providerInfo {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+
+                    .providerIcon {
+                        font-size: 1.5rem;
+                    }
+
+                    h4 {
+                        font-size: 1.125rem;
+                        font-weight: 600;
+                        color: $gray-900;
+                        margin: 0;
+                    }
+
+                    p {
+                        font-size: 0.875rem;
+                        color: $gray-500;
+                        margin: 0.25rem 0 0 0;
+                    }
+
+                    .dimensionInfo {
+                        font-size: 0.8rem;
+                        color: $gray-600;
+                        font-weight: 500;
+                        margin: 0.375rem 0 0 0 !important;
+
+                        .autoDetected {
+                            color: $primary-green;
+                            font-weight: 600;
+                        }
+                    }
+                }
+
+                .statusIndicator {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    margin-left: auto;
+
+                    svg {
+                        font-size: 1.125rem;
+                    }
+
+                    span {
+                        font-size: 0.875rem;
+                        font-weight: 500;
+                        color: $gray-700;
+                    }
+                }
+            }
+
+            .statusActions {
+                display: flex;
+                gap: 0.75rem;
+            }
+        }
+    }
+}
+
+// Config Section
+.configSection {
+    h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: $gray-900;
+        margin: 0 0 1rem 0;
+    }
+}
+
+// Providers Section
+.providersSection {
+    margin: 3rem 0;
+
+    .sectionTitle {
+        margin-bottom: 1.5rem;
+
+        h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .sectionSubtitle {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+    }
+
+    .providersGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+        align-items: stretch;
+
+        @media (max-width: 640px) {
+            grid-template-columns: 1fr;
+        }
+    }
+}
+
+// Responsive adjustments for VectorDB Config
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .tabNavigation {
+        .tabButton {
+            padding: 0.75rem 1rem;
+            font-size: 0.8rem;
+
+            svg {
+                font-size: 0.875rem;
+            }
+        }
+    }
+
+    .tabContent {
+        padding: 1.5rem;
+    }
+
+    .statusSection {
+        .sectionHeader {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+
+            .headerActions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+
+        .currentStatus {
+            .statusCard {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1.5rem;
+
+                .statusInfo {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 1rem;
+
+                    .statusIndicator {
+                        margin-left: 0;
+                    }
+                }
+
+                .statusActions {
+                    justify-content: flex-start;
+                }
+            }
+        }
+    }
+
+    .providersSection {
+        .providersGrid {
+            grid-template-columns: 1fr;
+        }
+
+        .providerCard {
+            min-width: 320px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+
+            .cardHeader {
+                padding: 1rem 1rem 1rem 1rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                position: relative;
+                min-height: 80px;
+
+                .providerIconMedium {
+                    display: flex;
+                    align-items: center;
+                    flex-shrink: 0;
+
+                    .iconWrapper {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 3rem;
+                        height: 3rem;
+                        border-radius: 0.75rem;
+                        font-size: 1.5rem;
+                        border: 2px solid currentColor;
+                    }
+                }
+
+                .cardBadges {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                    align-items: flex-end;
+                    flex-shrink: 0;
+
+                    .defaultBadge {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.25rem;
+                        background: #10b981;
+                        color: white;
+                        padding: 0.25rem 0.75rem;
+                        border-radius: 1rem;
+                        font-size: 0.75rem;
+                        font-weight: 600;
+                        min-width: 60px;
+                        justify-content: center;
+                    }
+                }
+            }
+
+            .cardContent {
+                padding: 0 1rem 1rem;
+                display: flex;
+                flex-direction: column;
+                flex-grow: 1;
+                justify-content: space-between;
+                min-height: 120px;
+
+                .cardTitle {
+                    margin: 0 0 0.5rem 0;
+                    font-size: 1.125rem;
+                    font-weight: 600;
+                    color: #111827;
+                    min-height: 1.5rem;
+                    display: flex;
+                    align-items: center;
+                }
+
+                .cardDescription {
+                    margin: 0 0 1rem 0;
+                    color: #6b7280;
+                    line-height: 1.5;
+                    font-size: 0.875rem;
+                    flex-grow: 1;
+                    min-height: 2.5rem;
+                    display: flex;
+                    align-items: flex-start;
+                }
+
+                .cardFooter {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-top: auto;
+                    min-height: 40px;
+                    padding-top: 0.5rem;
+                    border-top: 1px solid #f3f4f6;
+
+                    .statusLabel {
+                        font-size: 0.875rem;
+                        font-weight: 500;
+                        color: #6b7280;
+                        flex: 1;
+                        display: flex;
+                        align-items: center;
+                    }
+
+                    .cardActions {
+                        display: flex;
+                        gap: 0.5rem;
+                        flex-shrink: 0;
+
+                        .button {
+                            min-width: 70px;
+                            padding: 0.5rem 1rem;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 0.25rem;
+                            font-size: 0.75rem;
+                            font-weight: 500;
+                            border-radius: 0.5rem;
+                            transition: all 0.2s ease;
+
+                            &.secondary {
+                                background: #f8fafc;
+                                border: 1px solid #e2e8f0;
+                                color: #475569;
+
+                                &:hover {
+                                    background: #f1f5f9;
+                                    border-color: #cbd5e1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// 현재 제공자 섹션
+.currentProviderSection {
+    margin: 2rem 0;
+
+    .sectionTitle {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+
+        h4 {
+            margin: 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+        }
+    }
+
+    .activeBadgeGlow {
+        background: linear-gradient(135deg, #10b981, #34d399);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        animation: pulse 2s infinite;
+    }
+
+    .currentProviderCard {
+        background: linear-gradient(135deg, #ffffff, #f8fafc);
+        border: 2px solid #e5e7eb;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7);
+        }
+
+        .providerMainInfo {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex: 1;
+        }
+
+        .providerIconLarge {
+            .iconWrapper {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 4rem;
+                height: 4rem;
+                border-radius: 1rem;
+                font-size: 2rem;
+                border: 2px solid currentColor;
+            }
+        }
+
+        .providerDetails {
+            h3 {
+                margin: 0 0 0.5rem 0;
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #111827;
+            }
+
+            .providerDescription {
+                margin: 0 0 1rem 0;
+                color: #6b7280;
+                line-height: 1.5;
+            }
+
+            .providerMetadata {
+                display: flex;
+                gap: 1rem;
+
+                .metadataItem {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.25rem;
+                    font-size: 0.875rem;
+                    color: #6b7280;
+
+                    .metadataIcon {
+                        font-size: 1rem;
+                    }
+                }
+            }
+        }
+
+        .statusSection {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 1rem;
+        }
+
+        .statusIndicatorLarge {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+
+            &.statusSuccess {
+                background: rgba(16, 185, 129, 0.1);
+                border: 1px solid rgba(16, 185, 129, 0.3);
+            }
+
+            &.statusWarning {
+                background: rgba(245, 158, 11, 0.1);
+                border: 1px solid rgba(245, 158, 11, 0.3);
+            }
+
+            &.statusError {
+                background: rgba(239, 68, 68, 0.1);
+                border: 1px solid rgba(239, 68, 68, 0.3);
+            }
+
+            .statusIconWrapper {
+                font-size: 1.5rem;
+            }
+
+            .statusText {
+                text-align: right;
+
+                .statusLabel {
+                    display: block;
+                    font-weight: 600;
+                    color: #111827;
+                    margin-bottom: 0.25rem;
+                }
+
+                .statusSubtext {
+                    display: block;
+                    font-size: 0.875rem;
+                    color: #6b7280;
+                }
+            }
+        }
+
+        .testButton {
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+
+            &:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            }
+        }
+    }
+}
+
+
+// 제공자 선택 섹션
+.providersSection {
+    margin: 3rem 0;
+
+    .sectionTitle {
+        margin-bottom: 1.5rem;
+
+        h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .sectionSubtitle {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+    }
+
+    .providersGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .providerCard {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 1rem;
+        padding: 1.25rem;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+
+        &:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            border-color: #d1d5db;
+
+            .cardOverlay {
+                opacity: 1;
+            }
+        }
+
+        &.activeProvider {
+            border-color: #10b981;
+            box-shadow: 0 0 0 1px #10b981, 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+            .cardHeader::before {
+                opacity: 1;
+            }
+        }
+
+        &.configuredProvider {
+            border-color: #10b981;
+        }
+
+        &.unconfiguredProvider {
+            border-color: #ef4444;
+            opacity: 0.8;
+        }
+
+        .cardHeader {
+            padding: 1.5rem 1.5rem 0 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            position: relative;
+
+            .providerIconMedium {
+                .iconWrapper {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 3rem;
+                    height: 3rem;
+                    border-radius: 0.75rem;
+                    font-size: 1.5rem;
+                    border: 2px solid currentColor;
+                }
+            }
+
+            .cardBadges {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-end;
+            }
+
+            .defaultBadge {
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+                background: #10b981;
+                color: white;
+                padding: 0.25rem 0.75rem;
+                border-radius: 1rem;
+                font-size: 0.75rem;
+                font-weight: 600;
+            }
+
+            .statusBadge {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 2rem;
+                height: 2rem;
+                border-radius: 50%;
+
+                &.statusBadgeSuccess {
+                    background: rgba(16, 185, 129, 0.1);
+                    color: #10b981;
+                }
+
+                &.statusBadgeWarning {
+                    background: rgba(245, 158, 11, 0.1);
+                    color: #f59e0b;
+                }
+
+                &.statusBadgeError {
+                    background: rgba(239, 68, 68, 0.1);
+                    color: #ef4444;
+                }
+            }
+        }
+
+        .cardContent {
+            padding: 1rem 1.5rem 1.5rem 1.5rem;
+
+            .cardTitle {
+                margin: 0 0 0.5rem 0;
+                font-size: 1.125rem;
+                font-weight: 600;
+                color: #111827;
+            }
+
+            .cardDescription {
+                margin: 0 0 1.5rem 0;
+                color: #6b7280;
+                line-height: 1.5;
+                font-size: 0.875rem;
+            }
+
+            .cardFooter {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+
+                .statusLabel {
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                    color: #6b7280;
+                }
+
+                .cardActions {
+                    display: flex;
+                    gap: 0.5rem;
+
+                    .button.ghost {
+                        background: transparent;
+                        border: 1px solid #e5e7eb;
+                        color: #6b7280;
+
+                        &:hover {
+                            background: #f9fafb;
+                            border-color: #d1d5db;
+                        }
+                    }
+                }
+            }
+        }
+
+        .cardOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(52, 211, 153, 0.05));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+    }
+}
+
+// 애니메이션
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
+    }
+}

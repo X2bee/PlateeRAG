@@ -1,8 +1,10 @@
+@use "@/app/_common/_variables" as *;
+
 .loadingSpinner {
     width: 32px;
     height: 32px;
-    border: 3px solid #e9ecef;
-    border-top: 3px solid #007bff;
+    border: 3px solid $bootstrap-gray-200;
+    border-top: 3px solid $bootstrap-blue;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -14,10 +16,10 @@
 
 .performancePanel {
     flex: 1;
-    background: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: $white;
+    border-radius: $radius-lg;
+    padding: $spacing-lg;
+    box-shadow: $shadow-md;
     overflow-y: auto;
     max-height: 68vh;
 }
@@ -28,11 +30,11 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: #6c757d;
-    gap: 1rem;
+    color: $bootstrap-gray-500;
+    gap: $spacing-md;
 
     span {
-        font-size: 0.9rem;
+        font-size: $font-size-sm;
         font-weight: 500;
     }
 }
@@ -44,27 +46,27 @@
     justify-content: center;
     height: 100%;
     text-align: center;
-    color: #6c757d;
-    padding: 2rem;
+    color: $bootstrap-gray-500;
+    padding: $spacing-xl;
 
     h3 {
-        margin-bottom: 0.5rem;
-        color: #495057;
-        font-size: 1.2rem;
+        margin-bottom: $spacing-sm;
+        color: $bootstrap-gray-600;
+        font-size: $font-size-xl;
     }
 
     p {
         max-width: 400px;
         line-height: 1.5;
-        margin-bottom: 1.5rem;
+        margin-bottom: $spacing-lg;
     }
 
     strong {
-        color: #2c3e50;
+        color: $bootstrap-gray-700;
     }
 
     .refreshButton {
-        margin-top: 1rem;
+        margin-top: $spacing-md;
     }
 }
 
@@ -84,43 +86,43 @@
 .recordCount {
     display: flex;
     align-items: center;
-    color: #6c757d;
-    font-size: 0.875rem;
+    color: $bootstrap-gray-500;
+    font-size: $font-size-sm;
     padding: 0.375rem 0.75rem;
-    background: #f8f9fa;
-    border-radius: 6px;
-    border: 1px solid #e9ecef;
+    background: $bootstrap-gray-100;
+    border-radius: $radius-sm;
+    border: 1px solid $bootstrap-gray-200;
 }
 
 .clearRecordsBtn {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    background: white;
-    border: 1px solid #dc3545;
-    border-radius: 6px;
-    color: #dc3545;
-    font-size: 0.875rem;
+    gap: $spacing-sm;
+    padding: $spacing-sm 0.75rem;
+    background: $white;
+    border: 1px solid $bootstrap-red;
+    border-radius: $radius-sm;
+    color: $bootstrap-red;
+    font-size: $font-size-sm;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover:not(:disabled) {
-        background: #f8d7da;
+        background: $bootstrap-danger-bg;
         border-color: #c82333;
-        color: #721c24;
+        color: $bootstrap-danger-text;
     }
 
     &:disabled {
         cursor: not-allowed;
         opacity: 0.6;
-        background: #f8f9fa;
+        background: $bootstrap-gray-100;
     }
 
     svg {
-        width: 1rem;
-        height: 1rem;
+        width: $spacing-md;
+        height: $spacing-md;
     }
 }
 
@@ -128,26 +130,27 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #e9ecef;
+    margin-bottom: $spacing-lg;
+    padding-bottom: $spacing-md;
+    border-bottom: 2px solid $bootstrap-gray-200;
 
     h3 {
         margin: 0;
-        color: #2c3e50;
+        color: $bootstrap-gray-700;
         font-size: 1.4rem;
         font-weight: 600;
         flex: 1;
     }
 }
+
 .refreshButton {
-    background: #007bff;
-    color: white;
+    background: $bootstrap-blue;
+    color: $white;
     border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
+    padding: $spacing-sm $spacing-md;
+    border-radius: $radius-sm;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: $font-size-sm;
     transition: background-color 0.2s ease;
 
     &:hover:not(:disabled) {
@@ -155,42 +158,42 @@
     }
 
     &:disabled {
-        background: #6c757d;
+        background: $bootstrap-gray-500;
         cursor: not-allowed;
         opacity: 0.7;
     }
 }
 
 .refreshButton, .chartButton { // .chartButton 추가
-    background: #007bff;
-    color: white;
+    background: $bootstrap-blue;
+    color: $white;
     border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
+    padding: $spacing-sm $spacing-md;
+    border-radius: $radius-sm;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: $font-size-sm;
     transition: background-color 0.2s ease;
     display: inline-flex; // 추가
     align-items: center; // 추가
-    margin-left: 0.5rem; // 버튼 간격
+    margin-left: $spacing-sm; // 버튼 간격
 
     &:hover:not(:disabled) {
         background: #0056b3;
     }
 
     &:disabled {
-        background: #6c757d;
+        background: $bootstrap-gray-500;
         cursor: not-allowed;
         opacity: 0.7;
     }
 }
 
 .summarySection {
-    margin-bottom: 2rem;
+    margin-bottom: $spacing-xl;
 
     h4 {
-        margin: 0 0 1rem 0;
-        color: #2c3e50;
+        margin: 0 0 $spacing-md 0;
+        color: $bootstrap-gray-700;
         font-size: 1.1rem;
         font-weight: 600;
     }
@@ -199,38 +202,38 @@
 .summaryGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
+    gap: $spacing-md;
 }
 
 .summaryItem {
-    background: #f8f9fa;
-    padding: 1rem;
-    border-radius: 6px;
-    border-left: 4px solid #007bff;
+    background: $bootstrap-gray-100;
+    padding: $spacing-md;
+    border-radius: $radius-sm;
+    border-left: 4px solid $bootstrap-blue;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: $spacing-sm;
 
     .label {
-        font-size: 0.9rem;
-        color: #6c757d;
+        font-size: $font-size-sm;
+        color: $bootstrap-gray-500;
         font-weight: 500;
     }
 
     .value {
-        font-size: 1.2rem;
+        font-size: $font-size-xl;
         font-weight: 600;
-        color: #2c3e50;
+        color: $bootstrap-gray-700;
     }
 }
 
 .nodePerformanceSection {
     flex: 1;
-    padding-bottom: 1.5rem;
+    padding-bottom: $spacing-lg;
 
     h4 {
-        margin: 0 0 1rem 0;
-        color: #2c3e50;
+        margin: 0 0 $spacing-md 0;
+        color: $bootstrap-gray-700;
         font-size: 1.1rem;
         font-weight: 600;
     }
@@ -239,18 +242,18 @@
 .nodePerformanceList {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: $spacing-md;
 }
 
 .nodePerformanceItem {
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 1.5rem;
+    background: $bootstrap-gray-100;
+    border: 1px solid $bootstrap-gray-200;
+    border-radius: $radius-lg;
+    padding: $spacing-lg;
     transition: box-shadow 0.2s ease;
 
     &:hover {
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: $shadow-lg;
     }
 }
 
@@ -258,23 +261,23 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: $spacing-md;
     padding-bottom: 0.75rem;
-    border-bottom: 1px solid #dee2e6;
+    border-bottom: 1px solid $bootstrap-gray-300;
 
     h5 {
         margin: 0;
-        color: #2c3e50;
-        font-size: 1rem;
+        color: $bootstrap-gray-700;
+        font-size: $font-size-base;
         font-weight: 600;
     }
 
     .nodeId {
-        font-size: 0.8rem;
-        color: #6c757d;
-        background: #e9ecef;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
+        font-size: $font-size-xs;
+        color: $bootstrap-gray-500;
+        background: $bootstrap-gray-200;
+        padding: 0.25rem $spacing-sm;
+        border-radius: $radius-sm;
         font-family: monospace;
     }
 }
@@ -291,15 +294,15 @@
     gap: 0.25rem;
 
     .statLabel {
-        font-size: 0.8rem;
-        color: #6c757d;
+        font-size: $font-size-xs;
+        color: $bootstrap-gray-500;
         font-weight: 500;
     }
 
     .statValue {
         font-size: 0.95rem;
         font-weight: 600;
-        color: #2c3e50;
+        color: $bootstrap-gray-700;
     }
 }
 
@@ -307,25 +310,25 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
-    color: #6c757d;
+    padding: $spacing-xl;
+    color: $bootstrap-gray-500;
     font-style: italic;
 }
 
 .error {
-    background: #f8d7da;
-    color: #721c24;
-    padding: 1rem;
-    border-radius: 4px;
-    border: 1px solid #f5c6cb;
-    margin-bottom: 1rem;
+    background: $bootstrap-danger-bg;
+    color: $bootstrap-danger-text;
+    padding: $spacing-md;
+    border-radius: $radius-sm;
+    border: 1px solid $bootstrap-danger-border;
+    margin-bottom: $spacing-md;
 }
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
     .monitoringContainer {
         flex-direction: column;
-        padding: 0.5rem;
+        padding: $spacing-sm;
     }
 
     .workflowList {

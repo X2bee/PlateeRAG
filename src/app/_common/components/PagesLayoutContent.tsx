@@ -3,7 +3,8 @@
 import React, { useState, useMemo, createContext, useContext } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/app/_common/components/Sidebar';
-import { getChatSidebarItems, getSettingSidebarItems } from '@/app/_common/components/sidebarConfig';
+import { getChatSidebarItems, getSettingSidebarItems, getTrainSidebarItems, getWorkflowSidebarItems } from '@/app/_common/components/sidebarConfig';
+import { getChatItems, getSettingItems, getWorkflowItems, getTrainItems } from '@/app/_common/components/sidebarConfig';
 import styles from '@/app/main/assets/MainPage.module.scss';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FiChevronRight } from 'react-icons/fi';
@@ -26,7 +27,7 @@ export default function PagesLayoutContent({ children }: { children: React.React
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    
+
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     const navigateToChatMode = (mode: 'new-chat' | 'current-chat' | 'chat-history') => {
@@ -40,17 +41,23 @@ export default function PagesLayoutContent({ children }: { children: React.React
         if (pathname === '/main') {
             return searchParams.get('view') || 'canvas';
         }
+        if (pathname === '/model') {
+            return searchParams.get('view') || 'train';
+        }
         return 'canvas';
     }, [pathname, searchParams]);
 
     const handleSidebarItemClick = (id: string) => {
-        const chatItems = ['new-chat', 'current-chat', 'chat-history'];
-        const mainItems = ['canvas', 'workflows', 'exec-monitor', 'settings', 'config-viewer', 'documents'];
+        const chatItems = getChatItems;
+        const mainItems = [...getWorkflowItems, ...getSettingItems];
+        const trainItems = getTrainItems;
 
         if (chatItems.includes(id)) {
             navigateToChatMode(id as 'new-chat' | 'current-chat' | 'chat-history');
         } else if (mainItems.includes(id)) {
             router.replace(`/main?view=${id}`);
+        } else if (trainItems.includes(id)) {
+            router.replace(`/model?view=${id}`);
         }
     };
 
@@ -59,23 +66,28 @@ export default function PagesLayoutContent({ children }: { children: React.React
     };
 
     const settingSidebarItems = getSettingSidebarItems();
+    const workflowSidebarItems = getWorkflowSidebarItems();
     const chatSidebarItems = getChatSidebarItems();
+    const trainItems = getTrainSidebarItems();
 
     return (
         <PagesLayoutContext.Provider value={{ isSidebarOpen, setIsSidebarOpen, navigateToChatMode }}>
             <div className={styles.container}>
                 <AnimatePresence>
                     {isSidebarOpen ? (
-                        <Sidebar 
-                            key="sidebar-panel" 
+                        <Sidebar
+                            key="sidebar-panel"
                             isOpen={isSidebarOpen}
                             onToggle={toggleSidebar}
                             items={settingSidebarItems}
+                            workflowItems={workflowSidebarItems}
                             chatItems={chatSidebarItems}
+                            trainItem={trainItems}
                             activeItem={activeItem}
                             onItemClick={handleSidebarItemClick}
                             initialChatExpanded={pathname === '/chat'}
                             initialSettingExpanded={pathname === '/main'}
+                            initialTrainExpanded={pathname === '/train'}
                         />
                     ) : (
                         <motion.button

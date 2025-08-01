@@ -1,0 +1,375 @@
+.container {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  padding: 1rem;
+  width: 66.666667%;
+  height: fit-content;
+  flex-grow: 1;
+  overflow: hidden;
+
+  @media (max-width: 1024px) {
+    width: 100%;
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.deleteButton {
+  color: white;
+  background-color: #dc2626;
+
+  &:hover:not(:disabled) {
+    background-color: #b91c1c;
+  }
+
+  &:disabled {
+    background-color: #f87171;
+  }
+}
+
+.refreshButton {
+  color: #374151;
+
+  &:hover {
+    color: #2563eb;
+  }
+}
+
+.icon {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.25rem;
+}
+
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid white;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 0.25rem;
+}
+
+.searchContainer {
+  position: relative;
+}
+
+.searchInput {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    border-color: #3b82f6;
+  }
+}
+
+.statusSelect {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  width: 8rem;
+  background-color: white;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    border-color: #3b82f6;
+  }
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.loadingSpinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px solid #3b82f6;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.emptyState {
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+
+  p {
+    color: #6b7280;
+    margin: 0;
+  }
+}
+
+.tableContainer {
+  overflow-x: auto;
+  margin: 0 -1rem;
+  height: calc(100vh - 220px);
+  overflow-y: auto;
+}
+
+.table {
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.tableHead {
+  background-color: #f9fafb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tableHeader {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.checkboxColumn {
+  @extend .tableHeader;
+  width: 2.5rem;
+}
+
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    color: #374151;
+  }
+}
+
+.sortIcon {
+  width: 1rem;
+  height: 1rem;
+  margin-left: 0.25rem;
+}
+
+.tableBody {
+  background-color: white;
+}
+
+.tableRow {
+  cursor: pointer;
+  border-bottom: 1px solid #e5e7eb;
+
+  &:hover {
+    background-color: #f9fafb;
+  }
+}
+
+.tableCell {
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.jobName {
+  font-weight: 500;
+  color: #111827;
+}
+
+.modelInfo {
+  max-width: 200px;
+}
+
+.modelName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.baseModel {
+  font-size: 0.75rem;
+  color: #2563eb;
+  margin-top: 0.25rem;
+}
+
+.datasetName {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.score {
+  font-weight: 500;
+  color: #2563eb;
+}
+
+.failed {
+  color: #dc2626;
+}
+
+.running {
+  color: #2563eb;
+}
+
+.noData {
+  color: #6b7280;
+}
+
+.badge {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  border: 1px solid;
+}
+
+.checkbox {
+  border-radius: 0.25rem;
+  border-color: #d1d5db;
+  color: #2563eb;
+
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  }
+}
+
+.deleteJobButton {
+  color: #dc2626;
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  border-radius: 0.25rem;
+
+  &:hover:not(:disabled) {
+    color: #991b1b;
+  }
+
+  &:disabled {
+    color: #fca5a5;
+  }
+}
+
+.deleteIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.deleteSpinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #dc2626;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Status badge classes - these would need to be implemented in your utils
+.statusCompleted {
+  background-color: #dcfce7;
+  border-color:   #16a34a;
+  color:          #166534;
+}
+
+.statusRunning {
+  background-color: #dbeafe;
+  border-color:   #2563eb;
+  color:          #1e40af;
+}
+
+.statusFailed {
+  background-color: #fee2e2;
+  border-color:   #dc2626;
+  color:          #991b1b;
+}
+
+.statusPending {
+  background-color: #fef3c7;
+  border-color:   #d97706;
+  color:          #92400e;
+}
+
+.statusAccepted {
+  background-color: #e0e7ff;
+  border-color:   #6366f1;
+  color:          #4338ca;
+}

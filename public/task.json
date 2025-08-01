@@ -1,0 +1,964 @@
+{
+    "aclue": {
+      "description": "중국어 언어 이해 평가 벤치마크입니다.",
+      "tasks":[
+      "aclue",
+      "acp_bench",
+      "acp_bool_cot_2shot",
+      "acp_mcq_cot_2shot"
+    ]},
+    "aexams": {
+      "description": "아랍어 고등학교 시험 벤치마크입니다.",
+      "tasks":[
+      "aexams",
+      "aexams_IslamicStudies",
+      "aexams_Biology",
+      "aexams_Science",
+      "aexams_Physics",
+      "aexams_Social"
+    ]},
+    "afrimgsm": {
+      "description": "GSM8k 데이터셋의 일부를 16개 아프리카 언어로 번역한 평가용 데이터셋입니다.",
+      "tasks":[
+      "afrimgsm",
+      "afrimgsm_direct",
+      "afrimgsm_en_cot",
+      "afrimgsm_translate"
+    ]},
+    "afrimmlu": {
+      "description": "MMMLU 데이터셋의 일부를 15개 아프리카 언어로 번역한 평가용 데이터셋입니다. ",
+      "tasks":[
+      "afrimmlu",
+      "afrimmlu_direct",
+      "afrimmlu_translate"
+    ]},
+    "afrixnli": {
+      "description": "XNLI 데이터셋의 일부를 아프리카 언어로 번역한 평가용 데이터셋입니다.",
+      "tasks":[
+      "afrixnli",
+      "afrixnli_en_direct",
+      "afrixnli_native_direct",
+      "afrixnli_translate",
+      "afrixnli_manual_direct",
+      "afrixnli_manual_translate"
+    ]},
+    "agieval_en": {
+      "description": "대학 입시, 법대 입학 시험, 수학 경시대회 등 인간 중심 표준화 시험을 통해 파운데이션 모델의 범용 역량(영어)을 평가하는 벤치마크입니다.",
+      "tasks":[
+      "agieval_en",
+      "agieval_aqua_rat",
+      "agieval_gaokao_english",
+      "agieval_logiqa_en",
+      "agieval_lsat_*",
+      "agieval_sat_*",
+      "agieval_math"
+    ]},
+    "agieval_cn": {
+      "description": "AGIEval 데이터셋의 일부를 중국어로 번역한 평가용 데이터셋입니다.",
+      "tasks":[
+      "agieval_cn",
+      "agieval_gaokao_biology",
+      "agieval_gaokao_chemistry",
+      "agieval_gaokao_chinese",
+      "agieval_gaokao_geography",
+      "agieval_gaokao_history",
+      "agieval_gaokao_mathqa",
+      "agieval_gaokao_mathcloze",
+      "agieval_gaokao_physics",
+      "agieval_jec_qa_ca",
+      "agieval_jec_qa_kd",
+      "agieval_logiqa_zh"
+    ]},
+    "Alghafa": {
+      "description": "아랍어 LLM의 제로샷 및 몇 샷 평가를 위한 객관식 평가 벤치마크입니다.",
+      "tasks":[
+      "copa_ar",
+      "piqa_ar"
+    ]},
+    "anli": {
+      "description": "반복적 적대적 인간-모델 상호작용으로 수집된, 고난도 대규모 NLI 벤치마크입니다.",
+      "tasks":[
+      "anli_r1",
+      "anli_r2",
+      "anli_r3"
+    ]},
+    "arabic_leaderboard_alghafa": {
+      "description": "아랍어 LLM의 제로샷 및 몇 샷 평가를 위한 객관식 평가 벤치마크입니다.",
+      "tasks":[
+      "arabic_leaderboard_alghafa",
+      "arabic_leaderboard_arabic_exams",
+      "arabic_leaderboard_arabic_mmlu",
+      "arabic_leaderboard_arabic_mt_arc_challenge",
+      "arabic_leaderboard_arabic_mt_arc_easy",
+      "arabic_leaderboard_arabic_mt_boolq",
+      "arabic_leaderboard_arabic_mt_copa",
+      "arabic_leaderboard_arabic_mt_hellaswag",
+      "arabic_leaderboard_arabic_mt_mmlu",
+      "arabic_leaderboard_arabic_mt_openbook_qa",
+      "arabic_leaderboard_arabic_mt_piqa",
+      "arabic_leaderboard_arabic_mt_race",
+      "arabic_leaderboard_arabic_mt_sciq",
+      "arabic_leaderboard_arabic_mt_toxigen",
+      "arabic_leaderboard_acva"
+    ]},
+    "arabic_leaderboard_light": {
+      "description": "아랍어 LLM의 제로샷 및 몇 샷 평가를 위한 객관식 평가 벤치마크입니다.",
+      "tasks":[
+      "arabic_leaderboard_light"
+    ]},
+    "arabicmmlu": {
+      "description": "MMLU 데이터셋의 일부를 아랍어로 번역한 평가용 데이터셋입니다.",
+      "tasks":[
+      "arabicmmlu",
+      "arabicmmlu_stem",
+      "arabicmmlu_stem_social_science",
+      "arabicmmlu_stem_humanities",
+      "arabicmmlu_stem_language",
+      "arabicmmlu_stem_other"
+    ]},
+    "aradice": {
+      "description": "대화체 및 문화적 능력 평가를 위한 평가용 데이터셋입니다.",
+      "tasks":[
+      "aradice"
+    ]},
+    "arc": {
+      "description": "초·중등 수준 객관식 과학 문제로 구성된, 고급 질문응답 연구를 장려하기 위해 설계된 벤치마크입니다.",
+      "tasks":[
+      "arc_easy",
+      "arc_challenge"
+    ]},
+    "arc_mt": {
+      "description": "초·중등 수준 객관식 과학 문제로 구성된, 고급 질문응답 연구를 장려하기 위해 설계된 벤치마크입니다.",
+      "tasks":[
+      "arc_challenge_mt_da",
+      "arc_challenge_mt_de",
+      "arc_challenge_mt_el",
+      "arc_challenge_mt_es",
+      "arc_challenge_mt_fi",
+      "arc_challenge_mt_hu",
+      "arc_challenge_mt_is",
+      "arc_challenge_mt_it",
+      "arc_challenge_mt_nb",
+      "arc_challenge_mt_pl",
+      "arc_challenge_mt_pt",
+      "arc_challenge_mt_sv"
+    ]},
+    "arithmetic": {
+      "description": "언어 모델에게 자연어로 간단한 산수 문제를 묻는 10개의 소규모 테스트 모음입니다.",
+      "tasks":[
+      "arithmetic_1dc",
+      "arithmetic_2da",
+      "arithmetic_2dm",
+      "arithmetic_2ds",
+      "arithmetic_3da",
+      "arithmetic_3ds",
+      "arithmetic_4da",
+      "arithmetic_4ds",
+      "arithmetic_5da",
+      "arithmetic_5ds"
+    ]},
+    "asdiv": {
+      "description": "ASDiv는 언어 패턴과 문제 유형 면에서 다양한 영어 수학 단어 문제(MWP) 말뭉치로, 여러 MWP 솔버의 성능을 평가하기 위해 제안된 벤치마크입니다.",
+      "tasks":[
+      "asdiv",
+      "asdiv_cot_llama"
+    ]},
+    "babi": {
+      "description": "기계 학습 모델의 독해·추론 역량을 세세하게 평가하기 위해 고안된 일련의 “전제 과제(prerequisite tasks)” 모음입니다.",
+      "tasks":[
+      "babi"
+    ]},
+    "basque_bench": {
+      "description": "바스크어 벤치마크입니다.",
+      "tasks":[
+      "arc_eu_challenge",
+      "arc_eu_easy",
+      "belebele_eus_Latn",
+      "eus_exams_eu",
+      "eus_proficiency",
+      "eus_reading",
+      "eus_trivia",
+      "flores_eu",
+      "flores_eu-ca",
+      "flores_eu-de",
+      "flores_eu-en",
+      "flores_eu-es",
+      "flores_eu-fr",
+      "flores_eu-gl",
+      "flores_eu-it",
+      "flores_eu-pt",
+      "flores_ca-eu",
+      "flores_de-eu",
+      "flores_en-eu",
+      "flores_es-eu",
+      "flores_fr-eu",
+      "flores_gl-eu",
+      "flores_it-eu",
+      "flores_pt-eu",
+      "mgsm_direct_eu",
+      "mgsm_native_cot_eu",
+      "paws_eu",
+      "piqa_eu",
+      "qnlieu",
+      "wnli_eu",
+      "xcopa_eu",
+      "xnli_eu",
+      "xnli_eu_native",
+      "xstorycloze_eu"
+    ]},
+    "basqueglue": {
+      "description": "바스크어 GLUE 벤치마크입니다.",
+      "tasks":[
+      "bhtc_v2",
+      "bec2016eu",
+      "vaxx_stance",
+      "qnlieu",
+      "wiceu",
+      "epec_koref_bin"
+    ]},
+    "bbh": {
+      "description": "BIG-Bench 중 현재 언어 모델이 풀기 어려운 23개 고난도 과제로 이루어진 벤치마크 데이터 셋입니다.",
+      "tasks":[
+      "bbh_zeroshot",
+      "bbh_fewshot",
+      "bbh_cot_fewshot",
+      "bbh_cot_zeroshot"
+    ]},
+    "bbq": {
+      "description": "BBQ는 보호 대상 집단에 대한 아홉 가지 사회적 편향을 테스트하는 질문 세트로 구성된 데이터셋입니다.",
+      "tasks":[
+      "bbq_age",
+      "bbq_disability",
+      "bbq_gender",
+      "bbq_nationality",
+      "bbq_physical_appearance",
+      "bbq_race_ethnicity",
+      "bbq_religion",
+      "bbq_ses",
+      "bbq_sexual_orientation"
+    ]},
+    "belebele": {
+      "description": "122개 언어에서 병렬로 제공되는 객관식 독해 데이터셋으로, 다양한 자원 수준의 언어에서 모델의 다국어 이해 능력을 평가할 수 있게 해줍니다",
+      "tasks":[
+      "belebele"
+    ]},
+    "bertaqa": {
+      "description": "BertaQA는 영어와 바스크어 병렬 객관식 퀴즈로 구성된 데이터셋으로, 바스크 문화 지식에서 LLM의 한계를 드러내고 바스크어 추가 학습을 통해 이를 극복할 수 있음을 보여줍니다.",
+      "tasks":[
+      "bertaqa_eu",
+      "bertaqa_en",
+      "bertaqa_en_mt_*"
+    ]},
+    "Bigbench": {
+      "description": "BIG-bench는 200개가 넘는 다양한 과제를 통해 대규모 언어 모델의 현재 능력과 향후 잠재력을 종합적으로 평가하는 협업형 벤치마크입니다.",
+      "tasks":[
+      "bigbench_generate_until",
+      "bigbench_multiple_choice_a",
+      "bigbench_multiple_choice_b"
+    ]},
+    "careqa": {
+      "description": "CareQA는 스페인 전문 의료 시험 문제를 기반으로 한 다지선다형(영·스페인어) 및 자유 응답형(영어) QA 데이터셋입니다.",
+      "tasks":[
+      "careqa_en",
+      "careqa_es",
+      "careqa_open",
+      "careqa_open_perplexity"
+    ]},
+    "catalan_bench": {
+      "description": "CatalanBench는 언어 모델의 카탈루냐어 이해 및 생성 능력을 평가하기 위해 구축된 종합 벤치마크입니다.",
+      "tasks":[
+      "arc_ca_challenge",
+      "arc_ca_easy",
+      "belebele_cat_Latn",
+      "cabreu",
+      "catalanqa",
+      "catcola",
+      "cocoteros_va",
+      "copa_ca",
+      "coqcat",
+      "flores_ca",
+      "flores_ca-de",
+      "flores_ca-en",
+      "flores_ca-es",
+      "flores_ca-eu",
+      "flores_ca-fr",
+      "flores_ca-gl",
+      "flores_ca-it",
+      "flores_ca-pt",
+      "flores_de-ca",
+      "flores_en-ca",
+      "flores_es-ca",
+      "flores_eu-ca",
+      "flores_fr-ca",
+      "flores_gl-ca",
+      "flores_it-ca",
+      "flores_pt-ca",
+      "mgsm_direct_ca",
+      "openbookqa_ca",
+      "parafraseja",
+      "paws_ca",
+      "phrases_ca",
+      "piqa_ca",
+      "siqa_ca",
+      "teca",
+      "veritasqa_gen_ca",
+      "veritasqa_mc1_ca",
+      "veritasqa_mc2_ca",
+      "wnli_ca",
+      "xnli_ca",
+      "xquad_ca",
+      "xstorycloze_ca"
+    ]},
+    "ceval": {
+      "description": "C-Eval은 52개 분야의 네 가지 난이도로 구성된 약 1만 4천여 개의 객관식 문제로 파운데이션 모델의 중국어 역량을 평가하는 데이터셋입니다.",
+      "tasks":[
+      "ceval-valid_accountant",
+      "ceval-valid_advanced_mathematics",
+      "ceval-valid_art_studies",
+      "ceval-valid_basic_medicine",
+      "ceval-valid_business_administration",
+      "ceval-valid_chinese_language_and_literature",
+      "ceval-valid_civil_servant",
+      "ceval-valid_clinical_medicine",
+      "ceval-valid_college_chemistry",
+      "ceval-valid_college_economics",
+      "ceval-valid_college_physics",
+      "ceval-valid_college_programming",
+      "ceval-valid_computer_architecture",
+      "ceval-valid_computer_network",
+      "ceval-valid_discrete_mathematics",
+      "ceval-valid_education_science",
+      "ceval-valid_electrical_engineer",
+      "ceval-valid_environmental_impact_assessment_engineer",
+      "ceval-valid_fire_engineer",
+      "ceval-valid_high_school_biology",
+      "ceval-valid_high_school_chemistry",
+      "ceval-valid_high_school_chinese",
+      "ceval-valid_high_school_geography",
+      "ceval-valid_high_school_mathematics",
+      "ceval-valid_high_school_physics",
+      "ceval-valid_high_school_politics",
+      "ceval-valid_ideological_and_moral_cultivation",
+      "ceval-valid_law",
+      "ceval-valid_legal_professional",
+      "ceval-valid_logic",
+      "ceval-valid_mao_zedong_thought",
+      "ceval-valid_marxism",
+      "ceval-valid_metrology_engineer",
+      "ceval-valid_middle_school_biology",
+      "ceval-valid_middle_school_chemistry",
+      "ceval-valid_middle_school_geography",
+      "ceval-valid_middle_school_history",
+      "ceval-valid_middle_school_mathematics",
+      "ceval-valid_middle_school_physics",
+      "ceval-valid_middle_school_politics",
+      "ceval-valid_modern_chinese_history",
+      "ceval-valid_operating_system",
+      "ceval-valid_physician",
+      "ceval-valid_plant_protection",
+      "ceval-valid_probability_and_statistics",
+      "ceval-valid_professional_tour_guide",
+      "ceval-valid_sports_science",
+      "ceval-valid_tax_accountant",
+      "ceval-valid_teacher_qualification",
+      "ceval-valid_urban_and_rural_planner",
+      "ceval-valid_veterinary_medicine"
+    ]},
+    "chartqa": {
+      "description": "해당 벤치마크는 차트(그래프) 기반의 복합 추론 질문 응답(Chart QA)을 평가하기 위해 고안된 대규모 데이터셋입니다.",
+      "tasks":[
+      "chartqa_llama",
+      "chartqa_llama_90"
+    ]},
+    "cmmlu": {
+      "description": "CMMLU는 중국어 및 문화적 맥락에서 LLM의 고급 지식과 추론 능력을 평가하기 위해 초등부터 전문 수준까지 67개 과목을 다루는 종합 평가 벤치마크입니다.",
+      "tasks":[
+      "cmmlu_agronomy",
+      "cmmlu_anatomy",
+      "cmmlu_ancient_chinese",
+      "cmmlu_arts",
+      "cmmlu_astronomy",
+      "cmmlu_business_ethics",
+      "cmmlu_chinese_civil_service_exam",
+      "cmmlu_chinese_driving_rule",
+      "cmmlu_chinese_food_culture",
+      "cmmlu_chinese_foreign_policy",
+      "cmmlu_chinese_history",
+      "cmmlu_chinese_literature",
+      "cmmlu_chinese_teacher_qualification",
+      "cmmlu_clinical_knowledge",
+      "cmmlu_college_actuarial_science",
+      "cmmlu_college_education",
+      "cmmlu_college_engineering_hydrology",
+      "cmmlu_college_law",
+      "cmmlu_college_mathematics",
+      "cmmlu_college_medical_statistics",
+      "cmmlu_college_medicine",
+      "cmmlu_computer_science",
+      "cmmlu_computer_security",
+      "cmmlu_conceptual_physics",
+      "cmmlu_construction_project_management",
+      "cmmlu_default_agronomy",
+      "cmmlu_default_anatomy",
+      "cmmlu_default_ancient_chinese",
+      "cmmlu_default_arts",
+      "cmmlu_default_astronomy",
+      "cmmlu_default_business_ethics",
+      "cmmlu_default_chinese_civil_service_exam",
+      "cmmlu_default_chinese_driving_rule",
+      "cmmlu_default_chinese_food_culture",
+      "cmmlu_default_chinese_foreign_policy",
+      "cmmlu_default_chinese_history",
+      "cmmlu_default_chinese_literature",
+      "cmmlu_default_chinese_teacher_qualification",
+      "cmmlu_default_clinical_knowledge",
+      "cmmlu_default_college_actuarial_science",
+      "cmmlu_default_college_education",
+      "cmmlu_default_college_engineering_hydrology",
+      "cmmlu_default_college_law",
+      "cmmlu_default_college_mathematics",
+      "cmmlu_default_college_medical_statistics",
+      "cmmlu_default_college_medicine",
+      "cmmlu_default_computer_science",
+      "cmmlu_default_computer_security",
+      "cmmlu_default_conceptual_physics",
+      "cmmlu_default_construction_project_management",
+      "cmmlu_default_economics",
+      "cmmlu_default_education",
+      "cmmlu_default_electrical_engineering",
+      "cmmlu_default_elementary_chinese",
+      "cmmlu_default_elementary_commonsense",
+      "cmmlu_default_elementary_information_and_technology",
+      "cmmlu_default_elementary_mathematics",
+      "cmmlu_default_ethnology",
+      "cmmlu_default_food_science",
+      "cmmlu_default_genetics",
+      "cmmlu_default_global_facts",
+      "cmmlu_default_high_school_biology",
+      "cmmlu_default_high_school_chemistry",
+      "cmmlu_default_high_school_geography",
+      "cmmlu_default_high_school_mathematics",
+      "cmmlu_default_high_school_physics",
+      "cmmlu_default_high_school_politics",
+      "cmmlu_default_human_sexuality",
+      "cmmlu_default_international_law",
+      "cmmlu_default_journalism",
+      "cmmlu_default_jurisprudence",
+      "cmmlu_default_legal_and_moral_basis",
+      "cmmlu_default_logical",
+      "cmmlu_default_machine_learning",
+      "cmmlu_default_management",
+      "cmmlu_default_marketing",
+      "cmmlu_default_marxist_theory",
+      "cmmlu_default_modern_chinese",
+      "cmmlu_default_nutrition",
+      "cmmlu_default_philosophy",
+      "cmmlu_default_professional_accounting",
+      "cmmlu_default_professional_law",
+      "cmmlu_default_professional_medicine",
+      "cmmlu_default_professional_psychology",
+      "cmmlu_default_public_relations",
+      "cmmlu_default_security_study",
+      "cmmlu_default_sociology",
+      "cmmlu_default_sports_science",
+      "cmmlu_default_traditional_chinese_medicine",
+      "cmmlu_default_virology",
+      "cmmlu_default_world_history",
+      "cmmlu_default_world_religions",
+      "cmmlu_economics",
+      "cmmlu_education",
+      "cmmlu_electrical_engineering",
+      "cmmlu_elementary_chinese",
+      "cmmlu_elementary_commonsense",
+      "cmmlu_elementary_information_and_technology",
+      "cmmlu_elementary_mathematics",
+      "cmmlu_ethnology",
+      "cmmlu_food_science",
+      "cmmlu_genetics",
+      "cmmlu_global_facts",
+      "cmmlu_high_school_biology",
+      "cmmlu_high_school_chemistry",
+      "cmmlu_high_school_geography",
+      "cmmlu_high_school_mathematics",
+      "cmmlu_high_school_physics",
+      "cmmlu_high_school_politics",
+      "cmmlu_human_sexuality",
+      "cmmlu_international_law",
+      "cmmlu_journalism",
+      "cmmlu_jurisprudence",
+      "cmmlu_legal_and_moral_basis",
+      "cmmlu_logical",
+      "cmmlu_machine_learning",
+      "cmmlu_management",
+      "cmmlu_marketing",
+      "cmmlu_marxist_theory",
+      "cmmlu_modern_chinese",
+      "cmmlu_nutrition",
+      "cmmlu_philosophy",
+      "cmmlu_professional_accounting",
+      "cmmlu_professional_law",
+      "cmmlu_professional_medicine",
+      "cmmlu_professional_psychology",
+      "cmmlu_public_relations",
+      "cmmlu_security_study",
+      "cmmlu_sociology",
+      "cmmlu_sports_science",
+      "cmmlu_traditional_chinese_medicine",
+      "cmmlu_virology",
+      "cmmlu_world_history",
+      "cmmlu_world_religions"
+    ]},
+    "commonsense_qa": {
+      "description": "CommonsenseQA는 상식 지식 기반의 12,102개 문항을 포함한 다지선다형 QA 데이터셋으로, 랜덤 스플릿과 질문 토큰 스플릿 방식으로 나뉘어 제공합니다.",
+      "tasks" : [
+      "commonsense_qa"
+    ]},
+    "copal_id": {
+      "description" : "COPAL-ID는 자카르타 문화권의 자연스러운 인과 상식 추론을 담은 고품질 인도네시아어 데이터셋입니다.",
+      "tasks" : [
+      "copal_id_standard",
+      "copal_id_colloquial"
+    ]},
+    "coqa": {
+      "description": "CoQA는 대화형 문맥에서 이어지는 질의응답과 자유형 답변, 근거 문장 하이라이트를 포함한 대규모 대화 QA 데이터셋입니다.",
+      "tasks" : [
+      "coqa"
+    ]},
+    "crows_pairs_english": {
+      "description": "CrowS-Pairs-English는 영어 버전으로 제공되는, 언어 모델의 사회적 편향을 측정하기 위한 챌린지 데이터셋입니다.",
+      "tasks" : [
+      "crows_pairs_english_age",
+      "crows_pairs_english_autre",
+      "crows_pairs_english_disabilitycrows_pairs_english_gender",
+      "crows_pairs_english_nationality",
+      "crows_pairs_english_physical_appearance",
+      "crows_pairs_english_race_color",
+      "crows_pairs_english_religion",
+      "crows_pairs_english_sexual_orientation",
+      "crows_pairs_english_socioeconomic"
+    ]},
+    "crows_pairs_french": {
+      "description": "CrowS-Pairs-French는 불어 버전으로 제공되는, 언어 모델의 사회적 편향을 측정하기 위한 챌린지 데이터셋입니다.",
+      "tasks" : [
+      "crows_pairs_french_age",
+      "crows_pairs_french_autre",
+      "crows_pairs_french_disability",
+      "crows_pairs_french_gender",
+      "crows_pairs_french_nationality",
+      "crows_pairs_french_physical_appearance",
+      "crows_pairs_french_race_color",
+      "crows_pairs_french_religion",
+      "crows_pairs_french_sexual_orientation",
+      "crows_pairs_french_socioeconomic"
+    ]},
+    "Csatqa": {
+      "description": "CSAT-QA는 한국 대학수능 시험에서 추출한 936개 객관식 문제와 학생 정답률을 포함하여 언어 모델 평가를 위한 맞춤형 벤치마크를 제공하는 데이터셋입니다.",
+      "tasks" : [
+      "csatqa_gr",
+      "csatqa_li",
+      "csatqa_rch",
+      "csatqa_rcs",
+      "csatqa_rcss",
+      "csatqa_wr"
+    ]},
+    "darija_sentiment": {
+      "description": "모로코 아랍어 방언인 다리자(Darija) 텍스트를 긍정/부정으로 분류 평가 벤치마크 데이터셋입니다.",
+      "tasks" : [
+      "darija_sentiment_mac",
+      "darija_sentiment_myc",
+      "darija_sentiment_msac",
+      "darija_sentiment_msda",
+      "darija_sentiment_electrom"
+    ]},
+    "darija_summarization": {
+      "description": "모로코 아랍어 방언인 다리자(Darija) 텍스트를 요약 평가 벤치마크 데이터셋입니다.",
+      "tasks" : [
+      "darija_summarization_task"
+    ]},
+    "darija_translation": {
+      "description": "모로코 아랍어 방언인 다리자(Darija) 텍스트를 번역 평가 벤치마크 데이터셋입니다.",
+      "tasks" : [
+      "darija_translation_doda",
+      "darija_translation_flores",
+      "darija_translation_madar",
+      "darija_translation_seed"
+    ]},
+    "darija_transliteration": {
+      "description": "모로코 아랍어 방언인 다리자(Darija) 텍스트를 라틴 문자로 표기 평가 벤치마크 데이터셋입니다.",
+      "tasks" : [
+      "darija_transliteration_task"
+    ]},
+    "darijahellaswag": {
+      "description": "모로코 아랍어 방언인 다리자(Darija) 텍스트를 긍정/부정으로 분류 평가 벤치마크 데이터셋입니다.",
+      "tasks" : [
+      "darijahellaswag"
+    ]},
+    "drop": { 
+      "description" : "DROP은 위키피디아 지문을 기반으로 참조 해석과 덧셈·개수 세기·정렬 등의 이산 연산을 요구하는 9만 6천여 개 질문으로 구성된 대규모 벤치마크입니다.",
+      "tasks" : [
+      "drop"
+    ]},
+    "eq_bench": {
+      "description" : "EQ-Bench는 대화 속 인물 감정 강도 예측을 통해 LLM의 감정 지능을 평가하며, MMLU와 높은 상관성을 보이는 새로운 벤치마크입니다.",
+      "tasks" : [
+      "eq_bench"
+    ]},
+    "eus_exams": {
+      "description" : "EusExams는 여러 바스크 기관의 공무원 시험 대비를 위해 바스크어·스페인어 병렬로 제공되는 객관식 문제 모음입니다.",
+      "tasks" : [
+      "eus_exams_eu",
+      "eus_exams_es"
+    ]},
+    "eus_proficiency": {
+     "description" : "바스크어 C1 수준 공식 자격시험(EGA) 중 1998~2008년 Atarikoa 단계의 읽기, 문법, 어휘, 철자, 작문 능력을 측정하는 객관식 5,169문제로 구성된 데이터셋입니다.",
+     "tasks" : [
+      "eus_proficiency"
+    ]},
+    "eus_reading": {
+      "description" : "1998~2008년 EGA 시험에서 발췌한 352개의 긴 지문 기반 독해 문제로 구성되어 모델의 장문 맥락 이해 능력을 평가하는 데이터셋입니다.",
+      "tasks" : [
+      "eus_reading"
+    ]},
+    "eus_trivia": {
+      "description" : "EusTrivia는 온라인 출처에서 수집한 1,715개의 객관식 퀴즈로, 바스크 지역 관련 비중이 높으며 인문·자연과학, 레저·예술, 음악, 언어·문학, 수학·정보통신 등 다섯 분야를 다룹니다.",
+      "tasks" : [
+      "eus_trivia"
+    ]},
+    "evalita_llm": {
+      "description" : "Evalita-LLM은 순수 이탈리아어 기반의 객관식과 생성형 과제를 여러 프롬프트로 평가해 LLM의 성능을 보다 공정하게 측정하는 벤치마크입니다.",
+      "tasks" : [
+      "evalita-mp_te",
+      "evalita-mp_sa",
+      "evalita-mp_wic",
+      "evalita-mp_hs",
+      "evalita-mp_at",
+      "evalita-mp_faq",
+      "evalita-mp_sum_fp",
+      "evalita-mp_ls",
+      "evalita-mp_ner_group",
+      "evalita-mp_re"
+    ]},
+    "fda": {
+      "description" : "EVAPORATE는 LLM에게 직접값 추출 또는 코드 합성을 통해 정보 추출 과제를 수행시키며, 약 감독 앙상블 기법을 적용한 EVAPORATE-CODE+로 토큰 처리 비용을 110배 줄이면서도 최첨단 성능을 능가합니다.",
+      "tasks" : [
+      "fda"
+    ]},
+    "fld": {
+      "description" : "지식 참조가 불가능한 무작위 사실과 형식 논리에 기반한 다양한 연역 규칙을 통해 LLM의 순수 논리 추론 능력을 평가하는 고난도 벤치마크입니다.",
+      "tasks" : [
+      "fld_default",
+      "fld_star"
+    ]},
+    "fld_logical_formula": {
+      "description" : "지식 참조가 불가능한 무작위 사실과 형식 논리에 기반한 다양한 연역 규칙을 통해 LLM의 순수 논리 추론 능력을 평가하는 고난도 벤치마크입니다.",
+      "tasks" : [
+      "fld_logical_formula_default",
+      "fld_logical_formula_fld_star"
+    ]},
+    "french_bench": {
+      "description" : "FrenchBench는 공개 및 수작업 주석 데이터를 결합해 프랑스어 언어 모델의 이해·생성 능력을 종합적으로 평가하는 벤치마크입니다.",
+      "tasks" : [
+      "french_bench_boolqa",
+      "french_bench_fquadv2",
+      "french_bench_fquadv2_bool",
+      "french_bench_fquadv2_genq",
+      "french_bench_fquadv2_hasAns",
+      "french_bench_topic_based_nli",
+      "french_bench_multifquad",
+      "french_bench_grammar",
+      "french_bench_vocab",
+      "french_bench_reading_comp",
+      "french_bench_xnli",
+      "french_bench_orangesum_abstract",
+      "french_bench_orangesum_title",
+      "french_bench_trivia",
+      "french_bench_hellaswag",
+      "french_bench_arc_challenge"
+    ]},
+    "galician_bench" : {
+      "description" : "GalicianBench는 갈리시아어 텍스트 이해와 생성을 평가하기 위해 공개 및 전용 데이터셋을 결합한 벤치마크입니다.",
+      "tasks" : [
+      "galician_bench",
+      "belebele_glg_Latn",
+      "flores_gl",
+      "flores_gl-ca",
+      "flores_gl-de",
+      "flores_gl-en",
+      "flores_gl-es",
+      "flores_gl-eu",
+      "flores_gl-fr",
+      "flores_gl-it",
+      "flores_gl-pt",
+      "flores_ca-gl",
+      "flores_de-gl",
+      "flores_en-gl",
+      "flores_es-gl",
+      "flores_eu-gl",
+      "flores_fr-gl",
+      "flores_it-gl",
+      "flores_pt-gl",
+      "galcola",
+      "summarization_gl",
+      "parafrases_gl",
+      "paws_gl",
+      "openbookqa_gl",
+      "mgsm_direct_gl",
+      "truthfulqa_gl",
+      "xnli_gl",
+      "xstorycloze_gl"
+    ]},
+    "glianorex": {
+      "description" : "Glianorex는 콘텐츠 지식 없이 순수한 문제 해결 능력을 평가하기 위한 벤치마크입니다.",
+      "tasks" : [
+      "glianorex_en",
+      "glianorex_fr"
+    ]},
+    "global_mmlu": {
+      "description" : "Global-MMLU는 42개 언어로 번역·후편집된 MMLU 질문과 문화적 민감도 주석을 포함해 다국어 모델의 성능 및 문화적 편향을 평가하는 데이터셋이며, Global-MMLU-Lite는 그중 인간 번역이 완료된 15개 언어만을 추린 효율적 평가용 버전입니다.",
+      "tasks" : [
+      "global_mmlu_ar",
+      "global_mmlu_bn",
+      "global_mmlu_de",
+      "global_mmlu_en",
+      "global_mmlu_es",
+      "global_mmlu_fr",
+      "global_mmlu_hi",
+      "global_mmlu_id",
+      "global_mmlu_it",
+      "global_mmlu_ja",
+      "global_mmlu_ko",
+      "global_mmlu_pt",
+      "global_mmlu_sw",
+      "global_mmlu_yo",
+      "global_mmlu_zh"
+    ]},
+    "global_mmlu_full": {
+      "description" : "Global-MMLU-Full은 42개 언어로 번역·후편집된 MMLU 질문과 문화적 민감도 주석을 포함해 다국어 모델의 성능 및 문화적 편향을 평가하는 데이터셋입니다.",
+      "tasks" : [
+      "global_mmlu_full_am",
+      "global_mmlu_full_ar",
+      "global_mmlu_full_bn",
+      "global_mmlu_full_cs",
+      "global_mmlu_full_de",
+      "global_mmlu_full_el",
+      "global_mmlu_full_en",
+      "global_mmlu_full_es",
+      "global_mmlu_full_fa",
+      "global_mmlu_full_fil",
+      "global_mmlu_full_fr",
+      "global_mmlu_full_ha",
+      "global_mmlu_full_he",
+      "global_mmlu_full_hi",
+      "global_mmlu_full_id",
+      "global_mmlu_full_ig",
+      "global_mmlu_full_it",
+      "global_mmlu_full_ja",
+      "global_mmlu_full_ko",
+      "global_mmlu_full_ky",
+      "global_mmlu_full_lt",
+      "global_mmlu_full_mg",
+      "global_mmlu_full_ms",
+      "global_mmlu_full_ne",
+      "global_mmlu_full_nl",
+      "global_mmlu_full_ny",
+      "global_mmlu_full_pl",
+      "global_mmlu_full_pt",
+      "global_mmlu_full_ro",
+      "global_mmlu_full_ru",
+      "global_mmlu_full_si",
+      "global_mmlu_full_sn",
+      "global_mmlu_full_so",
+      "global_mmlu_full_sr",
+      "global_mmlu_full_sv",
+      "global_mmlu_full_sw",
+      "global_mmlu_full_te",
+      "global_mmlu_full_tr",
+      "global_mmlu_full_uk",
+      "global_mmlu_full_vi",
+      "global_mmlu_full_yo",
+      "global_mmlu_full_zh"
+    ]},
+    "glue": {
+      "description" : "GLUE는 언어 모델의 다양한 작업 성능을 평가하기 위한 벤치마크 데이터셋입니다.",
+      "tasks" : [
+      "cola",
+      "mnli",
+      "mrpc",
+      "qnli",
+      "qqp",
+      "rte",
+      "sst",
+      "wnli"
+    ]},
+    "hellaswag": {
+      "description" : "HellaSwag는 문장 완성 과제를 통해 LLM의 상식 지식 이해 능력을 평가하는 벤치마크입니다.",
+      "tasks" : [
+      "hellaswag"
+    ]},
+    "piqa": {
+      "description" : "PIQA는 일상생활에서 필요한 물리적 상식(physical commonsense)을 평가하기 위해 고안된 벤치마크 데이터셋입니다.",
+      "tasks" : [
+      "piqa"
+    ]},
+    "nq_open": {
+      "description" : "NQ-Open은 문제 해결 능력을 평가하기 위한 벤치마크 데이터셋입니다.",
+      "tasks" : [
+      "nq_open"
+    ]},
+    "mmlu_pro": {
+      "description" : "MMLU-Pro는 대규모 벤치마크 데이터셋으로, 언어 모델의 다양한 분야 지식 이해 능력을 평가하기 위해 설계되었습니다.",
+      "tasks" : [
+      "mmlu_pro_biology",
+      "mmlu_pro_business",
+      "mmlu_pro_chemistry",
+      "mmlu_pro_computer_science",
+      "mmlu_pro_economics",
+      "mmlu_pro_engineering",
+      "mmlu_pro_health",
+      "mmlu_pro_history",
+      "mmlu_pro_law",
+      "mmlu_pro_math",
+      "mmlu_pro_other",
+      "mmlu_pro_philosophy",
+      "mmlu_pro_physics",
+      "mmlu_pro_psychology"
+    ]},
+    "mmlu": {
+      "description" : "MMLU는 대규모 벤치마크 데이터셋으로, 언어 모델의 다양한 분야 지식 이해 능력을 평가하기 위해 설계되었습니다.",
+      "tasks" : [
+      "mmlu",
+      "mmlu_continuation",
+      "mmlu_generation"
+    ]},
+    "mmlu_pro_plus": {
+      "description" : "MMLU-Pro-Plus는 대규모 벤치마크 데이터셋으로, 언어 모델의 다양한 분야 지식 이해 능력을 평가하기 위해 설계되었습니다.",
+      "tasks" : [
+      "mmlu_pro_plus",
+      "mmlu_pro_plus_biology",
+      "mmlu_pro_plus_business",
+      "mmlu_pro_plus_chemistry",
+      "mmlu_pro_plus_computer_science",
+      "mmlu_pro_plus_economics",
+      "mmlu_pro_plus_engineering",
+      "mmlu_pro_plus_health",
+      "mmlu_pro_plus_history",
+      "mmlu_pro_plus_law",
+      "mmlu_pro_plus_math",
+      "mmlu_pro_plus_other",
+      "mmlu_pro_plus_philosophy",
+      "mmlu_pro_plus_physics",
+      "mmlu_pro_plus_psychology"
+    ]},
+    "gsm8k": {
+      "description" : "GSM8K는 다단계 수학 추론에서 최신 언어 모델이 여전히 어려움을 겪는다는 점을 보여주기 위해 고안된, 8,500개의 초등학교 수준 수학 단어 문제 데이터셋입니다.",
+      "tasks" : [
+      "gsm8k_yaml",
+      "gsm8k_cot",
+      "gsm8k_cot_self_consistency",
+      "gsm8k_cot_llama"
+    ]},
+    "gpqa": {
+      "description" : "GPQA는 구글 검색으로도 풀기 어려운 대학원 수준의 생물·물리·화학 문제 448개를 포함하여, 전문가와 최첨단 AI 모두에게 도전 과제를 제시하는 객관식 벤치마크입니다.",
+      "tasks" : [
+      "gpqa_main_zeroshot",
+      "gpqa_main_n_shot",
+      "gpqa_main_generative_n_shot",
+      "gpqa_main_cot_zeroshot",
+      "gpqa_main_cot_n_shot"
+    ]},
+    "gpqa_diamond": {
+      "description" : "GPQA-Diamond는 구글 검색으로도 풀기 어려운 대학원 수준의 생물·물리·화학 문제 448개를 포함하여, 전문가와 최첨단 AI 모두에게 도전 과제를 제시하는 객관식 벤치마크입니다.",
+      "tasks" : [
+      "gpqa_diamond_zeroshot",
+      "gpqa_diamond_n_shot",
+      "gpqa_diamond_generative_n_shot",
+      "gpqa_diamond_cot_zeroshot",
+      "gpqa_diamond_cot_n_shot"
+    ]},
+    "gpqa_extended": {
+      "description" : "GPQA-Extended는 구글 검색으로도 풀기 어려운 대학원 수준의 생물·물리·화학 문제 448개를 포함하여, 전문가와 최첨단 AI 모두에게 도전 과제를 제시하는 객관식 벤치마크입니다.",
+      "tasks" : [
+      "gpqa_extended_zeroshot",
+      "gpqa_extended_n_shot",
+      "gpqa_extended_generative_n_shot",
+      "gpqa_extended_cot_zeroshot",
+      "gpqa_extended_cot_n_shot"
+    ]},
+    "mbpp": {
+      "description" : "자연어 설명에서 파이썬 코드를 합성하는 MBPP와 MathQA-Python 벤치마크에서 모델 크기에 비례해 성능이 로그선형으로 향상되며, few-shot과 파인튜닝을 통해 최대 83.8% 정확도를 달성했으나 실행 결과 예측에는 한계가 있는 연구입니다.",
+      "tasks" : [
+      "mbpp"
+    ]},
+    "humaneval": {
+      "description" : "HumanEval은 파이썬 함수의 도크스트링(docstring)만 보고 해당 함수를 구현해야 하는 164개의 프로그래밍 과제로 이루어진 벤치마크로, 모델이 생성한 코드가 실제로 테스트 케이스를 통과하는지를 통해 “도크스트링→정확한 파이썬 코드” 합성 능력을 평가합니다.",
+      "tasks" : [
+      "humaneval",
+      "humaneval_64",
+      "humaneval_instruct",
+      "humaneval_instruct_64"
+    ]},
+    "mgsm_direct": {
+      "description" : "GSM8K의 250개 초등 수학 문제를 각 언어로 번역해, 체인 오브 생각 없이 바로 질문과 정답만 제시합니다.",
+      "tasks" : [
+      "mgsm_direct",
+      "mgsm_direct_bn",
+      "mgsm_direct_de",
+      "mgsm_direct_en",
+      "mgsm_direct_es",
+      "mgsm_direct_fr",
+      "mgsm_direct_ja",
+      "mgsm_direct_ru",
+      "mgsm_direct_sw",
+      "mgsm_direct_te",
+      "mgsm_direct_th",
+      "mgsm_direct_zh"
+    ]},
+    "mgsm_cot_native": {
+      "description" : "같은 문제를 번역해 ‘정답 + 단계별 추론 유도 프롬프트’를 각 언어로 함께 제공하여 모델이 단계별 추론을 생성하도록 합니다.",
+      "tasks" : [
+      "mgsm_cot_native",
+      "mgsm_cot_native_bn",
+      "mgsm_cot_native_de",
+      "mgsm_cot_native_en",
+      "mgsm_cot_native_es",
+      "mgsm_cot_native_fr",
+      "mgsm_cot_native_ja",
+      "mgsm_cot_native_ru",
+      "mgsm_cot_native_sw",
+      "mgsm_cot_native_te",
+      "mgsm_cot_native_th",
+      "mgsm_cot_native_zh"
+    ]},
+    "truthfulqa" : {
+      "description" : "자연어 생성 모델의 “진실성(truthfulness)”을 평가하기 위해 고안된 질의응답(Question Answering) 벤치마크입니다.",
+      "tasks" : [
+      "truthfulqa_mc1",
+      "truthfulqa_mc2",
+      "truthfulqa_gen"
+    ]},
+    "Wet" : {
+      "description" : "Wet는 문제 해결 능력을 평가하기 위한 벤치마크 데이터셋입니다.",
+      "tasks" : [
+      "gpt3_translation_tasks",
+      "wmt14",
+      "wmt16",
+      "wmt20",
+      "iwslt2017"
+    ]},
+    "xquad": {
+      "description" : "XQuAD는 SQuAD v1.1 개발셋의 일부 문단과 질문-답변 쌍을 스페인어, 독일어, 그리스어, 러시아어, 터키어, 아랍어, 베트남어, 태국어, 중국어, 힌디어로 번역해 총 11개 언어에 걸친 병렬 구조로 구성된 크로스언어 QA 벤치마크입니다.",
+      "tasks" : [
+   "xquad_ar",
+   "xquad_de",
+   "xquad_el",
+   "xquad_en",
+   "xquad_es",
+   "xquad_hi",
+   "xquad_ro",
+   "xquad_ru",
+   "xquad_th",
+   "xquad_tr",
+   "xquad_vi",
+   "xquad_zh"
+ ]}
+}

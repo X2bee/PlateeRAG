@@ -1,17 +1,19 @@
-import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, { useState, useEffect, Suspense, useCallback } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import styles from '@/app/chat/assets/ChatContent.module.scss';
 import { LuWorkflow } from "react-icons/lu";
 import { IoChatbubblesOutline } from "react-icons/io5";
 import WorkflowSelection from './WorkflowSelection';
 import ChatInterface from './ChatInterface';
+import { normalizeWorkflowName } from '@/app/api/interactionAPI';
 
 interface ChatContentProps {
     onChatStarted?: () => void; // 채팅 시작 후 호출될 콜백
 }
 
-const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted }) => {
+const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted}) => {
     const searchParams = useSearchParams();
+    const router = useRouter();
     const [currentView, setCurrentView] = useState<'welcome' | 'workflow' | 'newChat' | 'existingChat' | 'defaultChat'>('welcome');
     const [selectedWorkflow, setSelectedWorkflow] = useState<any>(null);
     const [existingChatData, setExistingChatData] = useState<any>(null);
@@ -78,6 +80,21 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted }) => {
         setCurrentView('defaultChat');
     };
 
+    const handleStartNewChat = useCallback((message: string) => {
+        if (!selectedWorkflow) return;
+
+        localStorage.removeItem('currentChatData');
+
+        const params = new URLSearchParams();
+        params.set('mode', 'current-chat');
+        params.set('workflowId', selectedWorkflow.id);
+        params.set('workflowName', normalizeWorkflowName(selectedWorkflow.name));
+        params.set('initial_message', message);
+        
+        router.replace(`/chat?${params.toString()}`);
+
+    }, [selectedWorkflow, router]);
+
     const getChatMode = () => {
         if (currentView === 'existingChat' && selectedWorkflow) return 'existing';
         if (currentView === 'newChat' && selectedWorkflow) return 'new-workflow';
@@ -93,12 +110,11 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted }) => {
                 <div className={styles.workflowSection}>
                     {chatMode && (
                         <ChatInterface
-                            key={chatMode === 'existing' ? existingChatData?.interactionId : chatMode}
+                            key={chatMode === 'existing' ? existingChatData?.interactionId : selectedWorkflow.id}
                             mode={chatMode}
                             workflow={selectedWorkflow}
                             existingChatData={chatMode === 'existing' ? existingChatData : undefined}
-                            firstChat={chatMode === 'existing' ? false : true}
-                            onChatStarted={chatMode === 'existing' ? undefined : onChatStarted}
+                            onStartNewChat={handleStartNewChat} 
                             onBack={currentView === 'defaultChat' ? () => setCurrentView('welcome') : () => setCurrentView('workflow')}
                         />
                     )}
@@ -152,7 +168,7 @@ return (
 );
 };
 
-const ChatContent: React.FC<ChatContentProps> = ({ onChatStarted }) => {
+const ChatContent: React.FC<ChatContentProps> = ({ onChatStarted}) => {
     return (
         <Suspense fallback={
             <div className={styles.loadingContainer}>

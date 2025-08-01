@@ -16,6 +16,7 @@ import {
     saveWorkflow,
     listWorkflows,
     loadWorkflow,
+    executeWorkflowByIdStream,
 } from '@/app/api/workflowAPI';
 import {
     getWorkflowName,
@@ -27,11 +28,12 @@ import {
 } from '@/app/_common/utils/workflowStorage';
 import { devLog } from '@/app/_common/utils/logger';
 import { generateWorkflowHash } from '@/app/_common/utils/generateSha1Hash';
+import { isStreamingWorkflow } from '../_common/utils/isStreamingWorkflow';
 
 function CanvasPageContent() {
     // CookieProvider의 useAuth 훅 사용
     const { user, isAuthenticated } = useAuth();
-    
+
     // URL 파라미터 처리
     const searchParams = useSearchParams();
 
@@ -89,13 +91,13 @@ function CanvasPageContent() {
 
         // URL 파라미터에서 load할 워크플로우 이름 확인
         const loadWorkflowName = searchParams.get('load');
-        
+
         if (loadWorkflowName) {
             // URL 파라미터로 워크플로우 이름이 전달된 경우
             devLog.log('Loading workflow from URL parameter:', loadWorkflowName);
             const decodedWorkflowName = decodeURIComponent(loadWorkflowName);
             setCurrentWorkflowName(decodedWorkflowName);
-            
+
             // 해당 워크플로우를 자동으로 로드
             const loadFromServer = async () => {
                 try {
@@ -108,7 +110,7 @@ function CanvasPageContent() {
                     toast.error(`Failed to load workflow: ${decodedWorkflowName}`);
                 }
             };
-            
+
             // Canvas가 준비될 때까지 대기
             setTimeout(loadFromServer, 1000);
         } else {
@@ -117,7 +119,7 @@ function CanvasPageContent() {
             devLog.log('Restored workflow name:', savedName);
             setCurrentWorkflowName(savedName);
         }
-        
+
         setIsCanvasReady(true);
     }, [searchParams]);
 
@@ -739,8 +741,34 @@ function CanvasPageContent() {
             workflowData = { ...workflowData, workflow_id: workflowId };
             workflowData = { ...workflowData, workflow_name: workflowName };
 
-            const result = await executeWorkflow(workflowData);
-            setExecutionOutput(result);
+            const isStreaming = await isStreamingWorkflow(workflowData);
+
+            if (isStreaming) {
+                toast.loading('Executing streaming workflow...', { id: toastId });
+                setExecutionOutput({ stream: '' });
+
+                await executeWorkflowByIdStream({
+                    workflowName,
+                    workflowId,
+                    inputData: '',
+                    interactionId : 'default',
+                    selectedCollections : null,
+                    onData: (chunk) => {
+                        setExecutionOutput((prev: { stream: any; }) => ({ ...prev, stream: (prev.stream || '') + chunk }));
+                    },
+                    onEnd: () => {
+                        toast.success('Streaming finished!', { id: toastId });
+                    },
+                    onError: (err) => {
+                        throw err;
+                    }
+                });
+
+            } else {
+                const result = await executeWorkflow(workflowData);
+                setExecutionOutput(result);
+                toast.success('Workflow executed successfully!', { id: toastId });
+            }
             setWorkflow({
                 id: workflowData.workflow_id,
                 name: workflowData.workflow_name,

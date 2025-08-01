@@ -5,6 +5,8 @@
 const host_url = process.env.NEXT_PUBLIC_BACKEND_HOST || 'http://localhost'
 const port = process.env.NEXT_PUBLIC_BACKEND_PORT || null
 
+const metrics = process.env.NEXT_PUBLIC_METRICS_HOST || ''
+
 let BASE_URL = `${host_url}:${port}`
 
 if (!port) {
@@ -28,3 +30,5 @@ export const APP_CONFIG = {
 
 // Export individual configs for convenience
 export const { BASE_URL: API_BASE_URL } = API_CONFIG;
+
+export const METRICS_URL = metrics;
