@@ -139,7 +139,7 @@ export const destroyVastInstance = async (instanceId) => {
  * @param {string} vllmConfig.model_name - VLLM 모델명
  * @returns {Promise<Object>} 설정 업데이트 결과
  */
-export const setVllmConfig = async (vllmConfig) => {
+export const updateVllmConnectionConfig = async (vllmConfig) => {
     try {
         const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/set-vllm`, {
             method: 'PUT',

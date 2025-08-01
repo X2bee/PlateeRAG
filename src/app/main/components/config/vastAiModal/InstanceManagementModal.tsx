@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiCheck, FiX, FiCopy, FiExternalLink, FiServer, FiSettings, FiTrash2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import VastAiConfigModal from '@/app/main/components/config/vastAiConfigModal';
-import { listVastInstances, destroyVastInstance, setVllmConfig, vllmDown, vllmServe } from '@/app/api/vastAPI';
+import { listVastInstances, destroyVastInstance, updateVllmConnectionConfig, vllmDown, vllmServe } from '@/app/api/vastAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/main/assets/Settings.module.scss';
 
@@ -165,7 +165,7 @@ export const InstanceManagementModal = () => {
         try {
             devLog.info('Setting VLLM config:', { api_base_url: vllmUrl, model_name: instance.model_name });
 
-            await setVllmConfig({
+            await updateVllmConnectionConfig({
                 api_base_url: vllmUrl,
                 model_name: instance.model_name
             });
