@@ -80,12 +80,12 @@ export const getTrainSidebarItems = (): SidebarItem[] => [
         description: '모델 평가',
         icon: React.createElement(FiBarChart2),
     },
-    {
-        id: 'model-hub',
-        title: '모델 허브',
-        description: '모델 허브',
-        icon: React.createElement(FiBarChart2),
-    },
+    // {
+    //     id: 'model-hub',
+    //     title: '모델 허브',
+    //     description: '모델 허브',
+    //     icon: React.createElement(FiBarChart2),
+    // },
 ];
 
 export const getSettingItems = ['settings', 'exec-monitor', 'config-viewer'];
