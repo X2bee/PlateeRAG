@@ -7,10 +7,12 @@ const port = process.env.NEXT_PUBLIC_BACKEND_PORT || null
 
 const metrics = process.env.NEXT_PUBLIC_METRICS_HOST || ''
 
-let BASE_URL = `${host_url}:${port}`
+let BASE_URL = '';
 
 if (!port) {
-    BASE_URL = host_url
+    BASE_URL = host_url;
+} else {
+    BASE_URL = `${host_url}:${port}`;
 }
 
 console.log(`Backend server running at ${BASE_URL}`);
