@@ -137,7 +137,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
             if (workflow.name == 'default_mode'){
                 isStreaming = true;
             } else {
-                isStreaming = await isStreamingWorkflow(workflow);
+                isStreaming = await isStreamingWorkflow(workflow.name);
             }
             
             const { interactionId, workflowId, workflowName } = existingChatData || {
