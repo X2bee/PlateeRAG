@@ -741,12 +741,12 @@ function CanvasPageContent() {
             workflowData = { ...workflowData, workflow_id: workflowId };
             workflowData = { ...workflowData, workflow_name: workflowName };
 
-            const isStreaming = isStreamingWorkflow(workflowData);
+            const isStreaming = await isStreamingWorkflow(workflowData);
 
             if (isStreaming) {
                 toast.loading('Executing streaming workflow...', { id: toastId });
                 setExecutionOutput({ stream: '' });
-                
+
                 await executeWorkflowByIdStream({
                     workflowName,
                     workflowId,

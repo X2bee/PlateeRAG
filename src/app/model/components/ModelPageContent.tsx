@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import MetricsPageContent from '@/app/model/components/MetricsPageContent';
-import EvalPageContent from '@/app/model/components/EvalPageContent'
+import EvalPageContent from '@/app/model/components/EvalPageContent';
+import TrainPageContent from '@/app/model/components/TrainPageContent';
 import { getTrainItems } from '@/app/_common/components/sidebarConfig';
 
 const ModelPage: React.FC = () => {
@@ -21,10 +22,14 @@ const ModelPage: React.FC = () => {
 
     const renderContent = () => {
         switch (activeSection) {
+            case 'train':
+                return <TrainPageContent />;
             case 'train-monitor':
                 return <MetricsPageContent/>;
             case 'eval':
                 return <EvalPageContent/>;
+            default:
+                return <TrainPageContent />;
         }
     };
 

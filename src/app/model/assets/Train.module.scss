@@ -1,0 +1,415 @@
+// Train.module.scss - 훈련 페이지 전용 스타일
+
+.trainContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pageTitle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.pageIcon {
+    font-size: 1.75rem;
+    color: #3b82f6;
+}
+
+// 설정 그룹 스타일
+.configGroup {
+    background: #fafafa;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: all 0.2s ease;
+
+    &:hover {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+}
+
+.configGroupHeader {
+    padding: 1rem 1.5rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e5e5e5;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 500;
+    color: #374151;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background: #f1f3f4;
+    }
+
+    .sectionIcon {
+        margin-right: 0.5rem;
+        color: #3b82f6;
+        font-size: 1.1rem;
+    }
+}
+
+.configGroupContent {
+    padding: 1.5rem;
+    background: #ffffff;
+}
+
+// 폼 스타일
+.formGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.formField {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.formLabel {
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+
+    &.required::after {
+        content: " *";
+        color: #ef4444;
+    }
+}
+
+.formInput {
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    background: #ffffff;
+    transition: all 0.2s ease;
+
+    &:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    &:disabled {
+        background: #f9fafb;
+        color: #6b7280;
+        cursor: not-allowed;
+    }
+
+    &::placeholder {
+        color: #9ca3af;
+    }
+}
+
+.formSelect {
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    &:disabled {
+        background: #f9fafb;
+        color: #6b7280;
+        cursor: not-allowed;
+    }
+}
+
+.formRow {
+    margin-bottom: 1rem;
+}
+
+// 체크박스 그룹
+.checkboxGroup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #374151;
+    cursor: pointer;
+    user-select: none;
+
+    &:hover {
+        color: #1f2937;
+    }
+}
+
+.checkbox {
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:checked {
+        background: #3b82f6;
+        border-color: #3b82f6;
+    }
+
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+}
+
+// 폼 그룹
+.formGroup {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.formGroupTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+// 액션 버튼
+.formActions {
+    display: flex;
+    justify-content: center;
+    padding-top: 2rem;
+    margin-top: 2rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.trainButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 2rem;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+
+    &:hover:not(:disabled) {
+        background: linear-gradient(135deg, #2563eb, #1e40af);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+    }
+
+    &:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    &:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .buttonIcon {
+        font-size: 1.1rem;
+    }
+}
+
+// 로딩 스피너
+.spinner {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// 섹션별 커스텀 스타일
+.basicSection {
+    .configGroupHeader {
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        color: #1e40af;
+    }
+}
+
+.dataSection {
+    .configGroupHeader {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        color: #166534;
+    }
+}
+
+.trainerSection {
+    .configGroupHeader {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        color: #92400e;
+    }
+}
+
+// 반응형 디자인
+@media (max-width: 768px) {
+    .trainContainer {
+        margin: 0;
+        padding: 1rem;
+        border-radius: 0;
+    }
+
+    .pageTitle {
+        font-size: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .configGroupHeader {
+        padding: 0.75rem 1rem;
+    }
+
+    .configGroupContent {
+        padding: 1rem;
+    }
+
+    .formGrid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .checkboxGroup {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .trainButton {
+        width: 100%;
+        padding: 1rem;
+    }
+}
+
+// 고해상도 디스플레이 대응
+@media (min-width: 1400px) {
+    .trainContainer {
+        max-width: 1400px;
+    }
+
+    .formGrid {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    }
+}
+
+// 다크모드 지원 (선택사항)
+@media (prefers-color-scheme: dark) {
+    .trainContainer {
+        background: #1f2937;
+        color: #f9fafb;
+    }
+
+    .pageTitle {
+        color: #f9fafb;
+        border-bottom-color: #374151;
+    }
+
+    .configGroup {
+        background: #374151;
+        border-color: #4b5563;
+    }
+
+    .configGroupHeader {
+        background: #4b5563;
+        border-bottom-color: #6b7280;
+        color: #f9fafb;
+
+        &:hover {
+            background: #6b7280;
+        }
+    }
+
+    .configGroupContent {
+        background: #374151;
+    }
+
+    .formInput,
+    .formSelect {
+        background: #4b5563;
+        border-color: #6b7280;
+        color: #f9fafb;
+
+        &:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+
+        &::placeholder {
+            color: #9ca3af;
+        }
+    }
+
+    .formLabel {
+        color: #e5e7eb;
+    }
+
+    .checkboxLabel {
+        color: #e5e7eb;
+
+        &:hover {
+            color: #f9fafb;
+        }
+    }
+
+    .formGroup {
+        background: #4b5563;
+        border-color: #6b7280;
+    }
+
+    .formGroupTitle {
+        color: #f9fafb;
+        border-bottom-color: #6b7280;
+    }
+
+    .formActions {
+        border-top-color: #6b7280;
+    }
+}
