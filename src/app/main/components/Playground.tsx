@@ -5,11 +5,12 @@ import { listWorkflowsDetail } from '@/app/api/workflowAPI';
 import styles from '@/app/main/assets/Playground.module.scss';
 import Executor from '@/app/main/components/Executor';
 import Monitor from '@/app/main/components/Monitor';
+import BatchTester from '@/app/main/components/BatchTester';
 import { useSearchParams } from 'next/navigation';
 
 interface PlaygroundProps {
-    activeTab: 'executor' | 'monitoring';
-    onTabChange: (tab: 'executor' | 'monitoring') => void;
+    activeTab: 'executor' | 'monitoring' | 'batchtester';
+    onTabChange: (tab: 'executor' | 'monitoring' | 'batchtester') => void;
 }
 interface Workflow {
     id: number;
@@ -88,6 +89,19 @@ const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
         return new Date(dateString).toLocaleString('ko-KR');
     };
 
+    const renderActiveComponent = () => {
+        switch (activeTab) {
+            case 'executor':
+                return <Executor workflow={selectedWorkflow} />;
+            case 'monitoring':
+                return <Monitor workflow={selectedWorkflow} />;
+            case 'batchtester':
+                return <BatchTester workflow={selectedWorkflow} />;
+            default:
+                return <Executor workflow={selectedWorkflow} />;
+        }
+    };
+
     return (
         <>
             <div className={styles.monitoringContainer}>
@@ -144,11 +158,7 @@ const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
                         </div>
                     )}
                 </div>
-                {activeTab === 'executor' ? (
-                    <Executor workflow={selectedWorkflow} />
-                ) : (
-                    <Monitor workflow={selectedWorkflow} />
-                )}
+                {renderActiveComponent()}
             </div>
         </>
     );
