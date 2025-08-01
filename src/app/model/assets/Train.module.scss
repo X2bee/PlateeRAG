@@ -7,6 +7,16 @@
     margin: 0 auto;
 }
 
+// Content Area
+.contentArea {
+    background: $white;
+    border-radius: $radius-lg;
+    box-shadow: $shadow-sm;
+    padding: $spacing-xl;
+    min-height: calc(100vh - 4rem);
+    transition: margin-left 0.3s ease-in-out;
+}
+
 // Header
 .header {
     display: flex;
@@ -63,7 +73,7 @@
     font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.1s ease-in-out;
     border-bottom: 2px solid transparent;
 
     &:hover {
@@ -103,13 +113,20 @@
 }
 
 .formGroup {
-    display: flex;
-    flex-direction: column;
-    padding: 1rem 0;
-    border-bottom: 1px solid $gray-200;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: $gray-50;
+    border-radius: 0.75rem;
+    border: 1px solid $gray-200;
+    transition: all 0.1s ease-in-out;
+
+    &:hover {
+        border-color: $gray-300;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
 
     &:last-child {
-        border-bottom: none;
+        margin-bottom: 0;
     }
 }
 
@@ -117,12 +134,14 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid $gray-300;
 
     label {
-        font-size: 1rem;
+        font-size: 1.125rem;
         font-weight: 600;
-        color: $gray-700;
+        color: $gray-800;
         margin: 0;
     }
 
@@ -162,12 +181,16 @@
     }
 }
 
-.formInput {
+// 공통 입력 필드 스타일
+%formInputBase {
     padding: 0.75rem;
     border: 1px solid $gray-300;
     border-radius: 0.5rem;
     font-size: 0.875rem;
     background: $white;
+    color: $gray-900;
+    font-family: inherit;
+    line-height: 1.5;
     transition: all 0.2s ease-in-out;
 
     &:focus {
@@ -180,7 +203,16 @@
         background: $gray-50;
         color: $gray-500;
         cursor: not-allowed;
+        opacity: 0.7;
     }
+
+    &:hover:not(:disabled):not(:focus) {
+        border-color: $gray-400;
+    }
+}
+
+.formInput {
+    @extend %formInputBase;
 
     &::placeholder {
         color: $gray-400;
@@ -188,24 +220,33 @@
 }
 
 .formSelect {
-    padding: 0.75rem;
-    border: 1px solid $gray-300;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    background: $white;
+    @extend %formInputBase;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1rem;
+    padding-right: 2.5rem;
 
-    &:focus {
-        outline: none;
-        border-color: $primary-blue;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    option {
+        padding: 0.5rem 0.75rem;
+        background: $white;
+        color: $gray-900;
+        font-size: 0.875rem;
+
+        &:hover {
+            background: $gray-50;
+        }
+
+        &:disabled {
+            color: $gray-400;
+            background: $gray-100;
+        }
     }
 
-    &:disabled {
-        background: $gray-50;
-        color: $gray-500;
-        cursor: not-allowed;
+    &:focus {
+        background-image: url("data:image/svg+xml;charset=utf-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%233b82f6' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
     }
 }
 
@@ -254,21 +295,31 @@
     }
 }
 
-// Form group for sub-sections
+// Form group for sub-sections (통일된 스타일)
 .formSubGroup {
     margin-bottom: 1.5rem;
-    padding: 1rem;
+    padding: 1.5rem;
     background: $gray-50;
-    border-radius: 0.5rem;
+    border-radius: 0.75rem;
     border: 1px solid $gray-200;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        border-color: $gray-300;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    &:last-child {
+        margin-bottom: 0;
+    }
 }
 
 .formGroupTitle {
-    font-size: 1rem;
+    font-size: 1.125rem;
     font-weight: 600;
-    color: $gray-700;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
+    color: $gray-800;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
     border-bottom: 1px solid $gray-300;
 }
 
@@ -321,6 +372,7 @@
     display: flex;
     justify-content: center;
     padding-top: 2rem;
+    padding-bottom: 2rem;
     margin-top: 2rem;
     border-top: 1px solid $gray-200;
 }

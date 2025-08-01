@@ -13,20 +13,20 @@ const TrainPageContent: React.FC = () => {
 
     // 기본(공통) 설정
     const [basicConfig, setBasicConfig] = useState({
-        number_gpu: 1,
         project_name: 'test-project',
+        number_gpu: 1,
         training_method: 'cls',
-        model_load_method: 'huggingface',
-        dataset_load_method: 'huggingface',
-        model_name_or_path: '',
-        language_model_class: 'none',
         hugging_face_user_id: 'CocoRoF',
         hugging_face_token: '',
-        mlflow_url: 'https://polar-mlflow-git.x2bee.com/',
-        mlflow_run_id: 'test',
         minio_url: 'polar-store-api.x2bee.com',
         minio_access_key: '',
         minio_secret_key: '',
+        mlflow_url: 'https://polar-mlflow-git.x2bee.com/',
+        mlflow_run_id: 'test',
+        model_load_method: 'huggingface',
+        push_to_hub: true,
+        push_to_minio: true,
+
         use_deepspeed: false,
         ds_preset: 'zero-2',
         ds_stage2_bucket_size: 5e8,
@@ -47,8 +47,18 @@ const TrainPageContent: React.FC = () => {
         logging_steps: 5
     });
 
+    const [modelConfig, setModelConfig] = useState({
+        model_load_method: 'huggingface', // 'huggingface' or 'minio'
+        model_name_or_path: '',
+        tokenizer_name: '',
+        language_model_class: 'none',
+        tokenizer_max_len: 256,
+
+    });
+
     // 데이터 관련 설정
     const [dataConfig, setDataConfig] = useState({
+        dataset_load_method: 'huggingface', // 'huggingface' or 'minio'
         train_data: '',
         train_data_dir: '',
         train_data_split: 'train',
@@ -62,11 +72,9 @@ const TrainPageContent: React.FC = () => {
         dataset_main_column: 'instruction',
         dataset_sub_column: 'output',
         dataset_minor_column: '',
-        tokenizer_max_len: 256,
         train_test_split_ratio: 0.05,
         data_filtering: true,
-        push_to_hub: true,
-        push_to_minio: true,
+
         minio_model_load_bucket: 'models',
         minio_model_save_bucket: 'models',
         minio_data_load_bucket: 'data'
@@ -125,119 +133,167 @@ const TrainPageContent: React.FC = () => {
                 return (
                     <div className={styles.configSection}>
                         <div className={styles.configForm}>
-                            <div className={styles.formGrid}>
-                                <div className={styles.formField}>
-                                    <label className={styles.formLabel}>프로젝트 이름</label>
-                                    <input
-                                        type="text"
-                                        value={basicConfig.project_name}
-                                        onChange={(e) => handleBasicConfigChange('project_name', e.target.value)}
-                                        className={styles.formInput}
-                                    />
+                            {/* 기본 설정 */}
+                            <div className={styles.formGroup}>
+                                <div className={styles.configHeader}>
+                                    <label>기본 설정</label>
                                 </div>
-                                <div className={styles.formField}>
-                                    <label className={`${styles.formLabel} ${styles.required}`}>모델 경로</label>
-                                    <input
-                                        type="text"
-                                        value={basicConfig.model_name_or_path}
-                                        onChange={(e) => handleBasicConfigChange('model_name_or_path', e.target.value)}
-                                        className={styles.formInput}
-                                        placeholder="예: microsoft/DialoGPT-medium"
-                                    />
-                                </div>
-                                <div className={styles.formField}>
-                                    <label className={styles.formLabel}>훈련 방법</label>
-                                    <select
-                                        value={basicConfig.training_method}
-                                        onChange={(e) => handleBasicConfigChange('training_method', e.target.value)}
-                                        className={styles.formSelect}
-                                    >
-                                        <option value="cls">Classification</option>
-                                        <option value="mlm">Masked Language Model</option>
-                                        <option value="st">Sentence Transformer</option>
-                                    </select>
-                                </div>
-                                <div className={styles.formField}>
-                                    <label className={styles.formLabel}>GPU 개수</label>
-                                    <input
-                                        type="number"
-                                        value={basicConfig.number_gpu}
-                                        onChange={(e) => handleBasicConfigChange('number_gpu', parseInt(e.target.value))}
-                                        className={styles.formInput}
-                                        min="1"
-                                    />
-                                </div>
-                                <div className={styles.formField}>
-                                    <label className={styles.formLabel}>학습률</label>
-                                    <input
-                                        type="number"
-                                        value={basicConfig.learning_rate}
-                                        onChange={(e) => handleBasicConfigChange('learning_rate', parseFloat(e.target.value))}
-                                        className={styles.formInput}
-                                        step="0.00001"
-                                    />
-                                </div>
-                                <div className={styles.formField}>
-                                    <label className={styles.formLabel}>에포크 수</label>
-                                    <input
-                                        type="number"
-                                        value={basicConfig.num_train_epochs}
-                                        onChange={(e) => handleBasicConfigChange('num_train_epochs', parseInt(e.target.value))}
-                                        className={styles.formInput}
-                                        min="1"
-                                    />
-                                </div>
-                                <div className={styles.formField}>
-                                    <label className={styles.formLabel}>배치 사이즈</label>
-                                    <input
-                                        type="number"
-                                        value={basicConfig.per_device_train_batch_size}
-                                        onChange={(e) => handleBasicConfigChange('per_device_train_batch_size', parseInt(e.target.value))}
-                                        className={styles.formInput}
-                                        min="1"
-                                    />
-                                </div>
-                                <div className={styles.formField}>
-                                    <label className={styles.formLabel}>그래디언트 누적 단계</label>
-                                    <input
-                                        type="number"
-                                        value={basicConfig.gradient_accumulation_steps}
-                                        onChange={(e) => handleBasicConfigChange('gradient_accumulation_steps', parseInt(e.target.value))}
-                                        className={styles.formInput}
-                                        min="1"
-                                    />
+                                <div className={styles.formGrid}>
+                                    <div className={styles.formField}>
+                                        <label className={styles.formLabel}>프로젝트 이름</label>
+                                        <input
+                                            type="text"
+                                            value={basicConfig.project_name}
+                                            onChange={(e) => handleBasicConfigChange('project_name', e.target.value)}
+                                            className={styles.formInput}
+                                        />
+                                    </div>
+                                    <div className={styles.formField}>
+                                        <label className={styles.formLabel}>GPU 개수</label>
+                                        <input
+                                            type="number"
+                                            value={basicConfig.number_gpu}
+                                            onChange={(e) => handleBasicConfigChange('number_gpu', parseInt(e.target.value))}
+                                            className={styles.formInput}
+                                            min="1"
+                                        />
+                                    </div>
+                                    <div className={styles.formField}>
+                                        <label className={styles.formLabel}>훈련 방법</label>
+                                        <select
+                                            value={basicConfig.training_method}
+                                            onChange={(e) => handleBasicConfigChange('training_method', e.target.value)}
+                                            className={styles.formSelect}
+                                        >
+                                            <option value="cls">Classification</option>
+                                            <option value="mlm">Masked Language Model</option>
+                                            <option value="st">Sentence Transformer</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className={styles.formRow}>
-                                <div className={styles.checkboxGroup}>
-                                    <label className={styles.checkboxLabel}>
+                            {/* 허깅페이스 설정 */}
+                            <div className={styles.formGroup}>
+                                <div className={styles.configHeader}>
+                                    <label>허깅페이스 설정</label>
+                                </div>
+                                <div className={styles.formGrid}>
+                                    <div className={styles.formField}>
+                                        <label className={styles.formLabel}>사용자 ID</label>
                                         <input
-                                            type="checkbox"
-                                            checked={basicConfig.use_deepspeed}
-                                            onChange={(e) => handleBasicConfigChange('use_deepspeed', e.target.checked)}
-                                            className={styles.checkbox}
+                                            type="text"
+                                            value={basicConfig.hugging_face_user_id}
+                                            onChange={(e) => handleBasicConfigChange('hugging_face_user_id', e.target.value)}
+                                            className={styles.formInput}
+                                            placeholder="CocoRoF"
                                         />
-                                        DeepSpeed 사용
-                                    </label>
-                                    <label className={styles.checkboxLabel}>
+                                    </div>
+                                    <div className={styles.formField}>
+                                        <label className={styles.formLabel}>토큰</label>
                                         <input
-                                            type="checkbox"
-                                            checked={basicConfig.bf16}
-                                            onChange={(e) => handleBasicConfigChange('bf16', e.target.checked)}
-                                            className={styles.checkbox}
+                                            type="password"
+                                            value={basicConfig.hugging_face_token}
+                                            onChange={(e) => handleBasicConfigChange('hugging_face_token', e.target.value)}
+                                            className={styles.formInput}
+                                            placeholder="허깅페이스 토큰을 입력하세요"
                                         />
-                                        BF16 정밀도
-                                    </label>
-                                    <label className={styles.checkboxLabel}>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* MinIO 설정 */}
+                            <div className={styles.formGroup}>
+                                <div className={styles.configHeader}>
+                                    <label>MinIO 설정</label>
+                                </div>
+                                <div className={styles.formGrid}>
+                                    <div className={styles.formField}>
+                                        <label className={styles.formLabel}>MinIO URL</label>
                                         <input
-                                            type="checkbox"
-                                            checked={basicConfig.gradient_checkpointing}
-                                            onChange={(e) => handleBasicConfigChange('gradient_checkpointing', e.target.checked)}
-                                            className={styles.checkbox}
+                                            type="text"
+                                            value={basicConfig.minio_url}
+                                            onChange={(e) => handleBasicConfigChange('minio_url', e.target.value)}
+                                            className={styles.formInput}
+                                            placeholder="polar-store-api.x2bee.com"
                                         />
-                                        그래디언트 체크포인팅
-                                    </label>
+                                    </div>
+                                    <div className={styles.formField}>
+                                        <label className={styles.formLabel}>액세스 키</label>
+                                        <input
+                                            type="text"
+                                            value={basicConfig.minio_access_key}
+                                            onChange={(e) => handleBasicConfigChange('minio_access_key', e.target.value)}
+                                            className={styles.formInput}
+                                            placeholder="MinIO 액세스 키를 입력하세요"
+                                        />
+                                    </div>
+                                    <div className={styles.formField}>
+                                        <label className={styles.formLabel}>시크릿 키</label>
+                                        <input
+                                            type="password"
+                                            value={basicConfig.minio_secret_key}
+                                            onChange={(e) => handleBasicConfigChange('minio_secret_key', e.target.value)}
+                                            className={styles.formInput}
+                                            placeholder="MinIO 시크릿 키를 입력하세요"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* MLflow 설정 */}
+                            <div className={styles.formGroup}>
+                                <div className={styles.configHeader}>
+                                    <label>MLflow 설정</label>
+                                </div>
+                                <div className={styles.formGrid}>
+                                    <div className={styles.formField}>
+                                        <label className={styles.formLabel}>MLflow URL</label>
+                                        <input
+                                            type="text"
+                                            value={basicConfig.mlflow_url}
+                                            onChange={(e) => handleBasicConfigChange('mlflow_url', e.target.value)}
+                                            className={styles.formInput}
+                                            placeholder="https://polar-mlflow-git.x2bee.com/"
+                                        />
+                                    </div>
+                                    <div className={styles.formField}>
+                                        <label className={styles.formLabel}>실행 ID</label>
+                                        <input
+                                            type="text"
+                                            value={basicConfig.mlflow_run_id}
+                                            onChange={(e) => handleBasicConfigChange('mlflow_run_id', e.target.value)}
+                                            className={styles.formInput}
+                                            placeholder="test"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className={styles.formGroup}>
+                                <div className={styles.configHeader}>
+                                    <label>추가 옵션</label>
+                                </div>
+                                <div className={styles.formRow}>
+                                    <div className={styles.checkboxGroup}>
+                                        <label className={styles.checkboxLabel}>
+                                            <input
+                                                type="checkbox"
+                                                checked={basicConfig.push_to_hub}
+                                                onChange={(e) => handleBasicConfigChange('push_to_hub', e.target.checked)}
+                                                className={styles.checkbox}
+                                            />
+                                            Hub에 푸시
+                                        </label>
+                                        <label className={styles.checkboxLabel}>
+                                            <input
+                                                type="checkbox"
+                                                checked={basicConfig.push_to_minio}
+                                                onChange={(e) => handleBasicConfigChange('push_to_minio', e.target.checked)}
+                                                className={styles.checkbox}
+                                            />
+                                            MinIO에 푸시
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -248,97 +304,282 @@ const TrainPageContent: React.FC = () => {
                 return (
                     <div className={styles.configSection}>
                         <div className={styles.configForm}>
-                            <div className={styles.formGrid}>
-                                <div className={styles.formField}>
-                                    <label className={`${styles.formLabel} ${styles.required}`}>훈련 데이터</label>
-                                    <input
-                                        type="text"
-                                        value={dataConfig.train_data}
-                                        onChange={(e) => handleDataConfigChange('train_data', e.target.value)}
-                                        className={styles.formInput}
-                                        placeholder="예: squad_v2"
-                                    />
+                            {/* 데이터 소스 선택 */}
+                            <div className={styles.formGroup}>
+                                <div className={styles.configHeader}>
+                                    <label>데이터 소스 선택</label>
                                 </div>
                                 <div className={styles.formField}>
-                                    <label className={styles.formLabel}>테스트 데이터</label>
-                                    <input
-                                        type="text"
-                                        value={dataConfig.test_data}
-                                        onChange={(e) => handleDataConfigChange('test_data', e.target.value)}
-                                        className={styles.formInput}
-                                    />
-                                </div>
-                                <div className={styles.formField}>
-                                    <label className={styles.formLabel}>메인 컬럼</label>
-                                    <input
-                                        type="text"
-                                        value={dataConfig.dataset_main_column}
-                                        onChange={(e) => handleDataConfigChange('dataset_main_column', e.target.value)}
-                                        className={styles.formInput}
-                                    />
-                                </div>
-                                <div className={styles.formField}>
-                                    <label className={styles.formLabel}>서브 컬럼</label>
-                                    <input
-                                        type="text"
-                                        value={dataConfig.dataset_sub_column}
-                                        onChange={(e) => handleDataConfigChange('dataset_sub_column', e.target.value)}
-                                        className={styles.formInput}
-                                    />
-                                </div>
-                                <div className={styles.formField}>
-                                    <label className={styles.formLabel}>토크나이저 최대 길이</label>
-                                    <input
-                                        type="number"
-                                        value={dataConfig.tokenizer_max_len}
-                                        onChange={(e) => handleDataConfigChange('tokenizer_max_len', parseInt(e.target.value))}
-                                        className={styles.formInput}
-                                        min="1"
-                                    />
-                                </div>
-                                <div className={styles.formField}>
-                                    <label className={styles.formLabel}>훈련/테스트 분할 비율</label>
-                                    <input
-                                        type="number"
-                                        value={dataConfig.train_test_split_ratio}
-                                        onChange={(e) => handleDataConfigChange('train_test_split_ratio', parseFloat(e.target.value))}
-                                        className={styles.formInput}
-                                        step="0.01"
-                                        min="0"
-                                        max="1"
-                                    />
+                                    <label className={styles.formLabel}>데이터 로드 방법</label>
+                                    <select
+                                        value={dataConfig.dataset_load_method}
+                                        onChange={(e) => handleDataConfigChange('dataset_load_method', e.target.value)}
+                                        className={styles.formSelect}
+                                    >
+                                        <option value="huggingface">Huggingface</option>
+                                        <option value="minio">Minio</option>
+                                    </select>
                                 </div>
                             </div>
 
-                            <div className={styles.formRow}>
-                                <div className={styles.checkboxGroup}>
-                                    <label className={styles.checkboxLabel}>
+                            {/* Huggingface 설정 */}
+                            {dataConfig.dataset_load_method === 'huggingface' && (
+                                <div className={styles.formGroup}>
+                                    <div className={styles.configHeader}>
+                                        <label>Huggingface 설정</label>
+                                    </div>
+                                    <div className={styles.formGrid}>
+                                        <div className={styles.formField}>
+                                            <label className={`${styles.formLabel} ${styles.required}`}>훈련 데이터 (URL Path)</label>
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <input
+                                                    type="text"
+                                                    value={dataConfig.train_data}
+                                                    onChange={(e) => handleDataConfigChange('train_data', e.target.value)}
+                                                    className={styles.formInput}
+                                                    placeholder="예: squad_v2"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleLoadTrainData}
+                                                    className={`${styles.button} ${styles.secondary}`}
+                                                >
+                                                    불러오기
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className={styles.formField}>
+                                            <label className={styles.formLabel}>훈련 데이터 디렉토리</label>
+                                            <input
+                                                type="text"
+                                                value={dataConfig.train_data_dir}
+                                                onChange={(e) => handleDataConfigChange('train_data_dir', e.target.value)}
+                                                className={styles.formInput}
+                                                placeholder="데이터 디렉토리 경로"
+                                            />
+                                        </div>
+                                        <div className={styles.formField}>
+                                            <label className={styles.formLabel}>훈련 데이터 분할</label>
+                                            <input
+                                                type="text"
+                                                value={dataConfig.train_data_split}
+                                                onChange={(e) => handleDataConfigChange('train_data_split', e.target.value)}
+                                                className={styles.formInput}
+                                                placeholder="train"
+                                            />
+                                        </div>
+                                        <div className={styles.formField}>
+                                            <label className={styles.formLabel}>테스트 데이터 (URL Path)</label>
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <input
+                                                    type="text"
+                                                    value={dataConfig.test_data}
+                                                    onChange={(e) => handleDataConfigChange('test_data', e.target.value)}
+                                                    className={styles.formInput}
+                                                    placeholder="테스트 데이터셋 경로"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleLoadTestData}
+                                                    className={`${styles.button} ${styles.secondary}`}
+                                                >
+                                                    불러오기
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className={styles.formField}>
+                                            <label className={styles.formLabel}>테스트 데이터 디렉토리</label>
+                                            <input
+                                                type="text"
+                                                value={dataConfig.test_data_dir}
+                                                onChange={(e) => handleDataConfigChange('test_data_dir', e.target.value)}
+                                                className={styles.formInput}
+                                                placeholder="데이터 디렉토리 경로"
+                                            />
+                                        </div>
+                                        <div className={styles.formField}>
+                                            <label className={styles.formLabel}>테스트 데이터 분할</label>
+                                            <input
+                                                type="text"
+                                                value={dataConfig.test_data_split}
+                                                onChange={(e) => handleDataConfigChange('test_data_split', e.target.value)}
+                                                className={styles.formInput}
+                                                placeholder="test"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Minio 설정 */}
+                            {dataConfig.dataset_load_method === 'minio' && (
+                                <div className={styles.formGroup}>
+                                    <div className={styles.configHeader}>
+                                        <label>Minio 설정</label>
+                                    </div>
+                                    <div className={styles.formGrid}>
+                                        <div className={styles.formField}>
+                                            <label className={styles.formLabel}>데이터 로드 버킷</label>
+                                            <select
+                                                value={dataConfig.minio_data_load_bucket}
+                                                onChange={(e) => handleDataConfigChange('minio_data_load_bucket', e.target.value)}
+                                                className={styles.formSelect}
+                                            >
+                                                <option value="data">data</option>
+                                                <option value="models">models</option>
+                                                <option value="datasets">datasets</option>
+                                            </select>
+                                        </div>
+                                        <div className={styles.formField}>
+                                            <label className={`${styles.formLabel} ${styles.required}`}>훈련 데이터 (URL Path)</label>
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <input
+                                                    type="text"
+                                                    value={dataConfig.train_data}
+                                                    onChange={(e) => handleDataConfigChange('train_data', e.target.value)}
+                                                    className={styles.formInput}
+                                                    placeholder="예: datasets/train.json"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleLoadTrainData}
+                                                    className={`${styles.button} ${styles.secondary}`}
+                                                >
+                                                    불러오기
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className={styles.formField}>
+                                            <label className={styles.formLabel}>훈련 데이터 디렉토리</label>
+                                            <input
+                                                type="text"
+                                                value={dataConfig.train_data_dir}
+                                                onChange={(e) => handleDataConfigChange('train_data_dir', e.target.value)}
+                                                className={styles.formInput}
+                                                placeholder="데이터 디렉토리 경로"
+                                            />
+                                        </div>
+                                        <div className={styles.formField}>
+                                            <label className={styles.formLabel}>훈련 데이터 분할</label>
+                                            <input
+                                                type="text"
+                                                value={dataConfig.train_data_split}
+                                                onChange={(e) => handleDataConfigChange('train_data_split', e.target.value)}
+                                                className={styles.formInput}
+                                                placeholder="train"
+                                            />
+                                        </div>
+                                        <div className={styles.formField}>
+                                            <label className={styles.formLabel}>테스트 데이터 (URL Path)</label>
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <input
+                                                    type="text"
+                                                    value={dataConfig.test_data}
+                                                    onChange={(e) => handleDataConfigChange('test_data', e.target.value)}
+                                                    className={styles.formInput}
+                                                    placeholder="예: datasets/test.json"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleLoadTestData}
+                                                    className={`${styles.button} ${styles.secondary}`}
+                                                >
+                                                    불러오기
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className={styles.formField}>
+                                            <label className={styles.formLabel}>테스트 데이터 디렉토리</label>
+                                            <input
+                                                type="text"
+                                                value={dataConfig.test_data_dir}
+                                                onChange={(e) => handleDataConfigChange('test_data_dir', e.target.value)}
+                                                className={styles.formInput}
+                                                placeholder="데이터 디렉토리 경로"
+                                            />
+                                        </div>
+                                        <div className={styles.formField}>
+                                            <label className={styles.formLabel}>테스트 데이터 분할</label>
+                                            <input
+                                                type="text"
+                                                value={dataConfig.test_data_split}
+                                                onChange={(e) => handleDataConfigChange('test_data_split', e.target.value)}
+                                                className={styles.formInput}
+                                                placeholder="test"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 데이터셋 열 설정 */}
+                            <div className={styles.formGroup}>
+                                <div className={styles.configHeader}>
+                                    <label>데이터셋 열 설정</label>
+                                </div>
+                                <div className={styles.formGrid}>
+                                    <div className={styles.formField}>
+                                        <label className={styles.formLabel}>메인 컬럼</label>
                                         <input
-                                            type="checkbox"
-                                            checked={dataConfig.data_filtering}
-                                            onChange={(e) => handleDataConfigChange('data_filtering', e.target.checked)}
-                                            className={styles.checkbox}
+                                            type="text"
+                                            value={dataConfig.dataset_main_column}
+                                            onChange={(e) => handleDataConfigChange('dataset_main_column', e.target.value)}
+                                            className={styles.formInput}
+                                            placeholder="instruction"
                                         />
-                                        데이터 필터링
-                                    </label>
-                                    <label className={styles.checkboxLabel}>
+                                    </div>
+                                    <div className={styles.formField}>
+                                        <label className={styles.formLabel}>서브 컬럼</label>
                                         <input
-                                            type="checkbox"
-                                            checked={dataConfig.push_to_hub}
-                                            onChange={(e) => handleDataConfigChange('push_to_hub', e.target.checked)}
-                                            className={styles.checkbox}
+                                            type="text"
+                                            value={dataConfig.dataset_sub_column}
+                                            onChange={(e) => handleDataConfigChange('dataset_sub_column', e.target.value)}
+                                            className={styles.formInput}
+                                            placeholder="output"
                                         />
-                                        Hub에 푸시
-                                    </label>
-                                    <label className={styles.checkboxLabel}>
+                                    </div>
+                                    <div className={styles.formField}>
+                                        <label className={styles.formLabel}>토크나이저 최대 길이</label>
                                         <input
-                                            type="checkbox"
-                                            checked={dataConfig.push_to_minio}
-                                            onChange={(e) => handleDataConfigChange('push_to_minio', e.target.checked)}
-                                            className={styles.checkbox}
+                                            type="number"
+                                            value={modelConfig.tokenizer_max_len}
+                                            onChange={(e) => handleDataConfigChange('tokenizer_max_len', parseInt(e.target.value))}
+                                            className={styles.formInput}
+                                            min="1"
                                         />
-                                        MinIO에 푸시
-                                    </label>
+                                    </div>
+                                    <div className={styles.formField}>
+                                        <label className={styles.formLabel}>훈련/테스트 분할 비율</label>
+                                        <input
+                                            type="number"
+                                            value={dataConfig.train_test_split_ratio}
+                                            onChange={(e) => handleDataConfigChange('train_test_split_ratio', parseFloat(e.target.value))}
+                                            className={styles.formInput}
+                                            step="0.01"
+                                            min="0"
+                                            max="1"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 추가 옵션 */}
+                            <div className={styles.formGroup}>
+                                <div className={styles.configHeader}>
+                                    <label>추가 옵션</label>
+                                </div>
+                                <div className={styles.formRow}>
+                                    <div className={styles.checkboxGroup}>
+                                        <label className={styles.checkboxLabel}>
+                                            <input
+                                                type="checkbox"
+                                                checked={dataConfig.data_filtering}
+                                                onChange={(e) => handleDataConfigChange('data_filtering', e.target.checked)}
+                                                className={styles.checkbox}
+                                            />
+                                            데이터 필터링
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -349,8 +590,10 @@ const TrainPageContent: React.FC = () => {
                 return (
                     <div className={styles.configSection}>
                         <div className={styles.configForm}>
-                            <div className={styles.formSubGroup}>
-                                <h4 className={styles.formGroupTitle}>트레이너 타입</h4>
+                            <div className={styles.formGroup}>
+                                <div className={styles.configHeader}>
+                                    <label>트레이너 타입</label>
+                                </div>
                                 <div className={styles.checkboxGroup}>
                                     <label className={styles.checkboxLabel}>
                                         <input
@@ -391,8 +634,10 @@ const TrainPageContent: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className={styles.formSubGroup}>
-                                <h4 className={styles.formGroupTitle}>PEFT 설정</h4>
+                            <div className={styles.formGroup}>
+                                <div className={styles.configHeader}>
+                                    <label>PEFT 설정</label>
+                                </div>
                                 <div className={styles.formRow}>
                                     <label className={styles.checkboxLabel}>
                                         <input
@@ -470,28 +715,33 @@ const TrainPageContent: React.FC = () => {
                                 )}
                             </div>
 
-                            <div className={styles.formGrid}>
-                                <div className={styles.formField}>
-                                    <label className={styles.formLabel}>라벨 수</label>
-                                    <input
-                                        type="number"
-                                        value={trainerConfig.num_labels}
-                                        onChange={(e) => handleTrainerConfigChange('num_labels', parseInt(e.target.value))}
-                                        className={styles.formInput}
-                                        min="1"
-                                    />
+                            <div className={styles.formGroup}>
+                                <div className={styles.configHeader}>
+                                    <label>추가 설정</label>
                                 </div>
-                                <div className={styles.formField}>
-                                    <label className={styles.formLabel}>MLM 확률</label>
-                                    <input
-                                        type="number"
-                                        value={trainerConfig.mlm_probability}
-                                        onChange={(e) => handleTrainerConfigChange('mlm_probability', parseFloat(e.target.value))}
-                                        className={styles.formInput}
-                                        step="0.01"
-                                        min="0"
-                                        max="1"
-                                    />
+                                <div className={styles.formGrid}>
+                                    <div className={styles.formField}>
+                                        <label className={styles.formLabel}>라벨 수</label>
+                                        <input
+                                            type="number"
+                                            value={trainerConfig.num_labels}
+                                            onChange={(e) => handleTrainerConfigChange('num_labels', parseInt(e.target.value))}
+                                            className={styles.formInput}
+                                            min="1"
+                                        />
+                                    </div>
+                                    <div className={styles.formField}>
+                                        <label className={styles.formLabel}>MLM 확률</label>
+                                        <input
+                                            type="number"
+                                            value={trainerConfig.mlm_probability}
+                                            onChange={(e) => handleTrainerConfigChange('mlm_probability', parseFloat(e.target.value))}
+                                            className={styles.formInput}
+                                            step="0.01"
+                                            min="0"
+                                            max="1"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -524,8 +774,18 @@ const TrainPageContent: React.FC = () => {
         }));
     };
 
+    const handleLoadTrainData = () => {
+        // 추후 API 연결 예정
+        toast.success('훈련 데이터 불러오기 기능은 개발 중입니다.');
+    };
+
+    const handleLoadTestData = () => {
+        // 추후 API 연결 예정
+        toast.success('테스트 데이터 불러오기 기능은 개발 중입니다.');
+    };
+
     const handleStartTraining = async () => {
-        if (!basicConfig.model_name_or_path) {
+        if (!modelConfig.model_name_or_path) {
             toast.error('모델 경로를 입력해주세요.');
             return;
         }
@@ -540,13 +800,13 @@ const TrainPageContent: React.FC = () => {
         try {
             const allParams = {
                 ...basicConfig,
+                ...modelConfig,
                 ...dataConfig,
                 ...trainerConfig,
                 // 추가 기본값들
                 ref_model_path: '',
                 model_subfolder: '',
                 config_name: '',
-                tokenizer_name: '',
                 cache_dir: '',
                 ds_jsonpath: '',
                 ds_stage3_sub_group_size: 1e9,
@@ -590,61 +850,63 @@ const TrainPageContent: React.FC = () => {
 
     return (
         <div className={styles.container}>
-            <div className={styles.header}>
-                <div className={styles.headerContent}>
-                    <h2>모델 훈련 설정</h2>
-                    <p>모델 훈련을 위한 파라미터를 설정하고 훈련을 시작하세요.</p>
+            <div className={styles.contentArea}>
+                <div className={styles.header}>
+                    <div className={styles.headerContent}>
+                        <h2>모델 훈련 설정</h2>
+                        <p>모델 훈련을 위한 파라미터를 설정하고 훈련을 시작하세요.</p>
+                    </div>
                 </div>
-            </div>
 
-            {/* 탭 네비게이션 */}
-            <div className={styles.tabNavigation}>
-                <button
-                    className={`${styles.tabButton} ${activeTab === 'basic' ? styles.active : ''}`}
-                    onClick={() => setActiveTab('basic')}
-                >
-                    <FiSettings />
-                    기본 설정
-                </button>
-                <button
-                    className={`${styles.tabButton} ${activeTab === 'data' ? styles.active : ''}`}
-                    onClick={() => setActiveTab('data')}
-                >
-                    <FiDatabase />
-                    데이터 설정
-                </button>
-                <button
-                    className={`${styles.tabButton} ${activeTab === 'trainer' ? styles.active : ''}`}
-                    onClick={() => setActiveTab('trainer')}
-                >
-                    <FiCpu />
-                    트레이너 설정
-                </button>
-            </div>
-
-            {/* 탭 컨텐츠 */}
-            <div className={styles.configWrapper}>
-                {renderTabContent()}
-
-                {/* 훈련 시작 버튼 */}
-                <div className={styles.formActions}>
+                {/* 탭 네비게이션 */}
+                <div className={styles.tabNavigation}>
                     <button
-                        onClick={handleStartTraining}
-                        disabled={isTraining}
-                        className={`${styles.button} ${styles.primary} ${styles.large}`}
+                        className={`${styles.tabButton} ${activeTab === 'basic' ? styles.active : ''}`}
+                        onClick={() => setActiveTab('basic')}
                     >
-                        {isTraining ? (
-                            <>
-                                <div className={styles.spinner} />
-                                훈련 시작 중...
-                            </>
-                        ) : (
-                            <>
-                                <FiPlay className={styles.icon} />
-                                훈련 시작
-                            </>
-                        )}
+                        <FiSettings />
+                        기본 설정
                     </button>
+                    <button
+                        className={`${styles.tabButton} ${activeTab === 'data' ? styles.active : ''}`}
+                        onClick={() => setActiveTab('data')}
+                    >
+                        <FiDatabase />
+                        데이터 설정
+                    </button>
+                    <button
+                        className={`${styles.tabButton} ${activeTab === 'trainer' ? styles.active : ''}`}
+                        onClick={() => setActiveTab('trainer')}
+                    >
+                        <FiCpu />
+                        트레이너 설정
+                    </button>
+                </div>
+
+                {/* 탭 컨텐츠 */}
+                <div className={styles.configWrapper}>
+                    {renderTabContent()}
+
+                    {/* 훈련 시작 버튼 */}
+                    <div className={styles.formActions}>
+                        <button
+                            onClick={handleStartTraining}
+                            disabled={isTraining}
+                            className={`${styles.button} ${styles.primary} ${styles.large}`}
+                        >
+                            {isTraining ? (
+                                <>
+                                    <div className={styles.spinner} />
+                                    훈련 시작 중...
+                                </>
+                            ) : (
+                                <>
+                                    <FiPlay className={styles.icon} />
+                                    훈련 시작
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
