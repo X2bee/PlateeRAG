@@ -97,7 +97,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
 
     const parseCSVContent = (content: string) => {
         try {
-            let parsedData: TestData[] = [];
+            const parsedData: TestData[] = [];
             const lines = content.split('\n').filter(line => line.trim());
             const firstLine = lines[0];
             const hasHeader = firstLine.toLowerCase().includes('input') || 
@@ -158,7 +158,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
         }
         
         try {
-            let parsedData: TestData[] = [];
+            const parsedData: TestData[] = [];
             const workbook = window.XLSX.read(data, {
                 type: 'array',
                 cellDates: true,
