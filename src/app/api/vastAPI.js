@@ -139,7 +139,7 @@ export const destroyVastInstance = async (instanceId) => {
  * @param {string} vllmConfig.model_name - VLLM 모델명
  * @returns {Promise<Object>} 설정 업데이트 결과
  */
-export const setVllmConfig = async (vllmConfig) => {
+export const updateVllmConnectionConfig = async (vllmConfig) => {
     try {
         const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/set-vllm`, {
             method: 'PUT',
@@ -179,6 +179,42 @@ export const vllmDown = async (instanceId) => {
         return result;
     } catch (error) {
         devLog.error('Failed to down VLLM:', error);
+        throw error;
+    }
+};
+
+/**
+ * VLLM 서비스 시작 API
+ * @param {string} instanceId - 인스턴스 ID
+ * @param {Object} vllmConfig - VLLM 설정
+ * @param {string} vllmConfig.model_id - 모델 ID
+ * @param {string} vllmConfig.host - 호스트 IP
+ * @param {number} vllmConfig.port - 포트 번호
+ * @param {number} vllmConfig.max_model_len - 최대 모델 길이
+ * @param {number} vllmConfig.pipeline_parallel_size - 파이프라인 병렬 크기
+ * @param {number} vllmConfig.tensor_parallel_size - 텐서 병렬 크기
+ * @param {number} vllmConfig.gpu_memory_utilization - GPU 메모리 사용률
+ * @param {string} vllmConfig.dtype - 데이터 타입
+ * @param {string} vllmConfig.kv_cache_dtype - KV 캐시 데이터 타입
+ * @param {string} vllmConfig.tool_call_parser - 도구 호출 파서
+ * @returns {Promise<Object>} VLLM 서비스 시작 결과
+ */
+export const vllmServe = async (instanceId, vllmConfig) => {
+    try {
+        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/instances/${instanceId}/vllm-serve`, {
+            method: 'POST',
+            body: JSON.stringify(vllmConfig),
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        devLog.log('VLLM serve successful:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to serve VLLM:', error);
         throw error;
     }
 };

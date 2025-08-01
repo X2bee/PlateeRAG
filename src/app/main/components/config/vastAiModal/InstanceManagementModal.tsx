@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiCheck, FiX, FiCopy, FiExternalLink, FiServer, FiSettings, FiTrash2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import VastAiConfigModal from '@/app/main/components/config/vastAiConfigModal';
-import { listVastInstances, destroyVastInstance, setVllmConfig } from '@/app/api/vastAPI';
+import { listVastInstances, destroyVastInstance, updateVllmConnectionConfig, vllmDown, vllmServe } from '@/app/api/vastAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/main/assets/Settings.module.scss';
 
@@ -42,6 +42,14 @@ export const InstanceManagementModal = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedInstanceId, setSelectedInstanceId] = useState<string>('');
     const [selectedPortMappings, setSelectedPortMappings] = useState<string | null>(null);
+    const [showVllmConfigFor, setShowVllmConfigFor] = useState<string | null>(null);
+    const [vllmHealthStatus, setVllmHealthStatus] = useState<{[key: string]: 'checking' | 'success' | 'failed' | null}>({});
+    const [vllmConfig, setVllmConfig] = useState<{[key: string]: any}>({
+        model_name: '',
+        max_model_len: 0,
+        gpu_memory_utilization: 0.95,
+        dtype: 'bfloat16'
+    });
 
     const handleLoadInstances = async () => {
         setIsLoadingInstances(true);
@@ -49,6 +57,7 @@ export const InstanceManagementModal = () => {
             devLog.info('Loading vast instances...');
             const result = await listVastInstances() as VastInstancesResponse;
             setInstances(result.instances);
+            setVllmHealthStatus({}); // 헬스 체크 상태 초기화
             devLog.info('Vast instances loaded:', result);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
@@ -59,9 +68,49 @@ export const InstanceManagementModal = () => {
         }
     };
 
+    const handleAutoHealthCheck = async (instances: VastInstanceData[]) => {
+        // 로드 성공 시 모든 running_vllm 인스턴스의 헬스 체크 자동 실행
+        const vllmInstances = instances.filter(instance =>
+            instance.status === 'running_vllm' &&
+            getExternalPortInfo(instance.port_mappings, '12434')
+        );
+
+        if (vllmInstances.length > 0) {
+            devLog.info(`Starting automatic health check for ${vllmInstances.length} VLLM instances`);
+
+            // 모든 VLLM 인스턴스의 헬스 체크를 병렬로 실행
+            const healthCheckPromises = vllmInstances.map(async (instance) => {
+                const vllmEndpoint = getExternalPortInfo(instance.port_mappings, '12434');
+                if (vllmEndpoint) {
+                    try {
+                        await handleVllmHealthCheck(vllmEndpoint, instance.instance_id);
+                    } catch (error) {
+                        devLog.error(`Auto health check failed for instance ${instance.instance_id}:`, error);
+                    }
+                }
+            });
+
+            // 모든 헬스 체크 완료 대기 (에러가 발생해도 계속 진행)
+            await Promise.allSettled(healthCheckPromises);
+            devLog.info('Automatic health check completed for all VLLM instances');
+        }
+    };
+
     useEffect(() => {
         handleLoadInstances();
     }, []);
+
+    // 인스턴스 목록이 업데이트된 후 자동 헬스 체크 실행
+    useEffect(() => {
+        if (instances.length > 0 && !isLoadingInstances) {
+            // 짧은 지연 후 헬스 체크 실행 (UI 렌더링 완료 대기)
+            const timer = setTimeout(() => {
+                handleAutoHealthCheck(instances);
+            }, 500);
+
+            return () => clearTimeout(timer);
+        }
+    }, [instances, isLoadingInstances]);
 
     const getFilteredInstances = () => {
         switch (instanceFilter) {
@@ -116,7 +165,7 @@ export const InstanceManagementModal = () => {
         try {
             devLog.info('Setting VLLM config:', { api_base_url: vllmUrl, model_name: instance.model_name });
 
-            await setVllmConfig({
+            await updateVllmConnectionConfig({
                 api_base_url: vllmUrl,
                 model_name: instance.model_name
             });
@@ -130,30 +179,13 @@ export const InstanceManagementModal = () => {
     };
 
     const handleVllmDown = async (instance: VastInstanceData) => {
-        const vllmControllerEndpoint = getExternalPortInfo(instance.port_mappings, '12435');
-
-        if (!vllmControllerEndpoint) {
-            toast.error('VLLM 컨트롤러 엔드포인트가 준비되지 않았습니다.');
-            return;
-        }
-
-        const vllmControllerUrl = `http://${vllmControllerEndpoint.ip}:${vllmControllerEndpoint.port}`;
-
         try {
-            devLog.info('Stopping VLLM model:', vllmControllerUrl);
+            devLog.info('Stopping VLLM model for instance:', instance.instance_id);
 
-            const response = await fetch(`${vllmControllerUrl}/api/vllm/down`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            await vllmDown(instance.instance_id);
 
             toast.success('VLLM 모델이 종료되었습니다.');
+            handleLoadInstances();
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
             toast.error(`VLLM 모델 종료 실패: ${errorMessage}`);
@@ -161,50 +193,28 @@ export const InstanceManagementModal = () => {
         }
     };
 
-    const handleVllmServe = async (instance: VastInstanceData, serveConfig?: any) => {
-        const vllmControllerEndpoint = getExternalPortInfo(instance.port_mappings, '12435');
-
-        if (!vllmControllerEndpoint) {
-            toast.error('VLLM 컨트롤러 엔드포인트가 준비되지 않았습니다.');
-            return;
-        }
-
-        const vllmControllerUrl = `http://${vllmControllerEndpoint.ip}:${vllmControllerEndpoint.port}`;
-
-        const defaultServeConfig = {
-            model_id: instance.model_name,
-            tokenizer: instance.model_name,
-            download_dir: "/models/huggingface",
+    const handleVllmServe = async (instance: VastInstanceData) => {
+        const config = {
+            model_id: vllmConfig.model_name,
+            max_model_len: vllmConfig.max_model_len,
             host: "0.0.0.0",
             port: 12434,
-            max_model_len: instance.max_model_length,
+            gpu_memory_utilization: vllmConfig.gpu_memory_utilization,
             pipeline_parallel_size: 1,
             tensor_parallel_size: 1,
-            gpu_memory_utilization: 0.95,
-            dtype: "bfloat16",
+            dtype: vllmConfig.dtype,
             kv_cache_dtype: "auto",
-            load_local: false,
-            tool_call_parser: "hermes"
+            tool_call_parser: "hermes",
         };
 
-        const finalServeConfig = serveConfig || defaultServeConfig;
-
         try {
-            devLog.info('Starting VLLM model:', { url: vllmControllerUrl, config: finalServeConfig });
+            devLog.info('Starting VLLM model for instance:', { instance_id: instance.instance_id, config: config });
 
-            const response = await fetch(`${vllmControllerUrl}/api/vllm/serve`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(finalServeConfig),
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            await vllmServe(instance.instance_id, config);
 
             toast.success('VLLM 모델이 시작되었습니다.');
+            setShowVllmConfigFor(null);
+            handleLoadInstances();
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
             toast.error(`VLLM 모델 시작 실패: ${errorMessage}`);
@@ -242,6 +252,81 @@ export const InstanceManagementModal = () => {
         setIsModalOpen(false);
         setSelectedInstanceId('');
         setSelectedPortMappings(null);
+    };
+
+    const handleOpenVllmConfigModal = (instance: VastInstanceData) => {
+        setVllmConfig({
+            model_name: 'Qwen/Qwen3-4B',
+            max_model_len: '8192',
+            gpu_memory_utilization: 0.90,
+            dtype: 'bfloat16'
+        });
+        setShowVllmConfigFor(instance.instance_id);
+    };
+
+    const handleVllmHealthCheck = async (vllmEndpoint: {ip: string, port: string}, instanceId: string) => {
+        // 헬스 체크 시작
+        setVllmHealthStatus(prev => ({ ...prev, [instanceId]: 'checking' }));
+
+        try {
+            const fetchUrl = `http://${vllmEndpoint.ip}:${vllmEndpoint.port}/health`;
+
+            // 10초 타임아웃 설정
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+            const response = await fetch(fetchUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (response.ok) {
+                // 응답 텍스트를 먼저 확인
+                const responseText = await response.text();
+
+                if (!responseText || responseText.trim() === '') {
+                    toast.success('VLLM 서비스가 정상 작동 중입니다.');
+                    devLog.info('VLLM health check successful: empty response');
+                    setVllmHealthStatus(prev => ({ ...prev, [instanceId]: 'success' }));
+                    return true;
+                }
+
+                try {
+                    const healthData = JSON.parse(responseText);
+                    toast.success('VLLM 서비스가 정상 작동 중입니다.');
+                    devLog.info('VLLM health check successful:', healthData);
+                    setVllmHealthStatus(prev => ({ ...prev, [instanceId]: 'success' }));
+                    return true;
+                } catch (parseError) {
+                    toast.success('VLLM 서비스가 정상 작동 중입니다.');
+                    devLog.info('VLLM health check successful: non-JSON response:', responseText);
+                    setVllmHealthStatus(prev => ({ ...prev, [instanceId]: 'success' }));
+                    return true;
+                }
+            } else {
+                toast.error(`VLLM 서비스가 응답하지 않습니다. (상태: ${response.status})`);
+                devLog.error('VLLM health check failed with status:', response.status);
+                setVllmHealthStatus(prev => ({ ...prev, [instanceId]: 'failed' }));
+                return false;
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+
+            if (error instanceof Error && error.name === 'AbortError') {
+                toast.error('VLLM 헬스 체크 타임아웃 (10초)');
+                devLog.error('VLLM health check timeout');
+            } else {
+                toast.error(`VLLM 헬스 체크 실패: ${errorMessage}`);
+                devLog.error('Failed to check VLLM health:', error);
+            }
+            setVllmHealthStatus(prev => ({ ...prev, [instanceId]: 'failed' }));
+            return false;
+        }
     };
 
     return (
@@ -327,6 +412,30 @@ export const InstanceManagementModal = () => {
                                                     )}
                                                     {instance.status}
                                                 </span>
+                                                {instance.status === 'running_vllm' && vllmEndpoint && (
+                                                    <button
+                                                        className={`${styles.instanceStatus} ${
+                                                            vllmHealthStatus[instance.instance_id] === 'success' ? styles.active :
+                                                            vllmHealthStatus[instance.instance_id] === 'failed' ? styles.inactive :
+                                                            styles.active
+                                                        }`}
+                                                        onClick={() => handleVllmHealthCheck(vllmEndpoint, instance.instance_id)}
+                                                        disabled={vllmHealthStatus[instance.instance_id] === 'checking'}
+                                                        style={{
+                                                            cursor: vllmHealthStatus[instance.instance_id] === 'checking' ? 'not-allowed' : 'pointer',
+                                                            opacity: vllmHealthStatus[instance.instance_id] === 'checking' ? 0.6 : 1
+                                                        }}
+                                                    >
+                                                        {vllmHealthStatus[instance.instance_id] === 'checking' ? (
+                                                            <FiRefreshCw className={`${styles.statusIcon} ${styles.spinning}`} />
+                                                        ) : vllmHealthStatus[instance.instance_id] === 'failed' ? (
+                                                            <FiX className={styles.statusIcon} />
+                                                        ) : (
+                                                            <FiCheck className={styles.statusIcon} />
+                                                        )}
+                                                        {vllmHealthStatus[instance.instance_id] === 'checking' ? '확인 중...' : '헬스 체크'}
+                                                    </button>
+                                                )}
                                             </div>
                                             <div className={styles.instanceMeta}>
                                                 <span>생성: {new Date(instance.created_at).toLocaleString('ko-KR')}</span>
@@ -400,66 +509,167 @@ export const InstanceManagementModal = () => {
                                     </div>
 
                                     {isActive && (
-                                        <div className={styles.instanceActions}>
-                                            <button
-                                                className={`${styles.button} ${styles.small} ${styles.secondary}`}
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(instance.instance_id);
-                                                    toast.success('인스턴스 ID가 복사되었습니다.');
-                                                }}
-                                            >
-                                                <FiCopy className={styles.icon} />
-                                                ID 복사
-                                            </button>
-                                            {instance.public_ip && instance.ssh_port && (
+                                        <div className={styles.instanceActions} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            {/* VLLM 관련 버튼들 (왼쪽) */}
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                {instance.status === 'running' && (
+                                                    <button
+                                                        className={`${styles.button} ${styles.small} ${styles.primary}`}
+                                                        onClick={() => handleOpenVllmConfigModal(instance)}
+                                                    >
+                                                        <FiCheck className={styles.icon} />
+                                                        VLLM 시작
+                                                    </button>
+                                                )}
+                                                {instance.status === 'running_vllm' && (
+                                                    <button
+                                                        className={`${styles.button} ${styles.small} ${styles.danger}`}
+                                                        onClick={() => handleVllmDown(instance)}
+                                                    >
+                                                        <FiX className={styles.icon} />
+                                                        VLLM 종료
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {/* 기타 관리 버튼들 (오른쪽) */}
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
                                                 <button
                                                     className={`${styles.button} ${styles.small} ${styles.secondary}`}
                                                     onClick={() => {
-                                                        navigator.clipboard.writeText(`ssh root@${instance.public_ip} -p ${instance.ssh_port}`);
-                                                        toast.success('SSH 명령어가 복사되었습니다.');
+                                                        navigator.clipboard.writeText(instance.instance_id);
+                                                        toast.success('인스턴스 ID가 복사되었습니다.');
                                                     }}
                                                 >
-                                                    <FiExternalLink className={styles.icon} />
-                                                    SSH 복사
+                                                    <FiCopy className={styles.icon} />
+                                                    ID 복사
                                                 </button>
-                                            )}
-                                            {vllmEndpoint && (
+                                                {instance.public_ip && instance.ssh_port && (
+                                                    <button
+                                                        className={`${styles.button} ${styles.small} ${styles.secondary}`}
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(`ssh root@${instance.public_ip} -p ${instance.ssh_port}`);
+                                                            toast.success('SSH 명령어가 복사되었습니다.');
+                                                        }}
+                                                    >
+                                                        <FiExternalLink className={styles.icon} />
+                                                        SSH 복사
+                                                    </button>
+                                                )}
+                                                {vllmEndpoint && instance.model_name !== "None" && (
+                                                    <button
+                                                        className={`${styles.button} ${styles.small} ${styles.secondary}`}
+                                                        onClick={() => {
+                                                            const vllmUrl = `http://${vllmEndpoint.ip}:${vllmEndpoint.port}/v1`;
+                                                            navigator.clipboard.writeText(vllmUrl);
+                                                            toast.success('VLLM URL이 복사되었습니다.');
+                                                        }}
+                                                    >
+                                                        <FiExternalLink className={styles.icon} />
+                                                        VLLM URL
+                                                    </button>
+                                                )}
                                                 <button
                                                     className={`${styles.button} ${styles.small} ${styles.secondary}`}
-                                                    onClick={() => {
-                                                        const vllmUrl = `http://${vllmEndpoint.ip}:${vllmEndpoint.port}/v1`;
-                                                        navigator.clipboard.writeText(vllmUrl);
-                                                        toast.success('VLLM URL이 복사되었습니다.');
-                                                    }}
+                                                    onClick={() => handleOpenPortMappingsModal(instance.instance_id, instance.port_mappings)}
                                                 >
-                                                    <FiExternalLink className={styles.icon} />
-                                                    VLLM URL
+                                                    <FiSettings className={styles.icon} />
+                                                    관리
                                                 </button>
-                                            )}
-                                            <button
-                                                className={`${styles.button} ${styles.small} ${styles.secondary}`}
-                                                onClick={() => handleOpenPortMappingsModal(instance.instance_id, instance.port_mappings)}
-                                            >
-                                                <FiSettings className={styles.icon} />
-                                                관리
-                                            </button>
-                                            {vllmEndpoint && (
+                                                {vllmEndpoint && instance.model_name !== "None" && (
+                                                    <button
+                                                        className={`${styles.button} ${styles.small} ${styles.primary}`}
+                                                        style={{ background: 'green' }}
+                                                        onClick={() => handleSetVllmConfig(instance)}
+                                                    >
+                                                        <FiCheck className={styles.icon} />
+                                                        VLLM 설정
+                                                    </button>
+                                                )}
                                                 <button
-                                                    className={`${styles.button} ${styles.small} ${styles.primary}`}
-                                                    style={{ background: 'green' }}
-                                                    onClick={() => handleSetVllmConfig(instance)}
+                                                    className={`${styles.button} ${styles.small} ${styles.danger}`}
+                                                    onClick={() => handleDestroyInstance(instance.instance_id)}
                                                 >
-                                                    <FiCheck className={styles.icon} />
-                                                    VLLM 설정
+                                                    <FiTrash2 className={styles.icon} />
+                                                    삭제
                                                 </button>
-                                            )}
-                                            <button
-                                                className={`${styles.button} ${styles.small} ${styles.danger}`}
-                                                onClick={() => handleDestroyInstance(instance.instance_id)}
-                                            >
-                                                <FiTrash2 className={styles.icon} />
-                                                삭제
-                                            </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* VLLM 설정 폼 */}
+                                    {showVllmConfigFor === instance.instance_id && (
+                                        <div className={styles.vllmConfigForm}>
+                                            <h4 className={styles.vllmConfigHeader}>VLLM 설정</h4>
+
+                                            <div className={styles.vllmConfigGrid}>
+                                                <div className={styles.vllmConfigField}>
+                                                    <label className={styles.vllmConfigLabel}>
+                                                        모델명
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={vllmConfig.model_name}
+                                                        onChange={(e) => setVllmConfig({...vllmConfig, model_name: e.target.value})}
+                                                        className={styles.vllmConfigInput}
+                                                    />
+                                                </div>
+                                                <div className={styles.vllmConfigField}>
+                                                    <label className={styles.vllmConfigLabel}>
+                                                        최대 모델 길이
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        value={vllmConfig.max_model_len}
+                                                        onChange={(e) => setVllmConfig({...vllmConfig, max_model_len: parseInt(e.target.value)})}
+                                                        className={styles.vllmConfigInput}
+                                                    />
+                                                </div>
+                                                <div className={styles.vllmConfigField}>
+                                                    <label className={styles.vllmConfigLabel}>
+                                                        GPU 메모리 사용률
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        value={vllmConfig.gpu_memory_utilization}
+                                                        onChange={(e) => setVllmConfig({...vllmConfig, gpu_memory_utilization: parseFloat(e.target.value)})}
+                                                        step={0.05}
+                                                        min={0.1}
+                                                        max={1.0}
+                                                        className={styles.vllmConfigInput}
+                                                    />
+                                                </div>
+                                                <div className={styles.vllmConfigField}>
+                                                    <label className={styles.vllmConfigLabel}>
+                                                        데이터 타입
+                                                    </label>
+                                                    <select
+                                                        value={vllmConfig.dtype}
+                                                        onChange={(e) => setVllmConfig({...vllmConfig, dtype: e.target.value})}
+                                                        className={styles.vllmConfigSelect}
+                                                    >
+                                                        <option value="auto">auto</option>
+                                                        <option value="float16">float16</option>
+                                                        <option value="bfloat16">bfloat16</option>
+                                                        <option value="float32">float32</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div className={styles.vllmConfigActions}>
+                                                <button
+                                                    className={`${styles.vllmConfigButton} ${styles.cancel}`}
+                                                    onClick={() => setShowVllmConfigFor(null)}
+                                                >
+                                                    취소
+                                                </button>
+                                                <button
+                                                    className={`${styles.vllmConfigButton} ${styles.start}`}
+                                                    onClick={() => handleVllmServe(instance)}
+                                                >
+                                                    시작
+                                                </button>
+                                            </div>
                                         </div>
                                     )}
                                 </div>

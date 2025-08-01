@@ -856,3 +856,82 @@
         flex-direction: column;
     }
 }
+
+// VLLM Configuration Form Styles
+.vllmConfigForm {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    border: 1px solid #dee2e6;
+}
+
+.vllmConfigHeader {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: $gray-900;
+}
+
+.vllmConfigGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.vllmConfigField {
+    display: flex;
+    flex-direction: column;
+}
+
+.vllmConfigLabel {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: $gray-700;
+}
+
+.vllmConfigInput {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+    &:focus {
+        outline: none;
+        border-color: $primary-blue;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+}
+
+.vllmConfigSelect {
+    @extend .vllmConfigInput;
+    cursor: pointer;
+}
+
+.vllmConfigActions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.vllmConfigButton {
+    @extend .button;
+    @extend .small;
+
+    &.cancel {
+        @extend .secondary;
+    }
+
+    &.start {
+        @extend .primary;
+    }
+}

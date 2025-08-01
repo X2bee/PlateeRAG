@@ -133,8 +133,13 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         ]);
 
         try {
-            const workflowData = await loadWorkflow(workflow.name);
-            const isStreaming = isStreamingWorkflow(workflowData as WorkflowData);
+            let isStreaming: boolean;
+            if (workflow.name == 'default_mode'){
+                isStreaming = true;
+            } else {
+                isStreaming = await isStreamingWorkflow(workflow);
+            }
+            
             const { interactionId, workflowId, workflowName } = existingChatData || {
                 interactionId: generateInteractionId(), 
                 workflowId: workflow.id, workflowName: workflow.name};
