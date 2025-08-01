@@ -2,9 +2,9 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
     async rewrites() {
-
-        const host_url = process.env.NEXT_PUBLIC_BACKEND_HOST || 'http://localhost'
-        const port = process.env.NEXT_PUBLIC_BACKEND_PORT || null
+        const host_url =
+            process.env.NEXT_PUBLIC_BACKEND_HOST || 'http://localhost';
+        const port = process.env.NEXT_PUBLIC_BACKEND_PORT || null;
 
         let BASE_URL = '';
 
