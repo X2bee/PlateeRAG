@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FiPlay, FiSettings, FiDatabase, FiCpu, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FiPlay, FiSettings, FiDatabase, FiCpu } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { startTraining } from '@/app/api/trainAPI';
 import { devLog } from '@/app/_common/utils/logger';
@@ -9,11 +9,7 @@ import styles from '@/app/model/assets/Train.module.scss';
 
 const TrainPageContent: React.FC = () => {
     const [isTraining, setIsTraining] = useState(false);
-    const [expandedSections, setExpandedSections] = useState({
-        basic: true,
-        data: false,
-        trainer: false
-    });
+    const [activeTab, setActiveTab] = useState<'basic' | 'data' | 'trainer'>('basic');
 
     // 기본(공통) 설정
     const [basicConfig, setBasicConfig] = useState({
@@ -119,11 +115,392 @@ const TrainPageContent: React.FC = () => {
         st_adaptivelayerloss_n_layer: 4
     });
 
-    const toggleSection = (section: keyof typeof expandedSections) => {
-        setExpandedSections(prev => ({
-            ...prev,
-            [section]: !prev[section]
-        }));
+    const toggleSection = (tab: 'basic' | 'data' | 'trainer') => {
+        setActiveTab(tab);
+    };
+
+    const renderTabContent = () => {
+        switch (activeTab) {
+            case 'basic':
+                return (
+                    <div className={styles.configSection}>
+                        <div className={styles.configForm}>
+                            <div className={styles.formGrid}>
+                                <div className={styles.formField}>
+                                    <label className={styles.formLabel}>프로젝트 이름</label>
+                                    <input
+                                        type="text"
+                                        value={basicConfig.project_name}
+                                        onChange={(e) => handleBasicConfigChange('project_name', e.target.value)}
+                                        className={styles.formInput}
+                                    />
+                                </div>
+                                <div className={styles.formField}>
+                                    <label className={`${styles.formLabel} ${styles.required}`}>모델 경로</label>
+                                    <input
+                                        type="text"
+                                        value={basicConfig.model_name_or_path}
+                                        onChange={(e) => handleBasicConfigChange('model_name_or_path', e.target.value)}
+                                        className={styles.formInput}
+                                        placeholder="예: microsoft/DialoGPT-medium"
+                                    />
+                                </div>
+                                <div className={styles.formField}>
+                                    <label className={styles.formLabel}>훈련 방법</label>
+                                    <select
+                                        value={basicConfig.training_method}
+                                        onChange={(e) => handleBasicConfigChange('training_method', e.target.value)}
+                                        className={styles.formSelect}
+                                    >
+                                        <option value="cls">Classification</option>
+                                        <option value="mlm">Masked Language Model</option>
+                                        <option value="st">Sentence Transformer</option>
+                                    </select>
+                                </div>
+                                <div className={styles.formField}>
+                                    <label className={styles.formLabel}>GPU 개수</label>
+                                    <input
+                                        type="number"
+                                        value={basicConfig.number_gpu}
+                                        onChange={(e) => handleBasicConfigChange('number_gpu', parseInt(e.target.value))}
+                                        className={styles.formInput}
+                                        min="1"
+                                    />
+                                </div>
+                                <div className={styles.formField}>
+                                    <label className={styles.formLabel}>학습률</label>
+                                    <input
+                                        type="number"
+                                        value={basicConfig.learning_rate}
+                                        onChange={(e) => handleBasicConfigChange('learning_rate', parseFloat(e.target.value))}
+                                        className={styles.formInput}
+                                        step="0.00001"
+                                    />
+                                </div>
+                                <div className={styles.formField}>
+                                    <label className={styles.formLabel}>에포크 수</label>
+                                    <input
+                                        type="number"
+                                        value={basicConfig.num_train_epochs}
+                                        onChange={(e) => handleBasicConfigChange('num_train_epochs', parseInt(e.target.value))}
+                                        className={styles.formInput}
+                                        min="1"
+                                    />
+                                </div>
+                                <div className={styles.formField}>
+                                    <label className={styles.formLabel}>배치 사이즈</label>
+                                    <input
+                                        type="number"
+                                        value={basicConfig.per_device_train_batch_size}
+                                        onChange={(e) => handleBasicConfigChange('per_device_train_batch_size', parseInt(e.target.value))}
+                                        className={styles.formInput}
+                                        min="1"
+                                    />
+                                </div>
+                                <div className={styles.formField}>
+                                    <label className={styles.formLabel}>그래디언트 누적 단계</label>
+                                    <input
+                                        type="number"
+                                        value={basicConfig.gradient_accumulation_steps}
+                                        onChange={(e) => handleBasicConfigChange('gradient_accumulation_steps', parseInt(e.target.value))}
+                                        className={styles.formInput}
+                                        min="1"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className={styles.formRow}>
+                                <div className={styles.checkboxGroup}>
+                                    <label className={styles.checkboxLabel}>
+                                        <input
+                                            type="checkbox"
+                                            checked={basicConfig.use_deepspeed}
+                                            onChange={(e) => handleBasicConfigChange('use_deepspeed', e.target.checked)}
+                                            className={styles.checkbox}
+                                        />
+                                        DeepSpeed 사용
+                                    </label>
+                                    <label className={styles.checkboxLabel}>
+                                        <input
+                                            type="checkbox"
+                                            checked={basicConfig.bf16}
+                                            onChange={(e) => handleBasicConfigChange('bf16', e.target.checked)}
+                                            className={styles.checkbox}
+                                        />
+                                        BF16 정밀도
+                                    </label>
+                                    <label className={styles.checkboxLabel}>
+                                        <input
+                                            type="checkbox"
+                                            checked={basicConfig.gradient_checkpointing}
+                                            onChange={(e) => handleBasicConfigChange('gradient_checkpointing', e.target.checked)}
+                                            className={styles.checkbox}
+                                        />
+                                        그래디언트 체크포인팅
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+
+            case 'data':
+                return (
+                    <div className={styles.configSection}>
+                        <div className={styles.configForm}>
+                            <div className={styles.formGrid}>
+                                <div className={styles.formField}>
+                                    <label className={`${styles.formLabel} ${styles.required}`}>훈련 데이터</label>
+                                    <input
+                                        type="text"
+                                        value={dataConfig.train_data}
+                                        onChange={(e) => handleDataConfigChange('train_data', e.target.value)}
+                                        className={styles.formInput}
+                                        placeholder="예: squad_v2"
+                                    />
+                                </div>
+                                <div className={styles.formField}>
+                                    <label className={styles.formLabel}>테스트 데이터</label>
+                                    <input
+                                        type="text"
+                                        value={dataConfig.test_data}
+                                        onChange={(e) => handleDataConfigChange('test_data', e.target.value)}
+                                        className={styles.formInput}
+                                    />
+                                </div>
+                                <div className={styles.formField}>
+                                    <label className={styles.formLabel}>메인 컬럼</label>
+                                    <input
+                                        type="text"
+                                        value={dataConfig.dataset_main_column}
+                                        onChange={(e) => handleDataConfigChange('dataset_main_column', e.target.value)}
+                                        className={styles.formInput}
+                                    />
+                                </div>
+                                <div className={styles.formField}>
+                                    <label className={styles.formLabel}>서브 컬럼</label>
+                                    <input
+                                        type="text"
+                                        value={dataConfig.dataset_sub_column}
+                                        onChange={(e) => handleDataConfigChange('dataset_sub_column', e.target.value)}
+                                        className={styles.formInput}
+                                    />
+                                </div>
+                                <div className={styles.formField}>
+                                    <label className={styles.formLabel}>토크나이저 최대 길이</label>
+                                    <input
+                                        type="number"
+                                        value={dataConfig.tokenizer_max_len}
+                                        onChange={(e) => handleDataConfigChange('tokenizer_max_len', parseInt(e.target.value))}
+                                        className={styles.formInput}
+                                        min="1"
+                                    />
+                                </div>
+                                <div className={styles.formField}>
+                                    <label className={styles.formLabel}>훈련/테스트 분할 비율</label>
+                                    <input
+                                        type="number"
+                                        value={dataConfig.train_test_split_ratio}
+                                        onChange={(e) => handleDataConfigChange('train_test_split_ratio', parseFloat(e.target.value))}
+                                        className={styles.formInput}
+                                        step="0.01"
+                                        min="0"
+                                        max="1"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className={styles.formRow}>
+                                <div className={styles.checkboxGroup}>
+                                    <label className={styles.checkboxLabel}>
+                                        <input
+                                            type="checkbox"
+                                            checked={dataConfig.data_filtering}
+                                            onChange={(e) => handleDataConfigChange('data_filtering', e.target.checked)}
+                                            className={styles.checkbox}
+                                        />
+                                        데이터 필터링
+                                    </label>
+                                    <label className={styles.checkboxLabel}>
+                                        <input
+                                            type="checkbox"
+                                            checked={dataConfig.push_to_hub}
+                                            onChange={(e) => handleDataConfigChange('push_to_hub', e.target.checked)}
+                                            className={styles.checkbox}
+                                        />
+                                        Hub에 푸시
+                                    </label>
+                                    <label className={styles.checkboxLabel}>
+                                        <input
+                                            type="checkbox"
+                                            checked={dataConfig.push_to_minio}
+                                            onChange={(e) => handleDataConfigChange('push_to_minio', e.target.checked)}
+                                            className={styles.checkbox}
+                                        />
+                                        MinIO에 푸시
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+
+            case 'trainer':
+                return (
+                    <div className={styles.configSection}>
+                        <div className={styles.configForm}>
+                            <div className={styles.formSubGroup}>
+                                <h4 className={styles.formGroupTitle}>트레이너 타입</h4>
+                                <div className={styles.checkboxGroup}>
+                                    <label className={styles.checkboxLabel}>
+                                        <input
+                                            type="checkbox"
+                                            checked={trainerConfig.use_sfttrainer}
+                                            onChange={(e) => handleTrainerConfigChange('use_sfttrainer', e.target.checked)}
+                                            className={styles.checkbox}
+                                        />
+                                        SFT Trainer
+                                    </label>
+                                    <label className={styles.checkboxLabel}>
+                                        <input
+                                            type="checkbox"
+                                            checked={trainerConfig.use_dpotrainer}
+                                            onChange={(e) => handleTrainerConfigChange('use_dpotrainer', e.target.checked)}
+                                            className={styles.checkbox}
+                                        />
+                                        DPO Trainer
+                                    </label>
+                                    <label className={styles.checkboxLabel}>
+                                        <input
+                                            type="checkbox"
+                                            checked={trainerConfig.use_ppotrainer}
+                                            onChange={(e) => handleTrainerConfigChange('use_ppotrainer', e.target.checked)}
+                                            className={styles.checkbox}
+                                        />
+                                        PPO Trainer
+                                    </label>
+                                    <label className={styles.checkboxLabel}>
+                                        <input
+                                            type="checkbox"
+                                            checked={trainerConfig.use_grpotrainer}
+                                            onChange={(e) => handleTrainerConfigChange('use_grpotrainer', e.target.checked)}
+                                            className={styles.checkbox}
+                                        />
+                                        GRPO Trainer
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className={styles.formSubGroup}>
+                                <h4 className={styles.formGroupTitle}>PEFT 설정</h4>
+                                <div className={styles.formRow}>
+                                    <label className={styles.checkboxLabel}>
+                                        <input
+                                            type="checkbox"
+                                            checked={trainerConfig.use_peft}
+                                            onChange={(e) => handleTrainerConfigChange('use_peft', e.target.checked)}
+                                            className={styles.checkbox}
+                                        />
+                                        PEFT 사용
+                                    </label>
+                                </div>
+
+                                {trainerConfig.use_peft && (
+                                    <div className={styles.formGrid}>
+                                        <div className={styles.formField}>
+                                            <label className={styles.formLabel}>PEFT 타입</label>
+                                            <select
+                                                value={trainerConfig.peft_type}
+                                                onChange={(e) => handleTrainerConfigChange('peft_type', e.target.value)}
+                                                className={styles.formSelect}
+                                            >
+                                                <option value="lora">LoRA</option>
+                                                <option value="adalora">AdaLoRA</option>
+                                                <option value="ia3">IA3</option>
+                                                <option value="vera">Vera</option>
+                                            </select>
+                                        </div>
+                                        {trainerConfig.peft_type === 'lora' && (
+                                            <>
+                                                <div className={styles.formField}>
+                                                    <label className={styles.formLabel}>LoRA 타겟 모듈</label>
+                                                    <input
+                                                        type="text"
+                                                        value={trainerConfig.lora_target_modules}
+                                                        onChange={(e) => handleTrainerConfigChange('lora_target_modules', e.target.value)}
+                                                        className={styles.formInput}
+                                                        placeholder="예: q_proj,k_proj,v_proj"
+                                                    />
+                                                </div>
+                                                <div className={styles.formField}>
+                                                    <label className={styles.formLabel}>LoRA Rank (r)</label>
+                                                    <input
+                                                        type="number"
+                                                        value={trainerConfig.lora_r}
+                                                        onChange={(e) => handleTrainerConfigChange('lora_r', parseInt(e.target.value))}
+                                                        className={styles.formInput}
+                                                        min="1"
+                                                    />
+                                                </div>
+                                                <div className={styles.formField}>
+                                                    <label className={styles.formLabel}>LoRA Alpha</label>
+                                                    <input
+                                                        type="number"
+                                                        value={trainerConfig.lora_alpha}
+                                                        onChange={(e) => handleTrainerConfigChange('lora_alpha', parseInt(e.target.value))}
+                                                        className={styles.formInput}
+                                                        min="1"
+                                                    />
+                                                </div>
+                                                <div className={styles.formField}>
+                                                    <label className={styles.formLabel}>LoRA Dropout</label>
+                                                    <input
+                                                        type="number"
+                                                        value={trainerConfig.lora_dropout}
+                                                        onChange={(e) => handleTrainerConfigChange('lora_dropout', parseFloat(e.target.value))}
+                                                        className={styles.formInput}
+                                                        step="0.01"
+                                                        min="0"
+                                                        max="1"
+                                                    />
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className={styles.formGrid}>
+                                <div className={styles.formField}>
+                                    <label className={styles.formLabel}>라벨 수</label>
+                                    <input
+                                        type="number"
+                                        value={trainerConfig.num_labels}
+                                        onChange={(e) => handleTrainerConfigChange('num_labels', parseInt(e.target.value))}
+                                        className={styles.formInput}
+                                        min="1"
+                                    />
+                                </div>
+                                <div className={styles.formField}>
+                                    <label className={styles.formLabel}>MLM 확률</label>
+                                    <input
+                                        type="number"
+                                        value={trainerConfig.mlm_probability}
+                                        onChange={(e) => handleTrainerConfigChange('mlm_probability', parseFloat(e.target.value))}
+                                        className={styles.formInput}
+                                        step="0.01"
+                                        min="0"
+                                        max="1"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+
+            default:
+                return null;
+        }
     };
 
     const handleBasicConfigChange = (key: string, value: any) => {
@@ -212,441 +589,63 @@ const TrainPageContent: React.FC = () => {
     };
 
     return (
-        <div className={styles.trainContainer}>
-            <h2 className={styles.pageTitle}>
-                <FiCpu className={styles.pageIcon} />
-                모델 훈련 설정
-            </h2>
-
-            {/* 기본(공통) 설정 섹션 */}
-            <div className={`${styles.configGroup} ${styles.basicSection}`}>
-                <div
-                    className={styles.configGroupHeader}
-                    onClick={() => toggleSection('basic')}
-                >
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <FiSettings className={styles.sectionIcon} />
-                        <span>기본(공통) 설정</span>
-                    </div>
-                    {expandedSections.basic ? <FiChevronUp /> : <FiChevronDown />}
+        <div className={styles.container}>
+            <div className={styles.header}>
+                <div className={styles.headerContent}>
+                    <h2>모델 훈련 설정</h2>
+                    <p>모델 훈련을 위한 파라미터를 설정하고 훈련을 시작하세요.</p>
                 </div>
-
-                {expandedSections.basic && (
-                    <div className={styles.configGroupContent}>
-                        <div className={styles.formGrid}>
-                            <div className={styles.formField}>
-                                <label className={styles.formLabel}>프로젝트 이름</label>
-                                <input
-                                    type="text"
-                                    value={basicConfig.project_name}
-                                    onChange={(e) => handleBasicConfigChange('project_name', e.target.value)}
-                                    className={styles.formInput}
-                                />
-                            </div>
-                            <div className={styles.formField}>
-                                <label className={`${styles.formLabel} ${styles.required}`}>모델 경로</label>
-                                <input
-                                    type="text"
-                                    value={basicConfig.model_name_or_path}
-                                    onChange={(e) => handleBasicConfigChange('model_name_or_path', e.target.value)}
-                                    className={styles.formInput}
-                                    placeholder="예: microsoft/DialoGPT-medium"
-                                />
-                            </div>
-                            <div className={styles.formField}>
-                                <label className={styles.formLabel}>훈련 방법</label>
-                                <select
-                                    value={basicConfig.training_method}
-                                    onChange={(e) => handleBasicConfigChange('training_method', e.target.value)}
-                                    className={styles.formSelect}
-                                >
-                                    <option value="cls">Classification</option>
-                                    <option value="mlm">Masked Language Model</option>
-                                    <option value="st">Sentence Transformer</option>
-                                </select>
-                            </div>
-                            <div className={styles.formField}>
-                                <label className={styles.formLabel}>GPU 개수</label>
-                                <input
-                                    type="number"
-                                    value={basicConfig.number_gpu}
-                                    onChange={(e) => handleBasicConfigChange('number_gpu', parseInt(e.target.value))}
-                                    className={styles.formInput}
-                                    min="1"
-                                />
-                            </div>
-                            <div className={styles.formField}>
-                                <label className={styles.formLabel}>학습률</label>
-                                <input
-                                    type="number"
-                                    value={basicConfig.learning_rate}
-                                    onChange={(e) => handleBasicConfigChange('learning_rate', parseFloat(e.target.value))}
-                                    className={styles.formInput}
-                                    step="0.00001"
-                                />
-                            </div>
-                            <div className={styles.formField}>
-                                <label className={styles.formLabel}>에포크 수</label>
-                                <input
-                                    type="number"
-                                    value={basicConfig.num_train_epochs}
-                                    onChange={(e) => handleBasicConfigChange('num_train_epochs', parseInt(e.target.value))}
-                                    className={styles.formInput}
-                                    min="1"
-                                />
-                            </div>
-                            <div className={styles.formField}>
-                                <label className={styles.formLabel}>배치 사이즈</label>
-                                <input
-                                    type="number"
-                                    value={basicConfig.per_device_train_batch_size}
-                                    onChange={(e) => handleBasicConfigChange('per_device_train_batch_size', parseInt(e.target.value))}
-                                    className={styles.formInput}
-                                    min="1"
-                                />
-                            </div>
-                            <div className={styles.formField}>
-                                <label className={styles.formLabel}>그래디언트 누적 단계</label>
-                                <input
-                                    type="number"
-                                    value={basicConfig.gradient_accumulation_steps}
-                                    onChange={(e) => handleBasicConfigChange('gradient_accumulation_steps', parseInt(e.target.value))}
-                                    className={styles.formInput}
-                                    min="1"
-                                />
-                            </div>
-                        </div>
-
-                        <div className={styles.formRow}>
-                            <div className={styles.checkboxGroup}>
-                                <label className={styles.checkboxLabel}>
-                                    <input
-                                        type="checkbox"
-                                        checked={basicConfig.use_deepspeed}
-                                        onChange={(e) => handleBasicConfigChange('use_deepspeed', e.target.checked)}
-                                        className={styles.checkbox}
-                                    />
-                                    DeepSpeed 사용
-                                </label>
-                                <label className={styles.checkboxLabel}>
-                                    <input
-                                        type="checkbox"
-                                        checked={basicConfig.bf16}
-                                        onChange={(e) => handleBasicConfigChange('bf16', e.target.checked)}
-                                        className={styles.checkbox}
-                                    />
-                                    BF16 정밀도
-                                </label>
-                                <label className={styles.checkboxLabel}>
-                                    <input
-                                        type="checkbox"
-                                        checked={basicConfig.gradient_checkpointing}
-                                        onChange={(e) => handleBasicConfigChange('gradient_checkpointing', e.target.checked)}
-                                        className={styles.checkbox}
-                                    />
-                                    그래디언트 체크포인팅
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
 
-            {/* 데이터 관련 설정 섹션 */}
-            <div className={`${styles.configGroup} ${styles.dataSection}`}>
-                <div
-                    className={styles.configGroupHeader}
-                    onClick={() => toggleSection('data')}
-                >
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <FiDatabase className={styles.sectionIcon} />
-                        <span>데이터 관련 설정</span>
-                    </div>
-                    {expandedSections.data ? <FiChevronUp /> : <FiChevronDown />}
-                </div>
-
-                {expandedSections.data && (
-                    <div className={styles.configGroupContent}>
-                        <div className={styles.formGrid}>
-                            <div className={styles.formField}>
-                                <label className={`${styles.formLabel} ${styles.required}`}>훈련 데이터</label>
-                                <input
-                                    type="text"
-                                    value={dataConfig.train_data}
-                                    onChange={(e) => handleDataConfigChange('train_data', e.target.value)}
-                                    className={styles.formInput}
-                                    placeholder="예: squad_v2"
-                                />
-                            </div>
-                            <div className={styles.formField}>
-                                <label className={styles.formLabel}>테스트 데이터</label>
-                                <input
-                                    type="text"
-                                    value={dataConfig.test_data}
-                                    onChange={(e) => handleDataConfigChange('test_data', e.target.value)}
-                                    className={styles.formInput}
-                                />
-                            </div>
-                            <div className={styles.formField}>
-                                <label className={styles.formLabel}>메인 컬럼</label>
-                                <input
-                                    type="text"
-                                    value={dataConfig.dataset_main_column}
-                                    onChange={(e) => handleDataConfigChange('dataset_main_column', e.target.value)}
-                                    className={styles.formInput}
-                                />
-                            </div>
-                            <div className={styles.formField}>
-                                <label className={styles.formLabel}>서브 컬럼</label>
-                                <input
-                                    type="text"
-                                    value={dataConfig.dataset_sub_column}
-                                    onChange={(e) => handleDataConfigChange('dataset_sub_column', e.target.value)}
-                                    className={styles.formInput}
-                                />
-                            </div>
-                            <div className={styles.formField}>
-                                <label className={styles.formLabel}>토크나이저 최대 길이</label>
-                                <input
-                                    type="number"
-                                    value={dataConfig.tokenizer_max_len}
-                                    onChange={(e) => handleDataConfigChange('tokenizer_max_len', parseInt(e.target.value))}
-                                    className={styles.formInput}
-                                    min="1"
-                                />
-                            </div>
-                            <div className={styles.formField}>
-                                <label className={styles.formLabel}>훈련/테스트 분할 비율</label>
-                                <input
-                                    type="number"
-                                    value={dataConfig.train_test_split_ratio}
-                                    onChange={(e) => handleDataConfigChange('train_test_split_ratio', parseFloat(e.target.value))}
-                                    className={styles.formInput}
-                                    step="0.01"
-                                    min="0"
-                                    max="1"
-                                />
-                            </div>
-                        </div>
-
-                        <div className={styles.formRow}>
-                            <div className={styles.checkboxGroup}>
-                                <label className={styles.checkboxLabel}>
-                                    <input
-                                        type="checkbox"
-                                        checked={dataConfig.data_filtering}
-                                        onChange={(e) => handleDataConfigChange('data_filtering', e.target.checked)}
-                                        className={styles.checkbox}
-                                    />
-                                    데이터 필터링
-                                </label>
-                                <label className={styles.checkboxLabel}>
-                                    <input
-                                        type="checkbox"
-                                        checked={dataConfig.push_to_hub}
-                                        onChange={(e) => handleDataConfigChange('push_to_hub', e.target.checked)}
-                                        className={styles.checkbox}
-                                    />
-                                    Hub에 푸시
-                                </label>
-                                <label className={styles.checkboxLabel}>
-                                    <input
-                                        type="checkbox"
-                                        checked={dataConfig.push_to_minio}
-                                        onChange={(e) => handleDataConfigChange('push_to_minio', e.target.checked)}
-                                        className={styles.checkbox}
-                                    />
-                                    MinIO에 푸시
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* 트레이너 관련 설정 섹션 */}
-            <div className={`${styles.configGroup} ${styles.trainerSection}`}>
-                <div
-                    className={styles.configGroupHeader}
-                    onClick={() => toggleSection('trainer')}
-                >
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <FiCpu className={styles.sectionIcon} />
-                        <span>트레이너 관련 설정</span>
-                    </div>
-                    {expandedSections.trainer ? <FiChevronUp /> : <FiChevronDown />}
-                </div>
-
-                {expandedSections.trainer && (
-                    <div className={styles.configGroupContent}>
-                        <div className={styles.formGroup}>
-                            <h4 className={styles.formGroupTitle}>트레이너 타입</h4>
-                            <div className={styles.checkboxGroup}>
-                                <label className={styles.checkboxLabel}>
-                                    <input
-                                        type="checkbox"
-                                        checked={trainerConfig.use_sfttrainer}
-                                        onChange={(e) => handleTrainerConfigChange('use_sfttrainer', e.target.checked)}
-                                        className={styles.checkbox}
-                                    />
-                                    SFT Trainer
-                                </label>
-                                <label className={styles.checkboxLabel}>
-                                    <input
-                                        type="checkbox"
-                                        checked={trainerConfig.use_dpotrainer}
-                                        onChange={(e) => handleTrainerConfigChange('use_dpotrainer', e.target.checked)}
-                                        className={styles.checkbox}
-                                    />
-                                    DPO Trainer
-                                </label>
-                                <label className={styles.checkboxLabel}>
-                                    <input
-                                        type="checkbox"
-                                        checked={trainerConfig.use_ppotrainer}
-                                        onChange={(e) => handleTrainerConfigChange('use_ppotrainer', e.target.checked)}
-                                        className={styles.checkbox}
-                                    />
-                                    PPO Trainer
-                                </label>
-                                <label className={styles.checkboxLabel}>
-                                    <input
-                                        type="checkbox"
-                                        checked={trainerConfig.use_grpotrainer}
-                                        onChange={(e) => handleTrainerConfigChange('use_grpotrainer', e.target.checked)}
-                                        className={styles.checkbox}
-                                    />
-                                    GRPO Trainer
-                                </label>
-                            </div>
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <h4 className={styles.formGroupTitle}>PEFT 설정</h4>
-                            <div className={styles.formRow}>
-                                <label className={styles.checkboxLabel}>
-                                    <input
-                                        type="checkbox"
-                                        checked={trainerConfig.use_peft}
-                                        onChange={(e) => handleTrainerConfigChange('use_peft', e.target.checked)}
-                                        className={styles.checkbox}
-                                    />
-                                    PEFT 사용
-                                </label>
-                            </div>
-
-                            {trainerConfig.use_peft && (
-                                <div className={styles.formGrid}>
-                                    <div className={styles.formField}>
-                                        <label className={styles.formLabel}>PEFT 타입</label>
-                                        <select
-                                            value={trainerConfig.peft_type}
-                                            onChange={(e) => handleTrainerConfigChange('peft_type', e.target.value)}
-                                            className={styles.formSelect}
-                                        >
-                                            <option value="lora">LoRA</option>
-                                            <option value="adalora">AdaLoRA</option>
-                                            <option value="ia3">IA3</option>
-                                            <option value="vera">Vera</option>
-                                        </select>
-                                    </div>
-                                    {trainerConfig.peft_type === 'lora' && (
-                                        <>
-                                            <div className={styles.formField}>
-                                                <label className={styles.formLabel}>LoRA 타겟 모듈</label>
-                                                <input
-                                                    type="text"
-                                                    value={trainerConfig.lora_target_modules}
-                                                    onChange={(e) => handleTrainerConfigChange('lora_target_modules', e.target.value)}
-                                                    className={styles.formInput}
-                                                    placeholder="예: q_proj,k_proj,v_proj"
-                                                />
-                                            </div>
-                                            <div className={styles.formField}>
-                                                <label className={styles.formLabel}>LoRA Rank (r)</label>
-                                                <input
-                                                    type="number"
-                                                    value={trainerConfig.lora_r}
-                                                    onChange={(e) => handleTrainerConfigChange('lora_r', parseInt(e.target.value))}
-                                                    className={styles.formInput}
-                                                    min="1"
-                                                />
-                                            </div>
-                                            <div className={styles.formField}>
-                                                <label className={styles.formLabel}>LoRA Alpha</label>
-                                                <input
-                                                    type="number"
-                                                    value={trainerConfig.lora_alpha}
-                                                    onChange={(e) => handleTrainerConfigChange('lora_alpha', parseInt(e.target.value))}
-                                                    className={styles.formInput}
-                                                    min="1"
-                                                />
-                                            </div>
-                                            <div className={styles.formField}>
-                                                <label className={styles.formLabel}>LoRA Dropout</label>
-                                                <input
-                                                    type="number"
-                                                    value={trainerConfig.lora_dropout}
-                                                    onChange={(e) => handleTrainerConfigChange('lora_dropout', parseFloat(e.target.value))}
-                                                    className={styles.formInput}
-                                                    step="0.01"
-                                                    min="0"
-                                                    max="1"
-                                                />
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className={styles.formGrid}>
-                            <div className={styles.formField}>
-                                <label className={styles.formLabel}>라벨 수</label>
-                                <input
-                                    type="number"
-                                    value={trainerConfig.num_labels}
-                                    onChange={(e) => handleTrainerConfigChange('num_labels', parseInt(e.target.value))}
-                                    className={styles.formInput}
-                                    min="1"
-                                />
-                            </div>
-                            <div className={styles.formField}>
-                                <label className={styles.formLabel}>MLM 확률</label>
-                                <input
-                                    type="number"
-                                    value={trainerConfig.mlm_probability}
-                                    onChange={(e) => handleTrainerConfigChange('mlm_probability', parseFloat(e.target.value))}
-                                    className={styles.formInput}
-                                    step="0.01"
-                                    min="0"
-                                    max="1"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* 훈련 시작 버튼 */}
-            <div className={styles.formActions}>
+            {/* 탭 네비게이션 */}
+            <div className={styles.tabNavigation}>
                 <button
-                    onClick={handleStartTraining}
-                    disabled={isTraining}
-                    className={styles.trainButton}
+                    className={`${styles.tabButton} ${activeTab === 'basic' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('basic')}
                 >
-                    {isTraining ? (
-                        <>
-                            <div className={styles.spinner} />
-                            훈련 시작 중...
-                        </>
-                    ) : (
-                        <>
-                            <FiPlay className={styles.buttonIcon} />
-                            훈련 시작
-                        </>
-                    )}
+                    <FiSettings />
+                    기본 설정
                 </button>
+                <button
+                    className={`${styles.tabButton} ${activeTab === 'data' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('data')}
+                >
+                    <FiDatabase />
+                    데이터 설정
+                </button>
+                <button
+                    className={`${styles.tabButton} ${activeTab === 'trainer' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('trainer')}
+                >
+                    <FiCpu />
+                    트레이너 설정
+                </button>
+            </div>
+
+            {/* 탭 컨텐츠 */}
+            <div className={styles.configWrapper}>
+                {renderTabContent()}
+
+                {/* 훈련 시작 버튼 */}
+                <div className={styles.formActions}>
+                    <button
+                        onClick={handleStartTraining}
+                        disabled={isTraining}
+                        className={`${styles.button} ${styles.primary} ${styles.large}`}
+                    >
+                        {isTraining ? (
+                            <>
+                                <div className={styles.spinner} />
+                                훈련 시작 중...
+                            </>
+                        ) : (
+                            <>
+                                <FiPlay className={styles.icon} />
+                                훈련 시작
+                            </>
+                        )}
+                    </button>
+                </div>
             </div>
         </div>
     );

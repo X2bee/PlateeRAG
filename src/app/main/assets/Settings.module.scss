@@ -1,5 +1,5 @@
 @use "sass:color";
-@use "variables" as *;
+@use "@/app/_common/_variables" as *;
 @use "Settings.Additional.module.scss" as *;
 @use "Settings.Vast.module.scss" as *;
 
@@ -800,11 +800,11 @@
 }
 
 .serveButton {
-    background: #7c3aed;
+    background: $primary-purple;
     color: $white;
 
     &:hover:not(:disabled) {
-        background: color.adjust(#7c3aed, $lightness: -10%);
+        background: color.adjust($primary-purple, $lightness: -10%);
     }
 
     &.loading {
@@ -859,11 +859,11 @@
 
 // VLLM Configuration Form Styles
 .vllmConfigForm {
-    margin-top: 1rem;
-    padding: 1rem;
-    background-color: #f8f9fa;
-    border-radius: 0.5rem;
-    border: 1px solid #dee2e6;
+    margin-top: $spacing-md;
+    padding: $spacing-md;
+    background-color: $bootstrap-gray-100;
+    border-radius: $radius-md;
+    border: 1px solid $bootstrap-gray-300;
 }
 
 .vllmConfigHeader {
@@ -899,10 +899,10 @@
 
 .vllmConfigInput {
     width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ced4da;
-    border-radius: 0.25rem;
-    font-size: 0.875rem;
+    padding: $spacing-sm;
+    border: 1px solid $bootstrap-gray-400;
+    border-radius: $radius-sm;
+    font-size: $font-size-sm;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 
     &:focus {

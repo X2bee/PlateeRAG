@@ -24,8 +24,8 @@ const ModelPage: React.FC = () => {
         switch (activeSection) {
             case 'train':
                 return <TrainPageContent />;
-            case 'train-monitor':
-                return <MetricsPageContent/>;
+            // case 'train-monitor':
+            //     return <MetricsPageContent/>;
             case 'eval':
                 return <EvalPageContent/>;
             default:

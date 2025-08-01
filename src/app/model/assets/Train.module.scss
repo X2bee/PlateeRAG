@@ -1,74 +1,138 @@
-// Train.module.scss - 훈련 페이지 전용 스타일
+@use "sass:color";
+@use "@/app/_common/_variables" as *;
 
-.trainContainer {
-    max-width: 1200px;
+// Container
+.container {
+    max-width: 1450px;
     margin: 0 auto;
-    padding: 2rem;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.pageTitle {
+// Header
+.header {
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #1a1a1a;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #f0f0f0;
-}
-
-.pageIcon {
-    font-size: 1.75rem;
-    color: #3b82f6;
-}
-
-// 설정 그룹 스타일
-.configGroup {
-    background: #fafafa;
-    border: 1px solid #e5e5e5;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    overflow: hidden;
-    transition: all 0.2s ease;
-
-    &:hover {
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-}
-
-.configGroupHeader {
-    padding: 1rem 1.5rem;
-    background: #f8f9fa;
-    border-bottom: 1px solid #e5e5e5;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 2rem;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1rem;
+    }
+}
+
+.headerContent {
+    flex: 1;
+
+    h2 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: $gray-900;
+        margin: 0 0 0.5rem 0;
+    }
+
+    p {
+        font-size: 1rem;
+        color: $gray-600;
+        margin: 0;
+        line-height: 1.5;
+    }
+}
+
+// Tab Navigation
+.tabNavigation {
+    display: flex;
+    background: $gray-50;
+    border: 1px solid $gray-200;
+    border-radius: 0.75rem 0.75rem 0 0;
+    overflow: hidden;
+}
+
+.tabButton {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: none;
+    color: $gray-600;
+    font-size: 0.875rem;
     font-weight: 500;
-    color: #374151;
-    transition: background-color 0.2s ease;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border-bottom: 2px solid transparent;
 
     &:hover {
-        background: #f1f3f4;
+        background: $gray-100;
+        color: $gray-800;
     }
 
-    .sectionIcon {
-        margin-right: 0.5rem;
-        color: #3b82f6;
-        font-size: 1.1rem;
+    &.active {
+        background: $white;
+        color: $primary-blue;
+        border-bottom-color: $primary-blue;
+    }
+
+    svg {
+        font-size: 1rem;
     }
 }
 
-.configGroupContent {
-    padding: 1.5rem;
-    background: #ffffff;
+// Config wrapper
+.configWrapper {
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 0 0 0.75rem 0.75rem;
+    border-top: none;
 }
 
-// 폼 스타일
+// Config Section
+.configSection {
+    padding: 2rem;
+}
+
+// Form styles
+.configForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 0;
+    border-bottom: 1px solid $gray-200;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.configHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+
+    label {
+        font-size: 1rem;
+        font-weight: 600;
+        color: $gray-700;
+        margin: 0;
+    }
+
+    .required {
+        color: $primary-red;
+        font-weight: 700;
+    }
+}
+
+// Form Grid
 .formGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -88,59 +152,59 @@
 
 .formLabel {
     font-weight: 500;
-    color: #374151;
+    color: $gray-700;
     font-size: 0.875rem;
     margin-bottom: 0.25rem;
 
     &.required::after {
         content: " *";
-        color: #ef4444;
+        color: $primary-red;
     }
 }
 
 .formInput {
     padding: 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
+    border: 1px solid $gray-300;
+    border-radius: 0.5rem;
     font-size: 0.875rem;
-    background: #ffffff;
-    transition: all 0.2s ease;
+    background: $white;
+    transition: all 0.2s ease-in-out;
 
     &:focus {
         outline: none;
-        border-color: #3b82f6;
+        border-color: $primary-blue;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
 
     &:disabled {
-        background: #f9fafb;
-        color: #6b7280;
+        background: $gray-50;
+        color: $gray-500;
         cursor: not-allowed;
     }
 
     &::placeholder {
-        color: #9ca3af;
+        color: $gray-400;
     }
 }
 
 .formSelect {
     padding: 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
+    border: 1px solid $gray-300;
+    border-radius: 0.5rem;
     font-size: 0.875rem;
-    background: #ffffff;
+    background: $white;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s ease-in-out;
 
     &:focus {
         outline: none;
-        border-color: #3b82f6;
+        border-color: $primary-blue;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
 
     &:disabled {
-        background: #f9fafb;
-        color: #6b7280;
+        background: $gray-50;
+        color: $gray-500;
         cursor: not-allowed;
     }
 }
@@ -149,7 +213,7 @@
     margin-bottom: 1rem;
 }
 
-// 체크박스 그룹
+// Checkbox group
 .checkboxGroup {
     display: flex;
     flex-wrap: wrap;
@@ -162,26 +226,26 @@
     align-items: center;
     gap: 0.5rem;
     font-size: 0.875rem;
-    color: #374151;
+    color: $gray-700;
     cursor: pointer;
     user-select: none;
 
     &:hover {
-        color: #1f2937;
+        color: $gray-900;
     }
 }
 
 .checkbox {
     width: 1rem;
     height: 1rem;
-    border: 1px solid #d1d5db;
+    border: 1px solid $gray-300;
     border-radius: 3px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s ease-in-out;
 
     &:checked {
-        background: #3b82f6;
-        border-color: #3b82f6;
+        background: $primary-blue;
+        border-color: $primary-blue;
     }
 
     &:focus {
@@ -190,71 +254,78 @@
     }
 }
 
-// 폼 그룹
-.formGroup {
+// Form group for sub-sections
+.formSubGroup {
     margin-bottom: 1.5rem;
     padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 6px;
-    border: 1px solid #e9ecef;
+    background: $gray-50;
+    border-radius: 0.5rem;
+    border: 1px solid $gray-200;
 }
 
 .formGroupTitle {
     font-size: 1rem;
     font-weight: 600;
-    color: #374151;
+    color: $gray-700;
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid $gray-300;
 }
 
-// 액션 버튼
+// Button styles
+.button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid transparent;
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    &.primary {
+        background-color: $primary-blue;
+        color: $white;
+
+        &:hover:not(:disabled) {
+            background-color: color.adjust($primary-blue, $lightness: -7%);
+        }
+    }
+
+    &.secondary {
+        background-color: $white;
+        color: $gray-700;
+        border-color: $gray-300;
+
+        &:hover:not(:disabled) {
+            background-color: $gray-50;
+            border-color: $gray-400;
+        }
+    }
+
+    &.large {
+        padding: 0.875rem 2rem;
+        font-size: 1rem;
+    }
+}
+
+// Action buttons
 .formActions {
     display: flex;
     justify-content: center;
     padding-top: 2rem;
     margin-top: 2rem;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid $gray-200;
 }
 
-.trainButton {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.875rem 2rem;
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
-
-    &:hover:not(:disabled) {
-        background: linear-gradient(135deg, #2563eb, #1e40af);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
-    }
-
-    &:active:not(:disabled) {
-        transform: translateY(0);
-    }
-
-    &:disabled {
-        background: #9ca3af;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-    }
-
-    .buttonIcon {
-        font-size: 1.1rem;
-    }
-}
-
-// 로딩 스피너
+// Loading spinner
 .spinner {
     width: 1rem;
     height: 1rem;
@@ -270,46 +341,23 @@
     }
 }
 
-// 섹션별 커스텀 스타일
-.basicSection {
-    .configGroupHeader {
-        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-        color: #1e40af;
-    }
+// Icon styles
+.icon {
+    font-size: 1rem;
 }
 
-.dataSection {
-    .configGroupHeader {
-        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
-        color: #166534;
-    }
+.sectionIcon {
+    font-size: 1rem;
 }
 
-.trainerSection {
-    .configGroupHeader {
-        background: linear-gradient(135deg, #fef3c7, #fde68a);
-        color: #92400e;
-    }
-}
-
-// 반응형 디자인
+// Responsive design
 @media (max-width: 768px) {
-    .trainContainer {
+    .container {
         margin: 0;
         padding: 1rem;
-        border-radius: 0;
     }
 
-    .pageTitle {
-        font-size: 1.25rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .configGroupHeader {
-        padding: 0.75rem 1rem;
-    }
-
-    .configGroupContent {
+    .configSection {
         padding: 1rem;
     }
 
@@ -323,93 +371,8 @@
         gap: 0.75rem;
     }
 
-    .trainButton {
-        width: 100%;
-        padding: 1rem;
-    }
-}
-
-// 고해상도 디스플레이 대응
-@media (min-width: 1400px) {
-    .trainContainer {
-        max-width: 1400px;
-    }
-
-    .formGrid {
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    }
-}
-
-// 다크모드 지원 (선택사항)
-@media (prefers-color-scheme: dark) {
-    .trainContainer {
-        background: #1f2937;
-        color: #f9fafb;
-    }
-
-    .pageTitle {
-        color: #f9fafb;
-        border-bottom-color: #374151;
-    }
-
-    .configGroup {
-        background: #374151;
-        border-color: #4b5563;
-    }
-
-    .configGroupHeader {
-        background: #4b5563;
-        border-bottom-color: #6b7280;
-        color: #f9fafb;
-
-        &:hover {
-            background: #6b7280;
-        }
-    }
-
-    .configGroupContent {
-        background: #374151;
-    }
-
-    .formInput,
-    .formSelect {
-        background: #4b5563;
-        border-color: #6b7280;
-        color: #f9fafb;
-
-        &:focus {
-            border-color: #60a5fa;
-            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
-        }
-
-        &::placeholder {
-            color: #9ca3af;
-        }
-    }
-
-    .formLabel {
-        color: #e5e7eb;
-    }
-
-    .checkboxLabel {
-        color: #e5e7eb;
-
-        &:hover {
-            color: #f9fafb;
-        }
-    }
-
-    .formGroup {
-        background: #4b5563;
-        border-color: #6b7280;
-    }
-
-    .formGroupTitle {
-        color: #f9fafb;
-        border-bottom-color: #6b7280;
-    }
-
-    .formActions {
-        border-top-color: #6b7280;
+    .tabButton {
+        padding: 0.75rem 1rem;
+        font-size: 0.75rem;
     }
 }
