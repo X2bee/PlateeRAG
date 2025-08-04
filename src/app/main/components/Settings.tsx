@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     FiChevronRight,
     FiCheck,
@@ -211,6 +211,11 @@ const Settings: React.FC = () => {
         }
     };
 
+    const handleConfigUpdate = useCallback(async () => {
+        console.log('📢 Settings: Received config update notification');
+        await fetchConfigData();
+    }, [fetchConfigData]);
+
     const renderWorkflowConfig = () => {
         return (
             <WorkflowConfig
@@ -242,6 +247,7 @@ const Settings: React.FC = () => {
         return (
             <CollectionConfig
                 configData={configData}
+                onConfigUpdate={handleConfigUpdate}
             />
         );
     };
