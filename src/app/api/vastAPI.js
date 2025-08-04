@@ -218,3 +218,30 @@ export const vllmServe = async (instanceId, vllmConfig) => {
         throw error;
     }
 };
+
+/**
+ * VLLM 헬스 체크 API
+ * @param {Object} healthRequest - 헬스 체크 요청
+ * @param {string} healthRequest.ip - VLLM 서비스 IP
+ * @param {number} healthRequest.port - VLLM 서비스 포트
+ * @returns {Promise<Object>} 헬스 체크 결과
+ */
+export const vllmHealthCheck = async (healthRequest) => {
+    try {
+        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/instances/vllm-health`, {
+            method: 'POST',
+            body: JSON.stringify(healthRequest),
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        devLog.log('VLLM health check successful:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to check VLLM health:', error);
+        throw error;
+    }
+};

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiCheck, FiX, FiCopy, FiExternalLink, FiServer, FiSettings, FiTrash2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import VastAiConfigModal from '@/app/main/components/config/vastAiConfigModal';
-import { listVastInstances, destroyVastInstance, updateVllmConnectionConfig, vllmDown, vllmServe } from '@/app/api/vastAPI';
+import { listVastInstances, destroyVastInstance, updateVllmConnectionConfig, vllmDown, vllmServe, vllmHealthCheck } from '@/app/api/vastAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/main/assets/Settings.module.scss';
 
@@ -269,61 +269,28 @@ export const InstanceManagementModal = () => {
         setVllmHealthStatus(prev => ({ ...prev, [instanceId]: 'checking' }));
 
         try {
-            const fetchUrl = `http://${vllmEndpoint.ip}:${vllmEndpoint.port}/health`;
+            const healthRequest = {
+                ip: vllmEndpoint.ip,
+                port: parseInt(vllmEndpoint.port)
+            };
 
-            // 10초 타임아웃 설정
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            const result = await vllmHealthCheck(healthRequest) as any;
 
-            const response = await fetch(fetchUrl, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                signal: controller.signal
-            });
-
-            clearTimeout(timeoutId);
-
-            if (response.ok) {
-                // 응답 텍스트를 먼저 확인
-                const responseText = await response.text();
-
-                if (!responseText || responseText.trim() === '') {
-                    toast.success('VLLM 서비스가 정상 작동 중입니다.');
-                    devLog.info('VLLM health check successful: empty response');
-                    setVllmHealthStatus(prev => ({ ...prev, [instanceId]: 'success' }));
-                    return true;
-                }
-
-                try {
-                    const healthData = JSON.parse(responseText);
-                    toast.success('VLLM 서비스가 정상 작동 중입니다.');
-                    devLog.info('VLLM health check successful:', healthData);
-                    setVllmHealthStatus(prev => ({ ...prev, [instanceId]: 'success' }));
-                    return true;
-                } catch (parseError) {
-                    toast.success('VLLM 서비스가 정상 작동 중입니다.');
-                    devLog.info('VLLM health check successful: non-JSON response:', responseText);
-                    setVllmHealthStatus(prev => ({ ...prev, [instanceId]: 'success' }));
-                    return true;
-                }
+            if (result.success) {
+                toast.success(result.message);
+                devLog.info('VLLM health check successful:', result);
+                setVllmHealthStatus(prev => ({ ...prev, [instanceId]: 'success' }));
+                return true;
             } else {
-                toast.error(`VLLM 서비스가 응답하지 않습니다. (상태: ${response.status})`);
-                devLog.error('VLLM health check failed with status:', response.status);
+                toast.error(result.message);
+                devLog.error('VLLM health check failed:', result);
                 setVllmHealthStatus(prev => ({ ...prev, [instanceId]: 'failed' }));
                 return false;
             }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-
-            if (error instanceof Error && error.name === 'AbortError') {
-                toast.error('VLLM 헬스 체크 타임아웃 (10초)');
-                devLog.error('VLLM health check timeout');
-            } else {
-                toast.error(`VLLM 헬스 체크 실패: ${errorMessage}`);
-                devLog.error('Failed to check VLLM health:', error);
-            }
+            toast.error(`VLLM 헬스 체크 실패: ${errorMessage}`);
+            devLog.error('Failed to check VLLM health:', error);
             setVllmHealthStatus(prev => ({ ...prev, [instanceId]: 'failed' }));
             return false;
         }
