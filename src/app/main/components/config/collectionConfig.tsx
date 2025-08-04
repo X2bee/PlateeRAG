@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import BaseConfigPanel, { ConfigItem, FieldConfig } from './baseConfigPanel';
 import {
@@ -8,6 +8,7 @@ import {
 
 interface CollectionConfigProps {
     configData?: ConfigItem[];
+    onConfigUpdate?: () => Promise<void>; // 설정 업데이트 후 호출될 콜백
 }
 
 const COLLECTION_CONFIG_FIELDS: Record<string, FieldConfig> = {
@@ -68,8 +69,16 @@ const COLLECTION_CONFIG_FIELDS: Record<string, FieldConfig> = {
 
 const CollectionConfig: React.FC<CollectionConfigProps> = ({
     configData = [],
+    onConfigUpdate, // 부모로부터 받는 콜백
 }) => {
     const [testing, setTesting] = useState(false);
+
+    // BaseConfigPanel에서 설정이 업데이트될 때 호출될 함수
+    const handleConfigChange = useCallback(async () => {
+        if (onConfigUpdate) {
+            await onConfigUpdate();
+        }
+    }, [onConfigUpdate]);
 
     const handleTestConnection = async (category: string) => {
         setTesting(true);
@@ -77,7 +86,7 @@ const CollectionConfig: React.FC<CollectionConfigProps> = ({
             let result;
             if (category === 'openai') {
                 result = await testOpenACollectionConnection();
-            } else if (category === 'vLLM') {
+            } else if (category === 'vllm') {
                 result = await testVLLMCollectionConnection();
             } else {
                 toast.error('지원되지 않는 제공자입니다.');
@@ -98,6 +107,7 @@ const CollectionConfig: React.FC<CollectionConfigProps> = ({
             setTesting(false);
         }
     };
+
     return (
         <BaseConfigPanel
             configData={configData}
@@ -106,8 +116,10 @@ const CollectionConfig: React.FC<CollectionConfigProps> = ({
             onTestConnection={handleTestConnection}
             testConnectionLabel="모델 연결 테스트"
             testConnectionCategory={
-                   configData.find(item => item.env_name === "IMAGE_TEXT_MODEL_PROVIDER")?.current_value || ""
-                 }        />
+                configData.find(item => item.env_name === "IMAGE_TEXT_MODEL_PROVIDER")?.current_value || ""
+            }
+            onConfigChange={handleConfigChange} // 새로 추가
+        />
     );
 };
 

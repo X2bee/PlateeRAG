@@ -31,6 +31,7 @@ interface BaseConfigPanelProps {
     onTestConnection?: (category: string) => void;
     testConnectionLabel?: string;
     testConnectionCategory?: string;
+    onConfigUpdate?: () => Promise<void>;
 }
 
 const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
@@ -40,6 +41,7 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
     onTestConnection,
     testConnectionLabel = '연결 테스트',
     testConnectionCategory = 'default',
+    onConfigUpdate,
 }) => {
     const [localConfig, setLocalConfig] = useState<Record<string, any>>({});
     const [editingConfig, setEditingConfig] = useState<string | null>(null);
@@ -203,6 +205,9 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
             alert('설정 업데이트에 실패했습니다.');
         } finally {
             setUpdating((prev) => ({ ...prev, [configItem.env_name]: false }));
+            if (onConfigUpdate) {
+                await onConfigUpdate();
+            }
         }
     };
 
