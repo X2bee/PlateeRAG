@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiRefreshCw, FiCheck, FiX, FiPlay, FiCopy, FiServer, FiSettings } from 'react-icons/fi';
+import { FiRefreshCw, FiCheck, FiX, FiPlay, FiCopy, FiServer, FiSettings, FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import { BsGpuCard } from 'react-icons/bs';
 import toast from 'react-hot-toast';
 import { searchVastOffers, createVastInstance } from '@/app/api/vastAPI';
@@ -18,6 +18,8 @@ interface VastOffer {
     ram?: number;
     cuda_max_good?: number;
     public_ipaddr?: string;
+    inet_down?: number;
+    inet_up?: number;
 }
 
 interface OfferInfo {
@@ -458,12 +460,15 @@ export const GpuOfferSearchModal = () => {
                                                         </div>
 
                                                         <div className={styles.detailRow}>
-                                                            {offer.public_ipaddr && (
-                                                                <div className={styles.detail}>
-                                                                    <span className={styles.detailLabel}>IP:</span>
-                                                                    <span className={styles.detailValue}>{offer.public_ipaddr}</span>
-                                                                </div>
-                                                            )}
+                                                            <div className={styles.detail}>
+                                                                <span className={styles.detailLabel}>IP:</span>
+                                                                <span className={styles.detailValue}>
+                                                                    {offer.public_ipaddr || 'x.x.x.x'}
+                                                                    <span className={styles.networkSpeed} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                                                                        {' '}(<FiArrowUp className={styles.networkIcon} />{(offer.inet_up || 0).toFixed(0)} / <FiArrowDown className={styles.networkIcon} />{(offer.inet_down || 0).toFixed(0)} Mbps)
+                                                                    </span>
+                                                                </span>
+                                                            </div>
                                                             <div className={styles.detail}>
                                                                 <span className={styles.detailLabel}>상태:</span>
                                                                 <span className={`${styles.status} ${offer.rentable ? styles.available : styles.unavailable}`}>
