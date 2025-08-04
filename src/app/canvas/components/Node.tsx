@@ -141,6 +141,8 @@ const Node: React.FC<NodeProps> = ({
         handleNameSubmit();
     };
 
+    const numberList = ['INT', 'FLOAT', 'NUMBER', 'INTEGER'];
+
     // Separate parameters into basic/advanced
     const basicParameters = parameters?.filter(param => !param.optional) || [];
     const advancedParameters = parameters?.filter(param => param.optional) || [];
@@ -282,7 +284,7 @@ const Node: React.FC<NodeProps> = ({
                     </select>
                 ) : (
                     <input
-                        type={typeof param.value === 'number' ? 'number' : 'text'}
+                        type={param.type && numberList.includes(param.type) ? 'number' : 'text'}
                         value={param.value}
                         onChange={(e) => handleParamValueChange(e, param.id)}
                         onMouseDown={(e) => {
