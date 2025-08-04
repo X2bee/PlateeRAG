@@ -1,0 +1,213 @@
+@use "sass:color";
+@use "@/app/_common/_variables" as *;
+
+// =============================================================================
+// Vast.ai Modal 전용 스타일
+// =============================================================================
+
+// 모달 스타일
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: $white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid $gray-200;
+    background: color.adjust($gray-50, $lightness: 2%);
+
+    h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: $gray-900;
+    }
+
+    .closeButton {
+        background: none;
+        border: none;
+        font-size: 20px;
+        color: $gray-500;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: $gray-200;
+            color: $gray-700;
+        }
+    }
+}
+
+.modalBody {
+    padding: 24px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.instanceInfo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 12px;
+    background: color.adjust($primary-blue, $alpha: -0.9);
+    border-radius: 6px;
+
+    .instanceLabel {
+        font-size: 14px;
+        color: $gray-600;
+        font-weight: 500;
+    }
+
+    .instanceValue {
+        font-size: 14px;
+        color: $primary-blue;
+        font-weight: 600;
+        font-family: 'Courier New', monospace;
+    }
+}
+
+.noPortMappings {
+    text-align: center;
+    padding: 40px 20px;
+    color: $gray-500;
+    font-size: 14px;
+}
+
+.portMappingsList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.portMappingItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: color.adjust($gray-50, $lightness: 1%);
+    border: 1px solid $gray-200;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+
+    &:hover {
+        border-color: $primary-blue;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+    }
+}
+
+.portInfo {
+    flex: 1;
+
+    .portNumber {
+        font-size: 14px;
+        font-weight: 600;
+        color: $gray-900;
+        margin-bottom: 4px;
+    }
+
+    .portMapping {
+        font-size: 12px;
+        color: $gray-600;
+        font-family: 'Courier New', monospace;
+    }
+}
+
+.copyButton {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    background: rgba($primary-blue, 0.1);
+    color: $primary-blue;
+    border: 1px solid rgba($primary-blue, 0.2);
+    border-radius: 0.25rem;
+    font-size: 0.6rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: rgba($primary-blue, 0.2);
+        border-color: rgba($primary-blue, 0.3);
+    }
+
+    .icon {
+        font-size: 0.75rem;
+    }
+}
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid transparent;
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    &.primary {
+        background-color: $primary-blue;
+        color: $white;
+
+        &:hover:not(:disabled) {
+            background-color: color.adjust($primary-blue, $lightness: -7%);
+        }
+    }
+
+    &.secondary {
+        background-color: $white;
+        color: $gray-700;
+        border-color: $gray-300;
+
+        &:hover:not(:disabled) {
+            background-color: $gray-50;
+            border-color: $gray-400;
+        }
+    }
+
+    &.danger {
+        background-color: $primary-red;
+        color: $white;
+
+        &:hover:not(:disabled) {
+            background-color: color.adjust($primary-red, $lightness: -7%);
+        }
+    }
+
+    &.small {
+        padding: 0.5rem 0.875rem;
+        font-size: 0.75rem;
+    }
+}

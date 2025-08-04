@@ -1,0 +1,549 @@
+@use "sass:color";
+
+// Color Variables (Monitor/Executor와 동일)
+$primary-blue: #2563eb;
+$primary-green: #059669;
+$primary-yellow: #d97706;
+$primary-red: #dc2626;
+$gray-50: #f9fafb;
+$gray-100: #f3f4f6;
+$gray-200: #e5e7eb;
+$gray-300: #d1d5db;
+$gray-400: #9ca3af;
+$gray-500: #6b7280;
+$gray-600: #4b5563;
+$gray-700: #374151;
+$gray-900: #111827;
+$white: #ffffff;
+
+// Utility Mixins
+@mixin card {
+  background: $white;
+  border: 1px solid $gray-200;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+@mixin badge($bg, $fg) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  padding: 0.25em 0.5em;
+  border-radius: 1.5em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: $bg;
+  color: $fg;
+}
+
+// Main Panel
+.batchTesterPanel {
+  flex: 1;
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  max-height: 68vh;
+}
+
+// Header
+.batchTesterHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+
+  h3 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: $gray-900;
+    margin: 0 0 0.5rem 0;
+  }
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+// Batch Size Selector
+.batchSizeSelector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: $gray-600;
+  font-size: 0.875rem;
+
+  label {
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  select {
+    padding: 0.375rem 0.75rem;
+    border: 1px solid $gray-300;
+    border-radius: 4px;
+    background: $white;
+    font-size: 0.875rem;
+    
+    &:focus {
+      outline: none;
+      border-color: $primary-blue;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+
+    &:disabled {
+      background: $gray-100;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// Buttons
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 6px;
+  color: $white;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-size: 0.875rem;
+
+  // 모든 버튼을 파란색으로 통일
+  &.upload, &.run, &.download { 
+    background: $primary-blue;
+    &:hover:not(:disabled) { 
+      background: color.scale($primary-blue, $lightness: -10%); 
+    }
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+.clearBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: $white;
+  border: 1px solid $primary-red;
+  border-radius: 6px;
+  color: $primary-red;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: #fef2f2;
+    border-color: color.scale($primary-red, $lightness: -10%);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    background: $gray-100;
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+// File Info
+.fileInfo {
+  @include card;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.9rem;
+  color: $gray-700;
+  margin-bottom: 1rem;
+
+  svg {
+    color: $primary-blue;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .fileName {
+    font-weight: 600;
+    color: $gray-900;
+  }
+
+  .fileType {
+    @include badge($gray-100, $gray-700);
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+}
+
+// Progress
+.progressContainer {
+  @include card;
+  margin-bottom: 1rem;
+
+  .progressHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: $gray-700;
+  }
+
+  .progress {
+    background: $gray-200;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    height: 0.5rem;
+    position: relative;
+
+    &__fill {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(to right, $primary-blue, $primary-green);
+      position: relative;
+      transition: width 0.3s ease;
+      border-radius: 0.75rem;
+
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        animation: shimmer 2s infinite;
+      }
+    }
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+// Results Container
+.resultsContainer {
+  @include card;
+  flex: 1;
+  margin-bottom: 0;
+
+  .resultsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid $gray-200;
+
+    h4 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: $gray-900;
+      margin: 0;
+    }
+
+    .resultsSummary {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+
+      .total { color: $gray-700; }
+      .success { color: $primary-green; }
+      .error { color: $primary-red; }
+      .pending { color: $gray-500; }
+    }
+  }
+
+  .resultsTable {
+    .results__header {
+      display: grid;
+      grid-template-columns: 0.5fr 2fr 1.5fr 2fr 0.75fr 0.75fr;
+      background: $gray-50;
+      font-weight: 600;
+      color: $gray-700;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+
+      > div {
+        padding: 0.75rem;
+        text-align: center;
+        font-size: 0.875rem;
+      }
+    }
+
+    .results__body {
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid $gray-200;
+      border-radius: 6px;
+    }
+
+    .results__row {
+      display: grid;
+      grid-template-columns: 0.5fr 2fr 1.5fr 2fr 0.75fr 0.75fr;
+      border-bottom: 1px solid $gray-100;
+      font-size: 0.875rem;
+
+      &:nth-child(even) {
+        background: $gray-50;
+      }
+
+      &:hover {
+        background: color.scale($primary-blue, $lightness: 85%);
+      }
+
+      > div {
+        padding: 0.75rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .results__id {
+        text-align: center;
+        font-weight: 600;
+        color: $primary-blue;
+      }
+
+      .results__input {
+        color: $gray-700;
+      }
+
+      .results__expected {
+        color: $gray-600;
+      }
+
+      .results__actual {
+        color: $gray-700;
+
+        .running {
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+          color: $primary-yellow;
+          font-weight: 500;
+        }
+      }
+
+      .results__status {
+        text-align: center;
+      }
+
+      .results__time {
+        text-align: center;
+        font-family: monospace;
+        color: $gray-600;
+      }
+    }
+  }
+}
+
+// Status Badges
+.status {
+  &--success { @include badge(#ecfdf5, $primary-green); }
+  &--error   { @include badge(#fef2f2, $primary-red); }
+  &--running { @include badge(#fef3c7, $primary-yellow); }
+  &--pending { @include badge($gray-100, $gray-500); }
+}
+
+// Empty State
+.emptyState {
+  @include card;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: $gray-500;
+  padding: 3rem 2rem;
+
+  h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: $gray-700;
+    margin: 0 0 0.5rem 0;
+  }
+
+  p {
+    margin: 0 0 2rem 0;
+    line-height: 1.6;
+    max-width: 400px;
+  }
+
+  .fileFormatInfo {
+    background: $gray-50;
+    border: 1px solid $gray-200;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    max-width: 500px;
+    text-align: left;
+
+    h5 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: $gray-900;
+      margin: 0 0 1rem 0;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1rem 0;
+
+      li {
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+        color: $gray-600;
+
+        strong {
+          color: $gray-900;
+        }
+      }
+    }
+
+    .supportedFormats {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+
+      > span:first-child {
+        font-weight: 500;
+        color: $gray-700;
+      }
+
+      > span:not(:first-child) {
+        @include badge($gray-200, $gray-700);
+        font-family: monospace;
+      }
+    }
+  }
+}
+
+// Placeholder
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: $gray-500;
+  padding: 2rem;
+
+  h3 {
+    margin-bottom: 0.5rem;
+    color: $gray-700;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  p {
+    max-width: 400px;
+    line-height: 1.5;
+    margin: 0;
+  }
+}
+
+// Loading Spinner
+.loadingSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+// Spinning Animation
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// Hidden Input
+.hidden {
+  display: none;
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .batchTesterHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .headerActions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 0.75rem;
+  }
+
+  .batchSizeSelector {
+    justify-content: space-between;
+  }
+
+  .resultsContainer .resultsTable {
+    .results__header,
+    .results__row {
+      grid-template-columns: 1fr;
+      text-align: left;
+    }
+
+    .results__header > div,
+    .results__row > div {
+      padding: 0.5rem;
+      border-bottom: 1px solid $gray-200;
+    }
+
+    .results__header > div:before,
+    .results__row > div:before {
+      content: attr(data-label);
+      font-weight: bold;
+      display: inline-block;
+      width: 120px;
+    }
+  }
+
+  .fileInfo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}

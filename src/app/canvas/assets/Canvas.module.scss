@@ -1,8 +1,10 @@
+@use "@/app/_common/_variables" as *;
+
 .canvasContainer {
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    background-color: #f0f2f5;
+    background-color: $canvas-background;
     position: relative;
     cursor: grab;
 }
@@ -13,24 +15,18 @@
     position: relative;
     transform-origin: 0 0;
 
-    $background-color: #ffffff;
-    $grid-color-minor: rgba(0, 0, 0, 0.08);
-    $grid-color-major: rgba(0, 0, 0, 0.15);
-    $grid-size-minor: 20px;
-    $grid-size-major: 100px;
-
-    background-color: $background-color;
+    background-color: $canvas-grid-background;
     background-image:
-        linear-gradient($grid-color-minor 1px, transparent 1px),
-        linear-gradient(90deg, $grid-color-minor 1px, transparent 1px),
-        linear-gradient($grid-color-major 1px, transparent 1px),
-        linear-gradient(90deg, $grid-color-major 1px, transparent 1px);
+        linear-gradient($canvas-grid-minor 1px, transparent 1px),
+        linear-gradient(90deg, $canvas-grid-minor 1px, transparent 1px),
+        linear-gradient($canvas-grid-major 1px, transparent 1px),
+        linear-gradient(90deg, $canvas-grid-major 1px, transparent 1px);
 
     background-size:
-        $grid-size-minor $grid-size-minor,
-        $grid-size-minor $grid-size-minor,
-        $grid-size-major $grid-size-major,
-        $grid-size-major $grid-size-major;
+        $canvas-grid-size-minor $canvas-grid-size-minor,
+        $canvas-grid-size-minor $canvas-grid-size-minor,
+        $canvas-grid-size-major $canvas-grid-size-major,
+        $canvas-grid-size-major $canvas-grid-size-major;
 }
 
 .svgLayer {
@@ -39,7 +35,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none; 
+    pointer-events: none;
     overflow: visible;
     z-index: 10;
 

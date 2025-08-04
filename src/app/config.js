@@ -5,10 +5,14 @@
 const host_url = process.env.NEXT_PUBLIC_BACKEND_HOST || 'http://localhost'
 const port = process.env.NEXT_PUBLIC_BACKEND_PORT || null
 
-let BASE_URL = `${host_url}:${port}`
+const metrics = process.env.NEXT_PUBLIC_METRICS_HOST || ''
+
+let BASE_URL = '';
 
 if (!port) {
-    BASE_URL = host_url
+    BASE_URL = host_url;
+} else {
+    BASE_URL = `${host_url}:${port}`;
 }
 
 console.log(`Backend server running at ${BASE_URL}`);
@@ -28,3 +32,5 @@ export const APP_CONFIG = {
 
 // Export individual configs for convenience
 export const { BASE_URL: API_BASE_URL } = API_CONFIG;
+
+export const METRICS_URL = metrics;

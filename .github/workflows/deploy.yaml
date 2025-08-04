@@ -13,6 +13,13 @@ jobs:
           cd /home/plateerag
           git pull origin deploy
           echo "✅ Pulled latest source code."
+      
+      - name: Create .env file
+        run: |
+          cd /home/plateerag
+          
+          echo "NEXT_PUBLIC_BACKEND_HOST=${{ secrets.NEXT_PUBLIC_BACKEND_HOST }}" > .env
+          echo "NEXT_PUBLIC_METRICS_HOST=${{ secrets.NEXT_PUBLIC_METRICS_HOST }}" >> .env
 
       - name: Install dependencies & Restart server
         run: |

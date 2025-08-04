@@ -83,6 +83,7 @@ const isDataAvailable = (data: any): boolean => {
 
 
 const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workflow }) => {
+    const [sliderValue, setSliderValue] = useState(0);
     const [logLimit, setLogLimit] = useState(0);
     const [maxLogLimit, setMaxLogLimit] = useState(0);
     const [chartData, setChartData] = useState<any>(null);
@@ -112,7 +113,9 @@ const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workfl
                     }
 
                     setMaxLogLimit(maxCount);
-                    setLogLimit(prevLimit => Math.min(prevLimit, maxCount > 0 ? maxCount : 10));
+                    const initialLimit = Math.min(logLimit > 0 ? logLimit : 10, maxCount > 0 ? maxCount : 10);
+                    setLogLimit(initialLimit);
+                    setSliderValue(initialLimit);
                     devLog.log(`Max log count set to: ${maxCount}`);
                 } catch (err) {
                     devLog.error("Failed to fetch node counts", err);
@@ -122,6 +125,16 @@ const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workfl
             fetchMaxCount();
         }
     }, [isOpen, workflow, workflowName]);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setLogLimit(sliderValue);
+        }, 500);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [sliderValue]);
 
     useEffect(() => {
         if (isOpen && workflow) {
@@ -180,14 +193,14 @@ const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workfl
                 </div>
 
                 <div className={styles.controls}>
-                    <label htmlFor="logLimit">최근 실행 로그 <strong>{logLimit}</strong>개 기준</label>
+                    <label htmlFor="logLimit">최근 실행 로그 <strong>{sliderValue}</strong>개 기준</label>
                     <input
                         type="range"
                         id="logLimit"
                         min="0"
                         max={maxLogLimit}
-                        value={logLimit}
-                        onChange={(e) => setLogLimit(Number(e.target.value))}
+                        value={sliderValue}
+                        onChange={(e) => setSliderValue(Number(e.target.value))}
                         className={styles.slider}
                     />
                 </div>

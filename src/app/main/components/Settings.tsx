@@ -7,10 +7,10 @@ import {
     FiArrowLeft,
     FiDatabase,
 } from 'react-icons/fi';
+import { IoDocumentLock } from "react-icons/io5";
 import { BsDatabaseUp } from 'react-icons/bs';
 import { SiOpenai } from 'react-icons/si';
-import { BsGear } from 'react-icons/bs'; // Workflow 아이콘으로 사용
-import { BsCpu } from 'react-icons/bs'; // vLLM 아이콘으로 사용
+import { BsGear } from 'react-icons/bs';
 import {
     testConnection,
     fetchAllConfigs,
@@ -18,11 +18,12 @@ import {
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/main/assets/Settings.module.scss';
 
-// Import config components
-import LLMConfig from '@/app/main/components/config/llmConfig'; // 새로 추가
+import LLMConfig from '@/app/main/components/config/llmConfig';
 import WorkflowConfig from '@/app/main/components/config/workflowConfig';
 import DatabaseConfig from '@/app/main/components/config/databaseConfig';
 import VectordbConfig from '@/app/main/components/config/vectordbConfig';
+import CollectionConfig from '@/app/main/components/config/collectionConfig';
+import VastAiConfig from '@/app/main/components/config/vastAiConfig';
 
 interface ConfigItem {
     env_name: string;
@@ -64,6 +65,10 @@ interface ApiConfig {
     stream?: boolean;
     logprobs?: number;
     echo?: boolean;
+    // Collection specific fields
+    imageTextBaseUrl?: string;
+    imageTextApiKey?: string;
+    imageTextModelName?: string;
 }
 
 const Settings: React.FC = () => {
@@ -137,6 +142,22 @@ const Settings: React.FC = () => {
             icon: <SiOpenai />,
             color: '#10a37f',
             status: configs.openai?.apiKey || configs.vllm?.baseUrl ? 'connected' : 'disconnected',
+        },
+        {
+            id: 'vastai',
+            name: 'Vast.ai GPU',
+            description: 'Vast.ai GPU 인스턴스 및 vLLM 서버 설정',
+            icon: <BsDatabaseUp />,
+            color: '#7c3aed',
+            status: configs.vastai?.apiKey ? 'connected' : 'disconnected',
+        },
+        {
+            id: 'collection',
+            name: '컬렉션 관리',
+            description: '이미지-텍스트 모델 및 컬렉션 처리 설정',
+            icon: <IoDocumentLock />,
+            color: '#7c3aed',
+            status: configs.collection?.imageTextApiKey ? 'connected' : 'disconnected',
         },
         {
             id: 'workflow',
@@ -217,7 +238,15 @@ const Settings: React.FC = () => {
         );
     };
 
-    const llmconfig = () => {
+    const renderCollectionConfig = () => {
+        return (
+            <CollectionConfig
+                configData={configData}
+            />
+        );
+    };
+
+    const renderLLMconfig = () => {
         return (
             <LLMConfig
             configData={configData}
@@ -225,10 +254,23 @@ const Settings: React.FC = () => {
         />
         )
     }
+
+    const renderVastAiConfig = () => {
+        return (
+            <VastAiConfig
+                configData={configData}
+            />
+        );
+    };
+
     const renderConfigForm = (categoryId: string) => {
         switch (categoryId) {
             case 'llm':
-                return llmconfig();
+                return renderLLMconfig();
+            case 'vastai':
+                return renderVastAiConfig();
+            case 'collection':
+                return renderCollectionConfig();
             case 'workflow':
                 return renderWorkflowConfig();
             case 'database':
@@ -399,7 +441,7 @@ const Settings: React.FC = () => {
 
 // 현재 localStorage와 백엔드 API를 모두 활용하는 하이브리드 방식으로 구현
 // 백엔드에서 추가로 필요한 API:
-// - POST /app/config/test/{category} - 연결 테스트 (OpenAI, vLLM 포함)
+// - POST /app/config/test/{category} - 연결 테스트 (OpenAI, vLLM, Collection 포함)
 // - POST /app/config/reset/{category} - 카테고리별 리셋
 // - PUT /app/config/batch/{category} - 카테고리별 일괄 업데이트
 

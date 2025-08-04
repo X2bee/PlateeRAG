@@ -1,0 +1,428 @@
+@use "sass:color";
+@use "@/app/_common/_variables" as *;
+
+// Container
+.container {
+    max-width: 1450px;
+    margin: 0 auto;
+}
+
+// Content Area
+.contentArea {
+    background: $white;
+    border-radius: $radius-lg;
+    box-shadow: $shadow-sm;
+    padding: $spacing-xl;
+    min-height: calc(100vh - 4rem);
+    transition: margin-left 0.3s ease-in-out;
+}
+
+// Header
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 2rem;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1rem;
+    }
+}
+
+.headerContent {
+    flex: 1;
+
+    h2 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: $gray-900;
+        margin: 0 0 0.5rem 0;
+    }
+
+    p {
+        font-size: 1rem;
+        color: $gray-600;
+        margin: 0;
+        line-height: 1.5;
+    }
+}
+
+// Tab Navigation
+.tabNavigation {
+    display: flex;
+    background: $gray-50;
+    border: 1px solid $gray-200;
+    border-radius: 0.75rem 0.75rem 0 0;
+    overflow: hidden;
+}
+
+.tabButton {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: none;
+    color: $gray-600;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.1s ease-in-out;
+    border-bottom: 2px solid transparent;
+
+    &:hover {
+        background: $gray-100;
+        color: $gray-800;
+    }
+
+    &.active {
+        background: $white;
+        color: $primary-blue;
+        border-bottom-color: $primary-blue;
+    }
+
+    svg {
+        font-size: 1rem;
+    }
+}
+
+// Config wrapper
+.configWrapper {
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 0 0 0.75rem 0.75rem;
+    border-top: none;
+}
+
+// Config Section
+.configSection {
+    padding: 2rem;
+}
+
+// Form styles
+.configForm {
+    display: flex;
+    flex-direction: column;
+}
+
+.formGroup {
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: $gray-50;
+    border-radius: 0.75rem;
+    border: 1px solid $gray-200;
+    transition: all 0.1s ease-in-out;
+
+    &:hover {
+        border-color: $gray-300;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.configHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid $gray-300;
+
+    label {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: $gray-800;
+        margin: 0;
+    }
+
+    .required {
+        color: $primary-red;
+        font-weight: 700;
+    }
+}
+
+// Form Grid
+.formGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.formField {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.formLabel {
+    font-weight: 500;
+    color: $gray-700;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+
+    &.required::after {
+        content: " *";
+        color: $primary-red;
+    }
+}
+
+// 공통 입력 필드 스타일
+%formInputBase {
+    padding: 0.75rem;
+    border: 1px solid $gray-300;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    background: $white;
+    color: $gray-900;
+    font-family: inherit;
+    line-height: 1.5;
+    transition: all 0.2s ease-in-out;
+
+    &:focus {
+        outline: none;
+        border-color: $primary-blue;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    &:disabled {
+        background: $gray-50;
+        color: $gray-500;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    &:hover:not(:disabled):not(:focus) {
+        border-color: $gray-400;
+    }
+}
+
+.formInput {
+    @extend %formInputBase;
+
+    &::placeholder {
+        color: $gray-400;
+    }
+}
+
+.formSelect {
+    @extend %formInputBase;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1rem;
+    padding-right: 2.5rem;
+
+    option {
+        padding: 0.5rem 0.75rem;
+        background: $white;
+        color: $gray-900;
+        font-size: 0.875rem;
+
+        &:hover {
+            background: $gray-50;
+        }
+
+        &:disabled {
+            color: $gray-400;
+            background: $gray-100;
+        }
+    }
+
+    &:focus {
+        background-image: url("data:image/svg+xml;charset=utf-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%233b82f6' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    }
+}
+
+.formRow {
+    margin-bottom: 1rem;
+}
+
+// Checkbox group
+.checkboxGroup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: $gray-700;
+    cursor: pointer;
+    user-select: none;
+
+    &:hover {
+        color: $gray-900;
+    }
+}
+
+.checkbox {
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid $gray-300;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    &:checked {
+        background: $primary-blue;
+        border-color: $primary-blue;
+    }
+
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+}
+
+// Form group for sub-sections (통일된 스타일)
+.formSubGroup {
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: $gray-50;
+    border-radius: 0.75rem;
+    border: 1px solid $gray-200;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        border-color: $gray-300;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.formGroupTitle {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $gray-800;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid $gray-300;
+}
+
+// Button styles
+.button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid transparent;
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    &.primary {
+        background-color: $primary-blue;
+        color: $white;
+
+        &:hover:not(:disabled) {
+            background-color: color.adjust($primary-blue, $lightness: -7%);
+        }
+    }
+
+    &.secondary {
+        background-color: $white;
+        color: $gray-700;
+        border-color: $gray-300;
+
+        &:hover:not(:disabled) {
+            background-color: $gray-50;
+            border-color: $gray-400;
+        }
+    }
+
+    &.large {
+        padding: 0.875rem 2rem;
+        font-size: 1rem;
+    }
+}
+
+// Action buttons
+.formActions {
+    display: flex;
+    justify-content: center;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    border-top: 1px solid $gray-200;
+}
+
+// Loading spinner
+.spinner {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// Icon styles
+.icon {
+    font-size: 1rem;
+}
+
+.sectionIcon {
+    font-size: 1rem;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+    .container {
+        margin: 0;
+        padding: 1rem;
+    }
+
+    .configSection {
+        padding: 1rem;
+    }
+
+    .formGrid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .checkboxGroup {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .tabButton {
+        padding: 0.75rem 1rem;
+        font-size: 0.75rem;
+    }
+}

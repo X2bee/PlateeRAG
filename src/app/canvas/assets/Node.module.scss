@@ -1,6 +1,6 @@
 .node {
     position: absolute;
-    min-width: 400px;
+    min-width: 450px;
     background-color: #ffffff;
     border-radius: 12px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
@@ -211,11 +211,63 @@
 .paramKey {
     color: #6b7280;
     margin-right: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 
     &.required::after {
         content: " *";
         color: #ef4444;
         font-weight: bold;
+    }
+}
+
+.refreshButton {
+    background: none;
+    border: none;
+    padding: 2px;
+    cursor: pointer;
+    color: #6b7280;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+
+    &:hover {
+        color: #3b82f6;
+        background-color: #f3f4f6;
+    }
+
+    &:active {
+        color: #2563eb;
+        transform: scale(0.95);
+    }
+
+    &.loading {
+        animation: spin 1s linear infinite;
+        color: #3b82f6;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    svg {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
     }
 }
 

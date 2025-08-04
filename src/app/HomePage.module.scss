@@ -1,38 +1,5 @@
 @use "sass:color";
-
-$primary-blue: #2563eb;
-$primary-purple: #7c3aed;
-$primary-green: #059669;
-$primary-pink: #db2777;
-$primary-orange: #ea580c;
-$primary-indigo: #4f46e5;
-$gray-50: #f9fafb;
-$gray-100: #f3f4f6;
-$gray-200: #e5e7eb;
-$gray-300: #d1d5db;
-$gray-400: #9ca3af;
-$gray-500: #6b7280;
-$gray-600: #4b5563;
-$gray-700: #374151;
-$gray-900: #111827;
-$white: #ffffff;
-
-// Mixins
-@mixin gradient-text($from, $to) {
-    background: linear-gradient(to right, $from, $to);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-@mixin card-hover {
-    transition: all 0.2s ease-in-out;
-
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    }
-}
+@use "@/app/_common/_variables" as *;
 
 @mixin button-primary {
     display: inline-flex;

@@ -8,9 +8,12 @@ import {
     FiClock,
     FiMessageCircle,
     FiFile,
+    FiBarChart2,
 } from 'react-icons/fi';
 import { RiChatSmileAiLine } from "react-icons/ri";
 import { SidebarItem } from '@/app/main/components/types';
+
+export const getChatItems = ['new-chat', 'current-chat', 'chat-history'];
 
 export const getChatSidebarItems = (): SidebarItem[] => [
     {
@@ -33,7 +36,9 @@ export const getChatSidebarItems = (): SidebarItem[] => [
     },
 ];
 
-export const getSettingSidebarItems = (): SidebarItem[] => [
+export const getWorkflowItems = ['canvas', 'workflows', 'documents'];
+
+export const getWorkflowSidebarItems = (): SidebarItem[] => [
     {
         id: 'canvas',
         title: '워크플로우 캔버스',
@@ -47,28 +52,62 @@ export const getSettingSidebarItems = (): SidebarItem[] => [
         icon: React.createElement(FiFolder),
     },
     {
+        id: 'documents',
+        title: '문서',
+        description: '문서 저장소',
+        icon: React.createElement(FiFile),
+    },
+];
+
+export const getTrainItems = ['train', 'train-monitor', 'eval', 'model-hub'];
+
+export const getTrainSidebarItems = (): SidebarItem[] => [
+    {
+        id: 'train',
+        title: '모델 훈련',
+        description: '모델 훈련',
+        icon: React.createElement(FiBarChart2),
+    },
+    {
+        id: 'train-monitor',
+        title: '모델 훈련 모니터',
+        description: '모델 훈련 파라미터 모니터링',
+        icon: React.createElement(FiBarChart2),
+    },
+    {
+        id: 'eval',
+        title: '모델 평가',
+        description: '모델 평가',
+        icon: React.createElement(FiBarChart2),
+    },
+    // {
+    //     id: 'model-hub',
+    //     title: '모델 허브',
+    //     description: '모델 허브',
+    //     icon: React.createElement(FiBarChart2),
+    // },
+];
+
+export const getSettingItems = ['settings', 'exec-monitor', 'config-viewer'];
+
+export const getSettingSidebarItems = (): SidebarItem[] => [
+    {
+        id: 'settings',
+        title: '환경 설정',
+        description: 'LLM 및 Tool 환경변수 직접 관리',
+        icon: React.createElement(FiSettings),
+    },
+    {
         id: 'exec-monitor',
         title: '실행 및 모니터링',
         description: '워크플로우 실행과 성능 모니터링',
         icon: React.createElement(FiCpu),
     },
     {
-        id: 'settings',
-        title: '고급 환경 설정',
-        description: 'LLM 및 Tool 환경변수 직접 관리',
-        icon: React.createElement(FiSettings),
-    },
-    {
         id: 'config-viewer',
-        title: '설정값 확인',
+        title: '[고급] 전체 설정 확인',
         description: '백엔드 환경변수 및 설정 확인',
         icon: React.createElement(FiEye),
-    },
-    {
-        id: 'documents',
-        title: '문서',
-        description: '문서 저장소',
-        icon: React.createElement(FiFile),
     },
 ];
 
@@ -78,6 +117,14 @@ export const createItemClickHandler = (router: any) => {
         // 클릭한 섹션을 localStorage에 저장하고 /main으로 이동
         localStorage.setItem('activeSection', itemId);
         router.push('/main');
+    };
+};
+
+export const createTrainItemClickHandler = (router: any) => {
+    return (itemId: string) => {
+        // 클릭한 섹션을 localStorage에 저장하고 /train으로 이동
+        localStorage.setItem('activeSection', itemId);
+        router.push('/train');
     };
 };
 

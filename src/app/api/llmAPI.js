@@ -144,6 +144,32 @@ export const testOpenAIConnection = async () => {
     }
 };
 
+export const testOpenACollectionConnection = async () => {
+    try {
+        devLog.info('Testing OpenAI connection...');
+
+        const response = await apiClient(`${API_BASE_URL}/api/config/test/collection/openai`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const data = await response.json();
+
+        // HTTP 상태 코드와 응답 데이터 모두 확인
+        if (!response.ok || data.status !== 'success') {
+            throw new Error(data.message || `HTTP error! status: ${response.status}`);
+        }
+
+        devLog.info('OpenAI connection test completed:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to test OpenAI connection:', error);
+        throw error;
+    }
+};
+
 /**
  * vLLM 연결 테스트를 수행하는 함수
  * @returns {Promise<Object>} 테스트 결과
@@ -153,6 +179,32 @@ export const testVLLMConnection = async () => {
         devLog.info('Testing vLLM connection...');
 
         const response = await apiClient(`${API_BASE_URL}/api/config/test/vllm`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const data = await response.json();
+
+        // HTTP 상태 코드와 응답 데이터 모두 확인
+        if (!response.ok || data.status !== 'success') {
+            throw new Error(data.message || `HTTP error! status: ${response.status}`);
+        }
+
+        devLog.info('vLLM connection test completed:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to test vLLM connection:', error);
+        throw error;
+    }
+};
+
+export const testVLLMCollectionConnection = async () => {
+    try {
+        devLog.info('Testing vLLM connection...');
+
+        const response = await apiClient(`${API_BASE_URL}/api/config/test/collection/vllm`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

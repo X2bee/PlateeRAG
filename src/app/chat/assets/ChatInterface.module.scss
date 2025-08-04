@@ -720,7 +720,13 @@ $white: #ffffff;
         margin-left: 0.25rem;
     }
 }
-
+.streamingContent {
+    white-space: pre-wrap; /* 줄바꿈을 유지하면서 자동 줄바꿈 허용 */
+    word-break: break-word;
+    margin: 0;
+    font-family: inherit; /* 부모 폰트 상속 */
+    font-size: inherit;
+}
 // Loading dots animation
 .loadingDots {
     display: flex;
