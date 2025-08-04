@@ -31,7 +31,7 @@ interface BaseConfigPanelProps {
     onTestConnection?: (category: string) => void;
     testConnectionLabel?: string;
     testConnectionCategory?: string;
-    onConfigUpdate?: () => Promise<void>;
+    onConfigChange?: () => Promise<void>; // ✅ 이 줄 추가
 }
 
 const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
@@ -41,7 +41,7 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
     onTestConnection,
     testConnectionLabel = '연결 테스트',
     testConnectionCategory = 'default',
-    onConfigUpdate,
+    onConfigChange, // ✅ props에서 받기
 }) => {
     const [localConfig, setLocalConfig] = useState<Record<string, any>>({});
     const [editingConfig, setEditingConfig] = useState<string | null>(null);
