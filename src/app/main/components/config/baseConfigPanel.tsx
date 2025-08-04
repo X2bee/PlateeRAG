@@ -205,8 +205,8 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
             alert('설정 업데이트에 실패했습니다.');
         } finally {
             setUpdating((prev) => ({ ...prev, [configItem.env_name]: false }));
-            if (onConfigUpdate) {
-                await onConfigUpdate();
+            if (onConfigChange) {
+                await onConfigChange();
             }
         }
     };
