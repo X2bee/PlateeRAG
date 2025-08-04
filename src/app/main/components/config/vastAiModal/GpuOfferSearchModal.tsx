@@ -290,8 +290,14 @@ export const GpuOfferSearchModal = () => {
                                     onChange={(e) => handleParamChange('gpu_name', e.target.value)}
                                 >
                                     <option value="">GPU 모델을 선택하세요</option>
+                                    <option value="RTX_3090">RTX 3090</option>
                                     <option value="RTX_4090">RTX 4090</option>
                                     <option value="RTX_5090">RTX 5090</option>
+                                    <option value="L40S">L40S</option>
+                                    <option value="A100_SXM4">A100 SXM4</option>
+                                    <option value="H100_SXM">H100 SXM</option>
+                                    <option value="H200">H200</option>
+                                    <option value="H200_NVL">H200 NVL</option>
                                 </select>
                                 <button
                                     className={`${styles.button} ${styles.primary}`}
