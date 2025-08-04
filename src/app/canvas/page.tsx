@@ -88,35 +88,57 @@ function CanvasPageContent() {
     // 컴포넌트 마운트 시 워크플로우 이름과 상태 복원
     useEffect(() => {
         devLog.log('=== Page useEffect: Restoring workflow state ===');
+        devLog.log('Current URL:', typeof window !== 'undefined' ? window.location.href : 'SSR');
+        devLog.log('Search params object:', searchParams);
 
-        // URL 파라미터에서 load할 워크플로우 이름 확인
-        const loadWorkflowName = searchParams.get('load');
+        // URL 파라미터에서 load할 워크플로우 이름 확인 (production 환경 대응)
+        let loadWorkflowName = searchParams.get('load');
+        devLog.log('searchParams.get("load"):', loadWorkflowName);
+
+        // Production 환경에서 searchParams가 제대로 동작하지 않는 경우 fallback
+        if (!loadWorkflowName && typeof window !== 'undefined') {
+            const urlParams = new URLSearchParams(window.location.search);
+            loadWorkflowName = urlParams.get('load');
+            devLog.log('window.location fallback - load parameter:', loadWorkflowName);
+            devLog.log('window.location.search:', window.location.search);
+        }
 
         if (loadWorkflowName) {
             // URL 파라미터로 워크플로우 이름이 전달된 경우
             devLog.log('Loading workflow from URL parameter:', loadWorkflowName);
             const decodedWorkflowName = decodeURIComponent(loadWorkflowName);
+            devLog.log('Decoded workflow name:', decodedWorkflowName);
             setCurrentWorkflowName(decodedWorkflowName);
 
             // 해당 워크플로우를 자동으로 로드
             const loadFromServer = async () => {
                 try {
+                    devLog.log('Attempting to load workflow:', decodedWorkflowName);
                     const workflowData = await loadWorkflow(decodedWorkflowName);
+                    devLog.log('Workflow data received:', workflowData);
+
                     if (canvasRef.current && workflowData) {
+                        devLog.log('Canvas ref exists, loading workflow...');
                         await handleLoadWorkflow(workflowData, decodedWorkflowName);
+                    } else {
+                        const errorMsg = !canvasRef.current ? 'Canvas not ready' : 'Workflow data is empty';
+                        devLog.error('Load failed:', errorMsg);
+                        throw new Error(errorMsg);
                     }
                 } catch (error) {
                     devLog.error('Failed to load workflow from URL parameter:', error);
-                    toast.error(`Failed to load workflow: ${decodedWorkflowName}`);
+                    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                    toast.error(`Failed to load workflow: ${errorMessage}`);
                 }
             };
 
-            // Canvas가 준비될 때까지 대기
-            setTimeout(loadFromServer, 1000);
+            // Canvas가 준비될 때까지 대기 (production에서 더 긴 시간 필요할 수 있음)
+            devLog.log('Setting timeout for workflow loading...');
+            setTimeout(loadFromServer, 1500);
         } else {
             // 저장된 워크플로우 이름 복원
             const savedName = getWorkflowName();
-            devLog.log('Restored workflow name:', savedName);
+            devLog.log('No load parameter found, restored workflow name:', savedName);
             setCurrentWorkflowName(savedName);
         }
 
