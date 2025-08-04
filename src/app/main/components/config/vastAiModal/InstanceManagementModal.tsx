@@ -43,8 +43,9 @@ export const InstanceManagementModal = () => {
     const [selectedInstanceId, setSelectedInstanceId] = useState<string>('');
     const [selectedPortMappings, setSelectedPortMappings] = useState<string | null>(null);
     const [showVllmConfigFor, setShowVllmConfigFor] = useState<string | null>(null);
-    const [vllmHealthStatus, setVllmHealthStatus] = useState<{[key: string]: 'checking' | 'success' | 'failed' | null}>({});
-    const [vllmConfig, setVllmConfig] = useState<{[key: string]: any}>({
+    const [vllmHealthStatus, setVllmHealthStatus] = useState<{ [key: string]: 'checking' | 'success' | 'failed' | null }>({});
+    const [vllmServeLoading, setVllmServeLoading] = useState<{ [key: string]: boolean }>({});
+    const [vllmConfig, setVllmConfig] = useState<{ [key: string]: any }>({
         model_name: '',
         max_model_len: 0,
         gpu_memory_utilization: 0.95,
@@ -194,6 +195,9 @@ export const InstanceManagementModal = () => {
     };
 
     const handleVllmServe = async (instance: VastInstanceData) => {
+        // VLLM 서비스 시작 로딩 상태 설정
+        setVllmServeLoading(prev => ({ ...prev, [instance.instance_id]: true }));
+
         const config = {
             model_id: vllmConfig.model_name,
             max_model_len: vllmConfig.max_model_len,
@@ -219,6 +223,9 @@ export const InstanceManagementModal = () => {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
             toast.error(`VLLM 모델 시작 실패: ${errorMessage}`);
             devLog.error('Failed to start VLLM model:', error);
+        } finally {
+            // 로딩 상태 해제
+            setVllmServeLoading(prev => ({ ...prev, [instance.instance_id]: false }));
         }
     };
 
@@ -264,8 +271,7 @@ export const InstanceManagementModal = () => {
         setShowVllmConfigFor(instance.instance_id);
     };
 
-    const handleVllmHealthCheck = async (vllmEndpoint: {ip: string, port: string}, instanceId: string) => {
-        // 헬스 체크 시작
+    const handleVllmHealthCheck = async (vllmEndpoint: { ip: string, port: string }, instanceId: string) => {
         setVllmHealthStatus(prev => ({ ...prev, [instanceId]: 'checking' }));
 
         try {
@@ -381,11 +387,10 @@ export const InstanceManagementModal = () => {
                                                 </span>
                                                 {instance.status === 'running_vllm' && vllmEndpoint && (
                                                     <button
-                                                        className={`${styles.instanceStatus} ${
-                                                            vllmHealthStatus[instance.instance_id] === 'success' ? styles.active :
-                                                            vllmHealthStatus[instance.instance_id] === 'failed' ? styles.inactive :
-                                                            styles.active
-                                                        }`}
+                                                        className={`${styles.instanceStatus} ${vllmHealthStatus[instance.instance_id] === 'success' ? styles.active :
+                                                                vllmHealthStatus[instance.instance_id] === 'failed' ? styles.inactive :
+                                                                    styles.active
+                                                            }`}
                                                         onClick={() => handleVllmHealthCheck(vllmEndpoint, instance.instance_id)}
                                                         disabled={vllmHealthStatus[instance.instance_id] === 'checking'}
                                                         style={{
@@ -577,7 +582,7 @@ export const InstanceManagementModal = () => {
                                                     <input
                                                         type="text"
                                                         value={vllmConfig.model_name}
-                                                        onChange={(e) => setVllmConfig({...vllmConfig, model_name: e.target.value})}
+                                                        onChange={(e) => setVllmConfig({ ...vllmConfig, model_name: e.target.value })}
                                                         className={styles.vllmConfigInput}
                                                     />
                                                 </div>
@@ -588,7 +593,7 @@ export const InstanceManagementModal = () => {
                                                     <input
                                                         type="number"
                                                         value={vllmConfig.max_model_len}
-                                                        onChange={(e) => setVllmConfig({...vllmConfig, max_model_len: parseInt(e.target.value)})}
+                                                        onChange={(e) => setVllmConfig({ ...vllmConfig, max_model_len: parseInt(e.target.value) })}
                                                         className={styles.vllmConfigInput}
                                                     />
                                                 </div>
@@ -599,7 +604,7 @@ export const InstanceManagementModal = () => {
                                                     <input
                                                         type="number"
                                                         value={vllmConfig.gpu_memory_utilization}
-                                                        onChange={(e) => setVllmConfig({...vllmConfig, gpu_memory_utilization: parseFloat(e.target.value)})}
+                                                        onChange={(e) => setVllmConfig({ ...vllmConfig, gpu_memory_utilization: parseFloat(e.target.value) })}
                                                         step={0.05}
                                                         min={0.1}
                                                         max={1.0}
@@ -612,7 +617,7 @@ export const InstanceManagementModal = () => {
                                                     </label>
                                                     <select
                                                         value={vllmConfig.dtype}
-                                                        onChange={(e) => setVllmConfig({...vllmConfig, dtype: e.target.value})}
+                                                        onChange={(e) => setVllmConfig({ ...vllmConfig, dtype: e.target.value })}
                                                         className={styles.vllmConfigSelect}
                                                     >
                                                         <option value="auto">auto</option>
@@ -627,14 +632,27 @@ export const InstanceManagementModal = () => {
                                                 <button
                                                     className={`${styles.vllmConfigButton} ${styles.cancel}`}
                                                     onClick={() => setShowVllmConfigFor(null)}
+                                                    disabled={vllmServeLoading[instance.instance_id]}
                                                 >
                                                     취소
                                                 </button>
                                                 <button
                                                     className={`${styles.vllmConfigButton} ${styles.start}`}
                                                     onClick={() => handleVllmServe(instance)}
+                                                    disabled={vllmServeLoading[instance.instance_id]}
+                                                    style={{
+                                                        cursor: vllmServeLoading[instance.instance_id] ? 'not-allowed' : 'pointer',
+                                                        opacity: vllmServeLoading[instance.instance_id] ? 0.6 : 1
+                                                    }}
                                                 >
-                                                    시작
+                                                    {vllmServeLoading[instance.instance_id] ? (
+                                                        <>
+                                                            <FiRefreshCw className={`${styles.icon} ${styles.spinning}`} />
+                                                            시작 중...
+                                                        </>
+                                                    ) : (
+                                                        '시작'
+                                                    )}
                                                 </button>
                                             </div>
                                         </div>

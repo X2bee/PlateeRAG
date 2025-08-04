@@ -611,3 +611,98 @@ export const deleteWorkflowPerformance = async (workflowName, workflowId) => {
         throw error;
     }
 };
+
+
+/**
+ * 워크플로우를 배치로 실행합니다.
+ * @param {Object} batchRequest - 배치 실행 요청 객체
+ * @param {string} batchRequest.workflowName - 워크플로우 이름
+ * @param {string} batchRequest.workflowId - 워크플로우 ID
+ * @param {Array<Object>} batchRequest.testCases - 테스트 케이스 배열
+ * @param {number} batchRequest.batchSize - 배치 크기 (기본값: 5)
+ * @param {string} batchRequest.interactionId - 상호작용 ID (기본값: 'batch_test')
+ * @param {Array<string>|null} batchRequest.selectedCollections - 선택된 컬렉션
+ * @returns {Promise<Object>} 배치 실행 결과
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const executeWorkflowBatch = async (batchRequest) => {
+    try {
+        devLog.log('배치 실행 시작:', {
+            workflowName: batchRequest.workflowName,
+            workflowId: batchRequest.workflowId,
+            testCaseCount: batchRequest.testCases.length,
+            batchSize: batchRequest.batchSize
+        });
+
+        // 요청 데이터 구성 (백엔드 API 스펙에 맞춤)
+        const requestBody = {
+            workflow_name: batchRequest.workflowName,
+            workflow_id: batchRequest.workflowId,
+            test_cases: batchRequest.testCases.map(testCase => ({
+                id: testCase.id,
+                input: testCase.input,
+                expected_output: testCase.expectedOutput || null
+            })),
+            batch_size: batchRequest.batchSize || 5, // 여기서 기본값 수정
+            interaction_id: batchRequest.interactionId || 'batch_test',
+            selected_collections: batchRequest.selectedCollections || null
+        };
+
+        // API 호출
+        const response = await apiClient(`${API_BASE_URL}/api/workflow/execute/batch`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        devLog.log('배치 실행 완료:', {
+            batchId: result.batch_id,
+            totalCount: result.total_count,
+            successCount: result.success_count,
+            errorCount: result.error_count,
+            totalExecutionTime: `${result.total_execution_time}ms`
+        });
+
+        return result;
+    } catch (error) {
+        devLog.error('배치 실행 실패:', error);
+        throw error;
+    }
+};
+
+/**
+ * 배치 실행 상태를 조회합니다. (선택사항)
+ * @param {string} batchId - 배치 ID
+ * @returns {Promise<Object>} 배치 상태 정보
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const getBatchStatus = async (batchId) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/workflow/batch/status/${batchId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        devLog.error('배치 상태 조회 실패:', error);
+        throw error;
+    }
+};

@@ -3,8 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import styles from '@/app/main/assets/BatchTester.module.scss';
 import { FiUpload, FiDownload, FiPlay, FiFileText, FiTable, FiCheckCircle, FiXCircle, FiClock, FiRefreshCw, FiTrash2 } from 'react-icons/fi';
 
-import { executeWorkflowById } from '@/app/api/workflowAPI'; // 실제 API 함수 import
-
+import { executeWorkflowById, executeWorkflowBatch } from '@/app/api/workflowAPI';
 
 // XLSX 라이브러리 동적 로드
 declare global {
@@ -31,10 +30,30 @@ interface TestData {
     id: number;
     input: string;
     expectedOutput?: string;
-    actualOutput?: string;
+    actualOutput?: string | null; // null 허용
     status?: 'pending' | 'running' | 'success' | 'error';
     executionTime?: number;
-    error?: string;
+    error?: string | null; // null 허용
+}
+
+// 배치 API 응답 타입 정의
+interface BatchTestResult {
+    id: number;
+    input: string;
+    expected_output?: string | null;
+    actual_output?: string | null;
+    status: 'success' | 'error';
+    execution_time?: number;
+    error?: string | null;
+}
+
+interface BatchExecuteResponse {
+    batch_id: string;
+    total_count: number;
+    success_count: number;
+    error_count: number;
+    total_execution_time: number;
+    results: BatchTestResult[];
 }
 
 const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
@@ -43,7 +62,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
     const [isXLSXLoaded, setIsXLSXLoaded] = useState(false);
     const [isRunning, setIsRunning] = useState(false);
     const [progress, setProgress] = useState(0);
-    const [batchSize, setBatchSize] = useState(5); // 동시 실행 개수
+    const [batchSize, setBatchSize] = useState(5);
     const [completedCount, setCompletedCount] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -202,93 +221,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
         }
     };
 
-    // 개별 테스트 실행 함수
-    const runSingleTest = async (testItem: TestData, index: number): Promise<void> => {
-        // 실행 중 상태로 업데이트
-        setTestData(prev => prev.map((item, i) => 
-            i === index ? { ...item, status: 'running' as const } : item
-        ));
-
-        const startTime = Date.now();
-
-        try {
-            const workflowName = workflow!.workflow_name.replace('.json', '');
-            
-            console.log(`Test ${testItem.id} 실행:`, {
-                workflowName,
-                workflowId: workflow!.workflow_id,
-                input: testItem.input,
-                inputLength: testItem.input.length
-            });
-            
-            // 실제 API 호출
-            const result: any = await executeWorkflowById(
-                workflowName,
-                workflow!.workflow_id,
-                testItem.input,
-                'default',
-                null
-            );
-            
-            const executionTime = Date.now() - startTime;
-            
-            console.log(`Test ${testItem.id} 성공:`, {
-                result,
-                executionTime: `${executionTime}ms`
-            });
-            
-            let actualOutput: string;
-            if (result.outputs) {
-                if (Array.isArray(result.outputs)) {
-                    actualOutput = result.outputs.length > 0 ? String(result.outputs[0]) : '결과 없음';
-                } else {
-                    actualOutput = String(result.outputs);
-                }
-            } else if (result.message) {
-                actualOutput = result.message;
-            } else {
-                actualOutput = '결과 없음';
-            }
-            
-            // 성공 상태로 업데이트
-            setTestData(prev => prev.map((item, i) => 
-                i === index ? { 
-                    ...item, 
-                    status: 'success' as const,
-                    actualOutput: actualOutput,
-                    executionTime
-                } : item
-            ));
-            
-        } catch (error) {
-            const executionTime = Date.now() - startTime;
-            
-            console.error(`Test ${testItem.id} 실패:`, {
-                error,
-                errorMessage: error instanceof Error ? error.message : '알 수 없는 오류',
-                input: testItem.input
-            });
-            
-            // 실패 상태로 업데이트
-            setTestData(prev => prev.map((item, i) => 
-                i === index ? { 
-                    ...item, 
-                    status: 'error' as const,
-                    error: error instanceof Error ? error.message : '알 수 없는 오류',
-                    executionTime
-                } : item
-            ));
-        }
-
-        // 완료된 개수 업데이트
-        setCompletedCount(prev => {
-            const newCount = prev + 1;
-            setProgress((newCount / testData.length) * 100);
-            return newCount;
-        });
-    };
-
-    // 배치 병렬 실행 함수
+    // 배치 테스트 실행 - 서버에서 배치 처리
     const runBatchTest = async () => {
         if (!workflow || testData.length === 0) {
             alert('워크플로우를 선택하고 테스트 데이터를 업로드해주세요.');
@@ -299,7 +232,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
         setProgress(0);
         setCompletedCount(0);
 
-        console.log('배치 테스트 시작:', {
+        console.log('서버 배치 테스트 시작:', {
             workflow: workflow.workflow_name,
             workflowId: workflow.workflow_id,
             testDataLength: testData.length,
@@ -310,31 +243,117 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
         setTestData(prev => prev.map(item => ({ ...item, status: 'pending' as const })));
 
         try {
-            // 배치 단위로 병렬 실행
-            for (let i = 0; i < testData.length; i += batchSize) {
-                const batch = testData.slice(i, i + batchSize);
-                const batchPromises = batch.map((testItem, batchIndex) => 
-                    runSingleTest(testItem, i + batchIndex)
-                );
-                
-                console.log(`배치 ${Math.floor(i / batchSize) + 1} 시작: ${batch.length}개 테스트 병렬 실행`);
-                
-                // 현재 배치의 모든 테스트가 완료될 때까지 대기
-                await Promise.all(batchPromises);
-                
-                console.log(`배치 ${Math.floor(i / batchSize) + 1} 완료`);
-                
-                // 다음 배치 실행 전 잠시 대기 (API 부하 방지)
-                if (i + batchSize < testData.length) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
+            // 배치 실행 요청 준비
+            const batchRequest = {
+                workflowName: workflow.workflow_name.replace('.json', ''),
+                workflowId: workflow.workflow_id,
+                testCases: testData.map(item => ({
+                    id: item.id,
+                    input: item.input,
+                    expectedOutput: item.expectedOutput || null
+                })),
+                batchSize: batchSize,
+                interactionId: 'batch_test',
+                selectedCollections: null
+            };
+
+            // 실행 중 상태 표시
+            setTestData(prev => prev.map(item => ({ ...item, status: 'running' as const })));
+
+            console.log('서버로 배치 요청 전송 중...', {
+                requestDetails: {
+                    testCases: batchRequest.testCases.length,
+                    batchSize: batchRequest.batchSize,
+                    workflowName: batchRequest.workflowName
                 }
+            });
+
+            // 서버에서 배치 실행 - 타입 단언 사용
+            
+            const batchResult = await executeWorkflowBatch(batchRequest) as BatchExecuteResponse;
+
+            console.log('배치 실행 완료:', {
+                batchId: batchResult.batch_id,
+                총개수: batchResult.total_count,
+                성공: batchResult.success_count,
+                실패: batchResult.error_count,
+                총실행시간: `${batchResult.total_execution_time}ms`,
+                평균실행시간: `${(batchResult.total_execution_time / batchResult.total_count).toFixed(2)}ms`
+            });
+
+            // 결과를 testData에 매핑
+            const updatedTestData: TestData[] = testData.map(item => {
+                const result = batchResult.results.find((r: BatchTestResult) => r.id === item.id);
+                if (result) {
+                    return {
+                        ...item,
+                        status: result.status as 'success' | 'error',
+                        actualOutput: result.actual_output || '결과 없음',
+                        executionTime: result.execution_time || 0,
+                        error: result.error || null
+                    };
+                }
+                return { 
+                    ...item, 
+                    status: 'error' as const, 
+                    error: '서버에서 결과를 찾을 수 없습니다.',
+                    actualOutput: null,
+                    executionTime: 0
+                };
+            });
+
+            setTestData(updatedTestData);
+            setCompletedCount(batchResult.total_count);
+            setProgress(100);
+
+            // 성공/실패 통계 알림
+            const message = `배치 테스트 완료!\n\n` +
+                           `결과 요약:\n` +
+                           `• 총 ${batchResult.total_count}개 테스트\n` +
+                           `• 성공: ${batchResult.success_count}개\n` +
+                           `• 실패: ${batchResult.error_count}개\n` +
+                           `• 총 소요시간: ${(batchResult.total_execution_time / 1000).toFixed(2)}초\n` +
+                           `• 평균 실행시간: ${(batchResult.total_execution_time / batchResult.total_count).toFixed(2)}ms`;
+            
+            console.log(message);
+            
+            // 성공률에 따른 알림
+            const successRate = (batchResult.success_count / batchResult.total_count) * 100;
+            if (successRate === 100) {
+                alert(message + '\n\n🌟 모든 테스트가 성공했습니다!');
+            } else if (successRate >= 80) {
+                alert(message + '\n\n✨ 대부분의 테스트가 성공했습니다.');
+            } else if (batchResult.error_count > 0) {
+                alert(message + '\n\n⚠️ 일부 테스트가 실패했습니다. 결과를 확인해주세요.');
             }
-        } catch (error) {
+
+        } catch (error: unknown) {
             console.error('배치 테스트 중 오류:', error);
+            
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
+            
+            // 에러 발생 시 모든 테스트를 에러 상태로 설정
+            setTestData(prev => prev.map(item => ({ 
+                ...item, 
+                status: 'error' as const, 
+                error: errorMessage,
+                actualOutput: null,
+                executionTime: 0
+            })));
+            
+            // 상세한 에러 메시지 제공
+            const detailedErrorMessage = `❌ 배치 테스트 실행 중 오류가 발생했습니다.\n\n` +
+                                       `🔍 오류 내용:\n${errorMessage}\n\n` +
+                                       `💡 해결 방법:\n` +
+                                       `• 워크플로우가 올바르게 설정되어 있는지 확인\n` +
+                                       `• 네트워크 연결 상태 확인\n` +
+                                       `• 서버 로그 확인`;
+            
+            alert(detailedErrorMessage);
         }
 
         setIsRunning(false);
-        console.log('배치 테스트 완료');
+        console.log('배치 테스트 프로세스 완료');
     };
 
     const formatExecutionTime = (ms?: number): string => {
@@ -411,12 +430,13 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                             value={batchSize} 
                             onChange={(e) => setBatchSize(Number(e.target.value))}
                             disabled={isRunning}
+                            title="서버에서 동시에 처리할 테스트 개수입니다. 높을수록 빠르지만 서버 부하가 증가합니다."
                         >
-                            <option value={1}>1개</option>
-                            <option value={3}>3개</option>
-                            <option value={5}>5개</option>
-                            <option value={10}>10개</option>
-                            <option value={20}>20개</option>
+                            <option value={1}>1개 (안전)</option>
+                            <option value={3}>3개 (권장)</option>
+                            <option value={5}>5개 (기본)</option>
+                            <option value={10}>10개 (고성능)</option>
+                            <option value={20}>20개 (최대)</option>
                         </select>
                     </div>
                     
@@ -432,9 +452,10 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                         onClick={runBatchTest}
                         disabled={!testData.length || isRunning}
                         className={`${styles.btn} ${styles.run}`}
+                        title="서버에서 모든 테스트를 배치로 처리합니다. 개별 API 호출 대신 단일 요청으로 처리하여 성능을 향상시킵니다."
                     >
                         {isRunning ? <FiRefreshCw className={styles.spinning} /> : <FiPlay />}
-                        {isRunning ? '실행 중...' : '배치 실행'}
+                        {isRunning ? '서버에서 처리 중...' : '배치 실행 (서버)'}
                     </button>
                     <button 
                         onClick={downloadResults}
@@ -473,14 +494,20 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             {isRunning && (
                 <div className={styles.progressContainer}>
                     <div className={styles.progressHeader}>
-                        <span>테스트 진행률: {Math.round(progress)}%</span>
-                        <span>{completedCount} / {testData.length} 완료</span>
+                        <span>🚀 서버에서 배치 처리 중...</span>
+                        <span className={styles.progressStats}>
+                            {completedCount} / {testData.length} 완료 ({Math.round(progress)}%)
+                        </span>
                     </div>
                     <div className={styles.progress}>
                         <div 
                             className={styles.progress__fill}
                             style={{ '--progress': `${progress}%` } as React.CSSProperties}
                         />
+                    </div>
+                    <div className={styles.progressDetails}>
+                        <span>배치 크기: {batchSize}개씩 병렬 처리</span>
+                        <span>예상 소요시간: 계산 중...</span>
                     </div>
                 </div>
             )}
@@ -489,20 +516,67 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             {testData.length > 0 ? (
                 <div className={styles.resultsContainer}>
                     <div className={styles.resultsHeader}>
-                        <h4>테스트 결과</h4>
+                        <h4>📊 테스트 결과</h4>
                         <div className={styles.resultsSummary}>
-                            <span className={styles.total}>총 {testData.length}개</span>
+                            <span className={styles.total}>
+                                📝 총 {testData.length}개
+                            </span>
                             <span className={styles.success}>
-                                성공 {testData.filter(item => item.status === 'success').length}개
+                                ✅ 성공 {testData.filter(item => item.status === 'success').length}개
+                                {testData.length > 0 && (
+                                    <small>({((testData.filter(item => item.status === 'success').length / testData.length) * 100).toFixed(1)}%)</small>
+                                )}
                             </span>
                             <span className={styles.error}>
-                                실패 {testData.filter(item => item.status === 'error').length}개
+                                ❌ 실패 {testData.filter(item => item.status === 'error').length}개
                             </span>
                             <span className={styles.pending}>
-                                대기 {testData.filter(item => item.status === 'pending').length}개
+                                ⏳ 대기 {testData.filter(item => item.status === 'pending').length}개
+                            </span>
+                            <span className={styles.running}>
+                                🔄 실행중 {testData.filter(item => item.status === 'running').length}개
                             </span>
                         </div>
                     </div>
+
+                    {/* 성능 통계 */}
+                    {testData.some(item => item.executionTime && item.executionTime > 0) && (
+                        <div className={styles.performanceStats}>
+                            <h5>⚡ 성능 통계</h5>
+                            <div className={styles.statsGrid}>
+                                <div className={styles.statItem}>
+                                    <span className={styles.statLabel}>평균 실행시간:</span>
+                                    <span className={styles.statValue}>
+                                        {(() => {
+                                            const completedTests = testData.filter(item => item.executionTime && item.executionTime > 0);
+                                            const avgTime = completedTests.length > 0 
+                                                ? completedTests.reduce((sum, item) => sum + (item.executionTime || 0), 0) / completedTests.length
+                                                : 0;
+                                            return formatExecutionTime(avgTime);
+                                        })()}
+                                    </span>
+                                </div>
+                                <div className={styles.statItem}>
+                                    <span className={styles.statLabel}>최고 속도:</span>
+                                    <span className={styles.statValue}>
+                                        {(() => {
+                                            const times = testData.filter(item => item.executionTime && item.executionTime > 0).map(item => item.executionTime || 0);
+                                            return times.length > 0 ? formatExecutionTime(Math.min(...times)) : '-';
+                                        })()}
+                                    </span>
+                                </div>
+                                <div className={styles.statItem}>
+                                    <span className={styles.statLabel}>최저 속도:</span>
+                                    <span className={styles.statValue}>
+                                        {(() => {
+                                            const times = testData.filter(item => item.executionTime && item.executionTime > 0).map(item => item.executionTime || 0);
+                                            return times.length > 0 ? formatExecutionTime(Math.max(...times)) : '-';
+                                        })()}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     
                     <div className={styles.resultsTable}>
                         <div className={styles.results__header}>
@@ -527,7 +601,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                                             : '-'
                                         }
                                     </div>
-                                    <div className={styles.results__actual} title={item.actualOutput}>
+                                    <div className={styles.results__actual} title={item.actualOutput || undefined}>
                                         {item.actualOutput ? 
                                             (item.actualOutput.length > 50 ? `${item.actualOutput.substring(0, 50)}...` : item.actualOutput)
                                             : (item.status === 'running' ? 
@@ -559,29 +633,47 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                 </div>
             ) : (
                 <div className={styles.emptyState}>
-                    <h4>테스트 데이터를 업로드해주세요</h4>
-                    <p>CSV 또는 Excel 파일을 업로드하여 배치 테스트를 시작하세요.</p>
+                    
+                    <h4>배치 테스트를 시작해보세요</h4>
+                    <p>CSV 또는 Excel 파일을 업로드하여 여러 테스트를 한 번에 실행할 수 있습니다.</p>
+                    
+                    
+                    
                     <div className={styles.fileFormatInfo}>
-                        <h5>파일 형식 안내</h5>
-                        <ul>
-                            <li><strong>첫 번째 열:</strong> 입력 데이터 (필수)</li>
-                            <li><strong>두 번째 열:</strong> 예상 출력 (선택사항)</li>
-                            <li><strong>첫 번째 행:</strong> 헤더 (선택사항)</li>
-                        </ul>
+                        <h5>📄 지원 파일 형식</h5>
+                        <div className={styles.formatList}>
+                            <div className={styles.formatItem}>
+                                <strong>첫 번째 열:</strong> 입력 데이터 (필수)
+                            </div>
+                            <div className={styles.formatItem}>
+                                <strong>두 번째 열:</strong> 예상 출력 (선택사항)
+                            </div>
+                            <div className={styles.formatItem}>
+                                <strong>첫 번째 행:</strong> 헤더 (자동 감지)
+                            </div>
+                        </div>
                         <div className={styles.supportedFormats}>
                             <span>지원 형식:</span>
-                            <span>.csv</span>
-                            <span>.xlsx</span>
-                            <span>.xls</span>
+                            <span className={styles.formatBadge}>.csv</span>
+                            <span className={styles.formatBadge}>.xlsx</span>
+                            <span className={styles.formatBadge}>.xls</span>
                         </div>
                     </div>
-                    <button 
-                        onClick={() => fileInputRef.current?.click()}
-                        className={`${styles.btn} ${styles.upload}`}
-                    >
-                        <FiUpload />
-                        파일 선택하기
-                    </button>
+                    
+                    
+                    
+                    <div className={styles.quickStart}>
+                        <details className={styles.quickStartDetails}>
+                            <summary>💡 빠른 시작 가이드</summary>
+                            <ol className={styles.quickStartSteps}>
+                                <li>CSV/Excel 파일 준비 (첫 번째 열에 입력 데이터)</li>
+                                <li>위의 "테스트 파일 선택하기" 버튼 클릭</li>
+                                <li>배치 크기 설정 (권장: 3-5개)</li>
+                                <li>"배치 실행 (서버)" 버튼 클릭</li>
+                                <li>결과 확인 및 다운로드</li>
+                            </ol>
+                        </details>
+                    </div>
                 </div>
             )}
         </div>
