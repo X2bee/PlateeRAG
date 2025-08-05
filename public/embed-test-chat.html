@@ -15,14 +15,14 @@
     <p>이 페이지는 커스텀 임베드 스크립트의 동작을 확인하기 위한 테스트 페이지입니다.</p>
     <p>오른쪽 아래에 팝업 버튼이 나타나야 합니다.</p>
 
-    <p>개발자 도구 콘솔</p>
-    <p>const chat = await import ("{apiHost}/chatbot-embed.js");</p>
-    <p>chat.Chatbot.init({userId: userId,
-        apiHost: apiHost,
-        workflowName: workflowName
-    });</p>  
-    
-
+<script type="module">
+    import {Chatbot} from "http://localhost:3000/chatbot-embed.js"
+    Chatbot.init({
+        userId: "7",
+        apiHost: "http://localhost:3000",
+        workflowName: "Workflow3"
+    })
+</script>
 </body>
 </html>
 </body>
