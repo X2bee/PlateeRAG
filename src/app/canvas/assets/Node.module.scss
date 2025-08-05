@@ -271,6 +271,18 @@
     }
 }
 
+.inputWrapper {
+    position: relative;
+    flex-grow: 1;
+    max-width: 60%;
+    text-align: right;
+}
+.inputWrapper .paramInput {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
 .paramValue {
     color: #111827;
     font-weight: 500;
@@ -280,7 +292,6 @@
     font-size: 0.8rem;
 }
 
-// --- [새로운 스타일] 파라미터 입력 필드 ---
 .paramInput {
     flex-grow: 1;
     max-width: 60%;
@@ -362,5 +373,46 @@
 
     span {
         user-select: none;
+    }
+}
+
+.inputError {
+    border-color: #d9534f;
+}
+
+.inputError:focus {
+    border-color: #d9534f;
+}
+
+.errorMessage {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 10;
+    margin-top: 4px;
+    width: 100%;
+    padding: 10px 12px;
+    background-color: rgba(45, 45, 45, 0.95);
+    color: white;
+    font-size: 13px;
+    border-radius: 5px;
+    line-height: 1.4;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    white-space: pre-wrap; 
+
+    text-align: start;
+
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
