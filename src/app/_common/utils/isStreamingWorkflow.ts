@@ -7,10 +7,14 @@ import { Workflow } from "@/app/chat/components/types";
  * @param {object} workflowData - 노드 목록을 포함하는 워크플로우 데이터.
  * @returns {boolean} 스트리밍 endnode가 있으면 true, 그렇지 않으면 false.
  */
-export const isStreamingWorkflow = async (workflowId: string) => {
+export const isStreamingWorkflow = async (workflowId: string, handleSave?:() => void) => {
     const workflowData: WorkflowData = await loadWorkflow(workflowId);
     if (!workflowData || !Array.isArray(workflowData.nodes)) {
         return false;
+    }
+
+    if(handleSave){
+        await handleSave();
     }
 
     const endNodes = workflowData.nodes.filter(

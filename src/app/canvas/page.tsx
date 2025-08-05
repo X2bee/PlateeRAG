@@ -774,11 +774,6 @@ function CanvasPageContent() {
             workflowData = { ...workflowData, workflow_id: workflowId };
             workflowData = { ...workflowData, workflow_name: workflowName };
 
-            const isworkflow = await handleIsworkflow(workflowName);
-            if (!isworkflow) {
-                await handleSave()
-            }
-
             const isStreaming = await isStreamingWorkflow(workflowName);
 
             if (isStreaming) {
