@@ -1,14 +1,14 @@
 interface InitParams {
-    chatflowid: string;
+    userId: string;
     apiHost: string;
     workflowName?: string;
 }
 
 export const Chatbot = {
     init: (params: InitParams) => {
-        const { chatflowid, apiHost, workflowName } = params;
+        const { userId, apiHost, workflowName } = params;
 
-        let iframeSrc = `${apiHost}/chatbot/embed/${chatflowid}`;
+        let iframeSrc = `${apiHost}/chatbot/embed/${userId}`;
         if (workflowName) {
             iframeSrc += `?workflowName=${encodeURIComponent(workflowName)}`;
         }
@@ -72,12 +72,12 @@ export const Chatbot = {
     },
 
     initFull: (params: InitParams) => {
-        const { chatflowid, apiHost, workflowName } = params;
+        const { userId, apiHost, workflowName } = params;
         const targetElement = document.querySelector('fullchatbot');
 
 
         if (targetElement) {
-            let iframeSrc = `${apiHost}/chatbot/embed/${chatflowid}`;
+            let iframeSrc = `${apiHost}/chatbot/embed/${userId}`;
             if (workflowName) {
                 iframeSrc += `?workflowName=${encodeURIComponent(workflowName)}`;
             }

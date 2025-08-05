@@ -1,4 +1,4 @@
-var l={init:r=>{let{chatflowid:s,apiHost:c,workflowName:e}=r,o=`${c}/chatbot/embed/${s}`;e&&(o+=`?workflowName=${encodeURIComponent(e)}`);let a=`
+var l={init:i=>{let{userId:s,apiHost:c,workflowName:t}=i,o=`${c}/chatbot/embed/${s}`;t&&(o+=`?workflowName=${encodeURIComponent(t)}`);let r=`
             .chatbot-popup-button {
                 position: fixed;
                 bottom: 20px;
@@ -21,7 +21,7 @@ var l={init:r=>{let{chatflowid:s,apiHost:c,workflowName:e}=r,o=`${c}/chatbot/emb
             .chatbot-popup-button:hover {
                 transform: scale(1.1);
             }
-        `,t=`
+        `,e=`
             .chatbot-iframe {
                 position: fixed;
                 bottom: 90px;
@@ -34,4 +34,4 @@ var l={init:r=>{let{chatflowid:s,apiHost:c,workflowName:e}=r,o=`${c}/chatbot/emb
                 display: none;
                 z-index: 9999;
             }
-        `,d=document.createElement("style");d.innerHTML=a+t,document.head.appendChild(d);let i=document.createElement("button");i.className="chatbot-popup-button",i.innerHTML="\u{1F4AC}",document.body.appendChild(i);let n=document.createElement("iframe");n.className="chatbot-iframe",n.src=o,document.body.appendChild(n),i.addEventListener("click",()=>{n.style.display=n.style.display==="block"?"none":"block"})},initFull:r=>{let{chatflowid:s,apiHost:c,workflowName:e}=r,o=document.querySelector("fullchatbot");if(o){let a=`${c}/chatbot/embed/${s}`;e&&(a+=`?workflowName=${encodeURIComponent(e)}`);let t=document.createElement("iframe");t.src=a,t.style.width="100%",t.style.height="100%",t.style.border="none",o.replaceWith(t)}}};window.Chatbot=l;export{l as Chatbot};
+        `,d=document.createElement("style");d.innerHTML=r+e,document.head.appendChild(d);let a=document.createElement("button");a.className="chatbot-popup-button",a.innerHTML="\u{1F4AC}",document.body.appendChild(a);let n=document.createElement("iframe");n.className="chatbot-iframe",n.src=o,document.body.appendChild(n),a.addEventListener("click",()=>{n.style.display=n.style.display==="block"?"none":"block"})},initFull:i=>{let{userId:s,apiHost:c,workflowName:t}=i,o=document.querySelector("fullchatbot");if(o){let r=`${c}/chatbot/embed/${s}`;t&&(r+=`?workflowName=${encodeURIComponent(t)}`);let e=document.createElement("iframe");e.src=r,e.style.width="100%",e.style.height="100%",e.style.border="none",o.replaceWith(e)}}};window.Chatbot=l;export{l as Chatbot};

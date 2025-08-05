@@ -67,7 +67,9 @@ const EmbedChatContent = () => {
                 onChatStarted={() => { } }
                 hideBackButton={true}
                 existingChatData={undefined} 
-                workflow={workflow}            />
+                workflow={workflow}            
+                user_id = {chatId}
+                />
         </div>
     );
 };

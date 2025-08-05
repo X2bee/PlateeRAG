@@ -36,7 +36,8 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
                 workflow_id: workflow.id,
                 input_data: "안녕하세요",
                 interaction_id: "default",
-                selected_collection: "string"
+                selected_collection: "string",
+                user_id: user_id
             }, null, 2);
             setCurlPayload(defaultPayload);
 
@@ -105,7 +106,7 @@ query({
     const popupHtmlCode = `<script type="module">
     import {Chatbot} from "${baseUrl}/chatbot-embed.js"
     Chatbot.init({
-        userid: "${userId}",
+        userId: "${userId}",
         apiHost: "${baseUrl}",
         workflowName: "${workflowName}"
     })
@@ -115,7 +116,7 @@ query({
 <script type="module">
     import {Chatbot} from "${baseUrl}/chatbot-embed.js"
     Chatbot.initFull({
-        userid: "${userId}",
+        userId: "${userId}",
         apiHost: "${baseUrl}",
         workflowName: "${workflowName}"
     })
