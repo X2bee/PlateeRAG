@@ -165,7 +165,7 @@ const Node: React.FC<NodeProps> = ({
         } else {
             setError('');
         }
-        
+
         setToolNameValue(processedValue);
     };
 
