@@ -5,6 +5,7 @@ import { FiPlay, FiSettings, FiDatabase, FiCpu, FiBox } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { startTraining } from '@/app/api/trainAPI';
 import { devLog } from '@/app/_common/utils/logger';
+import { handleGemma3Training, handleQwen3Training } from './sampleHandler';
 import styles from '@/app/model/assets/Train.module.scss';
 
 const TrainPageContent: React.FC = () => {
@@ -43,7 +44,7 @@ const TrainPageContent: React.FC = () => {
         model_load_method: 'huggingface', // 'huggingface' or 'minio'
         model_name_or_path: '',
         tokenizer_name: '',
-        language_model_class: 'gemma3',
+        language_model_class: '',
         tokenizer_max_len: 256,
         minio_model_load_bucket: 'models',
         use_attn_implementation: true,
@@ -172,9 +173,9 @@ const TrainPageContent: React.FC = () => {
                                             onChange={(e) => handleBasicConfigChange('training_method', e.target.value)}
                                             className={styles.formSelect}
                                         >
-                                            <option value="cls">Classification</option>
                                             <option value="mlm">Masked Language Model</option>
-                                            <option value="st">Sentence Transformer</option>
+                                            <option value="clm">Causal Language Model</option>
+                                            <option value="sft">Supervised Fine Tune (Instruction)</option>
                                         </select>
                                     </div>
                                     <div className={styles.formField}>
@@ -492,23 +493,43 @@ const TrainPageContent: React.FC = () => {
                                     <div className={styles.formGrid} style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
                                         <div className={styles.formField}>
                                             <label className={`${styles.formLabel} ${styles.required}`}>Huggingface Repository</label>
-                                            <input
-                                                type="text"
-                                                value={modelConfig.model_name_or_path}
-                                                onChange={(e) => handleModelConfigChange('model_name_or_path', e.target.value)}
-                                                className={styles.formInput}
-                                                placeholder="예: models/my-model"
-                                            />
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <input
+                                                    type="text"
+                                                    value={modelConfig.model_name_or_path}
+                                                    onChange={(e) => handleModelConfigChange('model_name_or_path', e.target.value)}
+                                                    className={styles.formInput}
+                                                    placeholder="예: models/my-model"
+                                                    style={{ flex: 1 }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleLoadModel}
+                                                    className={`${styles.button} ${styles.secondary}`}
+                                                >
+                                                    불러오기
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className={styles.formField}>
                                             <label className={styles.formLabel}>Reference Model Repository</label>
-                                            <input
-                                                type="text"
-                                                value={modelConfig.ref_model_path}
-                                                onChange={(e) => handleModelConfigChange('ref_model_path', e.target.value)}
-                                                className={styles.formInput}
-                                                placeholder="[Optional] 참조 모델 경로"
-                                            />
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <input
+                                                    type="text"
+                                                    value={modelConfig.ref_model_path}
+                                                    onChange={(e) => handleModelConfigChange('ref_model_path', e.target.value)}
+                                                    className={styles.formInput}
+                                                    placeholder="[Optional] 참조 모델 경로"
+                                                    style={{ flex: 1 }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleLoadRefModel}
+                                                    className={`${styles.button} ${styles.secondary}`}
+                                                >
+                                                    불러오기
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className={styles.formField}>
                                             <label className={styles.formLabel}>Architecture Class</label>
@@ -606,23 +627,43 @@ const TrainPageContent: React.FC = () => {
                                     <div className={styles.formGrid} style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
                                         <div className={styles.formField}>
                                             <label className={`${styles.formLabel} ${styles.required}`}>MinIO 모델 경로</label>
-                                            <input
-                                                type="text"
-                                                value={modelConfig.model_name_or_path}
-                                                onChange={(e) => handleModelConfigChange('model_name_or_path', e.target.value)}
-                                                className={styles.formInput}
-                                                placeholder="예: models/my-model"
-                                            />
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <input
+                                                    type="text"
+                                                    value={modelConfig.model_name_or_path}
+                                                    onChange={(e) => handleModelConfigChange('model_name_or_path', e.target.value)}
+                                                    className={styles.formInput}
+                                                    placeholder="예: models/my-model"
+                                                    style={{ flex: 1 }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleLoadModel}
+                                                    className={`${styles.button} ${styles.secondary}`}
+                                                >
+                                                    불러오기
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className={styles.formField}>
                                             <label className={styles.formLabel}>Reference Model 경로</label>
-                                            <input
-                                                type="text"
-                                                value={modelConfig.ref_model_path}
-                                                onChange={(e) => handleModelConfigChange('ref_model_path', e.target.value)}
-                                                className={styles.formInput}
-                                                placeholder="[Optional] 참조 모델 경로"
-                                            />
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <input
+                                                    type="text"
+                                                    value={modelConfig.ref_model_path}
+                                                    onChange={(e) => handleModelConfigChange('ref_model_path', e.target.value)}
+                                                    className={styles.formInput}
+                                                    placeholder="[Optional] 참조 모델 경로"
+                                                    style={{ flex: 1 }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleLoadRefModel}
+                                                    className={`${styles.button} ${styles.secondary}`}
+                                                >
+                                                    불러오기
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className={styles.formField}>
                                             <label className={styles.formLabel}>Architecture Class</label>
@@ -1696,7 +1737,7 @@ const TrainPageContent: React.FC = () => {
                                     <label>추가 설정</label>
                                 </div>
                                 <div className={styles.formGrid}>
-                                    <div className={styles.formField}>
+                                    {/* <div className={styles.formField}>
                                         <label className={styles.formLabel}>라벨 수</label>
                                         <input
                                             type="number"
@@ -1706,8 +1747,8 @@ const TrainPageContent: React.FC = () => {
                                             min="1"
                                             placeholder="17"
                                         />
-                                    </div>
-                                    <div className={styles.formField}>
+                                    </div> */}
+                                    {/* <div className={styles.formField}>
                                         <label className={styles.formLabel}>MLM 확률</label>
                                         <input
                                             type="number"
@@ -1719,7 +1760,7 @@ const TrainPageContent: React.FC = () => {
                                             max="1"
                                             placeholder="0.2"
                                         />
-                                    </div>
+                                    </div> */}
                                 </div>
                             </div>
                         </div>
@@ -1784,7 +1825,19 @@ const TrainPageContent: React.FC = () => {
 
             return newConfig;
         });
-    }; const handleLoadTrainData = () => {
+    };
+
+    const handleLoadModel = () => {
+        // 추후 API 연결 예정
+        toast.success('모델 불러오기 기능은 개발 중입니다.');
+    };
+
+    const handleLoadRefModel = () => {
+        // 추후 API 연결 예정
+        toast.success('참조 모델 불러오기 기능은 개발 중입니다.');
+    };
+
+    const handleLoadTrainData = () => {
         // 추후 API 연결 예정
         toast.success('훈련 데이터 불러오기 기능은 개발 중입니다.');
     };
@@ -1884,6 +1937,28 @@ const TrainPageContent: React.FC = () => {
 
                     {/* 훈련 시작 버튼 */}
                     <div className={styles.formActions}>
+                        <div className={styles.sampleWrapper}>
+                            <button
+                                onClick={() => handleGemma3Training(setBasicConfig, setModelConfig, setDataConfig, setTrainerConfig)}
+                                disabled={isTraining}
+                                className={`${styles.button} ${styles.third} ${styles.large}`}
+                            >
+                                <>
+                                    <FiPlay className={styles.icon} />
+                                    Train Sample: Gemma3 4b SFT
+                                </>
+                            </button>
+                            <button
+                                onClick={() => handleQwen3Training(setBasicConfig, setModelConfig, setDataConfig, setTrainerConfig)}
+                                disabled={isTraining}
+                                className={`${styles.button} ${styles.third} ${styles.large}`}
+                            >
+                                <>
+                                    <FiPlay className={styles.icon} />
+                                    Train Sample: Qwen3 4b SFT
+                                </>
+                            </button>
+                        </div>
                         <button
                             onClick={handleStartTraining}
                             disabled={isTraining}

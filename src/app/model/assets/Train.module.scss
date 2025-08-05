@@ -360,6 +360,17 @@
         }
     }
 
+    &.third {
+        background-color: $bootstrap-gray-300;
+        color: $gray-700;
+        border-color: $gray-300;
+
+        &:hover:not(:disabled) {
+            background-color: $gray-50;
+            border-color: $gray-400;
+        }
+    }
+
     &.large {
         padding: 0.875rem 2rem;
         font-size: 1rem;
@@ -369,10 +380,15 @@
 // Action buttons
 .formActions {
     display: flex;
-    justify-content: center;
-    padding-top: 2rem;
-    padding-bottom: 2rem;
+    justify-content: space-between;
+    padding: 2rem;
     border-top: 1px solid $gray-200;
+
+    .sampleWrapper {
+        display: flex;
+        flex-direction: row;
+        gap: 1rem;
+    }
 }
 
 // Loading spinner
