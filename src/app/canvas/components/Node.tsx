@@ -144,6 +144,31 @@ const Node: React.FC<NodeProps> = ({
         handleNameSubmit();
     };
 
+    const validationMessage = '최대 64자, 영문 대소문자(a-z, A-Z), 숫자(0-9), 언더스코어(_)';
+
+    const handleToolNameChange = (e: React.ChangeEvent<HTMLSelectElement> | React.ChangeEvent<HTMLInputElement>) => {
+        const originalValue = e.target.value;
+        let processedValue = originalValue;
+
+        if (processedValue.length > 64) {
+            processedValue = processedValue.substring(0, 64);
+        }
+
+        const validPattern = /^[a-zA-Z0-9_]*$/;
+
+        if (!validPattern.test(processedValue)) {
+            processedValue = processedValue.replace(/[^a-zA-Z0-9_]/g, '');
+        }
+
+        if (originalValue !== processedValue) {
+            setError(validationMessage);
+        } else {
+            setError('');
+        }
+        
+        setToolNameValue(processedValue);
+    };
+
     const numberList = ['INT', 'FLOAT', 'NUMBER', 'INTEGER'];
 
     // Separate parameters into basic/advanced
@@ -169,31 +194,6 @@ const Node: React.FC<NodeProps> = ({
             effectiveOptions = apiOptions[paramKey] || [];
             isLoadingOptions = loadingApiOptions[paramKey] || false;
         }
-
-        const validationMessage = '최대 64자, 영문 대소문자(a-z, A-Z), 숫자(0-9), 언더스코어(_)';
-
-        const handleParamValueChange = (e: React.ChangeEvent<HTMLSelectElement> | React.ChangeEvent<HTMLInputElement>) => {
-            const originalValue = e.target.value;
-            let processedValue = originalValue;
-
-            if (processedValue.length > 64) {
-                processedValue = processedValue.substring(0, 64);
-            }
-
-            const validPattern = /^[a-zA-Z0-9_]*$/;
-
-            if (!validPattern.test(processedValue)) {
-                processedValue = processedValue.replace(/[^a-zA-Z0-9_]/g, '');
-            }
-
-            if (originalValue !== processedValue) {
-                setError(validationMessage);
-            } else {
-                setError('');
-            }
-            
-            setToolNameValue(processedValue);
-        };
 
         return (
             <div key={param.id} className={`${styles.param} param`}>
@@ -315,7 +315,7 @@ const Node: React.FC<NodeProps> = ({
                         <input
                             type={'text'}
                             value={tool_name}
-                            onChange={handleParamValueChange}
+                            onChange={handleToolNameChange}
                             onMouseDown={(e) => {
                                 devLog.log('input onMouseDown');
                                 e.stopPropagation();
