@@ -146,7 +146,7 @@ const Node: React.FC<NodeProps> = ({
 
     const validationMessage = '최대 64자, 영문 대소문자(a-z, A-Z), 숫자(0-9), 언더스코어(_)';
 
-    const handleToolNameChange = (e: React.ChangeEvent<HTMLSelectElement> | React.ChangeEvent<HTMLInputElement>) => {
+    const handleToolNameChange = (e: React.ChangeEvent<HTMLSelectElement> | React.ChangeEvent<HTMLInputElement>, paramId: string) => {
         const originalValue = e.target.value;
         let processedValue = originalValue;
 
@@ -166,7 +166,22 @@ const Node: React.FC<NodeProps> = ({
             setError('');
         }
 
+
+        const value = processedValue;
+        if (value === undefined || value === null) {
+            devLog.warn('Invalid parameter value:', value);
+            return;
+        }
+
         setToolNameValue(processedValue);
+
+        devLog.log('Calling onParameterChange...');
+        if (typeof onParameterChange === 'function') {
+            onParameterChange(id, paramId, value);
+            devLog.log('onParameterChange completed successfully');
+        } else {
+            devLog.error('onParameterChange is not a function');
+        }
     };
 
     const numberList = ['INT', 'FLOAT', 'NUMBER', 'INTEGER'];
@@ -315,7 +330,7 @@ const Node: React.FC<NodeProps> = ({
                         <input
                             type={'text'}
                             value={tool_name}
-                            onChange={handleToolNameChange}
+                            onChange={(e) => handleToolNameChange(e, param.id)}
                             onMouseDown={(e) => {
                                 devLog.log('input onMouseDown');
                                 e.stopPropagation();

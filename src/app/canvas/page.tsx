@@ -17,6 +17,7 @@ import {
     listWorkflows,
     loadWorkflow,
     executeWorkflowByIdStream,
+    executeWorkflowStream,
 } from '@/app/api/workflowAPI';
 import {
     getWorkflowName,
@@ -29,6 +30,7 @@ import {
 import { devLog } from '@/app/_common/utils/logger';
 import { generateWorkflowHash } from '@/app/_common/utils/generateSha1Hash';
 import { isStreamingWorkflow } from '../_common/utils/isStreamingWorkflow';
+import { WorkflowData } from './types';
 
 function CanvasPageContent() {
     // CookieProvider의 useAuth 훅 사용
@@ -731,6 +733,15 @@ function CanvasPageContent() {
         }
     };
 
+    const handleIsworkflow = async (workflowName: string) => {
+        try {
+            const workflowData: WorkflowData = await loadWorkflow(workflowName)
+            return true
+        }
+        catch (error: any) {
+            return false;
+        }
+    }
     const handleExecute = async () => {
         if (!canvasRef.current) {
             toast.error('Canvas is not ready.');
@@ -763,18 +774,19 @@ function CanvasPageContent() {
             workflowData = { ...workflowData, workflow_id: workflowId };
             workflowData = { ...workflowData, workflow_name: workflowName };
 
+            const isworkflow = await handleIsworkflow(workflowName);
+            if (!isworkflow) {
+                await handleSave()
+            }
+
             const isStreaming = await isStreamingWorkflow(workflowName);
 
             if (isStreaming) {
                 toast.loading('Executing streaming workflow...', { id: toastId });
                 setExecutionOutput({ stream: '' });
 
-                await executeWorkflowByIdStream({
-                    workflowName,
-                    workflowId,
-                    inputData: '',
-                    interactionId : 'default',
-                    selectedCollections : null,
+                await executeWorkflowStream({
+                    workflowData,
                     onData: (chunk) => {
                         setExecutionOutput((prev: { stream: any; }) => ({ ...prev, stream: (prev.stream || '') + chunk }));
                     },
@@ -785,6 +797,7 @@ function CanvasPageContent() {
                         throw err;
                     }
                 });
+
 
             } else {
                 const result = await executeWorkflow(workflowData);
