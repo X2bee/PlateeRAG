@@ -863,6 +863,7 @@ function CanvasPageContent() {
                 onNewWorkflow={handleNewWorkflow}
                 onDeploy={workflow.id==='None' ? () => setShowDeploymentModal(false) : () => setShowDeploymentModal(true)}
                 isDeploy={isDeploy}
+                handleExecute={handleExecute}
             />
             <main className={styles.mainContent}>
                 <Canvas
