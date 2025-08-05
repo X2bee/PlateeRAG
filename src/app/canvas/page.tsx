@@ -31,6 +31,7 @@ import { devLog } from '@/app/_common/utils/logger';
 import { generateWorkflowHash } from '@/app/_common/utils/generateSha1Hash';
 import { isStreamingWorkflow } from '../_common/utils/isStreamingWorkflow';
 import { WorkflowData } from './types';
+import { getCookie } from '../_common/utils/cookieUtils';
 
 function CanvasPageContent() {
     // CookieProvider의 useAuth 훅 사용
@@ -890,6 +891,7 @@ function CanvasPageContent() {
                 isOpen={showDeploymentModal}
                 onClose={() => setShowDeploymentModal(false)}
                 workflow={workflow}
+                user_id={ getCookie('user_id') as string}
             />
             <input
                 type="file"
