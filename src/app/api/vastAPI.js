@@ -245,3 +245,69 @@ export const vllmHealthCheck = async (healthRequest) => {
         throw error;
     }
 };
+
+/**
+ * 인스턴스 상태를 SSE로 구독
+ * @param {string} instanceId - 인스턴스 ID
+ * @param {Object} callbacks - 콜백 함수들
+ * @param {Function} [callbacks.onStatusChange] - 상태 변경 시 호출
+ * @param {Function} [callbacks.onComplete] - 인스턴스 생성 완료 시 호출
+ * @param {Function} [callbacks.onError] - 에러 발생 시 호출
+ * @param {Function} [callbacks.onClose] - 연결 종료 시 호출
+ * @returns {EventSource} SSE 연결 객체
+ */
+export const subscribeToInstanceStatus = (instanceId, callbacks = {}) => {
+    const { onStatusChange, onComplete, onError, onClose } = callbacks;
+
+    // SSE 연결 생성
+    const eventSource = new EventSource(
+        `${API_BASE_URL}/api/vast/instances/${instanceId}/status-stream`,
+        { withCredentials: true }
+    );
+
+    // 메시지 수신 처리
+    eventSource.onmessage = (event) => {
+        try {
+            const data = JSON.parse(event.data);
+
+            // heartbeat 메시지는 무시
+            if (data.type === 'heartbeat') {
+                return;
+            }
+
+            devLog.log(`인스턴스 ${instanceId} 상태 업데이트:`, data);
+
+            // 상태 변경 콜백 호출
+            onStatusChange?.(data.status, data);
+
+            // 완료 상태 체크
+            if (data.status === 'running') {
+                devLog.log(`인스턴스 ${instanceId} 생성 완료`);
+                onComplete?.(data);
+                eventSource.close();
+            } else if (data.status === 'failed' || data.status === 'destroyed') {
+                devLog.error(`인스턴스 ${instanceId} 생성 실패: ${data.status}`);
+                onError?.(new Error(`인스턴스 생성 실패: ${data.status}`), data);
+                eventSource.close();
+            }
+        } catch (error) {
+            devLog.error('SSE 메시지 파싱 에러:', error);
+            onError?.(error);
+        }
+    };
+
+    // 에러 처리
+    eventSource.onerror = (error) => {
+        devLog.error(`인스턴스 ${instanceId} SSE 연결 에러:`, error);
+        onError?.(error);
+    };
+
+    // 연결 종료 처리
+    eventSource.addEventListener('close', () => {
+        devLog.log(`인스턴스 ${instanceId} SSE 연결 종료`);
+        onClose?.();
+    });
+
+    devLog.log(`인스턴스 ${instanceId} SSE 연결 시작`);
+    return eventSource;
+};
