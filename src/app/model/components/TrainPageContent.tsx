@@ -1866,9 +1866,7 @@ const TrainPageContent: React.FC = () => {
                 ...modelConfig,
                 ...dataConfig,
                 ...trainerConfig,
-                // 추가 기본값들
                 save_total_limit: 1,
-
                 do_train: true,
                 do_eval: true
             };
