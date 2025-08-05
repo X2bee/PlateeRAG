@@ -29,6 +29,9 @@ const Node: React.FC<NodeProps> = ({
     const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
     const [isEditingName, setIsEditingName] = useState<boolean>(false);
     const [editingName, setEditingName] = useState<string>(nodeName);
+    const [tool_name, setToolNameValue] = useState('tool_name');
+    const [error, setError] = useState('');
+
 
     // API 기반 옵션을 관리하는 상태
     const [apiOptions, setApiOptions] = useState<Record<string, ParameterOption[]>>({});
@@ -167,6 +170,31 @@ const Node: React.FC<NodeProps> = ({
             isLoadingOptions = loadingApiOptions[paramKey] || false;
         }
 
+        const validationMessage = '최대 64자, 영문 대소문자(a-z, A-Z), 숫자(0-9), 언더스코어(_)';
+
+        const handleParamValueChange = (e: React.ChangeEvent<HTMLSelectElement> | React.ChangeEvent<HTMLInputElement>) => {
+            const originalValue = e.target.value;
+            let processedValue = originalValue;
+
+            if (processedValue.length > 64) {
+                processedValue = processedValue.substring(0, 64);
+            }
+
+            const validPattern = /^[a-zA-Z0-9_]*$/;
+
+            if (!validPattern.test(processedValue)) {
+                processedValue = processedValue.replace(/[^a-zA-Z0-9_]/g, '');
+            }
+
+            if (originalValue !== processedValue) {
+                setError(validationMessage);
+            } else {
+                setError('');
+            }
+            
+            setToolNameValue(processedValue);
+        };
+
         return (
             <div key={param.id} className={`${styles.param} param`}>
                 <span className={`${styles.paramKey} ${param.required ? styles.required : ''}`}>
@@ -282,6 +310,38 @@ const Node: React.FC<NodeProps> = ({
                         <option value="true">True</option>
                         <option value="false">False</option>
                     </select>
+                ) : param.id === 'tool_name' ? (
+                    <div className={styles.inputWrapper}>
+                        <input
+                            type={'text'}
+                            value={tool_name}
+                            onChange={handleParamValueChange}
+                            onMouseDown={(e) => {
+                                devLog.log('input onMouseDown');
+                                e.stopPropagation();
+                            }}
+                            onClick={(e) => {
+                                devLog.log('input onClick');
+                                e.stopPropagation();
+                            }}
+                            onFocus={(e) => {
+                                devLog.log('input onFocus');
+                                e.stopPropagation();
+                                if (onClearSelection) {
+                                    onClearSelection();
+                                }
+                            }}
+                            onKeyDown={(e) => {
+                                e.stopPropagation();
+                            }}
+                            className={`${styles.paramInput} paramInput ${error ? styles.inputError : ''}`}
+                            step={param.step}
+                            min={param.min}
+                            max={param.max}
+                            maxLength={64}
+                        />
+                        {error && <div className={styles.errorMessage}>{error}</div>}
+                    </div>
                 ) : (
                     <input
                         type={param.type && numberList.includes(param.type) ? 'number' : 'text'}
