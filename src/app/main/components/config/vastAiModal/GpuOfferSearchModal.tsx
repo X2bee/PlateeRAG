@@ -120,12 +120,12 @@ interface VastInstanceCreateResponse {
 export const GpuOfferSearchModal = () => {
     const [searchParams, setSearchParams] = useState<SearchParams>({
         gpu_name: '',
-        max_price: 2,
-        min_gpu_ram: 16,
+        max_price: 3,
+        min_gpu_ram: 24,
         num_gpus: 1,
         rentable: true,
         sort_by: 'price',
-        limit: 20
+        limit: 30
     });
     const [searchResults, setSearchResults] = useState<VastOfferSearchResponse | null>(null);
     const [isSearching, setIsSearching] = useState(false);
@@ -138,8 +138,8 @@ export const GpuOfferSearchModal = () => {
         log_file: '/tmp/vllm.log',
         install_requirements: true,
         vllm_config: {
-            vllm_model_name: 'Qwen/Qwen3-1.7B',
-            vllm_max_model_len: 4096,
+            vllm_model_name: 'Qwen/Qwen3-14B',
+            vllm_max_model_len: 8192,
             vllm_host_ip: '0.0.0.0',
             vllm_port: 12434,
             vllm_controller_port: 12435,
