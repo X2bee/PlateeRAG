@@ -539,6 +539,7 @@ const TrainPageContent: React.FC = () => {
                                                 className={styles.formSelect}
                                             >
                                                 <option value="gemma3">Gemma3</option>
+                                                <option value="qwen3">Qwen3</option>
                                                 <option value="llama">Llama</option>
                                                 <option value="bert">BERT</option>
                                                 <option value="gpt">GPT</option>
