@@ -45,6 +45,7 @@ export const InstanceManagementModal = () => {
     const [showVllmConfigFor, setShowVllmConfigFor] = useState<string | null>(null);
     const [vllmHealthStatus, setVllmHealthStatus] = useState<{ [key: string]: 'checking' | 'success' | 'failed' | null }>({});
     const [vllmServeLoading, setVllmServeLoading] = useState<{ [key: string]: boolean }>({});
+    const [destroyLoading, setDestroyLoading] = useState<{ [key: string]: boolean }>({});
     const [vllmConfig, setVllmConfig] = useState<{ [key: string]: any }>({
         model_name: '',
         max_model_len: 0,
@@ -138,6 +139,8 @@ export const InstanceManagementModal = () => {
             return;
         }
 
+        setDestroyLoading(prev => ({ ...prev, [instanceId]: true }));
+
         try {
             devLog.info('Destroying instance:', instanceId);
             await destroyVastInstance(instanceId);
@@ -150,6 +153,9 @@ export const InstanceManagementModal = () => {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
             toast.error(`인스턴스 삭제 실패: ${errorMessage}`);
             devLog.error('Failed to destroy instance:', error);
+        } finally {
+            // 로딩 상태 해제
+            setDestroyLoading(prev => ({ ...prev, [instanceId]: false }));
         }
     };
 
@@ -195,7 +201,6 @@ export const InstanceManagementModal = () => {
     };
 
     const handleVllmServe = async (instance: VastInstanceData) => {
-        // VLLM 서비스 시작 로딩 상태 설정
         setVllmServeLoading(prev => ({ ...prev, [instance.instance_id]: true }));
 
         const config = {
@@ -561,9 +566,23 @@ export const InstanceManagementModal = () => {
                                                 <button
                                                     className={`${styles.button} ${styles.small} ${styles.danger}`}
                                                     onClick={() => handleDestroyInstance(instance.instance_id)}
+                                                    disabled={destroyLoading[instance.instance_id]}
+                                                    style={{
+                                                        cursor: destroyLoading[instance.instance_id] ? 'not-allowed' : 'pointer',
+                                                        opacity: destroyLoading[instance.instance_id] ? 0.6 : 1
+                                                    }}
                                                 >
-                                                    <FiTrash2 className={styles.icon} />
-                                                    삭제
+                                                    {destroyLoading[instance.instance_id] ? (
+                                                        <>
+                                                            <FiRefreshCw className={`${styles.icon} ${styles.spinning}`} />
+                                                            삭제 중...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <FiTrash2 className={styles.icon} />
+                                                            삭제
+                                                        </>
+                                                    )}
                                                 </button>
                                             </div>
                                         </div>
