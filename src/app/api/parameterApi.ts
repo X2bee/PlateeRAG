@@ -47,33 +47,42 @@ export const fetchParameterOptions = async (
         devLog.log('API response:', data);
 
         // API 응답에서 result 배열 추출
-        const resultArray = data.result || data;
+        const resultData = data.result || data;
 
-        // 응답 데이터가 배열이 아닌 경우 처리
-        if (!Array.isArray(resultArray)) {
-            devLog.warn('API response result is not an array:', resultArray);
-            return [];
+        // 응답 데이터가 배열인 경우
+        if (Array.isArray(resultData)) {
+            // 응답 데이터를 ParameterOption 형태로 변환
+            const options: ParameterOption[] = resultData.map((item: any) => {
+                if (typeof item === 'string' || typeof item === 'number') {
+                    return { value: item, label: String(item) };
+                }
+
+                if (typeof item === 'object' && item !== null) {
+                    const value = item.value ?? item.id ?? item.name ?? item;
+                    const label = item.label ?? item.name ?? item.displayName ?? String(value);
+                    return { value, label };
+                }
+
+                return { value: String(item), label: String(item) };
+            });
+
+            devLog.log('Converted options:', options);
+            devLog.log('=== Parameter Options Fetch Complete ===');
+
+            return options;
+        } else {
+            // 단일 값인 경우 - 특별한 형태로 반환하여 input으로 처리하도록 함
+            devLog.log('API response is a single value:', resultData);
+            const singleValue = String(resultData);
+
+            // 단일 값임을 나타내는 특별한 구조로 반환
+            const singleOption: ParameterOption[] = [{ value: singleValue, label: singleValue, isSingleValue: true }];
+
+            devLog.log('Converted single value option:', singleOption);
+            devLog.log('=== Parameter Options Fetch Complete (Single Value) ===');
+
+            return singleOption;
         }
-
-        // 응답 데이터를 ParameterOption 형태로 변환
-        const options: ParameterOption[] = resultArray.map((item: any) => {
-            if (typeof item === 'string' || typeof item === 'number') {
-                return { value: item, label: String(item) };
-            }
-
-            if (typeof item === 'object' && item !== null) {
-                const value = item.value ?? item.id ?? item.name ?? item;
-                const label = item.label ?? item.name ?? item.displayName ?? String(value);
-                return { value, label };
-            }
-
-            return { value: String(item), label: String(item) };
-        });
-
-        devLog.log('Converted options:', options);
-        devLog.log('=== Parameter Options Fetch Complete ===');
-
-        return options;
 
     } catch (error) {
         devLog.error('Error fetching parameter options:', error);
@@ -127,31 +136,41 @@ export const fetchParameterOptionsWithData = async (
         devLog.log('API response (POST):', data);
 
         // API 응답에서 result 배열 추출
-        const resultArray = data.result || data;
+        const resultData = data.result || data;
 
-        if (!Array.isArray(resultArray)) {
-            devLog.warn('API response result is not an array:', resultArray);
-            return [];
+        // 응답 데이터가 배열인 경우
+        if (Array.isArray(resultData)) {
+            const options: ParameterOption[] = resultData.map((item: any) => {
+                if (typeof item === 'string' || typeof item === 'number') {
+                    return { value: item, label: String(item) };
+                }
+
+                if (typeof item === 'object' && item !== null) {
+                    const value = item.value ?? item.id ?? item.name ?? item;
+                    const label = item.label ?? item.name ?? item.displayName ?? String(value);
+                    return { value, label };
+                }
+
+                return { value: String(item), label: String(item) };
+            });
+
+            devLog.log('Converted options (POST):', options);
+            devLog.log('=== Parameter Options Fetch Complete (POST) ===');
+
+            return options;
+        } else {
+            // 단일 값인 경우 - 특별한 형태로 반환하여 input으로 처리하도록 함
+            devLog.log('API response is a single value (POST):', resultData);
+            const singleValue = String(resultData);
+
+            // 단일 값임을 나타내는 특별한 구조로 반환
+            const singleOption: ParameterOption[] = [{ value: singleValue, label: singleValue, isSingleValue: true }];
+
+            devLog.log('Converted single value option (POST):', singleOption);
+            devLog.log('=== Parameter Options Fetch Complete (Single Value POST) ===');
+
+            return singleOption;
         }
-
-        const options: ParameterOption[] = resultArray.map((item: any) => {
-            if (typeof item === 'string' || typeof item === 'number') {
-                return { value: item, label: String(item) };
-            }
-
-            if (typeof item === 'object' && item !== null) {
-                const value = item.value ?? item.id ?? item.name ?? item;
-                const label = item.label ?? item.name ?? item.displayName ?? String(value);
-                return { value, label };
-            }
-
-            return { value: String(item), label: String(item) };
-        });
-
-        devLog.log('Converted options (POST):', options);
-        devLog.log('=== Parameter Options Fetch Complete (POST) ===');
-
-        return options;
 
     } catch (error) {
         devLog.error('Error fetching parameter options (POST):', error);

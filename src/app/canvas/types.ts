@@ -25,6 +25,7 @@ export interface Port {
 export interface ParameterOption {
     value: string | number;
     label?: string;
+    isSingleValue?: boolean; // API에서 단일 값으로 로드된 경우를 나타냄
 }
 
 export interface Parameter {
@@ -40,6 +41,7 @@ export interface Parameter {
     max?: number;
     is_api?: boolean;
     api_name?: string;
+    description?: string;
 }
 
 // ========== Node Types ==========
