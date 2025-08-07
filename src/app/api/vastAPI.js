@@ -1,6 +1,6 @@
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
-import { authenticatedFetch } from '@/app/api/authAPI';
+import { apiClient } from '@/app/api/apiClient';
 
 /**
  * Vast 서비스 상태 확인 API
@@ -8,7 +8,7 @@ import { authenticatedFetch } from '@/app/api/authAPI';
  */
 export const checkVastHealth = async () => {
     try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/health`);
+        const response = await apiClient(`${API_BASE_URL}/api/vast/health`);
         const result = await response.json();
 
         if (!response.ok) {
@@ -37,7 +37,7 @@ export const checkVastHealth = async () => {
  */
 export const searchVastOffers = async (searchParams = {}) => {
     try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/search-offers`, {
+        const response = await apiClient(`${API_BASE_URL}/api/vast/search-offers`, {
             method: 'POST',
             body: JSON.stringify(searchParams),
         });
@@ -68,7 +68,7 @@ export const searchVastOffers = async (searchParams = {}) => {
  */
 export const createVastInstance = async (options = {}) => {
     try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/instances`, {
+        const response = await apiClient(`${API_BASE_URL}/api/vast/instances`, {
             method: 'POST',
             body: JSON.stringify(options),
         });
@@ -93,7 +93,7 @@ export const createVastInstance = async (options = {}) => {
 export const listVastInstances = async () => {
     try {
         const url = `${API_BASE_URL}/api/vast/instances`;
-        const response = await authenticatedFetch(url);
+        const response = await apiClient(url);
         const result = await response.json();
 
         if (!response.ok) {
@@ -115,7 +115,7 @@ export const listVastInstances = async () => {
  */
 export const destroyVastInstance = async (instanceId) => {
     try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/instances/${instanceId}`, {
+        const response = await apiClient(`${API_BASE_URL}/api/vast/instances/${instanceId}`, {
             method: 'DELETE',
         });
         const result = await response.json();
@@ -141,7 +141,7 @@ export const destroyVastInstance = async (instanceId) => {
  */
 export const updateVllmConnectionConfig = async (vllmConfig) => {
     try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/set-vllm`, {
+        const response = await apiClient(`${API_BASE_URL}/api/vast/set-vllm`, {
             method: 'PUT',
             body: JSON.stringify(vllmConfig),
         });
@@ -166,7 +166,7 @@ export const updateVllmConnectionConfig = async (vllmConfig) => {
  */
 export const vllmDown = async (instanceId) => {
     try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/instances/${instanceId}/vllm-down`, {
+        const response = await apiClient(`${API_BASE_URL}/api/vast/instances/${instanceId}/vllm-down`, {
             method: 'POST',
         });
         const result = await response.json();
@@ -201,7 +201,7 @@ export const vllmDown = async (instanceId) => {
  */
 export const vllmServe = async (instanceId, vllmConfig) => {
     try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/instances/${instanceId}/vllm-serve`, {
+        const response = await apiClient(`${API_BASE_URL}/api/vast/instances/${instanceId}/vllm-serve`, {
             method: 'POST',
             body: JSON.stringify(vllmConfig),
         });
@@ -228,7 +228,7 @@ export const vllmServe = async (instanceId, vllmConfig) => {
  */
 export const vllmHealthCheck = async (healthRequest) => {
     try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/vast/instances/vllm-health`, {
+        const response = await apiClient(`${API_BASE_URL}/api/vast/instances/vllm-health`, {
             method: 'POST',
             body: JSON.stringify(healthRequest),
         });

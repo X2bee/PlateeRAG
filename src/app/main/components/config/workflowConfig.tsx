@@ -1,5 +1,5 @@
 import React from 'react';
-import BaseConfigPanel, { ConfigItem, FieldConfig } from './baseConfigPanel';
+import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/baseConfigPanel';
 
 interface WorkflowConfigProps {
     configData?: ConfigItem[];

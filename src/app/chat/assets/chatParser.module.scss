@@ -1,5 +1,3 @@
-// Chat Parser Styles - Markdown and Code Block Components
-
 // Color Variables (shared with ChatInterface)
 $primary-blue: #2563eb;
 $gray-50: #f9fafb;
@@ -12,6 +10,16 @@ $gray-600: #4b5563;
 $gray-700: #374151;
 $gray-800: #1f2937;
 $white: #ffffff;
+
+// Animations
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
 
 // Markdown Content Styling
 .markdownContent {
@@ -491,5 +499,38 @@ $white: #ffffff;
     }
     :global(th.align-right), :global(td.align-right) {
         text-align: right;
+    }
+
+    // Think Block 스타일
+    :global(.think-block-container) {
+        border: 1px solid $gray-200;
+        border-radius: 0.5rem;
+        margin: 0.5rem 0;
+        background-color: $gray-50;
+        transition: all 0.3s ease;
+
+        &.streaming {
+            border-color: $primary-blue;
+            background-color: #eff6ff;
+            box-shadow: 0 0 0 2px rgba($primary-blue, 0.1);
+        }
+
+        button {
+            transition: background-color 0.2s ease;
+
+            &:hover {
+                background-color: $gray-100;
+            }
+        }
+
+        .streaming-cursor {
+            animation: pulse 2s infinite;
+            color: $primary-blue;
+            font-weight: bold;
+        }
+    }
+    // Global 커서 애니메이션 (전역에서 사용 가능)
+    :global(.pulse-animation) {
+        animation: pulse 2s infinite;
     }
 }

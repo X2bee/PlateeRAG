@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import BaseConfigPanel, { ConfigItem, FieldConfig } from './baseConfigPanel';
+import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/baseConfigPanel';
 import {
     testOpenACollectionConnection,
     testVLLMCollectionConnection,
@@ -75,7 +75,7 @@ const COLLECTION_CONFIG_FIELDS: Record<string, FieldConfig> = {
       step: 1,   // 1 단위로만 증가/감소
     },
   };
-  
+
 
 const CollectionConfig: React.FC<CollectionConfigProps> = ({
     configData = [],

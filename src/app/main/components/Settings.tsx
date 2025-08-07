@@ -10,7 +10,7 @@ import {
 import { IoDocumentLock } from "react-icons/io5";
 import { BsDatabaseUp } from 'react-icons/bs';
 import { SiOpenai } from 'react-icons/si';
-import { BsGear } from 'react-icons/bs';
+import { BsGear, BsGpuCard } from 'react-icons/bs';
 import {
     testConnection,
     fetchAllConfigs,
@@ -24,6 +24,7 @@ import DatabaseConfig from '@/app/main/components/config/databaseConfig';
 import VectordbConfig from '@/app/main/components/config/vectordbConfig';
 import CollectionConfig from '@/app/main/components/config/collectionConfig';
 import VastAiConfig from '@/app/main/components/config/vastAiConfig';
+import TrainVastConfig from '@/app/main/components/config/trainVastConfig';
 
 interface ConfigItem {
     env_name: string;
@@ -147,7 +148,7 @@ const Settings: React.FC = () => {
             id: 'vastai',
             name: 'Vast.ai GPU',
             description: 'Vast.ai GPU 인스턴스 및 vLLM 서버 설정',
-            icon: <BsDatabaseUp />,
+            icon: <BsGpuCard />,
             color: '#7c3aed',
             status: configs.vastai?.apiKey ? 'connected' : 'disconnected',
         },
@@ -180,6 +181,14 @@ const Settings: React.FC = () => {
             name: '벡터 데이터베이스',
             description: '벡터 데이터베이스 연결 설정',
             icon: <BsDatabaseUp />,
+            color: '#023196',
+            status: 'connected',
+        },
+        {
+            id: 'train-vast',
+            name: 'Trainer & Vast.ai',
+            description: 'Trainer 설정 및 Vast.ai GPU 관리',
+            icon: <BsGpuCard />,
             color: '#023196',
             status: 'connected',
         },
@@ -269,6 +278,14 @@ const Settings: React.FC = () => {
         );
     };
 
+    const renderTrainVastConfig = () => {
+        return (
+            <TrainVastConfig
+                configData={configData}
+            />
+        );
+    };
+
     const renderConfigForm = (categoryId: string) => {
         switch (categoryId) {
             case 'llm':
@@ -283,6 +300,8 @@ const Settings: React.FC = () => {
                 return renderDatabaseConfig();
             case 'vectordb':
                 return renderVectorDBConfig();
+            case 'train-vast':
+                return renderTrainVastConfig();
             default:
                 return <p>설정 폼을 준비 중입니다.</p>;
         }
@@ -360,10 +379,10 @@ const Settings: React.FC = () => {
                                             <p>{category.description}</p>
                                         </div>
                                         <div className={styles.categoryStatus}>
-                                            {getStatusIcon(category.status)}
-                                            <span className={styles.statusText}>
+                                            {/* {getStatusIcon(category.status)} */}
+                                            {/* <span className={styles.statusText}>
                                                 {getStatusText(category.status)}
-                                            </span>
+                                            </span> */}
                                             <FiChevronRight
                                                 className={styles.chevron}
                                             />

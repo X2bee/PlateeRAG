@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiCheck, FiX, FiAlertCircle, FiPlay, FiServer, FiSettings } from 'react-icons/fi';
 import { SiOpenai } from 'react-icons/si';
 import { BsCpu } from 'react-icons/bs';
-import { TbBrandGolang } from 'react-icons/tb'; // SGL 아이콘 (또는 다른 적절한 아이콘)
+import { TbBrandGolang } from 'react-icons/tb';
 import toast from 'react-hot-toast';
 import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/baseConfigPanel';
 import styles from '@/app/main/assets/Settings.module.scss';

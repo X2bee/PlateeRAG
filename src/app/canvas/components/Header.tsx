@@ -94,7 +94,7 @@ const Header: React.FC<HeaderProps> = ({
             <div className={styles.leftSection}>
                 <Link href="/main" className={styles.logoLink}>
                     <div className={styles.logo}>
-                        Prague
+                        XGen
                     </div>
                 </Link>
                 <div className={styles.workflowNameSection}>

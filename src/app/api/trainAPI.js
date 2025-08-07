@@ -290,3 +290,34 @@ export const stopTraining = async (jobId) => {
         throw error;
     }
 };
+
+/**
+ * 새 인스턴스 생성 API
+ * @param {Object} options - 인스턴스 생성 옵션
+ * @param {string} [options.offer_id] - 특정 오퍼 ID
+ * @param {Object} [options.offer_info] - 특정 오퍼 정보
+ * @param {string} [options.hf_hub_token] - HuggingFace 토큰
+ * @param {string} [options.template_name] - 템플릿 이름 (budget, high_performance, research)
+ * @param {boolean} [options.auto_destroy] - 자동 삭제 여부
+ * @param {Object} [options.vllm_config] - VLLM 설정
+ * @returns {Promise<Object>} 생성 결과
+ */
+export const createTrainVastInstance = async (options = {}) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/train/instances`, {
+            method: 'POST',
+            body: JSON.stringify(options),
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        devLog.log('Vast instance created:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to create vast instance:', error);
+        throw error;
+    }
+};

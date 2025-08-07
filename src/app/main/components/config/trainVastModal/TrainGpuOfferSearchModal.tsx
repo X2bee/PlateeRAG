@@ -117,7 +117,7 @@ interface VastInstanceCreateResponse {
     next_steps?: Record<string, string>;
 }
 
-export const GpuOfferSearchModal = () => {
+export const TrainGpuOfferSearchModal = () => {
     const [searchParams, setSearchParams] = useState<SearchParams>({
         gpu_name: '',
         max_price: 3,
