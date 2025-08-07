@@ -210,14 +210,17 @@ interface ThinkBlockInfo {
 }
 
 /**
- * <think></think> 블록 찾기
+ * <think></think> 블록 찾기 (스트리밍 지원)
+ * 완성된 블록과 미완성된 블록 모두 처리
  */
 const findThinkBlocks = (content: string): ThinkBlockInfo[] => {
     const blocks: ThinkBlockInfo[] = [];
-    const thinkRegex = /<think>([\s\S]*?)<\/think>/gi;
+    
+    // 완성된 <think></think> 블록 찾기
+    const completeThinkRegex = /<think>([\s\S]*?)<\/think>/gi;
     let match;
 
-    while ((match = thinkRegex.exec(content)) !== null) {
+    while ((match = completeThinkRegex.exec(content)) !== null) {
         blocks.push({
             start: match.index,
             end: match.index + match[0].length,
@@ -225,7 +228,28 @@ const findThinkBlocks = (content: string): ThinkBlockInfo[] => {
         });
     }
 
-    return blocks;
+    // 미완성된 <think> 블록 찾기 (스트리밍 중)
+    const incompleteThinkRegex = /<think>(?![\s\S]*?<\/think>)([\s\S]*)$/gi;
+    const incompleteMatch = incompleteThinkRegex.exec(content);
+    
+    if (incompleteMatch) {
+        // 이미 완성된 think 블록과 겹치지 않는지 확인
+        const incompleteStart = incompleteMatch.index;
+        const isOverlapping = blocks.some(block => 
+            incompleteStart >= block.start && incompleteStart < block.end
+        );
+        
+        if (!isOverlapping) {
+            blocks.push({
+                start: incompleteStart,
+                end: content.length,
+                content: incompleteMatch[1].trim()
+            });
+        }
+    }
+
+    // 시작 위치 순으로 정렬
+    return blocks.sort((a, b) => a.start - b.start);
 };
 
 /**
@@ -286,10 +310,15 @@ const parseContentToReactElements = (content: string): React.ReactNode[] => {
 
         // 블록 타입에 따라 컴포넌트 추가
         if (block.type === 'think') {
+            // 스트리밍 중인지 확인 (블록이 문서 끝까지 이어지고 </think>가 없는 경우)
+            const isStreaming = block.end === processed.length && 
+                               !processed.slice(block.start).includes('</think>');
+            
             elements.push(
                 <ThinkBlock
                     key={`think-${elements.length}`}
                     content={block.content}
+                    isStreaming={isStreaming}
                 />
             );
         } else if (block.type === 'code') {
@@ -531,29 +560,55 @@ export const truncateText = (text: string, maxLength: number = 100): string => {
 };
 
 /**
- * Think 블록 컴포넌트 - 접힐 수 있는 사고 과정 표시
+ * Think 블록 컴포넌트 - 접힐 수 있는 사고 과정 표시 (스트리밍 지원)
  */
 interface ThinkBlockProps {
     content: string;
     className?: string;
+    isStreaming?: boolean; // 스트리밍 중인지 여부
 }
 
-export const ThinkBlock: React.FC<ThinkBlockProps> = ({ content, className = '' }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
+export const ThinkBlock: React.FC<ThinkBlockProps> = ({ 
+    content, 
+    className = '', 
+    isStreaming = false 
+}) => {
+    // 스트리밍 중일 때는 펼쳐진 상태, 완료되면 접힌 상태
+    const [isExpanded, setIsExpanded] = useState(isStreaming);
+
+    // isStreaming 상태가 변경될 때 UI 상태 업데이트
+    useEffect(() => {
+        if (isStreaming) {
+            setIsExpanded(true);  // 스트리밍 중일 때는 펼쳐진 상태
+        } else {
+            setIsExpanded(false); // 완료되면 접힌 상태
+        }
+    }, [isStreaming]);
 
     const toggleExpanded = () => {
-        setIsExpanded(!isExpanded);
+        // 스트리밍 중일 때는 접기/펼치기 비활성화
+        if (!isStreaming) {
+            setIsExpanded(!isExpanded);
+        }
     };
 
     return (
-        <div className={`think-block-container ${className}`} style={{
-            border: '1px solid #e5e7eb',
-            borderRadius: '0.5rem',
-            margin: '0.5rem 0',
-            backgroundColor: '#f9fafb'
-        }}>
+        <div 
+            className={`think-block-container ${isStreaming ? 'streaming' : ''} ${className}`} 
+            style={{
+                border: '1px solid #e5e7eb',
+                borderRadius: '0.5rem',
+                margin: '0.5rem 0',
+                backgroundColor: '#f9fafb',
+                ...(isStreaming && {
+                    borderColor: '#3b82f6',
+                    backgroundColor: '#eff6ff'
+                })
+            }}
+        >
             <button
                 onClick={toggleExpanded}
+                disabled={isStreaming}
                 style={{
                     width: '100%',
                     padding: '0.75rem 1rem',
@@ -562,21 +617,39 @@ export const ThinkBlock: React.FC<ThinkBlockProps> = ({ content, className = '' 
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem',
-                    cursor: 'pointer',
+                    cursor: isStreaming ? 'default' : 'pointer',
                     fontSize: '0.875rem',
                     color: '#6b7280',
-                    borderRadius: '0.5rem'
+                    borderRadius: '0.5rem',
+                    opacity: isStreaming ? 0.8 : 1
                 }}
                 onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#f3f4f6';
+                    if (!isStreaming) {
+                        e.currentTarget.style.backgroundColor = '#f3f4f6';
+                    }
                 }}
                 onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
+                    if (!isStreaming) {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                    }
                 }}
             >
-                {isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
+                {isStreaming ? (
+                    <FiChevronDown size={16} style={{ opacity: 0.5 }} />
+                ) : (
+                    isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />
+                )}
                 <span>💭 사고 과정</span>
-                {!isExpanded && (
+                {isStreaming && (
+                    <span style={{ 
+                        color: '#3b82f6', 
+                        fontSize: '0.75rem',
+                        fontWeight: 'bold' 
+                    }}>
+                        (진행 중...)
+                    </span>
+                )}
+                {!isExpanded && !isStreaming && (
                     <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>
                         (클릭하여 보기)
                     </span>
@@ -598,6 +671,14 @@ export const ThinkBlock: React.FC<ThinkBlockProps> = ({ content, className = '' 
                         whiteSpace: 'pre-wrap'
                     }}>
                         {content}
+                        {isStreaming && (
+                            <span className="pulse-animation" style={{ 
+                                color: '#3b82f6',
+                                marginLeft: '0.25rem'
+                            }}>
+                                ▋
+                            </span>
+                        )}
                     </div>
                 </div>
             )}
