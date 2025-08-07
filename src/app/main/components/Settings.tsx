@@ -379,10 +379,10 @@ const Settings: React.FC = () => {
                                             <p>{category.description}</p>
                                         </div>
                                         <div className={styles.categoryStatus}>
-                                            {getStatusIcon(category.status)}
-                                            <span className={styles.statusText}>
+                                            {/* {getStatusIcon(category.status)} */}
+                                            {/* <span className={styles.statusText}>
                                                 {getStatusText(category.status)}
-                                            </span>
+                                            </span> */}
                                             <FiChevronRight
                                                 className={styles.chevron}
                                             />
