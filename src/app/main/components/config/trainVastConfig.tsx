@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
-import { FiServer, FiSettings } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import { FiRefreshCw, FiCheck, FiX, FiPlay, FiSquare, FiCopy, FiExternalLink, FiChevronDown, FiChevronUp, FiServer, FiSettings, FiTrash2 } from 'react-icons/fi';
+import { BsGpuCard } from 'react-icons/bs';
 import toast from 'react-hot-toast';
 import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/baseConfigPanel';
-import { checkVastHealth } from '@/app/api/vastAPI';
+import { checkVastHealth, searchVastOffers, createVastInstance, listVastInstances, destroyVastInstance } from '@/app/api/vastAPI';
+import { createTrainVastInstance } from '@/app/api/trainAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/main/assets/Settings.module.scss';
-import { GpuOfferSearchModal } from '@/app/main/components/config/vastAiModal/GpuOfferSearchModal';
-import { InstanceManagementModal } from '@/app/main/components/config/vastAiModal/InstanceManagementModal';
+import { TrainGpuOfferSearchModal } from '@/app/main/components/config/trainVastModal/TrainGpuOfferSearchModal';
+import { TrainInstanceManagementModal } from '@/app/main/components/config/trainVastModal/TrainInstanceManagementModal';
 interface VastAiConfigProps {
     configData?: ConfigItem[];
     onTestConnection?: (category: string) => void;
@@ -47,7 +49,7 @@ interface VastHealthResponse {
     message: string;
 }
 
-const VAST_AI_CONFIG_FIELDS: Record<string, FieldConfig> = {
+const TRAIN_VAST_CONFIG_FIELDS: Record<string, FieldConfig> = {
     VAST_API_KEY: {
         label: 'vast.ai API Key',
         type: 'text',
@@ -55,9 +57,23 @@ const VAST_AI_CONFIG_FIELDS: Record<string, FieldConfig> = {
         description: 'vast.ai 콘솔의 API 키를 입력하세요.',
         required: true,
     },
+    TRAINER_HOST: {
+        label: 'trainer.host',
+        type: 'text',
+        placeholder: 'Enter your trainer host',
+        description: 'trainer.host 값을 입력하세요.',
+        required: true,
+    },
+    TRAINER_PORT: {
+        label: 'trainer.port',
+        type: 'text',
+        placeholder: 'Enter your trainer port',
+        description: 'trainer.port 값을 입력하세요.',
+        required: true,
+    },
 };
 
-const VastAiConfig: React.FC<VastAiConfigProps> = ({
+const TrainVastConfig: React.FC<VastAiConfigProps> = ({
     configData = [],
 }) => {
     const [activeCategory, setActiveCategory] = useState<'vllm' | 'instance'>('vllm');
@@ -105,20 +121,28 @@ const VastAiConfig: React.FC<VastAiConfigProps> = ({
                 <>
                     <BaseConfigPanel
                         configData={configData}
-                        fieldConfigs={VAST_AI_CONFIG_FIELDS}
+                        fieldConfigs={TRAIN_VAST_CONFIG_FIELDS}
                         filterPrefix="vast"
                         onTestConnection={handleTestConnection}
                         testConnectionLabel="Vast.ai 연결 테스트"
                         testConnectionCategory="vast"
                     />
-                    <GpuOfferSearchModal />
+                    <BaseConfigPanel
+                        configData={configData}
+                        fieldConfigs={TRAIN_VAST_CONFIG_FIELDS}
+                        filterPrefix="trainer"
+                        onTestConnection={handleTestConnection}
+                        testConnectionLabel="Trainer 연결 테스트"
+                        testConnectionCategory="trainer"
+                    />
+                    <TrainGpuOfferSearchModal />
                 </>
             )}
             {activeCategory === 'instance' && (
-                <InstanceManagementModal />
+                <TrainInstanceManagementModal />
             )}
         </div>
     );
 };
 
-export default VastAiConfig;
+export default TrainVastConfig;
