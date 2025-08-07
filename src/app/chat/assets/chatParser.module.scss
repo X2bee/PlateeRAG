@@ -1,5 +1,3 @@
-// Chat Parser Styles - Markdown and Code Block Components
-
 // Color Variables (shared with ChatInterface)
 $primary-blue: #2563eb;
 $gray-50: #f9fafb;
@@ -531,9 +529,8 @@ $white: #ffffff;
             font-weight: bold;
         }
     }
-}
-
-// Global 커서 애니메이션 (전역에서 사용 가능)
-:global(.pulse-animation) {
-    animation: pulse 2s infinite;
+    // Global 커서 애니메이션 (전역에서 사용 가능)
+    :global(.pulse-animation) {
+        animation: pulse 2s infinite;
+    }
 }
