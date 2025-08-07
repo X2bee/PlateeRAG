@@ -1,4 +1,6 @@
-import { apiClient } from './apiClient.js';
+import { devLog } from '@/app/_common/utils/logger';
+import { apiClient } from '@/app/api/apiClient.js';
+import { API_BASE_URL } from '@/app/config.js';
 
 /**
  * 훈련 작업을 시작합니다.
@@ -48,13 +50,10 @@ export const startTraining = async (params) => {
         test_data_split: 'test',
 
         // Dataset column settings
-        dataset_main_colunm: 'goods_nm',
-        dataset_sub_colunm: 'label',
-        dataset_minor_colunm: '',
-        dataset_last_colunm: '',
         dataset_main_column: 'instruction',
         dataset_sub_column: 'output',
         dataset_minor_column: '',
+        dataset_last_column: '',
 
         // Push settings
         push_to_hub: true,
@@ -171,7 +170,7 @@ export const startTraining = async (params) => {
     const mergedParams = { ...defaultParams, ...params };
 
     try {
-        const response = await apiClient('/api/train/start', {
+        const response = await apiClient(`${API_BASE_URL}/api/train/start`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -191,13 +190,50 @@ export const startTraining = async (params) => {
 };
 
 /**
+ * MLflow 정보를 조회합니다.
+ * @param {Object} params - MLflow 파라미터 객체
+ * @param {string} params.mlflow_url - MLflow URL (기본값: "https://polar-mlflow-git.x2bee.com/")
+ * @param {string} params.mlflow_exp_id - MLflow Experiment ID (기본값: "test")
+ * @param {string} params.mlflow_run_id - MLflow Run ID (기본값: "test")
+ * @returns {Promise<Object>} MLflow 정보
+ */
+export const getMLflow = async (params = {}) => {
+    const defaultParams = {
+        mlflow_url: 'https://polar-mlflow-git.x2bee.com/',
+        mlflow_exp_id: 'test',
+        mlflow_run_id: 'test'
+    };
+
+    const mergedParams = { ...defaultParams, ...params };
+
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/train/mlflow`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(mergedParams),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Get MLflow info failed: ${response.status} ${response.statusText}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error getting MLflow info:', error);
+        throw error;
+    }
+};
+
+/**
  * 특정 훈련 작업의 상태를 조회합니다.
  * @param {string} jobId - 작업 ID
  * @returns {Promise<Object>} 작업 상태 정보
  */
 export const getTrainingStatus = async (jobId) => {
     try {
-        const response = await apiClient(`/api/train/status/${jobId}`, {
+        const response = await apiClient(`${API_BASE_URL}/api/train/status/${jobId}`, {
             method: 'GET',
         });
 
@@ -218,7 +254,7 @@ export const getTrainingStatus = async (jobId) => {
  */
 export const getAllTrainingJobs = async () => {
     try {
-        const response = await apiClient('/api/train/jobs', {
+        const response = await apiClient(`${API_BASE_URL}/api/train/jobs`, {
             method: 'GET',
         });
 
@@ -240,8 +276,8 @@ export const getAllTrainingJobs = async () => {
  */
 export const stopTraining = async (jobId) => {
     try {
-        const response = await apiClient(`/api/train/stop/${jobId}`, {
-            method: 'POST',
+        const response = await apiClient(`${API_BASE_URL}/api/train/stop/${jobId}`, {
+            method: 'DELETE',
         });
 
         if (!response.ok) {
@@ -251,51 +287,6 @@ export const stopTraining = async (jobId) => {
         return await response.json();
     } catch (error) {
         console.error('Error stopping training:', error);
-        throw error;
-    }
-};
-
-/**
- * 특정 훈련 작업의 로그를 조회합니다.
- * @param {string} jobId - 작업 ID
- * @param {number} limit - 가져올 로그 라인 수 (기본값: 100)
- * @returns {Promise<Object>} 작업 로그
- */
-export const getTrainingLogs = async (jobId, limit = 100) => {
-    try {
-        const response = await apiClient(`/api/train/logs/${jobId}?limit=${limit}`, {
-            method: 'GET',
-        });
-
-        if (!response.ok) {
-            throw new Error(`Get training logs failed: ${response.status} ${response.statusText}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('Error getting training logs:', error);
-        throw error;
-    }
-};
-
-/**
- * 특정 훈련 작업을 삭제합니다.
- * @param {string} jobId - 작업 ID
- * @returns {Promise<Object>} 작업 삭제 결과
- */
-export const deleteTrainingJob = async (jobId) => {
-    try {
-        const response = await apiClient(`/api/train/delete/${jobId}`, {
-            method: 'DELETE',
-        });
-
-        if (!response.ok) {
-            throw new Error(`Delete training job failed: ${response.status} ${response.statusText}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('Error deleting training job:', error);
         throw error;
     }
 };

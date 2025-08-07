@@ -134,8 +134,7 @@ const CompletedWorkflows: React.FC = () => {
 
     // Handle workflow editing
     const handleEdit = (workflow: Workflow) => {
-        // 캔버스 페이지를 새 창에서 열고 워크플로우 로드
-        window.open(
+        router.push(
             `/canvas?load=${encodeURIComponent(workflow.name)}`,
         );
     };

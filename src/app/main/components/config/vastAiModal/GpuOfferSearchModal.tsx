@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiCheck, FiX, FiPlay, FiCopy, FiServer, FiSettings, FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import { BsGpuCard } from 'react-icons/bs';
 import toast from 'react-hot-toast';
-import { searchVastOffers, createVastInstance } from '@/app/api/vastAPI';
+import { searchVastOffers, createVastInstance, subscribeToInstanceStatus } from '@/app/api/vastAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/main/assets/Settings.module.scss';
 
@@ -107,15 +107,25 @@ interface VLLMCreateInstanceConfig {
     };
 }
 
+interface VastInstanceCreateResponse {
+    success: boolean;
+    instance_id: string;
+    template_name?: string;
+    message: string;
+    status: string;
+    tracking_endpoints?: Record<string, string>;
+    next_steps?: Record<string, string>;
+}
+
 export const GpuOfferSearchModal = () => {
     const [searchParams, setSearchParams] = useState<SearchParams>({
         gpu_name: '',
-        max_price: 2,
-        min_gpu_ram: 16,
+        max_price: 3,
+        min_gpu_ram: 24,
         num_gpus: 1,
         rentable: true,
         sort_by: 'price',
-        limit: 20
+        limit: 30
     });
     const [searchResults, setSearchResults] = useState<VastOfferSearchResponse | null>(null);
     const [isSearching, setIsSearching] = useState(false);
@@ -128,8 +138,8 @@ export const GpuOfferSearchModal = () => {
         log_file: '/tmp/vllm.log',
         install_requirements: true,
         vllm_config: {
-            vllm_model_name: 'Qwen/Qwen3-1.7B',
-            vllm_max_model_len: 4096,
+            vllm_model_name: 'Qwen/Qwen3-14B',
+            vllm_max_model_len: 8192,
             vllm_host_ip: '0.0.0.0',
             vllm_port: 12434,
             vllm_controller_port: 12435,
@@ -148,6 +158,18 @@ export const GpuOfferSearchModal = () => {
         additional_env_vars: {}
     });
     const [isSettingUpVLLM, setIsSettingUpVLLM] = useState(false);
+    const [activeInstanceId, setActiveInstanceId] = useState<string | null>(null);
+    const [instanceStatus, setInstanceStatus] = useState<string>('');
+    const [sseConnection, setSseConnection] = useState<EventSource | null>(null);
+
+    // 컴포넌트 언마운트 시 SSE 연결 정리
+    useEffect(() => {
+        return () => {
+            if (sseConnection) {
+                sseConnection.close();
+            }
+        };
+    }, []);
 
     const handleSearchOffers = async () => {
         if (!searchParams.gpu_name?.trim()) {
@@ -210,6 +232,16 @@ export const GpuOfferSearchModal = () => {
     const handleSelectOffer = (offer: VastOffer) => {
         setSelectedOfferId(offer.id);
 
+        // 기존 인스턴스 상태 초기화
+        if (activeInstanceId) {
+            setActiveInstanceId(null);
+            setInstanceStatus('');
+            if (sseConnection) {
+                sseConnection.close();
+                setSseConnection(null);
+            }
+        }
+
         const offerInfo: OfferInfo = {
             gpu_name: offer.gpu_name || null,
             num_gpus: offer.num_gpus || null,
@@ -247,6 +279,13 @@ export const GpuOfferSearchModal = () => {
         }
 
         setIsSettingUpVLLM(true);
+
+        // 기존 SSE 연결이 있다면 종료
+        if (sseConnection) {
+            sseConnection.close();
+            setSseConnection(null);
+        }
+
         try {
             const createInstanceConfig: VLLMCreateInstanceConfig = {
                 offer_id: selectedOfferId,
@@ -258,15 +297,148 @@ export const GpuOfferSearchModal = () => {
 
             devLog.info('Creating VLLM instance with config:', createInstanceConfig);
 
-            const result = await createVastInstance(createInstanceConfig);
+            const result = await createVastInstance(createInstanceConfig) as VastInstanceCreateResponse;
 
-            toast.success('VLLM 인스턴스가 생성되었습니다!');
-            devLog.info('VLLM instance creation result:', result);
+            if (result.success && result.instance_id) {
+                // 인스턴스 생성 성공
+                setActiveInstanceId(result.instance_id);
+                setInstanceStatus(result.status || 'creating');
+
+                toast.success(`VLLM 인스턴스 생성 시작! ID: ${result.instance_id}`);
+                devLog.info('VLLM instance creation result:', result);
+
+                // SSE 구독 시작
+                const eventSource = subscribeToInstanceStatus(result.instance_id, {
+                    onStatusChange: (newStatus: string, data: any) => {
+                        devLog.log(`인스턴스 ${result.instance_id} 상태 변경: ${instanceStatus} -> ${newStatus}`);
+                        setInstanceStatus(newStatus);
+
+                        // 상태별 Toast 알림
+                        switch (newStatus) {
+                            case 'creating':
+                                toast.loading(
+                                    `⏳ 인스턴스 ${result.instance_id} 생성 중...`,
+                                    {
+                                        id: `instance-${result.instance_id}`,
+                                        duration: Infinity,
+                                        position: 'top-right',
+                                    }
+                                );
+                                break;
+
+                            case 'starting':
+                                toast.loading(
+                                    `🚀 인스턴스 ${result.instance_id} 시작 중...`,
+                                    {
+                                        id: `instance-${result.instance_id}`,
+                                        duration: Infinity,
+                                        position: 'top-right',
+                                    }
+                                );
+                                break;
+
+                            case 'running':
+                                toast.dismiss(`instance-${result.instance_id}`);
+                                toast.success(
+                                    `✅ 인스턴스 ${result.instance_id} 실행 중, VLLM 설정 대기...`,
+                                    {
+                                        duration: 5000,
+                                        position: 'top-right',
+                                    }
+                                );
+                                break;
+
+                            case 'running_vllm':
+                                toast.dismiss(`instance-${result.instance_id}`);
+                                toast.success(
+                                    `🤖 인스턴스 ${result.instance_id} VLLM 모델 서빙 중!`,
+                                    {
+                                        duration: 5000,
+                                        position: 'top-right',
+                                    }
+                                );
+                                // running_vllm 상태가 되면 설정 완료로 간주
+                                setIsSettingUpVLLM(false);
+                                break;
+
+                            case 'failed':
+                                toast.dismiss(`instance-${result.instance_id}`);
+                                toast.error(
+                                    `❌ 인스턴스 ${result.instance_id} 생성 실패`,
+                                    {
+                                        duration: 7000,
+                                        position: 'top-right',
+                                    }
+                                );
+                                break;
+
+                            case 'destroyed':
+                            case 'deleted':
+                                toast.dismiss(`instance-${result.instance_id}`);
+                                toast.error(
+                                    `🗑️ 인스턴스 ${result.instance_id} 삭제됨`,
+                                    {
+                                        duration: 5000,
+                                        position: 'top-right',
+                                    }
+                                );
+                                break;
+                        }
+                    },
+
+                    onComplete: (data: any) => {
+                        devLog.log('인스턴스 생성 완료:', data);
+                        toast.success(
+                            `🎉 인스턴스 ${result.instance_id}가 완전히 준비되었습니다!`,
+                            {
+                                duration: 5000,
+                                position: 'top-right',
+                            }
+                        );
+                        setIsSettingUpVLLM(false);
+
+                        // SSE 연결 정리
+                        if (sseConnection) {
+                            sseConnection.close();
+                            setSseConnection(null);
+                        }
+                    },
+
+                    onError: (error: Error, data: any) => {
+                        devLog.error('인스턴스 생성 실패:', error);
+                        toast.error(
+                            `❌ 인스턴스 ${result.instance_id} 생성 실패: ${error.message}`,
+                            {
+                                duration: 7000,
+                                position: 'top-right',
+                            }
+                        );
+                        setIsSettingUpVLLM(false);
+                        setInstanceStatus('failed');
+
+                        // SSE 연결 정리
+                        if (sseConnection) {
+                            sseConnection.close();
+                            setSseConnection(null);
+                        }
+                    },
+
+                    onClose: () => {
+                        devLog.log('SSE 연결 종료');
+                        setSseConnection(null);
+                    }
+                });
+
+                setSseConnection(eventSource);
+
+            } else {
+                throw new Error(result.message || '인스턴스 생성 응답이 올바르지 않습니다.');
+            }
+
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
             toast.error(`VLLM 인스턴스 생성 실패: ${errorMessage}`);
             devLog.error('Failed to create VLLM instance:', error);
-        } finally {
             setIsSettingUpVLLM(false);
         }
     };
@@ -543,6 +715,42 @@ export const GpuOfferSearchModal = () => {
                 {selectedOfferId ? (
                     <div className={styles.vllmSetupLayout}>
                         <div className={styles.vllmSetupPanel}>
+                            {/* 현재 생성 중인 인스턴스 상태 표시 */}
+                            {activeInstanceId && (
+                                <div className={styles.instanceStatusInfo}>
+                                    <h4>생성 중인 인스턴스</h4>
+                                    <div className={styles.statusGrid}>
+                                        <div className={styles.statusItem}>
+                                            <span className={styles.statusLabel}>인스턴스 ID:</span>
+                                            <span className={styles.instanceId}>{activeInstanceId}</span>
+                                        </div>
+                                        <div className={styles.statusItem}>
+                                            <span className={styles.statusLabel}>상태:</span>
+                                            <span className={`${styles.statusValue} ${styles[instanceStatus] || ''}`}>
+                                                {instanceStatus === 'creating' && '⏳ 생성 중'}
+                                                {instanceStatus === 'starting' && '🚀 시작 중'}
+                                                {instanceStatus === 'running' && '✅ 실행 중'}
+                                                {instanceStatus === 'running_vllm' && '🤖 vLLM 모델 서빙 중'}
+                                                {instanceStatus === 'failed' && '❌ 실패'}
+                                                {instanceStatus === 'destroyed' && '🗑️ 삭제됨'}
+                                                {instanceStatus === 'deleted' && '🗑️ 삭제됨'}
+                                                {!instanceStatus && '⏳ 초기화 중'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {(instanceStatus === 'creating' || instanceStatus === 'starting' || instanceStatus === 'running') && (
+                                        <div className={styles.progressIndicator}>
+                                            <div className={styles.loadingSpinner}></div>
+                                            <span>
+                                                {instanceStatus === 'creating' && '인스턴스를 생성하고 있습니다...'}
+                                                {instanceStatus === 'starting' && '인스턴스를 시작하고 있습니다...'}
+                                                {instanceStatus === 'running' && 'VLLM 모델을 설정하고 있습니다...'}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
                             <div className={styles.selectedOfferInfo}>
                                 <h4>선택된 오퍼 정보</h4>
                                 <div className={styles.offerInfoGrid}>

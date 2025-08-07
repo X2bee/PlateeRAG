@@ -17,6 +17,7 @@ import {
     listWorkflows,
     loadWorkflow,
     executeWorkflowByIdStream,
+    executeWorkflowStream,
 } from '@/app/api/workflowAPI';
 import {
     getWorkflowName,
@@ -29,6 +30,8 @@ import {
 import { devLog } from '@/app/_common/utils/logger';
 import { generateWorkflowHash } from '@/app/_common/utils/generateSha1Hash';
 import { isStreamingWorkflow } from '../_common/utils/isStreamingWorkflow';
+import { WorkflowData } from './types';
+import { getCookie } from '../_common/utils/cookieUtils';
 
 function CanvasPageContent() {
     // CookieProvider의 useAuth 훅 사용
@@ -731,6 +734,15 @@ function CanvasPageContent() {
         }
     };
 
+    const handleIsworkflow = async (workflowName: string) => {
+        try {
+            const workflowData: WorkflowData = await loadWorkflow(workflowName)
+            return true
+        }
+        catch (error: any) {
+            return false;
+        }
+    }
     const handleExecute = async () => {
         if (!canvasRef.current) {
             toast.error('Canvas is not ready.');
@@ -769,12 +781,8 @@ function CanvasPageContent() {
                 toast.loading('Executing streaming workflow...', { id: toastId });
                 setExecutionOutput({ stream: '' });
 
-                await executeWorkflowByIdStream({
-                    workflowName,
-                    workflowId,
-                    inputData: '',
-                    interactionId : 'default',
-                    selectedCollections : null,
+                await executeWorkflowStream({
+                    workflowData,
                     onData: (chunk) => {
                         setExecutionOutput((prev: { stream: any; }) => ({ ...prev, stream: (prev.stream || '') + chunk }));
                     },
@@ -785,6 +793,7 @@ function CanvasPageContent() {
                         throw err;
                     }
                 });
+
 
             } else {
                 const result = await executeWorkflow(workflowData);
@@ -850,6 +859,7 @@ function CanvasPageContent() {
                 onNewWorkflow={handleNewWorkflow}
                 onDeploy={workflow.id==='None' ? () => setShowDeploymentModal(false) : () => setShowDeploymentModal(true)}
                 isDeploy={isDeploy}
+                handleExecute={handleExecute}
             />
             <main className={styles.mainContent}>
                 <Canvas
@@ -881,6 +891,7 @@ function CanvasPageContent() {
                 isOpen={showDeploymentModal}
                 onClose={() => setShowDeploymentModal(false)}
                 workflow={workflow}
+                user_id={ getCookie('user_id') as string}
             />
             <input
                 type="file"

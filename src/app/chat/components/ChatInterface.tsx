@@ -22,12 +22,14 @@ import { ChatArea } from './ChatArea';
 import { DeploymentModal } from './DeploymentModal';
 import { generateInteractionId, normalizeWorkflowName } from '@/app/api/interactionAPI';
 import { devLog } from '@/app/_common/utils/logger';
-import { isStreamingWorkflow } from '@/app/_common/utils/isStreamingWorkflow';
+import { isStreamingWorkflow, isStreamingWorkflowDeploy} from '@/app/_common/utils/isStreamingWorkflow';
 import { WorkflowData } from '@/app/canvas/types';
+import { executeWorkflowByIdDeploy, executeWorkflowByIdStreamDeploy } from '@/app/api/workflow/workflowDeployAPI';
 
 interface NewChatInterfaceProps extends ChatInterfaceProps {
     onStartNewChat?: (message: string) => void;
     initialMessageToExecute?: string | null;
+    user_id?: number | string;
 }
 
 const ChatInterface: React.FC<NewChatInterfaceProps> = (
@@ -38,7 +40,9 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         hideBackButton = false, 
         existingChatData, 
         onStartNewChat, 
-        initialMessageToExecute 
+        initialMessageToExecute,
+        user_id,
+    
     }) => {
     const layoutContext = usePagesLayout();
     const router = useRouter();
@@ -105,6 +109,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
     }, [isAnyModalOpen, layoutContext]);
 
     const executeWorkflow = useCallback(async (messageOverride?: string) => {
+        console.log('executeWorkflow called')
         if (executing) {
             toast.loading('이전 작업이 완료될 때까지 잠시만 기다려주세요.');
             return;
@@ -170,6 +175,99 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                 });
             } else {
                 const result: any = await executeWorkflowById(workflowName, workflowId, currentMessage, interactionId, null);
+                setIOLogs((prev) =>
+                    prev.map((log) =>
+                        String(log.log_id) === tempId
+                            ? { ...log, output_data: result.outputs ? JSON.stringify(result.outputs[0], null, 2) : result.message || '처리 완료' }
+                            : log
+                    )
+                );
+                setPendingLogId(null);
+            }
+        } catch (err: any) {
+            setIOLogs((prev) =>
+                prev.map((log) =>
+                    String(log.log_id) === tempId
+                        ? { ...log, output_data: err.message || '메시지 처리 중 오류 발생' }
+                        : log
+                )
+            );
+            setPendingLogId(null);
+            toast.error(err.message || '메시지 처리 중 오류가 발생했습니다.');
+        } finally {
+            setExecuting(false);
+            scrollToBottom();
+        }
+    }, [executing, inputMessage, workflow, existingChatData, scrollToBottom]);
+
+    const executeWorkflowDeploy = useCallback(async (messageOverride?: string) => {
+        console.log('executeWorkflowDeploy called')
+        if (executing) {
+            toast.loading('이전 작업이 완료될 때까지 잠시만 기다려주세요.');
+            return;
+        }
+
+        const currentMessage = messageOverride || inputMessage;
+        if (!currentMessage.trim()) return;
+
+        setInputMessage('');
+
+        setExecuting(true);
+        setError(null);
+        const tempId = `pending-${Date.now()}`;
+        setPendingLogId(tempId);
+
+        setIOLogs((prev) => [
+            ...prev,
+            {
+                log_id: tempId,
+                workflow_name: workflow.name,
+                workflow_id: workflow.id,
+                input_data: currentMessage,
+                output_data: '',
+                updated_at: new Date().toISOString(),
+            },
+        ]);
+
+        try {
+            let isStreaming: boolean;
+            if (workflow.name == 'default_mode'){
+                isStreaming = true;
+            } else {
+                isStreaming = await isStreamingWorkflowDeploy(workflow.name, user_id);
+            }
+            
+            const { interactionId, workflowId, workflowName } = existingChatData || {
+                interactionId: generateInteractionId(), 
+                workflowId: workflow.id, workflowName: workflow.name};
+
+            if (!interactionId || !workflowId || !workflowName) {
+                throw new Error("채팅 세션 정보가 유효하지 않습니다.");
+            }
+            
+            if (isStreaming) {
+                await executeWorkflowByIdStreamDeploy({
+                    workflowName,
+                    workflowId,
+                    inputData: currentMessage,
+                    interactionId,
+                    selectedCollections: selectedCollection,
+                    user_id: user_id,
+                    onData: (chunk) => {
+                        setIOLogs((prev) =>
+                            prev.map((log) =>
+                                String(log.log_id) === tempId
+                                    ? { ...log, output_data: (log.output_data || '') + chunk }
+                                    : log
+                            )
+                        );
+                        scrollToBottom();
+                    },
+                    onEnd: () => setPendingLogId(null),
+                    onError: (err) => { throw err; },
+                });
+            } else {
+                const result: any = await executeWorkflowByIdDeploy(workflowName, workflowId, currentMessage, interactionId, null, user_id);
                 setIOLogs((prev) =>
                     prev.map((log) =>
                         String(log.log_id) === tempId
@@ -347,7 +445,11 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
             e.preventDefault();
             if (mode === 'new-default' || mode === 'new-workflow') {
                 handleStartNewChatFlow();
-            } else {
+            } 
+            else if (mode ==='deploy') {
+                executeWorkflowDeploy();
+            }
+            else {
                 executeWorkflow();
             }
         }
@@ -543,7 +645,11 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                                     onClick={() => {
                                         if (mode === 'new-default' || mode === 'new-workflow') {
                                             handleStartNewChatFlow();
-                                        } else {
+                                        } 
+                                        else if (mode ==='deploy') {
+                                            executeWorkflowDeploy();
+                                        }
+                                        else {
                                             executeWorkflow();
                                         }
                                     }}
@@ -576,6 +682,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                 isOpen={showDeploymentModal}
                 onClose={() => setShowDeploymentModal(false)}
                 workflow={workflow}
+                user_id={user_id}
             />
 
             {/* Collection Modal */}

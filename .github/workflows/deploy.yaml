@@ -26,5 +26,6 @@ jobs:
           cd /home/plateerag
           npm install
           npm run build
+          npm run build:embed
           pm2 reload frontend
           echo "🚀 Frontend server restarted."

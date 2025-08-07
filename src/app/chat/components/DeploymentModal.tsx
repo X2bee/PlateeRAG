@@ -11,8 +11,9 @@ interface DeploymentModalProps {
     isOpen: boolean;
     onClose: () => void;
     workflow: Workflow;
+    user_id?: number | string;
 }
-export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClose, workflow }) => {
+export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClose, workflow, user_id }) => {
     const [baseUrl, setBaseUrl] = useState('');
     const [activeTab, setActiveTab] = useState('website');
     const [activeApiLang, setActiveApiLang] = useState('python');
@@ -35,7 +36,8 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
                 workflow_id: workflow.id,
                 input_data: "안녕하세요",
                 interaction_id: "default",
-                selected_collection: "string"
+                selected_collection: "string",
+                user_id: user_id
             }, null, 2);
             setCurlPayload(defaultPayload);
 
@@ -44,11 +46,11 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
     }, [isOpen]);
 
     if (!isOpen) return null;
-
-    const chatId = workflow.id;
+    const userId = user_id
+    const workflowId = workflow.id;
     const workflowName = workflow.name;
-    const apiEndpoint = `${baseUrl}/api/workflow/execute/based_id`;
-    const webPageUrl = `${baseUrl}/chatbot/${chatId}?workflowName=${workflowName}`;
+    const apiEndpoint = `${baseUrl}/api/workflow/deploy/execute/based_id`;
+    const webPageUrl = `${baseUrl}/chatbot/${userId}?workflowName=${workflowName}`;
 
     const pythonApiCode = `import requests
 
@@ -60,11 +62,14 @@ def query(payload):
 
 output = query({
     "workflow_name": ${workflowName},
-    "workflow_id": ${chatId},
+    "workflow_id": ${workflowId},
     "input_data": "안녕하세요",
     "interaction_id": "default",
-    "selected_collection": "string"
+    "selected_collection": "string",
+    "user_id": ${userId}
 })
+
+print(output)
 `;
 
     const jsApiCode = `async function query(data) {
@@ -82,17 +87,18 @@ output = query({
 
 query({
     "workflow_name": ${workflowName},
-    "workflow_id": ${chatId},
+    "workflow_id": ${workflowId},
     "input_data": "안녕하세요",
     "interaction_id": "default",
-    "selected_collection": "string"
+    "selected_collection": "string",
+    "user_id": ${userId}
 }).then((response) => {
     console.log(response);
 });
 `;
 
     const curlCode = `curl -X 'POST' \\
-    '${baseUrl}/api/workflow/execute/based_id' \\
+    '${baseUrl}/api/workflow/deploy/execute/based_id' \\
     -H 'accept: application/json' \\
     -H 'Content-Type: application/json' \\
     -d '${curlPayload.replace(/'/g, "'\\''")}'`;
@@ -100,7 +106,7 @@ query({
     const popupHtmlCode = `<script type="module">
     import {Chatbot} from "${baseUrl}/chatbot-embed.js"
     Chatbot.init({
-        chatflowid: "${chatId}",
+        userId: "${userId}",
         apiHost: "${baseUrl}",
         workflowName: "${workflowName}"
     })
@@ -110,7 +116,7 @@ query({
 <script type="module">
     import {Chatbot} from "${baseUrl}/chatbot-embed.js"
     Chatbot.initFull({
-        chatflowid: "${chatId}",
+        userId: "${userId}",
         apiHost: "${baseUrl}",
         workflowName: "${workflowName}"
     })

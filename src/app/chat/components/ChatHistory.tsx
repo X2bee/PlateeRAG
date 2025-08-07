@@ -125,7 +125,8 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
                 }
 
                 const workflowExists = workflows.some((workflow: WorkflowDetail) =>
-                    workflow.workflow_id === chat.workflow_id && workflow.workflow_name === chat.workflow_name
+                    // workflow.workflow_id === chat.workflow_id && workflow.workflow_name === chat.workflow_name
+                    workflow.workflow_name === chat.workflow_name
                 );
 
                 return {

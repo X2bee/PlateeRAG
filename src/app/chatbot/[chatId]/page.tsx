@@ -87,6 +87,7 @@ const StandaloneChatPage = () => {
                         onChatStarted={() => { }}
                         hideBackButton={true}
                         existingChatData={undefined}
+                        user_id = {chatId}
                     />
                 </div>
             </div>

@@ -4,6 +4,7 @@ import styles from '@/app/canvas/assets/Header.module.scss';
 import { LuPanelRightOpen, LuSave, LuCheck, LuX, LuPencil, LuFileText } from "react-icons/lu";
 import { getWorkflowName, saveWorkflowName } from '@/app/_common/utils/workflowStorage';
 import { FiUpload } from 'react-icons/fi';
+import { BiCodeAlt } from "react-icons/bi";
 
 // Type definitions
 interface HeaderProps {
@@ -16,6 +17,7 @@ interface HeaderProps {
     onWorkflowNameChange?: (name: string) => void;
     onDeploy: () => void;
     isDeploy?: boolean;
+    handleExecute?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -27,7 +29,8 @@ const Header: React.FC<HeaderProps> = ({
     workflowName: externalWorkflowName,
     onWorkflowNameChange,
     onDeploy,
-    isDeploy
+    isDeploy,
+    handleExecute
 }) => {
     const [workflowName, setWorkflowName] = useState<string>('Workflow');
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -136,10 +139,17 @@ const Header: React.FC<HeaderProps> = ({
                 </div>
             </div>
             <div className={styles.rightSection}>
-                <button className={styles.deployButton} onClick={onDeploy} disabled={!isDeploy}>
-                    <FiUpload />
-                    <span>배포</span>
-                </button>
+                {isDeploy ? (
+                    <button className={styles.deployButton} onClick={onDeploy} disabled={!isDeploy}>
+                        <FiUpload />
+                        <span>배포하기</span>
+                    </button>)
+                    : (
+                        <button className={styles.deployTestButton} onClick={handleExecute} disabled={isDeploy}>
+                            <BiCodeAlt />
+                            <span>배포 테스트</span>
+                        </button>
+                    )}
                 <button onClick={onNewWorkflow} className={styles.menuButton} title="New Workflow">
                     <LuFileText />
                 </button>
