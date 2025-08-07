@@ -4,8 +4,8 @@ import ToastProvider from '@/app/_common/components/ToastProvider';
 import CookieProvider from '@/app/_common/components/CookieProvider';
 
 export const metadata: Metadata = {
-    title: 'Prague',
-    description: 'Prague - Next-Gen AI Workflow Platform',
+    title: 'PolarOps',
+    description: 'PolarOps - Next-Gen AI Workflow Platform',
 };
 
 export default function RootLayout({

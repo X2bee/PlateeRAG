@@ -49,7 +49,7 @@ export default function HomePage() {
                 <nav className={styles.nav}>
                     <div className={styles.navContent}>
                         <div className={styles.logo}>
-                            <h1>Prague</h1>
+                            <h1>PolarOps</h1>
                         </div>
                         <div className={styles.navActions}>
                             {user ? (
@@ -97,7 +97,7 @@ export default function HomePage() {
                             </span>
                         </h1>
                         <p className={styles.heroDescription}>
-                            Prague는 차세대 AI 워크플로우 플랫폼입니다.<br />
+                            PolarOps는 차세대 AI 워크플로우 플랫폼입니다.<br />
                             드래그 앤 드롭으로 만드는 나만의 AI Agent를 경험하세요. <br />
                             당신의 아이디어를 실현하는 가장 강력한 에디터입니다.
                         </p>
@@ -118,7 +118,7 @@ export default function HomePage() {
                         <div className={styles.heroActions}>
                             <Link href="/chat" className={styles.primaryBtn}>
                                 <FiPlay />
-                                Be More Productive with Prague
+                                Be More Productive with PolarOps
                             </Link>
                         </div>
                     </div>
@@ -131,7 +131,7 @@ export default function HomePage() {
                                         <span></span>
                                         <span></span>
                                     </div>
-                                    <span>Prague Canvas</span>
+                                    <span>PolarOps Canvas</span>
                                 </div>
                                 <div className={styles.mockupContent}>
                                     <div className={styles.mockupNodes}>
@@ -159,7 +159,7 @@ export default function HomePage() {
                 {/* Feature Cards */}
                 <div id="features" className={styles.featuresSection}>
                     <div className={styles.featuresHeader}>
-                        <h2>왜 Prague인가요?</h2>
+                        <h2>왜 PolarOps인가요?</h2>
                         <p>
                             AI 워크플로우 구축의 새로운 표준을 제시하는 혁신적인 기능들
                         </p>
@@ -312,7 +312,7 @@ export default function HomePage() {
                 <div className={styles.footerContent}>
                     <div className={styles.footerTop}>
                         <div className={styles.footerBrand}>
-                            <h3>Prague</h3>
+                            <h3>PolarOps</h3>
                             <p>Next Generation AI Workflow</p>
                         </div>
                         <div className={styles.footerSocial}>
