@@ -7,6 +7,9 @@ import styles from '@/app/chat/assets/chatParser.module.scss';
 import { Prism } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
+// Think 블록 표시 여부를 제어하는 상수
+const showThinkBlock = false;
+
 export interface ParsedContent {
     html: string;
     plainText: string;
@@ -63,7 +66,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ language, code, className 
                     {copied ? <FiCheck /> : <FiCopy />}
                 </button>
             </div>
-            <Prism 
+            <Prism
                 language={displayLanguage}
                 style={vscDarkPlus}
                 customStyle={{
@@ -137,7 +140,7 @@ interface CodeBlockInfo {
 const findCodeBlocks = (content: string): CodeBlockInfo[] => {
     const blocks: CodeBlockInfo[] = [];
     const lines = content.split('\n');
-    
+
     let inCodeBlock = false;
     const fenceStack: string[] = [];  // 중첩된 펜스를 추적하기 위한 스택
     let codeBlockLanguage = '';
@@ -154,7 +157,7 @@ const findCodeBlocks = (content: string): CodeBlockInfo[] => {
             inCodeBlock = true;
             const fence = fenceMatch[0];
             fenceStack.push(fence);
-            
+
             codeBlockLanguage = trimmedLine.substring(fence.length).trim() || 'text';
             codeBlockStart = currentIndex;
             codeBlockContent = [];
@@ -180,11 +183,11 @@ const findCodeBlocks = (content: string): CodeBlockInfo[] => {
                     language: codeBlockLanguage,
                     code: codeBlockContent.slice(0, -1).join('\n'),
                 });
-                
+
                 inCodeBlock = false;
             }
         }
-        
+
         currentIndex += line.length + 1;
     }
 
@@ -215,7 +218,7 @@ interface ThinkBlockInfo {
  */
 const findThinkBlocks = (content: string): ThinkBlockInfo[] => {
     const blocks: ThinkBlockInfo[] = [];
-    
+
     // 완성된 <think></think> 블록 찾기
     const completeThinkRegex = /<think>([\s\S]*?)<\/think>/gi;
     let match;
@@ -231,14 +234,14 @@ const findThinkBlocks = (content: string): ThinkBlockInfo[] => {
     // 미완성된 <think> 블록 찾기 (스트리밍 중)
     const incompleteThinkRegex = /<think>(?![\s\S]*?<\/think>)([\s\S]*)$/gi;
     const incompleteMatch = incompleteThinkRegex.exec(content);
-    
+
     if (incompleteMatch) {
         // 이미 완성된 think 블록과 겹치지 않는지 확인
         const incompleteStart = incompleteMatch.index;
-        const isOverlapping = blocks.some(block => 
+        const isOverlapping = blocks.some(block =>
             incompleteStart >= block.start && incompleteStart < block.end
         );
-        
+
         if (!isOverlapping) {
             blocks.push({
                 start: incompleteStart,
@@ -311,16 +314,21 @@ const parseContentToReactElements = (content: string): React.ReactNode[] => {
         // 블록 타입에 따라 컴포넌트 추가
         if (block.type === 'think') {
             // 스트리밍 중인지 확인 (블록이 문서 끝까지 이어지고 </think>가 없는 경우)
-            const isStreaming = block.end === processed.length && 
+            const isStreaming = block.end === processed.length &&
                                !processed.slice(block.start).includes('</think>');
-            
-            elements.push(
-                <ThinkBlock
-                    key={`think-${elements.length}`}
-                    content={block.content}
-                    isStreaming={isStreaming}
-                />
-            );
+
+            // showThinkBlock이 false이고 완성된 블록인 경우 숨김
+            if (!showThinkBlock && !isStreaming) {
+                // 완성된 think 블록은 렌더링하지 않음
+            } else {
+                elements.push(
+                    <ThinkBlock
+                        key={`think-${elements.length}`}
+                        content={block.content}
+                        isStreaming={isStreaming}
+                    />
+                );
+            }
         } else if (block.type === 'code') {
             elements.push(
                 <CodeBlock
@@ -354,7 +362,7 @@ const isSeparatorLine = (line: string): boolean => {
     }
     // 양 끝의 '|'를 제거하고, 각 컬럼을 분리
     const columns = trimmedLine.replace(/^\|/, '').replace(/\|$/, '').split('|');
-    
+
     // 모든 컬럼이 유효한 구분자 형식인지 확인 (최소 3개의 하이픈)
     return columns.length > 0 && columns.every(col => /^\s*:?-{3,}:?\s*$/.test(col));
 };
@@ -412,10 +420,10 @@ const parseSimpleMarkdown = (text: string, startKey: number): React.ReactNode[] 
                 if (trimmed.endsWith(':')) return 'right';
                 return 'left';
             });
-            
+
             // 테이블 셀 파싱 헬퍼 함수
             const parseTableRow = (rowStr: string) => rowStr.trim().replace(/^\||\|$/g, '').split('|').map(s => s.trim());
-            
+
             // 헤더 생성
             const headers = parseTableRow(headerLine);
             const headerElement = (
@@ -441,14 +449,14 @@ const parseSimpleMarkdown = (text: string, startKey: number): React.ReactNode[] 
                     </tr>
                 );
             });
-            
+
             elements.push(
                 <table key={key} style={{ borderCollapse: 'collapse', width: '100%', margin: '1rem 0', border: '1px solid #d1d5db' }}>
                     <thead style={{ background: '#f9fafb' }}>{headerElement}</thead>
                     <tbody>{bodyElements}</tbody>
                 </table>
             );
-            
+
             // 테이블로 처리된 라인만큼 인덱스를 건너뜀
             i = tableEndIndex - 1;
             continue;
@@ -568,10 +576,10 @@ interface ThinkBlockProps {
     isStreaming?: boolean; // 스트리밍 중인지 여부
 }
 
-export const ThinkBlock: React.FC<ThinkBlockProps> = ({ 
-    content, 
-    className = '', 
-    isStreaming = false 
+export const ThinkBlock: React.FC<ThinkBlockProps> = ({
+    content,
+    className = '',
+    isStreaming = false
 }) => {
     // 스트리밍 중일 때는 펼쳐진 상태, 완료되면 접힌 상태
     const [isExpanded, setIsExpanded] = useState(isStreaming);
@@ -593,8 +601,8 @@ export const ThinkBlock: React.FC<ThinkBlockProps> = ({
     };
 
     return (
-        <div 
-            className={`think-block-container ${isStreaming ? 'streaming' : ''} ${className}`} 
+        <div
+            className={`think-block-container ${isStreaming ? 'streaming' : ''} ${className}`}
             style={{
                 border: '1px solid #e5e7eb',
                 borderRadius: '0.5rem',
@@ -641,10 +649,10 @@ export const ThinkBlock: React.FC<ThinkBlockProps> = ({
                 )}
                 <span>💭 사고 과정</span>
                 {isStreaming && (
-                    <span style={{ 
-                        color: '#3b82f6', 
+                    <span style={{
+                        color: '#3b82f6',
                         fontSize: '0.75rem',
-                        fontWeight: 'bold' 
+                        fontWeight: 'bold'
                     }}>
                         (진행 중...)
                     </span>
@@ -672,7 +680,7 @@ export const ThinkBlock: React.FC<ThinkBlockProps> = ({
                     }}>
                         {content}
                         {isStreaming && (
-                            <span className="pulse-animation" style={{ 
+                            <span className="pulse-animation" style={{
                                 color: '#3b82f6',
                                 marginLeft: '0.25rem'
                             }}>

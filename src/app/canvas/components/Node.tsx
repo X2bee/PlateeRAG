@@ -3,6 +3,7 @@ import styles from '@/app/canvas/assets/Node.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
 import { fetchParameterOptions } from '@/app/api/parameterApi';
 import { LuRefreshCw } from 'react-icons/lu';
+import NodeModal from './NodeModal';
 import type {
     Parameter,
     NodeProps,
@@ -32,10 +33,28 @@ const Node: React.FC<NodeProps> = ({
     const [tool_name, setToolNameValue] = useState('tool_name');
     const [error, setError] = useState('');
 
+    // Modal 관련 상태
+    const [modalState, setModalState] = useState<{
+        isOpen: boolean;
+        paramId: string;
+        paramName: string;
+        currentValue: string;
+    }>({
+        isOpen: false,
+        paramId: '',
+        paramName: '',
+        currentValue: ''
+    });
+
 
     // API 기반 옵션을 관리하는 상태
     const [apiOptions, setApiOptions] = useState<Record<string, ParameterOption[]>>({});
     const [loadingApiOptions, setLoadingApiOptions] = useState<Record<string, boolean>>({});
+    // API에서 로드된 단일 값을 저장하는 상태
+    const [apiSingleValues, setApiSingleValues] = useState<Record<string, string>>({});
+
+    // 툴팁 표시 상태를 관리하는 상태
+    const [hoveredParam, setHoveredParam] = useState<string | null>(null);
 
     // Sync editingName when nodeName changes
     useEffect(() => {
@@ -48,14 +67,30 @@ const Node: React.FC<NodeProps> = ({
 
         const paramKey = `${id}-${param.id}`;
 
-        // 이미 로딩 중이거나 옵션이 이미 있으면 스킵
-        if (loadingApiOptions[paramKey] || apiOptions[paramKey]) return;
+        // 이미 로딩 중이거나 옵션이 이미 있거나 단일 값이 이미 있으면 스킵
+        if (loadingApiOptions[paramKey] || apiOptions[paramKey] || apiSingleValues[paramKey]) return;
 
         setLoadingApiOptions(prev => ({ ...prev, [paramKey]: true }));
 
         try {
             const options = await fetchParameterOptions(data.id, param.api_name);
-            setApiOptions(prev => ({ ...prev, [paramKey]: options }));
+
+            // 단일 값인지 확인 (첫 번째 옵션에 isSingleValue가 true인 경우)
+            if (options.length === 1 && options[0].isSingleValue) {
+                const singleValue = String(options[0].value);
+                setApiSingleValues(prev => ({ ...prev, [paramKey]: singleValue }));
+
+                // 파라미터의 기본값을 API에서 로드한 값으로 설정 (undefined나 null인 경우에만)
+                if (param.value === undefined || param.value === null) {
+                    onParameterChange(id, param.id, singleValue);
+                }
+
+                devLog.log('Single value loaded for parameter:', param.name, 'value:', singleValue);
+            } else {
+                // 배열 옵션인 경우
+                setApiOptions(prev => ({ ...prev, [paramKey]: options }));
+                devLog.log('Options loaded for parameter:', param.name, 'count:', options.length);
+            }
         } catch (error) {
             devLog.error('Error loading API options for parameter:', param.name, error);
         } finally {
@@ -75,16 +110,35 @@ const Node: React.FC<NodeProps> = ({
         setLoadingApiOptions(prev => ({ ...prev, [paramKey]: true }));
 
         try {
-            // 기존 옵션 삭제하고 새로 로드
+            // 기존 옵션 및 단일 값 삭제하고 새로 로드
             setApiOptions(prev => {
                 const newOptions = { ...prev };
                 delete newOptions[paramKey];
                 return newOptions;
             });
 
+            setApiSingleValues(prev => {
+                const newValues = { ...prev };
+                delete newValues[paramKey];
+                return newValues;
+            });
+
             const options = await fetchParameterOptions(data.id, param.api_name);
-            setApiOptions(prev => ({ ...prev, [paramKey]: options }));
-            devLog.log('API options refreshed for parameter:', param.name);
+
+            // 단일 값인지 확인 (첫 번째 옵션에 isSingleValue가 true인 경우)
+            if (options.length === 1 && options[0].isSingleValue) {
+                const singleValue = String(options[0].value);
+                setApiSingleValues(prev => ({ ...prev, [paramKey]: singleValue }));
+
+                // 파라미터 값을 새로운 API 값으로 업데이트
+                onParameterChange(id, param.id, singleValue);
+
+                devLog.log('Single value refreshed for parameter:', param.name, 'value:', singleValue);
+            } else {
+                // 배열 옵션인 경우
+                setApiOptions(prev => ({ ...prev, [paramKey]: options }));
+                devLog.log('Options refreshed for parameter:', param.name, 'count:', options.length);
+            }
         } catch (error) {
             devLog.error('Error refreshing API options for parameter:', param.name, error);
         } finally {
@@ -146,6 +200,32 @@ const Node: React.FC<NodeProps> = ({
 
     const validationMessage = '최대 64자, 영문 대소문자(a-z, A-Z), 숫자(0-9), 언더스코어(_)';
 
+    // Modal 관련 함수
+    const openModal = (param: Parameter) => {
+        setModalState({
+            isOpen: true,
+            paramId: param.id,
+            paramName: param.name,
+            currentValue: String(param.value || '')
+        });
+    };
+
+    const closeModal = () => {
+        setModalState({
+            isOpen: false,
+            paramId: '',
+            paramName: '',
+            currentValue: ''
+        });
+    };
+
+    const handleModalSave = (value: string) => {
+        if (modalState.paramId && typeof onParameterChange === 'function') {
+            onParameterChange(id, modalState.paramId, value);
+        }
+        closeModal();
+    };
+
     const handleToolNameChange = (e: React.ChangeEvent<HTMLSelectElement> | React.ChangeEvent<HTMLInputElement>, paramId: string) => {
         const originalValue = e.target.value;
         let processedValue = originalValue;
@@ -201,18 +281,37 @@ const Node: React.FC<NodeProps> = ({
         const paramKey = `${id}-${param.id}`;
         const isApiParam = param.is_api && param.api_name;
 
-        // API 기반 파라미터인 경우 API 옵션을 사용, 아니면 기본 옵션 사용
+        // API 기반 파라미터인 경우 API 옵션 또는 단일 값을 사용, 아니면 기본 옵션 사용
         let effectiveOptions = param.options || [];
         let isLoadingOptions = false;
+        let apiSingleValue = null;
 
         if (isApiParam) {
             effectiveOptions = apiOptions[paramKey] || [];
             isLoadingOptions = loadingApiOptions[paramKey] || false;
+            apiSingleValue = apiSingleValues[paramKey];
         }
+
+        // API에서 단일 값을 로드한 경우 input으로 렌더링
+        const shouldRenderAsInput = isApiParam && apiSingleValue !== undefined;
 
         return (
             <div key={param.id} className={`${styles.param} param`}>
                 <span className={`${styles.paramKey} ${param.required ? styles.required : ''}`}>
+                    {param.description && param.description.trim() !== '' && (
+                        <div
+                            className={styles.infoIcon}
+                            onMouseEnter={() => setHoveredParam(param.id)}
+                            onMouseLeave={() => setHoveredParam(null)}
+                        >
+                            ?
+                            {hoveredParam === param.id && (
+                                <div className={styles.tooltip}>
+                                    {param.description}
+                                </div>
+                            )}
+                        </div>
+                    )}
                     {param.name}
                     {isApiParam && (
                         <button
@@ -229,7 +328,36 @@ const Node: React.FC<NodeProps> = ({
                         </button>
                     )}
                 </span>
-                {(effectiveOptions.length > 0 || isApiParam) ? (
+                {shouldRenderAsInput ? (
+                    // API에서 단일 값을 로드한 경우 input으로 렌더링
+                    <input
+                        type="text"
+                        value={param.value !== undefined && param.value !== null ? param.value : (apiSingleValue || '')}
+                        onChange={(e) => handleParamValueChange(e, param.id)}
+                        onMouseDown={(e) => {
+                            devLog.log('api single value input onMouseDown');
+                            e.stopPropagation();
+                        }}
+                        onClick={(e) => {
+                            devLog.log('api single value input onClick');
+                            e.stopPropagation();
+                        }}
+                        onFocus={(e) => {
+                            devLog.log('api single value input onFocus');
+                            e.stopPropagation();
+                            // Clear node selection when editing parameter
+                            if (onClearSelection) {
+                                onClearSelection();
+                            }
+                        }}
+                        onKeyDown={(e) => {
+                            // Prevent keyboard event propagation
+                            e.stopPropagation();
+                        }}
+                        className={`${styles.paramInput} paramInput`}
+                        placeholder={apiSingleValue ? `Default: ${apiSingleValue}` : ''}
+                    />
+                ) : (effectiveOptions.length > 0 || isApiParam) ? (
                     <select
                         value={param.value}
                         onChange={(e) => {
@@ -357,6 +485,46 @@ const Node: React.FC<NodeProps> = ({
                         />
                         {error && <div className={styles.errorMessage}>{error}</div>}
                     </div>
+                ) : (param as any).expandable ? (
+                    <div className={styles.expandableWrapper}>
+                        <input
+                            type="text"
+                            value={param.value || ''}
+                            onChange={(e) => handleParamValueChange(e, param.id)}
+                            onMouseDown={(e) => {
+                                devLog.log('expandable input onMouseDown');
+                                e.stopPropagation();
+                            }}
+                            onClick={(e) => {
+                                devLog.log('expandable input onClick');
+                                e.stopPropagation();
+                            }}
+                            onFocus={(e) => {
+                                devLog.log('expandable input onFocus');
+                                e.stopPropagation();
+                                if (onClearSelection) {
+                                    onClearSelection();
+                                }
+                            }}
+                            onKeyDown={(e) => {
+                                e.stopPropagation();
+                            }}
+                            className={`${styles.paramInput} paramInput`}
+                            readOnly
+                            placeholder="Click expand button to edit..."
+                        />
+                        <button
+                            className={styles.expandButton}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                openModal(param);
+                            }}
+                            type="button"
+                            title="Expand to edit"
+                        >
+                            ⧉
+                        </button>
+                    </div>
                 ) : (
                     <input
                         type={param.type && numberList.includes(param.type) ? 'number' : 'text'}
@@ -438,157 +606,166 @@ const Node: React.FC<NodeProps> = ({
     const displayName = nodeName.length > 25 ? nodeName.substring(0, 25) + '...' : nodeName;
 
     return (
-        <div
-            className={`${styles.node} ${isSelected ? styles.selected : ''} ${isPreview ? 'preview' : ''}`}
-            style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
-            onMouseDown={handleMouseDown}
-        >
-            <div className={styles.header}>
-                {isEditingName ? (
-                    <input
-                        type="text"
-                        value={editingName}
-                        onChange={handleNameChange}
-                        onKeyDown={handleNameKeyDown}
-                        onBlur={handleNameBlur}
-                        onMouseDown={(e) => {
-                            e.stopPropagation();
-                        }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                        }}
-                        onFocus={(e) => {
-                            e.stopPropagation();
-                        }}
-                        className={styles.nameInput}
-                        autoFocus
-                    />
-                ) : (
-                    <span onDoubleClick={handleNameDoubleClick} className={styles.nodeName}>
-                        {displayName}
-                    </span>
-                )}
-                {functionId && <span className={styles.functionId}>({functionId})</span>}
-            </div>
-            <div className={styles.body}>
-                {hasIO && (
-                    <div className={styles.ioContainer}>
-                        {hasInputs && (
-                            <div className={styles.column}>
-                                <div className={styles.sectionHeader}>INPUT</div>
-                                {inputs.map(portData => {
-                                    const portKey = `${id}__PORTKEYDELIM__${portData.id}__PORTKEYDELIM__input`;
-                                    const isSnapping = snappedPortKey === portKey;
+        <>
+            <div
+                className={`${styles.node} ${isSelected ? styles.selected : ''} ${isPreview ? 'preview' : ''}`}
+                style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+                onMouseDown={handleMouseDown}
+            >
+                <div className={styles.header}>
+                    {isEditingName ? (
+                        <input
+                            type="text"
+                            value={editingName}
+                            onChange={handleNameChange}
+                            onKeyDown={handleNameKeyDown}
+                            onBlur={handleNameBlur}
+                            onMouseDown={(e) => {
+                                e.stopPropagation();
+                            }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                            }}
+                            onFocus={(e) => {
+                                e.stopPropagation();
+                            }}
+                            className={styles.nameInput}
+                            autoFocus
+                        />
+                    ) : (
+                        <span onDoubleClick={handleNameDoubleClick} className={styles.nodeName}>
+                            {displayName}
+                        </span>
+                    )}
+                    {functionId && <span className={styles.functionId}>({functionId})</span>}
+                </div>
+                <div className={styles.body}>
+                    {hasIO && (
+                        <div className={styles.ioContainer}>
+                            {hasInputs && (
+                                <div className={styles.column}>
+                                    <div className={styles.sectionHeader}>INPUT</div>
+                                    {inputs.map(portData => {
+                                        const portKey = `${id}__PORTKEYDELIM__${portData.id}__PORTKEYDELIM__input`;
+                                        const isSnapping = snappedPortKey === portKey;
 
-                                    const portClasses = [
-                                        styles.port,
-                                        styles.inputPort,
-                                        portData.multi ? styles.multi : '',
-                                        styles[`type-${portData.type}`],
-                                        isSnapping ? styles.snapping : '',
-                                        isSnapping && isSnapTargetInvalid ? styles['invalid-snap'] : ''
-                                    ].filter(Boolean).join(' ');
+                                        const portClasses = [
+                                            styles.port,
+                                            styles.inputPort,
+                                            portData.multi ? styles.multi : '',
+                                            styles[`type-${portData.type}`],
+                                            isSnapping ? styles.snapping : '',
+                                            isSnapping && isSnapTargetInvalid ? styles['invalid-snap'] : ''
+                                        ].filter(Boolean).join(' ');
 
-                                    return (
-                                        <div key={portData.id} className={styles.portRow}>
-                                            <div
-                                                ref={(el) => registerPortRef && registerPortRef(id, portData.id, 'input', el)}
-                                                className={portClasses}
-                                                onMouseDown={isPreview ? undefined : (e) => {
-                                                    e.stopPropagation();
-                                                    onPortMouseDown({
-                                                        nodeId: id,
-                                                        portId: portData.id,
-                                                        portType: 'input',
-                                                        isMulti: portData.multi,
-                                                        type: portData.type
-                                                    });
-                                                }}
-                                                onMouseUp={isPreview ? undefined : (e) => {
-                                                    e.stopPropagation();
-                                                    onPortMouseUp({
-                                                        nodeId: id,
-                                                        portId: portData.id,
-                                                        portType: 'input',
-                                                        type: portData.type
-                                                    });
-                                                }}
-                                            >
-                                                {portData.type}
+                                        return (
+                                            <div key={portData.id} className={styles.portRow}>
+                                                <div
+                                                    ref={(el) => registerPortRef && registerPortRef(id, portData.id, 'input', el)}
+                                                    className={portClasses}
+                                                    onMouseDown={isPreview ? undefined : (e) => {
+                                                        e.stopPropagation();
+                                                        onPortMouseDown({
+                                                            nodeId: id,
+                                                            portId: portData.id,
+                                                            portType: 'input',
+                                                            isMulti: portData.multi,
+                                                            type: portData.type
+                                                        });
+                                                    }}
+                                                    onMouseUp={isPreview ? undefined : (e) => {
+                                                        e.stopPropagation();
+                                                        onPortMouseUp({
+                                                            nodeId: id,
+                                                            portId: portData.id,
+                                                            portType: 'input',
+                                                            type: portData.type
+                                                        });
+                                                    }}
+                                                >
+                                                    {portData.type}
+                                                </div>
+                                                <span className={`${styles.portLabel} ${portData.required ? styles.required : ''}`}>
+                                                    {portData.name}
+                                                </span>
                                             </div>
-                                            <span className={`${styles.portLabel} ${portData.required ? styles.required : ''}`}>
-                                                {portData.name}
-                                            </span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                        {hasOutputs && (
-                            <div className={`${styles.column} ${styles.outputColumn} ${hasOnlyOutputs ? styles.fullWidth : ''}`}>
-                                <div className={styles.sectionHeader}>OUTPUT</div>
-                                {outputs.map(portData => {
-                                    const portClasses = [
-                                        styles.port,
-                                        styles.outputPort,
-                                        portData.multi ? styles.multi : '',
-                                        styles[`type-${portData.type}`]
-                                    ].filter(Boolean).join(' ');
+                                        );
+                                    })}
+                                </div>
+                            )}
+                            {hasOutputs && (
+                                <div className={`${styles.column} ${styles.outputColumn} ${hasOnlyOutputs ? styles.fullWidth : ''}`}>
+                                    <div className={styles.sectionHeader}>OUTPUT</div>
+                                    {outputs.map(portData => {
+                                        const portClasses = [
+                                            styles.port,
+                                            styles.outputPort,
+                                            portData.multi ? styles.multi : '',
+                                            styles[`type-${portData.type}`]
+                                        ].filter(Boolean).join(' ');
 
-                                    return (
-                                        <div key={portData.id} className={`${styles.portRow} ${styles.outputRow}`}>
-                                            <span className={styles.portLabel}>{portData.name}</span>
-                                            <div
-                                                ref={(el) => registerPortRef && registerPortRef(id, portData.id, 'output', el)}
-                                                className={portClasses}
-                                                onMouseDown={isPreview ? undefined : (e) => {
-                                                    e.stopPropagation();
-                                                    onPortMouseDown({
-                                                        nodeId: id,
-                                                        portId: portData.id,
-                                                        portType: 'output',
-                                                        isMulti: portData.multi,
-                                                        type: portData.type
-                                                    });
-                                                }}
-                                                onMouseUp={isPreview ? undefined : (e) => {
-                                                    e.stopPropagation();
-                                                    onPortMouseUp({
-                                                        nodeId: id,
-                                                        portId: portData.id,
-                                                        portType: 'output',
-                                                        type: portData.type
-                                                    });
-                                                }}
-                                            >
-                                                {portData.type}
+                                        return (
+                                            <div key={portData.id} className={`${styles.portRow} ${styles.outputRow}`}>
+                                                <span className={styles.portLabel}>{portData.name}</span>
+                                                <div
+                                                    ref={(el) => registerPortRef && registerPortRef(id, portData.id, 'output', el)}
+                                                    className={portClasses}
+                                                    onMouseDown={isPreview ? undefined : (e) => {
+                                                        e.stopPropagation();
+                                                        onPortMouseDown({
+                                                            nodeId: id,
+                                                            portId: portData.id,
+                                                            portType: 'output',
+                                                            isMulti: portData.multi,
+                                                            type: portData.type
+                                                        });
+                                                    }}
+                                                    onMouseUp={isPreview ? undefined : (e) => {
+                                                        e.stopPropagation();
+                                                        onPortMouseUp({
+                                                            nodeId: id,
+                                                            portId: portData.id,
+                                                            portType: 'output',
+                                                            type: portData.type
+                                                        });
+                                                    }}
+                                                >
+                                                    {portData.type}
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-                )}
-                {hasParams && (
-                    <>
-                        {hasIO && <div className={styles.divider}></div>}
-                        <div className={styles.paramSection}>
-                            <div className={styles.sectionHeader}>PARAMETER</div>
-                            {basicParameters.map(param => renderParameter(param))}
-                            {hasAdvancedParams && (
-                                <div className={styles.advancedParams}>
-                                    <div className={styles.advancedHeader} onClick={toggleAdvanced}>
-                                        <span>Advanced {showAdvanced ? '▲' : '▼'}</span>
-                                    </div>
-                                    {showAdvanced && advancedParameters.map(param => renderParameter(param))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
-                    </>
-                )}
+                    )}
+                    {hasParams && (
+                        <>
+                            {hasIO && <div className={styles.divider}></div>}
+                            <div className={styles.paramSection}>
+                                <div className={styles.sectionHeader}>PARAMETER</div>
+                                {basicParameters.map(param => renderParameter(param))}
+                                {hasAdvancedParams && (
+                                    <div className={styles.advancedParams}>
+                                        <div className={styles.advancedHeader} onClick={toggleAdvanced}>
+                                            <span>Advanced {showAdvanced ? '▲' : '▼'}</span>
+                                        </div>
+                                        {showAdvanced && advancedParameters.map(param => renderParameter(param))}
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
-        </div>
+            <NodeModal
+                isOpen={modalState.isOpen}
+                onClose={closeModal}
+                onSave={handleModalSave}
+                parameterName={modalState.paramName}
+                initialValue={modalState.currentValue}
+            />
+        </>
     );
 };
 

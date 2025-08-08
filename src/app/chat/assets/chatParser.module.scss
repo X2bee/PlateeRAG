@@ -44,36 +44,36 @@ $white: #ffffff;
         }
     }
 
-    :global(h1) { 
+    :global(h1) {
         font-size: 1.5rem;
         color: $gray-800;
         border-bottom: 2px solid $gray-200;
         padding-bottom: 0.25rem;
     }
-    
-    :global(h2) { 
+
+    :global(h2) {
         font-size: 1.3rem;
         color: $gray-800;
         border-bottom: 1px solid $gray-200;
         padding-bottom: 0.2rem;
     }
-    
-    :global(h3) { 
+
+    :global(h3) {
         font-size: 1.1rem;
         color: $gray-700;
     }
-    
-    :global(h4) { 
+
+    :global(h4) {
         font-size: 1rem;
         color: $gray-700;
     }
-    
-    :global(h5) { 
+
+    :global(h5) {
         font-size: 0.9rem;
         color: $gray-600;
     }
-    
-    :global(h6) { 
+
+    :global(h6) {
         font-size: 0.8rem;
         color: $gray-600;
         text-transform: uppercase;
@@ -485,12 +485,12 @@ $white: #ffffff;
                 border-bottom: 0;
             }
         }
-        
+
         :global(tr:nth-child(even)) {
             background-color: $gray-50;
         }
     }
-    
+
     :global(th.align-left), :global(td.align-left) {
         text-align: left;
     }
