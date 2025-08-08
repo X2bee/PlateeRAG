@@ -40,8 +40,10 @@ interface DraggableNodeItemProps {
 
 const DraggableNodeItem: React.FC<DraggableNodeItemProps> = ({ nodeData }) => {
     const onDragStart = (event: DragEvent<HTMLDivElement>): void => {
-        event.dataTransfer.setData('application/json', JSON.stringify(nodeData));
-        event.dataTransfer.effectAllowed = 'move';
+        const nodeDataString = JSON.stringify(nodeData);
+        event.dataTransfer.setData('application/json', nodeDataString);
+        event.dataTransfer.setData('text/plain', nodeDataString);
+        event.dataTransfer.effectAllowed = 'copy';
     };
 
     return (

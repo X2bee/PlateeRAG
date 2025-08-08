@@ -64,6 +64,19 @@ const NodeModal: React.FC<NodeModalProps> = ({
                         onMouseDown={(e) => e.stopPropagation()}
                         onFocus={(e) => e.stopPropagation()}
                         onKeyDown={(e) => e.stopPropagation()}
+                        onDragStart={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }}
+                        onDrag={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }}
+                        onDragEnd={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }}
+                        draggable={false}
                         className={styles.textarea}
                         placeholder={`Enter ${parameterName}...`}
                         autoFocus
