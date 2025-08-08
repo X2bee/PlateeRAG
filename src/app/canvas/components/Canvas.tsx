@@ -92,7 +92,9 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
     const [predictedNodes, setPredictedNodes] = useState<PredictedNode[]>([]);
     const [availableNodeSpecs, setAvailableNodeSpecs] = useState<NodeData[]>([]);
     const [isDraggingOutput, setIsDraggingOutput] = useState<boolean>(false);
+    const [isDraggingInput, setIsDraggingInput] = useState<boolean>(false);
     const [currentOutputType, setCurrentOutputType] = useState<string | null>(null);
+    const [currentInputType, setCurrentInputType] = useState<string | null>(null);
 
     const nodesRef = useRef<CanvasNode[]>(nodes);
     const edgePreviewRef = useRef<EdgePreview | null>(edgePreview);
@@ -449,11 +451,19 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         return areTypesCompatible(outputType, inputType);
     };
 
-    // 주어진 출력 타입과 연결 가능한 노드들을 찾는 함수
+    // 주어진 출력 타입과 연결 가능한 노드들을 찾는 함수 (출력 포트 기반)
     const findCompatibleNodes = (outputType: string): NodeData[] => {
         return availableNodeSpecs.filter(nodeSpec => {
             if (!nodeSpec.inputs) return false;
             return nodeSpec.inputs.some(input => canConnectTypes(outputType, input.type));
+        });
+    };
+
+    // 주어진 입력 타입과 연결 가능한 노드들을 찾는 함수 (입력 포트 기반)
+    const findCompatibleOutputNodes = (inputType: string): NodeData[] => {
+        return availableNodeSpecs.filter(nodeSpec => {
+            if (!nodeSpec.outputs) return false;
+            return nodeSpec.outputs.some(output => canConnectTypes(output.type, inputType));
         });
     };
 
@@ -573,78 +583,115 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         return testPosition; // 최대 시도 후에도 겹치면 마지막 위치 반환
     };
 
-    // 예측 노드들을 생성하는 함수 (개선된 레이아웃)
+    // 예측 노드들을 생성하는 함수 (격자 배치)
     const generatePredictedNodes = (outputType: string, sourcePos: Position): PredictedNode[] => {
         const compatibleNodes = findCompatibleNodes(outputType);
         const predicted: PredictedNode[] = [];
         
         // 노드 배치를 위한 기본 설정
         const NODE_WIDTH = 450;
-        const NODE_HEIGHT = 200;
-        const BASE_DISTANCE = 280; // 소스에서의 기본 거리
-        const VERTICAL_SPACING = 240; // 수직 간격
-        const HORIZONTAL_SPACING = 500; // 수평 간격
+        const BASE_DISTANCE = 100; // 소스에서의 기본 거리 (소스 노드 폭/2 + 예측 노드 폭/2 + 여백 30px)
+        const VERTICAL_SPACING = 280; // 수직 간격 (노드 높이 + 여백)
+        const HORIZONTAL_SPACING = 500; // 수평 간격 (노드 폭 + 여백)
         
         if (compatibleNodes.length === 0) return predicted;
         
-        // 노드 개수에 따른 배치 전략
-        if (compatibleNodes.length === 1) {
-            // 단일 노드는 오른쪽에 배치
-            const position = findNonOverlappingPosition({
-                x: sourcePos.x + BASE_DISTANCE,
-                y: sourcePos.y
-            }, [], NODE_WIDTH, NODE_HEIGHT);
+        // 모든 경우에 대해 격자 배치 적용
+        const cols = Math.min(3, Math.ceil(Math.sqrt(compatibleNodes.length))); // 최대 3열
+        const rows = Math.ceil(compatibleNodes.length / cols);
+        
+        // 격자의 전체 높이 계산
+        const totalGridHeight = (rows - 1) * VERTICAL_SPACING;
+        
+        // 시작 위치 계산 (첫 번째 노드가 BASE_DISTANCE 위치에 오고, 격자가 수직으로 중앙 정렬)
+        const startX = sourcePos.x + BASE_DISTANCE;
+        const startY = sourcePos.y - totalGridHeight / 2;
+        
+        devLog.log('Generating predicted nodes with grid layout:', {
+            totalNodes: compatibleNodes.length,
+            cols, rows,
+            sourcePos,
+            startX, startY,
+            BASE_DISTANCE, HORIZONTAL_SPACING, VERTICAL_SPACING,
+            actualDistance: startX - sourcePos.x,
+            nodeWidth: NODE_WIDTH
+        });
+
+        compatibleNodes.forEach((nodeData, index) => {
+            const col = index % cols;
+            const row = Math.floor(index / cols);
+            
+            // 정확한 격자 위치 계산 (findNonOverlappingPosition 사용 안 함)
+            const position = {
+                x: startX + (col * HORIZONTAL_SPACING),
+                y: startY + (row * VERTICAL_SPACING)
+            };
+            
+            devLog.log(`Node ${index} (${nodeData.id}): col=${col}, row=${row}, position=`, position);
             
             predicted.push({
-                id: `predicted-${compatibleNodes[0].id}-${Date.now()}-0`,
-                nodeData: compatibleNodes[0],
+                id: `predicted-${nodeData.id}-${Date.now()}-${index}`,
+                nodeData,
                 position,
                 isHovered: false
             });
-        } else if (compatibleNodes.length <= 4) {
-            // 2-4개 노드는 수직 배치
-            const totalHeight = (compatibleNodes.length - 1) * VERTICAL_SPACING;
-            const startY = sourcePos.y - totalHeight / 2;
+        });
+        
+        return predicted;
+    };
+
+    // 입력 포트 기반 예측 노드들을 생성하는 함수 (출력 노드들을 왼쪽에 격자 배치)
+    const generatePredictedOutputNodes = (inputType: string, sourcePos: Position): PredictedNode[] => {
+        const compatibleNodes = findCompatibleOutputNodes(inputType);
+        const predicted: PredictedNode[] = [];
+        
+        // 노드 배치를 위한 기본 설정  
+        const BASE_DISTANCE = -550; // 소스에서의 기본 거리 (왼쪽이므로 음수, 소스 노드 폭/2 + 예측 노드 폭/2 + 여백 100px)
+        const VERTICAL_SPACING = 280; // 수직 간격 (노드 높이 + 여백)
+        const HORIZONTAL_SPACING = -500; // 수평 간격 (왼쪽이므로 음수)
+        
+        if (compatibleNodes.length === 0) return predicted;
+        
+        // 모든 경우에 대해 격자 배치 적용
+        const cols = Math.min(3, Math.ceil(Math.sqrt(compatibleNodes.length))); // 최대 3열
+        const rows = Math.ceil(compatibleNodes.length / cols);
+        
+        // 격자의 전체 높이 계산
+        const totalGridHeight = (rows - 1) * VERTICAL_SPACING;
+        
+        // 시작 위치 계산 (첫 번째 노드가 BASE_DISTANCE 위치에 오고, 격자가 수직으로 중앙 정렬)
+        const startX = sourcePos.x + BASE_DISTANCE;
+        const startY = sourcePos.y - totalGridHeight / 2;
+        
+        devLog.log('Generating predicted output nodes with grid layout:', {
+            totalNodes: compatibleNodes.length,
+            cols, rows,
+            sourcePos,
+            startX, startY,
+            BASE_DISTANCE, HORIZONTAL_SPACING, VERTICAL_SPACING,
+            actualDistance: startX - sourcePos.x,
+            nodeWidth: 450
+        });
+
+        compatibleNodes.forEach((nodeData, index) => {
+            const col = index % cols;
+            const row = Math.floor(index / cols);
             
-            compatibleNodes.forEach((nodeData, index) => {
-                const basePos = {
-                    x: sourcePos.x + BASE_DISTANCE,
-                    y: startY + (index * VERTICAL_SPACING)
-                };
-                
-                const position = findNonOverlappingPosition(basePos, predicted, NODE_WIDTH, NODE_HEIGHT);
-                
-                predicted.push({
-                    id: `predicted-${nodeData.id}-${Date.now()}-${index}`,
-                    nodeData,
-                    position,
-                    isHovered: false
-                });
-            });
-        } else {
-            // 5개 이상은 격자 형태로 배치
-            const cols = Math.min(3, Math.ceil(Math.sqrt(compatibleNodes.length))); // 최대 3열
-            const rows = Math.ceil(compatibleNodes.length / cols);
+            // 정확한 격자 위치 계산 (findNonOverlappingPosition 사용 안 함)
+            const position = {
+                x: startX + (col * HORIZONTAL_SPACING), // HORIZONTAL_SPACING이 음수이므로 왼쪽으로 배치
+                y: startY + (row * VERTICAL_SPACING)
+            };
             
-            compatibleNodes.forEach((nodeData, index) => {
-                const col = index % cols;
-                const row = Math.floor(index / cols);
-                
-                const basePos = {
-                    x: sourcePos.x + BASE_DISTANCE + (col * HORIZONTAL_SPACING),
-                    y: sourcePos.y - ((rows - 1) * VERTICAL_SPACING) / 2 + (row * VERTICAL_SPACING)
-                };
-                
-                const position = findNonOverlappingPosition(basePos, predicted, NODE_WIDTH, NODE_HEIGHT);
-                
-                predicted.push({
-                    id: `predicted-${nodeData.id}-${Date.now()}-${index}`,
-                    nodeData,
-                    position,
-                    isHovered: false
-                });
+            devLog.log(`Output Node ${index} (${nodeData.id}): col=${col}, row=${row}, position=`, position);
+            
+            predicted.push({
+                id: `predicted-output-${nodeData.id}-${Date.now()}-${index}`,
+                nodeData,
+                position,
+                isHovered: false
             });
-        }
+        });
         
         return predicted;
     };
@@ -672,7 +719,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
 
     // 노드 ID가 예측 노드인지 확인하는 함수
     const isPredictedNodeId = useCallback((nodeId: string): boolean => {
-        return nodeId.startsWith('predicted-');
+        return nodeId.startsWith('predicted-') || nodeId.startsWith('predicted-output-');
     }, []);
 
     // 예측 노드를 실제 노드로 변환하면서 연결까지 처리하는 함수
@@ -684,7 +731,8 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
     ): CanvasNode | null => {
         devLog.log('=== convertPredictedNodeAndConnect called ===', {
             predictedNodeId, targetPortId, targetPortType, sourceConnection,
-            predictedNodesCount: predictedNodes.length
+            predictedNodesCount: predictedNodes.length,
+            isDraggingOutput, isDraggingInput
         });
         
         const predictedNode = predictedNodes.find(pNode => pNode.id === predictedNodeId);
@@ -711,21 +759,45 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
             return newNodes;
         });
 
-        // 에지 연결 생성
-        const newEdgeSignature = `${sourceConnection.nodeId}:${sourceConnection.portId}-${newNode.id}:${targetPortId}`;
-        const newEdge: CanvasEdge = {
-            id: `edge-${newEdgeSignature}-${Date.now()}`,
-            source: {
-                nodeId: sourceConnection.nodeId,
-                portId: sourceConnection.portId,
-                portType: sourceConnection.portType as 'input' | 'output'
-            },
-            target: {
-                nodeId: newNode.id,
-                portId: targetPortId,
-                portType: targetPortType
-            }
-        };
+        // 에지 연결 생성 - 드래그 방향에 따라 source와 target 결정
+        let newEdge: CanvasEdge;
+        
+        if (isDraggingOutput) {
+            // 출력 포트에서 예측 노드의 입력 포트로 드래그
+            const newEdgeSignature = `${sourceConnection.nodeId}:${sourceConnection.portId}-${newNode.id}:${targetPortId}`;
+            newEdge = {
+                id: `edge-${newEdgeSignature}-${Date.now()}`,
+                source: {
+                    nodeId: sourceConnection.nodeId,
+                    portId: sourceConnection.portId,
+                    portType: sourceConnection.portType as 'input' | 'output'
+                },
+                target: {
+                    nodeId: newNode.id,
+                    portId: targetPortId,
+                    portType: targetPortType
+                }
+            };
+        } else if (isDraggingInput) {
+            // 입력 포트에서 예측 노드의 출력 포트로 드래그 (방향 반대)
+            const newEdgeSignature = `${newNode.id}:${targetPortId}-${sourceConnection.nodeId}:${sourceConnection.portId}`;
+            newEdge = {
+                id: `edge-${newEdgeSignature}-${Date.now()}`,
+                source: {
+                    nodeId: newNode.id,
+                    portId: targetPortId,
+                    portType: targetPortType
+                },
+                target: {
+                    nodeId: sourceConnection.nodeId,
+                    portId: sourceConnection.portId,
+                    portType: sourceConnection.portType as 'input' | 'output'
+                }
+            };
+        } else {
+            devLog.log('ERROR: Neither isDraggingOutput nor isDraggingInput is true');
+            return null;
+        }
 
         devLog.log('Created new edge:', newEdge);
 
@@ -738,7 +810,9 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         // 예측 노드들 정리
         setPredictedNodes([]);
         setIsDraggingOutput(false);
+        setIsDraggingInput(false);
         setCurrentOutputType(null);
+        setCurrentInputType(null);
 
         devLog.log('Predicted node converted and connected successfully:', {
             newNodeId: newNode.id,
@@ -748,7 +822,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         });
 
         return newNode;
-    }, [predictedNodes]);
+    }, [predictedNodes, isDraggingOutput, isDraggingInput]);
 
     const handleCanvasMouseDown = (e: React.MouseEvent<HTMLDivElement>): void => {
         const target = e.target as HTMLElement;
@@ -832,19 +906,12 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 }
                 
                 predictedNodes.forEach(predictedNode => {
-                    if (predictedNode.nodeData.inputs) {
+                    // 출력 포트 기반 드래그 (기존 로직): 예측 노드의 입력 포트 확인
+                    if (isDraggingOutput && predictedNode.nodeData.inputs) {
                         predictedNode.nodeData.inputs.forEach(inputPort => {
                             // 예측 노드의 실제 포트 위치 사용
                             const portKey = `${predictedNode.id}__PORTKEYDELIM__${inputPort.id}__PORTKEYDELIM__input`;
                             const actualPortPos = portPositions[portKey];
-                            
-                            devLog.log('Checking predicted port:', {
-                                nodeId: predictedNode.id,
-                                portId: inputPort.id,
-                                portKey,
-                                hasPosition: !!actualPortPos,
-                                actualPortPos
-                            });
                             
                             if (actualPortPos) {
                                 const distance = calculateDistance(mousePos, actualPortPos);
@@ -852,7 +919,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                                 
                                 // 디버그 로그
                                 if (distance < 50) { // 가까운 거리에서만 로그
-                                    devLog.log('Predicted node port check:', {
+                                    devLog.log('Predicted input port check:', {
                                         portKey,
                                         distance,
                                         isCompatible,
@@ -866,8 +933,43 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                                 if (distance < minSnapDistance && isCompatible) {
                                     minSnapDistance = distance;
                                     closestPortKey = portKey;
-                                    devLog.log('New closest predicted port found:', portKey, distance);
+                                    devLog.log('New closest predicted input port found:', portKey, distance);
                                 }
+                            }
+                        });
+                    }
+                    
+                    // 입력 포트 기반 드래그: 예측 노드의 출력 포트 확인
+                    if (isDraggingInput && predictedNode.nodeData.outputs) {
+                        predictedNode.nodeData.outputs.forEach(outputPort => {
+                            // 예측 노드의 실제 포트 위치 사용
+                            const portKey = `${predictedNode.id}__PORTKEYDELIM__${outputPort.id}__PORTKEYDELIM__output`;
+                            const actualPortPos = portPositions[portKey];
+                            
+                            if (actualPortPos) {
+                                const distance = calculateDistance(mousePos, actualPortPos);
+                                const isCompatible = areTypesCompatible(outputPort.type, edgeSource.type);
+                                
+                                // 디버그 로그
+                                if (distance < 50) { // 가까운 거리에서만 로그
+                                    devLog.log('Predicted output port check:', {
+                                        portKey,
+                                        distance,
+                                        isCompatible,
+                                        outputPortType: outputPort.type,
+                                        edgeSourceType: edgeSource.type,
+                                        minSnapDistance,
+                                        actualPortPos
+                                    });
+                                }
+                                
+                                if (distance < minSnapDistance && isCompatible) {
+                                    minSnapDistance = distance;
+                                    closestPortKey = portKey;
+                                    devLog.log('New closest predicted output port found:', portKey, distance);
+                                }
+                            } else {
+                                devLog.log('No port position found for predicted output port:', portKey);
                             }
                         });
                     }
@@ -897,7 +999,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
             }
             setSnappedPortKey(closestPortKey);
         }
-    }, [dragState, view, portPositions, calculateDistance, predictedNodes, isPredictedNodeId, areTypesCompatible, findPortData]);
+    }, [dragState, view, portPositions, calculateDistance, predictedNodes, isPredictedNodeId, areTypesCompatible, findPortData, isDraggingOutput, isDraggingInput]);
 
     const handleKeyDown = useCallback((e: KeyboardEvent): void => {
         // Skip input field events
@@ -1010,11 +1112,13 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         }
 
         // 기존 노드와 연결하는 경우 - 예측 노드들 모두 제거
-        if (isDraggingOutput) {
+        if (isDraggingOutput || isDraggingInput) {
             devLog.log('Connecting to existing node, removing predicted nodes');
             setPredictedNodes([]);
             setIsDraggingOutput(false);
+            setIsDraggingInput(false);
             setCurrentOutputType(null);
+            setCurrentInputType(null);
         }
 
         const newEdgeSignature = `${currentEdgePreview.source.nodeId}:${currentEdgePreview.source.portId}-${nodeId}:${portId}`;
@@ -1094,10 +1198,12 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         setIsSnapTargetValid(true);
         
         // 일반적인 경우에만 예측 노드들 정리 (예측 노드 연결이 아닌 경우)
-        if (isDraggingOutput) {
+        if (isDraggingOutput || isDraggingInput) {
             setPredictedNodes([]);
             setIsDraggingOutput(false);
+            setIsDraggingInput(false);
             setCurrentOutputType(null);
+            setCurrentInputType(null);
         }
 
     }, [dragState.type, handlePortMouseUp, isDraggingOutput, isPredictedNodeId, predictedNodes]);
@@ -1113,6 +1219,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 existingEdge = edges.findLast(e => e.target.nodeId === nodeId && e.target.portId === portId);
             }
             if (existingEdge) {
+                // 기존 엣지가 있으면 기존 로직 유지 (엣지 재연결)
                 setDragState({ type: 'edge' });
                 devLog.log(existingEdge);
                 const sourcePosKey = `${existingEdge.source.nodeId}__PORTKEYDELIM__${existingEdge.source.portId}__PORTKEYDELIM__${existingEdge.source.portType}`;
@@ -1131,6 +1238,28 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 }
 
                 setEdges(prevEdges => prevEdges.filter(e => e.id !== existingEdge.id));
+                return;
+            } else {
+                // 기존 엣지가 없으면 입력 기반 예측 노드들 생성
+                setDragState({ type: 'edge' });
+                setIsDraggingInput(true);
+                setCurrentInputType(type);
+                
+                const startPosKey = `${nodeId}__PORTKEYDELIM__${portId}__PORTKEYDELIM__${portType}`;
+                const startPos = portPositions[startPosKey];
+                if (startPos) {
+                    setEdgePreview({ 
+                        source: { nodeId, portId, portType, type }, 
+                        startPos, 
+                        targetPos: startPos 
+                    });
+                    
+                    // 입력 포트 기반 예측 노드들 생성 (왼쪽에 배치)
+                    const predicted = generatePredictedOutputNodes(type, startPos);
+                    setPredictedNodes(predicted);
+                    
+                    devLog.log('Generated predicted output nodes for input type:', type, predicted);
+                }
                 return;
             }
         }
