@@ -6,6 +6,7 @@ import Canvas from '@/app/canvas/components/Canvas';
 import Header from '@/app/canvas/components/Header';
 import SideMenu from '@/app/canvas/components/SideMenu';
 import ExecutionPanel from '@/app/canvas/components/ExecutionPanel';
+import NodeModal from '@/app/canvas/components/NodeModal';
 import AuthGuard from '@/app/_common/components/AuthGuard';
 import { DeploymentModal } from '@/app/chat/components/DeploymentModal';
 import { useAuth } from '@/app/_common/components/CookieProvider';
@@ -63,6 +64,21 @@ function CanvasPageContent() {
     const [isCanvasReady, setIsCanvasReady] = useState(false);
     const [showDeploymentModal, setShowDeploymentModal] = useState(false);
     const [isDeploy, setIsDeploy] = useState(false);
+
+    // NodeModal 관련 상태
+    const [nodeModalState, setNodeModalState] = useState<{
+        isOpen: boolean;
+        nodeId: string;
+        paramId: string;
+        paramName: string;
+        currentValue: string;
+    }>({
+        isOpen: false,
+        nodeId: '',
+        paramId: '',
+        paramName: '',
+        currentValue: ''
+    });
 
     useEffect(() => {
         const handleError = (error: any) => {
@@ -837,6 +853,39 @@ function CanvasPageContent() {
         setExecutionOutput(null);
     };
 
+    // NodeModal 관련 핸들러 함수들
+    const handleOpenNodeModal = (nodeId: string, paramId: string, paramName: string, currentValue: string) => {
+        setNodeModalState({
+            isOpen: true,
+            nodeId,
+            paramId,
+            paramName,
+            currentValue
+        });
+    };
+
+    const handleCloseNodeModal = () => {
+        setNodeModalState({
+            isOpen: false,
+            nodeId: '',
+            paramId: '',
+            paramName: '',
+            currentValue: ''
+        });
+    };
+
+    const handleSaveNodeModal = (value: string) => {
+        if (canvasRef.current && nodeModalState.nodeId && nodeModalState.paramId) {
+            // Canvas에서 파라미터 값 업데이트하는 함수 호출
+            (canvasRef.current as any).updateNodeParameter?.(
+                nodeModalState.nodeId,
+                nodeModalState.paramId,
+                value
+            );
+        }
+        handleCloseNodeModal();
+    };
+
     // 브라우저 뒤로가기 방지
     useEffect(() => {
         const preventBackspace = (e: KeyboardEvent) => {
@@ -880,6 +929,7 @@ function CanvasPageContent() {
                     ref={canvasRef}
                     onStateChange={handleCanvasStateChange}
                     nodesInitialized={nodesInitialized}
+                    onOpenNodeModal={handleOpenNodeModal}
                     {...({} as any)}
                 />
                 {isMenuOpen && (
@@ -906,6 +956,13 @@ function CanvasPageContent() {
                 onClose={() => setShowDeploymentModal(false)}
                 workflow={workflow}
                 user_id={ getCookie('user_id') as string}
+            />
+            <NodeModal
+                isOpen={nodeModalState.isOpen}
+                onClose={handleCloseNodeModal}
+                onSave={handleSaveNodeModal}
+                parameterName={nodeModalState.paramName}
+                initialValue={nodeModalState.currentValue}
             />
             <input
                 type="file"

@@ -185,6 +185,7 @@ export interface NodeProps {
     predictedOpacity?: number;
     onPredictedNodeHover?: (nodeId: string, isHovered: boolean) => void;
     onPredictedNodeClick?: (nodeData: NodeData, position: Position) => void;
+    onOpenNodeModal?: (nodeId: string, paramId: string, paramName: string, currentValue: string) => void;
 }
 
 export interface EdgeProps {
@@ -251,6 +252,7 @@ export interface DeletedItem {
 export interface CanvasProps {
     onStateChange?: (state: CanvasState) => void;
     nodesInitialized?: boolean;
+    onOpenNodeModal?: (nodeId: string, paramId: string, paramName: string, currentValue: string) => void;
 }
 
 export interface CanvasRef {
@@ -262,6 +264,7 @@ export interface CanvasRef {
     clearSelectedNode: () => void;
     validateAndPrepareExecution: () => ExecutionValidationResult;
     setAvailableNodeSpecs: (nodeSpecs: NodeData[]) => void;
+    updateNodeParameter: (nodeId: string, paramId: string, value: string) => void;
 }
 
 // ========== Execution Panel Types ==========
