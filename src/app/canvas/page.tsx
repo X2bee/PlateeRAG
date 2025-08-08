@@ -732,20 +732,71 @@ function CanvasPageContent() {
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
+
+        // application/json 타입의 데이터가 있는지 확인 (노드 패널에서 드래그하는 경우)
+        const hasValidData = e.dataTransfer.types.includes('application/json');
+
+        // text/plain만 있는 경우는 브라우저나 다른 앱에서 드래그하는 것으로 간주
+        const hasOnlyText = e.dataTransfer.types.includes('text/plain') &&
+                           !e.dataTransfer.types.includes('application/json');
+
+        if (hasValidData) {
+            // 유효한 JSON 데이터 타입인 경우 드롭을 허용
+            e.dataTransfer.dropEffect = 'copy';
+        } else if (hasOnlyText) {
+            // 텍스트만 있는 경우 드롭을 거부 (브라우저/외부 앱에서 드래그)
+            e.dataTransfer.dropEffect = 'none';
+        } else {
+            // 기타 경우는 기본적으로 허용 (이전 동작 유지)
+            e.dataTransfer.dropEffect = 'copy';
+        }
     };
 
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         if (canvasRef.current) {
-            const nodeData = JSON.parse(
-                e.dataTransfer.getData('application/json'),
-            );
-            if (nodeData) {
-                (canvasRef.current as any).addNode(
-                    nodeData,
-                    e.clientX,
-                    e.clientY,
-                );
+            try {
+                // 먼저 application/json 데이터를 시도
+                let nodeData = null;
+                let jsonData = e.dataTransfer.getData('application/json');
+
+                if (jsonData && jsonData.trim() !== '') {
+                    // JSON 데이터가 있는 경우 파싱 시도
+                    try {
+                        nodeData = JSON.parse(jsonData);
+                    } catch (parseError) {
+                        return; // JSON 파싱 실패 시 무시
+                    }
+                } else {
+                    // JSON 데이터가 없는 경우 text/plain 시도 (노드 패널 호환성)
+                    const textData = e.dataTransfer.getData('text/plain');
+
+                    if (textData && textData.trim() !== '') {
+                        try {
+                            nodeData = JSON.parse(textData);
+                        } catch (parseError) {
+                            // text/plain이 JSON이 아닌 경우 (브라우저 텍스트 드래그 등)
+                            return;
+                        }
+                    } else {
+                        return;
+                    }
+                }
+
+                // nodeData 유효성 검증
+                if (nodeData &&
+                    typeof nodeData === 'object' &&
+                    nodeData.id &&
+                    typeof nodeData.id === 'string') {
+
+                    (canvasRef.current as any).addNode(
+                        nodeData,
+                        e.clientX,
+                        e.clientY,
+                    );
+                }
+            } catch (error) {
+                // 전체 과정에서 에러 발생 시 무시
             }
         }
     };
