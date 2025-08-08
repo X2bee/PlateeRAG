@@ -7,6 +7,9 @@ import styles from '@/app/chat/assets/chatParser.module.scss';
 import { Prism } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
+// Think 블록 표시 여부를 제어하는 상수
+const showThinkBlock = false;
+
 export interface ParsedContent {
     html: string;
     plainText: string;
@@ -314,13 +317,18 @@ const parseContentToReactElements = (content: string): React.ReactNode[] => {
             const isStreaming = block.end === processed.length &&
                                !processed.slice(block.start).includes('</think>');
 
-            elements.push(
-                <ThinkBlock
-                    key={`think-${elements.length}`}
-                    content={block.content}
-                    isStreaming={isStreaming}
-                />
-            );
+            // showThinkBlock이 false이고 완성된 블록인 경우 숨김
+            if (!showThinkBlock && !isStreaming) {
+                // 완성된 think 블록은 렌더링하지 않음
+            } else {
+                elements.push(
+                    <ThinkBlock
+                        key={`think-${elements.length}`}
+                        content={block.content}
+                        isStreaming={isStreaming}
+                    />
+                );
+            }
         } else if (block.type === 'code') {
             elements.push(
                 <CodeBlock

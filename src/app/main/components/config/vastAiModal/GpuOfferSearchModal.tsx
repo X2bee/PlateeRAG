@@ -50,6 +50,8 @@ interface SearchParams {
     min_gpu_ram?: number;
     num_gpus?: number;
     rentable?: boolean;
+    inet_down?: number;
+    inet_up?: number;
     sort_by?: string;
     limit?: number;
 }
@@ -123,6 +125,8 @@ export const GpuOfferSearchModal = () => {
         max_price: 3,
         min_gpu_ram: 24,
         num_gpus: 1,
+        inet_down: 3000,
+        inet_up: 3000,
         rentable: true,
         sort_by: 'price',
         limit: 30
@@ -188,6 +192,8 @@ export const GpuOfferSearchModal = () => {
             if (searchParams.min_gpu_ram) cleanParams.min_gpu_ram = searchParams.min_gpu_ram;
             if (searchParams.num_gpus) cleanParams.num_gpus = searchParams.num_gpus;
             if (searchParams.rentable !== undefined) cleanParams.rentable = searchParams.rentable;
+            if (searchParams.inet_down) cleanParams.inet_down = searchParams.inet_down;
+            if (searchParams.inet_up) cleanParams.inet_up = searchParams.inet_up;
             if (searchParams.sort_by) cleanParams.sort_by = searchParams.sort_by;
             if (searchParams.limit) cleanParams.limit = searchParams.limit;
 
@@ -543,6 +549,31 @@ export const GpuOfferSearchModal = () => {
                                     <option value="gpu_ram">GPU RAM순</option>
                                     <option value="num_gpus">GPU 개수순</option>
                                 </select>
+                            </div>
+                        </div>
+
+                        <div className={styles.compactRow}>
+                            <div className={styles.advancedFormGroup}>
+                                <label className={styles.label}>인터넷 다운로드 속도</label>
+                                <input
+                                    type="number"
+                                    className={styles.input}
+                                    placeholder="1"
+                                    min="1"
+                                    value={searchParams.inet_down || ''}
+                                    onChange={(e) => handleParamChange('inet_down', parseInt(e.target.value) || undefined)}
+                                />
+                            </div>
+                            <div className={styles.advancedFormGroup}>
+                                <label className={styles.label}>인터넷 업로드 속도</label>
+                                <input
+                                    type="number"
+                                    className={styles.input}
+                                    placeholder="1"
+                                    min="1"
+                                    value={searchParams.inet_up || ''}
+                                    onChange={(e) => handleParamChange('inet_up', parseInt(e.target.value) || undefined)}
+                                />
                             </div>
                         </div>
 
