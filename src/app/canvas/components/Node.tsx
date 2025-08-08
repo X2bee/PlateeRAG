@@ -354,6 +354,11 @@ const Node: React.FC<NodeProps> = ({
                             // Prevent keyboard event propagation
                             e.stopPropagation();
                         }}
+                        onDragStart={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }}
+                        draggable={false}
                         className={`${styles.paramInput} paramInput`}
                         placeholder={apiSingleValue ? `Default: ${apiSingleValue}` : ''}
                     />
@@ -396,6 +401,11 @@ const Node: React.FC<NodeProps> = ({
                             // Prevent keyboard event propagation
                             e.stopPropagation();
                         }}
+                        onDragStart={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }}
+                        draggable={false}
                         className={`${styles.paramSelect} paramSelect`}
                         disabled={isLoadingOptions}
                     >
@@ -447,6 +457,11 @@ const Node: React.FC<NodeProps> = ({
                             // Prevent keyboard event propagation
                             e.stopPropagation();
                         }}
+                        onDragStart={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }}
+                        draggable={false}
                         className={`${styles.paramSelect} paramSelect`}
                     >
                         <option value="" disabled>-- Select --</option>
@@ -477,6 +492,11 @@ const Node: React.FC<NodeProps> = ({
                             onKeyDown={(e) => {
                                 e.stopPropagation();
                             }}
+                            onDragStart={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }}
+                            draggable={false}
                             className={`${styles.paramInput} paramInput ${error ? styles.inputError : ''}`}
                             step={param.step}
                             min={param.min}
@@ -509,6 +529,11 @@ const Node: React.FC<NodeProps> = ({
                             onKeyDown={(e) => {
                                 e.stopPropagation();
                             }}
+                            onDragStart={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }}
+                            draggable={false}
                             className={`${styles.paramInput} paramInput`}
                             readOnly
                             placeholder="Click expand button to edit..."
@@ -550,6 +575,11 @@ const Node: React.FC<NodeProps> = ({
                             // Prevent keyboard event propagation (backspace, delete, etc.)
                             e.stopPropagation();
                         }}
+                        onDragStart={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }}
+                        draggable={false}
                         className={`${styles.paramInput} paramInput`}
                         step={param.step}
                         min={param.min}
@@ -629,6 +659,11 @@ const Node: React.FC<NodeProps> = ({
                             onFocus={(e) => {
                                 e.stopPropagation();
                             }}
+                            onDragStart={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }}
+                            draggable={false}
                             className={styles.nameInput}
                             autoFocus
                         />

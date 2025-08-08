@@ -9,6 +9,9 @@
     user-select: none;
     -webkit-user-select: none;
     z-index: 20;
+    display: flex;
+    flex-direction: column;
+    min-height: auto;
 
     &.selected {
         border-color: #3b82f6;
@@ -29,6 +32,9 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
 }
 
 .functionId {
@@ -66,6 +72,14 @@
     min-width: 100px;
     max-width: 200px;
     font-family: inherit;
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
 
     &:focus {
         box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
@@ -74,6 +88,9 @@
 
 .body {
     padding: 12px 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 // --- IO 섹션 스타일 ---
@@ -350,6 +367,7 @@
     max-width: 100%;
     width: 100%;
     box-sizing: border-box;
+    user-select: none; // 드래그 방지
 }
 
 .expandableWrapper {
@@ -366,6 +384,7 @@
     flex: 1;
     max-width: calc(100% - 28px);
     box-sizing: border-box;
+    user-select: none;
 }
 
 .expandButton {
@@ -416,6 +435,14 @@
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
     text-align: right;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
 
     &:focus {
         background-color: #fff;
@@ -441,6 +468,14 @@
     cursor: pointer;
     position: relative; // z-index 문제 방지
     z-index: 1; // 기본 z-index 설정
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
 
     &:focus {
         background-color: #fff;

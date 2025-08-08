@@ -143,7 +143,7 @@ export const GpuOfferSearchModal = () => {
         install_requirements: true,
         vllm_config: {
             vllm_model_name: 'x2bee/Polar-14B',
-            vllm_max_model_len: 8192,
+            vllm_max_model_len: 16384,
             vllm_host_ip: '0.0.0.0',
             vllm_port: 12434,
             vllm_controller_port: 12435,
