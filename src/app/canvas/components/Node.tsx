@@ -2,7 +2,7 @@ import React, { memo, useState, useEffect, ChangeEvent, KeyboardEvent } from 're
 import styles from '@/app/canvas/assets/Node.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
 import { fetchParameterOptions } from '@/app/api/parameterApi';
-import { LuRefreshCw } from 'react-icons/lu';
+import { LuRefreshCw, LuPlus, LuX } from 'react-icons/lu';
 import type {
     Parameter,
     NodeProps,
@@ -24,6 +24,8 @@ const Node: React.FC<NodeProps> = ({
     isPreview = false,
     onNodeNameChange,
     onParameterNameChange,
+    onParameterAdd,
+    onParameterDelete,
     onClearSelection,
     isPredicted = false,
     predictedOpacity = 1.0,
@@ -245,6 +247,30 @@ const Node: React.FC<NodeProps> = ({
         handleHandleParamSubmit(param);
     };
 
+    // 새로운 파라미터 추가 함수
+    const handleAddCustomParameter = (): void => {
+        if (isPreview || !onParameterAdd) return;
+
+        // 임의의 10자리 값 생성
+        const randomSuffix = Math.random().toString(36).substring(2, 12).padEnd(10, '0');
+        const uniqueId = `key_${randomSuffix}`;
+
+        const newParameter: Parameter = {
+            id: uniqueId,
+            name: "**kwargs",
+            type: "STR",
+            value: "value",
+            handle_id: true,
+            is_added: true
+        };
+
+        onParameterAdd(id, newParameter);
+    };    // 파라미터 삭제 함수
+    const handleDeleteParameter = (paramId: string): void => {
+        if (isPreview || !onParameterDelete) return;
+        onParameterDelete(id, paramId);
+    };
+
     const validationMessage = '최대 64자, 영문 대소문자(a-z, A-Z), 숫자(0-9), 언더스코어(_)';
 
     const handleToolNameChange = (e: React.ChangeEvent<HTMLSelectElement> | React.ChangeEvent<HTMLInputElement>, paramId: string) => {
@@ -388,6 +414,19 @@ const Node: React.FC<NodeProps> = ({
                             type="button"
                         >
                             <LuRefreshCw />
+                        </button>
+                    )}
+                    {param.is_added && !isPreview && onParameterDelete && (
+                        <button
+                            className={styles.deleteParameterButton}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteParameter(param.id);
+                            }}
+                            type="button"
+                            title="Delete parameter"
+                        >
+                            <LuX />
                         </button>
                     )}
                 </span>
@@ -898,7 +937,22 @@ const Node: React.FC<NodeProps> = ({
                         <>
                             {hasIO && <div className={styles.divider}></div>}
                             <div className={styles.paramSection}>
-                                <div className={styles.sectionHeader}>PARAMETER</div>
+                                <div className={styles.sectionHeader}>
+                                    <span>PARAMETER</span>
+                                    {!isPreview && onParameterAdd && (
+                                        <button
+                                            className={styles.addParameterButton}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleAddCustomParameter();
+                                            }}
+                                            type="button"
+                                            title="Add custom parameter"
+                                        >
+                                            <LuPlus />
+                                        </button>
+                                    )}
+                                </div>
                                 {basicParameters.map(param => renderParameter(param))}
                                 {hasAdvancedParams && (
                                     <div className={styles.advancedParams}>
