@@ -23,6 +23,7 @@ const Node: React.FC<NodeProps> = ({
     isSnapTargetInvalid,
     isPreview = false,
     onNodeNameChange,
+    onParameterNameChange,
     onClearSelection,
     isPredicted = false,
     predictedOpacity = 1.0,
@@ -46,6 +47,10 @@ const Node: React.FC<NodeProps> = ({
 
     // 툴팁 표시 상태를 관리하는 상태
     const [hoveredParam, setHoveredParam] = useState<string | null>(null);
+
+    // handle_id 파라미터 편집 상태
+    const [editingHandleParams, setEditingHandleParams] = useState<Record<string, boolean>>({});
+    const [editingHandleValues, setEditingHandleValues] = useState<Record<string, string>>({});
 
     // Sync editingName when nodeName changes
     useEffect(() => {
@@ -189,6 +194,57 @@ const Node: React.FC<NodeProps> = ({
         handleNameSubmit();
     };
 
+    // handle_id 파라미터 편집 함수들
+    const handleHandleParamClick = (param: Parameter): void => {
+        if (isPreview || !param.handle_id) return;
+        const paramKey = `${id}-${param.id}`;
+        setEditingHandleParams(prev => ({ ...prev, [paramKey]: true }));
+        setEditingHandleValues(prev => ({
+            ...prev,
+            [paramKey]: (param.name && param.name.toString().trim()) || param.id
+        }));
+    };
+
+    const handleHandleParamChange = (e: ChangeEvent<HTMLInputElement>, param: Parameter): void => {
+        const paramKey = `${id}-${param.id}`;
+        setEditingHandleValues(prev => ({ ...prev, [paramKey]: e.target.value }));
+    };
+
+    const handleHandleParamKeyDown = (e: KeyboardEvent<HTMLInputElement>, param: Parameter): void => {
+        if (e.key === 'Enter') {
+            handleHandleParamSubmit(param);
+        } else if (e.key === 'Escape') {
+            handleHandleParamCancel(param);
+        }
+        e.stopPropagation();
+    };
+
+    const handleHandleParamSubmit = (param: Parameter): void => {
+        const paramKey = `${id}-${param.id}`;
+        const trimmedValue = editingHandleValues[paramKey]?.trim() || '';
+        const finalValue = trimmedValue || param.id; // placeholder를 key(param.id)로 설정
+
+        if (finalValue !== param.name && onParameterNameChange) {
+            // name을 변경 (id와 name을 모두 변경)
+            onParameterNameChange(id, param.id, finalValue);
+        }
+
+        setEditingHandleParams(prev => ({ ...prev, [paramKey]: false }));
+    };
+
+    const handleHandleParamCancel = (param: Parameter): void => {
+        const paramKey = `${id}-${param.id}`;
+        setEditingHandleValues(prev => ({
+            ...prev,
+            [paramKey]: (param.name && param.name.toString().trim()) || param.id
+        }));
+        setEditingHandleParams(prev => ({ ...prev, [paramKey]: false }));
+    };
+
+    const handleHandleParamBlur = (param: Parameter): void => {
+        handleHandleParamSubmit(param);
+    };
+
     const validationMessage = '최대 64자, 영문 대소문자(a-z, A-Z), 숫자(0-9), 언더스코어(_)';
 
     const handleToolNameChange = (e: React.ChangeEvent<HTMLSelectElement> | React.ChangeEvent<HTMLInputElement>, paramId: string) => {
@@ -245,6 +301,8 @@ const Node: React.FC<NodeProps> = ({
     const renderParameter = (param: Parameter) => {
         const paramKey = `${id}-${param.id}`;
         const isApiParam = param.is_api && param.api_name;
+        const isHandleParam = param.handle_id === true;
+        const isEditingHandle = editingHandleParams[paramKey] || false;
 
         // API 기반 파라미터인 경우 API 옵션 또는 단일 값을 사용, 아니면 기본 옵션 사용
         let effectiveOptions = param.options || [];
@@ -277,7 +335,47 @@ const Node: React.FC<NodeProps> = ({
                             )}
                         </div>
                     )}
-                    {param.name}
+                    {isHandleParam ? (
+                        // handle_id가 true인 경우 클릭으로 편집 가능한 name
+                        isEditingHandle ? (
+                            <input
+                                type="text"
+                                value={editingHandleValues[paramKey] || ''}
+                                onChange={(e) => handleHandleParamChange(e, param)}
+                                onKeyDown={(e) => handleHandleParamKeyDown(e, param)}
+                                onBlur={() => handleHandleParamBlur(param)}
+                                onMouseDown={(e) => {
+                                    e.stopPropagation();
+                                }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                }}
+                                onFocus={(e) => {
+                                    e.stopPropagation();
+                                    if (onClearSelection) {
+                                        onClearSelection();
+                                    }
+                                }}
+                                onDragStart={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                }}
+                                draggable={false}
+                                className={styles.nameInput}
+                                autoFocus
+                            />
+                        ) : (
+                            <span
+                                onClick={() => handleHandleParamClick(param)}
+                                className={styles.nodeName}
+                                style={{ cursor: isPreview ? 'default' : 'pointer' }}
+                            >
+                                {param.name && param.name.toString().trim() ? param.name : param.id}
+                            </span>
+                        )
+                    ) : (
+                        param.name
+                    )}
                     {isApiParam && (
                         <button
                             className={`${styles.refreshButton} ${isLoadingOptions ? styles.loading : ''}`}
@@ -293,7 +391,35 @@ const Node: React.FC<NodeProps> = ({
                         </button>
                     )}
                 </span>
-                {shouldRenderAsInput ? (
+                {isHandleParam ? (
+                    // handle_id가 true인 경우에는 일반 파라미터 value 렌더링
+                    <input
+                        type="text"
+                        value={param.value || ''}
+                        onChange={(e) => handleParamValueChange(e, param.id)}
+                        onMouseDown={(e) => {
+                            e.stopPropagation();
+                        }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                        }}
+                        onFocus={(e) => {
+                            e.stopPropagation();
+                            if (onClearSelection) {
+                                onClearSelection();
+                            }
+                        }}
+                        onKeyDown={(e) => {
+                            e.stopPropagation();
+                        }}
+                        onDragStart={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }}
+                        draggable={false}
+                        className={`${styles.paramInput} paramInput`}
+                    />
+                ) : shouldRenderAsInput ? (
                     // API에서 단일 값을 로드한 경우 input으로 렌더링
                     <input
                         type="text"
