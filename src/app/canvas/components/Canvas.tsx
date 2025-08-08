@@ -70,7 +70,7 @@ const validateRequiredInputs = (nodes: CanvasNode[], edges: CanvasEdge[]): Valid
     return { isValid: true };
 };
 
-const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitialized = false, ...otherProps }, ref) => {
+const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitialized = false, onOpenNodeModal, ...otherProps }, ref) => {
     const contentRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -240,6 +240,22 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
             setSelectedNodeId(null);
             setSelectedEdgeId(null);
             return { success: true };
+        },
+        updateNodeParameter: (nodeId: string, paramId: string, value: string): void => {
+            setNodes(prev => prev.map(node => {
+                if (node.id === nodeId && node.data.parameters) {
+                    return {
+                        ...node,
+                        data: {
+                            ...node.data,
+                            parameters: node.data.parameters.map(param =>
+                                param.id === paramId ? { ...param, value } : param
+                            )
+                        }
+                    };
+                }
+                return node;
+            }));
         }
     }));
 
@@ -772,6 +788,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                         onNodeNameChange={handleNodeNameChange}
                         isSnapTargetInvalid={Boolean(snappedPortKey?.startsWith(node.id) && !isSnapTargetValid)}
                         onClearSelection={() => setSelectedNodeId(null)}
+                        onOpenNodeModal={onOpenNodeModal}
                     />
                 ))}
                 <svg className={styles.svgLayer}>

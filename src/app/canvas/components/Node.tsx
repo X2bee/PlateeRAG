@@ -3,7 +3,6 @@ import styles from '@/app/canvas/assets/Node.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
 import { fetchParameterOptions } from '@/app/api/parameterApi';
 import { LuRefreshCw } from 'react-icons/lu';
-import NodeModal from './NodeModal';
 import type {
     Parameter,
     NodeProps,
@@ -24,7 +23,8 @@ const Node: React.FC<NodeProps> = ({
     isSnapTargetInvalid,
     isPreview = false,
     onNodeNameChange,
-    onClearSelection
+    onClearSelection,
+    onOpenNodeModal
 }) => {
     const { nodeName, inputs, parameters, outputs, functionId } = data;
     const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
@@ -32,19 +32,6 @@ const Node: React.FC<NodeProps> = ({
     const [editingName, setEditingName] = useState<string>(nodeName);
     const [tool_name, setToolNameValue] = useState('tool_name');
     const [error, setError] = useState('');
-
-    // Modal 관련 상태
-    const [modalState, setModalState] = useState<{
-        isOpen: boolean;
-        paramId: string;
-        paramName: string;
-        currentValue: string;
-    }>({
-        isOpen: false,
-        paramId: '',
-        paramName: '',
-        currentValue: ''
-    });
 
 
     // API 기반 옵션을 관리하는 상태
@@ -199,32 +186,6 @@ const Node: React.FC<NodeProps> = ({
     };
 
     const validationMessage = '최대 64자, 영문 대소문자(a-z, A-Z), 숫자(0-9), 언더스코어(_)';
-
-    // Modal 관련 함수
-    const openModal = (param: Parameter) => {
-        setModalState({
-            isOpen: true,
-            paramId: param.id,
-            paramName: param.name,
-            currentValue: String(param.value || '')
-        });
-    };
-
-    const closeModal = () => {
-        setModalState({
-            isOpen: false,
-            paramId: '',
-            paramName: '',
-            currentValue: ''
-        });
-    };
-
-    const handleModalSave = (value: string) => {
-        if (modalState.paramId && typeof onParameterChange === 'function') {
-            onParameterChange(id, modalState.paramId, value);
-        }
-        closeModal();
-    };
 
     const handleToolNameChange = (e: React.ChangeEvent<HTMLSelectElement> | React.ChangeEvent<HTMLInputElement>, paramId: string) => {
         const originalValue = e.target.value;
@@ -542,7 +503,9 @@ const Node: React.FC<NodeProps> = ({
                             className={styles.expandButton}
                             onClick={(e) => {
                                 e.stopPropagation();
-                                openModal(param);
+                                if (onOpenNodeModal) {
+                                    onOpenNodeModal(id, param.id, param.name, String(param.value || ''));
+                                }
                             }}
                             type="button"
                             title="Expand to edit"
@@ -793,13 +756,6 @@ const Node: React.FC<NodeProps> = ({
                     )}
                 </div>
             </div>
-            <NodeModal
-                isOpen={modalState.isOpen}
-                onClose={closeModal}
-                onSave={handleModalSave}
-                parameterName={modalState.paramName}
-                initialValue={modalState.currentValue}
-            />
         </>
     );
 };

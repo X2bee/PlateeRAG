@@ -174,6 +174,7 @@ export interface NodeProps {
     isPreview?: boolean;
     onNodeNameChange: (nodeId: string, newName: string) => void;
     onClearSelection: () => void;
+    onOpenNodeModal?: (nodeId: string, paramId: string, paramName: string, currentValue: string) => void;
 }
 
 export interface EdgeProps {
@@ -240,6 +241,7 @@ export interface DeletedItem {
 export interface CanvasProps {
     onStateChange?: (state: CanvasState) => void;
     nodesInitialized?: boolean;
+    onOpenNodeModal?: (nodeId: string, paramId: string, paramName: string, currentValue: string) => void;
 }
 
 export interface CanvasRef {
@@ -250,6 +252,7 @@ export interface CanvasRef {
     getCenteredView: () => View;
     clearSelectedNode: () => void;
     validateAndPrepareExecution: () => ExecutionValidationResult;
+    updateNodeParameter: (nodeId: string, paramId: string, value: string) => void;
 }
 
 // ========== Execution Panel Types ==========
