@@ -3,8 +3,12 @@ import styles from '@/app/canvas/assets/Edge.module.scss';
 import type { EdgeProps } from '@/app/canvas/types';
 
 const getBezierPath = (x1: number, y1: number, x2: number, y2: number): string => {
-    const controlPointX = (x1 + x2) / 2;
-    return `M ${x1},${y1} C ${controlPointX},${y1} ${controlPointX},${y2} ${x2},${y2}`;
+    const dx = x2 - x1;
+    const offsetX = Math.abs(dx) * 0.5;
+    const controlPoint1X = x1 + (dx > 0 ? offsetX : -offsetX);
+    const controlPoint2X = x2 - (dx > 0 ? offsetX : -offsetX);
+    
+    return `M ${x1},${y1} C ${controlPoint1X},${y1} ${controlPoint2X},${y2} ${x2},${y2}`;
 };
 
 const Edge: React.FC<EdgeProps> = ({

@@ -821,19 +821,20 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 }
             };
         } else if (isDraggingInput) {
-            // 입력 포트에서 예측 노드의 출력 포트로 드래그 (방향 반대)
+            // 입력 포트에서 예측 노드의 출력 포트로 드래그
+            // 예측 노드의 출력 포트가 source, 원본 노드의 입력 포트가 target
             const newEdgeSignature = `${newNode.id}:${targetPortId}-${sourceConnection.nodeId}:${sourceConnection.portId}`;
             newEdge = {
                 id: `edge-${newEdgeSignature}-${Date.now()}`,
                 source: {
                     nodeId: newNode.id,
                     portId: targetPortId,
-                    portType: targetPortType
+                    portType: 'output' // 예측 노드의 출력 포트
                 },
                 target: {
                     nodeId: sourceConnection.nodeId,
                     portId: sourceConnection.portId,
-                    portType: sourceConnection.portType as 'input' | 'output'
+                    portType: 'input' // 원본 노드의 입력 포트
                 }
             };
         } else {
@@ -1025,8 +1026,15 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                     // 예측 노드인지 확인
                     if (isPredictedNodeId(parts[0])) {
                         const predictedNode = predictedNodes.find(pNode => pNode.id === parts[0]);
-                        if (predictedNode && predictedNode.nodeData.inputs) {
-                            const targetPort = predictedNode.nodeData.inputs.find(port => port.id === parts[1]);
+                        if (predictedNode) {
+                            // 입력 포트와 출력 포트 모두 확인
+                            let targetPort: Port | null = null;
+                            if (predictedNode.nodeData.inputs) {
+                                targetPort = predictedNode.nodeData.inputs.find(port => port.id === parts[1]) || null;
+                            }
+                            if (!targetPort && predictedNode.nodeData.outputs) {
+                                targetPort = predictedNode.nodeData.outputs.find(port => port.id === parts[1]) || null;
+                            }
                             const isValid = targetPort ? areTypesCompatible(edgeSource.type, targetPort.type) : false;
                             setIsSnapTargetValid(isValid);
                         }
@@ -1190,7 +1198,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         setEdgePreview(null);
         setSnappedPortKey(null);
         setIsSnapTargetValid(true);
-    }, [edges, nodes, isPredictedNodeId, convertPredictedNodeAndConnect, isDraggingOutput]);
+    }, [edges, nodes, isPredictedNodeId, convertPredictedNodeAndConnect, isDraggingOutput, isDraggingInput]);
 
     const handleMouseUp = useCallback((): void => {
         setDragState({ type: 'none' });
@@ -1209,8 +1217,14 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 // 예측 노드인지 확인
                 if (isPredictedNodeId(targetNodeId)) {
                     const predictedNode = predictedNodes.find(pNode => pNode.id === targetNodeId);
-                    if (predictedNode && predictedNode.nodeData.inputs) {
-                        targetPortData = predictedNode.nodeData.inputs.find(port => port.id === targetPortId) || null;
+                    if (predictedNode) {
+                        // 입력 포트와 출력 포트 모두 확인
+                        if (predictedNode.nodeData.inputs) {
+                            targetPortData = predictedNode.nodeData.inputs.find(port => port.id === targetPortId) || null;
+                        }
+                        if (!targetPortData && predictedNode.nodeData.outputs) {
+                            targetPortData = predictedNode.nodeData.outputs.find(port => port.id === targetPortId) || null;
+                        }
                         targetPortDataType = targetPortData?.type || '';
                         isConnectedToPredicted = true;
                     }
@@ -1524,6 +1538,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                             <Edge
                                 sourcePos={edgePreview.startPos}
                                 targetPos={edgePreview.targetPos}
+                                isPreview={true}
                             />
                         )}
                     </g>
