@@ -121,6 +121,13 @@ export interface DragState {
     offsetY?: number;
 }
 
+export interface PredictedNode {
+    id: string;
+    nodeData: NodeData;
+    position: Position;
+    isHovered: boolean;
+}
+
 export interface CanvasState {
     view: View;
     nodes: CanvasNode[];
@@ -174,6 +181,10 @@ export interface NodeProps {
     isPreview?: boolean;
     onNodeNameChange: (nodeId: string, newName: string) => void;
     onClearSelection: () => void;
+    isPredicted?: boolean;
+    predictedOpacity?: number;
+    onPredictedNodeHover?: (nodeId: string, isHovered: boolean) => void;
+    onPredictedNodeClick?: (nodeData: NodeData, position: Position) => void;
 }
 
 export interface EdgeProps {
@@ -250,6 +261,7 @@ export interface CanvasRef {
     getCenteredView: () => View;
     clearSelectedNode: () => void;
     validateAndPrepareExecution: () => ExecutionValidationResult;
+    setAvailableNodeSpecs: (nodeSpecs: NodeData[]) => void;
 }
 
 // ========== Execution Panel Types ==========
