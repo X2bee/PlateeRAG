@@ -42,6 +42,7 @@ export interface Parameter {
     is_api?: boolean;
     api_name?: string;
     description?: string;
+    handle_id?: boolean;
 }
 
 // ========== Node Types ==========
@@ -173,6 +174,7 @@ export interface NodeProps {
     isSnapTargetInvalid: boolean;
     isPreview?: boolean;
     onNodeNameChange: (nodeId: string, newName: string) => void;
+    onParameterNameChange: (nodeId: string, paramId: string, newName: string) => void;
     onClearSelection: () => void;
     onOpenNodeModal?: (nodeId: string, paramId: string, paramName: string, currentValue: string) => void;
 }

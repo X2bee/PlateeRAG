@@ -393,6 +393,48 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         });
     }, []);
 
+    const handleParameterNameChange = useCallback((nodeId: string, paramId: string, newName: string): void => {
+        setNodes(prevNodes => {
+            const targetNodeIndex = prevNodes.findIndex(node => node.id === nodeId);
+            if (targetNodeIndex === -1) {
+                return prevNodes;
+            }
+
+            const targetNode = prevNodes[targetNodeIndex];
+            if (!targetNode.data.parameters || !Array.isArray(targetNode.data.parameters)) {
+                return prevNodes;
+            }
+
+            const targetParamIndex = targetNode.data.parameters.findIndex(param => param.id === paramId);
+            if (targetParamIndex === -1) {
+                return prevNodes;
+            }
+
+            const targetParam = targetNode.data.parameters[targetParamIndex];
+            if (targetParam.name === newName) {
+                return prevNodes;
+            }
+
+            const newNodes = [
+                ...prevNodes.slice(0, targetNodeIndex),
+                {
+                    ...targetNode,
+                    data: {
+                        ...targetNode.data,
+                        parameters: [
+                            ...targetNode.data.parameters.slice(0, targetParamIndex),
+                            { ...targetParam, name: newName, id: newName },
+                            ...targetNode.data.parameters.slice(targetParamIndex + 1)
+                        ]
+                    }
+                },
+                ...prevNodes.slice(targetNodeIndex + 1)
+            ];
+
+            return newNodes;
+        });
+    }, []);
+
     const findPortData = (nodeId: string, portId: string, portType: string): Port | null => {
         const node = nodes.find(n => n.id === nodeId);
         if (!node) return null;
@@ -786,6 +828,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                         snappedPortKey={snappedPortKey}
                         onParameterChange={handleParameterChange}
                         onNodeNameChange={handleNodeNameChange}
+                        onParameterNameChange={handleParameterNameChange}
                         isSnapTargetInvalid={Boolean(snappedPortKey?.startsWith(node.id) && !isSnapTargetValid)}
                         onClearSelection={() => setSelectedNodeId(null)}
                         onOpenNodeModal={onOpenNodeModal}
