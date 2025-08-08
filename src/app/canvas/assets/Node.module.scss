@@ -121,12 +121,78 @@
 }
 
 .sectionHeader {
-    font-size: 0.8rem; // 11.2px
+    font-size: 0.9rem;
     font-weight: 700;
     color: #838a94;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    span {
+        flex: 1;
+    }
+}
+
+.addParameterButton {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #6b7280;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: #e5e7eb;
+        border-color: #9ca3af;
+        color: #374151;
+    }
+
+    &:active {
+        background: #d1d5db;
+    }
+
+    svg {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+.deleteParameterButton {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 3px;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #6b7280;
+    transition: all 0.2s ease;
+    margin-left: 4px;
+
+    &:hover {
+        background: #fef2f2;
+        border-color: #fca5a5;
+        color: #dc2626;
+    }
+
+    &:active {
+        background: #fee2e2;
+    }
+
+    svg {
+        width: 10px;
+        height: 10px;
+    }
 }
 
 .portRow {

@@ -18,6 +18,7 @@ import type {
     Position,
     View,
     Port,
+    Parameter,
     NodeData,
     CanvasNode,
     CanvasEdge,
@@ -435,6 +436,60 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         });
     }, []);
 
+    const handleParameterAdd = useCallback((nodeId: string, newParameter: Parameter): void => {
+        setNodes(prevNodes => {
+            const targetNodeIndex = prevNodes.findIndex(node => node.id === nodeId);
+            if (targetNodeIndex === -1) {
+                return prevNodes;
+            }
+
+            const targetNode = prevNodes[targetNodeIndex];
+            const existingParameters = targetNode.data.parameters || [];
+
+            const newNodes = [
+                ...prevNodes.slice(0, targetNodeIndex),
+                {
+                    ...targetNode,
+                    data: {
+                        ...targetNode.data,
+                        parameters: [...existingParameters, newParameter]
+                    }
+                },
+                ...prevNodes.slice(targetNodeIndex + 1)
+            ];
+
+            return newNodes;
+        });
+    }, []);
+
+    const handleParameterDelete = useCallback((nodeId: string, paramId: string): void => {
+        setNodes(prevNodes => {
+            const targetNodeIndex = prevNodes.findIndex(node => node.id === nodeId);
+            if (targetNodeIndex === -1) {
+                return prevNodes;
+            }
+
+            const targetNode = prevNodes[targetNodeIndex];
+            if (!targetNode.data.parameters || !Array.isArray(targetNode.data.parameters)) {
+                return prevNodes;
+            }
+
+            const newNodes = [
+                ...prevNodes.slice(0, targetNodeIndex),
+                {
+                    ...targetNode,
+                    data: {
+                        ...targetNode.data,
+                        parameters: targetNode.data.parameters.filter(param => param.id !== paramId)
+                    }
+                },
+                ...prevNodes.slice(targetNodeIndex + 1)
+            ];
+
+            return newNodes;
+        });
+    }, []);
+
     const findPortData = (nodeId: string, portId: string, portType: string): Port | null => {
         const node = nodes.find(n => n.id === nodeId);
         if (!node) return null;
@@ -829,6 +884,8 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                         onParameterChange={handleParameterChange}
                         onNodeNameChange={handleNodeNameChange}
                         onParameterNameChange={handleParameterNameChange}
+                        onParameterAdd={handleParameterAdd}
+                        onParameterDelete={handleParameterDelete}
                         isSnapTargetInvalid={Boolean(snappedPortKey?.startsWith(node.id) && !isSnapTargetValid)}
                         onClearSelection={() => setSelectedNodeId(null)}
                         onOpenNodeModal={onOpenNodeModal}

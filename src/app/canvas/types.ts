@@ -43,6 +43,7 @@ export interface Parameter {
     api_name?: string;
     description?: string;
     handle_id?: boolean;
+    is_added?: boolean;
 }
 
 // ========== Node Types ==========
@@ -175,6 +176,8 @@ export interface NodeProps {
     isPreview?: boolean;
     onNodeNameChange: (nodeId: string, newName: string) => void;
     onParameterNameChange: (nodeId: string, paramId: string, newName: string) => void;
+    onParameterAdd?: (nodeId: string, newParameter: Parameter) => void;
+    onParameterDelete?: (nodeId: string, paramId: string) => void;
     onClearSelection: () => void;
     onOpenNodeModal?: (nodeId: string, paramId: string, paramName: string, currentValue: string) => void;
 }
