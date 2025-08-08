@@ -237,7 +237,7 @@ function CanvasPageContent() {
                 category.functions?.flatMap(func => func.nodes || []) || []
             );
             
-            canvasRef.current.setAvailableNodeSpecs(nodeDataList);
+            (canvasRef.current as any).setAvailableNodeSpecs(nodeDataList);
         }
     }, [nodesInitialized, nodeSpecs]);
 
