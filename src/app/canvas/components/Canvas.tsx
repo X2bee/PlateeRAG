@@ -1478,6 +1478,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                         onNodeNameChange={handleNodeNameChange}
                         isSnapTargetInvalid={false}
                         onClearSelection={() => setSelectedNodeId(null)}
+                        onParameterNameChange={handleParameterNameChange}
                         isPredicted={true}
                         predictedOpacity={predictedNode.isHovered ? 1.0 : 0.3}
                         onPredictedNodeHover={handlePredictedNodeHover}
