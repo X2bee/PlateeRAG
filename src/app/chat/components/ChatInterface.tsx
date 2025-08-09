@@ -20,6 +20,7 @@ import { IOLog, ChatInterfaceProps } from './types';
 import ChatHeader from './ChatHeader';
 import { ChatArea } from './ChatArea';
 import { DeploymentModal } from './DeploymentModal';
+import ChatToolsDisplay from './ChatToolsDisplay';
 import { generateInteractionId, normalizeWorkflowName } from '@/app/api/interactionAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import { isStreamingWorkflow, isStreamingWorkflowDeploy} from '@/app/_common/utils/isStreamingWorkflow';
@@ -33,16 +34,16 @@ interface NewChatInterfaceProps extends ChatInterfaceProps {
 }
 
 const ChatInterface: React.FC<NewChatInterfaceProps> = (
-    { 
-        mode, 
-        workflow, 
-        onBack, 
-        hideBackButton = false, 
-        existingChatData, 
-        onStartNewChat, 
+    {
+        mode,
+        workflow,
+        onBack,
+        hideBackButton = false,
+        existingChatData,
+        onStartNewChat,
         initialMessageToExecute,
         user_id,
-    
+
     }) => {
     const layoutContext = usePagesLayout();
     const router = useRouter();
@@ -60,6 +61,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
     const [selectedCollectionMakeName, setSelectedCollectionMakeName] = useState<string | null>(null);
     const [collectionMapping, setCollectionMapping] = useState<{[key: string]: string}>({});
     const [showDeploymentModal, setShowDeploymentModal] = useState(false);
+    const [workflowContentDetail, setWorkflowContentDetail] = useState<WorkflowData | null>(null);
 
     const hasExecutedInitialMessage = useRef(false);
 
@@ -108,6 +110,24 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         }
     }, [isAnyModalOpen, layoutContext]);
 
+    // workflow 데이터 로드
+    useEffect(() => {
+        if (workflow && workflow.id) {
+            const loadWorkflowContent = async () => {
+                try {
+                    const workflowData = await loadWorkflow(workflow.name);
+                    setWorkflowContentDetail(workflowData);
+                    devLog.log('Successfully loaded workflow content detail:', workflowData);
+                } catch (error) {
+                    devLog.error('Failed to load workflow content detail:', error);
+                    // 에러가 발생해도 컴포넌트 동작에는 영향을 주지 않음
+                }
+            };
+
+            loadWorkflowContent();
+        }
+    }, [workflow]);
+
     const executeWorkflow = useCallback(async (messageOverride?: string) => {
         console.log('executeWorkflow called')
         if (executing) {
@@ -144,15 +164,15 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
             } else {
                 isStreaming = await isStreamingWorkflow(workflow.name);
             }
-            
+
             const { interactionId, workflowId, workflowName } = existingChatData || {
-                interactionId: generateInteractionId(), 
+                interactionId: generateInteractionId(),
                 workflowId: workflow.id, workflowName: workflow.name};
 
             if (!interactionId || !workflowId || !workflowName) {
                 throw new Error("채팅 세션 정보가 유효하지 않습니다.");
             }
-            
+
             if (isStreaming) {
                 await executeWorkflowByIdStream({
                     workflowName,
@@ -236,15 +256,15 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
             } else {
                 isStreaming = await isStreamingWorkflowDeploy(workflow.name, user_id);
             }
-            
+
             const { interactionId, workflowId, workflowName } = existingChatData || {
-                interactionId: generateInteractionId(), 
+                interactionId: generateInteractionId(),
                 workflowId: workflow.id, workflowName: workflow.name};
 
             if (!interactionId || !workflowId || !workflowName) {
                 throw new Error("채팅 세션 정보가 유효하지 않습니다.");
             }
-            
+
             if (isStreaming) {
                 await executeWorkflowByIdStreamDeploy({
                     workflowName,
@@ -314,7 +334,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
 
     useEffect(() => {
         if (initialMessageToExecute && !hasExecutedInitialMessage.current) {
-            
+
             hasExecutedInitialMessage.current = true;
 
             setInputMessage(initialMessageToExecute);
@@ -445,7 +465,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
             e.preventDefault();
             if (mode === 'new-default' || mode === 'new-workflow') {
                 handleStartNewChatFlow();
-            } 
+            }
             else if (mode ==='deploy') {
                 executeWorkflowDeploy();
             }
@@ -495,7 +515,10 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                 onBack={onBack}
                 hideBackButton={hideBackButton}
                 onDeploy={() => setShowDeploymentModal(true)}
-            ></ChatHeader>
+            />
+
+            {/* Chat Tools Display */}
+            <ChatToolsDisplay workflowContentDetail={workflowContentDetail} />
 
             {/* Chat Area */}
             <div className={styles.chatContainer}>
@@ -645,7 +668,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                                     onClick={() => {
                                         if (mode === 'new-default' || mode === 'new-workflow') {
                                             handleStartNewChatFlow();
-                                        } 
+                                        }
                                         else if (mode ==='deploy') {
                                             executeWorkflowDeploy();
                                         }
@@ -742,4 +765,3 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
 };
 
 export default ChatInterface;
-
