@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
-import { FiTool, FiDatabase, FiFileText, FiX, FiInfo, FiSettings, FiArrowRight, FiArrowLeft } from 'react-icons/fi';
+import React, { useState, useEffect, useRef } from 'react';
+import { FiTool, FiDatabase, FiFileText, FiX, FiInfo, FiSettings, FiArrowRight, FiArrowLeft, FiEdit3 } from 'react-icons/fi';
 import styles from './ChatToolsDisplay.module.scss';
-import { WorkflowData, CanvasNode, Parameter } from '@/app/canvas/types';
+import { WorkflowData, CanvasNode, CanvasEdge, Parameter } from '@/app/canvas/types';
 import { AiOutlineApi } from "react-icons/ai";
 
 interface ChatToolsDisplayProps {
-    workflowContentDetail: WorkflowData | null;
+    workflowContentDetail: {
+        nodes?: CanvasNode[];
+        edges?: CanvasEdge[];
+        [key: string]: any;
+    } | null;
+    additionalParams?: Record<string, Record<string, any>>;
+    onAdditionalParamsChange?: (params: Record<string, Record<string, any>>) => void;
 }
 
 interface ToolNode {
@@ -20,9 +26,29 @@ interface ToolNode {
     fullNodeData: CanvasNode; // 전체 노드 데이터 포함
 }
 
-const ChatToolsDisplay: React.FC<ChatToolsDisplayProps> = ({ workflowContentDetail }) => {
+const ChatToolsDisplay: React.FC<ChatToolsDisplayProps> = ({
+    workflowContentDetail,
+    additionalParams = {},
+    onAdditionalParamsChange
+}) => {
     const [selectedTool, setSelectedTool] = useState<ToolNode | null>(null);
     const [showModal, setShowModal] = useState(false);
+    const [showArgsDropdown, setShowArgsDropdown] = useState<string | null>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // 외부 클릭 시 드롭다운 닫기
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setShowArgsDropdown(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     const handleToolClick = (tool: ToolNode) => {
         setSelectedTool(tool);
@@ -33,15 +59,47 @@ const ChatToolsDisplay: React.FC<ChatToolsDisplayProps> = ({ workflowContentDeta
         setShowModal(false);
         setSelectedTool(null);
     };
+
+    const handleArgsButtonClick = (e: React.MouseEvent, tool: ToolNode) => {
+        e.stopPropagation();
+        if (showArgsDropdown === tool.id) {
+            setShowArgsDropdown(null);
+        } else {
+            const argsSchemaInfo = getArgsSchemaInfo(tool.id);
+            if (argsSchemaInfo && !additionalParams[tool.id] && onAdditionalParamsChange) {
+                const initialParams: Record<string, any> = {};
+                argsSchemaInfo.parameters.forEach((param: any) => {
+                    initialParams[param.id] = '';
+                });
+                onAdditionalParamsChange({
+                    ...additionalParams,
+                    [tool.id]: initialParams
+                });
+            }
+            setShowArgsDropdown(tool.id);
+        }
+    };
+
+    const handleArgsValueChange = (toolId: string, paramId: string, value: string) => {
+        if (onAdditionalParamsChange) {
+            const updated = {
+                ...additionalParams,
+                [toolId]: {
+                    ...additionalParams[toolId],
+                    [paramId]: value
+                }
+            };
+            console.log('Updated additionalParams:', updated);
+            onAdditionalParamsChange(updated);
+        }
+    };
     const getToolNodes = (): ToolNode[] => {
         if (!workflowContentDetail?.nodes) return [];
 
         return workflowContentDetail.nodes
             .filter((node: CanvasNode) => {
                 const { data } = node;
-                // functionId가 api_loader 또는 document_loaders인지 확인
                 const isValidFunctionId = data.functionId === 'api_loader' || data.functionId === 'document_loaders';
-                // id에 tool 또는 Tool이 포함되어 있는지 확인
                 const hasToolInId = data.id.toLowerCase().includes('tool');
 
                 return isValidFunctionId && hasToolInId;
@@ -56,7 +114,7 @@ const ChatToolsDisplay: React.FC<ChatToolsDisplayProps> = ({ workflowContentDeta
                 };
 
                 return {
-                    id: data.id,
+                    id: node.id, // 전체 노드 ID 사용 (data.id 대신)
                     nodeName: data.nodeName,
                     functionId: data.functionId!,
                     type: data.functionId as 'api_loader' | 'document_loaders',
@@ -120,11 +178,40 @@ const ChatToolsDisplay: React.FC<ChatToolsDisplayProps> = ({ workflowContentDeta
         return tool.toolName || tool.id.split('/').pop() || '';
     };
 
-    // Tool Detail Modal Component
+    // ArgsSchema 연결 정보를 가져오는 함수
+    const getArgsSchemaInfo = (toolNodeId: string) => {
+        if (!workflowContentDetail?.edges || !workflowContentDetail?.nodes) return null;
+
+        // 해당 tool 노드로 연결되는 ArgsSchema edge 찾기
+        const argsSchemaEdge = workflowContentDetail.edges.find((edge: any) => {
+            return edge.target?.nodeId === toolNodeId && edge.target?.portId === 'args_schema';
+        });
+
+        if (!argsSchemaEdge) return null;
+
+        // ArgsSchema를 제공하는 source 노드 찾기
+        const sourceNode = workflowContentDetail.nodes.find((node: CanvasNode) =>
+            node.id === argsSchemaEdge.source.nodeId
+        );
+
+        if (!sourceNode) return null;
+
+        // handle_id가 true인 parameters만 필터링
+        const schemaParameters = sourceNode.data.parameters?.filter((param: any) =>
+            param.handle_id === true
+        ) || [];
+
+        return {
+            sourceNodeName: sourceNode.data.nodeName,
+            sourceNodeId: sourceNode.id,
+            parameters: schemaParameters
+        };
+    };    // Tool Detail Modal Component
     const ToolDetailModal: React.FC<{ tool: ToolNode }> = ({ tool }) => {
         const { data } = tool.fullNodeData;
+        const argsSchemaInfo = getArgsSchemaInfo(tool.id);
 
-        const renderParameterValue = (param: Parameter) => {
+        const renderParameterValue = (param: any) => {
             if (param.type === 'STR' && param.value && param.value.toString().length > 50) {
                 return (
                     <div className={styles.longValue}>
@@ -214,6 +301,39 @@ const ChatToolsDisplay: React.FC<ChatToolsDisplayProps> = ({ workflowContentDeta
                     </div>
                 )}
 
+                {/* ArgsSchema Information */}
+                {argsSchemaInfo && (
+                    <div className={styles.detailSection}>
+                        <h4><FiDatabase /> ArgsSchema 연결 정보</h4>
+                        <div className={styles.argsSchemaInfo}>
+                            <div className={styles.infoItem}>
+                                <span className={styles.infoLabel}>연결된 노드:</span>
+                                <span className={styles.infoValue}>{argsSchemaInfo.sourceNodeName}</span>
+                            </div>
+                            {argsSchemaInfo.parameters.length > 0 && (
+                                <div className={styles.schemaParameters}>
+                                    <span className={styles.paramLabel}>스키마 매개변수:</span>
+                                    <div className={styles.schemaParamsList}>
+                                        {argsSchemaInfo.parameters.map((param: any, index: number) => (
+                                            <div key={index} className={styles.schemaParamItem}>
+                                                <div className={styles.schemaParamHeader}>
+                                                    <span className={styles.paramName}>{param.name}</span>
+                                                    <span className={styles.paramId}>({param.id})</span>
+                                                    <span className={styles.paramType}>{param.type}</span>
+                                                </div>
+                                                <div className={styles.schemaParamValue}>
+                                                    <span className={styles.paramLabel}>값:</span>
+                                                    {renderParameterValue(param)}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 {/* Parameters */}
                 {data.parameters && data.parameters.length > 0 && (
                     <div className={styles.detailSection}>
@@ -270,25 +390,68 @@ const ChatToolsDisplay: React.FC<ChatToolsDisplayProps> = ({ workflowContentDeta
                     <span>활성화된 도구</span>
                 </div> */}
                 <div className={styles.toolsList}>
-                    {toolNodes.map((tool) => (
-                        <div
-                            key={tool.id}
-                            className={styles.toolItem}
-                            onClick={() => handleToolClick(tool)}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            {getToolIcon(tool.type)}
-                            <div className={styles.toolInfo}>
-                                <div className={styles.toolName}>{tool.nodeName}</div>
-                                <div className={styles.toolDescription}>
-                                    {getDisplayDescription(tool)}
+                    {toolNodes.map((tool) => {
+                        const argsSchemaInfo = getArgsSchemaInfo(tool.id);
+                        return (
+                            <div key={tool.id} className={styles.toolItemWrapper} ref={showArgsDropdown === tool.id ? dropdownRef : null}>
+                                <div
+                                    className={styles.toolItem}
+                                    onClick={() => handleToolClick(tool)}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    {getToolIcon(tool.type)}
+                                    <div className={styles.toolInfo}>
+                                        <div className={styles.toolName}>{tool.nodeName}</div>
+                                        <div className={styles.toolDescription}>
+                                            {getDisplayDescription(tool)}
+                                        </div>
+                                    </div>
+                                    <div className={styles.toolActions}>
+                                        {argsSchemaInfo && (
+                                            <button
+                                                className={styles.argsButton}
+                                                onClick={(e) => handleArgsButtonClick(e, tool)}
+                                                title="ArgsSchema 편집"
+                                            >
+                                                <FiEdit3 />
+                                            </button>
+                                        )}
+                                        <div className={`${styles.toolBadge} ${getBadgeClass(tool.type)}`}>
+                                            {getTypeLabel(tool.type)}
+                                        </div>
+                                    </div>
                                 </div>
+
+                                {/* Args Dropdown */}
+                                {showArgsDropdown === tool.id && argsSchemaInfo && (
+                                    <div className={styles.argsDropdown}>
+                                        <div className={styles.argsDropdownHeader}>
+                                            <span>스키마: {argsSchemaInfo.sourceNodeName}</span>
+                                        </div>
+                                        <div className={styles.argsForm}>
+                                            {argsSchemaInfo.parameters.map((param: any) => (
+                                                <div key={param.id} className={styles.argsFormItem}>
+                                                    <label className={styles.argsLabel}>
+                                                        <span className={styles.argsLabelText}>
+                                                            {param.name}
+                                                            <span className={styles.argsLabelId}></span>
+                                                        </span>
+                                                        <input
+                                                            type="text"
+                                                            className={styles.argsInput}
+                                                            value={additionalParams[tool.id]?.[param.id] || ''}
+                                                            onChange={(e) => handleArgsValueChange(tool.id, param.id, e.target.value)}
+                                                            placeholder={`${param.name} 값을 입력하세요`}
+                                                        />
+                                                    </label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                            <div className={`${styles.toolBadge} ${getBadgeClass(tool.type)}`}>
-                                {getTypeLabel(tool.type)}
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 

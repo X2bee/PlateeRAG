@@ -62,6 +62,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
     const [collectionMapping, setCollectionMapping] = useState<{ [key: string]: string }>({});
     const [showDeploymentModal, setShowDeploymentModal] = useState(false);
     const [workflowContentDetail, setWorkflowContentDetail] = useState<WorkflowData | null>(null);
+    const [additionalParams, setAdditionalParams] = useState<Record<string, Record<string, any>>>({});
 
     const hasExecutedInitialMessage = useRef(false);
 
@@ -69,6 +70,33 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
     const attachmentButtonRef = useRef<HTMLDivElement>(null);
 
     const isAnyModalOpen = showDeploymentModal || showCollectionModal;
+
+    // additionalParams에서 유효한 값만 필터링하는 함수
+    const getValidAdditionalParams = useCallback(() => {
+        const validParams: Record<string, Record<string, any>> = {};
+
+        Object.keys(additionalParams).forEach(toolId => {
+            const toolParams = additionalParams[toolId];
+            if (toolParams && typeof toolParams === 'object') {
+                const validToolParams: Record<string, any> = {};
+
+                Object.keys(toolParams).forEach(paramKey => {
+                    const paramValue = toolParams[paramKey];
+                    // null이나 빈 문자열이 아닌 값만 포함
+                    if (paramValue !== null && paramValue !== '' && paramValue !== undefined) {
+                        validToolParams[paramKey] = paramValue;
+                    }
+                });
+
+                // 해당 툴에 유효한 파라미터가 있으면 추가
+                if (Object.keys(validToolParams).length > 0) {
+                    validParams[toolId] = validToolParams;
+                }
+            }
+        });
+
+        return Object.keys(validParams).length > 0 ? validParams : null;
+    }, [additionalParams]);
 
     // 강화된 스크롤 함수
     const scrollToBottom = useCallback(() => {
@@ -193,7 +221,8 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                     inputData: currentMessage,
                     interactionId,
                     selectedCollections: selectedCollection,
-                    onData: (chunk) => {
+                    additional_params: getValidAdditionalParams(),
+                    onData: (chunk: string) => {
                         setIOLogs((prev) =>
                             prev.map((log) =>
                                 String(log.log_id) === tempId
@@ -204,10 +233,10 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                         scrollToBottom();
                     },
                     onEnd: () => setPendingLogId(null),
-                    onError: (err) => { throw err; },
-                });
+                    onError: (err: Error) => { throw err; },
+                } as any);
             } else {
-                const result: any = await executeWorkflowById(workflowName, workflowId, currentMessage, interactionId, null);
+                const result: any = await executeWorkflowById(workflowName, workflowId, currentMessage, interactionId, selectedCollection, getValidAdditionalParams() as any);
                 setIOLogs((prev) =>
                     prev.map((log) =>
                         String(log.log_id) === tempId
@@ -290,6 +319,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                     interactionId,
                     selectedCollections: selectedCollection,
                     user_id: user_id,
+                    additional_params: getValidAdditionalParams(),
                     onData: (chunk) => {
                         setIOLogs((prev) =>
                             prev.map((log) =>
@@ -304,7 +334,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                     onError: (err) => { throw err; },
                 });
             } else {
-                const result: any = await executeWorkflowByIdDeploy(workflowName, workflowId, currentMessage, interactionId, null, user_id);
+                const result: any = await executeWorkflowByIdDeploy(workflowName, workflowId, currentMessage, interactionId, selectedCollection, user_id, getValidAdditionalParams());
                 setIOLogs((prev) =>
                     prev.map((log) =>
                         String(log.log_id) === tempId
@@ -535,7 +565,11 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
             />
 
             {/* Chat Tools Display */}
-            <ChatToolsDisplay workflowContentDetail={workflowContentDetail} />
+            <ChatToolsDisplay
+                workflowContentDetail={workflowContentDetail}
+                additionalParams={additionalParams}
+                onAdditionalParamsChange={setAdditionalParams}
+            />
 
             {/* Chat Area */}
             <div className={styles.chatContainer}>

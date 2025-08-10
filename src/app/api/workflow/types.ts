@@ -5,6 +5,7 @@ export interface excuteWorkflowRequest {
     interaction_id?: string
     selected_collections?: Array<string>
     user_id?: number | string
+    additional_params?: Record<string, Record<string, any>>
 }
 
 export interface excuteWorkflowResponse {

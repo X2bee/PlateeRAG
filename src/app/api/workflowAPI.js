@@ -521,6 +521,7 @@ export const executeWorkflowById = async (
     inputData = '',
     interaction_id = 'default',
     selectedCollections = null,
+    additional_params = null,
 ) => {
     try {
         const requestBody = {
@@ -533,6 +534,11 @@ export const executeWorkflowById = async (
         // selectedCollections가 배열이면 그대로 사용, 아니면 null
         if (selectedCollections && Array.isArray(selectedCollections) && selectedCollections.length > 0) {
             requestBody.selected_collections = selectedCollections;
+        }
+
+        // additional_params가 있으면 추가
+        if (additional_params && typeof additional_params === 'object') {
+            requestBody.additional_params = additional_params;
         }
 
         const response = await apiClient(`${API_BASE_URL}/api/workflow/execute/based_id`, {
@@ -576,6 +582,7 @@ export const executeWorkflowByIdStream = async ({
     inputData = '',
     interactionId = 'default',
     selectedCollections = null,
+    additional_params = null,
     onData,
     onEnd,
     onError,
@@ -587,6 +594,11 @@ export const executeWorkflowByIdStream = async ({
         interaction_id: interactionId,
         selected_collections: selectedCollections,
     };
+
+    // additional_params가 있으면 추가
+    if (additional_params && typeof additional_params === 'object') {
+        requestBody.additional_params = additional_params;
+    }
 
     try {
         const response = await apiClient(`${API_BASE_URL}/api/workflow/execute/based_id/stream`, {

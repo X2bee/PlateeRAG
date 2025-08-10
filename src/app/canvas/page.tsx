@@ -792,6 +792,15 @@ function CanvasPageContent() {
         }
     };
 
+    const handleGetWorkflow = async () => {
+        try {
+            let workflowData = (canvasRef.current as any).getCanvasState();
+            return workflowData;
+        } catch {
+            return null;
+        }
+    }
+
     const handleExecute = async () => {
         if (!canvasRef.current) {
             toast.error('Canvas is not ready.');
@@ -987,7 +996,7 @@ function CanvasPageContent() {
                 isOpen={showDeploymentModal}
                 onClose={() => setShowDeploymentModal(false)}
                 workflow={workflow}
-                workflowDetail={(canvasRef.current as any).getCanvasState()}
+                workflowDetail={handleGetWorkflow()}
             />
             <NodeModal
                 isOpen={nodeModalState.isOpen}
