@@ -18,7 +18,7 @@ export const loadWorkflow = async (workflowId: string, user_id?: number | string
 
         devLog.log('Loading workflow with cleaned ID:', cleanWorkflowId);
 
-        const response = await apiClient(
+        const response = await fetch(
             `${API_BASE_URL}/api/workflow/deploy/load/${user_id}/${encodeURIComponent(cleanWorkflowId)}`,
         );
 
@@ -122,14 +122,14 @@ export const executeWorkflowByIdStreamDeploy = async ({
     onData,
     onEnd,
     onError,
-}: { workflowName: string; 
-    workflowId: string; 
-    inputData: string; 
-    interactionId: string; 
-    selectedCollections: Array<string> | null; 
+}: { workflowName: string;
+    workflowId: string;
+    inputData: string;
+    interactionId: string;
+    selectedCollections: Array<string> | null;
     user_id?: number | string | null;
-    onData: (arg0: string) => void; 
-    onEnd: () => void; 
+    onData: (arg0: string) => void;
+    onEnd: () => void;
     onError: (arg0: Error) => void; }) => {
     const requestBody: excuteWorkflowRequest = {
         workflow_name: workflowName,
@@ -162,7 +162,7 @@ export const executeWorkflowByIdStreamDeploy = async ({
             throw new Error('Response body is null.');
         }
 
-        const reader = response.body.getReader(); 
+        const reader = response.body.getReader();
         const decoder = new TextDecoder('utf-8');
 
         while (true) {

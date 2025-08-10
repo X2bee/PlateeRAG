@@ -3,22 +3,101 @@ import { Prism } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { FiCode, FiExternalLink, FiX, FiTerminal, FiCopy, FiShare2 } from 'react-icons/fi';
 import { SiPython, SiJavascript } from "react-icons/si";
-import toast from 'react-hot-toast'; 
+import toast from 'react-hot-toast';
 import { Workflow } from './types';
 import { useEffect, useRef, useState, Children, isValidElement, ReactNode } from 'react';
+import { getAuthCookie } from '@/app/_common/utils/cookieUtils';
 
 interface DeploymentModalProps {
     isOpen: boolean;
     onClose: () => void;
     workflow: Workflow;
-    user_id?: number | string;
+    workflowDetail?: any;
 }
-export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClose, workflow, user_id }) => {
+
+// additional_params를 파싱하는 함수
+const parseAdditionalParams = (workflowData: any) => {
+    if (!workflowData || !workflowData.nodes || !workflowData.edges) {
+        return null;
+    }
+
+    const result: any = {};
+
+    // 1. schema_provider 노드들 찾기
+    const schemaProviderNodes = workflowData.nodes.filter((node: any) =>
+        node.data.nodeName === "Schema Provider" || node.data.id === "schema_provider"
+    );
+
+    if (schemaProviderNodes.length === 0) {
+        return null;
+    }
+
+    // 2. 각 schema_provider 노드에 대해 처리
+    schemaProviderNodes.forEach((schemaNode: any) => {
+        // 3. 해당 schema_provider의 출력과 연결된 target 노드 찾기
+        const connectedEdges = workflowData.edges.filter((edge: any) =>
+            edge.source.nodeId === schemaNode.id &&
+            edge.source.portId === "args_schema" &&
+            edge.source.portType === "output"
+        );
+
+        connectedEdges.forEach((edge: any) => {
+            const targetNodeId = edge.target.nodeId;
+
+            // 4. schema_provider의 parameters에서 handle_id가 true인 것들 추출
+            if (schemaNode.data.parameters) {
+                const handleIdParams: any = {};
+
+                schemaNode.data.parameters.forEach((param: any) => {
+                    if (param.handle_id === true) {
+                        handleIdParams[param.id] = param.value;
+                    }
+                });
+
+                // 5. target nodeId를 키로 하여 결과에 추가
+                if (Object.keys(handleIdParams).length > 0) {
+                    result[targetNodeId] = handleIdParams;
+                }
+            }
+        });
+    });
+
+    return Object.keys(result).length > 0 ? result : null;
+};
+
+// JSON을 적절한 들여쓰기로 포맷팅하는 함수
+const formatAdditionalParamsForCode = (params: any, baseIndent: number = 4): string => {
+    if (!params) return 'null';
+
+    const indent = ' '.repeat(baseIndent);
+    const innerIndent = ' '.repeat(baseIndent + 4);
+    const deepIndent = ' '.repeat(baseIndent + 8);
+
+    let result = '{\n';
+
+    Object.keys(params).forEach((key, index) => {
+        const isLast = index === Object.keys(params).length - 1;
+        result += `${innerIndent}"${key}": {\n`;
+
+        const paramObj = params[key];
+        Object.keys(paramObj).forEach((paramKey, paramIndex) => {
+            const isLastParam = paramIndex === Object.keys(paramObj).length - 1;
+            result += `${deepIndent}"${paramKey}": "${paramObj[paramKey]}"${isLastParam ? '' : ','}\n`;
+        });
+
+        result += `${innerIndent}}${isLast ? '' : ','}\n`;
+    });
+
+    result += `${indent}}`;
+    return result;
+};
+export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClose, workflow, workflowDetail }) => {
     const [baseUrl, setBaseUrl] = useState('');
     const [activeTab, setActiveTab] = useState('website');
     const [activeApiLang, setActiveApiLang] = useState('python');
     const [curlPayload, setCurlPayload] = useState('');
     const closeButtonRef = useRef<HTMLButtonElement>(null);
+    const user_id = getAuthCookie('user_id') as string;
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -51,6 +130,7 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
     const workflowName = workflow.name;
     const apiEndpoint = `${baseUrl}/api/workflow/deploy/execute/based_id`;
     const webPageUrl = `${baseUrl}/chatbot/${userId}?workflowName=${workflowName}`;
+    const additional_params = parseAdditionalParams(workflowDetail);
 
     const pythonApiCode = `import requests
 
@@ -61,12 +141,13 @@ def query(payload):
     return response.json()
 
 output = query({
-    "workflow_name": ${workflowName},
-    "workflow_id": ${workflowId},
+    "workflow_name": "${workflowName}",
+    "workflow_id": "${workflowId}",
     "input_data": "안녕하세요",
     "interaction_id": "default",
     "selected_collection": "string",
-    "user_id": ${userId}
+    "additional_params": ${formatAdditionalParamsForCode(additional_params, 4)},
+    "user_id": "${userId}"
 })
 
 print(output)
@@ -86,12 +167,13 @@ print(output)
 }
 
 query({
-    "workflow_name": ${workflowName},
-    "workflow_id": ${workflowId},
+    "workflow_name": "${workflowName}",
+    "workflow_id": "${workflowId}",
     "input_data": "안녕하세요",
     "interaction_id": "default",
     "selected_collection": "string",
-    "user_id": ${userId}
+    "additional_params": ${formatAdditionalParamsForCode(additional_params, 4)},
+    "user_id": "${userId}"
 }).then((response) => {
     console.log(response);
 });
@@ -123,7 +205,7 @@ query({
 </script>`;
 
     const CodeBlockWithCopyButton = ({ children, ...props }: { children: ReactNode; [key: string]: any }) => {
-        
+
         /**
          * 중첩된 React 노드에서 모든 텍스트를 재귀적으로 추출하는 함수
          * @param nodes 추출할 React 노드
@@ -147,13 +229,13 @@ query({
         };
 
         const codeString = getTextFromChildren(children);
-        
+
         const handleCopy = () => {
             if (!codeString) {
                 console.error("복사할 코드를 찾을 수 없습니다.");
                 return;
             };
-            
+
             navigator.clipboard.writeText(codeString).then(() => {
                 toast.success('클립보드에 복사되었습니다!');
             }, (err) => {
@@ -252,16 +334,16 @@ query({
                     {activeTab === 'api' && (
                         <div className={styles.tabPanel}>
                              <p>사용하시는 언어를 선택하여 아래 코드를 통해 API를 호출할 수 있습니다.</p>
-                             
+
                              {/* API 언어 탭 컨테이너 */}
                              <div className={styles.nestedTabContainer}>
-                                <button 
+                                <button
                                     className={`${styles.langTabButton} ${activeApiLang === 'python' ? styles.active : ''}`}
                                     onClick={() => setActiveApiLang('python')}
                                 >
                                     <SiPython />Python
                                 </button>
-                                <button 
+                                <button
                                     className={`${styles.langTabButton} ${activeApiLang === 'javascript' ? styles.active : ''}`}
                                     onClick={() => setActiveApiLang('javascript')}
                                 >
@@ -328,7 +410,7 @@ query({
                     {activeTab === 'embed' && (
                         <div className={styles.tabPanel}>
                             <p>웹사이트에 챗봇을 임베드하려면 아래 HTML 코드를 사용하세요.</p>
-                            
+
                             <h5>팝업(Popup) 형태</h5>
                             <Prism
                                 PreTag={CodeBlockWithCopyButton}
