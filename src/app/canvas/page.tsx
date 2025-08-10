@@ -749,7 +749,7 @@ function CanvasPageContent() {
             try {
                 // 먼저 application/json 데이터를 시도
                 let nodeData = null;
-                let jsonData = e.dataTransfer.getData('application/json');
+                const jsonData = e.dataTransfer.getData('application/json');
 
                 if (jsonData && jsonData.trim() !== '') {
                     // JSON 데이터가 있는 경우 파싱 시도

@@ -1,4 +1,4 @@
-@import '@/app/_common/_variables.scss';
+@use '@/app/_common/_variables.scss' as *;
 
 .container {
     width: 100%;
