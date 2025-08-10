@@ -311,6 +311,7 @@ export interface DummyHandlers {
     onPortMouseUp: (data: PortMouseEventData) => void;
     registerPortRef: (nodeId: string, portId: string, portType: string, el: HTMLElement | null) => void;
     onParameterChange: (nodeId: string, paramId: string, value: string | number) => void;
+    onParameterNameChange: (nodeId: string, paramId: string, newName: string) => void;
     onNodeNameChange: (nodeId: string, newName: string) => void;
     onClearSelection: () => void;
 }
