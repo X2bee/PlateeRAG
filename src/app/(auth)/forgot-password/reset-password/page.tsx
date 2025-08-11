@@ -5,19 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './ResetPassword.module.scss';
 // import { resetPassword } from '@/app/api/userAPI';
 
-interface ApiResponse {
-  message?: string | null;
-  [key: string]: any;
-}
-
 function ResetPasswordComponent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [token, setToken] = useState<string | null>(null);
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
-  
+
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,7 +45,7 @@ function ResetPasswordComponent() {
     try {
       // const result: ApiResponse = await resetPassword({ token, password });
       // setMessage(result.message + ' 3초 후 로그인 페이지로 이동합니다.');
-      
+
       setTimeout(() => {
         router.replace('/login');
       }, 3000);
@@ -66,7 +61,7 @@ function ResetPasswordComponent() {
     <div className={styles.resetPasswordPage}>
       <div className={styles.formBox}>
         <h1 className={styles.title}>비밀번호 재설정</h1>
-        
+
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.inputGroup}>
             <label htmlFor="password">새 비밀번호</label>

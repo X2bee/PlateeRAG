@@ -5,6 +5,12 @@
     &.selected .edgePath {
         stroke: #3b82f6;
     }
+    
+    &.preview .edgePath {
+        stroke: #6b7280;
+        stroke-dasharray: 8, 4;
+        opacity: 0.8;
+    }
 }
 
 .edgePath {

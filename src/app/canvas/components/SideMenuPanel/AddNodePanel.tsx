@@ -5,6 +5,7 @@ import NodeList from '@/app/canvas/components/Helper/NodeList';
 import DraggableNodeItem from '@/app/canvas/components/Helper/DraggableNodeItem';
 import { LuSearch, LuArrowLeft, LuBrainCircuit, LuShare2, LuWrench, LuX, LuRefreshCw } from 'react-icons/lu';
 import { SiLangchain } from "react-icons/si";
+import { GiRollingEnergy } from "react-icons/gi";
 import type {
     NodeData,
     NodeFunction,
@@ -18,6 +19,8 @@ const iconMap: IconMapType = {
     LuShare2: <LuShare2 />,
     LuWrench: <LuWrench />,
     SiLangchain: <SiLangchain />,
+    GiRollingEnergy: <GiRollingEnergy />,
+
 };
 
 const AddNodePanel: React.FC<AddNodePanelProps> = ({

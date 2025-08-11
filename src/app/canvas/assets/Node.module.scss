@@ -9,11 +9,48 @@
     user-select: none;
     -webkit-user-select: none;
     z-index: 20;
+    display: flex;
+    flex-direction: column;
+    min-height: auto;
 
     &.selected {
         border-color: #3b82f6;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4), 0 8px 24px rgba(0, 0, 0, 0.2);
         z-index: 30;
+    }
+
+    &.predicted {
+        border: 2px dashed #10b981;
+        background-color: rgba(255, 255, 255, 0.95);
+        transition: opacity 0.3s ease, transform 0.2s ease, border-style 0.2s ease;
+        z-index: 25;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+        
+        // 예측 노드임을 알리는 작은 라벨 추가
+        &::before {
+            content: "Predicted";
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #10b981;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            z-index: 1;
+        }
+        
+        &:hover {
+            transform: translate(0, 0) scale(1.02);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2);
+            border-style: solid;
+            border-color: #059669;
+            
+            &::before {
+                background: #059669;
+            }
+        }
     }
 }
 
@@ -24,11 +61,14 @@
     color: #111827;
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
-    border-bottom: 1px solid #f3f4f6; // 매우 옅은 구분선
-    cursor: grab; // [추가] 헤더에서만 드래그 가능하도록 커서 변경
+    border-bottom: 1px solid #f3f4f6;
+    cursor: grab;
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
 }
 
 .functionId {
@@ -66,6 +106,14 @@
     min-width: 100px;
     max-width: 200px;
     font-family: inherit;
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
 
     &:focus {
         box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
@@ -74,6 +122,9 @@
 
 .body {
     padding: 12px 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 // --- IO 섹션 스타일 ---
@@ -104,12 +155,78 @@
 }
 
 .sectionHeader {
-    font-size: 0.8rem; // 11.2px
+    font-size: 0.9rem;
     font-weight: 700;
     color: #838a94;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    span {
+        flex: 1;
+    }
+}
+
+.addParameterButton {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #6b7280;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: #e5e7eb;
+        border-color: #9ca3af;
+        color: #374151;
+    }
+
+    &:active {
+        background: #d1d5db;
+    }
+
+    svg {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+.deleteParameterButton {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 3px;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #6b7280;
+    transition: all 0.2s ease;
+    margin-left: 4px;
+
+    &:hover {
+        background: #fef2f2;
+        border-color: #fca5a5;
+        color: #dc2626;
+    }
+
+    &:active {
+        background: #fee2e2;
+    }
+
+    svg {
+        width: 10px;
+        height: 10px;
+    }
 }
 
 .portRow {
@@ -350,6 +467,7 @@
     max-width: 100%;
     width: 100%;
     box-sizing: border-box;
+    user-select: none; // 드래그 방지
 }
 
 .expandableWrapper {
@@ -366,6 +484,7 @@
     flex: 1;
     max-width: calc(100% - 28px);
     box-sizing: border-box;
+    user-select: none;
 }
 
 .expandButton {
@@ -416,6 +535,14 @@
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
     text-align: right;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
 
     &:focus {
         background-color: #fff;
@@ -441,6 +568,14 @@
     cursor: pointer;
     position: relative; // z-index 문제 방지
     z-index: 1; // 기본 z-index 설정
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
 
     &:focus {
         background-color: #fff;
@@ -525,5 +660,20 @@
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+.doubleInputWrapper {
+    display: flex;
+    justify-content: flex-end;
+    gap: 5px;
+    width: 100%;
+
+    select {
+        margin-top: 4px;
+        max-width: 30%;
+        box-sizing: border-box;
+        user-select: none; // 드래그 방지
+        padding: 0;
     }
 }

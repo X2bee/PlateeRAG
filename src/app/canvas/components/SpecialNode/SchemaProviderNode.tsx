@@ -9,7 +9,7 @@ import type {
     ParameterOption
 } from '@/app/canvas/types';
 
-const Node: React.FC<NodeProps> = ({
+const SchemaProviderNode: React.FC<NodeProps> = ({
     id,
     data,
     position,
@@ -27,133 +27,19 @@ const Node: React.FC<NodeProps> = ({
     onParameterAdd,
     onParameterDelete,
     onClearSelection,
-    isPredicted = false,
-    predictedOpacity = 1.0,
-    onPredictedNodeHover,
-    onPredictedNodeClick,
     onOpenNodeModal
 }) => {
     const { nodeName, inputs, parameters, outputs, functionId } = data;
     const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
     const [isEditingName, setIsEditingName] = useState<boolean>(false);
     const [editingName, setEditingName] = useState<string>(nodeName);
-    const [tool_name, setToolNameValue] = useState('tool_name');
-    const [error, setError] = useState('');
-
-
-    // API 기반 옵션을 관리하는 상태
-    const [apiOptions, setApiOptions] = useState<Record<string, ParameterOption[]>>({});
-    const [loadingApiOptions, setLoadingApiOptions] = useState<Record<string, boolean>>({});
-    // API에서 로드된 단일 값을 저장하는 상태
-    const [apiSingleValues, setApiSingleValues] = useState<Record<string, string>>({});
-
-    // 툴팁 표시 상태를 관리하는 상태
     const [hoveredParam, setHoveredParam] = useState<string | null>(null);
-
-    // handle_id 파라미터 편집 상태
     const [editingHandleParams, setEditingHandleParams] = useState<Record<string, boolean>>({});
     const [editingHandleValues, setEditingHandleValues] = useState<Record<string, string>>({});
 
-    // Sync editingName when nodeName changes
     useEffect(() => {
         setEditingName(nodeName);
     }, [nodeName]);
-
-    // API 기반 파라미터의 옵션을 로드하는 함수
-    const loadApiOptions = async (param: Parameter) => {
-        if (!param.is_api || !param.api_name) return;
-
-        const paramKey = `${id}-${param.id}`;
-
-        // 이미 로딩 중이거나 옵션이 이미 있거나 단일 값이 이미 있으면 스킵
-        if (loadingApiOptions[paramKey] || apiOptions[paramKey] || apiSingleValues[paramKey]) return;
-
-        setLoadingApiOptions(prev => ({ ...prev, [paramKey]: true }));
-
-        try {
-            const options = await fetchParameterOptions(data.id, param.api_name);
-
-            // 단일 값인지 확인 (첫 번째 옵션에 isSingleValue가 true인 경우)
-            if (options.length === 1 && options[0].isSingleValue) {
-                const singleValue = String(options[0].value);
-                setApiSingleValues(prev => ({ ...prev, [paramKey]: singleValue }));
-
-                // 파라미터의 기본값을 API에서 로드한 값으로 설정 (undefined나 null인 경우에만)
-                if (param.value === undefined || param.value === null) {
-                    onParameterChange(id, param.id, singleValue);
-                }
-
-                devLog.log('Single value loaded for parameter:', param.name, 'value:', singleValue);
-            } else {
-                // 배열 옵션인 경우
-                setApiOptions(prev => ({ ...prev, [paramKey]: options }));
-                devLog.log('Options loaded for parameter:', param.name, 'count:', options.length);
-            }
-        } catch (error) {
-            devLog.error('Error loading API options for parameter:', param.name, error);
-        } finally {
-            setLoadingApiOptions(prev => ({ ...prev, [paramKey]: false }));
-        }
-    };
-
-    // API 기반 파라미터의 옵션을 강제로 다시 로드하는 함수 (refresh 버튼용)
-    const refreshApiOptions = async (param: Parameter) => {
-        if (!param.is_api || !param.api_name) return;
-
-        const paramKey = `${id}-${param.id}`;
-
-        // 이미 로딩 중이면 스킵
-        if (loadingApiOptions[paramKey]) return;
-
-        setLoadingApiOptions(prev => ({ ...prev, [paramKey]: true }));
-
-        try {
-            // 기존 옵션 및 단일 값 삭제하고 새로 로드
-            setApiOptions(prev => {
-                const newOptions = { ...prev };
-                delete newOptions[paramKey];
-                return newOptions;
-            });
-
-            setApiSingleValues(prev => {
-                const newValues = { ...prev };
-                delete newValues[paramKey];
-                return newValues;
-            });
-
-            const options = await fetchParameterOptions(data.id, param.api_name);
-
-            // 단일 값인지 확인 (첫 번째 옵션에 isSingleValue가 true인 경우)
-            if (options.length === 1 && options[0].isSingleValue) {
-                const singleValue = String(options[0].value);
-                setApiSingleValues(prev => ({ ...prev, [paramKey]: singleValue }));
-
-                // 파라미터 값을 새로운 API 값으로 업데이트
-                onParameterChange(id, param.id, singleValue);
-
-                devLog.log('Single value refreshed for parameter:', param.name, 'value:', singleValue);
-            } else {
-                // 배열 옵션인 경우
-                setApiOptions(prev => ({ ...prev, [paramKey]: options }));
-                devLog.log('Options refreshed for parameter:', param.name, 'count:', options.length);
-            }
-        } catch (error) {
-            devLog.error('Error refreshing API options for parameter:', param.name, error);
-        } finally {
-            setLoadingApiOptions(prev => ({ ...prev, [paramKey]: false }));
-        }
-    };
-
-    // 컴포넌트 마운트 시 API 기반 파라미터들의 옵션을 로드
-    useEffect(() => {
-        if (!parameters) return;
-
-        parameters.forEach(param => {
-            if (param.is_api && param.api_name) {
-                loadApiOptions(param);
-            }
-        });
-    }, [parameters, data.id]);
 
     // Node name editing functions
     const handleNameDoubleClick = (e: React.MouseEvent): void => {
@@ -196,7 +82,6 @@ const Node: React.FC<NodeProps> = ({
         handleNameSubmit();
     };
 
-    // handle_id 파라미터 편집 함수들
     const handleHandleParamClick = (param: Parameter): void => {
         if (isPreview || !param.handle_id) return;
         const paramKey = `${id}-${param.id}`;
@@ -227,8 +112,20 @@ const Node: React.FC<NodeProps> = ({
         const finalValue = trimmedValue || param.id; // placeholder를 key(param.id)로 설정
 
         if (finalValue !== param.name && onParameterNameChange) {
-            // name을 변경 (id와 name을 모두 변경)
+            // 메인 파라미터의 name을 변경
             onParameterNameChange(id, param.id, finalValue);
+
+            // SchemaProviderNode의 특별한 로직: 연동된 description 파라미터도 함께 업데이트
+            if (param.handle_id && param.is_added) {
+                const descriptionParamId = `${param.id}_description`;
+                const descriptionParamName = `${finalValue}_description`;
+
+                // description 파라미터가 존재하는지 확인하고 업데이트
+                const descriptionParam = parameters?.find(p => p.id === descriptionParamId);
+                if (descriptionParam && onParameterNameChange) {
+                    onParameterNameChange(id, descriptionParamId, descriptionParamName);
+                }
+            }
         }
 
         setEditingHandleParams(prev => ({ ...prev, [paramKey]: false }));
@@ -247,7 +144,6 @@ const Node: React.FC<NodeProps> = ({
         handleHandleParamSubmit(param);
     };
 
-    // 새로운 파라미터 추가 함수
     const handleAddCustomParameter = (): void => {
         if (isPreview || !onParameterAdd) return;
 
@@ -255,61 +151,49 @@ const Node: React.FC<NodeProps> = ({
         const randomSuffix = Math.random().toString(36).substring(2, 12).padEnd(10, '0');
         const uniqueId = `key_${randomSuffix}`;
 
-        const newParameter: Parameter = {
+        // 첫 번째 파라미터 (메인 파라미터)
+        const mainParameter: Parameter = {
             id: uniqueId,
             name: "**kwargs",
             type: "STR",
             value: "value",
             handle_id: true,
-            is_added: true
+            is_added: true,
+            options: [{ value: 'str', label: 'STRING'}, { value: 'int', label: 'INTEGER'}, { value: 'float', label: 'FLOAT'}, { value: 'bool', label: 'BOOLEAN' }]
         };
 
-        onParameterAdd(id, newParameter);
-    };    // 파라미터 삭제 함수
+        // 두 번째 파라미터 (description 파라미터)
+        const descriptionParameter: Parameter = {
+            id: `${uniqueId}_description`,
+            name: "**kwargs_description",
+            type: "STR",
+            value: "description",
+            handle_id: false,
+            is_added: true,
+            expandable: true,
+        };
+
+        // 두 파라미터를 순차적으로 추가
+        onParameterAdd(id, mainParameter);
+        onParameterAdd(id, descriptionParameter);
+    };    // 파라미터 삭제 함수 (SchemaProviderNode용 - 연동된 파라미터도 함께 삭제)
     const handleDeleteParameter = (paramId: string): void => {
         if (isPreview || !onParameterDelete) return;
+
+        // 메인 파라미터 삭제
         onParameterDelete(id, paramId);
-    };
 
-    const validationMessage = '최대 64자, 영문 대소문자(a-z, A-Z), 숫자(0-9), 언더스코어(_)';
-
-    const handleToolNameChange = (e: React.ChangeEvent<HTMLSelectElement> | React.ChangeEvent<HTMLInputElement>, paramId: string) => {
-        const originalValue = e.target.value;
-        let processedValue = originalValue;
-
-        if (processedValue.length > 64) {
-            processedValue = processedValue.substring(0, 64);
-        }
-
-        const validPattern = /^[a-zA-Z0-9_]*$/;
-
-        if (!validPattern.test(processedValue)) {
-            processedValue = processedValue.replace(/[^a-zA-Z0-9_]/g, '');
-        }
-
-        if (originalValue !== processedValue) {
-            setError(validationMessage);
-        } else {
-            setError('');
-        }
-
-
-        const value = processedValue;
-        if (value === undefined || value === null) {
-            devLog.warn('Invalid parameter value:', value);
-            return;
-        }
-
-        setToolNameValue(processedValue);
-
-        devLog.log('Calling onParameterChange...');
-        if (typeof onParameterChange === 'function') {
-            onParameterChange(id, paramId, value);
-            devLog.log('onParameterChange completed successfully');
-        } else {
-            devLog.error('onParameterChange is not a function');
+        // SchemaProviderNode 특별 로직: 연동된 description 파라미터도 함께 삭제
+        const param = parameters?.find(p => p.id === paramId);
+        if (param && param.handle_id && param.is_added) {
+            const descriptionParamId = `${paramId}_description`;
+            const descriptionParam = parameters?.find(p => p.id === descriptionParamId);
+            if (descriptionParam) {
+                onParameterDelete(id, descriptionParamId);
+            }
         }
     };
+
 
     const numberList = ['INT', 'FLOAT', 'NUMBER', 'INTEGER'];
 
@@ -330,19 +214,23 @@ const Node: React.FC<NodeProps> = ({
         const isHandleParam = param.handle_id === true;
         const isEditingHandle = editingHandleParams[paramKey] || false;
 
-        // API 기반 파라미터인 경우 API 옵션 또는 단일 값을 사용, 아니면 기본 옵션 사용
-        let effectiveOptions = param.options || [];
-        let isLoadingOptions = false;
-        let apiSingleValue = null;
-
-        if (isApiParam) {
-            effectiveOptions = apiOptions[paramKey] || [];
-            isLoadingOptions = loadingApiOptions[paramKey] || false;
-            apiSingleValue = apiSingleValues[paramKey];
+        // SchemaProviderNode 특별 로직: description 파라미터는 숨김 (첫 번째 파라미터에서 함께 처리)
+        if (param.is_added && param.id.endsWith('_description') && !param.handle_id) {
+            return null; // description 파라미터는 렌더링하지 않음
         }
 
-        // API에서 단일 값을 로드한 경우 input으로 렌더링
-        const shouldRenderAsInput = isApiParam && apiSingleValue !== undefined;
+        // 연동된 description 파라미터 찾기 (첫 번째 파라미터인 경우)
+        const descriptionParam = param.is_added && param.handle_id
+            ? parameters?.find(p => p.id === `${param.id}_description`)
+            : null;
+
+        // 옵션 처리 - 일반 옵션과 API 옵션 모두 지원
+        const effectiveOptions = param.options || [];
+        const isLoadingOptions = false;
+        const apiSingleValue = null;
+
+        // shouldRenderAsInput 정의 (API 관련 로직 제거했으므로 false로 설정)
+        const shouldRenderAsInput = false;
 
         return (
             <div key={param.id} className={`${styles.param} param`}>
@@ -402,20 +290,6 @@ const Node: React.FC<NodeProps> = ({
                     ) : (
                         param.name
                     )}
-                    {isApiParam && (
-                        <button
-                            className={`${styles.refreshButton} ${isLoadingOptions ? styles.loading : ''}`}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                refreshApiOptions(param);
-                            }}
-                            disabled={isLoadingOptions}
-                            title="Refresh options"
-                            type="button"
-                        >
-                            <LuRefreshCw />
-                        </button>
-                    )}
                     {param.is_added && !isPreview && onParameterDelete && (
                         <button
                             className={styles.deleteParameterButton}
@@ -431,33 +305,157 @@ const Node: React.FC<NodeProps> = ({
                     )}
                 </span>
                 {isHandleParam ? (
-                    // handle_id가 true인 경우에는 일반 파라미터 value 렌더링
-                    <input
-                        type="text"
-                        value={param.value || ''}
-                        onChange={(e) => handleParamValueChange(e, param.id)}
-                        onMouseDown={(e) => {
-                            e.stopPropagation();
-                        }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                        }}
-                        onFocus={(e) => {
-                            e.stopPropagation();
-                            if (onClearSelection) {
-                                onClearSelection();
-                            }
-                        }}
-                        onKeyDown={(e) => {
-                            e.stopPropagation();
-                        }}
-                        onDragStart={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                        }}
-                        draggable={false}
-                        className={`${styles.paramInput} paramInput`}
-                    />
+                    // handle_id가 true인 경우: 옵션이 있으면 select, 없으면 input
+                    <div className={styles.doubleInputWrapper || `${styles.paramInput} doubleInputWrapper`}>
+                        {effectiveOptions.length > 0 ? (
+                            <select
+                                value={param.value}
+                                onChange={(e) => {
+                                    devLog.log('=== Handle Param Select Change ===');
+                                    devLog.log('Parameter:', param.name, 'Previous value:', param.value, 'New value:', e.target.value);
+                                    devLog.log('Available options:', effectiveOptions);
+                                    handleParamValueChange(e, param.id);
+                                    devLog.log('=== Handle Param Select Change Complete ===');
+                                }}
+                                onMouseDown={(e) => {
+                                    e.stopPropagation();
+                                }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                }}
+                                onFocus={(e) => {
+                                    e.stopPropagation();
+                                    if (onClearSelection) {
+                                        onClearSelection();
+                                    }
+                                }}
+                                onKeyDown={(e) => {
+                                    e.stopPropagation();
+                                }}
+                                onDragStart={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                }}
+                                draggable={false}
+                                className={`${styles.paramSelect} paramSelect`}
+                            >
+                                <option value="">-- Select --</option>
+                                {effectiveOptions.map((option, index) => (
+                                    <option key={index} value={option.value}>
+                                        {option.label || option.value}
+                                    </option>
+                                ))}
+                            </select>
+                        ) : (
+                            <input
+                                type="text"
+                                value={param.value || ''}
+                                onChange={(e) => handleParamValueChange(e, param.id)}
+                                onMouseDown={(e) => {
+                                    e.stopPropagation();
+                                }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                }}
+                                onFocus={(e) => {
+                                    e.stopPropagation();
+                                    if (onClearSelection) {
+                                        onClearSelection();
+                                    }
+                                }}
+                                onKeyDown={(e) => {
+                                    e.stopPropagation();
+                                }}
+                                onDragStart={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                }}
+                                draggable={false}
+                                className={`${styles.paramInput} paramInput`}
+                                placeholder="Value"
+                            />
+                        )}
+                        {descriptionParam && (
+                            descriptionParam.expandable ? (
+                                <div className={styles.expandableWrapper}>
+                                    <input
+                                        type="text"
+                                        value={descriptionParam.value || ''}
+                                        onChange={(e) => handleParamValueChange(e, descriptionParam.id)}
+                                        onMouseDown={(e) => {
+                                            devLog.log('expandable input onMouseDown');
+                                            e.stopPropagation();
+                                        }}
+                                        onClick={(e) => {
+                                            devLog.log('expandable input onClick');
+                                            e.stopPropagation();
+                                        }}
+                                        onFocus={(e) => {
+                                            devLog.log('expandable input onFocus');
+                                            e.stopPropagation();
+                                            if (onClearSelection) {
+                                                onClearSelection();
+                                            }
+                                        }}
+                                        onKeyDown={(e) => {
+                                            e.stopPropagation();
+                                        }}
+                                        onDragStart={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                        }}
+                                        draggable={false}
+                                        className={`${styles.paramInput} paramInput`}
+                                        placeholder="Description"
+                                        style={{ marginTop: '4px' }}
+                                    />
+                                    <button
+                                        className={styles.expandButton}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (onOpenNodeModal) {
+                                                onOpenNodeModal(id, descriptionParam.id, descriptionParam.name, String(descriptionParam.value || ''));
+                                            }
+                                        }}
+                                        type="button"
+                                        title="Expand to edit"
+                                        style={{ marginTop: '4px' }}
+                                    >
+                                        ⧉
+                                    </button>
+                                </div>
+                            ) : (
+                                <input
+                                    type="text"
+                                    value={descriptionParam.value || ''}
+                                    onChange={(e) => handleParamValueChange(e, descriptionParam.id)}
+                                    onMouseDown={(e) => {
+                                        e.stopPropagation();
+                                    }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                    }}
+                                    onFocus={(e) => {
+                                        e.stopPropagation();
+                                        if (onClearSelection) {
+                                            onClearSelection();
+                                        }
+                                    }}
+                                    onKeyDown={(e) => {
+                                        e.stopPropagation();
+                                    }}
+                                    onDragStart={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                    }}
+                                    draggable={false}
+                                    className={`${styles.paramInput} paramInput`}
+                                    placeholder="Description"
+                                    style={{ marginTop: '4px' }}
+                                />
+                            )
+                        )}
+                    </div>
                 ) : shouldRenderAsInput ? (
                     // API에서 단일 값을 로드한 경우 input으로 렌더링
                     <input
@@ -492,7 +490,7 @@ const Node: React.FC<NodeProps> = ({
                         className={`${styles.paramInput} paramInput`}
                         placeholder={apiSingleValue ? `Default: ${apiSingleValue}` : ''}
                     />
-                ) : (effectiveOptions.length > 0 || isApiParam) ? (
+                ) : effectiveOptions.length > 0 ? (
                     <select
                         value={param.value}
                         onChange={(e) => {
@@ -509,11 +507,6 @@ const Node: React.FC<NodeProps> = ({
                         onClick={(e) => {
                             devLog.log('select onClick');
                             e.stopPropagation();
-
-                            // API 파라미터이고 옵션이 없으면 다시 로드 시도
-                            if (isApiParam && effectiveOptions.length === 0 && !isLoadingOptions) {
-                                loadApiOptions(param);
-                            }
                         }}
                         onFocus={(e) => {
                             devLog.log('select onFocus - Parameter:', param.name, 'Current value:', param.value);
@@ -554,87 +547,6 @@ const Node: React.FC<NodeProps> = ({
                             </>
                         )}
                     </select>
-                ) : param.type === 'BOOL' ? (
-                    <select
-                        value={param.value}
-                        onChange={(e) => {
-                            devLog.log('=== Boolean Parameter Change ===');
-                            devLog.log('Parameter:', param.name, 'Previous value:', param.value, 'New value:', e.target.value);
-                            handleParamValueChange(e, param.id);
-                            devLog.log('=== Boolean Parameter Change Complete ===');
-                        }}
-                        onMouseDown={(e) => {
-                            devLog.log('boolean select onMouseDown');
-                            e.stopPropagation();
-                        }}
-                        onClick={(e) => {
-                            devLog.log('boolean select onClick');
-                            e.stopPropagation();
-                        }}
-                        onFocus={(e) => {
-                            devLog.log('boolean select onFocus - Parameter:', param.name, 'Current value:', param.value);
-                            e.stopPropagation();
-                            // Clear node selection when editing parameter
-                            if (onClearSelection) {
-                                onClearSelection();
-                            }
-                        }}
-                        onBlur={(e) => {
-                            devLog.log('boolean select onBlur - Parameter:', param.name, 'Final value:', e.target.value);
-                            e.stopPropagation();
-                        }}
-                        onKeyDown={(e) => {
-                            // Prevent keyboard event propagation
-                            e.stopPropagation();
-                        }}
-                        onDragStart={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                        }}
-                        draggable={false}
-                        className={`${styles.paramSelect} paramSelect`}
-                    >
-                        <option value="" disabled>-- Select --</option>
-                        <option value="true">True</option>
-                        <option value="false">False</option>
-                    </select>
-                ) : param.id === 'tool_name' ? (
-                    <div className={styles.inputWrapper}>
-                        <input
-                            type={'text'}
-                            value={tool_name}
-                            onChange={(e) => handleToolNameChange(e, param.id)}
-                            onMouseDown={(e) => {
-                                devLog.log('input onMouseDown');
-                                e.stopPropagation();
-                            }}
-                            onClick={(e) => {
-                                devLog.log('input onClick');
-                                e.stopPropagation();
-                            }}
-                            onFocus={(e) => {
-                                devLog.log('input onFocus');
-                                e.stopPropagation();
-                                if (onClearSelection) {
-                                    onClearSelection();
-                                }
-                            }}
-                            onKeyDown={(e) => {
-                                e.stopPropagation();
-                            }}
-                            onDragStart={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                            }}
-                            draggable={false}
-                            className={`${styles.paramInput} paramInput ${error ? styles.inputError : ''}`}
-                            step={param.step}
-                            min={param.min}
-                            max={param.max}
-                            maxLength={64}
-                        />
-                        {error && <div className={styles.errorMessage}>{error}</div>}
-                    </div>
                 ) : (param as any).expandable ? (
                     <div className={styles.expandableWrapper}>
                         <input
@@ -724,35 +636,11 @@ const Node: React.FC<NodeProps> = ({
 
     const handleMouseDown = (e: React.MouseEvent): void => {
         if (isPreview) return; // Disable drag in preview mode
-        
-        // 예측 노드인 경우 클릭 시 실제 노드로 변환하고 자동 연결
-        if (isPredicted && onPredictedNodeClick) {
-            e.stopPropagation();
-            onPredictedNodeClick(data, position);
-            return;
-        }
-        
         e.stopPropagation();
         onNodeMouseDown(e, id);
     };
 
-    const handleMouseEnter = (): void => {
-        if (isPredicted && onPredictedNodeHover) {
-            onPredictedNodeHover(id, true);
-        }
-    };
-
-    const handleMouseLeave = (): void => {
-        if (isPredicted && onPredictedNodeHover) {
-            onPredictedNodeHover(id, false);
-        }
-    };
-
     const handleParamValueChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>, paramId: string): void => {
-        devLog.log('=== Parameter Change Event ===');
-        devLog.log('nodeId:', id, 'paramId:', paramId, 'value:', e.target.value);
-
-        // Stop event propagation
         e.preventDefault();
         e.stopPropagation();
 
@@ -781,25 +669,17 @@ const Node: React.FC<NodeProps> = ({
     const hasInputs = inputs && inputs.length > 0;
     const hasOutputs = outputs && outputs.length > 0;
     const hasIO = hasInputs || hasOutputs;
-    const hasParams = parameters && parameters.length > 0;
+    const hasParams = true;
     const hasOnlyOutputs = hasOutputs && !hasInputs;
 
-    // Node name display (add ... if over 20 characters)
     const displayName = nodeName.length > 25 ? nodeName.substring(0, 25) + '...' : nodeName;
 
     return (
         <>
             <div
-                className={`${styles.node} ${isSelected ? styles.selected : ''} ${isPreview ? 'preview' : ''} ${isPredicted ? styles.predicted : ''}`}
-                style={{ 
-                    transform: `translate(${position.x}px, ${position.y}px)`,
-                    opacity: isPredicted ? predictedOpacity : 1,
-                    pointerEvents: isPredicted ? 'auto' : 'auto',
-                    cursor: isPredicted ? 'pointer' : 'default'
-                }}
+                className={`${styles.node} ${isSelected ? styles.selected : ''} ${isPreview ? 'preview' : ''}`}
+                style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
                 onMouseDown={handleMouseDown}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
             >
                 <div className={styles.header}>
                     {isEditingName ? (
@@ -857,7 +737,7 @@ const Node: React.FC<NodeProps> = ({
                                                 <div
                                                     ref={(el) => registerPortRef && registerPortRef(id, portData.id, 'input', el)}
                                                     className={portClasses}
-                                                    onMouseDown={isPreview || isPredicted ? undefined : (e) => {
+                                                    onMouseDown={isPreview ? undefined : (e) => {
                                                         e.stopPropagation();
                                                         onPortMouseDown({
                                                             nodeId: id,
@@ -865,16 +745,16 @@ const Node: React.FC<NodeProps> = ({
                                                             portType: 'input',
                                                             isMulti: portData.multi,
                                                             type: portData.type
-                                                        }, e);
+                                                        });
                                                     }}
-                                                    onMouseUp={isPreview || isPredicted ? undefined : (e) => {
+                                                    onMouseUp={isPreview ? undefined : (e) => {
                                                         e.stopPropagation();
                                                         onPortMouseUp({
                                                             nodeId: id,
                                                             portId: portData.id,
                                                             portType: 'input',
                                                             type: portData.type
-                                                        }, e);
+                                                        });
                                                     }}
                                                 >
                                                     {portData.type}
@@ -904,7 +784,7 @@ const Node: React.FC<NodeProps> = ({
                                                 <div
                                                     ref={(el) => registerPortRef && registerPortRef(id, portData.id, 'output', el)}
                                                     className={portClasses}
-                                                    onMouseDown={isPreview || isPredicted ? undefined : (e) => {
+                                                    onMouseDown={isPreview ? undefined : (e) => {
                                                         e.stopPropagation();
                                                         onPortMouseDown({
                                                             nodeId: id,
@@ -912,16 +792,16 @@ const Node: React.FC<NodeProps> = ({
                                                             portType: 'output',
                                                             isMulti: portData.multi,
                                                             type: portData.type
-                                                        }, e);
+                                                        });
                                                     }}
-                                                    onMouseUp={isPreview || isPredicted ? undefined : (e) => {
+                                                    onMouseUp={isPreview ? undefined : (e) => {
                                                         e.stopPropagation();
                                                         onPortMouseUp({
                                                             nodeId: id,
                                                             portId: portData.id,
                                                             portType: 'output',
                                                             type: portData.type
-                                                        }, e);
+                                                        });
                                                     }}
                                                 >
                                                     {portData.type}
@@ -933,7 +813,7 @@ const Node: React.FC<NodeProps> = ({
                             )}
                         </div>
                     )}
-                    {hasParams && !isPredicted && (
+                    {hasParams && (
                         <>
                             {hasIO && <div className={styles.divider}></div>}
                             <div className={styles.paramSection}>
@@ -956,9 +836,6 @@ const Node: React.FC<NodeProps> = ({
                                 {basicParameters.map(param => renderParameter(param))}
                                 {hasAdvancedParams && (
                                     <div className={styles.advancedParams}>
-                                        <div className={styles.advancedHeader} onClick={toggleAdvanced}>
-                                            <span>Advanced {showAdvanced ? '▲' : '▼'}</span>
-                                        </div>
                                         {showAdvanced && advancedParameters.map(param => renderParameter(param))}
                                     </div>
                                 )}
@@ -971,4 +848,4 @@ const Node: React.FC<NodeProps> = ({
     );
 };
 
-export default memo(Node);
+export default memo(SchemaProviderNode);

@@ -28,6 +28,7 @@ export const API_CONFIG = {
 export const APP_CONFIG = {
     DEFAULT_THEME: 'light',
     DEBUG_MODE: process.env.NODE_ENV === 'development',
+    SHOW_THINK_BLOCK: process.env.NEXT_PUBLIC_SHOW_THINK_BLOCK === 'true' || false,
 };
 
 // Export individual configs for convenience

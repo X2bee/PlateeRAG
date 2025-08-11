@@ -3,12 +3,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiCopy, FiCheck, FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import styles from '@/app/chat/assets/chatParser.module.scss';
+import { APP_CONFIG } from '@/app/config';
 
 import { Prism } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-// Think 블록 표시 여부를 제어하는 상수
-const showThinkBlock = false;
+// Think 블록 표시 여부를 제어하는 상수 (환경변수에서 가져옴)
+const showThinkBlock = APP_CONFIG.SHOW_THINK_BLOCK;
 
 export interface ParsedContent {
     html: string;

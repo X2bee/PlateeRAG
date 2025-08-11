@@ -18,7 +18,7 @@ export const loadWorkflow = async (workflowId: string, user_id?: number | string
 
         devLog.log('Loading workflow with cleaned ID:', cleanWorkflowId);
 
-        const response = await apiClient(
+        const response = await fetch(
             `${API_BASE_URL}/api/workflow/deploy/load/${user_id}/${encodeURIComponent(cleanWorkflowId)}`,
         );
 
@@ -58,7 +58,8 @@ export const executeWorkflowByIdDeploy = async (
     inputData: string = '',
     interaction_id: string = 'default',
     selectedCollections: Array<string> | null = null,
-    user_id: number | string | null = null
+    user_id: number | string | null = null,
+    additional_params: Record<string, Record<string, any>> | null = null
 ): Promise<excuteWorkflowRequest> => {
     try {
         const requestBody: excuteWorkflowRequest = {
@@ -75,6 +76,11 @@ export const executeWorkflowByIdDeploy = async (
 
         if(user_id && user_id !== null && user_id !== undefined) {
             requestBody.user_id = user_id;
+        }
+
+        // additional_params가 있으면 추가
+        if (additional_params && typeof additional_params === 'object') {
+            requestBody.additional_params = additional_params;
         }
 
         const response = await apiClient(`${API_BASE_URL}/api/workflow/deploy/execute/based_id`, {
@@ -119,17 +125,19 @@ export const executeWorkflowByIdStreamDeploy = async ({
     interactionId = 'default',
     selectedCollections = null,
     user_id,
+    additional_params = null,
     onData,
     onEnd,
     onError,
-}: { workflowName: string; 
-    workflowId: string; 
-    inputData: string; 
-    interactionId: string; 
-    selectedCollections: Array<string> | null; 
+}: { workflowName: string;
+    workflowId: string;
+    inputData: string;
+    interactionId: string;
+    selectedCollections: Array<string> | null;
     user_id?: number | string | null;
-    onData: (arg0: string) => void; 
-    onEnd: () => void; 
+    additional_params?: Record<string, Record<string, any>> | null;
+    onData: (arg0: string) => void;
+    onEnd: () => void;
     onError: (arg0: Error) => void; }) => {
     const requestBody: excuteWorkflowRequest = {
         workflow_name: workflowName,
@@ -144,6 +152,10 @@ export const executeWorkflowByIdStreamDeploy = async ({
         }
         if(user_id && user_id !== null && user_id !== undefined) {
             requestBody.user_id = user_id;
+        }
+        // additional_params가 있으면 추가
+        if (additional_params && typeof additional_params === 'object') {
+            requestBody.additional_params = additional_params;
         }
         const response = await apiClient(`${API_BASE_URL}/api/workflow/deploy/execute/based_id/stream`, {
             method: 'POST',
@@ -162,7 +174,7 @@ export const executeWorkflowByIdStreamDeploy = async ({
             throw new Error('Response body is null.');
         }
 
-        const reader = response.body.getReader(); 
+        const reader = response.body.getReader();
         const decoder = new TextDecoder('utf-8');
 
         while (true) {

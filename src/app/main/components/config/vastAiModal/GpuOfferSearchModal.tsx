@@ -125,8 +125,8 @@ export const GpuOfferSearchModal = () => {
         max_price: 3,
         min_gpu_ram: 24,
         num_gpus: 1,
-        inet_down: 3000,
-        inet_up: 3000,
+        inet_down: 2500,
+        inet_up: 2500,
         rentable: true,
         sort_by: 'price',
         limit: 30
@@ -143,7 +143,7 @@ export const GpuOfferSearchModal = () => {
         install_requirements: true,
         vllm_config: {
             vllm_model_name: 'x2bee/Polar-14B',
-            vllm_max_model_len: 8192,
+            vllm_max_model_len: 32768,
             vllm_host_ip: '0.0.0.0',
             vllm_port: 12434,
             vllm_controller_port: 12435,

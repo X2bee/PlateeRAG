@@ -60,11 +60,11 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({ output }) => {
     );
 };
 
-const ExecutionPanel: React.FC<ExecutionPanelProps> = ({ 
-    onExecute, 
-    onClear, 
-    output, 
-    isLoading 
+const ExecutionPanel: React.FC<ExecutionPanelProps> = ({
+    onExecute,
+    onClear,
+    output,
+    isLoading
 }) => {
     const [isExpanded, setIsExpanded] = useState<boolean>(true);
 
@@ -106,7 +106,7 @@ const ExecutionPanel: React.FC<ExecutionPanelProps> = ({
                         ) : (
                             <>
                                 <LuPlay />
-                                <span>Run</span>
+                                <span>Save & Run</span>
                             </>
                         )}
                     </button>
