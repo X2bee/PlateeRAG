@@ -12,6 +12,7 @@ import React, {
 } from 'react';
 import styles from '@/app/canvas/assets/Canvas.module.scss';
 import Node from '@/app/canvas/components/Node';
+import SchemaProviderNode from '@/app/canvas/components/SpecialNode/SchemaProviderNode';
 import Edge from '@/app/canvas/components/Edge';
 import { devLog } from '@/app/_common/utils/logger';
 import type {

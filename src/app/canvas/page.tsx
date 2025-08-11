@@ -61,6 +61,7 @@ function CanvasPageContent() {
     const [isCanvasReady, setIsCanvasReady] = useState(false);
     const [showDeploymentModal, setShowDeploymentModal] = useState(false);
     const [isDeploy, setIsDeploy] = useState(false);
+    const [workflowDetailData, setWorkflowDetailData] = useState<any>(null);
 
     // NodeModal 관련 상태
     const [nodeModalState, setNodeModalState] = useState<{
@@ -261,9 +262,7 @@ function CanvasPageContent() {
         } catch (error) {
             devLog.warn('Failed to auto-save workflow state:', error);
         }
-    };
-
-    // 워크플로우 이름 업데이트 헬퍼 함수
+    };    // 워크플로우 이름 업데이트 헬퍼 함수
     const updateWorkflowName = (newName: string) => {
         setCurrentWorkflowName(newName);
         saveWorkflowName(newName);
@@ -806,15 +805,6 @@ function CanvasPageContent() {
         }
     };
 
-    const handleGetWorkflow = async () => {
-        try {
-            let workflowData = (canvasRef.current as any).getCanvasState();
-            return workflowData;
-        } catch {
-            return null;
-        }
-    }
-
     const handleExecute = async () => {
         if (!canvasRef.current) {
             toast.error('Canvas is not ready.');
@@ -961,6 +951,22 @@ function CanvasPageContent() {
         return () => window.removeEventListener('keydown', preventBackspace);
     }, []);
 
+    // DeploymentModal이 열릴 때 워크플로우 데이터 업데이트
+    useEffect(() => {
+        if (showDeploymentModal && canvasRef.current) {
+            const updateWorkflowData = async () => {
+                try {
+                    const workflowData = (canvasRef.current as any).getCanvasState();
+                    setWorkflowDetailData(workflowData);
+                } catch (error) {
+                    devLog.error('Failed to get workflow data:', error);
+                    setWorkflowDetailData(null);
+                }
+            };
+            updateWorkflowData();
+        }
+    }, [showDeploymentModal]);
+
     return (
         <div
             className={styles.pageContainer}
@@ -1010,7 +1016,7 @@ function CanvasPageContent() {
                 isOpen={showDeploymentModal}
                 onClose={() => setShowDeploymentModal(false)}
                 workflow={workflow}
-                workflowDetail={handleGetWorkflow()}
+                workflowDetail={workflowDetailData}
             />
             <NodeModal
                 isOpen={nodeModalState.isOpen}

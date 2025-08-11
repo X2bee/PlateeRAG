@@ -662,3 +662,18 @@
         transform: translateY(0);
     }
 }
+
+.doubleInputWrapper {
+    display: flex;
+    justify-content: flex-end;
+    gap: 5px;
+    width: 100%;
+
+    select {
+        margin-top: 4px;
+        max-width: 30%;
+        box-sizing: border-box;
+        user-select: none; // 드래그 방지
+        padding: 0;
+    }
+}

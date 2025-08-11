@@ -44,6 +44,7 @@ export interface Parameter {
     description?: string;
     handle_id?: boolean;
     is_added?: boolean;
+    expandable?: boolean;
 }
 
 // ========== Node Types ==========
