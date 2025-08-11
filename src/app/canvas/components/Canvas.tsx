@@ -103,6 +103,14 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         timestamp: number;
         position: { x: number; y: number };
     } | null>(null);
+    
+    // 예측 노드 클릭 시 연결을 위한 소스 포트 정보 저장
+    const [sourcePortForConnection, setSourcePortForConnection] = useState<{
+        nodeId: string;
+        portId: string;
+        portType: string;
+        type: string;
+    } | null>(null);
 
     const nodesRef = useRef<CanvasNode[]>(nodes);
     const edgePreviewRef = useRef<EdgePreview | null>(edgePreview);
@@ -594,7 +602,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         // 노드 배치를 위한 기본 설정
         const VERTICAL_SPACING = 280; // 수직 간격 (노드 높이 + 여백)
         const HORIZONTAL_SPACING = 500; // 수평 간격 (노드 폭 + 여백)
-        const OFFSET_DISTANCE = 10; // 마우스 위치에서 떨어진 거리
+        const OFFSET_DISTANCE = 100; // 마우스 위치에서 떨어진 거리
         
         if (compatibleNodes.length === 0) return predicted;
         
@@ -707,6 +715,13 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
 
     // 예측 노드를 실제 노드로 변환하고 자동 연결하는 함수
     const handlePredictedNodeClick = useCallback((nodeData: NodeData, position: Position): void => {
+        devLog.log('=== handlePredictedNodeClick called ===', {
+            nodeData: nodeData.nodeName,
+            isDraggingOutput,
+            isDraggingInput,
+            hasEdgePreview: !!edgePreviewRef.current
+        });
+
         const newNode: CanvasNode = {
             id: `${nodeData.id}-${Date.now()}`,
             data: nodeData,
@@ -717,14 +732,26 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         const currentEdgePreview = edgePreviewRef.current;
         let newEdge: CanvasEdge | null = null;
         
-        if (currentEdgePreview && (isDraggingOutput || isDraggingInput)) {
-            const sourceConnection = currentEdgePreview.source;
+        devLog.log('Edge preview details:', currentEdgePreview);
+        devLog.log('Source port for connection:', sourcePortForConnection);
+        
+        // edgePreview가 없으면 저장된 소스 포트 정보 사용
+        const sourceConnection = currentEdgePreview?.source || sourcePortForConnection;
+        
+        if (sourceConnection && (isDraggingOutput || isDraggingInput)) {
             
             if (isDraggingOutput && nodeData.inputs) {
                 // 출력 포트에서 드래그한 경우 - 예측 노드의 호환되는 입력 포트 찾기
+                devLog.log('Looking for compatible input ports:', {
+                    sourceType: sourceConnection.type,
+                    availableInputs: nodeData.inputs.map(input => ({ id: input.id, name: input.name, type: input.type }))
+                });
+                
                 const compatibleInput = nodeData.inputs.find(input => 
                     areTypesCompatible(sourceConnection.type, input.type)
                 );
+                
+                devLog.log('Compatible input found:', compatibleInput);
                 
                 if (compatibleInput) {
                     const newEdgeSignature = `${sourceConnection.nodeId}:${sourceConnection.portId}-${newNode.id}:${compatibleInput.id}`;
@@ -741,12 +768,21 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                             portType: 'input'
                         }
                     };
+                    
+                    devLog.log('Created new edge for output connection:', newEdge);
                 }
             } else if (isDraggingInput && nodeData.outputs) {
                 // 입력 포트에서 드래그한 경우 - 예측 노드의 호환되는 출력 포트 찾기
+                devLog.log('Looking for compatible output ports:', {
+                    sourceType: sourceConnection.type,
+                    availableOutputs: nodeData.outputs.map(output => ({ id: output.id, name: output.name, type: output.type }))
+                });
+                
                 const compatibleOutput = nodeData.outputs.find(output => 
                     areTypesCompatible(output.type, sourceConnection.type)
                 );
+                
+                devLog.log('Compatible output found:', compatibleOutput);
                 
                 if (compatibleOutput) {
                     const newEdgeSignature = `${newNode.id}:${compatibleOutput.id}-${sourceConnection.nodeId}:${sourceConnection.portId}`;
@@ -779,6 +815,14 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 source: newEdge.source,
                 target: newEdge.target
             });
+        } else {
+            devLog.log('No edge was created - missing conditions:', {
+                hasEdgePreview: !!currentEdgePreview,
+                isDraggingOutput,
+                isDraggingInput,
+                hasInputs: !!nodeData.inputs,
+                hasOutputs: !!nodeData.outputs
+            });
         }
         
         // 상태 정리
@@ -788,9 +832,10 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         setCurrentOutputType(null);
         setCurrentInputType(null);
         setEdgePreview(null);
+        setSourcePortForConnection(null);
         
         devLog.log('Predicted node converted to actual node:', newNode.id);
-    }, [isDraggingOutput, isDraggingInput, areTypesCompatible]);
+    }, [isDraggingOutput, isDraggingInput, areTypesCompatible, sourcePortForConnection]);
 
     // 노드 ID가 예측 노드인지 확인하는 함수
     const isPredictedNodeId = useCallback((nodeId: string): boolean => {
@@ -923,6 +968,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
             setIsDraggingInput(false);
             setCurrentOutputType(null);
             setCurrentInputType(null);
+            setSourcePortForConnection(null);
         }
         
         setSelectedNodeId(null);
@@ -1178,6 +1224,30 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
             const portPos = portPositions[portPosKey];
             
             if (portPos) {
+                // 소스 포트 정보 저장 (예측 노드 클릭 시 연결용)
+                setSourcePortForConnection({
+                    nodeId,
+                    portId,
+                    portType,
+                    type
+                });
+                
+                // 예측 노드 클릭 시 연결을 위해 edgePreview 설정
+                setEdgePreview({
+                    source: { nodeId, portId, portType, type },
+                    startPos: portPos,
+                    targetPos: portPos
+                });
+                
+                // 드래깅 상태 설정 (예측 노드 클릭 시 연결을 위해 필요)
+                if (portType === 'output') {
+                    setIsDraggingOutput(true);
+                    setCurrentOutputType(type);
+                } else if (portType === 'input') {
+                    setIsDraggingInput(true);
+                    setCurrentInputType(type);
+                }
+                
                 let predicted: PredictedNode[] = [];
                 
                 if (portType === 'output') {
@@ -1301,6 +1371,15 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 }
 
                 setPredictedNodes(predicted);
+                // 드래그로 생성한 예측 노드 연결을 위한 소스 포트 정보 저장
+                if (edgePreviewRef.current) {
+                    setSourcePortForConnection({
+                        nodeId: edgePreviewRef.current.source.nodeId,
+                        portId: edgePreviewRef.current.source.portId,
+                        portType: edgePreviewRef.current.source.portType as 'input' | 'output',
+                        type: edgePreviewRef.current.source.type
+                    });
+                }
                 setEdgePreview(null);
                 setDragState({ type: 'none' });
                 return;
@@ -1367,6 +1446,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 setIsDraggingInput(false);
                 setCurrentOutputType(null);
                 setCurrentInputType(null);
+                setSourcePortForConnection(null);
             }
         }
 
@@ -1413,10 +1493,18 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 setEdges(prevEdges => prevEdges.filter(e => e.id !== existingEdge.id));
                 return;
             } else {
-                // 드래그 시작 준비만 하고 예측 노드는 생성하지 않음
+                // 드래그 시작 준비하고 소스 포트 정보 저장
                 setDragState({ type: 'edge' });
                 setIsDraggingInput(true);
                 setCurrentInputType(type);
+                
+                // 소스 포트 정보 저장 (예측 노드 클릭 시 연결용)
+                setSourcePortForConnection({
+                    nodeId,
+                    portId,
+                    portType,
+                    type
+                });
                 
                 const startPosKey = `${nodeId}__PORTKEYDELIM__${portId}__PORTKEYDELIM__${portType}`;
                 const startPos = portPositions[startPosKey];
@@ -1432,10 +1520,18 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         }
 
         if (portType === 'output') {
-            // 드래그 시작 준비만 하고 예측 노드는 생성하지 않음
+            // 드래그 시작 준비하고 소스 포트 정보 저장
             setDragState({ type: 'edge' });
             setIsDraggingOutput(true);
             setCurrentOutputType(type);
+            
+            // 소스 포트 정보 저장 (예측 노드 클릭 시 연결용)
+            setSourcePortForConnection({
+                nodeId,
+                portId,
+                portType,
+                type
+            });
             
             const startPosKey = `${nodeId}__PORTKEYDELIM__${portId}__PORTKEYDELIM__${portType}`;
             const startPos = portPositions[startPosKey];
