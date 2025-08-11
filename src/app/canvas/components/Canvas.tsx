@@ -119,6 +119,9 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
     const snappedPortKeyRef = useRef<string | null>(snappedPortKey);
     const isSnapTargetValidRef = useRef<boolean>(isSnapTargetValid);
 
+    const VERTICAL_SPACING = 350; // 수직 간격 (노드 높이 + 여백)
+    const HORIZONTAL_SPACING = 500; // 수평 간격 (노드 폭 + 여백)
+
     useLayoutEffect(() => {
         const newPortPositions: Record<string, Position> = {};
         const contentEl = contentRef.current;
@@ -601,8 +604,6 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         const predicted: PredictedNode[] = [];
 
         // 노드 배치를 위한 기본 설정
-        const VERTICAL_SPACING = 280; // 수직 간격 (노드 높이 + 여백)
-        const HORIZONTAL_SPACING = 500; // 수평 간격 (노드 폭 + 여백)
         const OFFSET_DISTANCE = 100; // 마우스 위치에서 떨어진 거리
 
         if (compatibleNodes.length === 0) return predicted;
@@ -657,8 +658,6 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         const predicted: PredictedNode[] = [];
 
         // 노드 배치를 위한 기본 설정
-        const VERTICAL_SPACING = 280; // 수직 간격 (노드 높이 + 여백)
-        const HORIZONTAL_SPACING = 500; // 수평 간격 (노드 폭 + 여백)
         const OFFSET_DISTANCE = 550; // 마우스 위치에서 떨어진 거리 (노드 폭 + 여백)
 
         if (compatibleNodes.length === 0) return predicted;
