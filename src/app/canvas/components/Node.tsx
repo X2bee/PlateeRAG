@@ -725,7 +725,7 @@ const Node: React.FC<NodeProps> = ({
     const handleMouseDown = (e: React.MouseEvent): void => {
         if (isPreview) return; // Disable drag in preview mode
         
-        // 예측 노드인 경우 클릭 시 실제 노드로 변환
+        // 예측 노드인 경우 클릭 시 실제 노드로 변환하고 자동 연결
         if (isPredicted && onPredictedNodeClick) {
             e.stopPropagation();
             onPredictedNodeClick(data, position);
@@ -865,7 +865,7 @@ const Node: React.FC<NodeProps> = ({
                                                             portType: 'input',
                                                             isMulti: portData.multi,
                                                             type: portData.type
-                                                        });
+                                                        }, e);
                                                     }}
                                                     onMouseUp={isPreview || isPredicted ? undefined : (e) => {
                                                         e.stopPropagation();
@@ -874,7 +874,7 @@ const Node: React.FC<NodeProps> = ({
                                                             portId: portData.id,
                                                             portType: 'input',
                                                             type: portData.type
-                                                        });
+                                                        }, e);
                                                     }}
                                                 >
                                                     {portData.type}
@@ -912,7 +912,7 @@ const Node: React.FC<NodeProps> = ({
                                                             portType: 'output',
                                                             isMulti: portData.multi,
                                                             type: portData.type
-                                                        });
+                                                        }, e);
                                                     }}
                                                     onMouseUp={isPreview || isPredicted ? undefined : (e) => {
                                                         e.stopPropagation();
@@ -921,7 +921,7 @@ const Node: React.FC<NodeProps> = ({
                                                             portId: portData.id,
                                                             portType: 'output',
                                                             type: portData.type
-                                                        });
+                                                        }, e);
                                                     }}
                                                 >
                                                     {portData.type}

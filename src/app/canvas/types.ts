@@ -174,8 +174,8 @@ export interface NodeProps {
     position: Position;
     onNodeMouseDown: (e: React.MouseEvent, nodeId: string) => void;
     isSelected: boolean;
-    onPortMouseDown: (data: PortMouseEventData) => void;
-    onPortMouseUp: (data: PortMouseEventData) => void;
+    onPortMouseDown: (data: PortMouseEventData, mouseEvent?: React.MouseEvent) => void;
+    onPortMouseUp: (data: PortMouseEventData, mouseEvent?: React.MouseEvent) => void;
     registerPortRef: (nodeId: string, portId: string, portType: string, el: HTMLElement | null) => void;
     snappedPortKey: string | null;
     onParameterChange: (nodeId: string, paramId: string, value: string | number) => void;
@@ -319,8 +319,8 @@ export interface DummyHandlers {
     onNodeDuplicate: () => void;
     updateNodeData: () => void;
     onNodeMouseDown: (e: React.MouseEvent, nodeId: string) => void;
-    onPortMouseDown: (data: PortMouseEventData) => void;
-    onPortMouseUp: (data: PortMouseEventData) => void;
+    onPortMouseDown: (data: PortMouseEventData, mouseEvent?: React.MouseEvent) => void;
+    onPortMouseUp: (data: PortMouseEventData, mouseEvent?: React.MouseEvent) => void;
     registerPortRef: (nodeId: string, portId: string, portType: string, el: HTMLElement | null) => void;
     onParameterChange: (nodeId: string, paramId: string, value: string | number) => void;
     onParameterNameChange: (nodeId: string, paramId: string, newName: string) => void;
