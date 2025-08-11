@@ -91,7 +91,7 @@ export default function HomePage() {
                             <span>🚀 Next-Gen AI Workflow Platform</span>
                         </div>
                         <h1 className={styles.heroTitle}>
-                            Build Intelligent <br /><i>AI Workflows</i>
+                            Intelligent <br /><i>AI Works Platform</i>
                             <span className={styles.highlight}>
                                 with Visual Simplicity
                             </span>
