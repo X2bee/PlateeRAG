@@ -12,6 +12,7 @@ import React, {
 } from 'react';
 import styles from '@/app/canvas/assets/Canvas.module.scss';
 import Node from '@/app/canvas/components/Node';
+import SchemaProviderNode from '@/app/canvas/components/SpecialNode/SchemaProviderNode';
 import Edge from '@/app/canvas/components/Edge';
 import { devLog } from '@/app/_common/utils/logger';
 import type {
@@ -869,28 +870,63 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                     transformOrigin: '0 0',
                 }}
             >
-                {nodes.map(node => (
-                    <Node
-                        key={node.id}
-                        id={node.id}
-                        data={node.data}
-                        position={node.position}
-                        onNodeMouseDown={handleNodeMouseDown}
-                        isSelected={node.id === selectedNodeId}
-                        onPortMouseDown={handlePortMouseDown}
-                        onPortMouseUp={handlePortMouseUp}
-                        registerPortRef={registerPortRef}
-                        snappedPortKey={snappedPortKey}
-                        onParameterChange={handleParameterChange}
-                        onNodeNameChange={handleNodeNameChange}
-                        onParameterNameChange={handleParameterNameChange}
-                        onParameterAdd={handleParameterAdd}
-                        onParameterDelete={handleParameterDelete}
-                        isSnapTargetInvalid={Boolean(snappedPortKey?.startsWith(node.id) && !isSnapTargetValid)}
-                        onClearSelection={() => setSelectedNodeId(null)}
-                        onOpenNodeModal={onOpenNodeModal}
-                    />
-                ))}
+                {nodes.map(node => {
+                    // schema_provider인지 확인하고 로깅
+                    const isSchemaProvider = node.data.id === 'schema_provider';
+
+                    devLog.log(`Rendering node: ${node.id}, data.id: ${node.data.id}, nodeName: ${node.data.nodeName}, isSchemaProvider: ${isSchemaProvider}`);
+
+                    if (isSchemaProvider) {
+                        devLog.log(`Using SchemaProviderNode for: ${node.data.nodeName}`);
+                        return (
+                            <SchemaProviderNode
+                                key={node.id}
+                                id={node.id}
+                                data={node.data}
+                                position={node.position}
+                                onNodeMouseDown={handleNodeMouseDown}
+                                isSelected={node.id === selectedNodeId}
+                                onPortMouseDown={handlePortMouseDown}
+                                onPortMouseUp={handlePortMouseUp}
+                                registerPortRef={registerPortRef}
+                                snappedPortKey={snappedPortKey}
+                                onParameterChange={handleParameterChange}
+                                onNodeNameChange={handleNodeNameChange}
+                                onParameterNameChange={handleParameterNameChange}
+                                onParameterAdd={handleParameterAdd}
+                                onParameterDelete={handleParameterDelete}
+                                isSnapTargetInvalid={Boolean(snappedPortKey?.startsWith(node.id) && !isSnapTargetValid)}
+                                onClearSelection={() => setSelectedNodeId(null)}
+                                onOpenNodeModal={onOpenNodeModal}
+                            />
+                        );
+                    }
+
+                    // 일반 노드는 기존 Node 컴포넌트 사용
+                    devLog.log(`Using regular Node for: ${node.data.nodeName}`);
+                    return (
+                        <Node
+                            key={node.id}
+                            id={node.id}
+                            data={node.data}
+                            position={node.position}
+                            onNodeMouseDown={handleNodeMouseDown}
+                            isSelected={node.id === selectedNodeId}
+                            onPortMouseDown={handlePortMouseDown}
+                            onPortMouseUp={handlePortMouseUp}
+                            registerPortRef={registerPortRef}
+                            snappedPortKey={snappedPortKey}
+                            onParameterChange={handleParameterChange}
+                            onNodeNameChange={handleNodeNameChange}
+                            onParameterNameChange={handleParameterNameChange}
+                            onParameterAdd={handleParameterAdd}
+                            onParameterDelete={handleParameterDelete}
+                            isSnapTargetInvalid={Boolean(snappedPortKey?.startsWith(node.id) && !isSnapTargetValid)}
+                            onClearSelection={() => setSelectedNodeId(null)}
+                            onOpenNodeModal={onOpenNodeModal}
+                        />
+                    );
+                })}
                 <svg className={styles.svgLayer}>
                     <g>
                         {edges
