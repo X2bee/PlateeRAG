@@ -11,6 +11,9 @@ import {
     FiBarChart2,
 } from 'react-icons/fi';
 import { RiChatSmileAiLine } from "react-icons/ri";
+import { LuBrainCircuit } from "react-icons/lu";
+import { HiSaveAs } from "react-icons/hi";
+import { TbBrandSpeedtest } from "react-icons/tb";
 import { SidebarItem } from '@/app/main/components/types';
 
 export const getChatItems = ['new-chat', 'current-chat', 'chat-history'];
@@ -59,14 +62,14 @@ export const getWorkflowSidebarItems = (): SidebarItem[] => [
     },
 ];
 
-export const getTrainItems = ['train', 'train-monitor', 'eval', 'model-hub'];
+export const getTrainItems = ['train', 'train-monitor', 'eval', 'storage'];
 
 export const getTrainSidebarItems = (): SidebarItem[] => [
     {
         id: 'train',
         title: '모델 훈련',
         description: '모델 훈련',
-        icon: React.createElement(FiBarChart2),
+        icon: React.createElement(LuBrainCircuit),
     },
     {
         id: 'train-monitor',
@@ -78,14 +81,14 @@ export const getTrainSidebarItems = (): SidebarItem[] => [
         id: 'eval',
         title: '모델 평가',
         description: '모델 평가',
-        icon: React.createElement(FiBarChart2),
+        icon: React.createElement(TbBrandSpeedtest),
     },
-    // {
-    //     id: 'model-hub',
-    //     title: '모델 허브',
-    //     description: '모델 허브',
-    //     icon: React.createElement(FiBarChart2),
-    // },
+    {
+        id: 'storage',
+        title: '모델 허브',
+        description: '모델 허브',
+        icon: React.createElement(HiSaveAs),
+    },
 ];
 
 export const getSettingItems = ['settings', 'exec-monitor', 'config-viewer'];

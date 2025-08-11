@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import MetricsPageContent from '@/app/model/components/MetricsPageContent';
 import EvalPageContent from '@/app/model/components/EvalPageContent';
 import TrainPageContent from '@/app/model/components/TrainPageContent';
+import StoragePageContent from '@/app/model/components/StoragePageContent';
 import { getTrainItems } from '@/app/_common/components/sidebarConfig';
 
 const ModelPage: React.FC = () => {
@@ -25,9 +26,11 @@ const ModelPage: React.FC = () => {
             case 'train':
                 return <TrainPageContent />;
             case 'train-monitor':
-                return <MetricsPageContent/>;
+                return <MetricsPageContent />;
             case 'eval':
-                return <EvalPageContent/>;
+                return <EvalPageContent />;
+            case 'storage':
+                return <StoragePageContent />;
             default:
                 return <TrainPageContent />;
         }

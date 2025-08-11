@@ -1,7 +1,7 @@
 'use client';
-
-import React from 'react';
+import React, { useState } from 'react';
 import styles from '@/app/model/assets/Train.module.scss';
+import DataStorageModal from '@/app/model/components/Train/DataStorageModal';
 
 interface DataConfig {
     dataset_load_method: string;
@@ -23,16 +23,38 @@ interface DataConfig {
 interface DataCategoryProps {
     dataConfig: DataConfig;
     handleDataConfigChange: (key: string, value: any) => void;
-    handleLoadTrainData: () => void;
-    handleLoadTestData: () => void;
 }
 
 const DataCategory: React.FC<DataCategoryProps> = ({
     dataConfig,
     handleDataConfigChange,
-    handleLoadTrainData,
-    handleLoadTestData
 }) => {
+    const [isTrainDataModalOpen, setIsTrainDataModalOpen] = useState(false);
+    const [isTestDataModalOpen, setIsTestDataModalOpen] = useState(false);
+
+    const handleOpenTrainDataModal = () => {
+        setIsTrainDataModalOpen(true);
+    };
+
+    const handleCloseTrainDataModal = () => {
+        setIsTrainDataModalOpen(false);
+    };
+
+    const handleSelectTrainData = (datasetId: string) => {
+        handleDataConfigChange('train_data', datasetId);
+    };
+
+    const handleOpenTestDataModal = () => {
+        setIsTestDataModalOpen(true);
+    };
+
+    const handleCloseTestDataModal = () => {
+        setIsTestDataModalOpen(false);
+    };
+
+    const handleSelectTestData = (datasetId: string) => {
+        handleDataConfigChange('test_data', datasetId);
+    };
     return (
         <div className={styles.configSection}>
             <div className={styles.configForm}>
@@ -76,7 +98,7 @@ const DataCategory: React.FC<DataCategoryProps> = ({
                                     />
                                     <button
                                         type="button"
-                                        onClick={handleLoadTrainData}
+                                        onClick={handleOpenTrainDataModal}
                                         className={`${styles.button} ${styles.secondary}`}
                                     >
                                         불러오기
@@ -120,7 +142,7 @@ const DataCategory: React.FC<DataCategoryProps> = ({
                                     />
                                     <button
                                         type="button"
-                                        onClick={handleLoadTestData}
+                                        onClick={handleOpenTestDataModal}
                                         className={`${styles.button} ${styles.secondary}`}
                                     >
                                         불러오기
@@ -189,7 +211,7 @@ const DataCategory: React.FC<DataCategoryProps> = ({
                                     />
                                     <button
                                         type="button"
-                                        onClick={handleLoadTrainData}
+                                        onClick={handleOpenTrainDataModal}
                                         className={`${styles.button} ${styles.secondary}`}
                                     >
                                         불러오기
@@ -233,7 +255,7 @@ const DataCategory: React.FC<DataCategoryProps> = ({
                                     />
                                     <button
                                         type="button"
-                                        onClick={handleLoadTestData}
+                                        onClick={handleOpenTestDataModal}
                                         className={`${styles.button} ${styles.secondary}`}
                                     >
                                         불러오기
@@ -347,6 +369,21 @@ const DataCategory: React.FC<DataCategoryProps> = ({
                     </div>
                 </div>
             </div>
+
+            {/* Data Storage Modals */}
+            <DataStorageModal
+                isOpen={isTrainDataModalOpen}
+                onClose={handleCloseTrainDataModal}
+                onSelectDataset={handleSelectTrainData}
+                currentDatasetId={dataConfig.train_data}
+            />
+
+            <DataStorageModal
+                isOpen={isTestDataModalOpen}
+                onClose={handleCloseTestDataModal}
+                onSelectDataset={handleSelectTestData}
+                currentDatasetId={dataConfig.test_data}
+            />
         </div>
     );
 };

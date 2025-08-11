@@ -1,0 +1,495 @@
+@use "sass:color";
+@use "@/app/_common/_variables" as *;
+
+// Modal Overlay
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+// Modal Content
+.modalContent {
+    background: $white;
+    border-radius: 0.75rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 1200px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+// Modal Header
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid $gray-200;
+    background: $white;
+}
+
+.modalTitle {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: $gray-900;
+    margin: 0;
+}
+
+.closeButton {
+    background: transparent;
+    border: none;
+    color: $gray-500;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: $gray-100;
+        color: $gray-700;
+    }
+
+    svg {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
+// Header (reusing from StoragePage)
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0rem 1.5rem;
+    border-bottom: 1px solid $gray-200;
+    background: $gray-50;
+    flex-wrap: wrap;
+    gap: 1rem;
+    min-height: 60px;
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+// Sort Controls (reusing from StoragePage)
+.sortControls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.sortLabel {
+    font-weight: 500;
+    color: $gray-700;
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.sortButton {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid $gray-300;
+    background: $white;
+    color: $gray-600;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    white-space: nowrap;
+
+    &:hover {
+        border-color: $primary-blue;
+        color: $primary-blue;
+        background: rgba($primary-blue, 0.05);
+    }
+
+    &.active {
+        border-color: $primary-blue;
+        color: $primary-blue;
+        background: rgba($primary-blue, 0.1);
+    }
+
+    svg {
+        width: 0.875rem;
+        height: 0.875rem;
+        flex-shrink: 0;
+    }
+}
+
+// Refresh Button
+.refreshButton {
+    background: transparent;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: $gray-600;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+
+    &:hover:not(:disabled) {
+        background: $gray-50;
+        border-color: $primary-blue;
+        color: $primary-blue;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+// Spinning Animation
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+// Modal Body
+.modalBody {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+// Models Grid (adapted from ResourcesGrid)
+.modelsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.modelCard {
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        border-color: rgba($primary-blue, 0.3);
+    }
+
+    &.selected {
+        border-color: $primary-blue;
+        background: rgba($primary-blue, 0.05);
+        box-shadow: 0 4px 12px rgba($primary-blue, 0.15);
+    }
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.cardActions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modelIcon {
+    width: 2.5rem;
+    height: 2.5rem;
+    background: rgba($primary-purple, 0.1);
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+        width: 1.25rem;
+        height: 1.25rem;
+        color: $primary-purple;
+    }
+}
+
+.status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    svg {
+        width: 0.75rem;
+        height: 0.75rem;
+    }
+
+    &.statusPublic {
+        background: rgba($primary-green, 0.1);
+        color: $primary-green;
+    }
+
+    &.statusPrivate {
+        background: rgba($primary-yellow, 0.1);
+        color: $primary-yellow;
+    }
+}
+
+.selectedIndicator {
+    width: 1.5rem;
+    height: 1.5rem;
+    background: $primary-blue;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+        width: 0.875rem;
+        height: 0.875rem;
+        color: $white;
+    }
+}
+
+// Card Content
+.cardContent {
+    margin-bottom: 1rem;
+}
+
+.modelName {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $gray-900;
+    margin: 0 0 1rem 0;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+.modelMeta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.metaItem {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: $gray-500;
+    font-size: 0.875rem;
+
+    svg {
+        width: 0.875rem;
+        height: 0.875rem;
+        flex-shrink: 0;
+    }
+
+    span {
+        word-break: break-word;
+    }
+}
+
+// Loading State
+.loadingState {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: $gray-500;
+
+    p {
+        font-size: 1.125rem;
+        margin: 0;
+    }
+}
+
+// Error State
+.errorState {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: $primary-red;
+
+    p {
+        font-size: 1.125rem;
+        margin: 0 0 1rem 0;
+        line-height: 1.6;
+    }
+
+    button {
+        padding: 0.5rem 1rem;
+        background: $primary-blue;
+        color: $white;
+        border: none;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.2s ease-in-out;
+
+        &:hover {
+            background: color.scale($primary-blue, $lightness: -10%);
+        }
+    }
+}
+
+// Configuration Error State
+.configErrorState {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: $primary-yellow;
+    background: rgba($primary-yellow, 0.05);
+    border: 1px solid rgba($primary-yellow, 0.2);
+    border-radius: 0.75rem;
+    margin: 2rem 0;
+
+    p {
+        font-size: 1.125rem;
+        margin: 0 0 1rem 0;
+        line-height: 1.6;
+        font-weight: 500;
+    }
+
+    button {
+        padding: 0.5rem 1rem;
+        background: $primary-yellow;
+        color: $white;
+        border: none;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.2s ease-in-out;
+
+        &:hover {
+            background: color.scale($primary-yellow, $lightness: -10%);
+        }
+    }
+}
+
+// Empty State
+.emptyState {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: $gray-500;
+
+    .emptyIcon {
+        width: 4rem;
+        height: 4rem;
+        margin: 0 auto 1rem;
+        opacity: 0.5;
+    }
+
+    h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+        color: $gray-700;
+    }
+
+    p {
+        margin: 0;
+        line-height: 1.6;
+    }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+    .modalOverlay {
+        padding: 0.5rem;
+    }
+
+    .modalContent {
+        max-height: 95vh;
+    }
+
+    .modalHeader {
+        padding: 1rem;
+    }
+
+    .modalTitle {
+        font-size: 1.25rem;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .headerLeft {
+        order: 2;
+        justify-content: center;
+    }
+
+    .headerActions {
+        order: 1;
+        justify-content: center;
+    }
+
+    .sortControls {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .sortLabel {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .modalBody {
+        padding: 1rem;
+    }
+
+    .modelsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .modelMeta {
+        gap: 0.375rem;
+    }
+
+    .modelName {
+        font-size: 1rem;
+    }
+}

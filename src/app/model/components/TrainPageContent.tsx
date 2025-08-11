@@ -164,8 +164,6 @@ const TrainPageContent: React.FC = () => {
                     <ModelCategory
                         modelConfig={modelConfig}
                         handleModelConfigChange={handleModelConfigChange}
-                        handleLoadModel={handleLoadModel}
-                        handleLoadRefModel={handleLoadRefModel}
                     />
                 );
 
@@ -174,8 +172,6 @@ const TrainPageContent: React.FC = () => {
                     <DataCategory
                         dataConfig={dataConfig}
                         handleDataConfigChange={handleDataConfigChange}
-                        handleLoadTrainData={handleLoadTrainData}
-                        handleLoadTestData={handleLoadTestData}
                     />
                 );
 
@@ -269,26 +265,6 @@ const TrainPageContent: React.FC = () => {
                 use_custom_kl_sfttrainer: false
             }));
         }
-    };
-
-    const handleLoadModel = () => {
-        // 추후 API 연결 예정
-        toast.success('모델 불러오기 기능은 개발 중입니다.');
-    };
-
-    const handleLoadRefModel = () => {
-        // 추후 API 연결 예정
-        toast.success('참조 모델 불러오기 기능은 개발 중입니다.');
-    };
-
-    const handleLoadTrainData = () => {
-        // 추후 API 연결 예정
-        toast.success('훈련 데이터 불러오기 기능은 개발 중입니다.');
-    };
-
-    const handleLoadTestData = () => {
-        // 추후 API 연결 예정
-        toast.success('테스트 데이터 불러오기 기능은 개발 중입니다.');
     };
 
     const handleStartTraining = async () => {
