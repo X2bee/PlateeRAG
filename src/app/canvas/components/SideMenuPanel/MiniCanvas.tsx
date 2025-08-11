@@ -120,6 +120,7 @@ const MiniCanvas: React.FC<MiniCanvasProps> = ({ template }) => {
         onPortMouseUp: () => {},
         registerPortRef: () => {},
         onParameterChange: () => {},
+        onParameterNameChange: () => {},
         onNodeNameChange: () => {},
         onClearSelection: () => {}
     };

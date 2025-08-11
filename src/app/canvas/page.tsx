@@ -13,12 +13,11 @@ import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useNodes } from '@/app/_common/utils/nodeHook';
 import styles from '@/app/canvas/assets/PlateeRAG.module.scss';
 import {
-    executeWorkflow,
     saveWorkflow,
     listWorkflows,
     loadWorkflow,
     executeWorkflowByIdStream,
-    executeWorkflowStream,
+    executeWorkflowById,
 } from '@/app/api/workflowAPI';
 import {
     getWorkflowName,
@@ -30,9 +29,7 @@ import {
 } from '@/app/_common/utils/workflowStorage';
 import { devLog } from '@/app/_common/utils/logger';
 import { generateWorkflowHash } from '@/app/_common/utils/generateSha1Hash';
-import { isStreamingWorkflow } from '../_common/utils/isStreamingWorkflow';
-import { WorkflowData } from './types';
-import { getCookie } from '../_common/utils/cookieUtils';
+import { isStreamingWorkflowFromWorkflow } from '../_common/utils/isStreamingWorkflow';
 
 function CanvasPageContent() {
     // CookieProvider의 useAuth 훅 사용
@@ -54,13 +51,13 @@ function CanvasPageContent() {
     const [isExecuting, setIsExecuting] = useState(false);
     const [currentWorkflowName, setCurrentWorkflowName] = useState('Workflow');
     const [workflow, setWorkflow] = useState({
-                id: 'None',
-                name: 'None',
-                filename: 'None',
-                author: 'Unknown',
-                nodeCount: 0,
-                status: 'active' as const,
-            });
+        id: 'None',
+        name: 'None',
+        filename: 'None',
+        author: 'Unknown',
+        nodeCount: 0,
+        status: 'active' as const,
+    });
     const [isCanvasReady, setIsCanvasReady] = useState(false);
     const [showDeploymentModal, setShowDeploymentModal] = useState(false);
     const [isDeploy, setIsDeploy] = useState(false);
@@ -700,10 +697,8 @@ function CanvasPageContent() {
             if (canvasRef.current) {
                 const validState = ensureValidWorkflowState(workflowData);
                 (canvasRef.current as any).loadCanvasState(validState);
-                // 새로운 워크플로우 로드 시 로컬 스토리지 상태 업데이트
                 saveWorkflowState(validState);
 
-                // 워크플로우 이름이 제공된 경우 업데이트
                 if (workflowName) {
                     updateWorkflowName(workflowName);
                 }
@@ -728,7 +723,6 @@ function CanvasPageContent() {
                 if (canvasRef.current) {
                     const validState = ensureValidWorkflowState(savedState);
                     (canvasRef.current as any).loadCanvasState(validState);
-                    // 파일에서 로드 시 로컬 스토리지 상태 업데이트
                     saveWorkflowState(validState);
 
                     // 파일명에서 워크플로우 이름 추출 (.json 확장자 제거)
@@ -747,12 +741,9 @@ function CanvasPageContent() {
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
 
-        // application/json 타입의 데이터가 있는지 확인 (노드 패널에서 드래그하는 경우)
         const hasValidData = e.dataTransfer.types.includes('application/json');
-
-        // text/plain만 있는 경우는 브라우저나 다른 앱에서 드래그하는 것으로 간주
         const hasOnlyText = e.dataTransfer.types.includes('text/plain') &&
-                           !e.dataTransfer.types.includes('application/json');
+            !e.dataTransfer.types.includes('application/json');
 
         if (hasValidData) {
             // 유효한 JSON 데이터 타입인 경우 드롭을 허용
@@ -772,7 +763,7 @@ function CanvasPageContent() {
             try {
                 // 먼저 application/json 데이터를 시도
                 let nodeData = null;
-                let jsonData = e.dataTransfer.getData('application/json');
+                const jsonData = e.dataTransfer.getData('application/json');
 
                 if (jsonData && jsonData.trim() !== '') {
                     // JSON 데이터가 있는 경우 파싱 시도
@@ -815,15 +806,15 @@ function CanvasPageContent() {
         }
     };
 
-    const handleIsworkflow = async (workflowName: string) => {
+    const handleGetWorkflow = async () => {
         try {
-            const workflowData: WorkflowData = await loadWorkflow(workflowName)
-            return true
-        }
-        catch (error: any) {
-            return false;
+            let workflowData = (canvasRef.current as any).getCanvasState();
+            return workflowData;
+        } catch {
+            return null;
         }
     }
+
     const handleExecute = async () => {
         if (!canvasRef.current) {
             toast.error('Canvas is not ready.');
@@ -852,32 +843,45 @@ function CanvasPageContent() {
                 );
             }
 
-            const workflowId = `workflow_${generateWorkflowHash(workflowData)}`;
+            const workflowId = `workflow_${generateWorkflowHash(workflowName)}`;
             workflowData = { ...workflowData, workflow_id: workflowId };
             workflowData = { ...workflowData, workflow_name: workflowName };
-
-            const isStreaming = await isStreamingWorkflow(workflowName);
+            await saveWorkflow(workflowName, workflowData);
+            const isStreaming = await isStreamingWorkflowFromWorkflow(workflowData);
 
             if (isStreaming) {
                 toast.loading('Executing streaming workflow...', { id: toastId });
                 setExecutionOutput({ stream: '' });
 
-                await executeWorkflowStream({
-                    workflowData,
+                // await executeWorkflowStream({
+                //     workflowData,
+                //     onData: (chunk) => {
+                //         setExecutionOutput((prev: { stream: any; }) => ({ ...prev, stream: (prev.stream || '') + chunk }));
+                //     },
+                //     onEnd: () => {
+                //         toast.success('Streaming finished!', { id: toastId });
+                //     },
+                //     onError: (err) => {
+                //         throw err;
+                //     }
+                // });
+                await executeWorkflowByIdStream({
+                    workflowName,
+                    workflowId,
+                    inputData: '',
+                    interactionId: 'default',
+                    selectedCollections: null,
                     onData: (chunk) => {
                         setExecutionOutput((prev: { stream: any; }) => ({ ...prev, stream: (prev.stream || '') + chunk }));
                     },
-                    onEnd: () => {
-                        toast.success('Streaming finished!', { id: toastId });
-                    },
-                    onError: (err) => {
-                        throw err;
-                    }
+                    onEnd: () => toast.success('Streaming finished!', { id: toastId }),
+                    onError: (err) => { throw err; },
                 });
 
 
             } else {
-                const result = await executeWorkflow(workflowData);
+                // const result = await executeWorkflow(workflowData);
+                const result = await executeWorkflowById(workflowName, workflowId, '', 'default', null);
                 setExecutionOutput(result);
                 toast.success('Workflow executed successfully!', { id: toastId });
             }
@@ -971,7 +975,7 @@ function CanvasPageContent() {
                 workflowName={currentWorkflowName}
                 onWorkflowNameChange={handleWorkflowNameChange}
                 onNewWorkflow={handleNewWorkflow}
-                onDeploy={workflow.id==='None' ? () => setShowDeploymentModal(false) : () => setShowDeploymentModal(true)}
+                onDeploy={workflow.id === 'None' ? () => setShowDeploymentModal(false) : () => setShowDeploymentModal(true)}
                 isDeploy={isDeploy}
                 handleExecute={handleExecute}
             />
@@ -1006,7 +1010,7 @@ function CanvasPageContent() {
                 isOpen={showDeploymentModal}
                 onClose={() => setShowDeploymentModal(false)}
                 workflow={workflow}
-                user_id={ getCookie('user_id') as string}
+                workflowDetail={handleGetWorkflow()}
             />
             <NodeModal
                 isOpen={nodeModalState.isOpen}

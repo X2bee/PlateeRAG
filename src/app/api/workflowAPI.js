@@ -2,105 +2,105 @@ import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
 import { apiClient } from './apiClient';
 
-/**
- * 주어진 워크플로우 데이터를 백엔드로 전송하여 실행합니다.
- * @param {Object} workflowData - 노드와 엣지 정보를 포함하는 워크플로우 객체.
- * @returns {Promise<Object>} API 응답 객체를 포함하는 프로미스.
- * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
- */
-export const executeWorkflow = async (workflowData) => {
-    try {
-        const response = await apiClient(`${API_BASE_URL}/api/workflow/execute`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(workflowData),
-        });
+// /**
+//  * 주어진 워크플로우 데이터를 백엔드로 전송하여 실행합니다.
+//  * @param {Object} workflowData - 노드와 엣지 정보를 포함하는 워크플로우 객체.
+//  * @returns {Promise<Object>} API 응답 객체를 포함하는 프로미스.
+//  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+//  */
+// export const executeWorkflow = async (workflowData) => {
+//     try {
+//         const response = await apiClient(`${API_BASE_URL}/api/workflow/execute`, {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify(workflowData),
+//         });
 
-        const result = await response.json();
+//         const result = await response.json();
 
-        if (!response.ok) {
-            // FastAPI에서 HTTPException으로 반환된 detail 메시지를 사용
-            throw new Error(
-                result.detail || `HTTP error! status: ${response.status}`,
-            );
-        }
+//         if (!response.ok) {
+//             // FastAPI에서 HTTPException으로 반환된 detail 메시지를 사용
+//             throw new Error(
+//                 result.detail || `HTTP error! status: ${response.status}`,
+//             );
+//         }
 
-        return result;
-    } catch (error) {
-        devLog.error('Failed to execute workflow:', error);
-        // UI에서 에러 메시지를 표시할 수 있도록 에러를 다시 던집니다.
-        throw error;
-    }
-};
-/**
- * 주어진 워크플로우 데이터를 백엔드로 전송하여 스트리밍 방식으로 실행합니다.
- * @param {object} params - 실행에 필요한 파라미터 객체.
- * @param {Object} params.workflowData - 노드와 엣지 정보를 포함하는 워크플로우 객체.
- * @param {function(string): void} params.onData - 데이터 조각(chunk)을 수신할 때마다 호출될 콜백.
- * @param {function(): void} params.onEnd - 스트림이 정상적으로 종료될 때 호출될 콜백.
- * @param {function(Error): void} params.onError - 오류 발생 시 호출될 콜백.
- * @returns {Promise<Object>} API 응답 객체를 포함하는 프로미스.
- * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
- */
-export const executeWorkflowStream = async ({
-    workflowData,
-    onData,
-    onEnd,
-    onError,
-}
-) => {
-    try {
-        const response = await apiClient(`${API_BASE_URL}/api/workflow/execute/stream`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(workflowData),
-        });
+//         return result;
+//     } catch (error) {
+//         devLog.error('Failed to execute workflow:', error);
+//         // UI에서 에러 메시지를 표시할 수 있도록 에러를 다시 던집니다.
+//         throw error;
+//     }
+// };
+// /**
+//  * 주어진 워크플로우 데이터를 백엔드로 전송하여 스트리밍 방식으로 실행합니다.
+//  * @param {object} params - 실행에 필요한 파라미터 객체.
+//  * @param {Object} params.workflowData - 노드와 엣지 정보를 포함하는 워크플로우 객체.
+//  * @param {function(string): void} params.onData - 데이터 조각(chunk)을 수신할 때마다 호출될 콜백.
+//  * @param {function(): void} params.onEnd - 스트림이 정상적으로 종료될 때 호출될 콜백.
+//  * @param {function(Error): void} params.onError - 오류 발생 시 호출될 콜백.
+//  * @returns {Promise<Object>} API 응답 객체를 포함하는 프로미스.
+//  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+//  */
+// export const executeWorkflowStream = async ({
+//     workflowData,
+//     onData,
+//     onEnd,
+//     onError,
+// }
+// ) => {
+//     try {
+//         const response = await apiClient(`${API_BASE_URL}/api/workflow/execute/stream`, {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify(workflowData),
+//         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-        }
+//         if (!response.ok) {
+//             const errorData = await response.json();
+//             throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+//         }
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder('utf-8');
+//         const reader = response.body.getReader();
+//         const decoder = new TextDecoder('utf-8');
 
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-                onEnd();
-                break;
-            }
-            const chunk = decoder.decode(value);
-            
-            const lines = chunk.split('\n\n');
-            for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                    const jsonData = line.substring(6);
-                    try {
-                        const parsedData = JSON.parse(jsonData);
-                        if (parsedData.type === 'data') {
-                            onData(parsedData.content);
-                        } else if (parsedData.type === 'end') {
-                            onEnd();
-                            return;
-                        } else if (parsedData.type === 'error') {
-                            throw new Error(parsedData.detail);
-                        }
-                    } catch (e) {
-                        devLog.error('Failed to parse stream data chunk:', jsonData, e);
-                    }
-                }
-            }
-        }
-    } catch (error) {
-        devLog.error('Failed to execute streaming workflow:', error);
-        onError(error);
-    }
-};
+//         while (true) {
+//             const { done, value } = await reader.read();
+//             if (done) {
+//                 onEnd();
+//                 break;
+//             }
+//             const chunk = decoder.decode(value);
+
+//             const lines = chunk.split('\n\n');
+//             for (const line of lines) {
+//                 if (line.startsWith('data: ')) {
+//                     const jsonData = line.substring(6);
+//                     try {
+//                         const parsedData = JSON.parse(jsonData);
+//                         if (parsedData.type === 'data') {
+//                             onData(parsedData.content);
+//                         } else if (parsedData.type === 'end') {
+//                             onEnd();
+//                             return;
+//                         } else if (parsedData.type === 'error') {
+//                             throw new Error(parsedData.detail);
+//                         }
+//                     } catch (e) {
+//                         devLog.error('Failed to parse stream data chunk:', jsonData, e);
+//                     }
+//                 }
+//             }
+//         }
+//     } catch (error) {
+//         devLog.error('Failed to execute streaming workflow:', error);
+//         onError(error);
+//     }
+// };
 
 /**
  * 워크플로우 데이터를 백엔드 서버에 저장합니다.
@@ -521,6 +521,7 @@ export const executeWorkflowById = async (
     inputData = '',
     interaction_id = 'default',
     selectedCollections = null,
+    additional_params = null,
 ) => {
     try {
         const requestBody = {
@@ -533,6 +534,11 @@ export const executeWorkflowById = async (
         // selectedCollections가 배열이면 그대로 사용, 아니면 null
         if (selectedCollections && Array.isArray(selectedCollections) && selectedCollections.length > 0) {
             requestBody.selected_collections = selectedCollections;
+        }
+
+        // additional_params가 있으면 추가
+        if (additional_params && typeof additional_params === 'object') {
+            requestBody.additional_params = additional_params;
         }
 
         const response = await apiClient(`${API_BASE_URL}/api/workflow/execute/based_id`, {
@@ -576,6 +582,7 @@ export const executeWorkflowByIdStream = async ({
     inputData = '',
     interactionId = 'default',
     selectedCollections = null,
+    additional_params = null,
     onData,
     onEnd,
     onError,
@@ -587,6 +594,11 @@ export const executeWorkflowByIdStream = async ({
         interaction_id: interactionId,
         selected_collections: selectedCollections,
     };
+
+    // additional_params가 있으면 추가
+    if (additional_params && typeof additional_params === 'object') {
+        requestBody.additional_params = additional_params;
+    }
 
     try {
         const response = await apiClient(`${API_BASE_URL}/api/workflow/execute/based_id/stream`, {
@@ -730,7 +742,7 @@ export const executeWorkflowBatch = async (batchRequest) => {
         }
 
         const result = await response.json();
-        
+
         devLog.log('배치 실행 완료:', {
             batchId: result.batch_id,
             totalCount: result.total_count,

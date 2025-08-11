@@ -6,16 +6,11 @@ import styles from './ForgotPassword.module.scss';
 // import { requestPasswordReset } from '@/app/api/userAPI'; // API 요청 함수 (아래에서 생성)
 import ReverseAuthGuard from '@/app/_common/components/ReverseAuthGuard';
 
-interface ApiResponse {
-  message?: string | null;
-  [key: string]: any;
-}
-
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState<string | undefined | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
