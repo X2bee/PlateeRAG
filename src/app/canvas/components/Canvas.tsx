@@ -89,7 +89,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
     const [isSnapTargetValid, setIsSnapTargetValid] = useState<boolean>(true);
     const [copiedNode, setCopiedNode] = useState<CanvasNode | null>(null);
     const [lastDeleted, setLastDeleted] = useState<DeletedItem | null>(null);
-    
+
     // 예측 노드 시스템
     const [predictedNodes, setPredictedNodes] = useState<PredictedNode[]>([]);
     const [availableNodeSpecs, setAvailableNodeSpecs] = useState<NodeData[]>([]);
@@ -97,14 +97,14 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
     const [isDraggingInput, setIsDraggingInput] = useState<boolean>(false);
     const [currentOutputType, setCurrentOutputType] = useState<string | null>(null);
     const [currentInputType, setCurrentInputType] = useState<string | null>(null);
-    
+
     // 포트 클릭/드래그 구분을 위한 상태
-    const [portClickStart, setPortClickStart] = useState<{ 
-        data: PortMouseEventData; 
+    const [portClickStart, setPortClickStart] = useState<{
+        data: PortMouseEventData;
         timestamp: number;
         position: { x: number; y: number };
     } | null>(null);
-    
+
     // 예측 노드 클릭 시 연결을 위한 소스 포트 정보 저장
     const [sourcePortForConnection, setSourcePortForConnection] = useState<{
         nodeId: string;
@@ -125,7 +125,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         if (!contentEl) return;
 
         const contentRect = contentEl.getBoundingClientRect();
-        
+
         // 포트 등록 상황 로그
         const predictedPortKeys = Array.from(portRefs.current.keys()).filter(key => key.includes('predicted-'));
         devLog.log('Port positions calculation triggered:', {
@@ -141,7 +141,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 const x = (portRect.left + portRect.width / 2 - contentRect.left) / view.scale;
                 const y = (portRect.top + portRect.height / 2 - contentRect.top) / view.scale;
                 newPortPositions[key] = { x, y };
-                
+
                 // 예측 노드 포트인 경우 로그
                 if (key.includes('predicted-')) {
                     devLog.log('Calculated predicted port position:', {
@@ -150,9 +150,9 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 }
             }
         });
-        
+
         setPortPositions(newPortPositions);
-        
+
         // 최종 결과 로그
         const finalPredictedPositions = Object.keys(newPortPositions).filter(key => key.includes('predicted-'));
         devLog.log('Port positions updated:', {
@@ -192,13 +192,13 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
     const registerPortRef = useCallback((nodeId: string, portId: string, portType: string, el: HTMLElement | null) => {
         const key = `${nodeId}__PORTKEYDELIM__${portId}__PORTKEYDELIM__${portType}`;
         const isPredicted = nodeId.startsWith('predicted-');
-        
+
         if (isPredicted) {
             devLog.log('Registering predicted node port:', {
                 nodeId, portId, portType, key, hasElement: !!el
             });
         }
-        
+
         if (el) {
             portRefs.current.set(key, el);
         } else {
@@ -584,14 +584,14 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
     const isPositionValid = (position: Position, nodeWidth: number = 450, nodeHeight: number = 200): boolean => {
         const container = containerRef.current;
         if (!container) return true;
-        
+
         // 캔버스의 현재 뷰포트 고려
         const viewportMargin = 100; // 뷰포트 가장자리에서의 여백
         const minX = -view.x / view.scale + viewportMargin;
         const minY = -view.y / view.scale + viewportMargin;
         const maxX = (-view.x + container.clientWidth) / view.scale - nodeWidth - viewportMargin;
         const maxY = (-view.y + container.clientHeight) / view.scale - nodeHeight - viewportMargin;
-        
+
         return position.x >= minX && position.x <= maxX && position.y >= minY && position.y <= maxY;
     };
 
@@ -599,26 +599,26 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
     const generatePredictedNodes = (outputType: string, targetPos: Position): PredictedNode[] => {
         const compatibleNodes = findCompatibleNodes(outputType);
         const predicted: PredictedNode[] = [];
-        
+
         // 노드 배치를 위한 기본 설정
         const VERTICAL_SPACING = 280; // 수직 간격 (노드 높이 + 여백)
         const HORIZONTAL_SPACING = 500; // 수평 간격 (노드 폭 + 여백)
         const OFFSET_DISTANCE = 100; // 마우스 위치에서 떨어진 거리
-        
+
         if (compatibleNodes.length === 0) return predicted;
-        
+
         // 격자 배치 계산
         const cols = Math.min(3, Math.ceil(Math.sqrt(compatibleNodes.length))); // 최대 3열
         const rows = Math.ceil(compatibleNodes.length / cols);
-        
+
         // 격자의 전체 크기 계산
         const totalGridWidth = (cols - 1) * HORIZONTAL_SPACING;
         const totalGridHeight = (rows - 1) * VERTICAL_SPACING;
-        
+
         // 마우스 위치 기준 오른쪽에 격자 배치
         const startX = targetPos.x + OFFSET_DISTANCE; // 마우스 오른쪽에서 시작
         const startY = targetPos.y - totalGridHeight / 2; // 세로 중앙 정렬
-        
+
         devLog.log('Generating output predicted nodes to the right of mouse:', {
             totalNodes: compatibleNodes.length,
             cols, rows,
@@ -631,15 +631,15 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         compatibleNodes.forEach((nodeData, index) => {
             const col = index % cols;
             const row = Math.floor(index / cols);
-            
+
             // 격자 위치 계산
             const position = {
                 x: startX + (col * HORIZONTAL_SPACING),
                 y: startY + (row * VERTICAL_SPACING)
             };
-            
+
             devLog.log(`Output Node ${index} (${nodeData.id}): col=${col}, row=${row}, position=`, position);
-            
+
             predicted.push({
                 id: `predicted-${nodeData.id}-${Date.now()}-${index}`,
                 nodeData,
@@ -647,7 +647,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 isHovered: false
             });
         });
-        
+
         return predicted;
     };
 
@@ -655,26 +655,26 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
     const generatePredictedOutputNodes = (inputType: string, targetPos: Position): PredictedNode[] => {
         const compatibleNodes = findCompatibleOutputNodes(inputType);
         const predicted: PredictedNode[] = [];
-        
+
         // 노드 배치를 위한 기본 설정
         const VERTICAL_SPACING = 280; // 수직 간격 (노드 높이 + 여백)
         const HORIZONTAL_SPACING = 500; // 수평 간격 (노드 폭 + 여백)
         const OFFSET_DISTANCE = 550; // 마우스 위치에서 떨어진 거리 (노드 폭 + 여백)
-        
+
         if (compatibleNodes.length === 0) return predicted;
-        
+
         // 격자 배치 계산
         const cols = Math.min(3, Math.ceil(Math.sqrt(compatibleNodes.length))); // 최대 3열
         const rows = Math.ceil(compatibleNodes.length / cols);
-        
+
         // 격자의 전체 크기 계산
         const totalGridWidth = (cols - 1) * HORIZONTAL_SPACING;
         const totalGridHeight = (rows - 1) * VERTICAL_SPACING;
-        
+
         // 마우스 위치 기준 왼쪽에 격자 배치
         const startX = targetPos.x - OFFSET_DISTANCE - totalGridWidth; // 마우스 왼쪽에서 시작 (오른쪽 끝부터)
         const startY = targetPos.y - totalGridHeight / 2; // 세로 중앙 정렬
-        
+
         devLog.log('Generating input predicted nodes to the left of mouse:', {
             totalNodes: compatibleNodes.length,
             cols, rows,
@@ -687,15 +687,15 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         compatibleNodes.forEach((nodeData, index) => {
             const col = index % cols;
             const row = Math.floor(index / cols);
-            
+
             // 격자 위치 계산
             const position = {
                 x: startX + (col * HORIZONTAL_SPACING),
                 y: startY + (row * VERTICAL_SPACING)
             };
-            
+
             devLog.log(`Input Node ${index} (${nodeData.id}): col=${col}, row=${row}, position=`, position);
-            
+
             predicted.push({
                 id: `predicted-output-${nodeData.id}-${Date.now()}-${index}`,
                 nodeData,
@@ -703,13 +703,13 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 isHovered: false
             });
         });
-        
+
         return predicted;
     };
 
     // 예측 노드의 hover 상태를 업데이트하는 함수
     const handlePredictedNodeHover = useCallback((nodeId: string, isHovered: boolean): void => {
-        setPredictedNodes(prev => prev.map(node => 
+        setPredictedNodes(prev => prev.map(node =>
             node.id === nodeId ? { ...node, isHovered } : node
         ));
     }, []);
@@ -728,32 +728,32 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
             data: nodeData,
             position: position
         };
-        
+
         // 현재 드래그 중인 포트 정보 가져오기
         const currentEdgePreview = edgePreviewRef.current;
         let newEdge: CanvasEdge | null = null;
-        
+
         devLog.log('Edge preview details:', currentEdgePreview);
         devLog.log('Source port for connection:', sourcePortForConnection);
-        
+
         // edgePreview가 없으면 저장된 소스 포트 정보 사용
         const sourceConnection = currentEdgePreview?.source || sourcePortForConnection;
-        
+
         if (sourceConnection && (isDraggingOutput || isDraggingInput)) {
-            
+
             if (isDraggingOutput && nodeData.inputs) {
                 // 출력 포트에서 드래그한 경우 - 예측 노드의 호환되는 입력 포트 찾기
                 devLog.log('Looking for compatible input ports:', {
                     sourceType: sourceConnection.type,
                     availableInputs: nodeData.inputs.map(input => ({ id: input.id, name: input.name, type: input.type }))
                 });
-                
-                const compatibleInput = nodeData.inputs.find(input => 
+
+                const compatibleInput = nodeData.inputs.find(input =>
                     areTypesCompatible(sourceConnection.type, input.type)
                 );
-                
+
                 devLog.log('Compatible input found:', compatibleInput);
-                
+
                 if (compatibleInput) {
                     const newEdgeSignature = `${sourceConnection.nodeId}:${sourceConnection.portId}-${newNode.id}:${compatibleInput.id}`;
                     newEdge = {
@@ -769,7 +769,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                             portType: 'input'
                         }
                     };
-                    
+
                     devLog.log('Created new edge for output connection:', newEdge);
                 }
             } else if (isDraggingInput && nodeData.outputs) {
@@ -778,13 +778,13 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                     sourceType: sourceConnection.type,
                     availableOutputs: nodeData.outputs.map(output => ({ id: output.id, name: output.name, type: output.type }))
                 });
-                
-                const compatibleOutput = nodeData.outputs.find(output => 
+
+                const compatibleOutput = nodeData.outputs.find(output =>
                     areTypesCompatible(output.type, sourceConnection.type)
                 );
-                
+
                 devLog.log('Compatible output found:', compatibleOutput);
-                
+
                 if (compatibleOutput) {
                     const newEdgeSignature = `${newNode.id}:${compatibleOutput.id}-${sourceConnection.nodeId}:${sourceConnection.portId}`;
                     newEdge = {
@@ -803,10 +803,10 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 }
             }
         }
-        
+
         // 노드 추가
         setNodes(prev => [...prev, newNode]);
-        
+
         // 에지 추가 (있는 경우)
         if (newEdge) {
             setEdges(prev => [...prev, newEdge]);
@@ -825,7 +825,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 hasOutputs: !!nodeData.outputs
             });
         }
-        
+
         // 상태 정리
         setPredictedNodes([]);
         setIsDraggingOutput(false);
@@ -834,7 +834,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         setCurrentInputType(null);
         setEdgePreview(null);
         setSourcePortForConnection(null);
-        
+
         devLog.log('Predicted node converted to actual node:', newNode.id);
     }, [isDraggingOutput, isDraggingInput, areTypesCompatible, sourcePortForConnection]);
 
@@ -855,7 +855,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
             predictedNodesCount: predictedNodes.length,
             isDraggingOutput, isDraggingInput
         });
-        
+
         const predictedNode = predictedNodes.find(pNode => pNode.id === predictedNodeId);
         if (!predictedNode) {
             devLog.log('ERROR: Predicted node not found:', predictedNodeId);
@@ -882,7 +882,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
 
         // 에지 연결 생성 - 드래그 방향에 따라 source와 target 결정
         let newEdge: CanvasEdge;
-        
+
         if (isDraggingOutput) {
             // 출력 포트에서 예측 노드의 입력 포트로 드래그
             const newEdgeSignature = `${sourceConnection.nodeId}:${sourceConnection.portId}-${newNode.id}:${targetPortId}`;
@@ -928,7 +928,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
             devLog.log('Updated edges, new count:', newEdges.length);
             return newEdges;
         });
-        
+
         // 예측 노드들 정리
         setPredictedNodes([]);
         setIsDraggingOutput(false);
@@ -949,10 +949,10 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
     const handleCanvasMouseDown = (e: React.MouseEvent<HTMLDivElement>): void => {
         const target = e.target as HTMLElement;
         const isParameterInput = target.matches('input, select, option') ||
-                                target.classList.contains('paramInput') ||
-                                target.classList.contains('paramSelect') ||
-                                target.closest('.param') ||
-                                target.closest('[class*="param"]');
+            target.classList.contains('paramInput') ||
+            target.classList.contains('paramSelect') ||
+            target.closest('.param') ||
+            target.closest('[class*="param"]');
 
         if (isParameterInput) {
             devLog.log('Canvas mousedown blocked for parameter input:', target);
@@ -960,7 +960,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         }
 
         if (e.button !== 0) return;
-        
+
         // 캔버스 클릭 시 예측 노드들 제거
         if (isDraggingOutput || isDraggingInput) {
             devLog.log('Canvas clicked, removing predicted nodes');
@@ -971,7 +971,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
             setCurrentInputType(null);
             setSourcePortForConnection(null);
         }
-        
+
         setSelectedNodeId(null);
         setSelectedEdgeId(null);
         setDragState({ type: 'canvas', startX: e.clientX - view.x, startY: e.clientY - view.y });
@@ -1031,10 +1031,10 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
 
                 // 예측 노드들의 포트도 검사 - 실제 포트 위치 사용
                 if (predictedNodes.length > 0) {
-                    devLog.log('Checking predicted nodes, available portPositions keys:', 
+                    devLog.log('Checking predicted nodes, available portPositions keys:',
                         Object.keys(portPositions).filter(key => key.includes('predicted-')));
                 }
-                
+
                 predictedNodes.forEach(predictedNode => {
                     // 출력 포트 기반 드래그 (기존 로직): 예측 노드의 입력 포트 확인
                     if (isDraggingOutput && predictedNode.nodeData.inputs) {
@@ -1042,11 +1042,11 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                             // 예측 노드의 실제 포트 위치 사용
                             const portKey = `${predictedNode.id}__PORTKEYDELIM__${inputPort.id}__PORTKEYDELIM__input`;
                             const actualPortPos = portPositions[portKey];
-                            
+
                             if (actualPortPos) {
                                 const distance = calculateDistance(mousePos, actualPortPos);
                                 const isCompatible = areTypesCompatible(edgeSource.type, inputPort.type);
-                                
+
                                 // 디버그 로그
                                 if (distance < 50) { // 가까운 거리에서만 로그
                                     devLog.log('Predicted input port check:', {
@@ -1059,7 +1059,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                                         actualPortPos
                                     });
                                 }
-                                
+
                                 if (distance < minSnapDistance && isCompatible) {
                                     minSnapDistance = distance;
                                     closestPortKey = portKey;
@@ -1068,18 +1068,18 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                             }
                         });
                     }
-                    
+
                     // 입력 포트 기반 드래그: 예측 노드의 출력 포트 확인
                     if (isDraggingInput && predictedNode.nodeData.outputs) {
                         predictedNode.nodeData.outputs.forEach(outputPort => {
                             // 예측 노드의 실제 포트 위치 사용
                             const portKey = `${predictedNode.id}__PORTKEYDELIM__${outputPort.id}__PORTKEYDELIM__output`;
                             const actualPortPos = portPositions[portKey];
-                            
+
                             if (actualPortPos) {
                                 const distance = calculateDistance(mousePos, actualPortPos);
                                 const isCompatible = areTypesCompatible(outputPort.type, edgeSource.type);
-                                
+
                                 // 디버그 로그
                                 if (distance < 50) { // 가까운 거리에서만 로그
                                     devLog.log('Predicted output port check:', {
@@ -1092,7 +1092,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                                         actualPortPos
                                     });
                                 }
-                                
+
                                 if (distance < minSnapDistance && isCompatible) {
                                     minSnapDistance = distance;
                                     closestPortKey = portKey;
@@ -1109,7 +1109,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                     // TypeScript sometimes infers never, so force string
                     const keyStr: string = closestPortKey as string;
                     const parts = keyStr.split('__PORTKEYDELIM__');
-                    
+
                     // 예측 노드인지 확인
                     if (isPredictedNodeId(parts[0])) {
                         const predictedNode = predictedNodes.find(pNode => pNode.id === parts[0]);
@@ -1202,7 +1202,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
     const handlePortMouseUp = useCallback((data: PortMouseEventData, mouseEvent?: React.MouseEvent): void => {
         const { nodeId, portId, portType, type } = data;
         const currentEdgePreview = edgePreviewRef.current;
-        
+
         devLog.log('=== handlePortMouseUp called ===', {
             nodeId, portId, portType, type,
             isPredicted: isPredictedNodeId(nodeId),
@@ -1210,20 +1210,20 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         });
 
         // 클릭과 드래그 구분
-        const isClick = portClickStart && mouseEvent && 
+        const isClick = portClickStart && mouseEvent &&
             Date.now() - portClickStart.timestamp < 200 && // 200ms 이내
             Math.abs(mouseEvent.clientX - portClickStart.position.x) < 5 && // 5px 이내 이동
             Math.abs(mouseEvent.clientY - portClickStart.position.y) < 5;
 
         // 클릭인 경우 예측 노드 생성
-        if (isClick && portClickStart && 
-            portClickStart.data.nodeId === nodeId && 
+        if (isClick && portClickStart &&
+            portClickStart.data.nodeId === nodeId &&
             portClickStart.data.portId === portId &&
             portClickStart.data.portType === portType) {
-            
+
             const portPosKey = `${nodeId}__PORTKEYDELIM__${portId}__PORTKEYDELIM__${portType}`;
             const portPos = portPositions[portPosKey];
-            
+
             if (portPos) {
                 // 소스 포트 정보 저장 (예측 노드 클릭 시 연결용)
                 setSourcePortForConnection({
@@ -1232,14 +1232,14 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                     portType,
                     type
                 });
-                
+
                 // 예측 노드 클릭 시 연결을 위해 edgePreview 설정
                 setEdgePreview({
                     source: { nodeId, portId, portType, type },
                     startPos: portPos,
                     targetPos: portPos
                 });
-                
+
                 // 드래깅 상태 설정 (예측 노드 클릭 시 연결을 위해 필요)
                 if (portType === 'output') {
                     setIsDraggingOutput(true);
@@ -1248,9 +1248,9 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                     setIsDraggingInput(true);
                     setCurrentInputType(type);
                 }
-                
+
                 let predicted: PredictedNode[] = [];
-                
+
                 if (portType === 'output') {
                     predicted = generatePredictedNodes(type, portPos);
                     devLog.log('Generated predicted nodes for output port click:', predicted);
@@ -1258,12 +1258,12 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                     predicted = generatePredictedOutputNodes(type, portPos);
                     devLog.log('Generated predicted nodes for input port click:', predicted);
                 }
-                
+
                 if (predicted.length > 0) {
                     setPredictedNodes(predicted);
                 }
             }
-            
+
             // 클릭 정보 초기화
             setPortClickStart(null);
             return;
@@ -1271,7 +1271,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
 
         // 클릭 정보 초기화
         setPortClickStart(null);
-        
+
         if (!currentEdgePreview) return;
 
         if (currentEdgePreview && !areTypesCompatible(currentEdgePreview.source.type, type)) {
@@ -1426,7 +1426,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                         portType: targetPortType as 'input' | 'output',
                         type: targetPortDataType
                     });
-                    
+
                     // 예측 노드에 연결된 경우, 예측 노드들이 이미 정리되었으므로 여기서 종료
                     if (isConnectedToPredicted) {
                         return;
@@ -1438,7 +1438,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         setEdgePreview(null);
         setSnappedPortKey(null);
         setIsSnapTargetValid(true);
-        
+
         // 일반적인 경우에만 예측 노드들 정리 (예측 노드 연결이 아닌 경우)
         if (isDraggingOutput || isDraggingInput) {
             // 예측 노드가 생성된 경우가 아닐 때만 정리
@@ -1498,7 +1498,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 setDragState({ type: 'edge' });
                 setIsDraggingInput(true);
                 setCurrentInputType(type);
-                
+
                 // 소스 포트 정보 저장 (예측 노드 클릭 시 연결용)
                 setSourcePortForConnection({
                     nodeId,
@@ -1506,14 +1506,14 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                     portType,
                     type
                 });
-                
+
                 const startPosKey = `${nodeId}__PORTKEYDELIM__${portId}__PORTKEYDELIM__${portType}`;
                 const startPos = portPositions[startPosKey];
                 if (startPos) {
-                    setEdgePreview({ 
-                        source: { nodeId, portId, portType, type }, 
-                        startPos, 
-                        targetPos: startPos 
+                    setEdgePreview({
+                        source: { nodeId, portId, portType, type },
+                        startPos,
+                        targetPos: startPos
                     });
                 }
                 return;
@@ -1525,7 +1525,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
             setDragState({ type: 'edge' });
             setIsDraggingOutput(true);
             setCurrentOutputType(type);
-            
+
             // 소스 포트 정보 저장 (예측 노드 클릭 시 연결용)
             setSourcePortForConnection({
                 nodeId,
@@ -1533,7 +1533,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 portType,
                 type
             });
-            
+
             const startPosKey = `${nodeId}__PORTKEYDELIM__${portId}__PORTKEYDELIM__${portType}`;
             const startPos = portPositions[startPosKey];
             if (startPos) {
@@ -1661,29 +1661,57 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                     transformOrigin: '0 0',
                 }}
             >
-                {nodes.map(node => (
-                    <Node
-                        key={node.id}
-                        id={node.id}
-                        data={node.data}
-                        position={node.position}
-                        onNodeMouseDown={handleNodeMouseDown}
-                        isSelected={node.id === selectedNodeId}
-                        onPortMouseDown={handlePortMouseDown}
-                        onPortMouseUp={handlePortMouseUp}
-                        registerPortRef={registerPortRef}
-                        snappedPortKey={snappedPortKey}
-                        onParameterChange={handleParameterChange}
-                        onNodeNameChange={handleNodeNameChange}
-                        onParameterNameChange={handleParameterNameChange}
-                        onParameterAdd={handleParameterAdd}
-                        onParameterDelete={handleParameterDelete}
-                        isSnapTargetInvalid={Boolean(snappedPortKey?.startsWith(node.id) && !isSnapTargetValid)}
-                        onClearSelection={() => setSelectedNodeId(null)}
-                        onOpenNodeModal={onOpenNodeModal}
-                    />
-                ))}
-                
+                {nodes.map(node => {
+                    const isSchemaProvider = node.data.id === 'schema_provider' || node.data.id === 'output_schema_provider';
+                    if (isSchemaProvider) {
+                        devLog.log(`Using SchemaProviderNode for: ${node.data.nodeName}`);
+                        return (
+                            <SchemaProviderNode
+                                key={node.id}
+                                id={node.id}
+                                data={node.data}
+                                position={node.position}
+                                onNodeMouseDown={handleNodeMouseDown}
+                                isSelected={node.id === selectedNodeId}
+                                onPortMouseDown={handlePortMouseDown}
+                                onPortMouseUp={handlePortMouseUp}
+                                registerPortRef={registerPortRef}
+                                snappedPortKey={snappedPortKey}
+                                onParameterChange={handleParameterChange}
+                                onNodeNameChange={handleNodeNameChange}
+                                onParameterNameChange={handleParameterNameChange}
+                                onParameterAdd={handleParameterAdd}
+                                onParameterDelete={handleParameterDelete}
+                                isSnapTargetInvalid={Boolean(snappedPortKey?.startsWith(node.id) && !isSnapTargetValid)}
+                                onClearSelection={() => setSelectedNodeId(null)}
+                                onOpenNodeModal={onOpenNodeModal}
+                            />
+                        );
+                    }
+                    return (
+                        <Node
+                            key={node.id}
+                            id={node.id}
+                            data={node.data}
+                            position={node.position}
+                            onNodeMouseDown={handleNodeMouseDown}
+                            isSelected={node.id === selectedNodeId}
+                            onPortMouseDown={handlePortMouseDown}
+                            onPortMouseUp={handlePortMouseUp}
+                            registerPortRef={registerPortRef}
+                            snappedPortKey={snappedPortKey}
+                            onParameterChange={handleParameterChange}
+                            onNodeNameChange={handleNodeNameChange}
+                            onParameterNameChange={handleParameterNameChange}
+                            onParameterAdd={handleParameterAdd}
+                            onParameterDelete={handleParameterDelete}
+                            isSnapTargetInvalid={Boolean(snappedPortKey?.startsWith(node.id) && !isSnapTargetValid)}
+                            onClearSelection={() => setSelectedNodeId(null)}
+                            onOpenNodeModal={onOpenNodeModal}
+                        />
+                    )
+                })}
+
                 {/* 예측 노드들 렌더링 */}
                 {predictedNodes.map(predictedNode => (
                     <Node
