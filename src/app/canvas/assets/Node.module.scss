@@ -18,6 +18,40 @@
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4), 0 8px 24px rgba(0, 0, 0, 0.2);
         z-index: 30;
     }
+
+    &.predicted {
+        border: 2px dashed #10b981;
+        background-color: rgba(255, 255, 255, 0.95);
+        transition: opacity 0.3s ease, transform 0.2s ease, border-style 0.2s ease;
+        z-index: 25;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+        
+        // 예측 노드임을 알리는 작은 라벨 추가
+        &::before {
+            content: "Predicted";
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #10b981;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            z-index: 1;
+        }
+        
+        &:hover {
+            transform: translate(0, 0) scale(1.02);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2);
+            border-style: solid;
+            border-color: #059669;
+            
+            &::before {
+                background: #059669;
+            }
+        }
+    }
 }
 
 .header {

@@ -225,6 +225,20 @@ function CanvasPageContent() {
         return () => clearTimeout(timer);
     }, [isCanvasReady, nodesInitialized]); // 노드 초기화 상태도 의존성에 추가
 
+    // 노드 사양들이 로드된 후 Canvas에 전달
+    useEffect(() => {
+        if (nodesInitialized && nodeSpecs && canvasRef.current) {
+            devLog.log('Setting available node specs to Canvas:', nodeSpecs.length);
+            
+            // nodeSpecs를 NodeData 형식으로 변환
+            const nodeDataList = nodeSpecs.flatMap(category => 
+                category.functions?.flatMap(func => func.nodes || []) || []
+            );
+            
+            (canvasRef.current as any).setAvailableNodeSpecs(nodeDataList);
+        }
+    }, [nodesInitialized, nodeSpecs]);
+
     // 워크플로우 상태 변경 시 자동 저장
     const handleCanvasStateChange = (state: any) => {
         devLog.log('handleCanvasStateChange called with:', {

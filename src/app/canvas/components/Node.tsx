@@ -27,6 +27,10 @@ const Node: React.FC<NodeProps> = ({
     onParameterAdd,
     onParameterDelete,
     onClearSelection,
+    isPredicted = false,
+    predictedOpacity = 1.0,
+    onPredictedNodeHover,
+    onPredictedNodeClick,
     onOpenNodeModal
 }) => {
     const { nodeName, inputs, parameters, outputs, functionId } = data;
@@ -720,8 +724,28 @@ const Node: React.FC<NodeProps> = ({
 
     const handleMouseDown = (e: React.MouseEvent): void => {
         if (isPreview) return; // Disable drag in preview mode
+        
+        // 예측 노드인 경우 클릭 시 실제 노드로 변환하고 자동 연결
+        if (isPredicted && onPredictedNodeClick) {
+            e.stopPropagation();
+            onPredictedNodeClick(data, position);
+            return;
+        }
+        
         e.stopPropagation();
         onNodeMouseDown(e, id);
+    };
+
+    const handleMouseEnter = (): void => {
+        if (isPredicted && onPredictedNodeHover) {
+            onPredictedNodeHover(id, true);
+        }
+    };
+
+    const handleMouseLeave = (): void => {
+        if (isPredicted && onPredictedNodeHover) {
+            onPredictedNodeHover(id, false);
+        }
     };
 
     const handleParamValueChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>, paramId: string): void => {
@@ -766,9 +790,16 @@ const Node: React.FC<NodeProps> = ({
     return (
         <>
             <div
-                className={`${styles.node} ${isSelected ? styles.selected : ''} ${isPreview ? 'preview' : ''}`}
-                style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+                className={`${styles.node} ${isSelected ? styles.selected : ''} ${isPreview ? 'preview' : ''} ${isPredicted ? styles.predicted : ''}`}
+                style={{ 
+                    transform: `translate(${position.x}px, ${position.y}px)`,
+                    opacity: isPredicted ? predictedOpacity : 1,
+                    pointerEvents: isPredicted ? 'auto' : 'auto',
+                    cursor: isPredicted ? 'pointer' : 'default'
+                }}
                 onMouseDown={handleMouseDown}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
             >
                 <div className={styles.header}>
                     {isEditingName ? (
@@ -826,7 +857,7 @@ const Node: React.FC<NodeProps> = ({
                                                 <div
                                                     ref={(el) => registerPortRef && registerPortRef(id, portData.id, 'input', el)}
                                                     className={portClasses}
-                                                    onMouseDown={isPreview ? undefined : (e) => {
+                                                    onMouseDown={isPreview || isPredicted ? undefined : (e) => {
                                                         e.stopPropagation();
                                                         onPortMouseDown({
                                                             nodeId: id,
@@ -834,16 +865,16 @@ const Node: React.FC<NodeProps> = ({
                                                             portType: 'input',
                                                             isMulti: portData.multi,
                                                             type: portData.type
-                                                        });
+                                                        }, e);
                                                     }}
-                                                    onMouseUp={isPreview ? undefined : (e) => {
+                                                    onMouseUp={isPreview || isPredicted ? undefined : (e) => {
                                                         e.stopPropagation();
                                                         onPortMouseUp({
                                                             nodeId: id,
                                                             portId: portData.id,
                                                             portType: 'input',
                                                             type: portData.type
-                                                        });
+                                                        }, e);
                                                     }}
                                                 >
                                                     {portData.type}
@@ -873,7 +904,7 @@ const Node: React.FC<NodeProps> = ({
                                                 <div
                                                     ref={(el) => registerPortRef && registerPortRef(id, portData.id, 'output', el)}
                                                     className={portClasses}
-                                                    onMouseDown={isPreview ? undefined : (e) => {
+                                                    onMouseDown={isPreview || isPredicted ? undefined : (e) => {
                                                         e.stopPropagation();
                                                         onPortMouseDown({
                                                             nodeId: id,
@@ -881,16 +912,16 @@ const Node: React.FC<NodeProps> = ({
                                                             portType: 'output',
                                                             isMulti: portData.multi,
                                                             type: portData.type
-                                                        });
+                                                        }, e);
                                                     }}
-                                                    onMouseUp={isPreview ? undefined : (e) => {
+                                                    onMouseUp={isPreview || isPredicted ? undefined : (e) => {
                                                         e.stopPropagation();
                                                         onPortMouseUp({
                                                             nodeId: id,
                                                             portId: portData.id,
                                                             portType: 'output',
                                                             type: portData.type
-                                                        });
+                                                        }, e);
                                                     }}
                                                 >
                                                     {portData.type}
@@ -902,7 +933,7 @@ const Node: React.FC<NodeProps> = ({
                             )}
                         </div>
                     )}
-                    {hasParams && (
+                    {hasParams && !isPredicted && (
                         <>
                             {hasIO && <div className={styles.divider}></div>}
                             <div className={styles.paramSection}>

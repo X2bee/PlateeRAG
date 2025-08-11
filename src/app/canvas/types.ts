@@ -124,6 +124,13 @@ export interface DragState {
     offsetY?: number;
 }
 
+export interface PredictedNode {
+    id: string;
+    nodeData: NodeData;
+    position: Position;
+    isHovered: boolean;
+}
+
 export interface CanvasState {
     view: View;
     nodes: CanvasNode[];
@@ -168,8 +175,8 @@ export interface NodeProps {
     position: Position;
     onNodeMouseDown: (e: React.MouseEvent, nodeId: string) => void;
     isSelected: boolean;
-    onPortMouseDown: (data: PortMouseEventData) => void;
-    onPortMouseUp: (data: PortMouseEventData) => void;
+    onPortMouseDown: (data: PortMouseEventData, mouseEvent?: React.MouseEvent) => void;
+    onPortMouseUp: (data: PortMouseEventData, mouseEvent?: React.MouseEvent) => void;
     registerPortRef: (nodeId: string, portId: string, portType: string, el: HTMLElement | null) => void;
     snappedPortKey: string | null;
     onParameterChange: (nodeId: string, paramId: string, value: string | number) => void;
@@ -180,6 +187,10 @@ export interface NodeProps {
     onParameterAdd?: (nodeId: string, newParameter: Parameter) => void;
     onParameterDelete?: (nodeId: string, paramId: string) => void;
     onClearSelection: () => void;
+    isPredicted?: boolean;
+    predictedOpacity?: number;
+    onPredictedNodeHover?: (nodeId: string, isHovered: boolean) => void;
+    onPredictedNodeClick?: (nodeData: NodeData, position: Position) => void;
     onOpenNodeModal?: (nodeId: string, paramId: string, paramName: string, currentValue: string) => void;
 }
 
@@ -258,6 +269,7 @@ export interface CanvasRef {
     getCenteredView: () => View;
     clearSelectedNode: () => void;
     validateAndPrepareExecution: () => ExecutionValidationResult;
+    setAvailableNodeSpecs: (nodeSpecs: NodeData[]) => void;
     updateNodeParameter: (nodeId: string, paramId: string, value: string) => void;
 }
 
@@ -308,8 +320,8 @@ export interface DummyHandlers {
     onNodeDuplicate: () => void;
     updateNodeData: () => void;
     onNodeMouseDown: (e: React.MouseEvent, nodeId: string) => void;
-    onPortMouseDown: (data: PortMouseEventData) => void;
-    onPortMouseUp: (data: PortMouseEventData) => void;
+    onPortMouseDown: (data: PortMouseEventData, mouseEvent?: React.MouseEvent) => void;
+    onPortMouseUp: (data: PortMouseEventData, mouseEvent?: React.MouseEvent) => void;
     registerPortRef: (nodeId: string, portId: string, portType: string, el: HTMLElement | null) => void;
     onParameterChange: (nodeId: string, paramId: string, value: string | number) => void;
     onParameterNameChange: (nodeId: string, paramId: string, newName: string) => void;
