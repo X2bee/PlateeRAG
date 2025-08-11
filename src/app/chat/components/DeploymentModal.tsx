@@ -25,7 +25,7 @@ const parseAdditionalParams = (workflowData: any) => {
 
     // 1. schema_provider 노드들 찾기
     const schemaProviderNodes = workflowData.nodes.filter((node: any) =>
-        node.data.nodeName === "Schema Provider" || node.data.id === "schema_provider"
+        node.data.nodeName === "Schema Provider(Input)" || node.data.id === "input_schema_provider"
     );
 
     if (schemaProviderNodes.length === 0) {

@@ -1661,7 +1661,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 }}
             >
                 {nodes.map(node => {
-                    const isSchemaProvider = node.data.id === 'schema_provider' || node.data.id === 'output_schema_provider';
+                    const isSchemaProvider = node.data.id === 'input_schema_provider' || node.data.id === 'output_schema_provider';
                     if (isSchemaProvider) {
                         devLog.log(`Using SchemaProviderNode for: ${node.data.nodeName}`);
                         return (
