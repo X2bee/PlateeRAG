@@ -470,7 +470,7 @@ const Node: React.FC<NodeProps> = ({
                     // handle_id가 true인 경우에는 일반 파라미터 value 렌더링
                     <input
                         type="text"
-                        value={param.value || ''}
+                        value={param.value.toString() || ''}
                         onChange={(e) => handleParamValueChange(e, param.id)}
                         onMouseDown={(e) => {
                             e.stopPropagation();
@@ -498,7 +498,7 @@ const Node: React.FC<NodeProps> = ({
                     // API에서 단일 값을 로드한 경우 input으로 렌더링
                     <input
                         type="text"
-                        value={param.value !== undefined && param.value !== null ? param.value : (apiSingleValue || '')}
+                        value={param.value !== undefined && param.value !== null ? param.value.toString() : (apiSingleValue || '')}
                         onChange={(e) => handleParamValueChange(e, param.id)}
                         onMouseDown={(e) => {
                             devLog.log('api single value input onMouseDown');
@@ -675,7 +675,7 @@ const Node: React.FC<NodeProps> = ({
                     <div className={styles.expandableWrapper}>
                         <input
                             type="text"
-                            value={param.value || ''}
+                            value={param.value.toString() || ''}
                             onChange={(e) => handleParamValueChange(e, param.id)}
                             onMouseDown={(e) => {
                                 devLog.log('expandable input onMouseDown');
@@ -721,7 +721,7 @@ const Node: React.FC<NodeProps> = ({
                 ) : (
                     <input
                         type={param.type && numberList.includes(param.type) ? 'number' : 'text'}
-                        value={param.value}
+                        value={param.type === 'text' ? param.value.toString(): parseFloat(param.value.toString())}
                         onChange={(e) => handleParamValueChange(e, param.id)}
                         onMouseDown={(e) => {
                             devLog.log('input onMouseDown');
