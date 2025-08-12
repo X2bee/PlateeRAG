@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import styles from '@/app/model/assets/Train.module.scss';
+import ModelStorageModal from '@/app/model/components/Train/ModelStorageModal';
 
 interface ModelConfig {
     model_load_method: string;
@@ -22,16 +23,38 @@ interface ModelConfig {
 interface ModelCategoryProps {
     modelConfig: ModelConfig;
     handleModelConfigChange: (key: string, value: any) => void;
-    handleLoadModel: () => void;
-    handleLoadRefModel: () => void;
 }
 
 const ModelCategory: React.FC<ModelCategoryProps> = ({
     modelConfig,
-    handleModelConfigChange,
-    handleLoadModel,
-    handleLoadRefModel
+    handleModelConfigChange
 }) => {
+    const [isModelModalOpen, setIsModelModalOpen] = useState(false);
+    const [isRefModelModalOpen, setIsRefModelModalOpen] = useState(false);
+
+    const handleOpenModelModal = () => {
+        setIsModelModalOpen(true);
+    };
+
+    const handleCloseModelModal = () => {
+        setIsModelModalOpen(false);
+    };
+
+    const handleSelectModel = (modelId: string) => {
+        handleModelConfigChange('model_name_or_path', modelId);
+    };
+
+    const handleOpenRefModelModal = () => {
+        setIsRefModelModalOpen(true);
+    };
+
+    const handleCloseRefModelModal = () => {
+        setIsRefModelModalOpen(false);
+    };
+
+    const handleSelectRefModel = (modelId: string) => {
+        handleModelConfigChange('ref_model_path', modelId);
+    };
     return (
         <div className={styles.configSection}>
             <div className={styles.configForm}>
@@ -48,7 +71,7 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                             className={styles.formSelect}
                         >
                             <option value="huggingface">Huggingface</option>
-                            <option value="minio">Minio</option>
+                            {/* <option value="minio">Minio</option> */}
                         </select>
                     </div>
                 </div>
@@ -73,7 +96,7 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                                     />
                                     <button
                                         type="button"
-                                        onClick={handleLoadModel}
+                                        onClick={handleOpenModelModal}
                                         className={`${styles.button} ${styles.secondary}`}
                                     >
                                         불러오기
@@ -93,7 +116,7 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                                     />
                                     <button
                                         type="button"
-                                        onClick={handleLoadRefModel}
+                                        onClick={handleOpenRefModelModal}
                                         className={`${styles.button} ${styles.secondary}`}
                                     >
                                         불러오기
@@ -208,7 +231,7 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                                     />
                                     <button
                                         type="button"
-                                        onClick={handleLoadModel}
+                                        onClick={handleOpenModelModal}
                                         className={`${styles.button} ${styles.secondary}`}
                                     >
                                         불러오기
@@ -228,7 +251,7 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                                     />
                                     <button
                                         type="button"
-                                        onClick={handleLoadRefModel}
+                                        onClick={handleOpenRefModelModal}
                                         className={`${styles.button} ${styles.secondary}`}
                                     >
                                         불러오기
@@ -321,6 +344,21 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                     )}
                 </div>
             </div>
+
+            {/* Model Storage Modals */}
+            <ModelStorageModal
+                isOpen={isModelModalOpen}
+                onClose={handleCloseModelModal}
+                onSelectModel={handleSelectModel}
+                currentModelId={modelConfig.model_name_or_path}
+            />
+
+            <ModelStorageModal
+                isOpen={isRefModelModalOpen}
+                onClose={handleCloseRefModelModal}
+                onSelectModel={handleSelectRefModel}
+                currentModelId={modelConfig.ref_model_path}
+            />
         </div>
     );
 };

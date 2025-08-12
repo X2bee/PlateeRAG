@@ -1,0 +1,429 @@
+@use "sass:color";
+@use "@/app/_common/_variables" as *;
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+// Header
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+    min-height: 44px; // 일정한 높이 유지
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.headerInfo {
+    display: flex;
+
+    h2 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: $gray-900;
+        margin: 0 0 0.5rem 0;
+    }
+
+    p {
+        color: $gray-600;
+        margin: 0;
+        line-height: 1.6;
+    }
+}
+
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+// Sort Controls (now integrated in header)
+.sortControls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.sortLabel {
+    font-weight: 500;
+    color: $gray-700;
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.sortButton {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid $gray-300;
+    background: $white;
+    color: $gray-600;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    white-space: nowrap;
+
+    &:hover {
+        border-color: $primary-blue;
+        color: $primary-blue;
+        background: rgba($primary-blue, 0.05);
+    }
+
+    &.active {
+        border-color: $primary-blue;
+        color: $primary-blue;
+        background: rgba($primary-blue, 0.1);
+    }
+
+    svg {
+        width: 0.875rem;
+        height: 0.875rem;
+        flex-shrink: 0;
+    }
+}
+
+// Filters
+.filters {
+    display: flex;
+    gap: 0.5rem;
+    background: $gray-100;
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+}
+
+.filterButton {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    color: $gray-700;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    font-size: 0.875rem;
+
+    &:hover {
+        background: $white;
+        color: $gray-900;
+    }
+
+    &.active {
+        background: $white;
+        color: $primary-blue;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+}
+
+// 새로고침 버튼 스타일
+.refreshButton {
+    background: transparent;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: $gray-600;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+
+    &:hover:not(:disabled) {
+        background: $gray-50;
+        border-color: $primary-blue;
+        color: $primary-blue;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+// 스피닝 애니메이션
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+// Resources Grid
+.resourcesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.resourceCard {
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        border-color: rgba($primary-blue, 0.3);
+    }
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.resourceIcon {
+    width: 2.5rem;
+    height: 2.5rem;
+    background: rgba($primary-purple, 0.1);
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+        width: 1.25rem;
+        height: 1.25rem;
+        color: $primary-purple;
+    }
+}
+
+.status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    svg {
+        width: 0.75rem;
+        height: 0.75rem;
+    }
+
+    &.statusPublic {
+        background: rgba($primary-green, 0.1);
+        color: $primary-green;
+    }
+
+    &.statusPrivate {
+        background: rgba($primary-yellow, 0.1);
+        color: $primary-yellow;
+    }
+}
+
+// Card Content
+.cardContent {
+    margin-bottom: 1rem;
+}
+
+.resourceName {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $gray-900;
+    margin: 0 0 1rem 0;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+.resourceMeta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.metaItem {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: $gray-500;
+    font-size: 0.875rem;
+
+    svg {
+        width: 0.875rem;
+        height: 0.875rem;
+        flex-shrink: 0;
+    }
+
+    span {
+        word-break: break-word;
+    }
+}
+
+// Loading State
+.loadingState {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: $gray-500;
+
+    p {
+        font-size: 1.125rem;
+        margin: 0;
+    }
+}
+
+// Error State
+.errorState {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: $primary-red;
+
+    p {
+        font-size: 1.125rem;
+        margin: 0 0 1rem 0;
+        line-height: 1.6;
+    }
+
+    button {
+        padding: 0.5rem 1rem;
+        background: $primary-blue;
+        color: $white;
+        border: none;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.2s ease-in-out;
+
+        &:hover {
+            background: color.scale($primary-blue, $lightness: -10%);
+        }
+    }
+}
+
+// Configuration Error State (for Hugging Face setup issues)
+.configErrorState {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: $primary-yellow;
+    background: rgba($primary-yellow, 0.05);
+    border: 1px solid rgba($primary-yellow, 0.2);
+    border-radius: 0.75rem;
+    margin: 2rem 0;
+
+    p {
+        font-size: 1.125rem;
+        margin: 0 0 1rem 0;
+        line-height: 1.6;
+        font-weight: 500;
+    }
+
+    button {
+        padding: 0.5rem 1rem;
+        background: $primary-yellow;
+        color: $white;
+        border: none;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.2s ease-in-out;
+
+        &:hover {
+            background: color.scale($primary-yellow, $lightness: -10%);
+        }
+    }
+}
+
+// Empty State
+.emptyState {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: $gray-500;
+
+    .emptyIcon {
+        width: 4rem;
+        height: 4rem;
+        margin: 0 auto 1rem;
+        opacity: 0.5;
+    }
+
+    h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+        color: $gray-700;
+    }
+
+    p {
+        margin: 0;
+        line-height: 1.6;
+    }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .headerLeft {
+        order: 2;
+        justify-content: center;
+    }
+
+    .headerActions {
+        order: 1;
+        justify-content: center;
+    }
+
+    .filters {
+        justify-content: center;
+    }
+
+    .sortControls {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .sortLabel {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .resourcesGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .resourceMeta {
+        gap: 0.375rem;
+    }
+
+    .resourceName {
+        font-size: 1rem;
+    }
+}

@@ -2,7 +2,7 @@ import React, { memo, useState, useEffect, ChangeEvent, KeyboardEvent } from 're
 import styles from '@/app/canvas/assets/Node.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
 import { fetchParameterOptions } from '@/app/api/parameterApi';
-import { LuRefreshCw, LuPlus, LuX } from 'react-icons/lu';
+import { LuRefreshCw, LuPlus, LuX, LuDownload } from 'react-icons/lu';
 import type {
     Parameter,
     NodeProps,
@@ -31,7 +31,10 @@ const Node: React.FC<NodeProps> = ({
     predictedOpacity = 1.0,
     onPredictedNodeHover,
     onPredictedNodeClick,
-    onOpenNodeModal
+    onOpenNodeModal,
+    onSynchronizeSchema,
+    currentNodes = [],
+    currentEdges = []
 }) => {
     const { nodeName, inputs, parameters, outputs, functionId } = data;
     const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
@@ -269,6 +272,39 @@ const Node: React.FC<NodeProps> = ({
     const handleDeleteParameter = (paramId: string): void => {
         if (isPreview || !onParameterDelete) return;
         onParameterDelete(id, paramId);
+    };
+
+    // InputSchema 연결 확인 및 동기화 함수
+    const getConnectedSchemaProvider = (nodeId: string, portId: string) => {
+        if (!currentEdges || !currentNodes) return null;
+
+        // 해당 포트로 연결되는 edge 찾기
+        const connectedEdge = currentEdges.find((edge: any) =>
+            edge.target?.nodeId === nodeId && edge.target?.portId === portId
+        );
+
+        if (!connectedEdge) return null;
+
+        // 연결된 source 노드 찾기
+        const sourceNode = currentNodes.find((node: any) =>
+            node.id === connectedEdge.source.nodeId
+        );
+
+        if (!sourceNode) return null;
+
+        // SchemaProvider 노드인지 확인 (data 속성 내의 id와 nodeName 확인)
+        if (sourceNode.data?.id === 'input_schema_provider' ||
+            sourceNode.data?.id === 'output_schema_provider' ||
+            sourceNode.data?.nodeName === 'Schema Provider(Input)') {
+            return sourceNode;
+        }
+
+        return null;
+    };
+
+    const handleSynchronizeSchema = (portId: string): void => {
+        if (!onSynchronizeSchema) return;
+        onSynchronizeSchema(id, portId);
     };
 
     const validationMessage = '최대 64자, 영문 대소문자(a-z, A-Z), 숫자(0-9), 언더스코어(_)';
@@ -724,14 +760,14 @@ const Node: React.FC<NodeProps> = ({
 
     const handleMouseDown = (e: React.MouseEvent): void => {
         if (isPreview) return; // Disable drag in preview mode
-        
+
         // 예측 노드인 경우 클릭 시 실제 노드로 변환하고 자동 연결
         if (isPredicted && onPredictedNodeClick) {
             e.stopPropagation();
             onPredictedNodeClick(data, position);
             return;
         }
-        
+
         e.stopPropagation();
         onNodeMouseDown(e, id);
     };
@@ -791,7 +827,7 @@ const Node: React.FC<NodeProps> = ({
         <>
             <div
                 className={`${styles.node} ${isSelected ? styles.selected : ''} ${isPreview ? 'preview' : ''} ${isPredicted ? styles.predicted : ''}`}
-                style={{ 
+                style={{
                     transform: `translate(${position.x}px, ${position.y}px)`,
                     opacity: isPredicted ? predictedOpacity : 1,
                     pointerEvents: isPredicted ? 'auto' : 'auto',
@@ -882,6 +918,19 @@ const Node: React.FC<NodeProps> = ({
                                                 <span className={`${styles.portLabel} ${portData.required ? styles.required : ''}`}>
                                                     {portData.name}
                                                 </span>
+                                                {portData.type === 'InputSchema' && !isPreview && !isPredicted && getConnectedSchemaProvider(id, portData.id) && (
+                                                    <button
+                                                        className={styles.downloadButton}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleSynchronizeSchema(portData.id);
+                                                        }}
+                                                        type="button"
+                                                        title="Synchronize schema parameters"
+                                                    >
+                                                        <LuDownload />
+                                                    </button>
+                                                )}
                                             </div>
                                         );
                                     })}
