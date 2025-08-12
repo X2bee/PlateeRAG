@@ -42,7 +42,9 @@ export interface TaskGroups {
   }
 
 export type ModelInfo = {
-    base_model?: string;
+  name?: string;
+  base_model?: string;
+  user_name?: string;
 };
   
 export type PopupState = {
@@ -52,5 +54,6 @@ export type PopupState = {
       selected: string;
       loading: boolean;
       mode?: string;
+      error?: string |null ;
     };
   };

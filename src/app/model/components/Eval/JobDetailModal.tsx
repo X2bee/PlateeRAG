@@ -9,7 +9,7 @@ import {
   calculateDetailScore, 
   hasBaseModelResult 
 } from '@/app/model/components/Eval/utils/eval';
-import { deleteEvaluationJob } from '@/app/api/evalAPI';
+// import { deleteEvaluationJob } from '@/app/api/evalAPI'; // 가짜로 교체
 import styles from '@/app/model/assets/JobDetailModal.module.scss';
 
 interface JobDetailModalProps {
@@ -21,14 +21,13 @@ interface JobDetailModalProps {
   onDeleted: (jobId: string) => void;
 }
 
-interface JobDetailModalProps {
-  show: boolean;
-  job: EvaluationJob | null;
-  loading?: boolean;
-  deleting?: boolean;
-  onClose: () => void;
-  onDeleted: (jobId: string) => void;
-}
+// ==================== FAKE DELETE FUNCTION START ====================
+// TODO: 나중에 실제 API 연동 시 이 부분 삭제하고 실제 import 사용
+const fakeDeleteEvaluationJob = async (jobId: string): Promise<void> => {
+  // 가짜 지연 시간
+  await new Promise(resolve => setTimeout(resolve, 500));
+};
+// ==================== FAKE DELETE FUNCTION END ====================
 
 function safeEntries<T extends object>(obj: T | undefined) {
   return Object.entries(obj ?? {} as Record<string, unknown>) as [string, unknown][];
@@ -57,6 +56,23 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({
       return;
     }
 
+    // ==================== FAKE DELETE START ====================
+    // TODO: 나중에 실제 API 연동 시 이 부분 수정
+    try {
+      console.log('상세 모달에서 삭제 시작:', job.job_id);
+      await fakeDeleteEvaluationJob(job.job_id);
+      onDeleted(job.job_id);
+      onClose();
+      console.log('상세 모달에서 삭제 완료:', job.job_id);
+    } catch (error: any) {
+      console.error('Failed to delete job:', error);
+      alert('삭제 중 오류가 발생했습니다: ' + error.message);
+    }
+    // ==================== FAKE DELETE END ====================
+
+    /* 
+    // ==================== REAL DELETE START ====================
+    // TODO: 실제 API 연동 시 이 주석을 해제하고 위의 FAKE 부분 삭제
     try {
       await deleteEvaluationJob(job.job_id);
       onDeleted(job.job_id);
@@ -65,6 +81,8 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({
       console.error('Failed to delete job:', error);
       alert('삭제 중 오류가 발생했습니다: ' + error.message);
     }
+    // ==================== REAL DELETE END ====================
+    */
   }, [job, onDeleted, onClose]);
 
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
@@ -223,7 +241,7 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({
                 <div className={styles.resultSection}>
                   <h4 className={styles.resultTitle}>Main Model 결과</h4>
                   <div className={styles.resultContainer}>
-                    {Object.entries(job.base_model_result ?? {} as Record<string, any>).map(([taskName, metrics]) => (
+                    {Object.entries(job.result ?? {} as Record<string, any>).map(([taskName, metrics]) => (
                       <div key={taskName} className={styles.resultItem}>
                         <span className={styles.taskName}>{taskName}:</span>
                         {typeof metrics === 'object' ? (
