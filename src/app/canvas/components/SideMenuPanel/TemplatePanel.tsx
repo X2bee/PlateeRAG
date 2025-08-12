@@ -10,7 +10,6 @@ import { devLog } from '@/app/_common/utils/logger';
 
 import Basic_Chatbot from '@/app/canvas/constants/workflow/Basic_Chatbot.json';
 import Data_Processing from '@/app/canvas/constants/workflow/Data_Processing.json';
-import test_t from '@/app/canvas/constants/workflow/test_t.json'
 import type {
     Position,
     Port,
@@ -27,7 +26,7 @@ import type {
 } from '@/app/canvas/types';
 
 
-const templateList: RawTemplate[] = [Basic_Chatbot, Data_Processing, test_t];
+const templateList: RawTemplate[] = [Basic_Chatbot, Data_Processing];
 
 const TemplatePanel: React.FC<TemplatePanelProps> = ({ onBack, onLoadWorkflow }) => {
     const [templates, setTemplates] = useState<Template[]>([]);
