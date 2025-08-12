@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FiTool, FiDatabase, FiFileText, FiX, FiInfo, FiSettings, FiArrowRight, FiArrowLeft, FiEdit3 } from 'react-icons/fi';
-import styles from './ChatToolsDisplay.module.scss';
+import styles from '@/app/chat/assets/ChatToolsDisplay.module.scss';
 import { WorkflowData, CanvasNode, CanvasEdge, Parameter } from '@/app/canvas/types';
 import { AiOutlineApi } from "react-icons/ai";
 
