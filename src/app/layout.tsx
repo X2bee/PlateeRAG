@@ -6,6 +6,14 @@ import CookieProvider from '@/app/_common/components/CookieProvider';
 export const metadata: Metadata = {
     title: 'XGEN',
     description: 'XGEN - Next-Gen AI Workflow Platform',
+    icons: {
+    // icon: '/favicon.png',  
+    icon: '/favicon-a.png',
+    // icon: '/favicon-black.png',
+    // icon: '/favicon-white.png',
+    // icon: '/favicon-p-lo.png',
+    // icon: '/favicon-v-l.png',
+},
 };
 
 export default function RootLayout({
