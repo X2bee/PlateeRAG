@@ -24,10 +24,8 @@ interface JobDetailModalProps {
 // ==================== FAKE DELETE FUNCTION START ====================
 // TODO: 나중에 실제 API 연동 시 이 부분 삭제하고 실제 import 사용
 const fakeDeleteEvaluationJob = async (jobId: string): Promise<void> => {
-  console.log('상세 모달에서 가짜 작업 삭제:', jobId);
   // 가짜 지연 시간
   await new Promise(resolve => setTimeout(resolve, 500));
-  console.log('상세 모달에서 가짜 작업 삭제 완료:', jobId);
 };
 // ==================== FAKE DELETE FUNCTION END ====================
 

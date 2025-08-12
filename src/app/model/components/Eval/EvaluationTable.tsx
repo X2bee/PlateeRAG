@@ -40,17 +40,13 @@ interface EvaluationTableProps {
 // ==================== FAKE DELETE FUNCTIONS START ====================
 // TODO: 나중에 실제 API 연동 시 이 부분 삭제하고 실제 import 사용
 const fakeDeleteEvaluationJob = async (jobId: string): Promise<void> => {
-  console.log('가짜 작업 삭제:', jobId);
   // 가짜 지연 시간
   await new Promise(resolve => setTimeout(resolve, 500));
-  console.log('가짜 작업 삭제 완료:', jobId);
 };
 
 const fakeDeleteMultipleEvaluationJobs = async (jobIds: string[]): Promise<void> => {
-  console.log('가짜 일괄 삭제:', jobIds);
   // 가짜 지연 시간
   await new Promise(resolve => setTimeout(resolve, 1000));
-  console.log('가짜 일괄 삭제 완료:', jobIds);
 };
 // ==================== FAKE DELETE FUNCTIONS END ====================
 

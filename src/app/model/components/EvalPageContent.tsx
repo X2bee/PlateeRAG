@@ -435,9 +435,7 @@ const Evaluation = () => {
           use_cot: selectedTask === 'CausalLM' ? useCot : undefined
         };
       }
-  
-      console.log('가짜 평가 요청:', requestBody);
-      
+        
       // 가짜 지연 시간 (2초)
       await new Promise(resolve => setTimeout(resolve, 2000));
       
@@ -468,13 +466,12 @@ const Evaluation = () => {
       }));
       
       toast.success(`평가가 시작되었습니다. Job ID: ${fakeJobId}`);
-      console.log('가짜 평가 시작됨 (계속 진행 중 상태 유지):', fakeJobId);
   
       // 완료 상태로 변경하는 코드 제거 - 계속 running 상태로 유지
       
     } catch (error: any) {
-      console.error('가짜 평가 실행 에러:', error);
-      toast.error('평가 실행에 실패했습니다 (가짜 에러)');
+      console.error('평가 실행 에러:', error);
+      toast.error('평가 실행에 실패했습니다');
     } finally {
       setIsRunningEval(false);
     }
@@ -546,9 +543,7 @@ const getEvaluationDetails = useCallback(async (jobId : any) => {
   
   // ==================== FAKE JOB DETAILS START ====================
   // TODO: 나중에 실제 API 연동 시 이 부분 삭제하고 아래 주석 해제
-  try {
-    console.log('가짜 작업 상세 조회:', jobId);
-    
+  try {    
     // 가짜 지연 시간 (1초)
     await new Promise(resolve => setTimeout(resolve, 1000));
     
@@ -633,11 +628,10 @@ const getEvaluationDetails = useCallback(async (jobId : any) => {
     
     setSelectedJob(fakeJobDetails);
     setShowJobDetails(true);
-    console.log('가짜 작업 상세 데이터:', fakeJobDetails);
     
   } catch (error) {
-    console.error('가짜 작업 상세 조회 에러:', error);
-    toast.error('평가 작업 상세 정보를 불러오는데 실패했습니다 (가짜 에러)');
+    console.error('작업 상세 조회 에러:', error);
+    toast.error('평가 작업 상세 정보를 불러오는데 실패했습니다');
   } finally {
     setIsLoadingJobDetails(false);
   }
@@ -663,8 +657,6 @@ const getEvaluationDetails = useCallback(async (jobId : any) => {
 
 const handleJobDeleteFromTable = useCallback((jobId: string) => {
   // ==================== FAKE TABLE DELETE START ====================
-  console.log('테이블에서 가짜 작업 삭제:', jobId);
-  
   // evalJobs에서 해당 작업 제거
   setEvalJobs(prev => {
     const newJobs = { ...prev };
@@ -677,16 +669,12 @@ const handleJobDeleteFromTable = useCallback((jobId: string) => {
     setShowJobDetails(false);
     setSelectedJob(null);
   }
-  
-  console.log('테이블에서 가짜 작업 삭제 완료:', jobId);
   // ==================== FAKE TABLE DELETE END ====================
 }, [selectedJob?.job_id]);
 
 // 일괄 작업 삭제 핸들러
 const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
   // ==================== FAKE BULK TABLE DELETE START ====================
-  console.log('테이블에서 가짜 일괄 삭제:', jobIds);
-  
   // evalJobs에서 해당 작업들 제거
   setEvalJobs(prev => {
     const newJobs = { ...prev };
@@ -701,8 +689,6 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
     setShowJobDetails(false);
     setSelectedJob(null);
   }
-  
-  console.log('테이블에서 가짜 일괄 삭제 완료:', jobIds);
   // ==================== FAKE BULK TABLE DELETE END ====================
 }, [selectedJob?.job_id]);
 
@@ -763,8 +749,6 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
 
   const handleJobDeleteFromModal = useCallback((jobId: string) => {
     // ==================== FAKE MODAL DELETE START ====================
-    console.log('상세 모달에서 가짜 작업 삭제:', jobId);
-    
     // evalJobs에서 해당 작업 제거
     setEvalJobs(prev => {
       const newJobs = { ...prev };
@@ -775,8 +759,6 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
     // 모달 닫기 (JobDetailModal에서 onClose도 호출하지만 안전하게)
     setShowJobDetails(false);
     setSelectedJob(null);
-    
-    console.log('상세 모달에서 가짜 작업 삭제 완료:', jobId);
     // ==================== FAKE MODAL DELETE END ====================
   }, []);
 
