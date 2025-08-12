@@ -470,7 +470,7 @@ const Node: React.FC<NodeProps> = ({
                     // handle_id가 true인 경우에는 일반 파라미터 value 렌더링
                     <input
                         type="text"
-                        value={param.value.toString() || ''}
+                        value={param.value !== undefined && param.value !== null ? param.value.toString() : ''}
                         onChange={(e) => handleParamValueChange(e, param.id)}
                         onMouseDown={(e) => {
                             e.stopPropagation();
@@ -530,7 +530,7 @@ const Node: React.FC<NodeProps> = ({
                     />
                 ) : (effectiveOptions.length > 0 || isApiParam) ? (
                     <select
-                        value={param.value}
+                        value={param.value !== undefined && param.value !== null ? param.value.toString() : ''}
                         onChange={(e) => {
                             devLog.log('=== Select Parameter Change ===');
                             devLog.log('Parameter:', param.name, 'Previous value:', param.value, 'New value:', e.target.value);
@@ -592,7 +592,7 @@ const Node: React.FC<NodeProps> = ({
                     </select>
                 ) : param.type === 'BOOL' ? (
                     <select
-                        value={param.value}
+                        value={param.value !== undefined && param.value !== null ? param.value.toString() : ''}
                         onChange={(e) => {
                             devLog.log('=== Boolean Parameter Change ===');
                             devLog.log('Parameter:', param.name, 'Previous value:', param.value, 'New value:', e.target.value);
@@ -675,7 +675,7 @@ const Node: React.FC<NodeProps> = ({
                     <div className={styles.expandableWrapper}>
                         <input
                             type="text"
-                            value={param.value.toString() || ''}
+                            value={param.value !== undefined && param.value !== null ? param.value.toString() : ''}
                             onChange={(e) => handleParamValueChange(e, param.id)}
                             onMouseDown={(e) => {
                                 devLog.log('expandable input onMouseDown');
@@ -721,7 +721,7 @@ const Node: React.FC<NodeProps> = ({
                 ) : (
                     <input
                         type={param.type && numberList.includes(param.type) ? 'number' : 'text'}
-                        value={param.type === 'text' ? param.value.toString(): parseFloat(param.value.toString())}
+                        value={(param.value !== undefined && param.value !== null) ? param.type === 'STR' ? param.value.toString(): parseFloat(param.value.toString()): ''}
                         onChange={(e) => handleParamValueChange(e, param.id)}
                         onMouseDown={(e) => {
                             devLog.log('input onMouseDown');

@@ -309,7 +309,7 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
                     <div className={styles.doubleInputWrapper || `${styles.paramInput} doubleInputWrapper`}>
                         {effectiveOptions.length > 0 ? (
                             <select
-                                value={param.value}
+                                value={param.value !== undefined && param.value !== null ? param.value.toString() : ''}
                                 onChange={(e) => {
                                     devLog.log('=== Handle Param Select Change ===');
                                     devLog.log('Parameter:', param.name, 'Previous value:', param.value, 'New value:', e.target.value);
@@ -349,7 +349,7 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
                         ) : (
                             <input
                                 type="text"
-                                value={param.value.toString() || ''}
+                                value={param.value !== undefined && param.value !== null ? param.value.toString() : ''}
                                 onChange={(e) => handleParamValueChange(e, param.id)}
                                 onMouseDown={(e) => {
                                     e.stopPropagation();
@@ -492,7 +492,7 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
                     />
                 ) : effectiveOptions.length > 0 ? (
                     <select
-                        value={param.value}
+                        value={param.value !== undefined && param.value !== null ? param.value.toString() : ''}
                         onChange={(e) => {
                             devLog.log('=== Select Parameter Change ===');
                             devLog.log('Parameter:', param.name, 'Previous value:', param.value, 'New value:', e.target.value);
@@ -551,7 +551,7 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
                     <div className={styles.expandableWrapper}>
                         <input
                             type="text"
-                            value={param.value.toString() || ''}
+                            value={param.value !== undefined && param.value !== null ? param.value.toString() : ''}
                             onChange={(e) => handleParamValueChange(e, param.id)}
                             onMouseDown={(e) => {
                                 devLog.log('expandable input onMouseDown');
@@ -597,7 +597,7 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
                 ) : (
                     <input
                         type={param.type && numberList.includes(param.type) ? 'number' : 'text'}
-                        value={param.type === 'text' ? param.value.toString(): parseFloat(param.value.toString())}
+                        value={(param.value !== undefined && param.value !== null) ? param.type === 'STR' ? param.value.toString(): parseFloat(param.value.toString()): ''}
                         onChange={(e) => handleParamValueChange(e, param.id)}
                         onMouseDown={(e) => {
                             devLog.log('input onMouseDown');
