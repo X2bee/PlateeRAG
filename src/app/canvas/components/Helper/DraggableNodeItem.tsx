@@ -13,7 +13,7 @@ interface Port {
 interface Parameter {
     id: string;
     name: string;
-    value: string | number;
+    value: string | number | boolean;
     type?: string;
     required?: boolean;
     optional?: boolean;
