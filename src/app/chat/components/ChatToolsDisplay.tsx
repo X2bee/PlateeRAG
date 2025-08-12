@@ -3,6 +3,7 @@ import { FiTool, FiDatabase, FiFileText, FiX, FiInfo, FiSettings, FiArrowRight, 
 import styles from '@/app/chat/assets/ChatToolsDisplay.module.scss';
 import { WorkflowData, CanvasNode, CanvasEdge, Parameter } from '@/app/canvas/types';
 import { AiOutlineApi } from "react-icons/ai";
+import useSidebarManager from '@/app/_common/hooks/useSidebarManager';
 
 interface ChatToolsDisplayProps {
     workflowContentDetail: {
@@ -35,6 +36,8 @@ const ChatToolsDisplay: React.FC<ChatToolsDisplayProps> = ({
     const [showModal, setShowModal] = useState(false);
     const [showArgsDropdown, setShowArgsDropdown] = useState<string | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useSidebarManager(showModal)
 
     // 외부 클릭 시 드롭다운 닫기
     useEffect(() => {
