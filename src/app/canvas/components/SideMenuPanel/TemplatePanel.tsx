@@ -8,8 +8,7 @@ import TemplatePreview from '@/app/canvas/components/SideMenuPanel/TemplatePrevi
 import { getWorkflowState } from '@/app/_common/utils/workflowStorage';
 import { devLog } from '@/app/_common/utils/logger';
 
-import Basic_Chatbot from '@/app/canvas/constants/workflow/Basic_Chatbot.json';
-import Data_Processing from '@/app/canvas/constants/workflow/Data_Processing.json';
+import generate_marketing_API from '@/app/canvas/constants/workflow/generate_marketing_API.json'
 import type {
     Position,
     Port,
@@ -26,7 +25,7 @@ import type {
 } from '@/app/canvas/types';
 
 
-const templateList: RawTemplate[] = [Basic_Chatbot, Data_Processing];
+const templateList: RawTemplate[] = [generate_marketing_API];
 
 const TemplatePanel: React.FC<TemplatePanelProps> = ({ onBack, onLoadWorkflow }) => {
     const [templates, setTemplates] = useState<Template[]>([]);
