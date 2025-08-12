@@ -1,0 +1,697 @@
+{
+  "workflow_name": "마케팅 문구 생성 API",
+  "workflow_id": "workflow_sadkfjdslkajfasdklfjlksdajf",
+  "description": "Input 및 Output 스키마를 사용하는 예시입니다. 스키마로 된 인풋 아웃풋을 이용하여 마케팅 문구를 생성하는 워크플로우입니다.",
+  "tags": [
+    "chatbot",
+    "rag",
+    "agent",
+    "openai",
+    "memory",
+    "qdrant",
+    "vector_db",
+    "langchain",
+    "workflow"
+  ],
+  "contents": {
+    "view": {
+      "x": -30819.750860777935,
+      "y": -14706.476609649158,
+      "scale": 0.6
+    },
+    "nodes": [
+      {
+        "id": "agents/vllm_stream-1754898484788",
+        "data": {
+          "functionId": "agents",
+          "id": "agents/vllm_stream",
+          "nodeName": "Agent VLLM Stream",
+          "description": "RAG 컨텍스트를 사용하여 채팅 응답을 스트리밍으로 생성하는 Agent 노드",
+          "tags": [
+            "agent",
+            "chat",
+            "rag",
+            "vllm",
+            "stream"
+          ],
+          "inputs": [
+            {
+              "id": "text",
+              "name": "Text",
+              "type": "STR",
+              "multi": false,
+              "required": true
+            },
+            {
+              "id": "tools",
+              "name": "Tools",
+              "type": "TOOL",
+              "multi": true,
+              "required": false,
+              "value": []
+            },
+            {
+              "id": "memory",
+              "name": "Memory",
+              "type": "OBJECT",
+              "multi": false,
+              "required": false
+            },
+            {
+              "id": "rag_context",
+              "name": "RAG Context",
+              "type": "DocsContext",
+              "multi": false,
+              "required": false
+            },
+            {
+              "id": "args_schema",
+              "name": "ArgsSchema",
+              "type": "OutputSchema"
+            }
+          ],
+          "outputs": [
+            {
+              "id": "stream",
+              "name": "Stream",
+              "type": "STREAM STR",
+              "stream": true
+            }
+          ],
+          "parameters": [
+            {
+              "id": "model",
+              "name": "Model",
+              "type": "STR",
+              "value": "x2bee/Polar-14B",
+              "is_api": true,
+              "api_name": "api_vllm_model_name",
+              "required": false,
+              "optional": true
+            },
+            {
+              "id": "temperature",
+              "name": "Temperature",
+              "type": "FLOAT",
+              "value": 0,
+              "required": false,
+              "optional": true,
+              "min": 0,
+              "max": 2,
+              "step": 0.1
+            },
+            {
+              "id": "max_tokens",
+              "name": "Max Tokens",
+              "type": "INT",
+              "value": 8192,
+              "required": false,
+              "optional": true,
+              "min": 1,
+              "max": 65536,
+              "step": 1
+            },
+            {
+              "id": "n_messages",
+              "name": "Max Memory",
+              "type": "INT",
+              "value": 3,
+              "min": 1,
+              "max": 10,
+              "step": 1,
+              "optional": true
+            },
+            {
+              "id": "base_url",
+              "name": "Base URL",
+              "type": "STR",
+              "value": "",
+              "is_api": true,
+              "api_name": "api_vllm_api_base_url",
+              "required": false,
+              "optional": true
+            },
+            {
+              "id": "default_prompt",
+              "name": "Default Prompt",
+              "type": "STR",
+              "value": "상품관련 정보를 활용한 마케팅문구 생성용 에이전트임.",
+              "required": false,
+              "optional": true,
+              "expandable": true,
+              "description": "기본 프롬프트로 AI가 따르는 System 지침을 의미합니다."
+            }
+          ]
+        },
+        "position": {
+          "x": 53346.50138504155,
+          "y": 24975.098645623228
+        }
+      },
+      {
+        "id": "memory/db_memory-1754898514510",
+        "data": {
+          "functionId": "memory",
+          "id": "memory/db_memory",
+          "nodeName": "DB Memory",
+          "description": "DB에서 대화 기록을 로드하여 ConversationBufferMemory로 반환하는 노드입니다.",
+          "tags": [
+            "memory",
+            "database",
+            "chat_history",
+            "XGEN"
+          ],
+          "inputs": [],
+          "outputs": [
+            {
+              "id": "memory",
+              "name": "Memory",
+              "type": "OBJECT"
+            }
+          ],
+          "parameters": [
+            {
+              "id": "interaction_id",
+              "name": "Interaction ID",
+              "type": "STR",
+              "value": ""
+            },
+            {
+              "id": "include_thinking",
+              "name": "Include Thinking",
+              "type": "BOOL",
+              "value": false,
+              "required": false,
+              "optional": true
+            }
+          ]
+        },
+        "position": {
+          "x": 52219.4071719521,
+          "y": 25443.166034307505
+        }
+      },
+      {
+        "id": "document_loaders/Qdrant-1754898523015",
+        "data": {
+          "functionId": "document_loaders",
+          "id": "document_loaders/Qdrant",
+          "nodeName": "Qdrant Search",
+          "description": "RAG 서비스와 검색 파라미터를 설정하여 다음 노드로 전달하는 노드",
+          "tags": [
+            "document_loader",
+            "qdrant",
+            "vector_db",
+            "rag",
+            "setup"
+          ],
+          "inputs": [],
+          "outputs": [
+            {
+              "id": "rag_context",
+              "name": "RAG Context",
+              "type": "DocsContext"
+            }
+          ],
+          "parameters": [
+            {
+              "id": "collection_name",
+              "name": "Collection Name",
+              "type": "STR",
+              "value": "상품설명자동생성_571d2282-7e92-4ad7-be3d-d620155a93fe",
+              "required": true,
+              "is_api": true,
+              "api_name": "api_collection",
+              "options": []
+            },
+            {
+              "id": "top_k",
+              "name": "Top K Results",
+              "type": "INT",
+              "value": 4,
+              "required": false,
+              "optional": true,
+              "min": 1,
+              "max": 10,
+              "step": 1
+            },
+            {
+              "id": "score_threshold",
+              "name": "Score Threshold",
+              "type": "FLOAT",
+              "value": 0.2,
+              "required": false,
+              "optional": true,
+              "min": 0,
+              "max": 1,
+              "step": 0.1
+            },
+            {
+              "id": "enhance_prompt",
+              "name": "Enhance Prompt",
+              "type": "STR",
+              "value": "입력값을 기반으로 하여 마케팅 문구 생성 하는 내용 임",
+              "required": false,
+              "optional": true,
+              "expandable": true,
+              "description": "RAG 컨텍스트를 사용하여 응답을 향상시키기 위한 프롬프트입니다."
+            }
+          ]
+        },
+        "position": {
+          "x": 52743.94941250704,
+          "y": 25398.14460944601
+        }
+      },
+      {
+        "id": "tools/print_any_stream-1754898840056",
+        "data": {
+          "functionId": "endnode",
+          "id": "tools/print_any_stream",
+          "nodeName": "Print Any (Stream)",
+          "description": "임의의 스트리밍 데이터를 입력받아 그대로 반환하는 스트리밍 출력 노드입니다. 워크플로우의 스트리밍 결과를 확인하는데 사용됩니다.",
+          "tags": [
+            "output",
+            "print",
+            "display",
+            "debug",
+            "end_node",
+            "utility",
+            "stream",
+            "any_type"
+          ],
+          "inputs": [
+            {
+              "id": "stream",
+              "name": "Stream",
+              "type": "STREAM STR",
+              "multi": false,
+              "required": true,
+              "stream": true
+            }
+          ],
+          "outputs": [],
+          "parameters": []
+        },
+        "position": {
+          "x": 53948.00311261254,
+          "y": 25314.72819926312
+        }
+      },
+      {
+        "id": "input_schema_provider-1754905935949",
+        "data": {
+          "functionId": "tools",
+          "id": "input_schema_provider",
+          "nodeName": "Schema Provider(Input)",
+          "description": "사용자 입력에 따라 동적으로 Pydantic 모델을 생성하는 노드입니다.",
+          "tags": [
+            "input",
+            "json",
+            "dict",
+            "parameter",
+            "source",
+            "user_input",
+            "key_value"
+          ],
+          "inputs": [],
+          "outputs": [
+            {
+              "id": "args_schema",
+              "name": "ArgsSchema",
+              "type": "InputSchema"
+            }
+          ],
+          "parameters": [
+            {
+              "id": "good_no",
+              "name": "good_no",
+              "type": "STR",
+              "value": "str",
+              "handle_id": true,
+              "is_added": true,
+              "options": [
+                {
+                  "value": "str",
+                  "label": "STRING"
+                },
+                {
+                  "value": "int",
+                  "label": "INTEGER"
+                },
+                {
+                  "value": "float",
+                  "label": "FLOAT"
+                },
+                {
+                  "value": "bool",
+                  "label": "BOOLEAN"
+                }
+              ]
+            },
+            {
+              "id": "good_no_description",
+              "name": "good_no_description",
+              "type": "STR",
+              "value": "상품코드",
+              "handle_id": false,
+              "is_added": true,
+              "expandable": true
+            },
+            {
+              "id": "good_name",
+              "name": "good_name",
+              "type": "STR",
+              "value": "str",
+              "handle_id": true,
+              "is_added": true,
+              "options": [
+                {
+                  "value": "str",
+                  "label": "STRING"
+                },
+                {
+                  "value": "int",
+                  "label": "INTEGER"
+                },
+                {
+                  "value": "float",
+                  "label": "FLOAT"
+                },
+                {
+                  "value": "bool",
+                  "label": "BOOLEAN"
+                }
+              ]
+            },
+            {
+              "id": "good_name_description",
+              "name": "good_name_description",
+              "type": "STR",
+              "value": "상품명",
+              "handle_id": false,
+              "is_added": true,
+              "expandable": true
+            },
+            {
+              "id": "good_desc",
+              "name": "good_desc",
+              "type": "STR",
+              "value": "str",
+              "handle_id": true,
+              "is_added": true,
+              "options": [
+                {
+                  "value": "str",
+                  "label": "STRING"
+                },
+                {
+                  "value": "int",
+                  "label": "INTEGER"
+                },
+                {
+                  "value": "float",
+                  "label": "FLOAT"
+                },
+                {
+                  "value": "bool",
+                  "label": "BOOLEAN"
+                }
+              ]
+            },
+            {
+              "id": "good_desc_description",
+              "name": "good_desc_description",
+              "type": "STR",
+              "value": "상품설명",
+              "handle_id": false,
+              "is_added": true,
+              "expandable": true
+            }
+          ]
+        },
+        "position": {
+          "x": 52074.56228842469,
+          "y": 24927.096295109808
+        }
+      },
+      {
+        "id": "input_string-1754906094840",
+        "data": {
+          "functionId": "startnode",
+          "id": "input_string",
+          "nodeName": "Input String",
+          "description": "사용자가 설정한 문자열 값을 출력하는 입력 노드입니다. 워크플로우에서 텍스트 데이터의 시작점으로 사용됩니다. ArgsSchema가 제공되면 입력값들을 스키마에 따라 검증합니다.",
+          "tags": [
+            "input",
+            "string",
+            "text",
+            "parameter",
+            "source",
+            "start_node",
+            "user_input"
+          ],
+          "inputs": [
+            {
+              "id": "args_schema",
+              "name": "ArgsSchema",
+              "type": "InputSchema",
+              "required": false
+            }
+          ],
+          "outputs": [
+            {
+              "id": "text",
+              "name": "Text",
+              "type": "STR"
+            }
+          ],
+          "parameters": [
+            {
+              "id": "input_str",
+              "name": "INPUT",
+              "type": "STR",
+              "value": "입력정보를 기반으로 마케팅 문구 생성해줘",
+              "required": false
+            },
+            {
+              "id": "good_no",
+              "name": "good_no",
+              "type": "STR",
+              "value": "TM2F8NPC924W_BD",
+              "handle_id": true,
+              "is_added": true
+            },
+            {
+              "id": "good_name",
+              "name": "good_name",
+              "type": "STR",
+              "value": "버클 스트랩 데님 와이드 팬츠",
+              "handle_id": true,
+              "is_added": true
+            },
+            {
+              "id": "good_desc",
+              "name": "good_desc",
+              "type": "STR",
+              "value": "신축성 있는 면과 스판 혼방 소재를 사용하여 편안한 착용감을 전해주는 데님 팬츠입니다. 밑단까지 여유롭게 떨어지는 와이드 실루엣이며, 허리 라인 뒷면에 버튼 스트랩 장식을 더해 포인트 주었습니다. 군더더기 없는 디자인으로 높은 활용도를 자랑하며, 다양한 상의와 매치하여 감각적인 스타일링이 가능합니다.    . 추가정보 : 상품추가정보     1) 면과 스판 혼방 소재     2) 앞면에 버튼과 지퍼 클로징     3) 5포켓 디자인     4) 허리 라인 뒷면에 버클 스트랩 장식",
+              "handle_id": true,
+              "is_added": true
+            }
+          ]
+        },
+        "position": {
+          "x": 52757.95749799075,
+          "y": 24776.577336330058
+        }
+      },
+      {
+        "id": "output_schema_provider-1754906335435",
+        "data": {
+          "functionId": "tools",
+          "id": "output_schema_provider",
+          "nodeName": "Schema Provider(Output)",
+          "description": "BaseModel을 사용하여 handle_id가 true인 파라미터들의 id를 키로, 입력된 값을 값으로 하는 JSON 딕셔너리를 출력하는 노드입니다. 이 노드는 출력 스키마를 생성합니다.",
+          "tags": [
+            "input",
+            "json",
+            "dict",
+            "parameter",
+            "source",
+            "user_input",
+            "key_value"
+          ],
+          "inputs": [],
+          "outputs": [
+            {
+              "id": "args_schema",
+              "name": "ArgsSchema",
+              "type": "OutputSchema"
+            }
+          ],
+          "parameters": [
+            {
+              "id": "sentence1",
+              "name": "sentence1",
+              "type": "STR",
+              "value": "str",
+              "handle_id": true,
+              "is_added": true,
+              "options": [
+                {
+                  "value": "str",
+                  "label": "STRING"
+                },
+                {
+                  "value": "int",
+                  "label": "INTEGER"
+                },
+                {
+                  "value": "float",
+                  "label": "FLOAT"
+                },
+                {
+                  "value": "bool",
+                  "label": "BOOLEAN"
+                }
+              ]
+            },
+            {
+              "id": "sentence1_description",
+              "name": "sentence1_description",
+              "type": "STR",
+              "value": "상품을 강조한 마케팅 문구",
+              "handle_id": false,
+              "is_added": true,
+              "expandable": true
+            },
+            {
+              "id": "sentence2",
+              "name": "sentence2",
+              "type": "STR",
+              "value": "str",
+              "handle_id": true,
+              "is_added": true,
+              "options": [
+                {
+                  "value": "str",
+                  "label": "STRING"
+                },
+                {
+                  "value": "int",
+                  "label": "INTEGER"
+                },
+                {
+                  "value": "float",
+                  "label": "FLOAT"
+                },
+                {
+                  "value": "bool",
+                  "label": "BOOLEAN"
+                }
+              ]
+            },
+            {
+              "id": "sentence2_description",
+              "name": "sentence2_description",
+              "type": "STR",
+              "value": "기능을 강조한 마케팅 문구",
+              "handle_id": false,
+              "is_added": true,
+              "expandable": true
+            }
+          ]
+        },
+        "position": {
+          "x": 53340.67719173754,
+          "y": 25556.401787798422
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge-document_loaders/Qdrant-1754898523015:rag_context-agents/vllm_stream-1754898484788:rag_context-1754898523015",
+        "source": {
+          "nodeId": "document_loaders/Qdrant-1754898523015",
+          "portId": "rag_context",
+          "portType": "output"
+        },
+        "target": {
+          "nodeId": "agents/vllm_stream-1754898484788",
+          "portId": "rag_context",
+          "portType": "input"
+        }
+      },
+      {
+        "id": "edge-agents/vllm_stream-1754898484788:stream-tools/print_any_stream-1754898840056:stream-1754898842858",
+        "source": {
+          "nodeId": "agents/vllm_stream-1754898484788",
+          "portId": "stream",
+          "portType": "output",
+          "type": "STREAM STR"
+        },
+        "target": {
+          "nodeId": "tools/print_any_stream-1754898840056",
+          "portId": "stream",
+          "portType": "input"
+        }
+      },
+      {
+        "id": "edge-input_schema_provider-1754905935949:args_schema-input_string-1754906094840:args_schema-1754906097620",
+        "source": {
+          "nodeId": "input_schema_provider-1754905935949",
+          "portId": "args_schema",
+          "portType": "output",
+          "type": "InputSchema"
+        },
+        "target": {
+          "nodeId": "input_string-1754906094840",
+          "portId": "args_schema",
+          "portType": "input"
+        }
+      },
+      {
+        "id": "edge-input_string-1754906094840:text-agents/vllm_stream-1754898484788:text-1754906148235",
+        "source": {
+          "nodeId": "input_string-1754906094840",
+          "portId": "text",
+          "portType": "output",
+          "type": "STR"
+        },
+        "target": {
+          "nodeId": "agents/vllm_stream-1754898484788",
+          "portId": "text",
+          "portType": "input"
+        }
+      },
+      {
+        "id": "edge-output_schema_provider-1754906335435:args_schema-agents/vllm_stream-1754898484788:args_schema-1754906335435",
+        "source": {
+          "nodeId": "output_schema_provider-1754906335435",
+          "portId": "args_schema",
+          "portType": "output"
+        },
+        "target": {
+          "nodeId": "agents/vllm_stream-1754898484788",
+          "portId": "args_schema",
+          "portType": "input"
+        }
+      },
+      {
+        "id": "edge-memory/db_memory-1754898514510:memory-agents/vllm_stream-1754898484788:memory-1754982036974",
+        "source": {
+          "nodeId": "memory/db_memory-1754898514510",
+          "portId": "memory",
+          "portType": "output",
+          "type": "OBJECT"
+        },
+        "target": {
+          "nodeId": "agents/vllm_stream-1754898484788",
+          "portId": "memory",
+          "portType": "input"
+        }
+      }
+    ],
+    "interaction_id": "default"
+  }
+}

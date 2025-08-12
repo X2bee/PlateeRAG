@@ -49,7 +49,7 @@ export default function HomePage() {
                 <nav className={styles.nav}>
                     <div className={styles.navContent}>
                         <div className={styles.logo}>
-                            <h1>XGen</h1>
+                            <h1>XGEN</h1>
                         </div>
                         <div className={styles.navActions}>
                             {user ? (
@@ -88,16 +88,16 @@ export default function HomePage() {
                 <div className={styles.heroSection}>
                     <div className={styles.heroContent}>
                         <div className={styles.heroLabel}>
-                            <span>🚀 Next-Gen AI Workflow Platform</span>
+                            <span>🚀 Next-Gen AI Platform</span>
                         </div>
                         <h1 className={styles.heroTitle}>
-                            Intelligent <br /><i>AI Works Platform</i>
+                            Intelligent <br /><i>AI Platform</i>
                             <span className={styles.highlight}>
                                 with Visual Simplicity
                             </span>
                         </h1>
                         <p className={styles.heroDescription}>
-                            XGen is the all-in-one AI platform<br />
+                            XGEN is the all-in-one AI platform<br />
                             where you can train models, design intelligent workflows <br />
                             with drag & drop, and serve them as APIs — effortlessly.
                         </p>
@@ -118,7 +118,7 @@ export default function HomePage() {
                         <div className={styles.heroActions}>
                             <Link href="/chat" className={styles.primaryBtn}>
                                 <FiPlay />
-                                Be More Productive with XGen
+                                Be More Productive with XGEN
                             </Link>
                         </div>
                     </div>
@@ -131,7 +131,7 @@ export default function HomePage() {
                                         <span></span>
                                         <span></span>
                                     </div>
-                                    <span>XGen Canvas</span>
+                                    <span>XGEN Canvas</span>
                                 </div>
                                 <div className={styles.mockupContent}>
                                     <div className={styles.mockupNodes}>
@@ -159,7 +159,7 @@ export default function HomePage() {
                 {/* Feature Cards */}
                 <div id="features" className={styles.featuresSection}>
                     <div className={styles.featuresHeader}>
-                        <h2>왜 XGen인가요?</h2>
+                        <h2>왜 XGEN인가요?</h2>
                         <p>
                             AI 워크플로우 구축의 새로운 표준을 제시하는 혁신적인 기능들
                         </p>
@@ -312,7 +312,7 @@ export default function HomePage() {
                 <div className={styles.footerContent}>
                     <div className={styles.footerTop}>
                         <div className={styles.footerBrand}>
-                            <h3>XGen</h3>
+                            <h3>XGEN</h3>
                             <p>Next Generation AI Workflow</p>
                         </div>
                         <div className={styles.footerSocial}>

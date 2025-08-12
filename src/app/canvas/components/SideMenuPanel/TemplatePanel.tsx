@@ -8,15 +8,9 @@ import TemplatePreview from '@/app/canvas/components/SideMenuPanel/TemplatePrevi
 import { getWorkflowState } from '@/app/_common/utils/workflowStorage';
 import { devLog } from '@/app/_common/utils/logger';
 
+import generate_marketing_API from '@/app/canvas/constants/workflow/generate_marketing_API.json'
+import openai_test from '@/app/canvas/constants/workflow/openai_test.json'
 import type {
-    Position,
-    Port,
-    Parameter,
-    NodeData,
-    CanvasNode,
-    EdgeConnection,
-    CanvasEdge,
-    WorkflowData,
     RawTemplate,
     Template,
     WorkflowState,
@@ -24,7 +18,7 @@ import type {
 } from '@/app/canvas/types';
 
 
-const templateList: RawTemplate[] = [];
+const templateList: RawTemplate[] = [generate_marketing_API, openai_test];
 
 const TemplatePanel: React.FC<TemplatePanelProps> = ({ onBack, onLoadWorkflow }) => {
     const [templates, setTemplates] = useState<Template[]>([]);

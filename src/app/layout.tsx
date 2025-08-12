@@ -4,8 +4,8 @@ import ToastProvider from '@/app/_common/components/ToastProvider';
 import CookieProvider from '@/app/_common/components/CookieProvider';
 
 export const metadata: Metadata = {
-    title: 'XGen',
-    description: 'XGen - Next-Gen AI Workflow Platform',
+    title: 'XGEN',
+    description: 'XGEN - Next-Gen AI Workflow Platform',
 };
 
 export default function RootLayout({

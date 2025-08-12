@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { usePagesLayout } from '@/app/_common/components/PagesLayoutContent';
+import { useSidebarManager } from '@/app/_common/hooks/useSidebarManager';
 import {
     FiSend,
     FiPlus,
@@ -45,9 +45,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         initialMessageToExecute,
         user_id,
     }) => {
-    const layoutContext = usePagesLayout();
     const router = useRouter();
-    const sidebarWasOpenRef = useRef<boolean | null>(null);
 
     const [ioLogs, setIOLogs] = useState<IOLog[]>([]);
     const [loading, setLoading] = useState(false);
@@ -68,8 +66,8 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
 
     const messagesRef = useRef<HTMLDivElement>(null);
     const attachmentButtonRef = useRef<HTMLDivElement>(null);
-
-    const isAnyModalOpen = showDeploymentModal || showCollectionModal;
+    
+    useSidebarManager(showDeploymentModal || showCollectionModal);
 
     // additionalParams에서 유효한 값만 필터링하는 함수
     const getValidAdditionalParams = useCallback(() => {
@@ -119,24 +117,6 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         }
     }, []);
 
-    useEffect(() => {
-        if (layoutContext) {
-            const { isSidebarOpen, setIsSidebarOpen } = layoutContext;
-            if (isAnyModalOpen) {
-                if (sidebarWasOpenRef.current === null) {
-                    sidebarWasOpenRef.current = isSidebarOpen;
-                    if (isSidebarOpen) {
-                        setIsSidebarOpen(false);
-                    }
-                }
-            } else {
-                if (sidebarWasOpenRef.current === true) {
-                    setIsSidebarOpen(true);
-                }
-                sidebarWasOpenRef.current = null;
-            }
-        }
-    }, [isAnyModalOpen, layoutContext]);
 
     // workflow 데이터 로드
     useEffect(() => {

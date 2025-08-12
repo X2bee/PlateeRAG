@@ -20,10 +20,7 @@ const parseAdditionalParams = (workflowData: any) => {
     if (!workflowData || !workflowData.nodes || !workflowData.edges) {
         return null;
     }
-
     const result: any = {};
-
-    // 1. schema_provider 노드들 찾기
     const schemaProviderNodes = workflowData.nodes.filter((node: any) =>
         node.data.nodeName === "Schema Provider(Input)" || node.data.id === "input_schema_provider"
     );
@@ -31,10 +28,7 @@ const parseAdditionalParams = (workflowData: any) => {
     if (schemaProviderNodes.length === 0) {
         return null;
     }
-
-    // 2. 각 schema_provider 노드에 대해 처리
     schemaProviderNodes.forEach((schemaNode: any) => {
-        // 3. 해당 schema_provider의 출력과 연결된 target 노드 찾기
         const connectedEdges = workflowData.edges.filter((edge: any) =>
             edge.source.nodeId === schemaNode.id &&
             edge.source.portId === "args_schema" &&
@@ -44,7 +38,6 @@ const parseAdditionalParams = (workflowData: any) => {
         connectedEdges.forEach((edge: any) => {
             const targetNodeId = edge.target.nodeId;
 
-            // 4. schema_provider의 parameters에서 handle_id가 true인 것들 추출
             if (schemaNode.data.parameters) {
                 const handleIdParams: any = {};
 
@@ -54,7 +47,6 @@ const parseAdditionalParams = (workflowData: any) => {
                     }
                 });
 
-                // 5. target nodeId를 키로 하여 결과에 추가
                 if (Object.keys(handleIdParams).length > 0) {
                     result[targetNodeId] = handleIdParams;
                 }
@@ -63,6 +55,29 @@ const parseAdditionalParams = (workflowData: any) => {
     });
 
     return Object.keys(result).length > 0 ? result : null;
+};
+
+const OutputSchemaProviderParse = (workflowData: any) => {
+    if (!workflowData || !workflowData.nodes || !workflowData.edges) {
+        return null;
+    }
+    const schemaProviderNodes = workflowData.nodes.filter((node: any) =>
+        node.data.nodeName === "Schema Provider(output)" || node.data.id === "output_schema_provider"
+    );
+
+    if (schemaProviderNodes.length === 0) {
+        return null;
+    }
+
+    const schemaProviderNode = schemaProviderNodes[0];
+    const outputSchema: any = {};
+    schemaProviderNode.data.parameters.forEach((param: any) => {
+        if (param.handle_id === true) {
+            outputSchema[param.id] = param.value;
+        }
+    });
+
+    return outputSchema ? outputSchema : null;
 };
 
 // JSON을 적절한 들여쓰기로 포맷팅하는 함수
@@ -86,6 +101,26 @@ const formatAdditionalParamsForCode = (params: any, baseIndent: number = 4): str
         });
 
         result += `${innerIndent}}${isLast ? '' : ','}\n`;
+    });
+
+    result += `${indent}}`;
+    return result;
+
+};
+const formatOutputSchemaForCode = (params: any, baseIndent: number = 4): string => {
+    if (!params) return 'null';
+
+    const indent = ' '.repeat(baseIndent);
+    const innerIndent = ' '.repeat(baseIndent + 4);
+    const deepIndent = ' '.repeat(baseIndent + 8);
+
+    let result = '{\n';
+
+    Object.keys(params).forEach((key, index) => {
+        const isLast = index === Object.keys(params).length - 1;
+        const paramObj = params[key];
+        result += `${innerIndent}"${key}": ${paramObj}`;
+        result += `${isLast ? '' : ','}\n`;
     });
 
     result += `${indent}}`;
@@ -131,6 +166,8 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
     const apiEndpoint = `${baseUrl}/api/workflow/deploy/execute/based_id`;
     const webPageUrl = `${baseUrl}/chatbot/${userId}?workflowName=${workflowName}`;
     const additional_params = parseAdditionalParams(workflowDetail);
+    const outputSchema = OutputSchemaProviderParse(workflowDetail);
+
 
     const pythonApiCode = `import requests
 
@@ -151,6 +188,9 @@ output = query({
 })
 
 print(output)
+
+# Result Format:
+${formatOutputSchemaForCode(outputSchema, 1)}
 `;
 
     const jsApiCode = `async function query(data) {
@@ -177,6 +217,9 @@ query({
 }).then((response) => {
     console.log(response);
 });
+
+// Result Format:
+${formatOutputSchemaForCode(outputSchema, 1)}
 `;
 
     const curlCode = `curl -X 'POST' \\

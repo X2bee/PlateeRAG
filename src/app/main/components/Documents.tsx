@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import styles from '../assets/Documents.module.scss';
-import { usePagesLayout } from '@/app/_common/components/PagesLayoutContent';
 
 import {
     isValidCollectionName,
@@ -16,6 +15,7 @@ import {
     getDocumentDetails,
     deleteDocumentFromCollection,
 } from '@/app/api/retrievalAPI';
+import useSidebarManager from '@/app/_common/hooks/useSidebarManager';
 
 interface Collection {
     collection_name: string;
@@ -99,8 +99,6 @@ interface SearchResponse {
 type ViewMode = 'collections' | 'documents' | 'document-detail';
 
 const Documents: React.FC = () => {
-    const layoutContext = usePagesLayout();
-    const sidebarWasOpenRef = useRef<boolean | null>(null);
 
     const [viewMode, setViewMode] = useState<ViewMode>('collections');
     const [collections, setCollections] = useState<Collection[]>([]);
@@ -126,26 +124,7 @@ const Documents: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const isAnyModalOpen = showCreateModal || showDeleteModal;
-
-    useEffect(() => {
-        if (layoutContext) {
-            const { isSidebarOpen, setIsSidebarOpen } = layoutContext;
-            if (isAnyModalOpen) {
-                if (sidebarWasOpenRef.current === null) {
-                    sidebarWasOpenRef.current = isSidebarOpen;
-                    if (isSidebarOpen) {
-                        setIsSidebarOpen(false);
-                    }
-                }
-            } else {
-                if (sidebarWasOpenRef.current === true) {
-                    setIsSidebarOpen(true);
-                }
-                sidebarWasOpenRef.current = null;
-            }
-        }
-    }, [isAnyModalOpen, layoutContext]);
+    useSidebarManager(showCreateModal || showDeleteModal)
 
 
     // 컬렉션 목록 로드
