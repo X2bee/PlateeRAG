@@ -1446,12 +1446,22 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                 newEdges = newEdges.filter(edge => !(edge.target.nodeId === nodeId && edge.target.portId === portId));
             }
         }
+        let newEdge: CanvasEdge;
+        if (currentEdgePreview.source.portType === 'input') {
+            const reversedEdgeSignature = `${nodeId}:${portId}-${currentEdgePreview.source.nodeId}:${currentEdgePreview.source.portId}`;
+            newEdge = {
+                id: `edge-${reversedEdgeSignature}-${Date.now()}`,
+                source: { nodeId, portId, portType },
+                target: currentEdgePreview.source,
+            };
 
-        const newEdge: CanvasEdge = {
-            id: `edge-${newEdgeSignature}-${Date.now()}`,
-            source: currentEdgePreview.source,
-            target: { nodeId, portId, portType }
-        };
+        } else {
+            newEdge = {
+                id: `edge-${newEdgeSignature}-${Date.now()}`,
+                source: currentEdgePreview.source,
+                target: { nodeId, portId, portType }
+            };
+        }
         setEdges([...newEdges, newEdge]);
         setEdgePreview(null);
         setSnappedPortKey(null);
