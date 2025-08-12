@@ -229,12 +229,12 @@ function CanvasPageContent() {
     useEffect(() => {
         if (nodesInitialized && nodeSpecs && canvasRef.current) {
             devLog.log('Setting available node specs to Canvas:', nodeSpecs.length);
-            
+
             // nodeSpecs를 NodeData 형식으로 변환
-            const nodeDataList = nodeSpecs.flatMap(category => 
+            const nodeDataList = nodeSpecs.flatMap(category =>
                 category.functions?.flatMap(func => func.nodes || []) || []
             );
-            
+
             (canvasRef.current as any).setAvailableNodeSpecs(nodeDataList);
         }
     }, [nodesInitialized, nodeSpecs]);
@@ -984,6 +984,7 @@ function CanvasPageContent() {
                 onDeploy={workflow.id === 'None' ? () => setShowDeploymentModal(false) : () => setShowDeploymentModal(true)}
                 isDeploy={isDeploy}
                 handleExecute={handleExecute}
+                isLoading={isExecuting}
             />
             <main className={styles.mainContent}>
                 <Canvas

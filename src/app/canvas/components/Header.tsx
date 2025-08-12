@@ -18,6 +18,7 @@ interface HeaderProps {
     onDeploy: () => void;
     isDeploy?: boolean;
     handleExecute?: () => void;
+    isLoading?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -30,7 +31,8 @@ const Header: React.FC<HeaderProps> = ({
     onWorkflowNameChange,
     onDeploy,
     isDeploy,
-    handleExecute
+    handleExecute,
+    isLoading
 }) => {
     const [workflowName, setWorkflowName] = useState<string>('Workflow');
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -145,7 +147,7 @@ const Header: React.FC<HeaderProps> = ({
                         <span>배포하기</span>
                     </button>)
                     : (
-                        <button className={styles.deployTestButton} onClick={handleExecute} disabled={isDeploy}>
+                        <button className={styles.deployTestButton} onClick={handleExecute} disabled={isLoading}>
                             <BiCodeAlt />
                             <span>배포 테스트</span>
                         </button>
