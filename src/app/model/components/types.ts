@@ -52,5 +52,6 @@ export type PopupState = {
       selected: string;
       loading: boolean;
       mode?: string;
+      error?: string |null ;
     };
   };

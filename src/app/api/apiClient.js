@@ -26,7 +26,6 @@ const getUserId = () => {
 export const apiClient = async (url, options = {}) => {
     const token = getToken();
     const userId = getUserId();
-    devLog.log(`token: ${token}, userId: ${userId}`);
 
     const defaultHeaders = {
         'Content-Type': 'application/json',

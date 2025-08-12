@@ -8,7 +8,7 @@ import {
   calculateJobScore, 
   hasBaseModelResult 
 } from '@/app/model/components/Eval/utils/eval';
-import { deleteEvaluationJob, deleteMultipleEvaluationJobs } from '@/app/api/evalAPI';
+// import { deleteEvaluationJob, deleteMultipleEvaluationJobs } from '@/app/api/evalAPI'; // 가짜로 교체
 import styles from '@/app/model/assets/EvalTable.module.scss';
 
 export const TASK_OPTIONS = [
@@ -33,7 +33,26 @@ interface EvaluationTableProps {
   onSort?: (field: string, direction: 'asc' | 'desc') => void;
   onStatusFilterChange?: (value: string) => void;
   onSearchFilterChange?: (value: string) => void;
+  onJobDelete?: (jobId: string) => void; // 추가: 부모로부터 삭제 핸들러 받기
+  onJobsDelete?: (jobIds: string[]) => void; // 추가: 부모로부터 일괄 삭제 핸들러 받기
 }
+
+// ==================== FAKE DELETE FUNCTIONS START ====================
+// TODO: 나중에 실제 API 연동 시 이 부분 삭제하고 실제 import 사용
+const fakeDeleteEvaluationJob = async (jobId: string): Promise<void> => {
+  console.log('가짜 작업 삭제:', jobId);
+  // 가짜 지연 시간
+  await new Promise(resolve => setTimeout(resolve, 500));
+  console.log('가짜 작업 삭제 완료:', jobId);
+};
+
+const fakeDeleteMultipleEvaluationJobs = async (jobIds: string[]): Promise<void> => {
+  console.log('가짜 일괄 삭제:', jobIds);
+  // 가짜 지연 시간
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  console.log('가짜 일괄 삭제 완료:', jobIds);
+};
+// ==================== FAKE DELETE FUNCTIONS END ====================
 
 const EvaluationTable: React.FC<EvaluationTableProps> = ({
   jobs = [],
@@ -46,7 +65,9 @@ const EvaluationTable: React.FC<EvaluationTableProps> = ({
   onRefresh,
   onSort,
   onStatusFilterChange,
-  onSearchFilterChange
+  onSearchFilterChange,
+  onJobDelete, // 추가
+  onJobsDelete // 추가
 }) => {
   const [selectedJobs, setSelectedJobs] = useState<Set<string>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
@@ -107,6 +128,29 @@ const EvaluationTable: React.FC<EvaluationTableProps> = ({
       return;
     }
 
+    // ==================== FAKE DELETE START ====================
+    // TODO: 나중에 실제 API 연동 시 이 부분 수정
+    try {
+      setDeletingJobId(jobId);
+      
+      // 부모 컴포넌트의 삭제 핸들러가 있으면 사용, 없으면 가짜 함수 사용
+      if (onJobDelete) {
+        onJobDelete(jobId);
+      } else {
+        await fakeDeleteEvaluationJob(jobId);
+        handleRefresh();
+      }
+    } catch (error: any) {
+      console.error('Failed to delete job:', error);
+      alert('삭제 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setDeletingJobId(null);
+    }
+    // ==================== FAKE DELETE END ====================
+
+    /* 
+    // ==================== REAL DELETE START ====================
+    // TODO: 실제 API 연동 시 이 주석을 해제하고 위의 FAKE 부분 삭제
     try {
       setDeletingJobId(jobId);
       await deleteEvaluationJob(jobId);
@@ -117,7 +161,9 @@ const EvaluationTable: React.FC<EvaluationTableProps> = ({
     } finally {
       setDeletingJobId(null);
     }
-  }, [handleRefresh]);
+    // ==================== REAL DELETE END ====================
+    */
+  }, [onJobDelete, handleRefresh]);
 
   // 일괄 삭제
   const handleBulkDelete = useCallback(async () => {
@@ -130,6 +176,33 @@ const EvaluationTable: React.FC<EvaluationTableProps> = ({
       return;
     }
 
+    // ==================== FAKE BULK DELETE START ====================
+    // TODO: 나중에 실제 API 연동 시 이 부분 수정
+    try {
+      setBulkDeleting(true);
+      const jobIds = Array.from(selectedJobs);
+      
+      // 부모 컴포넌트의 일괄 삭제 핸들러가 있으면 사용, 없으면 가짜 함수 사용
+      if (onJobsDelete) {
+        onJobsDelete(jobIds);
+      } else {
+        await fakeDeleteMultipleEvaluationJobs(jobIds);
+        handleRefresh();
+      }
+      
+      setSelectedJobs(new Set());
+      setSelectAll(false);
+    } catch (error: any) {
+      console.error('Failed to delete jobs:', error);
+      alert('삭제 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setBulkDeleting(false);
+    }
+    // ==================== FAKE BULK DELETE END ====================
+
+    /* 
+    // ==================== REAL BULK DELETE START ====================
+    // TODO: 실제 API 연동 시 이 주석을 해제하고 위의 FAKE 부분 삭제
     try {
       setBulkDeleting(true);
       const jobIds = Array.from(selectedJobs);
@@ -143,7 +216,9 @@ const EvaluationTable: React.FC<EvaluationTableProps> = ({
     } finally {
       setBulkDeleting(false);
     }
-  }, [selectedJobs, handleRefresh]);
+    // ==================== REAL BULK DELETE END ====================
+    */
+  }, [selectedJobs, onJobsDelete, handleRefresh]);
 
   // jobs가 변경될 때 선택 상태 업데이트
   useEffect(() => {
@@ -187,7 +262,7 @@ const EvaluationTable: React.FC<EvaluationTableProps> = ({
             <input 
               type="text" 
               value={searchFilter}
-              onChange={(e) => {}} // This would need to be handled by parent component
+              onChange={(e) => onSearchFilterChange?.(e.target.value)}
               placeholder="검색..." 
               className={styles.searchInput}
             />
@@ -195,7 +270,7 @@ const EvaluationTable: React.FC<EvaluationTableProps> = ({
           
           <select 
             value={statusFilter} 
-            onChange={(e) => {}} // This would need to be handled by parent component
+            onChange={(e) => onStatusFilterChange?.(e.target.value)}
             className={styles.statusSelect}
           >
             <option value="all">모든 상태</option>
