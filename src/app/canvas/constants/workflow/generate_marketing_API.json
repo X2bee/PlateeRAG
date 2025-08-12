@@ -160,7 +160,7 @@
             "memory",
             "database",
             "chat_history",
-            "xgen"
+            "XGEN"
           ],
           "inputs": [],
           "outputs": [

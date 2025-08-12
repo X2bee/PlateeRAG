@@ -77,7 +77,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                         className={styles.logoButton}
                         onClick={handleLogoClick}
                     >
-                        <h2>XGen</h2>
+                        <h2>XGEN</h2>
                     </button>
                     {user && (
                         <div className={styles.userInfo}>

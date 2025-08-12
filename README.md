@@ -1,7 +1,7 @@
-# 🚀 XGen
+# 🚀 XGEN
 
 <div align="center">
-  <img src="./img/main.png" alt="XGen Main Screen" width="100%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);" />
+  <img src="./img/main.png" alt="XGEN Main Screen" width="100%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);" />
 </div>
 
 <br />
@@ -13,14 +13,14 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![SCSS](https://img.shields.io/badge/SCSS-Styling-pink?style=flat-square&logo=sass)](https://sass-lang.com/)
 
-XGen is an innovative platform that allows you to build AI applications with a **visual workflow editor**. You can design LangChain-based AI pipelines simply through **drag-and-drop** without complex coding, and communicate naturally with AI through **real-time chat**.
+XGEN is an innovative platform that allows you to build AI applications with a **visual workflow editor**. You can design LangChain-based AI pipelines simply through **drag-and-drop** without complex coding, and communicate naturally with AI through **real-time chat**.
 
 ## ✨ Key Features
 
 ### 🎨 **Visual Canvas Editor**
 
 <div align="center">
-  <img src="./img/canvas.png" alt="XGen Canvas Editor" width="80%" style="border-radius: 8px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1);" />
+  <img src="./img/canvas.png" alt="XGEN Canvas Editor" width="80%" style="border-radius: 8px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1);" />
   <p><em>🖱️ Visually compose AI workflows with intuitive drag-and-drop interface</em></p>
 </div>
 
@@ -143,7 +143,7 @@ plateerag/
 
 ## 🤖 Supported AI Nodes (Planned)
 
-XGen supports various AI nodes from the **LangChain** ecosystem:
+XGEN supports various AI nodes from the **LangChain** ecosystem:
 
 ### 💬 **Chat Models**
 
@@ -198,7 +198,7 @@ yarn dev
 
 ### 3. Check in Browser
 
-Meet XGen at [http://localhost:3000](http://localhost:3000)! 🎉
+Meet XGEN at [http://localhost:3000](http://localhost:3000)! 🎉
 
 ## 📖 Usage Guide
 
@@ -298,7 +298,7 @@ npm run format
 
 ### 🔍 Debug System
 
-XGen provides a **smart debug logger**:
+XGEN provides a **smart debug logger**:
 
 ```javascript
 import { devLog, prodLog } from '@/app/utils/logger';
@@ -361,7 +361,7 @@ For detailed usage, refer to [`DEBUG_GUIDE.md`](DEBUG_GUIDE.md).
 
 ## 🤝 Contributing
 
-Thank you for contributing to the XGen project!
+Thank you for contributing to the XGEN project!
 
 ### How to Contribute
 
@@ -399,7 +399,7 @@ This project follows [GPL-3.0](LICENSE).
 
 ## 🔗 Related Links
 
-- **GitHub Repository**: [XGen Repository](https://github.com/plateer/plateerag)
+- **GitHub Repository**: [XGEN Repository](https://github.com/plateer/plateerag)
 - **Development Documentation**: [`DEBUG_GUIDE.md`](DEBUG_GUIDE.md) - Debug system usage guide
 - **Issue Reports**: Bug reports and feature requests through GitHub Issues
 - **Tech Blog**: [Plateer Tech Blog](https://x2bee.tistory.com/)
