@@ -88,7 +88,7 @@ export default function HomePage() {
                 <div className={styles.heroSection}>
                     <div className={styles.heroContent}>
                         <div className={styles.heroLabel}>
-                            <span>🚀 Next-Gen AI Workflow Platform</span>
+                            <span>🚀 Next-Gen AI Platform</span>
                         </div>
                         <h1 className={styles.heroTitle}>
                             Intelligent <br /><i>AI Platform</i>
