@@ -21,8 +21,8 @@ interface HuggingFaceDataset {
     author: string;
     private: boolean;
     downloads: number;
-    trending_score: number;
     created_at: string | null;
+    additional_info?: Record<string, any>;
 }
 
 interface HuggingFaceDatasetsData {

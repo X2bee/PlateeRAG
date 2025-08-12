@@ -418,6 +418,114 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         });
     }, []);
 
+    const handleSynchronizeSchema = useCallback((nodeId: string, portId: string): void => {
+        devLog.log('=== Schema Synchronization Started ===');
+        devLog.log('Target node ID:', nodeId, 'Port ID:', portId);
+
+        // 해당 포트로 연결되는 edge 찾기
+        const connectedEdge = edges.find(edge =>
+            edge.target?.nodeId === nodeId && edge.target?.portId === portId
+        );
+
+        if (!connectedEdge) {
+            devLog.warn('No connected edge found for synchronization');
+            return;
+        }
+
+        // 연결된 source 노드 찾기 (SchemaProvider)
+        const sourceNode = nodes.find(node =>
+            node.id === connectedEdge.source.nodeId
+        );
+
+        if (!sourceNode) {
+            devLog.warn('Source node not found');
+            return;
+        }
+
+        // SchemaProvider 노드인지 확인
+        const isSchemaProvider = sourceNode.data?.id === 'input_schema_provider' ||
+                                 sourceNode.data?.id === 'output_schema_provider' ||
+                                 sourceNode.data?.nodeName === 'Schema Provider(Input)';
+
+        if (!isSchemaProvider) {
+            devLog.warn('Source node is not a Schema Provider');
+            return;
+        }
+
+        // handle_id가 true인 parameters 추출
+        const schemaParameters = sourceNode.data.parameters?.filter(param =>
+            param.handle_id === true
+        ) || [];
+
+        if (schemaParameters.length === 0) {
+            devLog.warn('No schema parameters found in SchemaProvider');
+            return;
+        }
+
+        devLog.log('Found schema parameters:', schemaParameters);
+
+        // 타겟 노드에 파라미터 추가
+        setNodes(prevNodes => {
+            const targetNodeIndex = prevNodes.findIndex(node => node.id === nodeId);
+            if (targetNodeIndex === -1) {
+                devLog.warn('Target node not found for synchronization');
+                return prevNodes;
+            }
+
+            const targetNode = prevNodes[targetNodeIndex];
+            const existingParams = targetNode.data.parameters || [];
+
+            // 새로 추가할 파라미터들 (기존에 없는 key만)
+            const newParameters: Parameter[] = [];
+
+            schemaParameters.forEach(schemaParam => {
+                // 이미 동일한 key가 존재하는지 확인
+                const existingParam = existingParams.find(param =>
+                    param.id === schemaParam.id || param.name === schemaParam.name
+                );
+
+                if (!existingParam) {
+                    // 새로운 파라미터 생성 (value는 빈 값으로)
+                    const newParam: Parameter = {
+                        id: schemaParam.id,
+                        name: schemaParam.name || schemaParam.id,
+                        type: schemaParam.type || 'STR',
+                        value: '', // 빈 값으로 설정
+                        required: false,
+                        is_added: true, // 동기화로 추가됨을 표시
+                    };
+                    newParameters.push(newParam);
+                }
+            });
+
+            if (newParameters.length === 0) {
+                devLog.log('No new parameters to add - all keys already exist');
+                return prevNodes;
+            }
+
+            devLog.log('Adding new parameters:', newParameters);
+
+            const updatedNode = {
+                ...targetNode,
+                data: {
+                    ...targetNode.data,
+                    parameters: [...existingParams, ...newParameters]
+                }
+            };
+
+            const newNodes = [
+                ...prevNodes.slice(0, targetNodeIndex),
+                updatedNode,
+                ...prevNodes.slice(targetNodeIndex + 1)
+            ];
+
+            devLog.log('Schema synchronization completed successfully');
+            return newNodes;
+        });
+
+        devLog.log('=== Schema Synchronization Completed ===');
+    }, [nodes, edges]);
+
     const handleNodeNameChange = useCallback((nodeId: string, newName: string): void => {
         devLog.log('=== Canvas Node Name Change ===');
         devLog.log('Received:', { nodeId, newName });
@@ -583,20 +691,20 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         });
     };
 
-    // 캔버스 경계 내에서 유효한 위치인지 확인
-    const isPositionValid = (position: Position, nodeWidth: number = 450, nodeHeight: number = 200): boolean => {
-        const container = containerRef.current;
-        if (!container) return true;
+    // // 캔버스 경계 내에서 유효한 위치인지 확인
+    // const isPositionValid = (position: Position, nodeWidth: number = 450, nodeHeight: number = 200): boolean => {
+    //     const container = containerRef.current;
+    //     if (!container) return true;
 
-        // 캔버스의 현재 뷰포트 고려
-        const viewportMargin = 100; // 뷰포트 가장자리에서의 여백
-        const minX = -view.x / view.scale + viewportMargin;
-        const minY = -view.y / view.scale + viewportMargin;
-        const maxX = (-view.x + container.clientWidth) / view.scale - nodeWidth - viewportMargin;
-        const maxY = (-view.y + container.clientHeight) / view.scale - nodeHeight - viewportMargin;
+    //     // 캔버스의 현재 뷰포트 고려
+    //     const viewportMargin = 100; // 뷰포트 가장자리에서의 여백
+    //     const minX = -view.x / view.scale + viewportMargin;
+    //     const minY = -view.y / view.scale + viewportMargin;
+    //     const maxX = (-view.x + container.clientWidth) / view.scale - nodeWidth - viewportMargin;
+    //     const maxY = (-view.y + container.clientHeight) / view.scale - nodeHeight - viewportMargin;
 
-        return position.x >= minX && position.x <= maxX && position.y >= minY && position.y <= maxY;
-    };
+    //     return position.x >= minX && position.x <= maxX && position.y >= minY && position.y <= maxY;
+    // };
 
     // 출력 포트용 예측 노드들을 생성하는 함수 (마우스 기준 오른쪽에 격자 배치)
     const generatePredictedNodes = (outputType: string, targetPos: Position): PredictedNode[] => {
@@ -760,7 +868,8 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                         source: {
                             nodeId: sourceConnection.nodeId,
                             portId: sourceConnection.portId,
-                            portType: sourceConnection.portType as 'input' | 'output'
+                            portType: sourceConnection.portType as 'input' | 'output',
+                            type: sourceConnection.type,
                         },
                         target: {
                             nodeId: newNode.id,
@@ -1707,6 +1816,9 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                             isSnapTargetInvalid={Boolean(snappedPortKey?.startsWith(node.id) && !isSnapTargetValid)}
                             onClearSelection={() => setSelectedNodeId(null)}
                             onOpenNodeModal={onOpenNodeModal}
+                            onSynchronizeSchema={handleSynchronizeSchema}
+                            currentNodes={nodes}
+                            currentEdges={edges}
                         />
                     )
                 })}
@@ -1733,6 +1845,9 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
                         predictedOpacity={predictedNode.isHovered ? 1.0 : 0.3}
                         onPredictedNodeHover={handlePredictedNodeHover}
                         onPredictedNodeClick={handlePredictedNodeClick}
+                        onSynchronizeSchema={handleSynchronizeSchema}
+                        currentNodes={nodes}
+                        currentEdges={edges}
                     />
                 ))}
                 <svg className={styles.svgLayer}>

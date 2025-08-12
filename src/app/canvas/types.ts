@@ -45,6 +45,7 @@ export interface Parameter {
     handle_id?: boolean;
     is_added?: boolean;
     expandable?: boolean;
+    from_schema?: boolean;
 }
 
 // ========== Node Types ==========
@@ -192,6 +193,9 @@ export interface NodeProps {
     onPredictedNodeHover?: (nodeId: string, isHovered: boolean) => void;
     onPredictedNodeClick?: (nodeData: NodeData, position: Position) => void;
     onOpenNodeModal?: (nodeId: string, paramId: string, paramName: string, currentValue: string) => void;
+    onSynchronizeSchema?: (nodeId: string, portId: string) => void;
+    currentNodes?: CanvasNode[];
+    currentEdges?: CanvasEdge[];
 }
 
 export interface EdgeProps {

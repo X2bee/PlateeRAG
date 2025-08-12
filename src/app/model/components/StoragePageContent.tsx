@@ -16,14 +16,16 @@ import {
 import ContentArea from '@/app/main/components/ContentArea';
 import styles from '@/app/model/assets/StoragePage.module.scss';
 import { getAllHuggingFaceResources } from '@/app/api/huggingfaceAPI';
+import StorageModelInfoModal from './StorageModelInfoModal';
+import StorageDatasetInfoModal from './StorageDatasetInfoModal';
 
 interface HuggingFaceModel {
     id: string;
     author: string;
     private: boolean;
     downloads: number;
-    trending_score: number;
     created_at: string | null;
+    additional_info?: Record<string, any>;
 }
 
 interface HuggingFaceDataset {
@@ -31,8 +33,8 @@ interface HuggingFaceDataset {
     author: string;
     private: boolean;
     downloads: number;
-    trending_score: number;
     created_at: string | null;
+    additional_info?: Record<string, any>;
 }
 
 interface HuggingFaceResourcesData {
@@ -59,6 +61,9 @@ const StoragePageContent: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [sortField, setSortField] = useState<SortField>('date');
     const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+    const [selectedModel, setSelectedModel] = useState<HuggingFaceModel | null>(null);
+    const [selectedDataset, setSelectedDataset] = useState<HuggingFaceDataset | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const fetchResources = async () => {
         try {
@@ -150,6 +155,24 @@ const StoragePageContent: React.FC = () => {
 
     const currentResources = getCurrentResources();
     const currentError = getCurrentError();
+
+    const handleModelClick = (model: HuggingFaceModel) => {
+        setSelectedModel(model);
+        setSelectedDataset(null);
+        setIsModalOpen(true);
+    };
+
+    const handleDatasetClick = (dataset: HuggingFaceDataset) => {
+        setSelectedDataset(dataset);
+        setSelectedModel(null);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setSelectedModel(null);
+        setSelectedDataset(null);
+    };
 
     return (
         <ContentArea
@@ -244,6 +267,16 @@ const StoragePageContent: React.FC = () => {
                         <div
                             key={resource.id}
                             className={styles.resourceCard}
+                            onClick={() => {
+                                if (resourceType === 'models') {
+                                    handleModelClick(resource as HuggingFaceModel);
+                                } else {
+                                    handleDatasetClick(resource as HuggingFaceDataset);
+                                }
+                            }}
+                            style={{
+                                cursor: 'pointer'
+                            }}
                         >
                             <div className={styles.cardHeader}>
                                 <div className={styles.resourceIcon}>
@@ -296,6 +329,24 @@ const StoragePageContent: React.FC = () => {
                 </div>
             )}
             </div>
+
+            {/* Model Info Modal */}
+            {selectedModel && (
+                <StorageModelInfoModal
+                    model={selectedModel}
+                    isOpen={isModalOpen}
+                    onClose={handleCloseModal}
+                />
+            )}
+
+            {/* Dataset Info Modal */}
+            {selectedDataset && (
+                <StorageDatasetInfoModal
+                    dataset={selectedDataset}
+                    isOpen={isModalOpen}
+                    onClose={handleCloseModal}
+                />
+            )}
         </ContentArea>
     );
 };

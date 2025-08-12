@@ -1,0 +1,671 @@
+@use "sass:color";
+@use "@/app/_common/_variables" as *;
+
+// Modal Overlay
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+    backdrop-filter: blur(4px);
+}
+
+// Modal Content
+.modalContent {
+    background: $white;
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 900px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+// Modal Header
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem;
+    border-bottom: 1px solid $gray-200;
+    background: linear-gradient(135deg, rgba($primary-blue, 0.05) 0%, rgba($primary-purple, 0.05) 100%);
+    gap: 1rem;
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.modelIcon {
+    width: 3rem;
+    height: 3rem;
+    background: rgba($primary-blue, 0.1);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    svg {
+        width: 1.5rem;
+        height: 1.5rem;
+        color: $primary-blue;
+    }
+}
+
+.headerInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.modalTitle {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: $gray-900;
+    margin: 0 0 0.75rem 0;
+    word-break: break-word;
+    line-height: 1.3;
+}
+
+.headerMeta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.author {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: $gray-600;
+    font-size: 0.95rem;
+    font-weight: 500;
+
+    svg {
+        width: 1rem;
+        height: 1rem;
+        flex-shrink: 0;
+    }
+}
+
+.status {
+    padding: 0.375rem 0.875rem;
+    border-radius: 1.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+
+    svg {
+        width: 0.875rem;
+        height: 0.875rem;
+    }
+
+    &.statusPublic {
+        background: rgba($primary-green, 0.15);
+        color: $primary-green;
+        border: 1px solid rgba($primary-green, 0.3);
+    }
+
+    &.statusPrivate {
+        background: rgba($primary-yellow, 0.15);
+        color: color.scale($primary-yellow, $lightness: -20%);
+        border: 1px solid rgba($primary-yellow, 0.3);
+    }
+}
+
+.linkButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: linear-gradient(135deg, $primary-blue 0%, $primary-purple 100%);
+    color: $white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    white-space: nowrap;
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba($primary-blue, 0.3);
+        background: linear-gradient(135deg, color.scale($primary-blue, $lightness: -10%) 0%, color.scale($primary-purple, $lightness: -10%) 100%);
+    }
+
+    &:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba($primary-blue, 0.3);
+    }
+
+    svg {
+        width: 1rem;
+        height: 1rem;
+        flex-shrink: 0;
+    }
+
+    span {
+        font-weight: 600;
+    }
+}
+
+.closeButton {
+    background: transparent;
+    border: none;
+    color: $gray-500;
+    cursor: pointer;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+
+    &:hover {
+        background: rgba($gray-500, 0.1);
+        color: $gray-700;
+    }
+
+    svg {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+}
+
+// Modal Body
+.modalBody {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem;
+}
+
+// Section Styling
+.section {
+    margin-bottom: 2.5rem;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.sectionTitle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: $gray-900;
+    margin: 0 0 1.5rem 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid $gray-100;
+
+    svg {
+        width: 1.25rem;
+        height: 1.25rem;
+        color: $primary-blue;
+    }
+}
+
+// Info Grid
+.infoGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.25rem;
+}
+
+.infoItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.25rem;
+    background: $gray-50;
+    border-radius: 0.75rem;
+    border: 1px solid $gray-200;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: rgba($primary-blue, 0.02);
+        border-color: rgba($primary-blue, 0.2);
+    }
+}
+
+.label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $gray-600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: $gray-900;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+// Stats Grid
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.statCard {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, $white 0%, rgba($primary-blue, 0.02) 100%);
+    border-radius: 1rem;
+    border: 1px solid $gray-200;
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-color: rgba($primary-blue, 0.3);
+    }
+}
+
+.statIcon {
+    width: 3rem;
+    height: 3rem;
+    background: linear-gradient(135deg, $primary-blue 0%, $primary-purple 100%);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    svg {
+        width: 1.25rem;
+        height: 1.25rem;
+        color: $white;
+    }
+}
+
+.statContent {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.statLabel {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: $gray-600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.statValue {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $gray-900;
+    line-height: 1.2;
+}
+
+// Tags Container
+.tagsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.tag {
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, rgba($primary-blue, 0.1) 0%, rgba($primary-purple, 0.1) 100%);
+    color: $primary-blue;
+    border-radius: 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid rgba($primary-blue, 0.2);
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: linear-gradient(135deg, rgba($primary-blue, 0.15) 0%, rgba($primary-purple, 0.15) 100%);
+        border-color: rgba($primary-blue, 0.3);
+        transform: translateY(-1px);
+    }
+}
+
+.tagCount {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: $gray-600;
+    margin-left: 0.5rem;
+}
+
+.tagMore {
+    padding: 0.5rem 1rem;
+    background: rgba($gray-500, 0.1);
+    color: $gray-600;
+    border-radius: 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid rgba($gray-500, 0.2);
+    font-style: italic;
+}
+
+// Description Container
+.descriptionContainer {
+    background: rgba($gray-50, 0.5);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    border: 1px solid $gray-200;
+}
+
+.description {
+    margin: 0;
+    line-height: 1.6;
+    color: $gray-700;
+    font-size: 0.95rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+// Additional Info Container
+.additionalInfoContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.infoSubsection {
+    background: rgba($gray-50, 0.5);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    border: 1px solid $gray-200;
+}
+
+.subsectionTitle {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $gray-800;
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid $gray-300;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &::before {
+        content: '';
+        width: 4px;
+        height: 1.125rem;
+        background: linear-gradient(135deg, $primary-blue 0%, $primary-purple 100%);
+        border-radius: 2px;
+    }
+}
+
+// JSON Details
+.jsonDetails {
+    background: $white;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid $gray-300;
+    margin-top: 1rem;
+}
+
+.jsonSummary {
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, $gray-100 0%, $gray-50 100%);
+    cursor: pointer;
+    font-weight: 600;
+    color: $gray-800;
+    border-bottom: 1px solid $gray-300;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    &:hover {
+        background: linear-gradient(135deg, $gray-200 0%, $gray-100 100%);
+    }
+
+    svg {
+        width: 1rem;
+        height: 1rem;
+        color: $primary-blue;
+    }
+}
+
+.jsonContainer {
+    max-height: 400px;
+    overflow-y: auto;
+    background: $gray-900;
+}
+
+.jsonContent {
+    padding: 1.5rem;
+    margin: 0;
+    background: $gray-900;
+    color: $gray-100;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-x: auto;
+}
+
+// Responsive Design
+@media (max-width: 1024px) {
+    .infoGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .statsGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .modalOverlay {
+        padding: 0.5rem;
+    }
+
+    .modalContent {
+        max-height: 95vh;
+        border-radius: 0.75rem;
+    }
+
+    .modalHeader {
+        padding: 1.5rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .headerLeft {
+        width: 100%;
+    }
+
+    .headerActions {
+        width: 100%;
+        justify-content: flex-start;
+        order: -1;
+    }
+
+    .linkButton {
+        font-size: 0.8rem;
+        padding: 0.625rem 1rem;
+
+        span {
+            display: none;
+        }
+    }
+
+    .closeButton {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        padding: 0.5rem;
+    }
+
+    .modalTitle {
+        font-size: 1.5rem;
+        margin-right: 3rem;
+    }
+
+    .headerMeta {
+        gap: 0.75rem;
+    }
+
+    .modalBody {
+        padding: 1.5rem;
+    }
+
+    .section {
+        margin-bottom: 2rem;
+    }
+
+    .sectionTitle {
+        font-size: 1.125rem;
+        margin-bottom: 1rem;
+    }
+
+    .infoGrid {
+        gap: 1rem;
+    }
+
+    .infoItem {
+        padding: 1rem;
+    }
+
+    .statsGrid {
+        gap: 1rem;
+    }
+
+    .statCard {
+        padding: 1.25rem;
+    }
+
+    .statValue {
+        font-size: 1.25rem;
+    }
+
+    .jsonContent {
+        padding: 1rem;
+        font-size: 0.8rem;
+    }
+
+    .additionalInfoContainer {
+        gap: 1.5rem;
+    }
+
+    .infoSubsection {
+        padding: 1rem;
+    }
+
+    .subsectionTitle {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .jsonSummary {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    .jsonContainer {
+        max-height: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modalHeader {
+        padding: 1rem;
+    }
+
+    .modalBody {
+        padding: 1rem;
+    }
+
+    .headerLeft {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .headerActions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .linkButton {
+        padding: 0.5rem;
+        min-width: 44px;
+        justify-content: center;
+
+        span {
+            display: none;
+        }
+    }
+
+    .modelIcon {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+
+    .modalTitle {
+        font-size: 1.25rem;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .headerMeta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .statCard {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+
+    .statIcon {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+}
