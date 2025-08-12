@@ -1,0 +1,269 @@
+{
+    "workflow_name": "Workflow_openai",
+    "workflow_id": "workflow_3a08d4ffec590e7e127f218a07b2909dfdf38b3e",
+    "description": "기본적인 챗봇입니다.",
+    "tags": [
+        "chatbot",
+        "rag",
+        "agent",
+        "openai",
+        "memory",
+        "qdrant",
+        "vector_db",
+        "langchain",
+        "workflow"
+    ],
+    "contents": {
+        "view": {
+            "x": -36528.19489365627,
+            "y": -15535.773457345173,
+            "scale": 0.7293037499999999
+        },
+        "nodes": [
+            {
+                "id": "input_string-1754982285348",
+                "data": {
+                    "functionId": "startnode",
+                    "id": "input_string",
+                    "nodeName": "Input String",
+                    "description": "사용자가 설정한 문자열 값을 출력하는 입력 노드입니다. 워크플로우에서 텍스트 데이터의 시작점으로 사용됩니다. ArgsSchema가 제공되면 입력값들을 스키마에 따라 검증합니다.",
+                    "tags": [
+                        "input",
+                        "string",
+                        "text",
+                        "parameter",
+                        "source",
+                        "start_node",
+                        "user_input"
+                    ],
+                    "inputs": [
+                        {
+                            "id": "args_schema",
+                            "name": "ArgsSchema",
+                            "type": "InputSchema",
+                            "required": false
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "id": "text",
+                            "name": "Text",
+                            "type": "STR"
+                        }
+                    ],
+                    "parameters": [
+                        {
+                            "id": "input_str",
+                            "name": "INPUT",
+                            "type": "STR",
+                            "value": "ㅎㅇㅎㅇ",
+                            "required": false
+                        }
+                    ]
+                },
+                "position": {
+                    "x": 50408.458521098066,
+                    "y": 21803.18598539384
+                }
+            },
+            {
+                "id": "agents/openai_stream-1754982308143",
+                "data": {
+                    "functionId": "agents",
+                    "id": "agents/openai_stream",
+                    "nodeName": "Agent OpenAI Stream",
+                    "description": "RAG 컨텍스트를 사용하여 채팅 응답을 스트리밍으로 생성하는 Agent 노드",
+                    "tags": [
+                        "agent",
+                        "chat",
+                        "rag",
+                        "openai",
+                        "stream"
+                    ],
+                    "inputs": [
+                        {
+                            "id": "text",
+                            "name": "Text",
+                            "type": "STR",
+                            "multi": false,
+                            "required": true
+                        },
+                        {
+                            "id": "tools",
+                            "name": "Tools",
+                            "type": "TOOL",
+                            "multi": true,
+                            "required": false,
+                            "value": []
+                        },
+                        {
+                            "id": "memory",
+                            "name": "Memory",
+                            "type": "OBJECT",
+                            "multi": false,
+                            "required": false
+                        },
+                        {
+                            "id": "rag_context",
+                            "name": "RAG Context",
+                            "type": "DocsContext",
+                            "multi": false,
+                            "required": false
+                        },
+                        {
+                            "id": "args_schema",
+                            "name": "ArgsSchema",
+                            "type": "OutputSchema"
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "id": "stream",
+                            "name": "Stream",
+                            "type": "STREAM STR",
+                            "stream": true
+                        }
+                    ],
+                    "parameters": [
+                        {
+                            "id": "model",
+                            "name": "Model",
+                            "type": "STR",
+                            "value": "gpt-4o",
+                            "required": true,
+                            "options": [
+                                {
+                                    "value": "gpt-3.5-turbo",
+                                    "label": "GPT-3.5 Turbo"
+                                },
+                                {
+                                    "value": "gpt-4",
+                                    "label": "GPT-4"
+                                },
+                                {
+                                    "value": "gpt-4o",
+                                    "label": "GPT-4o"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "temperature",
+                            "name": "Temperature",
+                            "type": "FLOAT",
+                            "value": 0.7,
+                            "min": 0,
+                            "max": 2,
+                            "step": 0.1
+                        },
+                        {
+                            "id": "max_tokens",
+                            "name": "Max Tokens",
+                            "type": "INT",
+                            "value": 8192,
+                            "min": 1,
+                            "max": 65536,
+                            "step": 1
+                        },
+                        {
+                            "id": "n_messages",
+                            "name": "Max Memory",
+                            "type": "INT",
+                            "value": 3,
+                            "min": 1,
+                            "max": 10,
+                            "step": 1,
+                            "optional": true
+                        },
+                        {
+                            "id": "base_url",
+                            "name": "Base URL",
+                            "type": "STR",
+                            "value": "https://api.openai.com/v1",
+                            "optional": true
+                        },
+                        {
+                            "id": "default_prompt",
+                            "name": "Default Prompt",
+                            "type": "STR",
+                            "value": "You are a helpful AI assistant.",
+                            "required": false,
+                            "optional": true,
+                            "expandable": true,
+                            "description": "기본 프롬프트로 AI가 따르는 System 지침을 의미합니다."
+                        }
+                    ]
+                },
+                "position": {
+                    "x": 51114.199184710444,
+                    "y": 21773.530089273743
+                }
+            },
+            {
+                "id": "tools/print_any_stream-1754982314022",
+                "data": {
+                    "functionId": "endnode",
+                    "id": "tools/print_any_stream",
+                    "nodeName": "Print Any (Stream)",
+                    "description": "임의의 스트리밍 데이터를 입력받아 그대로 반환하는 스트리밍 출력 노드입니다. 워크플로우의 스트리밍 결과를 확인하는데 사용됩니다.",
+                    "tags": [
+                        "output",
+                        "print",
+                        "display",
+                        "debug",
+                        "end_node",
+                        "utility",
+                        "stream",
+                        "any_type"
+                    ],
+                    "inputs": [
+                        {
+                            "id": "stream",
+                            "name": "Stream",
+                            "type": "STREAM STR",
+                            "multi": false,
+                            "required": true,
+                            "stream": true
+                        }
+                    ],
+                    "outputs": [],
+                    "parameters": []
+                },
+                "position": {
+                    "x": 51688.71974627345,
+                    "y": 21821.872515183382
+                }
+            }
+        ],
+        "edges": [
+            {
+                "id": "edge-input_string-1754982285348:text-agents/openai_stream-1754982308143:text-1754982308144",
+                "source": {
+                    "nodeId": "input_string-1754982285348",
+                    "portId": "text",
+                    "portType": "output",
+                    "type": "STR"
+                },
+                "target": {
+                    "nodeId": "agents/openai_stream-1754982308143",
+                    "portId": "text",
+                    "portType": "input"
+                }
+            },
+            {
+                "id": "edge-agents/openai_stream-1754982308143:stream-tools/print_any_stream-1754982314022:stream-1754982314023",
+                "source": {
+                    "nodeId": "agents/openai_stream-1754982308143",
+                    "portId": "stream",
+                    "portType": "output",
+                    "type": "STREAM STR"
+                },
+                "target": {
+                    "nodeId": "tools/print_any_stream-1754982314022",
+                    "portId": "stream",
+                    "portType": "input"
+                }
+            }
+        ],
+        "interaction_id": "default"
+    }
+}
