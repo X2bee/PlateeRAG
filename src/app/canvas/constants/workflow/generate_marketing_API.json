@@ -13,12 +13,11 @@
     "langchain",
     "workflow"
   ],
-    "contents": 
-  {
+  "contents": {
     "view": {
-      "x": -43721.73316517975,
-      "y": -20780.182142113026,
-      "scale": 0.8424830002622323
+      "x": -30819.750860777935,
+      "y": -14706.476609649158,
+      "scale": 0.6
     },
     "nodes": [
       {
@@ -432,7 +431,7 @@
           ]
         },
         "position": {
-          "x": 52074.562288424684,
+          "x": 52074.56228842469,
           "y": 24927.096295109808
         }
       },
@@ -502,7 +501,7 @@
           ]
         },
         "position": {
-          "x": 52757.957497990756,
+          "x": 52757.95749799075,
           "y": 24776.577336330058
         }
       },
@@ -605,7 +604,7 @@
         },
         "position": {
           "x": 53340.67719173754,
-          "y": 25556.401787798426
+          "y": 25556.401787798422
         }
       }
     ],
@@ -677,7 +676,22 @@
           "portId": "args_schema",
           "portType": "input"
         }
+      },
+      {
+        "id": "edge-memory/db_memory-1754898514510:memory-agents/vllm_stream-1754898484788:memory-1754982036974",
+        "source": {
+          "nodeId": "memory/db_memory-1754898514510",
+          "portId": "memory",
+          "portType": "output",
+          "type": "OBJECT"
+        },
+        "target": {
+          "nodeId": "agents/vllm_stream-1754898484788",
+          "portId": "memory",
+          "portType": "input"
+        }
       }
-    ]
+    ],
+    "interaction_id": "default"
   }
 }

@@ -21,25 +21,60 @@ import type {
 
 const MiniCanvas: React.FC<MiniCanvasProps> = ({ template }) => {
     const canvasRef = useRef<HTMLDivElement>(null);
-    const [scale, setScale] = useState<number>(0.6);
-    const [offset, setOffset] = useState<Position>({ x: 0, y: 0 });
+    const [scale, setScale] = useState<number>(0.3);
+    const [offset, setOffset] = useState<Position>({ x: 400, y: 200 });
     const [isDragging, setIsDragging] = useState<boolean>(false);
     const [dragStart, setDragStart] = useState<Position>({ x: 0, y: 0 });
 
-    // Workflow data
     const nodes: CanvasNode[] = template.data?.nodes || [];
     const edges: CanvasEdge[] = template.data?.edges || [];
 
-    // Adjust node positions for mini canvas
-    const adjustedNodes: CanvasNode[] = nodes.map(node => ({
-        ...node,
-        position: {
-            x: (node.position.x - 8800) * 0.8, // Coordinate adjustment
-            y: (node.position.y - 4300) * 0.8
-        }
-    }));
+    const calculateOptimalViewAndNodes = () => {
+        if (nodes.length === 0) return { adjustedNodes: [], optimalView: null };
 
-    // Mouse wheel zoom
+        const minX = Math.min(...nodes.map(node => node.position.x));
+        const maxX = Math.max(...nodes.map(node => node.position.x));
+        const minY = Math.min(...nodes.map(node => node.position.y));
+        const maxY = Math.max(...nodes.map(node => node.position.y));
+
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+
+        const width = maxX - minX;
+        const height = maxY - minY;
+
+
+        const canvasWidth = 350;
+        const canvasHeight = 250;
+        const scaleX = width > 0 ? canvasWidth / width : 1;
+        const scaleY = height > 0 ? canvasHeight / height : 1;
+        const optimalScale = Math.min(scaleX, scaleY, 0.5);
+
+        const spacingMultiplier = 5
+        const adjustedNodes: CanvasNode[] = nodes.map(node => ({
+            ...node,
+            data: {
+                ...node.data,
+                parameters: []
+            },
+            position: {
+                x: (node.position.x - centerX) * optimalScale * spacingMultiplier,
+                y: (node.position.y - centerY) * optimalScale * spacingMultiplier
+            }
+        }));
+
+        // 6. 최적의 뷰 계산 (미니캔버스 중앙에 배치)
+        const optimalView = {
+            x: 0, // 중앙 정렬을 위해 0으로 설정
+            y: 0,
+            scale: optimalScale
+        };
+
+        return { adjustedNodes, optimalView };
+    };
+
+    // 계산된 값들을 사용
+    const { adjustedNodes, optimalView } = calculateOptimalViewAndNodes();
     const handleWheel = (e: WheelEvent): void => {
         e.preventDefault();
         const delta = e.deltaY > 0 ? -0.1 : 0.1;
@@ -172,18 +207,17 @@ const MiniCanvas: React.FC<MiniCanvasProps> = ({ template }) => {
                             return null;
                         }
 
-                        // Simple port position calculation for mini canvas scale
-                        const nodeWidth = 350 * 0.8; // 280px
-                        const nodeHeight = 120 * 0.8; // Approximate node height
+                        const nodeWidth = 350 * 0.8;
+                        const nodeHeight = 120 * 0.8;
 
-                        // Apply SVG coordinate offset
+                        // Apply SVG coordinate offset - 중앙 정렬된 좌표계에 맞게 조정
                         const sourcePos: Position = {
-                            x: sourceNode.position.x + nodeWidth + 500,  // SVG offset + node right end
-                            y: sourceNode.position.y + nodeHeight / 2 + 500   // SVG offset + node center height
+                            x: sourceNode.position.x + nodeWidth + 500,
+                            y: sourceNode.position.y + nodeHeight / 2 + 500
                         };
                         const targetPos: Position = {
-                            x: targetNode.position.x + 500,       // SVG offset + node left start
-                            y: targetNode.position.y + nodeHeight / 2 + 500   // SVG offset + node center height
+                            x: targetNode.position.x + 500,
+                            y: targetNode.position.y + nodeHeight / 2 + 500
                         };
 
                         return (
