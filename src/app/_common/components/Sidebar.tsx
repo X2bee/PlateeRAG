@@ -38,6 +38,13 @@ const Sidebar: React.FC<SidebarProps> = ({
 
     const handleLogout = async () => {
         try {
+            // 로그아웃 전에 현재 메인 컨텐츠 페이지를 sessionStorage에 저장
+            // /canvas가 아닌 실제 메인 컨텐츠 페이지로 돌아가기 위함
+            const fullUrl = window.location.pathname + window.location.search; // 경로 + 쿼리 파라미터
+            if (fullUrl && !fullUrl.includes('/login') && !fullUrl.includes('/signup')) {
+                sessionStorage.setItem('logoutFromPage', fullUrl);
+            }
+            
             // 서버에 로그아웃 요청
             await logout();
             // 통합 로그아웃 처리 (localStorage 정리 포함)

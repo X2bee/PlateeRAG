@@ -66,7 +66,7 @@ export default function HomePage() {
                                     </button>
                                 </div>
                             ) : (
-                                <Link href="/login" className={styles.loginBtn}>
+                                <Link href="/login?redirect=%2F" className={styles.loginBtn}>
                                     Login
                                     <FiArrowRight />
                                 </Link>

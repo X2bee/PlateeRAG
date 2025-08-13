@@ -96,9 +96,7 @@ const LoginPage = () => {
       toast.success(`게스트로 입장하였습니다! 환영합니다, ${result.username}님!`,
         { id: 'guest-creation' });
 
-      // 게스트는 main 페이지로 고정 리다이렉트
-      router.replace('/main');
-
+      router.replace('/');
     } catch (err: any) {
       toast.error(err.message || '게스트 계정 생성에 실패했습니다.',
         { id: 'guest-creation' });
