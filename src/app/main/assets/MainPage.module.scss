@@ -89,7 +89,7 @@
 }
 
 .sidebarHeader {
-  padding: 1.2rem;
+  padding: 0.8rem 1.2rem 1.2rem 1.2rem;
   border-bottom: 1px solid $gray-200;
   background: linear-gradient(135deg, $primary-blue 0%, $primary-purple 100%);
   color: $white;
@@ -100,19 +100,24 @@
     color: inherit;
     cursor: pointer;
     padding: 0;
-    width: 100%;
+    width: fit-content;
     text-align: left;
     transition: opacity 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
+    margin-bottom: 0.5rem;
 
     &:hover {
       opacity: 0.9;
     }
 
     h2 {
-      font-size: 1.25rem;
+      font-size: 1.5rem;
       font-weight: 600;
       margin: 0;
       pointer-events: none;
+      transform: translateY(1px) translateX(-2px);
     }
   }
 }
