@@ -99,7 +99,7 @@ export default function HomePage() {
                             </span>
                         </h1>
                         <p className={styles.heroDescription}>
-                            XGEN is the all-in-one AI platform<br />
+                            <Image src="/simbol.png" alt="XGEN" height={0} width={15}/> <b>GEN AI Platform</b> is the all-in-one AI platform<br />
                             where you can train models, design intelligent workflows <br />
                             with drag & drop, and serve them as APIs — effortlessly.
                         </p>

@@ -300,6 +300,13 @@
     color: $gray-600;
     margin-bottom: 2rem;
     max-width: 600px;
+    
+    img {
+        display: inline;
+        vertical-align: baseline;
+        margin-right: -0.35rem;
+        transform: translateY(0.8px);
+    }
 
     @media (min-width: 1024px) {
         margin-bottom: 2.5rem;
