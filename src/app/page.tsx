@@ -317,11 +317,11 @@ export default function HomePage() {
                             <h3>XGEN</h3>
                             <p>Next Generation AI Workflow</p>
                         </div>
-                        <div className={styles.footerSocial}>
+                        {/* <div className={styles.footerSocial}>
                             <a href="https://github.com/X2bee/PlateeRAG" target="_blank" rel="noopener noreferrer">
                                 <FiGithub />
                             </a>
-                        </div>
+                        </div> */}
                     </div>
                     <div className={styles.footerBottom}>
                         <p>© 2025 Plateer AI-LAB. All rights reserved.</p>
