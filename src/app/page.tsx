@@ -99,7 +99,7 @@ export default function HomePage() {
                             </span>
                         </h1>
                         <p className={styles.heroDescription}>
-                            XGEN is the all-in-one AI platform<br />
+                            <Image src="/simbol.png" alt="XGEN" height={0} width={15}/> <b>GEN AI Platform</b> is the all-in-one AI platform<br />
                             where you can train models, design intelligent workflows <br />
                             with drag & drop, and serve them as APIs — effortlessly.
                         </p>
@@ -317,11 +317,11 @@ export default function HomePage() {
                             <h3>XGEN</h3>
                             <p>Next Generation AI Workflow</p>
                         </div>
-                        <div className={styles.footerSocial}>
+                        {/* <div className={styles.footerSocial}>
                             <a href="https://github.com/X2bee/PlateeRAG" target="_blank" rel="noopener noreferrer">
                                 <FiGithub />
                             </a>
-                        </div>
+                        </div> */}
                     </div>
                     <div className={styles.footerBottom}>
                         <p>© 2025 Plateer AI-LAB. All rights reserved.</p>
