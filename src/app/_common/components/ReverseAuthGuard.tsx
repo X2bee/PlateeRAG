@@ -95,13 +95,21 @@ const ReverseAuthGuard: React.FC<ReverseAuthGuardProps> = ({
                 return decodeURIComponent(redirect);
             }
 
-            // 2. document.referrer 확인
+            // 2. sessionStorage에서 로그아웃한 페이지 확인 (사이드바에서 로그아웃한 경우) - 우선순위 높음
+            const logoutFromPage = sessionStorage.getItem('logoutFromPage');
+            if (logoutFromPage && !logoutFromPage.includes('/login') && !logoutFromPage.includes('/signup')) {
+                devLog.log(`ReverseAuthGuard: Using sessionStorage logoutFromPage: ${logoutFromPage}`);
+                sessionStorage.removeItem('logoutFromPage'); // 사용 후 제거
+                return logoutFromPage;
+            }
+
+            // 3. document.referrer 확인
             if (document.referrer && !document.referrer.includes('/login') && !document.referrer.includes('/signup')) {
                 devLog.log(`ReverseAuthGuard: Using document.referrer: ${document.referrer}`);
                 return document.referrer;
             }
 
-            // 3. sessionStorage에서 이전 페이지 확인 (선택사항)
+            // 4. sessionStorage에서 이전 페이지 확인 (선택사항)
             const previousPage = sessionStorage.getItem('previousPage');
             if (previousPage && !previousPage.includes('/login') && !previousPage.includes('/signup')) {
                 devLog.log(`ReverseAuthGuard: Using sessionStorage previousPage: ${previousPage}`);
@@ -109,7 +117,7 @@ const ReverseAuthGuard: React.FC<ReverseAuthGuardProps> = ({
             }
         }
 
-        // 4. 기본값으로 홈페이지
+        // 5. 기본값으로 홈페이지
         devLog.log('ReverseAuthGuard: Using default redirect to /');
         return '/';
     };
