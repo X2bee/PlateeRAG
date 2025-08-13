@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import toast from 'react-hot-toast';
+import Image from 'next/image';
 import { SidebarProps } from '@/app/main/components/types';
 import styles from '@/app/main/assets/MainPage.module.scss';
 import { logout } from '@/app/api/authAPI';
@@ -84,7 +85,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                         className={styles.logoButton}
                         onClick={handleLogoClick}
                     >
-                        <h2>XGEN</h2>
+                        <Image src="/main_simbol.png" alt="XGEN" width={23} height={0}/>
+                        <h2>GEN</h2>
                     </button>
                     {user && (
                         <div className={styles.userInfo}>

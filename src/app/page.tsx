@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import {
@@ -49,7 +50,8 @@ export default function HomePage() {
                 <nav className={styles.nav}>
                     <div className={styles.navContent}>
                         <div className={styles.logo}>
-                            <h1>XGEN</h1>
+                            <Image src="/simbol.png" alt="XGEN" height={0} width={30}/>
+                            <h1>GEN&nbsp;AI Platform</h1>
                         </div>
                         <div className={styles.navActions}>
                             {user ? (

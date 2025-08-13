@@ -97,6 +97,7 @@ const LoginPage = () => {
         { id: 'guest-creation' });
 
       router.replace('/');
+
     } catch (err: any) {
       toast.error(err.message || '게스트 계정 생성에 실패했습니다.',
         { id: 'guest-creation' });
