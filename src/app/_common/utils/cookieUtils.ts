@@ -1,31 +1,41 @@
 /**
  * 쿠키 관련 유틸리티 함수들
  */
-
 import { devLog } from '@/app/_common/utils/logger';
+
+interface CookieOptions {
+    expires?: string;
+    path?: string;
+    secure?: boolean;
+    sameSite?: 'Lax' | 'Strict' | 'None';
+    [key: string]: any; // For other potential options
+}
 
 /**
  * 쿠키 설정
- * @param {string} name - 쿠키 이름
- * @param {string} value - 쿠키 값
- * @param {number} days - 만료일 (일 단위, 기본값: 7일)
- * @param {Object} options - 추가 옵션
+ * @param name - 쿠키 이름
+ * @param value - 쿠키 값
+ * @param days - 만료일 (일 단위, 기본값: 7일)
+ * @param options - 추가 옵션
  */
-export const setCookie = (name, value, days = 7, options = {}) => {
+export const setCookie = (
+    name: string,
+    value: string,
+    days: number = 7,
+    options: CookieOptions = {},
+): void => {
     try {
         const expires = new Date();
-        expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
 
-        const defaultOptions = {
+        const defaultOptions: CookieOptions = {
             expires: expires.toUTCString(),
             path: '/',
-            // 개발 환경에서는 secure를 false로, 프로덕션에서는 https 여부에 따라
             secure: process.env.NODE_ENV === 'production' && window.location.protocol === 'https:',
-            // sameSite를 Lax로 변경하여 호환성 개선
-            sameSite: 'Lax'
+            sameSite: 'Lax',
         };
 
-        const cookieOptions = { ...defaultOptions, ...options };
+        const cookieOptions: CookieOptions = { ...defaultOptions, ...options };
 
         let cookieString = `${name}=${encodeURIComponent(value)}`;
 
@@ -38,7 +48,7 @@ export const setCookie = (name, value, days = 7, options = {}) => {
         });
 
         document.cookie = cookieString;
-        console.log(`Cookie set: ${name}`);
+        devLog.log(`Cookie set: ${name}`);
     } catch (error) {
         console.error('Failed to set cookie:', error);
     }
@@ -46,10 +56,11 @@ export const setCookie = (name, value, days = 7, options = {}) => {
 
 /**
  * 쿠키 가져오기
- * @param {string} name - 쿠키 이름
- * @returns {string|null} 쿠키 값 또는 null
+ * @param name - 쿠키 이름
+ * @returns 쿠키 값 또는 null
  */
-export const getCookie = (name) => {
+export const getCookie = (name: string): string | null => {
+    if (typeof document === 'undefined') return null;
     try {
         const nameEQ = name + "=";
         const ca = document.cookie.split(';');
@@ -70,13 +81,13 @@ export const getCookie = (name) => {
 
 /**
  * 쿠키 삭제
- * @param {string} name - 삭제할 쿠키 이름
- * @param {string} path - 쿠키 경로 (기본값: '/')
+ * @param name - 삭제할 쿠키 이름
+ * @param path - 쿠키 경로 (기본값: '/')
  */
-export const deleteCookie = (name, path = '/') => {
+export const deleteCookie = (name: string, path: string = '/'): void => {
     try {
         document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path};`;
-        console.log(`Cookie deleted: ${name}`);
+        devLog.log(`Cookie deleted: ${name}`);
     } catch (error) {
         console.error('Failed to delete cookie:', error);
     }
@@ -85,7 +96,7 @@ export const deleteCookie = (name, path = '/') => {
 /**
  * 모든 인증 관련 쿠키 삭제
  */
-export const clearAuthCookies = () => {
+export const clearAuthCookies = (): void => {
     const authCookieNames = ['access_token', 'refresh_token', 'user_id', 'username'];
     authCookieNames.forEach(cookieName => {
         deleteCookie(cookieName);
@@ -94,39 +105,35 @@ export const clearAuthCookies = () => {
 
 /**
  * 쿠키 존재 여부 확인
- * @param {string} name - 확인할 쿠키 이름
- * @returns {boolean} 쿠키 존재 여부
+ * @param name - 확인할 쿠키 이름
+ * @returns 쿠키 존재 여부
  */
-export const hasCookie = (name) => {
+export const hasCookie = (name: string): boolean => {
     return getCookie(name) !== null;
 };
 
 /**
  * 인증 관련 쿠키 모두 존재하는지 확인
- * @returns {boolean} 모든 인증 쿠키 존재 여부
+ * @returns 모든 인증 쿠키 존재 여부
  */
-export const hasAllAuthCookies = () => {
+export const hasAllAuthCookies = (): boolean => {
     const requiredCookies = ['access_token', 'refresh_token', 'user_id', 'username'];
     return requiredCookies.every(cookieName => hasCookie(cookieName));
 };
 
 /**
- * localStorage와 쿠키 동기화 -> 쿠키만 사용으로 변경
- * @param {string} key - 키 이름
- * @param {string} value - 값
+ * 인증 관련 쿠키 설정
+ * @param key - 키 이름
+ * @param value - 값
  */
-export const setCookieAuth = (key, value) => {
+export const setCookieAuth = (key: string, value: string): void => {
     try {
-        // 토큰은 7일, 사용자 정보는 30일
         const days = key.includes('token') ? 7 : 30;
-
-        // 보안 강화된 쿠키 옵션 (개발 환경 고려)
-        const secureOptions = {
+        const secureOptions: CookieOptions = {
             secure: process.env.NODE_ENV === 'production' && window.location.protocol === 'https:',
             sameSite: 'Lax',
-            path: '/'
+            path: '/',
         };
-
         setCookie(key, value, days, secureOptions);
     } catch (error) {
         console.error(`Failed to set auth cookie for ${key}:`, error);
@@ -134,10 +141,10 @@ export const setCookieAuth = (key, value) => {
 };
 
 /**
- * 쿠키에서 값 제거 (localStorage 제거 기능 삭제)
- * @param {string} key - 제거할 키 이름
+ * 인증 관련 쿠키 제거
+ * @param key - 제거할 키 이름
  */
-export const removeAuthCookie = (key) => {
+export const removeAuthCookie = (key: string): void => {
     try {
         deleteCookie(key);
     } catch (error) {
@@ -146,10 +153,11 @@ export const removeAuthCookie = (key) => {
 };
 
 /**
- * @param {string} key - 가져올 키 이름
- * @returns {string|null} 값 또는 null
+ * 인증 관련 쿠키 가져오기
+ * @param key - 가져올 키 이름
+ * @returns 값 또는 null
  */
-export const getAuthCookie = (key) => {
+export const getAuthCookie = (key: string): string | null => {
     try {
         return getCookie(key);
     } catch (error) {
@@ -161,7 +169,7 @@ export const getAuthCookie = (key) => {
 /**
  * 모든 인증 관련 정보 정리 (쿠키만)
  */
-export const clearAllAuth = () => {
+export const clearAllAuth = (): void => {
     const authKeys = ['access_token', 'refresh_token', 'user_id', 'username'];
     authKeys.forEach(key => {
         removeAuthCookie(key);
