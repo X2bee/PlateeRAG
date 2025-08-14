@@ -76,13 +76,13 @@
     h1 {
         font-size: 1.75rem;
         font-weight: 700;
-        margin: 0;
+        margin-left: 3px;
         background: linear-gradient(135deg, $gray-900, $gray-700);
         background-clip: text;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         letter-spacing: -0.025em;
-        transform: translateY(1.3px) translateX(-3.1px);
+        transform: translateY(1px) translateX(-3.1px);
     }
 }
 

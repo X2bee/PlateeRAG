@@ -50,7 +50,7 @@ export default function HomePage() {
                 <nav className={styles.nav}>
                     <div className={styles.navContent}>
                         <div className={styles.logo}>
-                            <Image src="/simbol.png" alt="XGEN" height={0} width={30}/>
+                            <Image src="/simbol.png" alt="XGEN" height={0} width={26}/>
                             <h1>GEN&nbsp;AI&nbsp;Platform</h1>
                         </div>
                         <div className={styles.navActions}>
