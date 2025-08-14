@@ -12,8 +12,12 @@ import {
     FiX,
 } from 'react-icons/fi';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
-import { getWorkflowIOLogs, executeWorkflowById, executeWorkflowByIdStream, loadWorkflow } from '@/app/api/workflowAPI';
-import { loadWorkflow as loadWorkflowDeploy } from '@/app/api/workflow/workflowDeployAPI';
+import { 
+    getWorkflowIOLogs, 
+    executeWorkflowById, 
+    executeWorkflowByIdStream, 
+    loadWorkflow 
+} from '@/app/api/workflow';
 import { MessageRenderer } from '@/app/_common/components/ChatParser';
 import toast from 'react-hot-toast';
 import CollectionModal from '@/app/chat/components/CollectionModal';
@@ -26,7 +30,7 @@ import { generateInteractionId, normalizeWorkflowName } from '@/app/api/interact
 import { devLog } from '@/app/_common/utils/logger';
 import { isStreamingWorkflowFromWorkflow } from '@/app/_common/utils/isStreamingWorkflow';
 import { WorkflowData } from '@/app/canvas/types';
-import { executeWorkflowByIdDeploy, executeWorkflowByIdStreamDeploy } from '@/app/api/workflow/workflowDeployAPI';
+import { executeWorkflowByIdDeploy, executeWorkflowByIdStreamDeploy } from '@/app/api/workflow';
 
 interface NewChatInterfaceProps extends ChatInterfaceProps {
     onStartNewChat?: (message: string) => void;
@@ -124,7 +128,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
             const loadWorkflowContent = async () => {
                 if (user_id) {
                     try {
-                        const workflowData = await loadWorkflowDeploy(workflow.name, user_id);
+                        const workflowData = await loadWorkflow(workflow.name, user_id);
                         setWorkflowContentDetail(workflowData);
                         devLog.log('Successfully loaded workflow content detail:', workflowData);
                     } catch (error) {
@@ -344,7 +348,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         if (mode === 'existing' && existingChatData?.interactionId && !initialMessageToExecute) {
             setLoading(true);
             getWorkflowIOLogs(existingChatData.workflowName, existingChatData.workflowId, existingChatData.interactionId)
-                .then(logs => {
+                .then((logs: any) => {
                     setIOLogs((logs as any).in_out_logs || []);
                 })
                 .catch(err => {

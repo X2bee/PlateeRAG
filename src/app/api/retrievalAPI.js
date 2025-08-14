@@ -1,5 +1,6 @@
 // RAG API 호출 함수들을 관리하는 파일
 import { devLog } from '@/app/_common/utils/logger';
+import { withErrorHandler } from '@/app/_common/utils/apiErrorHandler';
 import { API_BASE_URL } from '@/app/config.js';
 import { apiClient } from '@/app/api/apiClient';
 
@@ -11,24 +12,21 @@ import { apiClient } from '@/app/api/apiClient';
  * RAG 시스템의 연결 상태를 확인하는 함수
  * @returns {Promise<Object>} 헬스 체크 결과
  */
-export const checkRagHealth = async () => {
-    try {
-        const response = await apiClient(
-            `${API_BASE_URL}/api/retrieval/health`,
-        );
+const _checkRagHealth = async () => {
+    const response = await apiClient(
+        `${API_BASE_URL}/api/retrieval/health`,
+    );
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        devLog.info('RAG health check completed:', data);
-        return data;
-    } catch (error) {
-        devLog.error('Failed to check RAG health:', error);
-        throw error;
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const data = await response.json();
+    devLog.info('RAG health check completed:', data);
+    return data;
 };
+
+export const checkRagHealth = withErrorHandler(_checkRagHealth, 'Failed to check RAG health');
 
 // =============================================================================
 // Collection Management

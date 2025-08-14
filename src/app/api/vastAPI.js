@@ -1,4 +1,5 @@
 import { devLog } from '@/app/_common/utils/logger';
+import { withErrorHandler } from '@/app/_common/utils/apiErrorHandler';
 import { API_BASE_URL } from '@/app/config.js';
 import { apiClient } from '@/app/api/apiClient';
 
@@ -6,22 +7,19 @@ import { apiClient } from '@/app/api/apiClient';
  * Vast 서비스 상태 확인 API
  * @returns {Promise<Object>} 서비스 상태
  */
-export const checkVastHealth = async () => {
-    try {
-        const response = await apiClient(`${API_BASE_URL}/api/vast/health`);
-        const result = await response.json();
+const _checkVastHealth = async () => {
+    const response = await apiClient(`${API_BASE_URL}/api/vast/health`);
+    const result = await response.json();
 
-        if (!response.ok) {
-            throw new Error(result.detail || `HTTP error! status: ${response.status}`);
-        }
-
-        devLog.log('Vast health check successful:', result);
-        return result;
-    } catch (error) {
-        devLog.error('Failed to check vast health:', error);
-        throw error;
+    if (!response.ok) {
+        throw new Error(result.detail || `HTTP error! status: ${response.status}`);
     }
+
+    devLog.log('Vast health check successful:', result);
+    return result;
 };
+
+export const checkVastHealth = withErrorHandler(_checkVastHealth, 'Failed to check vast health');
 
 /**
  * GPU 오퍼 검색 API
@@ -35,25 +33,22 @@ export const checkVastHealth = async () => {
  * @param {number} [searchParams.limit] - 결과 제한 개수
  * @returns {Promise<Object>} 오퍼 검색 결과
  */
-export const searchVastOffers = async (searchParams = {}) => {
-    try {
-        const response = await apiClient(`${API_BASE_URL}/api/vast/search-offers`, {
-            method: 'POST',
-            body: JSON.stringify(searchParams),
-        });
-        const result = await response.json();
+const _searchVastOffers = async (searchParams = {}) => {
+    const response = await apiClient(`${API_BASE_URL}/api/vast/search-offers`, {
+        method: 'POST',
+        body: JSON.stringify(searchParams),
+    });
+    const result = await response.json();
 
-        if (!response.ok) {
-            throw new Error(result.detail || `HTTP error! status: ${response.status}`);
-        }
-
-        devLog.log('Vast offers retrieved:', result);
-        return result;
-    } catch (error) {
-        devLog.error('Failed to search vast offers:', error);
-        throw error;
+    if (!response.ok) {
+        throw new Error(result.detail || `HTTP error! status: ${response.status}`);
     }
+
+    devLog.log('Vast offers retrieved:', result);
+    return result;
 };
+
+export const searchVastOffers = withErrorHandler(_searchVastOffers, 'Failed to search vast offers');
 
 /**
  * 새 인스턴스 생성 API
@@ -66,25 +61,22 @@ export const searchVastOffers = async (searchParams = {}) => {
  * @param {Object} [options.vllm_config] - VLLM 설정
  * @returns {Promise<Object>} 생성 결과
  */
-export const createVastInstance = async (options = {}) => {
-    try {
-        const response = await apiClient(`${API_BASE_URL}/api/vast/instances`, {
-            method: 'POST',
-            body: JSON.stringify(options),
-        });
-        const result = await response.json();
+const _createVastInstance = async (options = {}) => {
+    const response = await apiClient(`${API_BASE_URL}/api/vast/instances`, {
+        method: 'POST',
+        body: JSON.stringify(options),
+    });
+    const result = await response.json();
 
-        if (!response.ok) {
-            throw new Error(result.detail || `HTTP error! status: ${response.status}`);
-        }
-
-        devLog.log('Vast instance created:', result);
-        return result;
-    } catch (error) {
-        devLog.error('Failed to create vast instance:', error);
-        throw error;
+    if (!response.ok) {
+        throw new Error(result.detail || `HTTP error! status: ${response.status}`);
     }
+
+    devLog.log('Vast instance created:', result);
+    return result;
 };
+
+export const createVastInstance = withErrorHandler(_createVastInstance, 'Failed to create vast instance');
 
 /**
  * 인스턴스 목록 조회 API

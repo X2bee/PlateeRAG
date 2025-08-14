@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FiTrash2 } from 'react-icons/fi';
 import { FiBarChart2 } from 'react-icons/fi';
-import { getWorkflowPerformance, deleteWorkflowPerformance } from '@/app/api/workflowAPI';
+import { getWorkflowPerformance, deleteWorkflowPerformance } from '@/app/api/workflow';
 import { devLog } from '@/app/_common/utils/logger';
 import toast from 'react-hot-toast';
 import styles from '@/app/main/assets/Monitor.module.scss';

@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import styles from '@/app/main/assets/BatchTester.module.scss';
 import { FiUpload, FiDownload, FiPlay, FiFileText, FiTable, FiCheckCircle, FiXCircle, FiClock, FiRefreshCw, FiTrash2 } from 'react-icons/fi';
 
-import { executeWorkflowById, executeWorkflowBatch } from '@/app/api/workflowAPI';
+import { executeWorkflowById, executeWorkflowBatch } from '@/app/api/workflow';
 
 // XLSX 라이브러리 동적 로드
 declare global {

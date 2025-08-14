@@ -1,4 +1,5 @@
 import { devLog } from '@/app/_common/utils/logger';
+import { withErrorHandler } from '@/app/_common/utils/apiErrorHandler';
 import { apiClient } from '@/app/api/apiClient.js';
 import { API_BASE_URL } from '@/app/config.js';
 
@@ -184,7 +185,7 @@ export const startTraining = async (params) => {
 
         return await response.json();
     } catch (error) {
-        console.error('Error starting training:', error);
+        devLog.error('Error starting training:', error);
         throw error;
     }
 };
@@ -221,7 +222,7 @@ export const getMLflow = async (params = {}) => {
 
         return await response.json();
     } catch (error) {
-        console.error('Error getting MLflow info:', error);
+        devLog.error('Error getting MLflow info:', error);
         throw error;
     }
 };
@@ -243,7 +244,7 @@ export const getTrainingStatus = async (jobId) => {
 
         return await response.json();
     } catch (error) {
-        console.error('Error getting training status:', error);
+        devLog.error('Error getting training status:', error);
         throw error;
     }
 };
@@ -264,7 +265,7 @@ export const getAllTrainingJobs = async () => {
 
         return await response.json();
     } catch (error) {
-        console.error('Error getting training jobs:', error);
+        devLog.error('Error getting training jobs:', error);
         throw error;
     }
 };
@@ -286,7 +287,7 @@ export const stopTraining = async (jobId) => {
 
         return await response.json();
     } catch (error) {
-        console.error('Error stopping training:', error);
+        devLog.error('Error stopping training:', error);
         throw error;
     }
 };

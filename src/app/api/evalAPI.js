@@ -1,5 +1,6 @@
 // lib/api/evaluationApi.js
 import { devLog } from '@/app/_common/utils/logger';
+import { withErrorHandler } from '@/app/_common/utils/apiErrorHandler';
 import { API_BASE_URL } from '@/app/config';
 import { apiClient } from '@/app/api/apiClient';
 
@@ -209,92 +210,80 @@ export class EvaluationAPI {
  * @param {string} jobId - 작업 ID
  * @returns {Promise<Object>} 삭제 결과
  */
-export const deleteEvaluationJob = async (jobId) => {
-  try {
-    const response = await apiClient(`${API_BASE_URL}/api/eval/${jobId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+const _deleteEvaluationJob = async (jobId) => {
+  const response = await apiClient(`${API_BASE_URL}/api/eval/${jobId}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || 'Failed to delete evaluation job');
-    }
-
-    return response.json();
-  } catch (error) {
-    devLog.error('Failed to delete evaluation job:', error);
-    throw error;
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || 'Failed to delete evaluation job');
   }
+
+  return response.json();
 };
+
+export const deleteEvaluationJob = withErrorHandler(_deleteEvaluationJob, 'Failed to delete evaluation job');
 
 /**
  * 여러 평가 작업을 일괄 삭제하는 함수
  * @param {Array<string>} jobIds - 작업 ID 배열
  * @returns {Promise<Object>} 삭제 결과
  */
-export const deleteMultipleEvaluationJobs = async (jobIds) => {
-  try {
-    const queryParams = jobIds.map(id => `job_ids=${encodeURIComponent(id)}`).join('&');
-    const response = await apiClient(`${API_BASE_URL}/api/eval?${queryParams}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+const _deleteMultipleEvaluationJobs = async (jobIds) => {
+  const queryParams = jobIds.map(id => `job_ids=${encodeURIComponent(id)}`).join('&');
+  const response = await apiClient(`${API_BASE_URL}/api/eval?${queryParams}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || 'Failed to delete evaluation jobs');
-    }
-
-    return response.json();
-  } catch (error) {
-    devLog.error('Failed to delete multiple evaluation jobs:', error);
-    throw error;
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || 'Failed to delete evaluation jobs');
   }
+
+  return response.json();
 };
+
+export const deleteMultipleEvaluationJobs = withErrorHandler(_deleteMultipleEvaluationJobs, 'Failed to delete multiple evaluation jobs');
 
 /**
  * 평가 작업 상태를 새로고침하는 함수
  * @returns {Promise<Object>} 새로고침된 평가 작업 정보
  */
-export const refreshEvaluationJobs = async () => {
-  try {
-    devLog.info('Refreshing evaluation jobs...');
-    const jobs = await EvaluationAPI.loadEvalResults();
-    devLog.info('Evaluation jobs refreshed successfully');
-    return jobs;
-  } catch (error) {
-    devLog.error('Failed to refresh evaluation jobs:', error);
-    throw error;
-  }
+const _refreshEvaluationJobs = async () => {
+  devLog.info('Refreshing evaluation jobs...');
+  const jobs = await EvaluationAPI.loadEvalResults();
+  devLog.info('Evaluation jobs refreshed successfully');
+  return jobs;
 };
+
+export const refreshEvaluationJobs = withErrorHandler(_refreshEvaluationJobs, 'Failed to refresh evaluation jobs');
 
 /**
  * 평가 작업을 상태별로 필터링하는 함수 (클라이언트 필터링)
  * @param {string} status - 상태 ('running', 'completed', 'failed' 등)
  * @returns {Promise<Object>} 필터링된 평가 작업 정보
  */
-export const fetchEvaluationJobsByStatus = async (status) => {
-  try {
-    const allJobs = await EvaluationAPI.loadEvalResults();
-    const filteredJobs = {};
+const _fetchEvaluationJobsByStatus = async (status) => {
+  const allJobs = await EvaluationAPI.loadEvalResults();
+  const filteredJobs = {};
 
-    for (const [jobId, job] of Object.entries(allJobs)) {
-      if (job.status === status) {
-        filteredJobs[jobId] = job;
-      }
+  for (const [jobId, job] of Object.entries(allJobs)) {
+    if (job.status === status) {
+      filteredJobs[jobId] = job;
     }
-
-    return filteredJobs;
-  } catch (error) {
-    devLog.error('Failed to fetch evaluation jobs by status:', error);
-    throw error;
   }
+
+  return filteredJobs;
 };
+
+export const fetchEvaluationJobsByStatus = withErrorHandler(_fetchEvaluationJobsByStatus, 'Failed to fetch evaluation jobs by status');
 
 /**
  * 평가 작업 연결 테스트를 수행하는 함수
@@ -331,23 +320,20 @@ export const testEvaluationConnection = async (jobId) => {
  * 모든 평가 작업 정보를 저장하는 함수 (백엔드에 저장 API가 있는 경우)
  * @returns {Promise<Object>} 저장 결과
  */
-export const saveEvaluationJobs = async () => {
-  try {
-    const response = await apiClient(`${API_BASE_URL}/api/eval/save`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+const _saveEvaluationJobs = async () => {
+  const response = await apiClient(`${API_BASE_URL}/api/eval/save`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    devLog.error('Failed to save evaluation jobs:', error);
-    throw error;
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
+
+  const data = await response.json();
+  return data;
 };
+
+export const saveEvaluationJobs = withErrorHandler(_saveEvaluationJobs, 'Failed to save evaluation jobs');

@@ -4,45 +4,6 @@ import { devLog } from "@/app/_common/utils/logger";
 import { excuteWorkflowRequest } from "./types";
 
 /**
- * 백엔드에서 특정 워크플로우를 로드합니다.
- * @param {string} workflowId - 로드할 워크플로우 ID (.json 확장자 포함/제외 모두 가능)
- * @returns {Promise<Object>} 워크플로우 데이터 객체를 포함하는 프로미스
- * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
- */
-export const loadWorkflow = async (workflowId: string, user_id?: number | string | null): Promise<object> => {
-    try {
-        // .json 확장자가 포함되어 있으면 제거
-        const cleanWorkflowId = workflowId.endsWith('.json')
-            ? workflowId.slice(0, -5)
-            : workflowId;
-
-        devLog.log('Loading workflow with cleaned ID:', cleanWorkflowId);
-
-        const response = await fetch(
-            `${API_BASE_URL}/api/workflow/deploy/load/${user_id}/${encodeURIComponent(cleanWorkflowId)}`,
-        );
-
-        devLog.log('Workflow load response status:', response.status);
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            devLog.error('Workflow load error data:', errorData);
-            throw new Error(
-                errorData.detail || `HTTP error! status: ${response.status}`,
-            );
-        }
-
-        const workflowData = await response.json();
-        devLog.log('Successfully loaded workflow data:', workflowData);
-        return workflowData;
-    } catch (error) {
-        devLog.error('Failed to load workflow:', error);
-        devLog.error('Workflow ID that failed:', workflowId);
-        throw error;
-    }
-};
-
-/**
  * 워크플로우 이름과 ID를 기반으로 워크플로우를 실행합니다.
  * @param {string} workflowName - 워크플로우 이름 (.json 확장자 제외)
  * @param {string} workflowId - 워크플로우 ID
