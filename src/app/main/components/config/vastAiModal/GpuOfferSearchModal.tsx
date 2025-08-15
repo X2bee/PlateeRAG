@@ -63,7 +63,7 @@ interface VLLMConfig {
     log_file: string;
     install_requirements: boolean;
     vllm_config: {
-        vllm_model_name: string;
+        vllm_serve_model_name: string;
         vllm_max_model_len: number;
         vllm_host_ip: string;
         vllm_port: number;
@@ -90,7 +90,7 @@ interface VLLMCreateInstanceConfig {
     template_name?: string;
     auto_destroy: boolean;
     vllm_config: {
-        vllm_model_name: string;
+        vllm_serve_model_name: string;
         vllm_max_model_len: number;
         vllm_host_ip: string;
         vllm_port: number;
@@ -142,7 +142,7 @@ export const GpuOfferSearchModal = () => {
         log_file: '/tmp/vllm.log',
         install_requirements: true,
         vllm_config: {
-            vllm_model_name: 'x2bee/Polar-14B',
+            vllm_serve_model_name: 'x2bee/Polar-14B',
             vllm_max_model_len: 32768,
             vllm_host_ip: '0.0.0.0',
             vllm_port: 12434,
@@ -269,7 +269,7 @@ export const GpuOfferSearchModal = () => {
             return;
         }
 
-        if (!vllmConfig.vllm_config.vllm_model_name.trim()) {
+        if (!vllmConfig.vllm_config.vllm_serve_model_name.trim()) {
             toast.error('모델명을 입력해주세요.');
             return;
         }
@@ -869,8 +869,8 @@ export const GpuOfferSearchModal = () => {
                                         <input
                                             type="text"
                                             className={styles.input}
-                                            value={vllmConfig.vllm_config.vllm_model_name}
-                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_model_name', e.target.value)}
+                                            value={vllmConfig.vllm_config.vllm_serve_model_name}
+                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_serve_model_name', e.target.value)}
                                         />
                                     </div>
                                     <div className={styles.advancedFormGroup}>
@@ -952,7 +952,7 @@ export const GpuOfferSearchModal = () => {
                                     className={`${styles.button} ${styles.primary} ${styles.large}`}
                                     onClick={handleCreateInstance}
                                     disabled={isSettingUpVLLM ||
-                                        !vllmConfig.vllm_config.vllm_model_name.trim() ||
+                                        !vllmConfig.vllm_config.vllm_serve_model_name.trim() ||
                                         !vllmConfig.vllm_config.vllm_max_model_len ||
                                         vllmConfig.vllm_config.vllm_max_model_len <= 0 ||
                                         !vllmConfig.vllm_config.vllm_gpu_memory_utilization ||
