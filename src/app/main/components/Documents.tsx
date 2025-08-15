@@ -14,6 +14,8 @@ import {
     listDocumentsInCollection,
     getDocumentDetails,
     deleteDocumentFromCollection,
+    getDocumentDetailMeta,
+    getDocumentDetailEdges,
 } from '@/app/api/retrievalAPI';
 import useSidebarManager from '@/app/_common/hooks/useSidebarManager';
 
@@ -356,7 +358,7 @@ const Documents: React.FC = () => {
                 // 순차적으로 파일 업로드
                 for (let index = 0; index < fileArray.length; index++) {
                     const file = fileArray[index];
-                    
+
                     try {
                         // 진행 상태 업데이트 (시작)
                         setUploadProgress(prev => prev.map((item, idx) =>
@@ -366,7 +368,7 @@ const Documents: React.FC = () => {
                         // 폴더 경로 정보를 메타데이터에 포함
                         const relativePath = file.webkitRelativePath || file.name;
                         const folderPath = relativePath.substring(0, relativePath.lastIndexOf('/')) || '';
-                        
+
                         const metadata = {
                             upload_type: 'folder',
                             folder_path: folderPath,
@@ -400,7 +402,7 @@ const Documents: React.FC = () => {
                         if (selectedCollection) {
                             loadDocumentsInCollection(selectedCollection.collection_name);
                         }
-                        
+
                     } catch (error) {
                         // 실패 시 진행 상태 업데이트
                         setUploadProgress(prev => prev.map((item, idx) =>
@@ -411,7 +413,7 @@ const Documents: React.FC = () => {
                                 error: error instanceof Error ? error.message : '업로드 실패'
                             } : item
                         ));
-                        
+
                         console.error(`Failed to upload file ${file.name}:`, error);
                         failed++;
                     }
@@ -421,7 +423,7 @@ const Documents: React.FC = () => {
                         await new Promise(resolve => setTimeout(resolve, 100));
                     }
                 }
-                
+
                 // 결과 통계 표시
                 if (failed > 0) {
                     setError(`${successful}개 파일 업로드 성공, ${failed}개 파일 실패`);
@@ -500,6 +502,48 @@ const Documents: React.FC = () => {
         input.click();
     };
 
+    // 문서 메타데이터 조회
+    const handleGetDocumentDetailMeta = async () => {
+        if (!selectedCollection) {
+            setError('컬렉션이 선택되지 않았습니다.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await getDocumentDetailMeta(selectedCollection.collection_name);
+            console.log('Document detail meta:', response);
+            // 여기에 응답 데이터를 처리하는 로직을 추가할 수 있습니다
+        } catch (err) {
+            setError('문서 메타데이터를 불러오는데 실패했습니다.');
+            console.error('Failed to get document detail meta:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 문서 메타데이터 조회
+    const handleGetDocumentDetailEdges = async () => {
+        if (!selectedCollection) {
+            setError('컬렉션이 선택되지 않았습니다.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await getDocumentDetailEdges(selectedCollection.collection_name);
+            console.log('Document detail edges:', response);
+            // 여기에 응답 데이터를 처리하는 로직을 추가할 수 있습니다
+        } catch (err) {
+            setError('문서 메타데이터를 불러오는데 실패했습니다.');
+            console.error('Failed to get document detail edges:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className={styles.container}>
             {/* 헤더 */}
@@ -524,6 +568,12 @@ const Documents: React.FC = () => {
                     )}
                     {viewMode === 'documents' && (
                         <>
+                            <button onClick={handleGetDocumentDetailEdges} className={`${styles.button} ${styles.secondary}`}>
+                                메타데이터 조회
+                            </button>
+                            <button onClick={handleGetDocumentDetailMeta} className={`${styles.button} ${styles.secondary}`}>
+                                메타데이터 조회
+                            </button>
                             <button onClick={handleSingleFileUpload} className={`${styles.button} ${styles.primary}`}>
                                 단일 문서 업로드
                             </button>
@@ -613,7 +663,7 @@ const Documents: React.FC = () => {
                                         <div className={styles.progressStatus}>
                                             {item.status === 'uploading' && (
                                                 <div className={styles.progressBar}>
-                                                    <div 
+                                                    <div
                                                         className={styles.progressFill}
                                                         style={{ width: `${item.progress}%` }}
                                                     ></div>
@@ -782,15 +832,15 @@ const Documents: React.FC = () => {
                             />
                         </div>
                         <div className={styles.modalActions}>
-                            <button 
-                                onClick={() => setShowCreateModal(false)} 
+                            <button
+                                onClick={() => setShowCreateModal(false)}
                                 className={`${styles.button} ${styles.secondary}`}
                                 disabled={loading}
                             >
                                 취소
                             </button>
-                            <button 
-                                onClick={handleCreateCollection} 
+                            <button
+                                onClick={handleCreateCollection}
                                 className={`${styles.button} ${styles.primary}`}
                                 disabled={loading}
                             >

@@ -369,6 +369,54 @@ export const getDocumentDetails = async (collectionName, documentId) => {
 };
 
 /**
+ * 특정 컬렉션의 문서 메타데이터 상세 정보를 조회하는 함수
+ * @param {string} collectionName - 컬렉션 이름
+ * @returns {Promise<Object>} 문서 메타데이터 목록
+ */
+export const getDocumentDetailMeta = async (collectionName) => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/collections/detail/${collectionName}/documents`,
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Document detail meta fetched:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch document detail meta:', error);
+        throw error;
+    }
+};
+
+/**
+ * 특정 컬렉션의 문서 메타데이터 상세 정보를 조회하는 함수
+ * @param {string} collectionName - 컬렉션 이름
+ * @returns {Promise<Object>} 문서 메타데이터 목록
+ */
+export const getDocumentDetailEdges = async (collectionName) => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/collections/detail/${collectionName}/edges`,
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Document detail meta fetched:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch document detail edges:', error);
+        throw error;
+    }
+};
+
+/**
  * 컬렉션에서 특정 문서를 삭제하는 함수
  * @param {string} collectionName - 컬렉션 이름
  * @param {string} documentId - 삭제할 문서 ID
