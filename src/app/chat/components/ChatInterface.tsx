@@ -27,6 +27,8 @@ import { devLog } from '@/app/_common/utils/logger';
 import { isStreamingWorkflowFromWorkflow } from '@/app/_common/utils/isStreamingWorkflow';
 import { WorkflowData } from '@/app/canvas/types';
 import { executeWorkflowByIdDeploy, executeWorkflowByIdStreamDeploy } from '@/app/api/workflow/workflowDeployAPI';
+import { SourceInfo } from '../types/source';
+import PDFViewer from './PDFViewer/PDFViewer';
 
 interface NewChatInterfaceProps extends ChatInterfaceProps {
     onStartNewChat?: (message: string) => void;
@@ -61,6 +63,8 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
     const [showDeploymentModal, setShowDeploymentModal] = useState(false);
     const [workflowContentDetail, setWorkflowContentDetail] = useState<WorkflowData | null>(null);
     const [additionalParams, setAdditionalParams] = useState<Record<string, Record<string, any>>>({});
+    const [showPDFViewer, setShowPDFViewer] = useState(false);
+    const [currentSourceInfo, setCurrentSourceInfo] = useState<SourceInfo | null>(null);
 
     const hasExecutedInitialMessage = useRef(false);
 
@@ -68,6 +72,11 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
     const attachmentButtonRef = useRef<HTMLDivElement>(null);
     
     useSidebarManager(showDeploymentModal || showCollectionModal);
+
+    const handleViewSource = (sourceInfo: SourceInfo) => {
+        setCurrentSourceInfo(sourceInfo);
+        setShowPDFViewer(true);
+    };
 
     // additionalParams에서 유효한 값만 필터링하는 함수
     const getValidAdditionalParams = useCallback(() => {
@@ -476,6 +485,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
             <MessageRenderer
                 content={content}
                 isUserMessage={isUserMessage}
+                onViewSource={handleViewSource}
             />
         );
     };
@@ -791,6 +801,18 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                 }}
                 selectedCollections={selectedCollection}
             />
+
+            {/* PDF Viewer */}
+            {currentSourceInfo && (
+                <PDFViewer
+                    sourceInfo={currentSourceInfo}
+                    isOpen={showPDFViewer}
+                    onClose={() => {
+                        setShowPDFViewer(false);
+                        setCurrentSourceInfo(null);
+                    }}
+                />
+            )}
         </div>
     );
 };
