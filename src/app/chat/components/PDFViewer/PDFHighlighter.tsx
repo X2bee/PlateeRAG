@@ -45,7 +45,7 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
       console.log('✅ [PDF Highlighter] Container ref found:', containerRef.current);
       
       // 상위 요소들 탐색
-      let current = containerRef.current;
+      let current: Element | null = containerRef.current;
       while (current && current !== document.body) {
         console.log('🔗 [PDF Highlighter] Exploring element:', {
           tagName: current.tagName,
@@ -517,8 +517,8 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
           const firstRect = firstSpan.getBoundingClientRect();
           const lastRect = lastSpan.getBoundingClientRect();
           
-          if (containerRef.current) {
-            const containerRect = containerRef.current.getBoundingClientRect();
+          if (containerRef.current !== null) {
+            const containerRect = containerRef.current!.getBoundingClientRect();
             
             // 다음 라인까지 포함한 테이블 영역
             const nextFirstSpan = nextLine[0];
