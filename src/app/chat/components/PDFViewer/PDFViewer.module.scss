@@ -155,31 +155,6 @@
   overflow: hidden;
 }
 
-.highlightOverlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 10;
-}
-
-.highlightBox {
-  position: absolute;
-  background: rgba(255, 255, 0, 0.3);
-  border: 2px solid rgba(255, 255, 0, 0.6);
-  border-radius: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  color: #374151;
-  font-weight: 500;
-  top: 10%;
-  left: 10%;
-  transform: translateY(-100%);
-  background-color: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
 
 // 반응형 디자인
 @media (max-width: 768px) {
