@@ -190,50 +190,76 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
       
     console.log(`📊 [PDF Highlighter] Sorted ${sortedSpans.length} spans by Y position`);
 
-    // 라인 그룹화 - 더 정확한 알고리즘
-    console.log('📋 [PDF Highlighter] Starting line grouping...');
+    // 라인 그룹화 - 개선된 알고리즘 (한글 문자 결합 고려)
+    console.log('📋 [PDF Highlighter] Starting improved line grouping...');
     const lines: HTMLSpanElement[][] = [];
-    let currentLineSpans: HTMLSpanElement[] = [];
-    let currentLineTop = -1;
-    let currentLineBottom = -1;
-    let lineNumber = 0;
+    
+    if (sortedSpans.length === 0) {
+      console.log('❌ [PDF Highlighter] No spans to group');
+      return lines;
+    }
 
-    sortedSpans.forEach(({ span, top, bottom, text, index }) => {
-      // 라인 높이의 절반 이상 겹치면 같은 라인으로 간주
-      const lineHeight = bottom - top;
-      const tolerance = Math.max(3, lineHeight * 0.3); // 최소 3px 또는 라인 높이의 30%
-
-      const isNewLine = currentLineTop === -1 || top > currentLineBottom - tolerance;
-
-      if (isNewLine) {
-        // 새로운 라인 시작
-        if (currentLineSpans.length > 0) {
-          lines.push([...currentLineSpans]);
-          console.log(`📄 [PDF Highlighter] Line ${lineNumber} completed with ${currentLineSpans.length} spans:`, 
-            currentLineSpans.map(s => `"${s.textContent}"`).join(' '));
-          lineNumber++;
+    // 1. Y 좌표 기반으로 라인 그룹 생성
+    const lineGroups: Array<{ y: number, tolerance: number, spans: typeof sortedSpans }> = [];
+    
+    sortedSpans.forEach((spanData, index) => {
+      const { top, bottom, span, text } = spanData;
+      const lineHeight = Math.max(bottom - top, 12); // 최소 12px 라인 높이
+      const tolerance = Math.max(8, lineHeight * 0.4); // 더 관대한 톨러런스
+      
+      console.log(`📝 [PDF Highlighter] Processing span ${index}: "${text}" at Y=${top.toFixed(1)}, height=${lineHeight.toFixed(1)}`);
+      
+      // 기존 라인 그룹과 매칭 시도
+      let foundGroup = false;
+      for (const group of lineGroups) {
+        const yDiff = Math.abs(top - group.y);
+        const maxTolerance = Math.max(group.tolerance, tolerance);
+        
+        if (yDiff <= maxTolerance) {
+          // 같은 라인 그룹에 추가
+          group.spans.push(spanData);
+          group.y = (group.y * (group.spans.length - 1) + top) / group.spans.length; // 평균 Y 좌표 업데이트
+          group.tolerance = Math.max(group.tolerance, tolerance);
+          foundGroup = true;
+          console.log(`➕ [PDF Highlighter] Added span to existing group (Y diff: ${yDiff.toFixed(1)}, tolerance: ${maxTolerance.toFixed(1)})`);
+          break;
         }
-        currentLineSpans = [span];
-        currentLineTop = top;
-        currentLineBottom = bottom;
-        console.log(`🆕 [PDF Highlighter] Starting new line ${lineNumber} with span ${index}: "${text}" at Y=${top.toFixed(1)}`);
-      } else {
-        // 같은 라인에 추가
-        currentLineSpans.push(span);
-        currentLineTop = Math.min(currentLineTop, top);
-        currentLineBottom = Math.max(currentLineBottom, bottom);
-        console.log(`➕ [PDF Highlighter] Adding to line ${lineNumber}, span ${index}: "${text}" (tolerance: ${tolerance.toFixed(1)})`);
+      }
+      
+      if (!foundGroup) {
+        // 새로운 라인 그룹 생성
+        lineGroups.push({
+          y: top,
+          tolerance: tolerance,
+          spans: [spanData]
+        });
+        console.log(`🆕 [PDF Highlighter] Created new line group at Y=${top.toFixed(1)}`);
       }
     });
-
-    // 마지막 라인 추가
-    if (currentLineSpans.length > 0) {
-      lines.push(currentLineSpans);
-      console.log(`📄 [PDF Highlighter] Final line ${lineNumber} completed with ${currentLineSpans.length} spans:`, 
-        currentLineSpans.map(s => `"${s.textContent}"`).join(' '));
-    }
     
-    console.log(`✅ [PDF Highlighter] Line grouping complete: ${lines.length} lines found`);
+    console.log(`📊 [PDF Highlighter] Created ${lineGroups.length} line groups`);
+    
+    // 2. Y 좌표로 라인 그룹 정렬
+    lineGroups.sort((a, b) => a.y - b.y);
+    
+    // 3. 각 그룹을 라인으로 변환
+    lineGroups.forEach((group, groupIndex) => {
+      // X 좌표로 스팬 정렬
+      group.spans.sort((a, b) => a.left - b.left);
+      
+      const lineSpans = group.spans.map(spanData => spanData.span);
+      const lineText = lineSpans.map(span => span.textContent || '').join('');
+      
+      // 빈 라인이나 의미없는 라인 필터링
+      if (lineText.trim().length > 0) {
+        lines.push(lineSpans);
+        console.log(`📄 [PDF Highlighter] Line ${lines.length}: "${lineText}" (${lineSpans.length} spans, Y=${group.y.toFixed(1)})`);
+      } else {
+        console.log(`🗑️ [PDF Highlighter] Skipped empty line group ${groupIndex}: "${lineText}"`);
+      }
+    });
+    
+    console.log(`✅ [PDF Highlighter] Improved line grouping complete: ${lines.length} lines found`);
 
     // 각 라인 내에서 X 좌표로 정렬
     lines.forEach(line => {
@@ -590,7 +616,64 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
           }
         });
         
-        if (containerRef.current) {
+        // getBoundingClientRect가 0인 경우 처리
+        if (firstRect.width === 0 || firstRect.height === 0) {
+          console.log(`⚠️ [PDF Highlighter] Line ${lineIndex + 1} has zero dimensions, trying alternative approach`);
+          
+          // 전체 라인의 스팬들을 체크해서 유효한 크기 찾기
+          let validRects: DOMRect[] = [];
+          lineSpans.forEach((span, spanIndex) => {
+            const rect = span.getBoundingClientRect();
+            if (rect.width > 0 && rect.height > 0) {
+              validRects.push(rect);
+              console.log(`📏 [PDF Highlighter] Valid span ${spanIndex} in line ${lineIndex + 1}:`, {
+                text: span.textContent,
+                rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
+              });
+            }
+          });
+          
+          if (validRects.length === 0) {
+            console.log(`❌ [PDF Highlighter] No valid rects found for line ${lineIndex + 1}, skipping`);
+            continue;
+          }
+          
+          // 유효한 사각형들로 라인 경계 계산
+          const minLeft = Math.min(...validRects.map(r => r.left));
+          const maxRight = Math.max(...validRects.map(r => r.right));
+          const minTop = Math.min(...validRects.map(r => r.top));
+          const maxBottom = Math.max(...validRects.map(r => r.bottom));
+          
+          if (containerRef.current) {
+            const containerRect = containerRef.current.getBoundingClientRect();
+            
+            const lineTop = minTop - containerRect.top;
+            const lineBottom = maxBottom - containerRect.top;
+            const lineLeft = minLeft - containerRect.left;
+            const lineWidth = maxRight - minLeft;
+            const lineHeight = maxBottom - minTop;
+            
+            lineYMin = Math.min(lineYMin, lineTop);
+            lineYMax = Math.max(lineYMax, lineBottom);
+            
+            const highlightBox = {
+              top: lineTop,
+              left: lineLeft,
+              width: lineWidth,
+              height: Math.max(lineHeight, 12), // 최소 12px 높이
+              type: 'text' as const
+            };
+            
+            console.log(`✅ [PDF Highlighter] Created highlight box for line ${lineIndex + 1} (alternative method):`, {
+              position: `(${lineLeft.toFixed(1)}, ${lineTop.toFixed(1)})`,
+              size: `${lineWidth.toFixed(1)}x${lineHeight.toFixed(1)}`,
+              validRects: validRects.length
+            });
+            
+            boxes.push(highlightBox);
+          }
+        } else if (containerRef.current) {
+          // 기존 방식 (정상적인 경우)
           const containerRect = containerRef.current.getBoundingClientRect();
           
           const lineTop = firstRect.top - containerRect.top;
@@ -604,8 +687,8 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
           const highlightBox = {
             top: lineTop,
             left: lineLeft,
-            width: lineWidth,
-            height: firstRect.height,
+            width: Math.max(lineWidth, 10), // 최소 10px 너비
+            height: Math.max(firstRect.height, 12), // 최소 12px 높이
             type: 'text' as const
           };
           
