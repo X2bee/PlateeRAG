@@ -168,17 +168,17 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose }) =>
                 loading=""
                 error=""
                 className={styles.page}
+                onLoadSuccess={onPageLoadSuccess}
               />
               
-              {/* 하이라이트 오버레이 (해당 페이지인 경우) */}
-              {pageNumber === highlightRange.pageNumber && (
-                <div className={styles.highlightOverlay}>
-                  {/* 실제 하이라이팅은 나중에 구현 */}
-                  <div className={styles.highlightBox}>
-                    하이라이트 영역: 라인 {highlightRange.lineStart}-{highlightRange.lineEnd}
-                  </div>
-                </div>
-              )}
+              {/* PDF 하이라이터 */}
+              <PDFHighlighter
+                pageNumber={pageNumber}
+                highlightRange={highlightRange}
+                scale={scale}
+                pageWidth={pageSize.width}
+                pageHeight={pageSize.height}
+              />
             </div>
           </Document>
         </div>
