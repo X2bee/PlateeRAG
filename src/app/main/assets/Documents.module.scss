@@ -41,7 +41,7 @@ $white: #ffffff;
         display: flex;
         align-items: center;
         gap: 1rem;
-        
+
         h2 {
             margin: 0;
         }
@@ -204,7 +204,7 @@ $white: #ffffff;
         gap: 1rem;
         flex-wrap: wrap;
         margin-bottom: 1.5rem;
-    
+
         h3 {
             font-size: 1.5rem;
             font-weight: 600;
@@ -331,7 +331,7 @@ $white: #ffffff;
             background: $gray-200;
             border-radius: 3px;
             overflow: hidden;
-            
+
             .progressFill {
                 height: 100%;
                 background: linear-gradient(90deg, $primary-blue, color.adjust($primary-blue, $lightness: 10%));
@@ -344,7 +344,7 @@ $white: #ffffff;
             font-size: 0.875rem;
             font-weight: 600;
             white-space: nowrap;
-            
+
             &.uploading { color: $primary-blue; }
             &.success { color: $primary-green; }
             &.error { color: $primary-red; }
@@ -383,7 +383,7 @@ $white: #ffffff;
 
     .documentContent {
         cursor: pointer;
-        
+
         h4 {
             font-size: 1.125rem;
             font-weight: 600;
@@ -709,5 +709,62 @@ $white: #ffffff;
     .modalContent {
         width: 95%;
         padding: 1.5rem;
+    }
+}
+
+// Document Graph Styles
+.documentGraphContainer {
+    background: $white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.graphContent {
+    padding: 2rem;
+}
+
+.graphPlaceholder {
+    text-align: center;
+    padding: 3rem;
+    border: 2px dashed $gray-300;
+    border-radius: 0.5rem;
+    background: $gray-50;
+
+    h3 {
+        color: $gray-700;
+        margin-bottom: 0.5rem;
+        font-size: 1.5rem;
+    }
+
+    p {
+        color: $gray-500;
+        margin-bottom: 2rem;
+    }
+}
+
+.debugInfo {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: $gray-100;
+    border-radius: 0.5rem;
+    text-align: left;
+
+    h4 {
+        color: $gray-700;
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+
+    pre {
+        background: $white;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        overflow-x: auto;
+        font-size: 0.875rem;
+        color: $gray-800;
+        border: 1px solid $gray-200;
+        max-height: 300px;
+        overflow-y: auto;
     }
 }

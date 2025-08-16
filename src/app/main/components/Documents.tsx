@@ -98,7 +98,7 @@ interface SearchResponse {
     search_params: any;
 }
 
-type ViewMode = 'collections' | 'documents' | 'document-detail';
+type ViewMode = 'collections' | 'documents' | 'documents-graph' | 'document-detail';
 
 const Documents: React.FC = () => {
 
@@ -112,6 +112,10 @@ const Documents: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
     const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
+
+    // Graph 데이터 상태
+    const [documentDetailMeta, setDocumentDetailMeta] = useState<any>(null);
+    const [documentDetailEdges, setDocumentDetailEdges] = useState<any>(null);
 
     // 모달 상태
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -327,6 +331,10 @@ const Documents: React.FC = () => {
             setDocumentDetails(null);
             setSearchQuery('');
             setSearchResults([]);
+        } else if (viewMode === 'documents-graph') {
+            setViewMode('documents');
+            setDocumentDetailMeta(null);
+            setDocumentDetailEdges(null);
         } else if (viewMode === 'documents') {
             setViewMode('collections');
             setSelectedCollection(null);
@@ -514,7 +522,7 @@ const Documents: React.FC = () => {
             setError(null);
             const response = await getDocumentDetailMeta(selectedCollection.collection_name);
             console.log('Document detail meta:', response);
-            // 여기에 응답 데이터를 처리하는 로직을 추가할 수 있습니다
+            setDocumentDetailMeta(response);
         } catch (err) {
             setError('문서 메타데이터를 불러오는데 실패했습니다.');
             console.error('Failed to get document detail meta:', err);
@@ -535,13 +543,22 @@ const Documents: React.FC = () => {
             setError(null);
             const response = await getDocumentDetailEdges(selectedCollection.collection_name);
             console.log('Document detail edges:', response);
-            // 여기에 응답 데이터를 처리하는 로직을 추가할 수 있습니다
+            setDocumentDetailEdges(response);
         } catch (err) {
             setError('문서 메타데이터를 불러오는데 실패했습니다.');
             console.error('Failed to get document detail edges:', err);
         } finally {
             setLoading(false);
         }
+    };
+
+    // 그래프 뷰로 전환 시 메타데이터 로드
+    const handleSwitchToGraphView = async () => {
+        setViewMode('documents-graph');
+        await Promise.all([
+            handleGetDocumentDetailMeta(),
+            handleGetDocumentDetailEdges()
+        ]);
     };
 
     return (
@@ -557,6 +574,7 @@ const Documents: React.FC = () => {
                     <h2>
                         {viewMode === 'collections' && '컬렉션 관리'}
                         {viewMode === 'documents' && `${selectedCollection?.collection_make_name} - 문서 목록`}
+                        {viewMode === 'documents-graph' && `${selectedCollection?.collection_make_name} - 문서 그래프`}
                         {viewMode === 'document-detail' && `${selectedDocument?.file_name} - 문서 상세`}
                     </h2>
                 </div>
@@ -568,11 +586,21 @@ const Documents: React.FC = () => {
                     )}
                     {viewMode === 'documents' && (
                         <>
-                            <button onClick={handleGetDocumentDetailEdges} className={`${styles.button} ${styles.secondary}`}>
-                                메타데이터 조회
+                            <button onClick={handleSwitchToGraphView} className={`${styles.button} ${styles.secondary}`}>
+                                그래프 보기
                             </button>
-                            <button onClick={handleGetDocumentDetailMeta} className={`${styles.button} ${styles.secondary}`}>
-                                메타데이터 조회
+                            <button onClick={handleSingleFileUpload} className={`${styles.button} ${styles.primary}`}>
+                                단일 문서 업로드
+                            </button>
+                            <button onClick={handleFolderUpload} className={`${styles.button} ${styles.primary}`}>
+                                폴더 업로드
+                            </button>
+                        </>
+                    )}
+                    {viewMode === 'documents-graph' && (
+                        <>
+                            <button onClick={() => setViewMode('documents')} className={`${styles.button} ${styles.secondary}`}>
+                                목록 보기
                             </button>
                             <button onClick={handleSingleFileUpload} className={`${styles.button} ${styles.primary}`}>
                                 단일 문서 업로드
@@ -806,6 +834,38 @@ const Documents: React.FC = () => {
                     )}
 
                     {loading && <div className={styles.loading}>로딩 중...</div>}
+                </div>
+            )}
+
+            {/* 문서 그래프 보기 */}
+            {viewMode === 'documents-graph' && (
+                <div className={styles.documentGraphContainer}>
+                    {loading ? (
+                        <div className={styles.loading}>그래프 데이터를 불러오는 중...</div>
+                    ) : (
+                        <div className={styles.graphContent}>
+                            {/* 그래프 컨테이너 - 추후 D3.js 구현 예정 */}
+                            <div className={styles.graphPlaceholder}>
+                                <h3>문서 관계 그래프</h3>
+                                <p>D3.js를 이용한 그래프가 여기에 표시됩니다.</p>
+
+                                {/* 디버그 정보 */}
+                                {documentDetailMeta && (
+                                    <div className={styles.debugInfo}>
+                                        <h4>메타데이터 정보:</h4>
+                                        <pre>{JSON.stringify(documentDetailMeta, null, 2)}</pre>
+                                    </div>
+                                )}
+
+                                {documentDetailEdges && (
+                                    <div className={styles.debugInfo}>
+                                        <h4>엣지 정보:</h4>
+                                        <pre>{JSON.stringify(documentDetailEdges, null, 2)}</pre>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
