@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import styles from '../assets/Documents.module.scss';
+import DocumentsGraph from './DocumentsGraph';
 
 import {
     isValidCollectionName,
@@ -839,34 +840,11 @@ const Documents: React.FC = () => {
 
             {/* 문서 그래프 보기 */}
             {viewMode === 'documents-graph' && (
-                <div className={styles.documentGraphContainer}>
-                    {loading ? (
-                        <div className={styles.loading}>그래프 데이터를 불러오는 중...</div>
-                    ) : (
-                        <div className={styles.graphContent}>
-                            {/* 그래프 컨테이너 - 추후 D3.js 구현 예정 */}
-                            <div className={styles.graphPlaceholder}>
-                                <h3>문서 관계 그래프</h3>
-                                <p>D3.js를 이용한 그래프가 여기에 표시됩니다.</p>
-
-                                {/* 디버그 정보 */}
-                                {documentDetailMeta && (
-                                    <div className={styles.debugInfo}>
-                                        <h4>메타데이터 정보:</h4>
-                                        <pre>{JSON.stringify(documentDetailMeta, null, 2)}</pre>
-                                    </div>
-                                )}
-
-                                {documentDetailEdges && (
-                                    <div className={styles.debugInfo}>
-                                        <h4>엣지 정보:</h4>
-                                        <pre>{JSON.stringify(documentDetailEdges, null, 2)}</pre>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </div>
+                <DocumentsGraph
+                    loading={loading}
+                    documentDetailMeta={documentDetailMeta}
+                    documentDetailEdges={documentDetailEdges}
+                />
             )}
 
             {/* 컬렉션 생성 모달 */}
