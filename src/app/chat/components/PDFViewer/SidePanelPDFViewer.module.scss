@@ -1,0 +1,172 @@
+@use '@/app/_common/_variables.scss' as *;
+
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: $white;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid $gray-200;
+  background: $gray-50;
+  flex-shrink: 0;
+}
+
+.fileInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.fileName {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: $gray-900;
+  margin: 0 0 0.25rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.location {
+  font-size: 0.75rem;
+  color: $gray-600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: $gray-600;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+
+  &:hover {
+    background: $gray-200;
+    color: $gray-800;
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid $gray-200;
+  background: $gray-50;
+  flex-shrink: 0;
+}
+
+.pageControls,
+.zoomControls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.controlButton {
+  background: $white;
+  border: 1px solid $gray-300;
+  border-radius: 0.25rem;
+  padding: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: $gray-600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover:not(:disabled) {
+    background: $gray-100;
+    border-color: $gray-400;
+    color: $gray-800;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+.pageInfo,
+.zoomInfo {
+  font-size: 0.75rem;
+  color: $gray-700;
+  font-weight: 500;
+  min-width: 40px;
+  text-align: center;
+}
+
+.content {
+  flex: 1;
+  overflow: auto;
+  background: $gray-100;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0.5rem;
+}
+
+.loading,
+.error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 0.875rem;
+  color: $gray-600;
+}
+
+.error {
+  color: #dc2626;
+}
+
+.pageContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.page {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+// 반응형 디자인
+@media (max-width: 1024px) {
+  .header {
+    padding: 0.75rem;
+  }
+
+  .toolbar {
+    padding: 0.375rem 0.75rem;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .pageControls,
+  .zoomControls {
+    justify-content: center;
+  }
+}

@@ -4,6 +4,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { FiCopy, FiCheck, FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import styles from '@/app/chat/assets/chatParser.module.scss';
 import { APP_CONFIG } from '@/app/config';
+import SourceButton from '@/app/chat/components/SourceButton';
+import { SourceInfo } from '@/app/chat/types/source';
+import sourceStyles from '@/app/chat/assets/SourceButton.module.scss';
 
 import { Prism } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -87,18 +90,44 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ language, code, className 
 };
 
 /**
+ * Citation 정보를 파싱하는 함수
+ */
+const parseCitation = (citationText: string): SourceInfo | null => {
+    try {
+        // 예상 형태: [Cite. {"file_name": "sample.pdf", "file_path": "/sample.pdf", "page_number": 1, "line_start": 10, "line_end": 15}]
+        const jsonMatch = citationText.match(/\[Cite\.\s*({.*})\]/);
+        if (jsonMatch) {
+            const sourceInfo = JSON.parse(jsonMatch[1]);
+            return {
+                file_name: sourceInfo.file_name,
+                file_path: sourceInfo.file_path,
+                page_number: sourceInfo.page_number,
+                line_start: sourceInfo.line_start,
+                line_end: sourceInfo.line_end
+            };
+        }
+        return null;
+    } catch (error) {
+        console.error('Failed to parse citation:', error);
+        return null;
+    }
+};
+
+/**
  * 마크다운 메시지 렌더러 컴포넌트
  */
 interface MessageRendererProps {
     content: string;
     isUserMessage?: boolean;
     className?: string;
+    onViewSource?: (sourceInfo: SourceInfo) => void;
 }
 
 export const MessageRenderer: React.FC<MessageRendererProps> = ({
     content,
     isUserMessage = false,
-    className = ''
+    className = '',
+    onViewSource
 }) => {
 
     if (!content) {
@@ -113,7 +142,7 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
         );
     }
 
-    const parsedElements = parseContentToReactElements(content);
+    const parsedElements = parseContentToReactElements(content, onViewSource);
 
     return (
         <div
@@ -259,7 +288,7 @@ const findThinkBlocks = (content: string): ThinkBlockInfo[] => {
 /**
  * 컨텐츠를 React 엘리먼트로 파싱
  */
-const parseContentToReactElements = (content: string): React.ReactNode[] => {
+const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo: SourceInfo) => void): React.ReactNode[] => {
     let processed = content;
 
     // 이스케이프된 문자 처리
@@ -309,7 +338,7 @@ const parseContentToReactElements = (content: string): React.ReactNode[] => {
         // 블록 이전 텍스트 처리
         if (block.start > currentIndex) {
             const beforeText = processed.slice(currentIndex, block.start);
-            elements.push(...parseSimpleMarkdown(beforeText, elements.length));
+            elements.push(...parseSimpleMarkdown(beforeText, elements.length, onViewSource));
         }
 
         // 블록 타입에 따라 컴포넌트 추가
@@ -346,7 +375,7 @@ const parseContentToReactElements = (content: string): React.ReactNode[] => {
     // 남은 텍스트 처리
     if (currentIndex < processed.length) {
         const remainingText = processed.slice(currentIndex);
-        elements.push(...parseSimpleMarkdown(remainingText, elements.length));
+        elements.push(...parseSimpleMarkdown(remainingText, elements.length, onViewSource));
     }
 
     return elements;
@@ -372,7 +401,7 @@ const isSeparatorLine = (line: string): boolean => {
 /**
  * 간단한 마크다운 파싱 (코드 블록 제외)
  */
-const parseSimpleMarkdown = (text: string, startKey: number): React.ReactNode[] => {
+const parseSimpleMarkdown = (text: string, startKey: number, onViewSource?: (sourceInfo: SourceInfo) => void): React.ReactNode[] => {
     if (!text.trim()) return [];
 
     const elements: React.ReactNode[] = [];
@@ -508,14 +537,83 @@ const parseSimpleMarkdown = (text: string, startKey: number): React.ReactNode[] 
 
         // 일반 텍스트 처리
         if (line.trim()) {
-            const processedText = processInlineMarkdown(line);
-            elements.push(<div key={key} dangerouslySetInnerHTML={{ __html: processedText }} />);
+            const processedElements = processInlineMarkdownWithCitations(line, key, onViewSource);
+            elements.push(...processedElements);
         } else if (elements.length > 0 && processedLines[i - 1]?.trim() !== '') {
             // 연속된 빈 줄이 아닌 경우에만 <br> 추가
             elements.push(<br key={key} />);
         }
     }
 
+    return elements;
+};
+
+/**
+ * Citation을 포함한 인라인 마크다운 처리
+ */
+const processInlineMarkdownWithCitations = (text: string, key: string, onViewSource?: (sourceInfo: SourceInfo) => void): React.ReactNode[] => {
+    const elements: React.ReactNode[] = [];
+    let currentIndex = 0;
+    
+    // Citation 패턴 찾기: [Cite. {JSON}]
+    const citationRegex = /\[Cite\.\s*\{[^}]*\}\]/g;
+    let match;
+    
+    while ((match = citationRegex.exec(text)) !== null) {
+        // Citation 이전 텍스트 처리
+        if (match.index > currentIndex) {
+            const beforeText = text.slice(currentIndex, match.index);
+            const processedText = processInlineMarkdown(beforeText);
+            elements.push(
+                <span key={`${key}-text-${currentIndex}`} dangerouslySetInnerHTML={{ __html: processedText }} />
+            );
+        }
+        
+        // Citation 처리
+        const citationText = match[0];
+        const sourceInfo = parseCitation(citationText);
+        
+        if (sourceInfo && onViewSource) {
+            elements.push(
+                <SourceButton
+                    key={`${key}-citation-${match.index}`}
+                    sourceInfo={sourceInfo}
+                    onViewSource={onViewSource}
+                    className={sourceStyles.inlineCitation}
+                />
+            );
+        } else {
+            // 파싱 실패 시 원본 텍스트 표시
+            elements.push(
+                <span key={`${key}-citation-fallback-${match.index}`}>
+                    {citationText}
+                </span>
+            );
+        }
+        
+        currentIndex = match.index + match[0].length;
+    }
+    
+    // 남은 텍스트 처리
+    if (currentIndex < text.length) {
+        const remainingText = text.slice(currentIndex);
+        const processedText = processInlineMarkdown(remainingText);
+        elements.push(
+            <span key={`${key}-text-${currentIndex}`} dangerouslySetInnerHTML={{ __html: processedText }} />
+        );
+    }
+    
+    // Citation이 없는 경우 기존 방식으로 처리
+    if (elements.length === 0) {
+        const processedText = processInlineMarkdown(text);
+        elements.push(
+            <div key={key} dangerouslySetInnerHTML={{ __html: processedText }} />
+        );
+    } else {
+        // Citation이 있는 경우 div로 감싸기
+        return [<div key={key} className={sourceStyles.lineWithCitations}>{elements}</div>];
+    }
+    
     return elements;
 };
 
