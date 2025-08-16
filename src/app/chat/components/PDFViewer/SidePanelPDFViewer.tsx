@@ -76,13 +76,24 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, onC
     const { width, height } = page;
     setPageSize({ width, height });
     
+    console.log('📄 [SidePanelPDFViewer] Page loaded successfully:', { pageNumber, width, height });
+    
     // 텍스트 콘텐츠 추출
     page.getTextContent().then((content: any) => {
+      console.log('📝 [SidePanelPDFViewer] Text content loaded:', {
+        pageNumber,
+        itemsCount: content?.items?.length || 0
+      });
       setTextContent(content);
+      
+      // 텍스트 콘텐츠가 로드된 후 약간의 지연을 두고 DOM 업데이트 대기
+      setTimeout(() => {
+        console.log('🔄 [SidePanelPDFViewer] Text content DOM should be ready now');
+      }, 100);
     }).catch((err: Error) => {
       console.warn('텍스트 콘텐츠를 가져올 수 없습니다:', err);
     });
-  }, []);
+  }, [pageNumber]);
 
   const handleZoomIn = () => {
     setScale(prev => Math.min(prev + 0.1, 2.0));

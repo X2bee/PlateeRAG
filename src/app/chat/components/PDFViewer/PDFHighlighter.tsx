@@ -147,12 +147,59 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
     const textSpans = Array.from(textLayerDiv.querySelectorAll('span')) as HTMLSpanElement[];
     console.log(`📝 [PDF Highlighter] Found ${textSpans.length} text spans`);
     
+    // 텍스트 스팬이 없을 때 추가 디버깅
     if (textSpans.length === 0) {
-      console.log('❌ [PDF Highlighter] No text spans found');
+      console.log('❌ [PDF Highlighter] No text spans found - Additional debugging:');
+      
+      // TextLayer의 내부 구조 확인
+      console.log('🔍 [PDF Highlighter] TextLayer innerHTML:', textLayerDiv.innerHTML.substring(0, 500));
+      console.log('🔍 [PDF Highlighter] TextLayer children count:', textLayerDiv.children.length);
+      console.log('🔍 [PDF Highlighter] TextLayer className:', textLayerDiv.className);
+      
+      // 전체 문서에서 모든 span 요소들 확인
+      const allSpans = document.querySelectorAll('span');
+      console.log(`🔍 [PDF Highlighter] Total spans in document: ${allSpans.length}`);
+      
+      // react-pdf 관련 span들만 확인
+      const pdfSpans = document.querySelectorAll('.react-pdf__Page span, [data-page-number] span');
+      console.log(`🔍 [PDF Highlighter] PDF-related spans: ${pdfSpans.length}`);
+      
+      // 첫 번째 몇 개 span의 내용 출력
+      for (let i = 0; i < Math.min(pdfSpans.length, 5); i++) {
+        const span = pdfSpans[i] as HTMLElement;
+        console.log(`📝 [PDF Highlighter] PDF Span ${i}:`, {
+          text: span.textContent,
+          className: span.className,
+          parent: span.parentElement?.className
+        });
+      }
+      
+      return [];
+    }
+    
+    // 텍스트 스팬들의 유효성 검사
+    const validSpans = textSpans.filter(span => {
+      const text = span.textContent?.trim() || '';
+      return text.length > 0;
+    });
+    
+    console.log(`✅ [PDF Highlighter] Valid spans: ${validSpans.length}/${textSpans.length}`);
+    
+    if (validSpans.length === 0) {
+      console.log('⚠️ [PDF Highlighter] No spans with valid text content found');
+      // 빈 텍스트 스팬들의 정보 출력
+      textSpans.slice(0, 5).forEach((span, index) => {
+        console.log(`📝 [PDF Highlighter] Empty span ${index}:`, {
+          innerHTML: span.innerHTML,
+          textContent: `"${span.textContent}"`,
+          className: span.className,
+          style: span.style.cssText
+        });
+      });
       return [];
     }
 
-    // 텍스트 요소들을 Y 좌표로 정렬
+    // 텍스트 요소들을 Y 좌표로 정렬 (유효한 스팬만 사용)
     console.log('📐 [PDF Highlighter] Processing span positions...');
     const containerRect = textLayerDiv.getBoundingClientRect();
     console.log('📦 [PDF Highlighter] Container rect:', {
@@ -162,7 +209,7 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
       height: containerRect.height
     });
 
-    const sortedSpans = textSpans
+    const sortedSpans = validSpans
       .map((span, index) => {
         const rect = span.getBoundingClientRect();
         const spanData = {
@@ -177,7 +224,7 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
         };
         
         if (index < 5) { // 처음 5개만 로그
-          console.log(`📝 [PDF Highlighter] Span ${index}:`, {
+          console.log(`📝 [PDF Highlighter] Valid Span ${index}:`, {
             text: `"${spanData.text}"`,
             position: `(${spanData.left.toFixed(1)}, ${spanData.top.toFixed(1)})`,
             size: `${spanData.width.toFixed(1)}x${spanData.height.toFixed(1)}`
@@ -188,7 +235,7 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
       })
       .sort((a, b) => a.top - b.top);
       
-    console.log(`📊 [PDF Highlighter] Sorted ${sortedSpans.length} spans by Y position`);
+    console.log(`📊 [PDF Highlighter] Sorted ${sortedSpans.length} valid spans by Y position`);
 
     // 라인 그룹화 - 개선된 알고리즘 (한글 문자 결합 고려)
     console.log('📋 [PDF Highlighter] Starting improved line grouping...');
@@ -494,8 +541,8 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
     return tableElements;
   };
 
-  // DOM 준비 상태 확인 함수
-  const waitForPDFDOM = (maxAttempts: number = 10, interval: number = 200): Promise<boolean> => {
+  // DOM 준비 상태 확인 함수 - 실제 텍스트 스팬까지 기다리기
+  const waitForPDFDOM = (maxAttempts: number = 15, interval: number = 300): Promise<boolean> => {
     return new Promise((resolve) => {
       let attempts = 0;
       
@@ -503,27 +550,67 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
         attempts++;
         console.log(`🔍 [PDF Highlighter] DOM readiness check attempt ${attempts}/${maxAttempts}`);
         
-        // PDF DOM 요소들이 준비되었는지 확인
+        // 1. 기본 PDF DOM 요소들 확인
         const hasTextLayers = document.querySelectorAll('.react-pdf__Page__textContent').length > 0;
         const hasPDFPages = document.querySelectorAll('.react-pdf__Page').length > 0;
         const hasCanvasElements = document.querySelectorAll('.react-pdf__Page canvas').length > 0;
+        
+        // 2. 실제 텍스트 스팬 요소들 확인 (핵심!)
+        const textSpans = document.querySelectorAll('.react-pdf__Page__textContent span');
+        const hasTextSpans = textSpans.length > 0;
+        
+        // 3. 현재 페이지의 텍스트 스팬들 확인
+        const pageSelector = `[data-page-number="${pageNumber}"] .react-pdf__Page__textContent span`;
+        const currentPageSpans = document.querySelectorAll(pageSelector);
+        const hasCurrentPageSpans = currentPageSpans.length > 0;
         
         console.log('📊 [PDF Highlighter] DOM status:', {
           hasTextLayers,
           hasPDFPages,
           hasCanvasElements,
+          hasTextSpans,
+          totalSpans: textSpans.length,
+          hasCurrentPageSpans,
+          currentPageSpans: currentPageSpans.length,
+          pageNumber,
           attempt: attempts
         });
         
-        if (hasTextLayers && hasPDFPages && hasCanvasElements) {
-          console.log('✅ [PDF Highlighter] PDF DOM is ready!');
+        // 텍스트 스팬이 실제로 내용을 가지고 있는지 확인
+        let hasValidTextContent = false;
+        if (hasCurrentPageSpans) {
+          for (let i = 0; i < Math.min(currentPageSpans.length, 5); i++) {
+            const span = currentPageSpans[i] as HTMLElement;
+            const text = span.textContent?.trim() || '';
+            if (text.length > 0) {
+              hasValidTextContent = true;
+              console.log(`📝 [PDF Highlighter] Found valid text: "${text}"`);
+              break;
+            }
+          }
+        }
+        
+        console.log('🎯 [PDF Highlighter] Text content validation:', {
+          hasValidTextContent,
+          checkedSpans: Math.min(currentPageSpans.length, 5)
+        });
+        
+        // 모든 조건이 만족되면 준비 완료
+        if (hasTextLayers && hasPDFPages && hasCanvasElements && hasCurrentPageSpans && hasValidTextContent) {
+          console.log('✅ [PDF Highlighter] PDF DOM with text content is ready!');
           resolve(true);
           return;
         }
         
+        // 부분적으로 준비된 상태도 허용 (캔버스와 텍스트 레이어만 있어도)
         if (attempts >= maxAttempts) {
-          console.log('⚠️ [PDF Highlighter] Max attempts reached, proceeding with partial DOM');
-          resolve(false);
+          if (hasTextLayers && hasCanvasElements) {
+            console.log('⚠️ [PDF Highlighter] Max attempts reached, but basic DOM is available');
+            resolve(true);
+          } else {
+            console.log('❌ [PDF Highlighter] Max attempts reached, DOM not ready');
+            resolve(false);
+          }
           return;
         }
         
