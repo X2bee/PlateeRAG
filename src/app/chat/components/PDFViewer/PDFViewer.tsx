@@ -1,14 +1,31 @@
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
+import dynamic from 'next/dynamic';
 import { FiX, FiZoomIn, FiZoomOut, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { PDFViewerProps, HighlightRange } from '../../types/source';
-import PDFHighlighter from './PDFHighlighter';
 import styles from './PDFViewer.module.scss';
 
-// PDF.js worker 설정
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+// Dynamic imports to prevent SSR issues
+const Document = dynamic(() => import('react-pdf').then(mod => ({ default: mod.Document })), { 
+  ssr: false,
+  loading: () => <div className={styles.loading}>PDF 구성 요소를 로드하는 중...</div>
+});
+
+const Page = dynamic(() => import('react-pdf').then(mod => ({ default: mod.Page })), { 
+  ssr: false 
+});
+
+const PDFHighlighter = dynamic(() => import('./PDFHighlighter'), { 
+  ssr: false 
+});
+
+// PDF.js worker 설정 - 클라이언트 사이드에서만 실행
+if (typeof window !== 'undefined') {
+  import('react-pdf').then(({ pdfjs }) => {
+    pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+  });
+}
 
 const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose }) => {
   const [numPages, setNumPages] = useState<number>(0);

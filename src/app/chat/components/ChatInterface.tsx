@@ -28,7 +28,13 @@ import { isStreamingWorkflowFromWorkflow } from '@/app/_common/utils/isStreaming
 import { WorkflowData } from '@/app/canvas/types';
 import { executeWorkflowByIdDeploy, executeWorkflowByIdStreamDeploy } from '@/app/api/workflow/workflowDeployAPI';
 import { SourceInfo } from '../types/source';
-import SidePanelPDFViewer from './PDFViewer/SidePanelPDFViewer';
+import dynamic from 'next/dynamic';
+
+// Dynamic import to prevent SSR issues with PDF components
+const SidePanelPDFViewer = dynamic(() => import('./PDFViewer/SidePanelPDFViewer'), { 
+  ssr: false,
+  loading: () => <div style={{ padding: '20px', textAlign: 'center' }}>PDF 뷰어를 로드하는 중...</div>
+});
 
 interface NewChatInterfaceProps extends ChatInterfaceProps {
     onStartNewChat?: (message: string) => void;

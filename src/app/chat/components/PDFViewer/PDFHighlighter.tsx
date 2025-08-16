@@ -36,31 +36,111 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
   // 현재 페이지가 하이라이트 대상인지 확인
   const shouldHighlight = pageNumber === highlightRange.pageNumber;
 
+  // 모든 가능한 PDF DOM 구조 탐색
+  const findPDFElements = () => {
+    console.log('🔍 [PDF Highlighter] Starting comprehensive PDF DOM search...');
+    
+    // 1. containerRef 시도
+    if (containerRef.current) {
+      console.log('✅ [PDF Highlighter] Container ref found:', containerRef.current);
+      
+      // 상위 요소들 탐색
+      let current = containerRef.current;
+      while (current && current !== document.body) {
+        console.log('🔗 [PDF Highlighter] Exploring element:', {
+          tagName: current.tagName,
+          className: current.className,
+          hasTextLayer: !!current.querySelector('.react-pdf__Page__textContent'),
+          hasPage: !!current.querySelector('.react-pdf__Page'),
+          children: current.children.length
+        });
+        
+        const textLayer = current.querySelector('.react-pdf__Page__textContent');
+        if (textLayer) {
+          console.log('✅ [PDF Highlighter] Found text layer via containerRef navigation');
+          return textLayer;
+        }
+        
+        current = current.parentElement;
+      }
+    }
+    
+    // 2. 페이지 번호 기반 검색
+    console.log('🔍 [PDF Highlighter] Searching by page number:', pageNumber);
+    const pageDataSelectors = [
+      `[data-page-number="${pageNumber}"]`,
+      `[data-page="${pageNumber}"]`,
+      `.react-pdf__Page[data-page-number="${pageNumber}"]`,
+      `.react-pdf__Page:nth-child(${pageNumber})`
+    ];
+    
+    for (const selector of pageDataSelectors) {
+      const pageElement = document.querySelector(selector);
+      if (pageElement) {
+        console.log(`✅ [PDF Highlighter] Found page element with selector: ${selector}`);
+        const textLayer = pageElement.querySelector('.react-pdf__Page__textContent');
+        if (textLayer) {
+          console.log('✅ [PDF Highlighter] Found text layer via page data selector');
+          return textLayer;
+        }
+      }
+    }
+    
+    // 3. 전체 문서 텍스트 레이어 검색
+    const allTextLayers = Array.from(document.querySelectorAll('.react-pdf__Page__textContent'));
+    console.log(`🔍 [PDF Highlighter] Found ${allTextLayers.length} text layers in document`);
+    
+    if (allTextLayers.length > 0) {
+      // 페이지 번호가 있는 경우 해당 인덱스 선택
+      if (pageNumber > 0 && pageNumber <= allTextLayers.length) {
+        const targetLayer = allTextLayers[pageNumber - 1];
+        console.log(`✅ [PDF Highlighter] Selected text layer by index: ${pageNumber - 1}`);
+        return targetLayer;
+      }
+      
+      // 첫 번째 텍스트 레이어 사용
+      console.log('⚠️ [PDF Highlighter] Using first available text layer as fallback');
+      return allTextLayers[0];
+    }
+    
+    // 4. react-pdf 구조 직접 탐색
+    const reactPdfPages = Array.from(document.querySelectorAll('.react-pdf__Page'));
+    console.log(`🔍 [PDF Highlighter] Found ${reactPdfPages.length} react-pdf pages`);
+    
+    for (let i = 0; i < reactPdfPages.length; i++) {
+      const page = reactPdfPages[i];
+      console.log(`📄 [PDF Highlighter] Checking page ${i + 1}:`, {
+        hasTextContent: !!page.querySelector('.react-pdf__Page__textContent'),
+        hasCanvas: !!page.querySelector('canvas'),
+        hasSvg: !!page.querySelector('svg'),
+        className: page.className
+      });
+      
+      const textLayer = page.querySelector('.react-pdf__Page__textContent');
+      if (textLayer && (i + 1 === pageNumber || allTextLayers.length === 1)) {
+        console.log(`✅ [PDF Highlighter] Found matching text layer on page ${i + 1}`);
+        return textLayer;
+      }
+    }
+    
+    console.log('❌ [PDF Highlighter] No text layer found after comprehensive search');
+    return null;
+  };
+
   // TextLayer에서 실제 텍스트 요소를 찾아 라인별로 정확하게 그룹화
   const findTextElements = () => {
     console.log('🔍 [PDF Highlighter] Starting findTextElements...');
     
-    if (!containerRef.current || !shouldHighlight) {
-      console.log('❌ [PDF Highlighter] Early return:', { 
-        containerExists: !!containerRef.current, 
-        shouldHighlight 
-      });
+    if (!shouldHighlight) {
+      console.log('❌ [PDF Highlighter] Highlighting not required for this page');
       return [];
     }
 
-    console.log('📍 [PDF Highlighter] Container ref found:', containerRef.current);
-    
-    const textLayerDiv = containerRef.current.parentElement?.querySelector('.react-pdf__Page__textContent');
-    console.log('📄 [PDF Highlighter] TextLayer div:', textLayerDiv);
+    const textLayerDiv = findPDFElements();
+    console.log('📄 [PDF Highlighter] TextLayer div result:', !!textLayerDiv);
     
     if (!textLayerDiv) {
-      console.log('❌ [PDF Highlighter] No textLayer div found');
-      // 대안 탐색
-      const allTextLayers = document.querySelectorAll('.react-pdf__Page__textContent');
-      console.log('🔍 [PDF Highlighter] Available text layers in document:', allTextLayers.length);
-      allTextLayers.forEach((layer, index) => {
-        console.log(`📋 [PDF Highlighter] Text layer ${index}:`, layer);
-      });
+      console.log('❌ [PDF Highlighter] No textLayer div found after comprehensive search');
       return [];
     }
 
@@ -171,16 +251,46 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
   const findImageAndTableElements = () => {
     console.log('🖼️ [PDF Highlighter] Starting findImageAndTableElements...');
     
-    if (!containerRef.current || !shouldHighlight) {
-      console.log('❌ [PDF Highlighter] Early return from findImageAndTableElements:', { 
-        containerExists: !!containerRef.current, 
-        shouldHighlight 
-      });
+    if (!shouldHighlight) {
+      console.log('❌ [PDF Highlighter] Highlighting not required for this page');
       return [];
     }
 
-    const pageElement = containerRef.current.parentElement;
-    console.log('📄 [PDF Highlighter] Page element for image search:', pageElement);
+    // PDF 페이지 요소 찾기
+    let pageElement: Element | null = null;
+    
+    // 1. containerRef 기반 탐색
+    if (containerRef.current) {
+      let current: Element | null = containerRef.current;
+      while (current && current !== document.body) {
+        if (current.classList.contains('react-pdf__Page') || 
+            current.querySelector('.react-pdf__Page__canvas')) {
+          pageElement = current;
+          break;
+        }
+        current = current.parentElement;
+      }
+    }
+    
+    // 2. 페이지 번호 기반 탐색
+    if (!pageElement) {
+      const pageSelectors = [
+        `[data-page-number="${pageNumber}"]`,
+        `.react-pdf__Page:nth-child(${pageNumber})`,
+        `.react-pdf__Page`
+      ];
+      
+      for (const selector of pageSelectors) {
+        const element = document.querySelector(selector);
+        if (element) {
+          pageElement = element;
+          console.log(`📄 [PDF Highlighter] Found page element with selector: ${selector}`);
+          break;
+        }
+      }
+    }
+    
+    console.log('📄 [PDF Highlighter] Page element for image search:', !!pageElement);
     
     if (!pageElement) {
       console.log('❌ [PDF Highlighter] No page element found for image search');
@@ -358,14 +468,54 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
     return tableElements;
   };
 
+  // DOM 준비 상태 확인 함수
+  const waitForPDFDOM = (maxAttempts: number = 10, interval: number = 200): Promise<boolean> => {
+    return new Promise((resolve) => {
+      let attempts = 0;
+      
+      const checkDOM = () => {
+        attempts++;
+        console.log(`🔍 [PDF Highlighter] DOM readiness check attempt ${attempts}/${maxAttempts}`);
+        
+        // PDF DOM 요소들이 준비되었는지 확인
+        const hasTextLayers = document.querySelectorAll('.react-pdf__Page__textContent').length > 0;
+        const hasPDFPages = document.querySelectorAll('.react-pdf__Page').length > 0;
+        const hasCanvasElements = document.querySelectorAll('.react-pdf__Page canvas').length > 0;
+        
+        console.log('📊 [PDF Highlighter] DOM status:', {
+          hasTextLayers,
+          hasPDFPages,
+          hasCanvasElements,
+          attempt: attempts
+        });
+        
+        if (hasTextLayers && hasPDFPages && hasCanvasElements) {
+          console.log('✅ [PDF Highlighter] PDF DOM is ready!');
+          resolve(true);
+          return;
+        }
+        
+        if (attempts >= maxAttempts) {
+          console.log('⚠️ [PDF Highlighter] Max attempts reached, proceeding with partial DOM');
+          resolve(false);
+          return;
+        }
+        
+        setTimeout(checkDOM, interval);
+      };
+      
+      checkDOM();
+    });
+  };
+
   useEffect(() => {
     if (!shouldHighlight) {
       setHighlightBoxes([]);
       return;
     }
 
-    // DOM이 업데이트된 후 실행하기 위해 setTimeout 사용
-    const timer = setTimeout(() => {
+    // DOM 준비 상태를 확인한 후 하이라이팅 실행
+    const executeHighlighting = async () => {
       console.log('🚀 [PDF Highlighter] Starting highlighting process...');
       console.log('🎯 [PDF Highlighter] Target:', {
         page: pageNumber,
@@ -374,6 +524,10 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
         lineEnd: highlightRange.lineEnd,
         shouldHighlight
       });
+      
+      // PDF DOM이 준비될 때까지 대기
+      const domReady = await waitForPDFDOM();
+      console.log('📋 [PDF Highlighter] DOM readiness result:', domReady);
       
       const lines = findTextElements();
       console.log(`📚 [PDF Highlighter] Found ${lines.length} lines total`);
@@ -566,10 +720,10 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
       }
 
       setHighlightBoxes(boxes);
-    }, 100);
+    };
 
-    return () => clearTimeout(timer);
-  }, [shouldHighlight, highlightRange, scale, pageWidth, pageHeight, textContent]);
+    executeHighlighting();
+  }, [shouldHighlight, highlightRange, scale, pageWidth, pageHeight, textContent, pageNumber]);
 
   if (!shouldHighlight || highlightBoxes.length === 0) {
     return null;
