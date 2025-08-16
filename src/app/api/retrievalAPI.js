@@ -2,6 +2,12 @@
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
 import { apiClient } from '@/app/api/apiClient';
+import { getAuthCookie } from '@/app/_common/utils/cookieUtils';
+
+const getUserId = () => {
+    return getAuthCookie('user_id');
+};
+
 
 // =============================================================================
 // Health Check
@@ -180,7 +186,7 @@ export const uploadDocument = async (
 ) => {
     try {
         const formData = new FormData();
-
+        const userId = getUserId();
         // 파일명은 항상 원본 파일명 사용 (서버 경로 충돌 방지)
         const originalFileName = file.name;
 
@@ -201,6 +207,8 @@ export const uploadDocument = async (
         formData.append('collection_name', collectionName);
         formData.append('chunk_size', chunkSize.toString());
         formData.append('chunk_overlap', chunkOverlap.toString());
+        formData.append('user_id', userId);
+
 
         // 메타데이터에 폴더 구조 정보 포함
         const enhancedMetadata = {
@@ -224,8 +232,8 @@ export const uploadDocument = async (
                 method: 'POST',
                 body: formData,
                 signal: controller.signal,
-                // 타임아웃 설정 (5분)
-                timeout: 300000,
+                // 타임아웃 설정 (10분)
+                timeout: 600000,
             },
         );
 
@@ -356,6 +364,54 @@ export const getDocumentDetails = async (collectionName, documentId) => {
         return data;
     } catch (error) {
         devLog.error('Failed to fetch document details:', error);
+        throw error;
+    }
+};
+
+/**
+ * 특정 컬렉션의 문서 메타데이터 상세 정보를 조회하는 함수
+ * @param {string} collectionName - 컬렉션 이름
+ * @returns {Promise<Object>} 문서 메타데이터 목록
+ */
+export const getDocumentDetailMeta = async (collectionName) => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/collections/detail/${collectionName}/documents`,
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Document detail meta fetched:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch document detail meta:', error);
+        throw error;
+    }
+};
+
+/**
+ * 특정 컬렉션의 문서 메타데이터 상세 정보를 조회하는 함수
+ * @param {string} collectionName - 컬렉션 이름
+ * @returns {Promise<Object>} 문서 메타데이터 목록
+ */
+export const getDocumentDetailEdges = async (collectionName) => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/collections/detail/${collectionName}/edges`,
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Document detail meta fetched:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch document detail edges:', error);
         throw error;
     }
 };

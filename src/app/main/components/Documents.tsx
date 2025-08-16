@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import styles from '../assets/Documents.module.scss';
+import DocumentsGraph from './DocumentsGraph';
 
 import {
     isValidCollectionName,
@@ -14,6 +15,8 @@ import {
     listDocumentsInCollection,
     getDocumentDetails,
     deleteDocumentFromCollection,
+    getDocumentDetailMeta,
+    getDocumentDetailEdges,
 } from '@/app/api/retrievalAPI';
 import useSidebarManager from '@/app/_common/hooks/useSidebarManager';
 
@@ -96,7 +99,7 @@ interface SearchResponse {
     search_params: any;
 }
 
-type ViewMode = 'collections' | 'documents' | 'document-detail';
+type ViewMode = 'collections' | 'documents' | 'documents-graph' | 'document-detail';
 
 const Documents: React.FC = () => {
 
@@ -110,6 +113,10 @@ const Documents: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
     const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
+
+    // Graph 데이터 상태
+    const [documentDetailMeta, setDocumentDetailMeta] = useState<any>(null);
+    const [documentDetailEdges, setDocumentDetailEdges] = useState<any>(null);
 
     // 모달 상태
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -325,6 +332,10 @@ const Documents: React.FC = () => {
             setDocumentDetails(null);
             setSearchQuery('');
             setSearchResults([]);
+        } else if (viewMode === 'documents-graph') {
+            setViewMode('documents');
+            setDocumentDetailMeta(null);
+            setDocumentDetailEdges(null);
         } else if (viewMode === 'documents') {
             setViewMode('collections');
             setSelectedCollection(null);
@@ -356,7 +367,7 @@ const Documents: React.FC = () => {
                 // 순차적으로 파일 업로드
                 for (let index = 0; index < fileArray.length; index++) {
                     const file = fileArray[index];
-                    
+
                     try {
                         // 진행 상태 업데이트 (시작)
                         setUploadProgress(prev => prev.map((item, idx) =>
@@ -366,7 +377,7 @@ const Documents: React.FC = () => {
                         // 폴더 경로 정보를 메타데이터에 포함
                         const relativePath = file.webkitRelativePath || file.name;
                         const folderPath = relativePath.substring(0, relativePath.lastIndexOf('/')) || '';
-                        
+
                         const metadata = {
                             upload_type: 'folder',
                             folder_path: folderPath,
@@ -400,7 +411,7 @@ const Documents: React.FC = () => {
                         if (selectedCollection) {
                             loadDocumentsInCollection(selectedCollection.collection_name);
                         }
-                        
+
                     } catch (error) {
                         // 실패 시 진행 상태 업데이트
                         setUploadProgress(prev => prev.map((item, idx) =>
@@ -411,7 +422,7 @@ const Documents: React.FC = () => {
                                 error: error instanceof Error ? error.message : '업로드 실패'
                             } : item
                         ));
-                        
+
                         console.error(`Failed to upload file ${file.name}:`, error);
                         failed++;
                     }
@@ -421,7 +432,7 @@ const Documents: React.FC = () => {
                         await new Promise(resolve => setTimeout(resolve, 100));
                     }
                 }
-                
+
                 // 결과 통계 표시
                 if (failed > 0) {
                     setError(`${successful}개 파일 업로드 성공, ${failed}개 파일 실패`);
@@ -500,6 +511,57 @@ const Documents: React.FC = () => {
         input.click();
     };
 
+    // 문서 메타데이터 조회
+    const handleGetDocumentDetailMeta = async () => {
+        if (!selectedCollection) {
+            setError('컬렉션이 선택되지 않았습니다.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await getDocumentDetailMeta(selectedCollection.collection_name);
+            console.log('Document detail meta:', response);
+            setDocumentDetailMeta(response);
+        } catch (err) {
+            setError('문서 메타데이터를 불러오는데 실패했습니다.');
+            console.error('Failed to get document detail meta:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 문서 메타데이터 조회
+    const handleGetDocumentDetailEdges = async () => {
+        if (!selectedCollection) {
+            setError('컬렉션이 선택되지 않았습니다.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await getDocumentDetailEdges(selectedCollection.collection_name);
+            console.log('Document detail edges:', response);
+            setDocumentDetailEdges(response);
+        } catch (err) {
+            setError('문서 메타데이터를 불러오는데 실패했습니다.');
+            console.error('Failed to get document detail edges:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 그래프 뷰로 전환 시 메타데이터 로드
+    const handleSwitchToGraphView = async () => {
+        setViewMode('documents-graph');
+        await Promise.all([
+            handleGetDocumentDetailMeta(),
+            handleGetDocumentDetailEdges()
+        ]);
+    };
+
     return (
         <div className={styles.container}>
             {/* 헤더 */}
@@ -513,6 +575,7 @@ const Documents: React.FC = () => {
                     <h2>
                         {viewMode === 'collections' && '컬렉션 관리'}
                         {viewMode === 'documents' && `${selectedCollection?.collection_make_name} - 문서 목록`}
+                        {viewMode === 'documents-graph' && `${selectedCollection?.collection_make_name} - 문서 그래프`}
                         {viewMode === 'document-detail' && `${selectedDocument?.file_name} - 문서 상세`}
                     </h2>
                 </div>
@@ -524,6 +587,22 @@ const Documents: React.FC = () => {
                     )}
                     {viewMode === 'documents' && (
                         <>
+                            <button onClick={handleSwitchToGraphView} className={`${styles.button} ${styles.secondary}`}>
+                                그래프 보기
+                            </button>
+                            <button onClick={handleSingleFileUpload} className={`${styles.button} ${styles.primary}`}>
+                                단일 문서 업로드
+                            </button>
+                            <button onClick={handleFolderUpload} className={`${styles.button} ${styles.primary}`}>
+                                폴더 업로드
+                            </button>
+                        </>
+                    )}
+                    {viewMode === 'documents-graph' && (
+                        <>
+                            <button onClick={() => setViewMode('documents')} className={`${styles.button} ${styles.secondary}`}>
+                                목록 보기
+                            </button>
                             <button onClick={handleSingleFileUpload} className={`${styles.button} ${styles.primary}`}>
                                 단일 문서 업로드
                             </button>
@@ -613,7 +692,7 @@ const Documents: React.FC = () => {
                                         <div className={styles.progressStatus}>
                                             {item.status === 'uploading' && (
                                                 <div className={styles.progressBar}>
-                                                    <div 
+                                                    <div
                                                         className={styles.progressFill}
                                                         style={{ width: `${item.progress}%` }}
                                                     ></div>
@@ -759,6 +838,15 @@ const Documents: React.FC = () => {
                 </div>
             )}
 
+            {/* 문서 그래프 보기 */}
+            {viewMode === 'documents-graph' && (
+                <DocumentsGraph
+                    loading={loading}
+                    documentDetailMeta={documentDetailMeta}
+                    documentDetailEdges={documentDetailEdges}
+                />
+            )}
+
             {/* 컬렉션 생성 모달 */}
             {showCreateModal && (
                 <div className={styles.modalBackdrop} onClick={() => setShowCreateModal(false)}>
@@ -782,15 +870,15 @@ const Documents: React.FC = () => {
                             />
                         </div>
                         <div className={styles.modalActions}>
-                            <button 
-                                onClick={() => setShowCreateModal(false)} 
+                            <button
+                                onClick={() => setShowCreateModal(false)}
                                 className={`${styles.button} ${styles.secondary}`}
                                 disabled={loading}
                             >
                                 취소
                             </button>
-                            <button 
-                                onClick={handleCreateCollection} 
+                            <button
+                                onClick={handleCreateCollection}
                                 className={`${styles.button} ${styles.primary}`}
                                 disabled={loading}
                             >
