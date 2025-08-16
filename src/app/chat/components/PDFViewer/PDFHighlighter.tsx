@@ -693,25 +693,7 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
         console.log(`📝 [PDF Highlighter] Line ${lineIndex + 1} has ${lineSpans.length} spans:`, 
           lineSpans.map(span => `"${span.textContent}"`).join(' '));
 
-        // 라인의 첫 번째와 마지막 요소의 위치를 기반으로 하이라이트 박스 생성
-        const firstSpan = lineSpans[0];
-        const lastSpan = lineSpans[lineSpans.length - 1];
-        
-        const firstRect = firstSpan.getBoundingClientRect();
-        const lastRect = lastSpan.getBoundingClientRect();
-        
-        console.log(`📐 [PDF Highlighter] Line ${lineIndex + 1} bounds:`, {
-          firstSpan: {
-            text: firstSpan.textContent,
-            rect: { top: firstRect.top, left: firstRect.left, width: firstRect.width, height: firstRect.height }
-          },
-          lastSpan: {
-            text: lastSpan.textContent,
-            rect: { top: lastRect.top, left: lastRect.left, width: lastRect.width, height: lastRect.height }
-          }
-        });
-        
-        // TextLayer를 기준으로 상대 좌표 계산 (containerRef 없이도 작동)
+        // TextLayer를 기준으로 상대 좌표 계산
         const textLayerRect = textLayerDiv.getBoundingClientRect();
         
         console.log(`📐 [PDF Highlighter] Using TextLayer as reference:`, {
@@ -723,84 +705,39 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
           }
         });
         
-        // getBoundingClientRect가 0인 경우 처리
-        if (firstRect.width === 0 || firstRect.height === 0) {
-          console.log(`⚠️ [PDF Highlighter] Line ${lineIndex + 1} has zero dimensions, trying alternative approach`);
+        // 각 텍스트 스팬을 개별적으로 하이라이트 (라인 전체가 아닌 개별 텍스트 요소)
+        lineSpans.forEach((span, spanIndex) => {
+          const rect = span.getBoundingClientRect();
           
-          // 전체 라인의 스팬들을 체크해서 유효한 크기 찾기
-          let validRects: DOMRect[] = [];
-          lineSpans.forEach((span, spanIndex) => {
-            const rect = span.getBoundingClientRect();
-            if (rect.width > 0 && rect.height > 0) {
-              validRects.push(rect);
-              console.log(`📏 [PDF Highlighter] Valid span ${spanIndex} in line ${lineIndex + 1}:`, {
-                text: span.textContent,
-                rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
-              });
-            }
-          });
-          
-          if (validRects.length === 0) {
-            console.log(`❌ [PDF Highlighter] No valid rects found for line ${lineIndex + 1}, skipping`);
-            continue;
+          // 유효한 크기를 가진 스팬만 하이라이트
+          if (rect.width > 0 && rect.height > 0 && span.textContent && span.textContent.trim() !== '') {
+            const spanTop = rect.top - textLayerRect.top;
+            const spanLeft = rect.left - textLayerRect.left;
+            
+            lineYMin = Math.min(lineYMin, spanTop);
+            lineYMax = Math.max(lineYMax, spanTop + rect.height);
+            
+            const highlightBox = {
+              top: spanTop,
+              left: spanLeft,
+              width: rect.width,
+              height: Math.max(rect.height, 12), // 최소 12px 높이
+              type: 'text' as const
+            };
+            
+            console.log(`📏 [PDF Highlighter] Added individual span ${spanIndex} in line ${lineIndex + 1}:`, {
+              text: span.textContent,
+              box: highlightBox
+            });
+            
+            boxes.push(highlightBox);
+          } else {
+            console.log(`⚠️ [PDF Highlighter] Skipping invalid span ${spanIndex} in line ${lineIndex + 1}:`, {
+              text: span.textContent,
+              rect: { width: rect.width, height: rect.height }
+            });
           }
-          
-          // 유효한 사각형들로 라인 경계 계산
-          const minLeft = Math.min(...validRects.map(r => r.left));
-          const maxRight = Math.max(...validRects.map(r => r.right));
-          const minTop = Math.min(...validRects.map(r => r.top));
-          const maxBottom = Math.max(...validRects.map(r => r.bottom));
-          
-          const lineTop = minTop - textLayerRect.top;
-          const lineBottom = maxBottom - textLayerRect.top;
-          const lineLeft = minLeft - textLayerRect.left;
-          const lineWidth = maxRight - minLeft;
-          const lineHeight = maxBottom - minTop;
-          
-          lineYMin = Math.min(lineYMin, lineTop);
-          lineYMax = Math.max(lineYMax, lineBottom);
-          
-          const highlightBox = {
-            top: lineTop,
-            left: lineLeft,
-            width: lineWidth,
-            height: Math.max(lineHeight, 12), // 최소 12px 높이
-            type: 'text' as const
-          };
-          
-          console.log(`✅ [PDF Highlighter] Created highlight box for line ${lineIndex + 1} (alternative method):`, {
-            position: `(${lineLeft.toFixed(1)}, ${lineTop.toFixed(1)})`,
-            size: `${lineWidth.toFixed(1)}x${lineHeight.toFixed(1)}`,
-            validRects: validRects.length
-          });
-          
-          boxes.push(highlightBox);
-        } else {
-          // 기존 방식 (정상적인 경우) - TextLayer 기준으로 수정
-          const lineTop = firstRect.top - textLayerRect.top;
-          const lineBottom = firstRect.bottom - textLayerRect.top;
-          const lineLeft = firstRect.left - textLayerRect.left;
-          const lineWidth = (lastRect.right - firstRect.left);
-          
-          lineYMin = Math.min(lineYMin, lineTop);
-          lineYMax = Math.max(lineYMax, lineBottom);
-          
-          const highlightBox = {
-            top: lineTop,
-            left: lineLeft,
-            width: Math.max(lineWidth, 10), // 최소 10px 너비
-            height: Math.max(firstRect.height, 12), // 최소 12px 높이
-            type: 'text' as const
-          };
-          
-          console.log(`✅ [PDF Highlighter] Created highlight box for line ${lineIndex + 1}:`, {
-            position: `(${lineLeft.toFixed(1)}, ${lineTop.toFixed(1)})`,
-            size: `${lineWidth.toFixed(1)}x${firstRect.height.toFixed(1)}`,
-            relativeToTextLayer: true
-          });
-          
-          boxes.push(highlightBox);
-        }
+        });
       }
       
       console.log(`📏 [PDF Highlighter] Text lines Y range: ${lineYMin === Infinity ? 'none' : lineYMin.toFixed(1)} - ${lineYMax === -Infinity ? 'none' : lineYMax.toFixed(1)}`);
@@ -925,10 +862,6 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
     <div 
       ref={containerRef} 
       className={styles.highlightContainer}
-      style={{
-        background: 'rgba(255, 0, 0, 0.1)', // 임시로 빨간 배경 추가해서 컨테이너 위치 확인
-        border: '2px dashed red' // 임시 테두리
-      }}
     >
       {highlightBoxes.map((box, index) => {
         console.log(`🎯 [PDF Highlighter] Rendering box ${index}:`, {
@@ -946,31 +879,11 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
               left: `${box.left}px`,
               width: `${box.width}px`,
               height: `${box.height}px`,
-              background: 'rgba(255, 255, 0, 0.8)', // 임시로 강한 노란색 배경
-              border: '2px solid red', // 임시로 빨간 테두리
-              zIndex: 1000 // 높은 z-index
             }}
           />
         );
       })}
       
-      {/* 하이라이트 정보 라벨 */}
-      <div className={styles.highlightLabel}>
-        라인 {highlightRange.lineStart}
-        {highlightRange.lineStart !== highlightRange.lineEnd && 
-          `-${highlightRange.lineEnd}`
-        }
-        <span className={styles.contentTypes}>
-          {highlightBoxes.filter(box => box.type === 'text').length > 0 && ' 📝'}
-          {highlightBoxes.filter(box => box.type === 'image').length > 0 && ' 📷'}
-          {highlightBoxes.filter(box => box.type === 'table').length > 0 && ' 📊'}
-        </span>
-        {highlightBoxes.length > 0 && (
-          <div className={styles.contentCount}>
-            {highlightBoxes.length}개 요소 감지
-          </div>
-        )}
-      </div>
     </div>
   );
 };
