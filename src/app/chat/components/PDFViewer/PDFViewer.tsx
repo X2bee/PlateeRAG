@@ -17,6 +17,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose }) =>
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+  const [textContent, setTextContent] = useState<any>(null);
 
   // 하이라이트 범위 계산
   const highlightRange: HighlightRange = {
@@ -50,6 +51,13 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose }) =>
   const onPageLoadSuccess = useCallback((page: any) => {
     const { width, height } = page;
     setPageSize({ width, height });
+    
+    // 텍스트 콘텐츠 추출
+    page.getTextContent().then((content: any) => {
+      setTextContent(content);
+    }).catch((err: Error) => {
+      console.warn('텍스트 콘텐츠를 가져올 수 없습니다:', err);
+    });
   }, []);
 
   const handleZoomIn = () => {
@@ -178,6 +186,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose }) =>
                 scale={scale}
                 pageWidth={pageSize.width}
                 pageHeight={pageSize.height}
+                textContent={textContent}
               />
             </div>
           </Document>
