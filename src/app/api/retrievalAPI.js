@@ -233,7 +233,7 @@ export const uploadDocument = async (
                 body: formData,
                 signal: controller.signal,
                 // 타임아웃 설정 (10분)
-                timeout: 600000,
+                timeout: 1800000,
             },
         );
 
