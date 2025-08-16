@@ -372,11 +372,20 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
 
     const elements: Array<HighlightBox & { yPosition: number }> = [];
 
-    // SVG 요소들 (이미지나 그래픽 요소로 간주)
+    // SVG 요소들 (실제 이미지나 그래픽 요소만 감지)
     const svgElements = pageElement.querySelectorAll('svg');
     console.log(`🎨 [PDF Highlighter] Found ${svgElements.length} SVG elements`);
     
     svgElements.forEach((svg, index) => {
+      // SVG가 실제 이미지 콘텐츠인지 확인 (텍스트 레이어 관련 SVG 제외)
+      const hasImageContent = svg.querySelector('image, rect[fill], circle, polygon, path[fill]');
+      const isTextLayerSVG = svg.closest('.react-pdf__Page__textContent');
+      
+      if (!hasImageContent || isTextLayerSVG) {
+        console.log(`🎨 [PDF Highlighter] Skipping SVG ${index}: text layer or no image content`);
+        return;
+      }
+      
       const rect = svg.getBoundingClientRect();
       const containerRect = pageElement.getBoundingClientRect();
       
@@ -389,7 +398,7 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
         yPosition: rect.top - containerRect.top
       };
       
-      console.log(`🎨 [PDF Highlighter] SVG ${index}:`, {
+      console.log(`🎨 [PDF Highlighter] Valid SVG ${index}:`, {
         position: `(${element.left.toFixed(1)}, ${element.top.toFixed(1)})`,
         size: `${element.width.toFixed(1)}x${element.height.toFixed(1)}`,
         element: svg
@@ -398,12 +407,12 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
       elements.push(element);
     });
 
-    // Canvas 요소들 (이미지로 간주)
-    const canvasElements = pageElement.querySelectorAll('canvas');
-    console.log(`🖼️ [PDF Highlighter] Found ${canvasElements.length} Canvas elements`);
+    // 실제 IMG 태그들 (PDF에 삽입된 이미지)
+    const imgElements = pageElement.querySelectorAll('img');
+    console.log(`🖼️ [PDF Highlighter] Found ${imgElements.length} IMG elements`);
     
-    canvasElements.forEach((canvas, index) => {
-      const rect = canvas.getBoundingClientRect();
+    imgElements.forEach((img, index) => {
+      const rect = img.getBoundingClientRect();
       const containerRect = pageElement.getBoundingClientRect();
       
       const element = {
@@ -415,48 +424,40 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
         yPosition: rect.top - containerRect.top
       };
       
-      console.log(`🖼️ [PDF Highlighter] Canvas ${index}:`, {
+      console.log(`🖼️ [PDF Highlighter] IMG ${index}:`, {
         position: `(${element.left.toFixed(1)}, ${element.top.toFixed(1)})`,
         size: `${element.width.toFixed(1)}x${element.height.toFixed(1)}`,
-        element: canvas
+        src: img.src?.substring(0, 50),
+        element: img
       });
       
       elements.push(element);
     });
 
-    // Path 요소들 (도형이나 그래픽 요소로 간주)
+    // Canvas 요소들 - PDF 배경 렌더링용이므로 제외
+    const canvasElements = pageElement.querySelectorAll('canvas');
+    console.log(`🖼️ [PDF Highlighter] Found ${canvasElements.length} Canvas elements (excluding from highlighting - PDF background rendering)`);
+    
+    // Canvas는 PDF.js의 배경 렌더링용이므로 이미지 하이라이팅에서 제외
+    // 실제 이미지는 SVG나 별도 이미지 태그로 렌더링됨
+
+    // Path 요소들 - 텍스트 렌더링과 구분 어려워 비활성화
     const pathElements = pageElement.querySelectorAll('path');
-    pathElements.forEach(path => {
-      const parentSvg = path.closest('svg');
-      if (parentSvg) {
-        const rect = parentSvg.getBoundingClientRect();
-        const containerRect = pageElement.getBoundingClientRect();
-        
-        // 중복 방지를 위해 이미 추가된 SVG인지 확인
-        const alreadyExists = elements.some(el => 
-          Math.abs(el.top - (rect.top - containerRect.top)) < 1 &&
-          Math.abs(el.left - (rect.left - containerRect.left)) < 1
-        );
-        
-        if (!alreadyExists) {
-          elements.push({
-            top: rect.top - containerRect.top,
-            left: rect.left - containerRect.left,
-            width: rect.width,
-            height: rect.height,
-            type: 'image',
-            yPosition: rect.top - containerRect.top
-          });
-        }
-      }
-    });
+    console.log(`🎨 [PDF Highlighter] Found ${pathElements.length} Path elements (excluding - often used for text rendering)`);
+    
+    // Path 요소는 텍스트 렌더링에도 사용되므로 이미지로 간주하지 않음
+    // 실제 그래픽과 텍스트 path 구분이 어려워 제외
 
     return elements;
   };
 
-  // 테이블 패턴 감지 (텍스트 기반) - 개선된 버전
+  // 테이블 패턴 감지 (텍스트 기반) - 현재 비활성화 (목록 형태 텍스트와 구분 어려움)
   const detectTablePatterns = (lines: HTMLSpanElement[][], targetLineStart: number, targetLineEnd: number) => {
     const tableElements: Array<HighlightBox & { lineNumbers: number[] }> = [];
+    
+    // 테이블 감지 기능을 비활성화 - 일반 텍스트를 테이블로 잘못 인식하는 문제 방지
+    console.log('📊 [PDF Highlighter] Table detection disabled to prevent false positives');
+    return tableElements;
     
     if (lines.length < 2) return tableElements;
 
