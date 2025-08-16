@@ -643,6 +643,13 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
       const domReady = await waitForPDFDOM();
       console.log('📋 [PDF Highlighter] DOM readiness result:', domReady);
       
+      // TextLayer div 찾기
+      const textLayerDiv = findPDFElements();
+      if (!textLayerDiv) {
+        console.log('❌ [PDF Highlighter] TextLayer div not found');
+        return;
+      }
+      
       const lines = findTextElements();
       console.log(`📚 [PDF Highlighter] Found ${lines.length} lines total`);
       
@@ -704,6 +711,18 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
           }
         });
         
+        // TextLayer를 기준으로 상대 좌표 계산 (containerRef 없이도 작동)
+        const textLayerRect = textLayerDiv.getBoundingClientRect();
+        
+        console.log(`📐 [PDF Highlighter] Using TextLayer as reference:`, {
+          textLayerRect: {
+            top: textLayerRect.top,
+            left: textLayerRect.left,
+            width: textLayerRect.width,
+            height: textLayerRect.height
+          }
+        });
+        
         // getBoundingClientRect가 0인 경우 처리
         if (firstRect.width === 0 || firstRect.height === 0) {
           console.log(`⚠️ [PDF Highlighter] Line ${lineIndex + 1} has zero dimensions, trying alternative approach`);
@@ -732,41 +751,35 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
           const minTop = Math.min(...validRects.map(r => r.top));
           const maxBottom = Math.max(...validRects.map(r => r.bottom));
           
-          if (containerRef.current) {
-            const containerRect = containerRef.current.getBoundingClientRect();
-            
-            const lineTop = minTop - containerRect.top;
-            const lineBottom = maxBottom - containerRect.top;
-            const lineLeft = minLeft - containerRect.left;
-            const lineWidth = maxRight - minLeft;
-            const lineHeight = maxBottom - minTop;
-            
-            lineYMin = Math.min(lineYMin, lineTop);
-            lineYMax = Math.max(lineYMax, lineBottom);
-            
-            const highlightBox = {
-              top: lineTop,
-              left: lineLeft,
-              width: lineWidth,
-              height: Math.max(lineHeight, 12), // 최소 12px 높이
-              type: 'text' as const
-            };
-            
-            console.log(`✅ [PDF Highlighter] Created highlight box for line ${lineIndex + 1} (alternative method):`, {
-              position: `(${lineLeft.toFixed(1)}, ${lineTop.toFixed(1)})`,
-              size: `${lineWidth.toFixed(1)}x${lineHeight.toFixed(1)}`,
-              validRects: validRects.length
-            });
-            
-            boxes.push(highlightBox);
-          }
-        } else if (containerRef.current) {
-          // 기존 방식 (정상적인 경우)
-          const containerRect = containerRef.current.getBoundingClientRect();
+          const lineTop = minTop - textLayerRect.top;
+          const lineBottom = maxBottom - textLayerRect.top;
+          const lineLeft = minLeft - textLayerRect.left;
+          const lineWidth = maxRight - minLeft;
+          const lineHeight = maxBottom - minTop;
           
-          const lineTop = firstRect.top - containerRect.top;
-          const lineBottom = firstRect.bottom - containerRect.top;
-          const lineLeft = firstRect.left - containerRect.left;
+          lineYMin = Math.min(lineYMin, lineTop);
+          lineYMax = Math.max(lineYMax, lineBottom);
+          
+          const highlightBox = {
+            top: lineTop,
+            left: lineLeft,
+            width: lineWidth,
+            height: Math.max(lineHeight, 12), // 최소 12px 높이
+            type: 'text' as const
+          };
+          
+          console.log(`✅ [PDF Highlighter] Created highlight box for line ${lineIndex + 1} (alternative method):`, {
+            position: `(${lineLeft.toFixed(1)}, ${lineTop.toFixed(1)})`,
+            size: `${lineWidth.toFixed(1)}x${lineHeight.toFixed(1)}`,
+            validRects: validRects.length
+          });
+          
+          boxes.push(highlightBox);
+        } else {
+          // 기존 방식 (정상적인 경우) - TextLayer 기준으로 수정
+          const lineTop = firstRect.top - textLayerRect.top;
+          const lineBottom = firstRect.bottom - textLayerRect.top;
+          const lineLeft = firstRect.left - textLayerRect.left;
           const lineWidth = (lastRect.right - firstRect.left);
           
           lineYMin = Math.min(lineYMin, lineTop);
@@ -783,7 +796,7 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
           console.log(`✅ [PDF Highlighter] Created highlight box for line ${lineIndex + 1}:`, {
             position: `(${lineLeft.toFixed(1)}, ${lineTop.toFixed(1)})`,
             size: `${lineWidth.toFixed(1)}x${firstRect.height.toFixed(1)}`,
-            relativeToContainer: true
+            relativeToTextLayer: true
           });
           
           boxes.push(highlightBox);
@@ -896,24 +909,50 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
     executeHighlighting();
   }, [shouldHighlight, highlightRange, scale, pageWidth, pageHeight, textContent, pageNumber]);
 
-  if (!shouldHighlight || highlightBoxes.length === 0) {
+  if (!shouldHighlight) {
+    console.log('🚫 [PDF Highlighter] Not rendering: shouldHighlight is false');
     return null;
   }
 
+  if (highlightBoxes.length === 0) {
+    console.log('🚫 [PDF Highlighter] Not rendering: no highlight boxes');
+    return null;
+  }
+
+  console.log('✅ [PDF Highlighter] Rendering highlight container with', highlightBoxes.length, 'boxes');
+
   return (
-    <div ref={containerRef} className={styles.highlightContainer}>
-      {highlightBoxes.map((box, index) => (
-        <div
-          key={index}
-          className={`${styles.highlightBox} ${styles[`highlight${box.type.charAt(0).toUpperCase() + box.type.slice(1)}`]}`}
-          style={{
-            top: `${box.top}px`,
-            left: `${box.left}px`,
-            width: `${box.width}px`,
-            height: `${box.height}px`,
-          }}
-        />
-      ))}
+    <div 
+      ref={containerRef} 
+      className={styles.highlightContainer}
+      style={{
+        background: 'rgba(255, 0, 0, 0.1)', // 임시로 빨간 배경 추가해서 컨테이너 위치 확인
+        border: '2px dashed red' // 임시 테두리
+      }}
+    >
+      {highlightBoxes.map((box, index) => {
+        console.log(`🎯 [PDF Highlighter] Rendering box ${index}:`, {
+          type: box.type,
+          position: `(${box.left}, ${box.top})`,
+          size: `${box.width}x${box.height}`
+        });
+        
+        return (
+          <div
+            key={index}
+            className={`${styles.highlightBox} ${styles[`highlight${box.type.charAt(0).toUpperCase() + box.type.slice(1)}`]}`}
+            style={{
+              top: `${box.top}px`,
+              left: `${box.left}px`,
+              width: `${box.width}px`,
+              height: `${box.height}px`,
+              background: 'rgba(255, 255, 0, 0.8)', // 임시로 강한 노란색 배경
+              border: '2px solid red', // 임시로 빨간 테두리
+              zIndex: 1000 // 높은 z-index
+            }}
+          />
+        );
+      })}
       
       {/* 하이라이트 정보 라벨 */}
       <div className={styles.highlightLabel}>
