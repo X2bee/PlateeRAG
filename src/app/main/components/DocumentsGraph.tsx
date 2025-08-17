@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import styles from '@/app/main/assets/Documents.module.scss';
+import { IoCodeSlashOutline } from 'react-icons/io5';
+import { devLog } from '@/app/_common/utils/logger';
 
 interface DocumentsGraphProps {
     loading: boolean;
@@ -105,6 +107,56 @@ const DocumentsGraph: React.FC<DocumentsGraphProps> = ({
     useEffect(() => {
         if (viewMode !== 'graph' || !svgRef.current || loading) return;
 
+        // 컬렉션과 파일별 색상 생성 함수
+        const getNodeColor = (node: Node): string => {
+            if (node.type === 'concept') {
+                return "#8fffecff"; // 컨셉 노드는 기본 오렌지색
+            }
+
+            if (!node.data?.collection_name || !node.data?.file_name) {
+                return "#1f77b4"; // 기본 파란색
+            }
+
+            // 컬렉션 이름에서 UUID 제거
+            const collectionName = node.data.collection_name.replace(/_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, '');
+            const fileName = node.data.file_name;
+
+            // 다양한 색상 계열 정의
+            const colorSchemes = [
+                ["#1f77b4", "#3498db", "#5dade2", "#85c1e9", "#aed6f1"], // 파란색 계열
+                ["#ff7f0e", "#e67e22", "#f39c12", "#f8c471", "#fdeaa7"], // 주황색 계열
+                ["#2ca02c", "#27ae60", "#58d68d", "#82e5aa", "#abebc6"], // 초록색 계열
+                ["#d62728", "#e74c3c", "#ec7063", "#f1948a", "#fadbd8"], // 빨간색 계열
+                ["#9467bd", "#8e44ad", "#a569bd", "#bb8fce", "#d7bde2"], // 보라색 계열
+                ["#8c564b", "#a0522d", "#cd853f", "#daa520", "#f4d03f"], // 갈색/황금색 계열
+                ["#e377c2", "#e91e63", "#f06292", "#f8bbd9", "#fce4ec"], // 분홍색 계열
+                ["#17becf", "#1abc9c", "#48c9b0", "#76d7c4", "#a3e4d7"], // 청록색 계열
+                ["#7f7f7f", "#566573", "#85929e", "#aeb6bf", "#d5d8dc"], // 회색 계열
+                ["#bcbd22", "#f39800", "#ff6b35", "#f7931e", "#ffb347"], // 라임/오렌지 계열
+                ["#ff1493", "#dc143c", "#b22222", "#cd5c5c", "#f08080"], // 진한 빨강/핑크 계열
+                ["#4b0082", "#6a0dad", "#7b68ee", "#9370db", "#dda0dd"], // 인디고/보라 계열
+                ["#006400", "#228b22", "#32cd32", "#7cfc00", "#adff2f"], // 진한 초록 계열
+                ["#ff4500", "#ff6347", "#ffa07a", "#ffb6c1", "#ffc0cb"], // 오렌지/산호색 계열
+                ["#2f4f4f", "#708090", "#778899", "#b0c4de", "#e6e6fa"]  // 슬레이트 계열
+            ];
+
+            // 컬렉션 이름을 해시하여 색상 계열 선택
+            let hash = 0;
+            for (let i = 0; i < collectionName.length; i++) {
+                hash = ((hash << 5) - hash + collectionName.charCodeAt(i)) & 0xffffffff;
+            }
+
+            const collectionColorScheme = colorSchemes[Math.abs(hash) % colorSchemes.length];
+
+            // 파일 이름을 해시하여 색상 계열 내에서 색상 선택
+            let fileHash = 0;
+            for (let i = 0; i < fileName.length; i++) {
+                fileHash = ((fileHash << 5) - fileHash + fileName.charCodeAt(i)) & 0xffffffff;
+            }
+
+            return collectionColorScheme[Math.abs(fileHash) % collectionColorScheme.length];
+        };
+
         const svg = d3.select(svgRef.current);
         svg.selectAll("*").remove(); // 기존 요소 제거
 
@@ -173,7 +225,7 @@ const DocumentsGraph: React.FC<DocumentsGraphProps> = ({
             .enter().append("circle")
             .attr("class", (d: any) => d.type === 'chunk' ? styles.chunkNode : styles.conceptNode)
             .attr("r", (d: any) => d.type === 'chunk' ? 20 : 15)
-            .attr("fill", (d: any) => d.type === 'chunk' ? "#1f77b4" : "#ff7f0e")
+            .style("fill", (d: any) => getNodeColor(d))
             .attr("stroke", "#fff")
             .attr("stroke-width", 2)
             .style("cursor", "pointer")
@@ -336,6 +388,7 @@ const DocumentsGraph: React.FC<DocumentsGraphProps> = ({
                                         {selectedNode.type === 'chunk' && selectedNode.data && (
                                             <>
                                                 <p><strong>파일명:</strong> {selectedNode.data.file_name}</p>
+                                                <p><strong>컬렉션:</strong> {selectedNode.data.collection_name?.replace(/_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, '') || selectedNode.data.collection_name}</p>
                                                 <p><strong>청크 인덱스:</strong> {selectedNode.data.chunk_index + 1}</p>
                                                 <p><strong>크기:</strong> {selectedNode.data.chunk_size} 문자</p>
                                                 <p><strong>요약:</strong></p>

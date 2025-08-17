@@ -880,27 +880,24 @@ $white: #ffffff;
 }
 
 .chunkNode {
-    fill: $primary-blue;
     stroke: $white;
     stroke-width: 2px;
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover {
-        fill: color.adjust($primary-blue, $lightness: -10%);
         stroke-width: 3px;
     }
 }
 
 .conceptNode {
-    fill: $primary-green;
-    stroke: $white;
+    stroke: $gray-600;
     stroke-width: 2px;
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover {
-        fill: color.adjust($primary-green, $lightness: -10%);
+        stroke: $gray-800;
         stroke-width: 3px;
     }
 }
