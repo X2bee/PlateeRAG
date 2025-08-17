@@ -18,7 +18,7 @@ $white: #ffffff;
 
 .container {
     padding: 2rem;
-    max-width: 1600px;
+    max-width: 2000px;
     margin: 0 auto;
     font-family: 'Pretendard', sans-serif;
 }
@@ -751,7 +751,7 @@ $white: #ffffff;
 }
 
 .graphContent {
-    padding: 2rem;
+    padding-top: 1rem;
 }
 
 .graphPlaceholder {
@@ -802,7 +802,7 @@ $white: #ffffff;
 // D3 Graph Styles
 .graphContainer {
     display: flex;
-    height: 700px;
+    height: 60vh;
     border: 1px solid $gray-200;
     border-radius: 0.5rem;
     overflow: hidden;
@@ -880,27 +880,24 @@ $white: #ffffff;
 }
 
 .chunkNode {
-    fill: $primary-blue;
     stroke: $white;
     stroke-width: 2px;
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover {
-        fill: color.adjust($primary-blue, $lightness: -10%);
         stroke-width: 3px;
     }
 }
 
 .conceptNode {
-    fill: $primary-green;
-    stroke: $white;
+    stroke: $gray-600;
     stroke-width: 2px;
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover {
-        fill: color.adjust($primary-green, $lightness: -10%);
+        stroke: $gray-800;
         stroke-width: 3px;
     }
 }
