@@ -6,6 +6,7 @@ import styles from '@/app/main/assets/Playground.module.scss';
 import Executor from '@/app/main/components/Executor';
 import Monitor from '@/app/main/components/Monitor';
 import BatchTester from '@/app/main/components/BatchTester';
+import { BatchTesterProvider } from '@/app/main/contexts/BatchTesterContext';
 import { useSearchParams } from 'next/navigation';
 
 interface PlaygroundProps {
@@ -96,7 +97,11 @@ const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
             case 'monitoring':
                 return <Monitor workflow={selectedWorkflow} />;
             case 'batchtester':
-                return <BatchTester workflow={selectedWorkflow} />;
+                return (
+                    <BatchTesterProvider>
+                        <BatchTester workflow={selectedWorkflow} />
+                    </BatchTesterProvider>
+                );
             default:
                 return <Executor workflow={selectedWorkflow} />;
         }
