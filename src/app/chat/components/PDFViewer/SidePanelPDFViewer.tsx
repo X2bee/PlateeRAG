@@ -49,6 +49,16 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
 
   if (!sourceInfo) return null;
 
+  // 디버깅을 위한 상태 로깅
+  console.log('🔍 [SidePanelPDFViewer] Render state:', {
+    loading,
+    error,
+    pdfUrl: !!pdfUrl,
+    pdfUrlValue: pdfUrl,
+    numPages,
+    pageNumber
+  });
+
   // 하이라이트 범위 계산
   const highlightRange: HighlightRange = {
     pageNumber: sourceInfo.page_number,
@@ -92,7 +102,18 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
       // ArrayBuffer를 Blob URL로 변환
       const blob = new Blob([documentData], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
+      
+      console.log('📄 [SidePanelPDFViewer] Creating Blob URL:', {
+        size: documentData.byteLength,
+        blobSize: blob.size,
+        blobType: blob.type,
+        url: url
+      });
+      
       setPdfUrl(url);
+      
+      // 로딩 완료 상태로 변경
+      setLoading(false);
       
       console.log('✅ [SidePanelPDFViewer] Document loaded successfully, size:', documentData.byteLength, 'bytes');
     } catch (err) {
@@ -116,10 +137,11 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
   }, [sourceInfo, loadPdfDocument]);
 
   const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
+    console.log('✅ [SidePanelPDFViewer] PDF Document loaded successfully:', { numPages, pdfUrl });
     setNumPages(numPages);
     setLoading(false);
     setError(null);
-  }, []);
+  }, [pdfUrl]);
 
   const onDocumentLoadError = useCallback((error: Error) => {
     console.error('❌ [SidePanelPDFViewer] PDF document load error:', error);
@@ -249,8 +271,8 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
             file={pdfUrl}
           onLoadSuccess={onDocumentLoadSuccess}
           onLoadError={onDocumentLoadError}
-          loading=""
-          error=""
+          loading={<div>PDF 문서를 로드하는 중...</div>}
+          error={<div>PDF 문서 로드 오류</div>}
         >
           <div className={styles.pageContainer}>
             <Page

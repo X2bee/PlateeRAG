@@ -85,6 +85,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose, mode
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       
+      // 로딩 완료 상태로 변경
+      setLoading(false);
+      
       console.log('✅ [PDFViewer] Document loaded successfully, size:', documentData.byteLength, 'bytes');
     } catch (err) {
       console.error('❌ [PDFViewer] Failed to load document:', err);
