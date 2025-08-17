@@ -49,6 +49,8 @@ export default tseslint.config(
             'jsx-a11y/no-autofocus': 'warn',
             '@typescript-eslint/no-explicit-any': 'off',
             '@typescript-eslint/no-unused-vars': 'warn',
+            'react-hooks/exhaustive-deps': 'warn',
+            'no-useless-escape': 'warn',
         },
     },
 

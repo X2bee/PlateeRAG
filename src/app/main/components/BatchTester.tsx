@@ -87,7 +87,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             setIsXLSXLoaded(true);
             return;
         }
-        
+
         try {
             const script = document.createElement('script');
             script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
@@ -103,7 +103,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             setIsMammothLoaded(true);
             return;
         }
-        
+
         try {
             const script = document.createElement('script');
             script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';
@@ -126,7 +126,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             if (currentWorkflowId) {
                 saveStateToStorage(currentWorkflowId);
             }
-            
+
             // 새 워크플로우 상태 로드
             setCurrentWorkflowId(workflow.workflow_id);
             loadStateFromStorage(workflow.workflow_id);
@@ -148,9 +148,9 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
         }
 
         setUploadedFile(file);
-        
+
         const fileExtension = file.name.split('.').pop()?.toLowerCase();
-        
+
         if (fileExtension === 'csv') {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -183,18 +183,18 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             const parsedData: TestData[] = [];
             const lines = content.split('\n').filter(line => line.trim());
             const firstLine = lines[0];
-            const hasHeader = firstLine.toLowerCase().includes('input') || 
+            const hasHeader = firstLine.toLowerCase().includes('input') ||
                              firstLine.toLowerCase().includes('question') ||
                              firstLine.toLowerCase().includes('질문');
-            
+
             const startIndex = hasHeader ? 1 : 0;
-            
+
             for (let i = startIndex; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue;
-                
+
                 const values = parseCSVLine(line);
-                
+
                 if (values.length >= 1 && values[0].trim()) {
                     parsedData.push({
                         id: i - startIndex + 1,
@@ -204,7 +204,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                     });
                 }
             }
-            
+
             setTestData(parsedData);
             // 즉시 저장
             if (workflow) {
@@ -220,10 +220,10 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
         const result: string[] = [];
         let current = '';
         let inQuotes = false;
-        
+
         for (let i = 0; i < line.length; i++) {
             const char = line[i];
-            
+
             if (char === '"') {
                 inQuotes = !inQuotes;
             } else if (char === ',' && !inQuotes) {
@@ -233,7 +233,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                 current += char;
             }
         }
-        
+
         result.push(current);
         return result;
     };
@@ -244,7 +244,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             alert('Excel 파일 처리 라이브러리가 로드되지 않았습니다. 잠시 후 다시 시도해주세요.');
             return;
         }
-        
+
         try {
             const parsedData: TestData[] = [];
             const workbook = window.XLSX.read(data, {
@@ -253,24 +253,24 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                 cellNF: false,
                 cellText: false
             });
-            
+
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
-            
+
             const jsonData = window.XLSX.utils.sheet_to_json(worksheet, {
                 header: 1,
                 defval: '',
                 blankrows: false
             }) as string[][];
-            
-            const hasHeader = jsonData.length > 0 && jsonData[0].some(cell => 
-                String(cell).toLowerCase().includes('input') || 
+
+            const hasHeader = jsonData.length > 0 && jsonData[0].some(cell =>
+                String(cell).toLowerCase().includes('input') ||
                 String(cell).toLowerCase().includes('question') ||
                 String(cell).toLowerCase().includes('질문')
             );
-            
+
             const startIndex = hasHeader ? 1 : 0;
-            
+
             for (let i = startIndex; i < jsonData.length; i++) {
                 const row = jsonData[i];
                 if (row.length >= 1 && row[0] && String(row[0]).trim()) {
@@ -282,7 +282,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                     });
                 }
             }
-            
+
             setTestData(parsedData);
             // 즉시 저장
             if (workflow) {
@@ -299,22 +299,22 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             alert('Word 파일 처리 라이브러리가 로드되지 않았습니다. 잠시 후 다시 시도해주세요.');
             return;
         }
-        
+
         try {
             const result = await window.mammoth.extractRawText({ arrayBuffer: data });
             const text = result.value;
             const parsedData: TestData[] = [];
-            
+
             const lines = text.split('\n').filter((line: string) => line.trim());
-            
+
             // "Q1.", "Q2." 형식의 질문 찾기
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
-                const questionMatch = line.match(/^Q\d*[\.\:\s]+(.+)/i);
-                
+                const questionMatch = line.match(/^Q\d*[.:\s]+(.+)/i);
+
                 if (questionMatch) {
                     const question = questionMatch[1].trim();
-                    
+
                     if (question.length > 0) {
                         parsedData.push({
                             id: parsedData.length + 1,
@@ -325,20 +325,20 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                     }
                 }
             }
-            
+
             if (parsedData.length === 0) {
                 alert('Word 파일에서 질문을 찾을 수 없습니다. "Q1.", "Q2." 형식으로 작성해주세요.');
                 return;
             }
-            
+
             setTestData(parsedData);
             console.log(`Word 파일에서 ${parsedData.length}개의 질문을 추출했습니다.`);
-            
+
             // 즉시 저장
             if (workflow) {
                 setTimeout(() => saveStateToStorage(workflow.workflow_id), 100);
             }
-            
+
         } catch (error) {
             console.error('Word 파싱 중 오류:', error);
             alert('Word 파일을 파싱하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.');
@@ -358,7 +358,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             setCompletedCount(newCompletedCount);
             setProgress(newProgress);
             setIsRunning(newIsRunning);
-            
+
             // React의 상태 배치 업데이트 완료를 기다림
             setTimeout(() => {
                 resolve();
@@ -381,8 +381,8 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
         });
 
         // 실행 시작 - 상태 초기화
-        const initializedData = testData.map(item => ({ 
-            ...item, 
+        const initializedData = testData.map(item => ({
+            ...item,
             status: 'pending' as const,
             actualOutput: null,
             error: null,
@@ -449,9 +449,9 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                         error: result.error || null
                     };
                 }
-                return { 
-                    ...item, 
-                    status: 'error' as const, 
+                return {
+                    ...item,
+                    status: 'error' as const,
                     error: '서버에서 결과를 찾을 수 없습니다.',
                     actualOutput: null,
                     executionTime: 0
@@ -464,7 +464,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             setCompletedCount(batchResult.total_count);
             setProgress(100);
             setIsRunning(false);
-            
+
             console.log('완료 상태 업데이트 완료');
 
             // 최종 저장 (상태 업데이트 완료 후)
@@ -485,7 +485,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                         batchSize: batchSize,
                         timestamp: Date.now()
                     };
-                    
+
                     try {
                         localStorage.setItem(`batchTester_${workflow.workflow_id}`, JSON.stringify(finalState));
                         console.log('수동 저장 완료:', {
@@ -496,7 +496,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                     } catch (error) {
                         console.error('❌ 수동 저장 실패:', error);
                     }
-                    
+
                     console.log('최종 상태 저장 완료');
                 }, 1000); // 1초 후 확실히 저장
             }
@@ -509,9 +509,9 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                            `• 실패: ${batchResult.error_count}개\n` +
                            `• 총 소요시간: ${(batchResult.total_execution_time / 1000).toFixed(2)}초\n` +
                            `• 평균 실행시간: ${(batchResult.total_execution_time / batchResult.total_count).toFixed(2)}ms`;
-            
+
             console.log(message);
-            
+
             const successRate = (batchResult.success_count / batchResult.total_count) * 100;
             if (successRate === 100) {
                 alert(message + '\n\n모든 테스트가 성공했습니다!');
@@ -523,13 +523,13 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
 
         } catch (error: unknown) {
             console.error('❌ 배치 테스트 중 오류:', error);
-            
+
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
-            
+
             // 에러 발생 시 직접 상태 업데이트
-            const errorData = testData.map(item => ({ 
-                ...item, 
-                status: 'error' as const, 
+            const errorData = testData.map(item => ({
+                ...item,
+                status: 'error' as const,
                 error: errorMessage,
                 actualOutput: null,
                 executionTime: 0
@@ -540,7 +540,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             setCompletedCount(0);
             setProgress(0);
             setIsRunning(false);
-            
+
             // 에러 상태 저장
             if (workflow) {
                 setTimeout(() => {
@@ -557,28 +557,28 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                         batchSize: batchSize,
                         timestamp: Date.now()
                     };
-                    
+
                     try {
                         localStorage.setItem(`batchTester_${workflow.workflow_id}`, JSON.stringify(errorState));
                         console.log('에러 상태 수동 저장 완료');
                     } catch (error) {
                         console.error('❌ 에러 상태 저장 실패:', error);
                     }
-                    
+
                     console.log('에러 상태 저장 완료');
                 }, 1000);
             }
-            
+
             const detailedErrorMessage = `❌ 배치 테스트 실행 중 오류가 발생했습니다.\n\n` +
                                        `🔍 오류 내용:\n${errorMessage}\n\n` +
                                        `💡 해결 방법:\n` +
                                        `• 워크플로우가 올바르게 설정되어 있는지 확인\n` +
                                        `• 네트워크 연결 상태 확인\n` +
                                        `• 서버 로그 확인`;
-            
+
             alert(detailedErrorMessage);
         }
-        
+
         console.log('배치 테스트 프로세스 완료');
     };
 
@@ -643,8 +643,8 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                 <div className={styles.headerActions}>
                     <div className={styles.batchSizeSelector}>
                         <label>동시 실행:</label>
-                        <select 
-                            value={batchSize} 
+                        <select
+                            value={batchSize}
                             onChange={(e) => setBatchSize(Number(e.target.value))}
                             disabled={isRunning}
                             title="서버에서 동시에 처리할 테스트 개수입니다."
@@ -656,8 +656,8 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                             <option value={20}>20개 (최대)</option>
                         </select>
                     </div>
-                    
-                    <button 
+
+                    <button
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isRunning}
                         className={`${styles.btn} ${styles.upload}`}
@@ -665,7 +665,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                         <FiUpload />
                         파일 업로드
                     </button>
-                    <button 
+                    <button
                         onClick={runBatchTest}
                         disabled={!testData.length || isRunning}
                         className={`${styles.btn} ${styles.run}`}
@@ -674,7 +674,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                         {isRunning ? <FiRefreshCw className={styles.spinning} /> : <FiPlay />}
                         {isRunning ? '서버에서 처리 중...' : '배치 실행 (서버)'}
                     </button>
-                    <button 
+                    <button
                         onClick={downloadResults}
                         disabled={!testData.length || testData.every(item => item.status === 'pending')}
                         className={`${styles.btn} ${styles.download}`}
@@ -683,7 +683,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                         결과 다운로드
                     </button>
                     {testData.length > 0 && (
-                        <button 
+                        <button
                             onClick={clearTestData}
                             disabled={isRunning}
                             className={styles.clearBtn}
@@ -717,7 +717,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                         </span>
                     </div>
                     <div className={styles.progress}>
-                        <div 
+                        <div
                             className={styles.progress__fill}
                             style={{ '--progress': `${progress}%` } as React.CSSProperties}
                         />
@@ -766,7 +766,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                                     <span className={styles.statValue}>
                                         {(() => {
                                             const completedTests = testData.filter(item => item.executionTime && item.executionTime > 0);
-                                            const avgTime = completedTests.length > 0 
+                                            const avgTime = completedTests.length > 0
                                                 ? completedTests.reduce((sum, item) => sum + (item.executionTime || 0), 0) / completedTests.length
                                                 : 0;
                                             return formatExecutionTime(avgTime);
@@ -794,7 +794,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                             </div>
                         </div>
                     )}
-                    
+
                     <div className={styles.resultsTable}>
                         <div className={styles.results__header}>
                             <div>ID</div>
@@ -803,7 +803,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                             <div>상태</div>
                             <div>소요 시간</div>
                         </div>
-                        
+
                         <div className={styles.results__body}>
                             {testData.map((item, index) => (
                                 <div key={item.id} className={styles.results__row}>
@@ -812,13 +812,13 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                                         {item.input.length > 50 ? `${item.input.substring(0, 50)}...` : item.input}
                                     </div>
                                     <div className={styles.results__actual} title={item.actualOutput || undefined}>
-                                        {item.actualOutput ? 
+                                        {item.actualOutput ?
                                             (item.actualOutput.length > 50 ? `${item.actualOutput.substring(0, 50)}...` : item.actualOutput)
-                                            : (item.status === 'running' ? 
+                                            : (item.status === 'running' ?
                                                 <span className={styles.running}>
                                                     <FiRefreshCw className={styles.spinning} />
                                                     실행 중...
-                                                </span> 
+                                                </span>
                                                 : '-')
                                         }
                                     </div>
@@ -845,7 +845,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                 <div className={styles.emptyState}>
                     <h4>배치 테스트를 시작해보세요</h4>
                     <p>CSV 또는 Excel 파일을 업로드하여 여러 테스트를 한 번에 실행할 수 있습니다.</p>
-                    
+
                     <div className={styles.fileFormatInfo}>
                         <h5>📄 지원 파일 형식</h5>
                         <div className={styles.formatList}>
@@ -868,7 +868,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                             <span className={styles.formatBadge}>.doc</span>
                         </div>
                     </div>
-                    
+
                     <div className={styles.quickStart}>
                         <details className={styles.quickStartDetails}>
                             <summary>💡 빠른 시작 가이드</summary>
