@@ -17,6 +17,8 @@ import {
     deleteDocumentFromCollection,
     getDocumentDetailMeta,
     getDocumentDetailEdges,
+    getAllDocumentDetailMeta,
+    getAllDocumentDetailEdges
 } from '@/app/api/retrievalAPI';
 import useSidebarManager from '@/app/_common/hooks/useSidebarManager';
 
@@ -99,7 +101,7 @@ interface SearchResponse {
     search_params: any;
 }
 
-type ViewMode = 'collections' | 'documents' | 'documents-graph' | 'document-detail';
+type ViewMode = 'collections' | 'documents' | 'documents-graph' | 'document-detail' | 'all-documents-graph';
 
 const Documents: React.FC = () => {
 
@@ -118,6 +120,10 @@ const Documents: React.FC = () => {
     const [documentDetailMeta, setDocumentDetailMeta] = useState<any>(null);
     const [documentDetailEdges, setDocumentDetailEdges] = useState<any>(null);
 
+    // Graph 데이터 상태
+    const [allDocumentDetailMeta, setAllDocumentDetailMeta] = useState<any>(null);
+    const [allDocumentDetailEdges, setAllDocumentDetailEdges] = useState<any>(null);
+
     // 모달 상태
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -132,7 +138,6 @@ const Documents: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     useSidebarManager(showCreateModal || showDeleteModal)
-
 
     // 컬렉션 목록 로드
     useEffect(() => {
@@ -340,6 +345,8 @@ const Documents: React.FC = () => {
             setViewMode('collections');
             setSelectedCollection(null);
             setDocumentsInCollection([]);
+        } else if (viewMode === 'all-documents-graph') {
+            setViewMode('collections');
         }
     };
 
@@ -395,8 +402,8 @@ const Documents: React.FC = () => {
                         await uploadDocument(
                             file,
                             selectedCollection.collection_name,
-                            2000,
-                            300,
+                            3000,
+                            500,
                             metadata
                         );
 
@@ -451,8 +458,8 @@ const Documents: React.FC = () => {
                     await uploadDocument(
                         file,
                         selectedCollection.collection_name,
-                        2000,
-                        300,
+                        3000,
+                        500,
                         { upload_type: 'single' }
                     );
 
@@ -553,12 +560,58 @@ const Documents: React.FC = () => {
         }
     };
 
+    // 문서 메타데이터 조회
+    const handleGetAllDocumentDetailMeta = async () => {
+        if (allDocumentDetailMeta) {
+            return;
+        }
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await getAllDocumentDetailMeta();
+            console.log('Document detail meta:', response);
+            setAllDocumentDetailMeta(response);
+        } catch (err) {
+            setError('문서 메타데이터를 불러오는데 실패했습니다.');
+            console.error('Failed to get document detail meta:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 문서 메타데이터 조회
+    const handleGetAllDocumentDetailEdges = async () => {
+        if (allDocumentDetailEdges) {
+            return;
+        }
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await getAllDocumentDetailEdges();
+            console.log('Document detail edges:', response);
+            setAllDocumentDetailEdges(response);
+        } catch (err) {
+            setError('문서 메타데이터를 불러오는데 실패했습니다.');
+            console.error('Failed to get document detail edges:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // 그래프 뷰로 전환 시 메타데이터 로드
     const handleSwitchToGraphView = async () => {
         setViewMode('documents-graph');
         await Promise.all([
             handleGetDocumentDetailMeta(),
             handleGetDocumentDetailEdges()
+        ]);
+    };
+
+    const handleSwitchToAllGraphView = async () => {
+        setViewMode('all-documents-graph');
+        await Promise.all([
+            handleGetAllDocumentDetailMeta(),
+            handleGetAllDocumentDetailEdges()
         ]);
     };
 
@@ -581,9 +634,14 @@ const Documents: React.FC = () => {
                 </div>
                 <div className={styles.headerRight}>
                     {viewMode === 'collections' && (
-                        <button onClick={() => setShowCreateModal(true)} className={`${styles.button} ${styles.primary}`}>
-                            새 컬렉션 생성
-                        </button>
+                        <>
+                            <button onClick={handleSwitchToAllGraphView} className={`${styles.button} ${styles.secondary}`}>
+                                [주의] 모든 그래프 보기
+                            </button>
+                            <button onClick={() => setShowCreateModal(true)} className={`${styles.button} ${styles.primary}`}>
+                                새 컬렉션 생성
+                            </button>
+                        </>
                     )}
                     {viewMode === 'documents' && (
                         <>
@@ -847,6 +905,14 @@ const Documents: React.FC = () => {
                 />
             )}
 
+            {viewMode === 'all-documents-graph' && (
+                <DocumentsGraph
+                    loading={loading}
+                    documentDetailMeta={allDocumentDetailMeta}
+                    documentDetailEdges={allDocumentDetailEdges}
+                />
+            )}
+
             {/* 컬렉션 생성 모달 */}
             {showCreateModal && (
                 <div className={styles.modalBackdrop} onClick={() => setShowCreateModal(false)}>
@@ -895,7 +961,7 @@ const Documents: React.FC = () => {
                     <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                         <h3>컬렉션 삭제 확인</h3>
                         <p>
-                            '<strong>{collectionToDelete.collection_make_name}</strong>' 컬렉션을 정말로 삭제하시겠습니까?<br/>
+                            '<strong>{collectionToDelete.collection_make_name}</strong>' 컬렉션을 정말로 삭제하시겠습니까?<br />
                             이 작업은 되돌릴 수 없으며, 컬렉션에 포함된 모든 문서가 삭제됩니다.
                         </p>
                         <div className={styles.modalActions}>

@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
-import styles from '../assets/Documents.module.scss';
+import styles from '@/app/main/assets/Documents.module.scss';
 
 interface DocumentsGraphProps {
     loading: boolean;

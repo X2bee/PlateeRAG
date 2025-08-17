@@ -18,7 +18,7 @@ $white: #ffffff;
 
 .container {
     padding: 2rem;
-    max-width: 1600px;
+    max-width: 2000px;
     margin: 0 auto;
     font-family: 'Pretendard', sans-serif;
 }
@@ -751,7 +751,7 @@ $white: #ffffff;
 }
 
 .graphContent {
-    padding: 2rem;
+    padding-top: 1rem;
 }
 
 .graphPlaceholder {
@@ -802,7 +802,7 @@ $white: #ffffff;
 // D3 Graph Styles
 .graphContainer {
     display: flex;
-    height: 700px;
+    height: 60vh;
     border: 1px solid $gray-200;
     border-radius: 0.5rem;
     overflow: hidden;
