@@ -31,10 +31,12 @@ if (typeof window !== 'undefined') {
 
 interface SidePanelPDFViewerProps {
   sourceInfo: PDFViewerProps['sourceInfo'] | null;
+  mode?: string;
+  userId?: string | number;
   onClose: () => void;
 }
 
-const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, onClose }) => {
+const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mode, userId, onClose }) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(0.8);
@@ -78,7 +80,7 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, onC
         throw new Error('파일 경로가 비어있습니다.');
       }
       
-      const documentData = await fetchDocumentByPath(filePath);
+      const documentData = await fetchDocumentByPath(filePath, true, mode, userId?.toString());
       
       // 데이터 유효성 검사
       if (!documentData || documentData.byteLength === 0) {
@@ -101,7 +103,7 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, onC
       setPdfData(null);
       setPdfUrl(null);
     }
-  }, [sourceInfo?.file_path]);
+  }, [sourceInfo?.file_path, mode, userId]);
 
   // sourceInfo가 변경될 때 문서 로딩 및 페이지 설정
   useEffect(() => {

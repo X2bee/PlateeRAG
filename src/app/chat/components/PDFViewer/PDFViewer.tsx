@@ -29,7 +29,7 @@ if (typeof window !== 'undefined') {
   });
 }
 
-const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose }) => {
+const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose, mode, userId }) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.0);
@@ -71,7 +71,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose }) =>
         throw new Error('파일 경로가 비어있습니다.');
       }
       
-      const documentData = await fetchDocumentByPath(filePath);
+      const documentData = await fetchDocumentByPath(filePath, true, mode, userId?.toString());
       
       // 데이터 유효성 검사
       if (!documentData || documentData.byteLength === 0) {
@@ -94,7 +94,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose }) =>
       setPdfData(null);
       setPdfUrl(null);
     }
-  }, [sourceInfo.file_path, isOpen]);
+  }, [sourceInfo.file_path, isOpen, mode, userId]);
 
   // 모달이 열릴 때 문서 로딩 및 페이지 설정
   useEffect(() => {

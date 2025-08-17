@@ -6,9 +6,11 @@ import { documentCache } from '../_common/utils/documentCache';
  * 파일 경로를 기반으로 문서를 가져오는 API (캐싱 지원)
  * @param {string} filePath - 문서 파일 경로 
  * @param {boolean} useCache - 캐시 사용 여부 (기본값: true)
+ * @param {string} mode - 현재 모드 ('deploy' 등)
+ * @param {string} userId - 사용자 ID (deploy 모드에서 필요)
  * @returns {Promise<ArrayBuffer>} PDF 파일의 바이너리 데이터
  */
-export const fetchDocumentByPath = async (filePath, useCache = true) => {
+export const fetchDocumentByPath = async (filePath, useCache = true, mode = null, userId = null) => {
     try {
         // 캐시에서 먼저 확인
         if (useCache) {
@@ -105,15 +107,39 @@ startxref
             return arrayBuffer;
         }
         
-        const response = await apiClient(`${API_BASE_URL}/api/documents/fetch`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-                file_path: filePath 
-            }),
-        });
+        // 요청 body 구성
+        const requestBody = {
+            file_path: filePath
+        };
+
+        // deploy 모드인 경우 user_id 추가
+        if (mode === 'deploy' && userId) {
+            requestBody.user_id = userId;
+            console.log(`🔑 [DocumentAPI] Deploy mode: Adding user_id: ${userId}`);
+        }
+
+        console.log(`📤 [DocumentAPI] Request body:`, requestBody);
+        
+        // deploy 모드에서는 별도 엔드포인트 사용 (인증 없음)
+        const endpoint = mode === 'deploy' 
+            ? `${API_BASE_URL}/api/documents/fetch/deploy`
+            : `${API_BASE_URL}/api/documents/fetch`;
+        
+        const response = mode === 'deploy' 
+            ? await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+            })
+            : await apiClient(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+            });
 
         if (!response.ok) {
             throw new Error(`문서를 가져오는데 실패했습니다: ${response.status} ${response.statusText}`);
@@ -137,19 +163,43 @@ startxref
 /**
  * 문서 메타데이터를 가져오는 API
  * @param {string} filePath - 문서 파일 경로
+ * @param {string} mode - 현재 모드 ('deploy' 등)
+ * @param {string} userId - 사용자 ID (deploy 모드에서 필요)
  * @returns {Promise<Object>} 문서 메타데이터
  */
-export const fetchDocumentMetadata = async (filePath) => {
+export const fetchDocumentMetadata = async (filePath, mode = null, userId = null) => {
     try {
-        const response = await apiClient(`${API_BASE_URL}/api/documents/metadata`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-                file_path: filePath 
-            }),
-        });
+        // 요청 body 구성
+        const requestBody = {
+            file_path: filePath
+        };
+
+        // deploy 모드인 경우 user_id 추가
+        if (mode === 'deploy' && userId) {
+            requestBody.user_id = userId;
+            console.log(`🔑 [DocumentAPI] Deploy mode: Adding user_id for metadata: ${userId}`);
+        }
+
+        // deploy 모드에서는 별도 엔드포인트 사용 (인증 없음)
+        const endpoint = mode === 'deploy' 
+            ? `${API_BASE_URL}/api/documents/metadata/deploy`
+            : `${API_BASE_URL}/api/documents/metadata`;
+        
+        const response = mode === 'deploy' 
+            ? await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+            })
+            : await apiClient(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+            });
 
         if (!response.ok) {
             throw new Error(`문서 메타데이터를 가져오는데 실패했습니다: ${response.status} ${response.statusText}`);
@@ -165,19 +215,43 @@ export const fetchDocumentMetadata = async (filePath) => {
 /**
  * 문서 접근 권한을 확인하는 API
  * @param {string} filePath - 문서 파일 경로
+ * @param {string} mode - 현재 모드 ('deploy' 등)
+ * @param {string} userId - 사용자 ID (deploy 모드에서 필요)
  * @returns {Promise<boolean>} 접근 권한 여부
  */
-export const checkDocumentAccess = async (filePath) => {
+export const checkDocumentAccess = async (filePath, mode = null, userId = null) => {
     try {
-        const response = await apiClient(`${API_BASE_URL}/api/documents/access`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-                file_path: filePath 
-            }),
-        });
+        // 요청 body 구성
+        const requestBody = {
+            file_path: filePath
+        };
+
+        // deploy 모드인 경우 user_id 추가
+        if (mode === 'deploy' && userId) {
+            requestBody.user_id = userId;
+            console.log(`🔑 [DocumentAPI] Deploy mode: Adding user_id for access check: ${userId}`);
+        }
+
+        // deploy 모드에서는 별도 엔드포인트 사용 (인증 없음)
+        const endpoint = mode === 'deploy' 
+            ? `${API_BASE_URL}/api/documents/access/deploy`
+            : `${API_BASE_URL}/api/documents/access`;
+        
+        const response = mode === 'deploy' 
+            ? await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+            })
+            : await apiClient(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+            });
 
         if (!response.ok) {
             return false;

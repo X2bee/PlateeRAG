@@ -12,7 +12,7 @@ interface CacheStatusIndicatorProps {
 
 const CacheStatusIndicator: React.FC<CacheStatusIndicatorProps> = ({ filePath, className }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState<any>(null);
   const [isInCache, setIsInCache] = useState(false);
 
   const updateStats = () => {
