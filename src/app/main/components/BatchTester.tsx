@@ -310,6 +310,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             // "Q1.", "Q2." 형식의 질문 찾기
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
+                //TODO 수정했는데 문제 없는지 확인.
                 const questionMatch = line.match(/^Q\d*[.:\s]+(.+)/i);
 
                 if (questionMatch) {
