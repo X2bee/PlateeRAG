@@ -94,21 +94,125 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ language, code, className 
  */
 const parseCitation = (citationText: string): SourceInfo | null => {
     try {
-        // 예상 형태: [Cite. {"file_name": "sample.pdf", "file_path": "/sample.pdf", "page_number": 1, "line_start": 10, "line_end": 15}]
-        const jsonMatch = citationText.match(/\[Cite\.\s*({.*})\]/);
-        if (jsonMatch) {
-            const sourceInfo = JSON.parse(jsonMatch[1]);
-            return {
-                file_name: sourceInfo.file_name,
-                file_path: sourceInfo.file_path,
-                page_number: sourceInfo.page_number,
-                line_start: sourceInfo.line_start,
-                line_end: sourceInfo.line_end
-            };
+        // 단계별로 다양한 패턴 시도
+        let jsonString = '';
+        
+        // 1. 기본 패턴: [Cite. {JSON}]
+        let match = citationText.match(/\[Cite\.\s*(\{.*?\})\]/);
+        if (match) {
+            jsonString = match[1];
+        } else {
+            // 2. 닫는 대괄호가 없는 경우: [Cite. {JSON}
+            match = citationText.match(/\[Cite\.\s*(\{.*?\})/);
+            if (match) {
+                jsonString = match[1];
+            } else {
+                // 3. Citation 키워드 뒤에 JSON만 있는 경우
+                match = citationText.match(/Cite\.\s*(\{.*?\})/);
+                if (match) {
+                    jsonString = match[1];
+                } else {
+                    // 4. JSON만 있는 경우
+                    match = citationText.match(/(\{.*?\})/);
+                    if (match) {
+                        jsonString = match[1];
+                    }
+                }
+            }
         }
-        return null;
+        
+        if (!jsonString) {
+            return null;
+        }
+        
+        // JSON 문자열 정리
+        jsonString = jsonString.trim();
+        
+        // 다양한 이스케이프 처리
+        jsonString = jsonString.replace(/\\"/g, '"');     // 이스케이프된 따옴표
+        jsonString = jsonString.replace(/\\n/g, '\n');    // 이스케이프된 줄바꿈
+        jsonString = jsonString.replace(/\\t/g, '\t');    // 이스케이프된 탭
+        jsonString = jsonString.replace(/\\r/g, '\r');    // 이스케이프된 캐리지 리턴
+        jsonString = jsonString.replace(/\\+/g, '\\');    // 연속된 백슬래시 처리
+        
+        // 한국어가 포함된 경우를 위한 UTF-8 처리
+        try {
+            const sourceInfo = JSON.parse(jsonString);
+            
+            // 필수 필드 확인
+            if (!sourceInfo.file_name && !sourceInfo.file_path) {
+                console.warn('Missing required fields in citation:', sourceInfo);
+                return null;
+            }
+            
+            return {
+                file_name: sourceInfo.file_name || '',
+                file_path: sourceInfo.file_path || '',
+                page_number: sourceInfo.page_number || 0,
+                line_start: sourceInfo.line_start || 0,
+                line_end: sourceInfo.line_end || 0
+            };
+        } catch (parseError) {
+            console.error('JSON.parse failed, trying manual parsing...');
+            
+            // 수동 파싱 시도
+            const manualParsed = tryManualParsing(jsonString);
+            if (manualParsed) {
+                return manualParsed;
+            }
+            
+            throw parseError;
+        }
+        
     } catch (error) {
         console.error('Failed to parse citation:', error);
+        console.error('Citation text:', citationText);
+        return null;
+    }
+};
+
+/**
+ * 수동으로 JSON 파싱을 시도하는 헬퍼 함수
+ */
+const tryManualParsing = (jsonString: string): SourceInfo | null => {
+    try {
+        // 기본적인 JSON 형태인지 확인
+        if (!jsonString.startsWith('{') || !jsonString.endsWith('}')) {
+            return null;
+        }
+        
+        const result: Partial<SourceInfo> = {};
+        
+        // 각 필드를 개별적으로 추출
+        const fileNameMatch = jsonString.match(/"file_name"\s*:\s*"([^"]+)"/);
+        if (fileNameMatch) result.file_name = fileNameMatch[1];
+        
+        const filePathMatch = jsonString.match(/"file_path"\s*:\s*"([^"]+)"/);
+        if (filePathMatch) result.file_path = filePathMatch[1];
+        
+        const pageNumberMatch = jsonString.match(/"page_number"\s*:\s*(\d+)/);
+        if (pageNumberMatch) result.page_number = parseInt(pageNumberMatch[1]);
+        
+        const lineStartMatch = jsonString.match(/"line_start"\s*:\s*(\d+)/);
+        if (lineStartMatch) result.line_start = parseInt(lineStartMatch[1]);
+        
+        const lineEndMatch = jsonString.match(/"line_end"\s*:\s*(\d+)/);
+        if (lineEndMatch) result.line_end = parseInt(lineEndMatch[1]);
+        
+        // 최소한 file_name이나 file_path가 있어야 함
+        if (result.file_name || result.file_path) {
+            return {
+                file_name: result.file_name || '',
+                file_path: result.file_path || '',
+                page_number: result.page_number || 0,
+                line_start: result.line_start || 0,
+                line_end: result.line_end || 0
+            };
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('Manual parsing failed:', error);
         return null;
     }
 };
@@ -555,8 +659,8 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
     const elements: React.ReactNode[] = [];
     let currentIndex = 0;
     
-    // Citation 패턴 찾기: [Cite. {JSON}]
-    const citationRegex = /\[Cite\.\s*\{[^}]*\}\]/g;
+    // Citation 패턴 찾기: [Cite. {JSON}] - 더 유연한 패턴
+    const citationRegex = /\[Cite\.\s*\{[^}]*\}(?:\])?/g;
     let match;
     
     while ((match = citationRegex.exec(text)) !== null) {
