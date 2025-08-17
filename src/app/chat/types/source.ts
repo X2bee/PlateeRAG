@@ -15,6 +15,8 @@ export interface PDFViewerProps {
   sourceInfo: SourceInfo;
   isOpen: boolean;
   onClose: () => void;
+  mode?: string;
+  userId?: string | number;
 }
 
 export interface HighlightRange {

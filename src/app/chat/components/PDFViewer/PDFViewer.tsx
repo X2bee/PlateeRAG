@@ -4,6 +4,8 @@ import React, { useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { FiX, FiZoomIn, FiZoomOut, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { PDFViewerProps, HighlightRange } from '../../types/source';
+import { fetchDocumentByPath, hasDocumentInCache } from '../../../api/documentAPI';
+import CacheStatusIndicator from './CacheStatusIndicator';
 import styles from './PDFViewer.module.scss';
 
 // Dynamic imports to prevent SSR issues
@@ -27,7 +29,7 @@ if (typeof window !== 'undefined') {
   });
 }
 
-const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose }) => {
+const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose, mode, userId }) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.0);
@@ -35,6 +37,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose }) =>
   const [error, setError] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const [textContent, setTextContent] = useState<any>(null);
+  const [pdfData, setPdfData] = useState<ArrayBuffer | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   // 하이라이트 범위 계산
   const highlightRange: HighlightRange = {
@@ -43,15 +47,67 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose }) =>
     lineEnd: sourceInfo.line_end
   };
 
-  // PDF 파일 경로
-  const pdfUrl = sourceInfo.file_path;
+  // PDF 파일 로딩
+  const loadPdfDocument = useCallback(async () => {
+    if (!sourceInfo.file_path || !isOpen) return;
 
-  // 모달이 열릴 때 해당 페이지로 이동
-  useEffect(() => {
-    if (isOpen && sourceInfo.page_number) {
-      setPageNumber(sourceInfo.page_number);
+    const filePath = sourceInfo.file_path;
+    
+    // 이미 캐시에 있다면 빠른 로딩 표시
+    const isInCache = hasDocumentInCache(filePath);
+    if (!isInCache) {
+      setLoading(true);
     }
-  }, [isOpen, sourceInfo.page_number]);
+    
+    setError(null);
+    setPdfData(null);
+    setPdfUrl(null);
+    
+    try {
+      console.log('📄 [PDFViewer] Loading document from path:', filePath, isInCache ? '(cached)' : '(from server)');
+      
+      // 파일 경로 유효성 검사
+      if (!filePath.trim()) {
+        throw new Error('파일 경로가 비어있습니다.');
+      }
+      
+      const documentData = await fetchDocumentByPath(filePath, true, mode, userId?.toString());
+      
+      // 데이터 유효성 검사
+      if (!documentData || documentData.byteLength === 0) {
+        throw new Error('문서 데이터가 비어있습니다.');
+      }
+      
+      setPdfData(documentData);
+      
+      // ArrayBuffer를 Blob URL로 변환
+      const blob = new Blob([documentData], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      setPdfUrl(url);
+      
+      // 로딩 완료 상태로 변경
+      setLoading(false);
+      
+      console.log('✅ [PDFViewer] Document loaded successfully, size:', documentData.byteLength, 'bytes');
+    } catch (err) {
+      console.error('❌ [PDFViewer] Failed to load document:', err);
+      const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
+      setError(`문서를 로드할 수 없습니다: ${errorMessage}`);
+      setLoading(false);
+      setPdfData(null);
+      setPdfUrl(null);
+    }
+  }, [sourceInfo.file_path, isOpen, mode, userId]);
+
+  // 모달이 열릴 때 문서 로딩 및 페이지 설정
+  useEffect(() => {
+    if (isOpen) {
+      loadPdfDocument();
+      if (sourceInfo.page_number) {
+        setPageNumber(sourceInfo.page_number);
+      }
+    }
+  }, [isOpen, loadPdfDocument, sourceInfo.page_number]);
 
   const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
@@ -60,9 +116,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose }) =>
   }, []);
 
   const onDocumentLoadError = useCallback((error: Error) => {
-    setError('PDF 파일을 로드하는데 실패했습니다.');
+    console.error('❌ [PDFViewer] PDF document load error:', error);
+    setError(`PDF 문서를 로드하는데 실패했습니다: ${error.message || '알 수 없는 오류'}`);
     setLoading(false);
-    console.error('PDF load error:', error);
   }, []);
 
   const onPageLoadSuccess = useCallback((page: any) => {
@@ -88,21 +144,21 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose }) =>
     });
   }, [pageNumber]);
 
-  const handleZoomIn = () => {
+  const handleZoomIn = useCallback(() => {
     setScale(prev => Math.min(prev + 0.2, 3.0));
-  };
+  }, []);
 
-  const handleZoomOut = () => {
+  const handleZoomOut = useCallback(() => {
     setScale(prev => Math.max(prev - 0.2, 0.5));
-  };
+  }, []);
 
-  const goToPrevPage = () => {
+  const goToPrevPage = useCallback(() => {
     setPageNumber(prev => Math.max(prev - 1, 1));
-  };
+  }, []);
 
-  const goToNextPage = () => {
+  const goToNextPage = useCallback(() => {
     setPageNumber(prev => Math.min(prev + 1, numPages));
-  };
+  }, [numPages]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (!isOpen) return;
@@ -127,12 +183,21 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose }) =>
         handleZoomOut();
         break;
     }
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, goToPrevPage, goToNextPage, handleZoomIn, handleZoomOut]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
+
+  // PDF URL 정리
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+      }
+    };
+  }, [pdfUrl]);
 
   if (!isOpen) return null;
 
@@ -147,9 +212,15 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose }) =>
               페이지 {sourceInfo.page_number}, 라인 {sourceInfo.line_start}-{sourceInfo.line_end}
             </span>
           </div>
-          <button className={styles.closeButton} onClick={onClose}>
-            <FiX />
-          </button>
+          <div className={styles.headerActions}>
+            <CacheStatusIndicator 
+              filePath={sourceInfo.file_path} 
+              className={styles.cacheIndicator}
+            />
+            <button className={styles.closeButton} onClick={onClose}>
+              <FiX />
+            </button>
+          </div>
         </div>
 
         {/* Toolbar */}
@@ -187,16 +258,27 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose }) =>
 
         {/* PDF Content */}
         <div className={styles.content}>
-          {loading && <div className={styles.loading}>PDF를 로드하는 중...</div>}
-          {error && <div className={styles.error}>{error}</div>}
+          {loading && !error && <div className={styles.loading}>PDF를 로드하는 중...</div>}
+          {error && (
+            <div className={styles.error}>
+              <p>{error}</p>
+              <button 
+                onClick={loadPdfDocument}
+                className={styles.retryButton}
+              >
+                다시 시도
+              </button>
+            </div>
+          )}
           
-          <Document
-            file={pdfUrl}
-            onLoadSuccess={onDocumentLoadSuccess}
-            onLoadError={onDocumentLoadError}
-            loading=""
-            error=""
-          >
+          {!loading && !error && pdfUrl && (
+            <Document
+              file={pdfUrl}
+              onLoadSuccess={onDocumentLoadSuccess}
+              onLoadError={onDocumentLoadError}
+              loading=""
+              error=""
+            >
             <div className={styles.pageContainer}>
               <Page
                 pageNumber={pageNumber}
@@ -217,7 +299,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose }) =>
                 textContent={textContent}
               />
             </div>
-          </Document>
+            </Document>
+          )}
         </div>
       </div>
     </div>

@@ -755,6 +755,8 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                     {showPDFViewer && currentSourceInfo && (
                         <SidePanelPDFViewer
                             sourceInfo={currentSourceInfo}
+                            mode={mode}
+                            userId={user_id}
                             onClose={() => {
                                 setShowPDFViewer(false);
                                 setCurrentSourceInfo(null);
