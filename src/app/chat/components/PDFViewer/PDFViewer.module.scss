@@ -1,0 +1,225 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.modal {
+  background: white;
+  border-radius: 0.5rem;
+  width: 90vw;
+  height: 90vh;
+  max-width: 1200px;
+  max-height: 800px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.fileInfo {
+  flex: 1;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cacheIndicator {
+  // 추가 스타일링이 필요한 경우 여기에 작성
+}
+
+.fileName {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+}
+
+.location {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #e5e7eb;
+    color: #374151;
+  }
+
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.pageControls,
+.zoomControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.controlButton {
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #374151;
+
+  &:hover:not(:disabled) {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+.pageInfo,
+.zoomInfo {
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+  min-width: 60px;
+  text-align: center;
+}
+
+.content {
+  flex: 1;
+  overflow: auto;
+  background: #f3f4f6;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading,
+.error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.error {
+  color: #dc2626;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: center;
+
+  p {
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+.retryButton {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #2563eb;
+  }
+
+  &:active {
+    background: #1d4ed8;
+  }
+}
+
+.pageContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.page {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+
+// 반응형 디자인
+@media (max-width: 768px) {
+  .overlay {
+    padding: 1rem;
+  }
+
+  .modal {
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  .header {
+    padding: 1rem;
+  }
+
+  .toolbar {
+    padding: 0.5rem 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .pageControls,
+  .zoomControls {
+    justify-content: center;
+  }
+}

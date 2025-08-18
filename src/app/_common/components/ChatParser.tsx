@@ -4,6 +4,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { FiCopy, FiCheck, FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import styles from '@/app/chat/assets/chatParser.module.scss';
 import { APP_CONFIG } from '@/app/config';
+import SourceButton from '@/app/chat/components/SourceButton';
+import { SourceInfo } from '@/app/chat/types/source';
+import sourceStyles from '@/app/chat/assets/SourceButton.module.scss';
 
 import { Prism } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -87,18 +90,149 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ language, code, className 
 };
 
 /**
+ * Citation 정보를 파싱하는 함수
+ */
+const parseCitation = (citationText: string): SourceInfo | null => {
+    try {
+        // 단계별로 다양한 패턴 시도
+        let jsonString = '';
+        
+        // 1. 기본 패턴: [Cite. {JSON}]
+        let match = citationText.match(/\[Cite\.\s*(\{.*?\})\]/);
+        if (match) {
+            jsonString = match[1];
+        } else {
+            // 2. 닫는 대괄호가 없는 경우: [Cite. {JSON}
+            match = citationText.match(/\[Cite\.\s*(\{.*?\})/);
+            if (match) {
+                jsonString = match[1];
+            } else {
+                // 3. Citation 키워드 뒤에 JSON만 있는 경우
+                match = citationText.match(/Cite\.\s*(\{.*?\})/);
+                if (match) {
+                    jsonString = match[1];
+                } else {
+                    // 4. JSON만 있는 경우 (배열 포함)
+                    match = citationText.match(/(\{.*?\}|\[.*?\])/);
+                    if (match) {
+                        jsonString = match[1];
+                    }
+                }
+            }
+        }
+        
+        if (!jsonString) {
+            return null;
+        }
+        
+        // JSON 문자열 정리
+        jsonString = jsonString.trim();
+        
+        // 다양한 이스케이프 처리
+        jsonString = jsonString.replace(/\\"/g, '"');     // 이스케이프된 따옴표
+        jsonString = jsonString.replace(/\\n/g, '\n');    // 이스케이프된 줄바꿈
+        jsonString = jsonString.replace(/\\t/g, '\t');    // 이스케이프된 탭
+        jsonString = jsonString.replace(/\\r/g, '\r');    // 이스케이프된 캐리지 리턴
+        jsonString = jsonString.replace(/\\+/g, '\\');    // 연속된 백슬래시 처리
+        
+        // 한국어가 포함된 경우를 위한 UTF-8 처리
+        try {
+            const sourceInfo = JSON.parse(jsonString);
+            
+            // 필수 필드 확인
+            if (!sourceInfo.file_name && !sourceInfo.filename && !sourceInfo.fileName && 
+                !sourceInfo.file_path && !sourceInfo.filepath && !sourceInfo.filePath) {
+                console.warn('Missing required fields in citation:', sourceInfo);
+                return null;
+            }
+            
+            return {
+                file_name: sourceInfo.file_name || sourceInfo.filename || sourceInfo.fileName || '',
+                file_path: sourceInfo.file_path || sourceInfo.filepath || sourceInfo.filePath || '',
+                page_number: sourceInfo.page_number || sourceInfo.pagenumber || sourceInfo.pageNumber || 0,
+                line_start: sourceInfo.line_start || sourceInfo.linestart || sourceInfo.lineStart || 0,
+                line_end: sourceInfo.line_end || sourceInfo.lineend || sourceInfo.lineEnd || 0
+            };
+        } catch (parseError) {
+            console.error('JSON.parse failed, trying manual parsing...');
+            
+            // 수동 파싱 시도
+            const manualParsed = tryManualParsing(jsonString);
+            if (manualParsed) {
+                return manualParsed;
+            }
+            
+            throw parseError;
+        }
+        
+    } catch (error) {
+        console.error('Failed to parse citation:', error);
+        console.error('Citation text:', citationText);
+        return null;
+    }
+};
+
+/**
+ * 수동으로 JSON 파싱을 시도하는 헬퍼 함수
+ */
+const tryManualParsing = (jsonString: string): SourceInfo | null => {
+    try {
+        // 기본적인 JSON 형태인지 확인
+        if (!jsonString.startsWith('{') || !jsonString.endsWith('}')) {
+            return null;
+        }
+        
+        const result: Partial<SourceInfo> = {};
+        
+        // 각 필드를 개별적으로 추출
+        const fileNameMatch = jsonString.match(/"(?:file_name|filename|fileName)"\s*:\s*"([^"]+)"/);
+        if (fileNameMatch) result.file_name = fileNameMatch[1];
+        
+        const filePathMatch = jsonString.match(/"(?:file_path|filepath|filePath)"\s*:\s*"([^"]+)"/);
+        if (filePathMatch) result.file_path = filePathMatch[1];
+        
+        const pageNumberMatch = jsonString.match(/"(?:page_number|pagenumber|pageNumber)"\s*:\s*(\d+)/);
+        if (pageNumberMatch) result.page_number = parseInt(pageNumberMatch[1]);
+        
+        const lineStartMatch = jsonString.match(/"(?:line_start|linestart|lineStart)"\s*:\s*(\d+)/);
+        if (lineStartMatch) result.line_start = parseInt(lineStartMatch[1]);
+        
+        const lineEndMatch = jsonString.match(/"(?:line_end|lineend|lineEnd)"\s*:\s*(\d+)/);
+        if (lineEndMatch) result.line_end = parseInt(lineEndMatch[1]);
+        
+        // 최소한 file_name이나 file_path가 있어야 함
+        if (result.file_name || result.file_path) {
+            return {
+                file_name: result.file_name || '',
+                file_path: result.file_path || '',
+                page_number: result.page_number || 0,
+                line_start: result.line_start || 0,
+                line_end: result.line_end || 0
+            };
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('Manual parsing failed:', error);
+        return null;
+    }
+};
+
+/**
  * 마크다운 메시지 렌더러 컴포넌트
  */
 interface MessageRendererProps {
     content: string;
     isUserMessage?: boolean;
     className?: string;
+    onViewSource?: (sourceInfo: SourceInfo) => void;
 }
 
 export const MessageRenderer: React.FC<MessageRendererProps> = ({
     content,
     isUserMessage = false,
-    className = ''
+    className = '',
+    onViewSource
 }) => {
 
     if (!content) {
@@ -113,7 +247,7 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
         );
     }
 
-    const parsedElements = parseContentToReactElements(content);
+    const parsedElements = parseContentToReactElements(content, onViewSource);
 
     return (
         <div
@@ -259,7 +393,7 @@ const findThinkBlocks = (content: string): ThinkBlockInfo[] => {
 /**
  * 컨텐츠를 React 엘리먼트로 파싱
  */
-const parseContentToReactElements = (content: string): React.ReactNode[] => {
+const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo: SourceInfo) => void): React.ReactNode[] => {
     let processed = content;
 
     // 이스케이프된 문자 처리
@@ -309,7 +443,7 @@ const parseContentToReactElements = (content: string): React.ReactNode[] => {
         // 블록 이전 텍스트 처리
         if (block.start > currentIndex) {
             const beforeText = processed.slice(currentIndex, block.start);
-            elements.push(...parseSimpleMarkdown(beforeText, elements.length));
+            elements.push(...parseSimpleMarkdown(beforeText, elements.length, onViewSource));
         }
 
         // 블록 타입에 따라 컴포넌트 추가
@@ -346,7 +480,7 @@ const parseContentToReactElements = (content: string): React.ReactNode[] => {
     // 남은 텍스트 처리
     if (currentIndex < processed.length) {
         const remainingText = processed.slice(currentIndex);
-        elements.push(...parseSimpleMarkdown(remainingText, elements.length));
+        elements.push(...parseSimpleMarkdown(remainingText, elements.length, onViewSource));
     }
 
     return elements;
@@ -372,7 +506,7 @@ const isSeparatorLine = (line: string): boolean => {
 /**
  * 간단한 마크다운 파싱 (코드 블록 제외)
  */
-const parseSimpleMarkdown = (text: string, startKey: number): React.ReactNode[] => {
+const parseSimpleMarkdown = (text: string, startKey: number, onViewSource?: (sourceInfo: SourceInfo) => void): React.ReactNode[] => {
     if (!text.trim()) return [];
 
     const elements: React.ReactNode[] = [];
@@ -508,8 +642,11 @@ const parseSimpleMarkdown = (text: string, startKey: number): React.ReactNode[] 
 
         // 일반 텍스트 처리
         if (line.trim()) {
-            const processedText = processInlineMarkdown(line);
-            elements.push(<div key={key} dangerouslySetInnerHTML={{ __html: processedText }} />);
+            const cleanedLine = cleanupJsonFragments(line);
+            if (cleanedLine) {
+                const processedElements = processInlineMarkdownWithCitations(cleanedLine, key, onViewSource);
+                elements.push(...processedElements);
+            }
         } else if (elements.length > 0 && processedLines[i - 1]?.trim() !== '') {
             // 연속된 빈 줄이 아닌 경우에만 <br> 추가
             elements.push(<br key={key} />);
@@ -520,10 +657,153 @@ const parseSimpleMarkdown = (text: string, startKey: number): React.ReactNode[] 
 };
 
 /**
+ * Citation Placeholder 컴포넌트 - 스트리밍 중 부분적인 citation 표시
+ */
+const CitationPlaceholder: React.FC = () => {
+    return (
+        <span 
+            style={{
+                backgroundColor: '#f3f4f6',
+                color: '#6b7280',
+                padding: '0.125rem 0.375rem',
+                borderRadius: '0.25rem',
+                fontSize: '0.875rem',
+                fontStyle: 'italic',
+                border: '1px dashed #d1d5db'
+            }}
+        >
+            📑 출처 정보 로딩 중...
+        </span>
+    );
+};
+
+/**
+ * Citation을 포함한 인라인 마크다운 처리
+ */
+const processInlineMarkdownWithCitations = (text: string, key: string, onViewSource?: (sourceInfo: SourceInfo) => void): React.ReactNode[] => {
+    const elements: React.ReactNode[] = [];
+    let currentIndex = 0;
+    
+    // 완전한 Citation 패턴: [Cite. {JSON}] 또는 [Cite. {JSON} (닫는 대괄호 없음)
+    const completeCitationRegex = /\[Cite\.\s*[\{\[][^\}\]]*[\}\]](?:\])?/g;
+    
+    // 부분적인 Citation 패턴: [Cite. 또는 [Cite. { 등 스트리밍 중인 상태
+    const partialCitationRegex = /\[Cite\.(?:\s*\{[^}]*)?$/;
+    
+    let match;
+    let hasPartialCitation = false;
+    
+    // 완전한 citation 처리
+    while ((match = completeCitationRegex.exec(text)) !== null) {
+        // Citation 이전 텍스트 처리
+        if (match.index > currentIndex) {
+            const beforeText = text.slice(currentIndex, match.index);
+            
+            // 이전 텍스트에 부분적인 citation이 있는지 확인
+            const partialMatch = partialCitationRegex.exec(beforeText);
+            if (partialMatch) {
+                // 부분적인 citation 이전의 텍스트 처리
+                const beforePartialText = beforeText.slice(0, partialMatch.index);
+                if (beforePartialText) {
+                    const processedText = processInlineMarkdown(beforePartialText);
+                    elements.push(
+                        <span key={`${key}-text-${currentIndex}`} dangerouslySetInnerHTML={{ __html: processedText }} />
+                    );
+                }
+                
+                // 부분적인 citation placeholder 추가
+                elements.push(
+                    <CitationPlaceholder key={`${key}-partial-${partialMatch.index}`} />
+                );
+                hasPartialCitation = true;
+            } else {
+                const processedText = processInlineMarkdown(beforeText);
+                elements.push(
+                    <span key={`${key}-text-${currentIndex}`} dangerouslySetInnerHTML={{ __html: processedText }} />
+                );
+            }
+        }
+        
+        // 완전한 Citation 처리
+        const citationText = match[0];
+        const sourceInfo = parseCitation(citationText);
+        
+        if (sourceInfo && onViewSource) {
+            elements.push(
+                <SourceButton
+                    key={`${key}-citation-${match.index}`}
+                    sourceInfo={sourceInfo}
+                    onViewSource={onViewSource}
+                    className={sourceStyles.inlineCitation}
+                />
+            );
+        } else {
+            // 파싱 실패 시 원본 텍스트 표시
+            elements.push(
+                <span key={`${key}-citation-fallback-${match.index}`}>
+                    {citationText}
+                </span>
+            );
+        }
+        
+        currentIndex = match.index + match[0].length;
+    }
+    
+    // 남은 텍스트 처리
+    if (currentIndex < text.length) {
+        const remainingText = text.slice(currentIndex);
+        
+        // 남은 텍스트에 부분적인 citation이 있는지 확인
+        const partialMatch = partialCitationRegex.exec(remainingText);
+        if (partialMatch && !hasPartialCitation) {
+            // 부분적인 citation 이전의 텍스트 처리
+            const beforePartialText = remainingText.slice(0, partialMatch.index);
+            if (beforePartialText) {
+                const processedText = processInlineMarkdown(beforePartialText);
+                elements.push(
+                    <span key={`${key}-text-${currentIndex}`} dangerouslySetInnerHTML={{ __html: processedText }} />
+                );
+            }
+            
+            // 부분적인 citation placeholder 추가
+            elements.push(
+                <CitationPlaceholder key={`${key}-partial-end`} />
+            );
+        } else {
+            const processedText = processInlineMarkdown(remainingText);
+            elements.push(
+                <span key={`${key}-text-${currentIndex}`} dangerouslySetInnerHTML={{ __html: processedText }} />
+            );
+        }
+    }
+    
+    // Citation이 없는 경우 기존 방식으로 처리
+    if (elements.length === 0) {
+        const processedText = processInlineMarkdown(text);
+        elements.push(
+            <div key={key} dangerouslySetInnerHTML={{ __html: processedText }} />
+        );
+    } else {
+        // Citation이 있는 경우 div로 감싸기
+        return [<div key={key} className={sourceStyles.lineWithCitations}>{elements}</div>];
+    }
+    
+    return elements;
+};
+
+/**
+ * 텍스트에서 남은 JSON 구문 정리
+ */
+const cleanupJsonFragments = (text: string): string => {
+    // 단독으로 남은 JSON 구문 제거 (예: '}]', '}', ']' 등)
+    return text.replace(/^\s*[\}\]]+\s*$/, '').trim();
+};
+
+/**
  * 인라인 마크다운 처리 (볼드, 이탤릭, 링크 등)
  */
 const processInlineMarkdown = (text: string): string => {
-    let processed = text;
+    let processed = cleanupJsonFragments(text);
 
     // 인라인 코드 처리 (가장 먼저)
     processed = processed.replace(/`([^`\n]+)`/g, '<code class="inline-code">$1</code>');

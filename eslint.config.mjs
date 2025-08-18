@@ -49,6 +49,9 @@ export default tseslint.config(
             'jsx-a11y/no-autofocus': 'warn',
             '@typescript-eslint/no-explicit-any': 'off',
             '@typescript-eslint/no-unused-vars': 'warn',
+            //TODO 아래 두개 추가했는데, 문제 없는지 확인. 
+            'react-hooks/exhaustive-deps': 'warn',
+            'no-useless-escape': 'warn',
         },
     },
 

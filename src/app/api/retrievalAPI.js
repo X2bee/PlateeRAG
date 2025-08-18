@@ -417,6 +417,52 @@ export const getDocumentDetailEdges = async (collectionName) => {
 };
 
 /**
+ * 모든 문서의 메타데이터 상세 정보를 조회하는 함수
+ * @returns {Promise<Object>} 모든 문서의 메타데이터 목록
+ */
+export const getAllDocumentDetailMeta = async () => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/collections-all/detail/documents`,
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('All document detail meta fetched:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch all document detail meta:', error);
+        throw error;
+    }
+};
+
+/**
+ * 모든 문서의 엣지 메타데이터 상세 정보를 조회하는 함수
+ * @returns {Promise<Object>} 모든 문서의 엣지 메타데이터 목록
+ */
+export const getAllDocumentDetailEdges = async () => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/collections-all/detail/edges`,
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('All document detail edges fetched:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch all document detail edges:', error);
+        throw error;
+    }
+};
+
+/**
  * 컬렉션에서 특정 문서를 삭제하는 함수
  * @param {string} collectionName - 컬렉션 이름
  * @param {string} documentId - 삭제할 문서 ID
