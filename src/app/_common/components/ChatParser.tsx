@@ -185,19 +185,19 @@ const tryManualParsing = (jsonString: string): SourceInfo | null => {
         const result: Partial<SourceInfo> = {};
         
         // 각 필드를 개별적으로 추출
-        const fileNameMatch = jsonString.match(/"file_name"\s*:\s*"([^"]+)"/);
+        const fileNameMatch = jsonString.match(/"(?:file_name|filename|fileName)"\s*:\s*"([^"]+)"/);
         if (fileNameMatch) result.file_name = fileNameMatch[1];
         
-        const filePathMatch = jsonString.match(/"file_path"\s*:\s*"([^"]+)"/);
+        const filePathMatch = jsonString.match(/"(?:file_path|filepath|filePath)"\s*:\s*"([^"]+)"/);
         if (filePathMatch) result.file_path = filePathMatch[1];
         
-        const pageNumberMatch = jsonString.match(/"page_number"\s*:\s*(\d+)/);
+        const pageNumberMatch = jsonString.match(/"(?:page_number|pagenumber|pageNumber)"\s*:\s*(\d+)/);
         if (pageNumberMatch) result.page_number = parseInt(pageNumberMatch[1]);
         
-        const lineStartMatch = jsonString.match(/"line_start"\s*:\s*(\d+)/);
+        const lineStartMatch = jsonString.match(/"(?:line_start|linestart|lineStart)"\s*:\s*(\d+)/);
         if (lineStartMatch) result.line_start = parseInt(lineStartMatch[1]);
         
-        const lineEndMatch = jsonString.match(/"line_end"\s*:\s*(\d+)/);
+        const lineEndMatch = jsonString.match(/"(?:line_end|lineend|lineEnd)"\s*:\s*(\d+)/);
         if (lineEndMatch) result.line_end = parseInt(lineEndMatch[1]);
         
         // 최소한 file_name이나 file_path가 있어야 함
