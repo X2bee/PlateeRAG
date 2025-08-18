@@ -112,8 +112,8 @@ const parseCitation = (citationText: string): SourceInfo | null => {
                 if (match) {
                     jsonString = match[1];
                 } else {
-                    // 4. JSON만 있는 경우
-                    match = citationText.match(/(\{.*?\})/);
+                    // 4. JSON만 있는 경우 (배열 포함)
+                    match = citationText.match(/(\{.*?\}|\[.*?\])/);
                     if (match) {
                         jsonString = match[1];
                     }
@@ -642,8 +642,11 @@ const parseSimpleMarkdown = (text: string, startKey: number, onViewSource?: (sou
 
         // 일반 텍스트 처리
         if (line.trim()) {
-            const processedElements = processInlineMarkdownWithCitations(line, key, onViewSource);
-            elements.push(...processedElements);
+            const cleanedLine = cleanupJsonFragments(line);
+            if (cleanedLine) {
+                const processedElements = processInlineMarkdownWithCitations(cleanedLine, key, onViewSource);
+                elements.push(...processedElements);
+            }
         } else if (elements.length > 0 && processedLines[i - 1]?.trim() !== '') {
             // 연속된 빈 줄이 아닌 경우에만 <br> 추가
             elements.push(<br key={key} />);
@@ -681,8 +684,8 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
     const elements: React.ReactNode[] = [];
     let currentIndex = 0;
     
-    // 완전한 Citation 패턴: [Cite. {JSON}] 또는 [Cite. {JSON}
-    const completeCitationRegex = /\[Cite\.\s*\{[^}]*\}(?:\])?/g;
+    // 완전한 Citation 패턴: [Cite. {JSON}] 또는 [Cite. {JSON} (닫는 대괄호 없음)
+    const completeCitationRegex = /\[Cite\.\s*[\{\[][^\}\]]*[\}\]](?:\])?/g;
     
     // 부분적인 Citation 패턴: [Cite. 또는 [Cite. { 등 스트리밍 중인 상태
     const partialCitationRegex = /\[Cite\.(?:\s*\{[^}]*)?$/;
@@ -789,10 +792,18 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
 };
 
 /**
+ * 텍스트에서 남은 JSON 구문 정리
+ */
+const cleanupJsonFragments = (text: string): string => {
+    // 단독으로 남은 JSON 구문 제거 (예: '}]', '}', ']' 등)
+    return text.replace(/^\s*[\}\]]+\s*$/, '').trim();
+};
+
+/**
  * 인라인 마크다운 처리 (볼드, 이탤릭, 링크 등)
  */
 const processInlineMarkdown = (text: string): string => {
-    let processed = text;
+    let processed = cleanupJsonFragments(text);
 
     // 인라인 코드 처리 (가장 먼저)
     processed = processed.replace(/`([^`\n]+)`/g, '<code class="inline-code">$1</code>');
