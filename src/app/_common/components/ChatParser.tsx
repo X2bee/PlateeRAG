@@ -140,17 +140,18 @@ const parseCitation = (citationText: string): SourceInfo | null => {
             const sourceInfo = JSON.parse(jsonString);
             
             // 필수 필드 확인
-            if (!sourceInfo.file_name && !sourceInfo.file_path) {
+            if (!sourceInfo.file_name && !sourceInfo.filename && !sourceInfo.fileName && 
+                !sourceInfo.file_path && !sourceInfo.filepath && !sourceInfo.filePath) {
                 console.warn('Missing required fields in citation:', sourceInfo);
                 return null;
             }
             
             return {
-                file_name: sourceInfo.file_name || '',
-                file_path: sourceInfo.file_path || '',
-                page_number: sourceInfo.page_number || 0,
-                line_start: sourceInfo.line_start || 0,
-                line_end: sourceInfo.line_end || 0
+                file_name: sourceInfo.file_name || sourceInfo.filename || sourceInfo.fileName || '',
+                file_path: sourceInfo.file_path || sourceInfo.filepath || sourceInfo.filePath || '',
+                page_number: sourceInfo.page_number || sourceInfo.pagenumber || sourceInfo.pageNumber || 0,
+                line_start: sourceInfo.line_start || sourceInfo.linestart || sourceInfo.lineStart || 0,
+                line_end: sourceInfo.line_end || sourceInfo.lineend || sourceInfo.lineEnd || 0
             };
         } catch (parseError) {
             console.error('JSON.parse failed, trying manual parsing...');
@@ -653,27 +654,74 @@ const parseSimpleMarkdown = (text: string, startKey: number, onViewSource?: (sou
 };
 
 /**
+ * Citation Placeholder 컴포넌트 - 스트리밍 중 부분적인 citation 표시
+ */
+const CitationPlaceholder: React.FC = () => {
+    return (
+        <span 
+            style={{
+                backgroundColor: '#f3f4f6',
+                color: '#6b7280',
+                padding: '0.125rem 0.375rem',
+                borderRadius: '0.25rem',
+                fontSize: '0.875rem',
+                fontStyle: 'italic',
+                border: '1px dashed #d1d5db'
+            }}
+        >
+            📑 출처 정보 로딩 중...
+        </span>
+    );
+};
+
+/**
  * Citation을 포함한 인라인 마크다운 처리
  */
 const processInlineMarkdownWithCitations = (text: string, key: string, onViewSource?: (sourceInfo: SourceInfo) => void): React.ReactNode[] => {
     const elements: React.ReactNode[] = [];
     let currentIndex = 0;
     
-    // Citation 패턴 찾기: [Cite. {JSON}] - 더 유연한 패턴
-    const citationRegex = /\[Cite\.\s*\{[^}]*\}(?:\])?/g;
-    let match;
+    // 완전한 Citation 패턴: [Cite. {JSON}] 또는 [Cite. {JSON}
+    const completeCitationRegex = /\[Cite\.\s*\{[^}]*\}(?:\])?/g;
     
-    while ((match = citationRegex.exec(text)) !== null) {
+    // 부분적인 Citation 패턴: [Cite. 또는 [Cite. { 등 스트리밍 중인 상태
+    const partialCitationRegex = /\[Cite\.(?:\s*\{[^}]*)?$/;
+    
+    let match;
+    let hasPartialCitation = false;
+    
+    // 완전한 citation 처리
+    while ((match = completeCitationRegex.exec(text)) !== null) {
         // Citation 이전 텍스트 처리
         if (match.index > currentIndex) {
             const beforeText = text.slice(currentIndex, match.index);
-            const processedText = processInlineMarkdown(beforeText);
-            elements.push(
-                <span key={`${key}-text-${currentIndex}`} dangerouslySetInnerHTML={{ __html: processedText }} />
-            );
+            
+            // 이전 텍스트에 부분적인 citation이 있는지 확인
+            const partialMatch = partialCitationRegex.exec(beforeText);
+            if (partialMatch) {
+                // 부분적인 citation 이전의 텍스트 처리
+                const beforePartialText = beforeText.slice(0, partialMatch.index);
+                if (beforePartialText) {
+                    const processedText = processInlineMarkdown(beforePartialText);
+                    elements.push(
+                        <span key={`${key}-text-${currentIndex}`} dangerouslySetInnerHTML={{ __html: processedText }} />
+                    );
+                }
+                
+                // 부분적인 citation placeholder 추가
+                elements.push(
+                    <CitationPlaceholder key={`${key}-partial-${partialMatch.index}`} />
+                );
+                hasPartialCitation = true;
+            } else {
+                const processedText = processInlineMarkdown(beforeText);
+                elements.push(
+                    <span key={`${key}-text-${currentIndex}`} dangerouslySetInnerHTML={{ __html: processedText }} />
+                );
+            }
         }
         
-        // Citation 처리
+        // 완전한 Citation 처리
         const citationText = match[0];
         const sourceInfo = parseCitation(citationText);
         
@@ -701,10 +749,29 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
     // 남은 텍스트 처리
     if (currentIndex < text.length) {
         const remainingText = text.slice(currentIndex);
-        const processedText = processInlineMarkdown(remainingText);
-        elements.push(
-            <span key={`${key}-text-${currentIndex}`} dangerouslySetInnerHTML={{ __html: processedText }} />
-        );
+        
+        // 남은 텍스트에 부분적인 citation이 있는지 확인
+        const partialMatch = partialCitationRegex.exec(remainingText);
+        if (partialMatch && !hasPartialCitation) {
+            // 부분적인 citation 이전의 텍스트 처리
+            const beforePartialText = remainingText.slice(0, partialMatch.index);
+            if (beforePartialText) {
+                const processedText = processInlineMarkdown(beforePartialText);
+                elements.push(
+                    <span key={`${key}-text-${currentIndex}`} dangerouslySetInnerHTML={{ __html: processedText }} />
+                );
+            }
+            
+            // 부분적인 citation placeholder 추가
+            elements.push(
+                <CitationPlaceholder key={`${key}-partial-end`} />
+            );
+        } else {
+            const processedText = processInlineMarkdown(remainingText);
+            elements.push(
+                <span key={`${key}-text-${currentIndex}`} dangerouslySetInnerHTML={{ __html: processedText }} />
+            );
+        }
     }
     
     // Citation이 없는 경우 기존 방식으로 처리
