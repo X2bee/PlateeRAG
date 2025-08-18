@@ -51,8 +51,8 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted}) => {
             // 워크플로우 실행 모드: URL 파라미터에서 받은 워크플로우를 자동 선택
             const selectedWorkflowFromExecute = {
                 id: executeWorkflowId,
-                name: executeWorkflowName,
-                filename: executeWorkflowName,
+                name: decodeURIComponent(executeWorkflowName),
+                filename: decodeURIComponent(executeWorkflowName),
                 author: 'AI-LAB',
                 nodeCount: 0,
                 status: 'active' as const,
@@ -90,7 +90,7 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted}) => {
         params.set('workflowId', selectedWorkflow.id);
         params.set('workflowName', normalizeWorkflowName(selectedWorkflow.name));
         params.set('initial_message', message);
-        
+
         router.replace(`/chat?${params.toString()}`);
 
     }, [selectedWorkflow, router]);
@@ -114,7 +114,7 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted}) => {
                             mode={chatMode}
                             workflow={selectedWorkflow}
                             existingChatData={chatMode === 'existing' ? existingChatData : undefined}
-                            onStartNewChat={handleStartNewChat} 
+                            onStartNewChat={handleStartNewChat}
                             onBack={currentView === 'defaultChat' ? () => setCurrentView('welcome') : () => setCurrentView('workflow')}
                         />
                     )}

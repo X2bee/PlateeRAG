@@ -31,7 +31,7 @@ import { SourceInfo } from '../types/source';
 import dynamic from 'next/dynamic';
 
 // Dynamic import to prevent SSR issues with PDF components
-const SidePanelPDFViewer = dynamic(() => import('./PDFViewer/SidePanelPDFViewer'), { 
+const SidePanelPDFViewer = dynamic(() => import('./PDFViewer/SidePanelPDFViewer'), {
   ssr: false,
   loading: () => <div style={{ padding: '20px', textAlign: 'center' }}>PDF 뷰어를 로드하는 중...</div>
 });
@@ -76,7 +76,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
 
     const messagesRef = useRef<HTMLDivElement>(null);
     const attachmentButtonRef = useRef<HTMLDivElement>(null);
-    
+
     useSidebarManager(showDeploymentModal || showCollectionModal);
 
     const handleViewSource = (sourceInfo: SourceInfo) => {
@@ -158,7 +158,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
 
             loadWorkflowContent();
         }
-    }, [workflow]);
+    }, [workflow, user_id]);
 
     const executeWorkflow = useCallback(async (messageOverride?: string) => {
         console.log('executeWorkflow called')
