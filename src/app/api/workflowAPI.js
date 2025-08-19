@@ -691,9 +691,8 @@ export const deleteWorkflowPerformance = async (workflowName, workflowId) => {
     }
 };
 
-
 /**
- * 워크플로우를 배치로 실행합니다.
+ * 워크플로우를 배치로 실행하며 실시간 진행 상황을 SSE로 스트리밍합니다.
  * @param {Object} batchRequest - 배치 실행 요청 객체
  * @param {string} batchRequest.workflowName - 워크플로우 이름
  * @param {string} batchRequest.workflowId - 워크플로우 ID
@@ -701,37 +700,52 @@ export const deleteWorkflowPerformance = async (workflowName, workflowId) => {
  * @param {number} batchRequest.batchSize - 배치 크기 (기본값: 5)
  * @param {string} batchRequest.interactionId - 상호작용 ID (기본값: 'batch_test')
  * @param {Array<string>|null} batchRequest.selectedCollections - 선택된 컬렉션
- * @returns {Promise<Object>} 배치 실행 결과
+ * @param {function(Object): void} onMessage - SSE 메시지를 수신할 때마다 호출될 콜백
+ * @param {function(): void} onEnd - 스트림이 정상적으로 종료될 때 호출될 콜백
+ * @param {function(Error): void} onError - 오류 발생 시 호출될 콜백
+ * @returns {Promise<void>} 스트리밍 완료 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
-export const executeWorkflowBatch = async (batchRequest) => {
+export const executeWorkflowBatchStream = async ({
+    workflowName,
+    workflowId,
+    testCases,
+    batchSize = 5,
+    interactionId = 'batch_test',
+    selectedCollections = null,
+    onMessage,
+    onEnd,
+    onError
+}) => {
     try {
-        devLog.log('배치 실행 시작:', {
-            workflowName: batchRequest.workflowName,
-            workflowId: batchRequest.workflowId,
-            testCaseCount: batchRequest.testCases.length,
-            batchSize: batchRequest.batchSize
+        devLog.log('배치 스트리밍 실행 시작:', {
+            workflowName,
+            workflowId,
+            testCaseCount: testCases.length,
+            batchSize
         });
 
-        // 요청 데이터 구성 (백엔드 API 스펙에 맞춤)
+        // 요청 데이터 구성
         const requestBody = {
-            workflow_name: batchRequest.workflowName,
-            workflow_id: batchRequest.workflowId,
-            test_cases: batchRequest.testCases.map(testCase => ({
+            workflow_name: workflowName,
+            workflow_id: workflowId,
+            test_cases: testCases.map(testCase => ({
                 id: testCase.id,
                 input: testCase.input,
                 expected_output: testCase.expectedOutput || null
             })),
-            batch_size: batchRequest.batchSize || 5, // 여기서 기본값 수정
-            interaction_id: batchRequest.interactionId || 'batch_test',
-            selected_collections: batchRequest.selectedCollections || null
+            batch_size: batchSize,
+            interaction_id: interactionId,
+            selected_collections: selectedCollections
         };
 
-        // API 호출
-        const response = await apiClient(`${API_BASE_URL}/api/workflow/execute/batch`, {
+        // SSE 스트리밍 API 호출
+        const response = await apiClient(`${API_BASE_URL}/api/workflow/execute/batch/stream`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'text/event-stream',
+                'Cache-Control': 'no-cache'
             },
             body: JSON.stringify(requestBody),
         });
@@ -741,47 +755,62 @@ export const executeWorkflowBatch = async (batchRequest) => {
             throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
         }
 
-        const result = await response.json();
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
 
-        devLog.log('배치 실행 완료:', {
-            batchId: result.batch_id,
-            totalCount: result.total_count,
-            successCount: result.success_count,
-            errorCount: result.error_count,
-            totalExecutionTime: `${result.total_execution_time}ms`
-        });
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+                onEnd();
+                break;
+            }
 
-        return result;
-    } catch (error) {
-        devLog.error('배치 실행 실패:', error);
-        throw error;
-    }
-};
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n\n');
 
-/**
- * 배치 실행 상태를 조회합니다. (선택사항)
- * @param {string} batchId - 배치 ID
- * @returns {Promise<Object>} 배치 상태 정보
- * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
- */
-export const getBatchStatus = async (batchId) => {
-    try {
-        const response = await apiClient(`${API_BASE_URL}/api/workflow/batch/status/${batchId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const jsonData = line.substring(6);
+                    try {
+                        const parsedData = JSON.parse(jsonData);
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+                        // 메시지 타입에 따른 처리
+                        switch (parsedData.type) {
+                            case 'batch_start':
+                                devLog.log('배치 시작:', parsedData);
+                                onMessage(parsedData);
+                                break;
+                            case 'group_start':
+                                devLog.log(`배치 그룹 ${parsedData.group_number} 시작`);
+                                onMessage(parsedData);
+                                break;
+                            case 'test_result':
+                                onMessage(parsedData);
+                                break;
+                            case 'progress':
+                                devLog.log(`진행률: ${parsedData.progress}% (${parsedData.completed_count}/${parsedData.total_count})`);
+                                onMessage(parsedData);
+                                break;
+                            case 'batch_complete':
+                                devLog.log('배치 완료:', parsedData);
+                                onMessage(parsedData);
+                                onEnd();
+                                return;
+                            case 'error':
+                                devLog.error('배치 실행 오류:', parsedData);
+                                throw new Error(parsedData.error || parsedData.message);
+                            default:
+                                onMessage(parsedData);
+                                break;
+                        }
+                    } catch (parseError) {
+                        devLog.error('SSE 데이터 파싱 실패:', jsonData, parseError);
+                    }
+                }
+            }
         }
-
-        const result = await response.json();
-        return result;
     } catch (error) {
-        devLog.error('배치 상태 조회 실패:', error);
-        throw error;
+        devLog.error('배치 스트리밍 실행 실패:', error);
+        onError(error);
     }
 };

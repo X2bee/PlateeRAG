@@ -1,20 +1,5 @@
 @use "sass:color";
-
-// Color Variables (Monitor/Executor와 동일)
-$primary-blue: #2563eb;
-$primary-green: #059669;
-$primary-yellow: #d97706;
-$primary-red: #dc2626;
-$gray-50: #f9fafb;
-$gray-100: #f3f4f6;
-$gray-200: #e5e7eb;
-$gray-300: #d1d5db;
-$gray-400: #9ca3af;
-$gray-500: #6b7280;
-$gray-600: #4b5563;
-$gray-700: #374151;
-$gray-900: #111827;
-$white: #ffffff;
+@use "@/app/_common/_variables" as *;
 
 // Utility Mixins
 @mixin card {
@@ -94,7 +79,7 @@ $white: #ffffff;
     border-radius: 4px;
     background: $white;
     font-size: 0.875rem;
-    
+
     &:focus {
       outline: none;
       border-color: $primary-blue;
@@ -123,10 +108,13 @@ $white: #ffffff;
   font-size: 0.875rem;
 
   // 모든 버튼을 파란색으로 통일
-  &.upload, &.run, &.download { 
+  &.upload,
+  &.run,
+  &.download {
     background: $primary-blue;
-    &:hover:not(:disabled) { 
-      background: color.scale($primary-blue, $lightness: -10%); 
+
+    &:hover:not(:disabled) {
+      background: color.scale($primary-blue, $lightness: -10%);
     }
   }
 
@@ -224,7 +212,7 @@ $white: #ffffff;
 
     &__fill {
       height: 100%;
-      width: 0;
+      width: var(--progress, 0%);
       background: linear-gradient(to right, $primary-blue, $primary-green);
       position: relative;
       transition: width 0.3s ease;
@@ -237,7 +225,7 @@ $white: #ffffff;
         left: 0;
         right: 0;
         bottom: 0;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
         animation: shimmer 2s infinite;
       }
     }
@@ -245,8 +233,39 @@ $white: #ffffff;
 }
 
 @keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.performanceStats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+
+  h5 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: $gray-900;
+  }
+
+  .statsGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+
+    .statItem {
+      display: flex;
+      flex-direction: row;
+      justify-content: center
+    }
+  }
 }
 
 // Results Container
@@ -276,12 +295,25 @@ $white: #ffffff;
       font-size: 0.875rem;
       font-weight: 500;
 
-      .total { color: $gray-700; }
-      .success { color: $primary-green; }
-      .error { color: $primary-red; }
-      .pending { color: $gray-500; }
+      .total {
+        color: $gray-700;
+      }
+
+      .success {
+        color: $primary-green;
+      }
+
+      .error {
+        color: $primary-red;
+      }
+
+      .pending {
+        color: $gray-500;
+      }
     }
   }
+
+
 
   .resultsTable {
     .results__header {
@@ -293,7 +325,7 @@ $white: #ffffff;
       border-radius: 6px;
       margin-bottom: 0.5rem;
 
-      > div {
+      >div {
         padding: 0.75rem;
         text-align: center;
         font-size: 0.875rem;
@@ -321,7 +353,7 @@ $white: #ffffff;
         background: color.scale($primary-blue, $lightness: 85%);
       }
 
-      > div {
+      >div {
         padding: 0.75rem;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -369,10 +401,21 @@ $white: #ffffff;
 
 // Status Badges
 .status {
-  &--success { @include badge(#ecfdf5, $primary-green); }
-  &--error   { @include badge(#fef2f2, $primary-red); }
-  &--running { @include badge(#fef3c7, $primary-yellow); }
-  &--pending { @include badge($gray-100, $gray-500); }
+  &--success {
+    @include badge(#ecfdf5, $primary-green);
+  }
+
+  &--error {
+    @include badge(#fef2f2, $primary-red);
+  }
+
+  &--running {
+    @include badge(#fef3c7, $primary-yellow);
+  }
+
+  &--pending {
+    @include badge($gray-100, $gray-500);
+  }
 }
 
 // Empty State
@@ -437,12 +480,12 @@ $white: #ffffff;
       gap: 0.5rem;
       font-size: 0.875rem;
 
-      > span:first-child {
+      >span:first-child {
         font-weight: 500;
         color: $gray-700;
       }
 
-      > span:not(:first-child) {
+      >span:not(:first-child) {
         @include badge($gray-200, $gray-700);
         font-family: monospace;
       }
@@ -491,8 +534,13 @@ $white: #ffffff;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 // Hidden Input
@@ -520,20 +568,21 @@ $white: #ffffff;
   }
 
   .resultsContainer .resultsTable {
+
     .results__header,
     .results__row {
       grid-template-columns: 1fr;
       text-align: left;
     }
 
-    .results__header > div,
-    .results__row > div {
+    .results__header>div,
+    .results__row>div {
       padding: 0.5rem;
       border-bottom: 1px solid $gray-200;
     }
 
-    .results__header > div:before,
-    .results__row > div:before {
+    .results__header>div:before,
+    .results__row>div:before {
       content: attr(data-label);
       font-weight: bold;
       display: inline-block;

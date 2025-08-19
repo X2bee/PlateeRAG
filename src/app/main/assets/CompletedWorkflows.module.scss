@@ -1,20 +1,6 @@
 @use "sass:color";
+@use "@/app/_common/_variables" as *;
 
-// Color Variables
-$primary-blue: #2563eb;
-$primary-green: #059669;
-$primary-yellow: #d97706;
-$primary-red: #dc2626;
-$gray-50: #f9fafb;
-$gray-100: #f3f4f6;
-$gray-200: #e5e7eb;
-$gray-300: #d1d5db;
-$gray-400: #9ca3af;
-$gray-500: #6b7280;
-$gray-600: #4b5563;
-$gray-700: #374151;
-$gray-900: #111827;
-$white: #ffffff;
 
 .container {
   max-width: 1200px;

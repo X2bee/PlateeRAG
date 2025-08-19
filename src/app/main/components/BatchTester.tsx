@@ -3,7 +3,9 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import styles from '@/app/main/assets/BatchTester.module.scss';
 import { FiUpload, FiDownload, FiPlay, FiFileText, FiTable, FiCheckCircle, FiXCircle, FiClock, FiRefreshCw, FiTrash2 } from 'react-icons/fi';
 import { useBatchTesterContext } from '@/app/main/contexts/BatchTesterContext';
-import { executeWorkflowById, executeWorkflowBatch } from '@/app/api/workflowAPI';
+import { executeWorkflowById, executeWorkflowBatchStream } from '@/app/api/workflowAPI';
+import { devLog } from '@/app/_common/utils/logger';
+import toast from 'react-hot-toast';
 
 // 외부 라이브러리 동적 로드
 declare global {
@@ -56,6 +58,26 @@ interface BatchExecuteResponse {
     results: BatchTestResult[];
 }
 
+// SSE 스트리밍 메시지 타입 정의
+interface SSEMessage {
+    type: 'batch_start' | 'group_start' | 'test_result' | 'progress' | 'batch_complete' | 'error';
+    batch_id?: string;
+    total_count?: number;
+    batch_size?: number;
+    workflow_name?: string;
+    group_number?: number;
+    group_size?: number;
+    progress?: number;
+    result?: BatchTestResult;
+    completed_count?: number;
+    elapsed_time?: number;
+    success_count?: number;
+    error_count?: number;
+    total_execution_time?: number;
+    message?: string;
+    error?: string;
+}
+
 const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
     const {
         testData,
@@ -94,7 +116,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             script.onload = () => setIsXLSXLoaded(true);
             document.head.appendChild(script);
         } catch (error) {
-            console.error('XLSX 라이브러리 로드 실패:', error);
+            devLog.error('XLSX 라이브러리 로드 실패:', error);
         }
     };
 
@@ -110,7 +132,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             script.onload = () => setIsMammothLoaded(true);
             document.head.appendChild(script);
         } catch (error) {
-            console.error('Mammoth 라이브러리 로드 실패:', error);
+            devLog.error('Mammoth 라이브러리 로드 실패:', error);
         }
     };
 
@@ -211,7 +233,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                 setTimeout(() => saveStateToStorage(workflow.workflow_id), 100);
             }
         } catch (error) {
-            console.error('CSV 파싱 중 오류:', error);
+            devLog.error('CSV 파싱 중 오류:', error);
             alert('CSV 파일을 파싱하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.');
         }
     };
@@ -289,7 +311,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                 setTimeout(() => saveStateToStorage(workflow.workflow_id), 100);
             }
         } catch (error) {
-            console.error('Excel 파싱 중 오류:', error);
+            devLog.error('Excel 파싱 중 오류:', error);
             alert('Excel 파일을 파싱하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.');
         }
     };
@@ -333,7 +355,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             }
 
             setTestData(parsedData);
-            console.log(`Word 파일에서 ${parsedData.length}개의 질문을 추출했습니다.`);
+            devLog.log(`Word 파일에서 ${parsedData.length}개의 질문을 추출했습니다.`);
 
             // 즉시 저장
             if (workflow) {
@@ -341,47 +363,17 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             }
 
         } catch (error) {
-            console.error('Word 파싱 중 오류:', error);
+            devLog.error('Word 파싱 중 오류:', error);
             alert('Word 파일을 파싱하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.');
         }
     };
 
-    // 안전한 상태 업데이트를 위한 헬퍼 함수
-    const updateStatesSafely = useCallback(async (
-        newTestData: TestData[],
-        newCompletedCount: number,
-        newProgress: number,
-        newIsRunning: boolean
-    ) => {
-        return new Promise<void>((resolve) => {
-            // 모든 상태를 동시에 업데이트
-            setTestData(newTestData);
-            setCompletedCount(newCompletedCount);
-            setProgress(newProgress);
-            setIsRunning(newIsRunning);
-
-            // React의 상태 배치 업데이트 완료를 기다림
-            setTimeout(() => {
-                resolve();
-            }, 100);
-        });
-    }, []);
-
-    // 수정된 배치 테스트 실행 함수
     const runBatchTest = async () => {
         if (!workflow || testData.length === 0) {
             alert('워크플로우를 선택하고 테스트 데이터를 업로드해주세요.');
             return;
         }
 
-        console.log('🚀 배치 테스트 시작:', {
-            workflow: workflow.workflow_name,
-            workflowId: workflow.workflow_id,
-            testDataLength: testData.length,
-            batchSize: batchSize
-        });
-
-        // 실행 시작 - 상태 초기화
         const initializedData = testData.map(item => ({
             ...item,
             status: 'pending' as const,
@@ -396,10 +388,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
         setProgress(0);
         setIsRunning(true);
 
-        console.log('✅ 실행 상태 초기화 완료');
-
         try {
-            // 배치 실행 요청 준비
             const batchRequest = {
                 workflowName: workflow.workflow_name.replace('.json', ''),
                 workflowId: workflow.workflow_id,
@@ -413,117 +402,168 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                 selectedCollections: null
             };
 
-            // 실행 중 상태로 변경
             const runningData = initializedData.map(item => ({ ...item, status: 'running' as const }));
             setTestData(runningData);
-            setProgress(10); // 요청 시작 표시
 
-            console.log('서버로 배치 요청 전송 중...', {
-                requestDetails: {
-                    testCases: batchRequest.testCases.length,
-                    batchSize: batchRequest.batchSize,
-                    workflowName: batchRequest.workflowName
+            let streamResults: BatchTestResult[] = [];
+            let batchId = '';
+            let finalStats = {
+                total_count: 0,
+                success_count: 0,
+                error_count: 0,
+                total_execution_time: 0
+            };
+
+            await (executeWorkflowBatchStream as any)({
+                workflowName: batchRequest.workflowName,
+                workflowId: batchRequest.workflowId,
+                testCases: batchRequest.testCases,
+                batchSize: batchRequest.batchSize,
+                interactionId: batchRequest.interactionId,
+                selectedCollections: batchRequest.selectedCollections,
+                onMessage: (data: SSEMessage) => {
+                    devLog.log('SSE 메시지 수신:', data);
+
+                    switch (data.type) {
+                        case 'batch_start':
+                            batchId = data.batch_id || '';
+                            break;
+
+                        case 'group_start':
+
+                            break;
+
+                        case 'test_result':
+                            const result = data.result;
+                            if (result) {
+                                streamResults.push(result);
+                                setTestData(prevData =>
+                                    prevData.map(item => {
+                                        if (item.id === result.id) {
+                                            return {
+                                                ...item,
+                                                status: result.status as 'success' | 'error',
+                                                actualOutput: result.actual_output || '결과 없음',
+                                                executionTime: result.execution_time || 0,
+                                                error: result.error || null
+                                            };
+                                        }
+                                        return item;
+                                    })
+                                );
+                            }
+                            break;
+
+                        case 'progress':
+                            devLog.log(`진행률: ${data.progress || 0}% (${data.completed_count || 0}/${data.total_count || 0})`);
+                            setProgress(data.progress || 0);
+                            setCompletedCount(data.completed_count || 0);
+                            break;
+
+                        case 'batch_complete':
+                            devLog.log('배치 완료:', data);
+                            finalStats = {
+                                total_count: data.total_count || 0,
+                                success_count: data.success_count || 0,
+                                error_count: data.error_count || 0,
+                                total_execution_time: data.total_execution_time || 0
+                            };
+                            setProgress(100);
+                            setCompletedCount(data.total_count || 0);
+                            break;
+
+                        case 'error':
+                            devLog.error('배치 실행 오류:', data);
+                            throw new Error(data.error || data.message || '배치 실행 중 오류 발생');
+
+                        default:
+                            devLog.log('알 수 없는 메시지 타입:', data);
+                            break;
+                    }
+                },
+
+                // 스트리밍 완료
+                onEnd: () => {
+                    devLog.log('배치 스트리밍 완료');
+                },
+
+                // 스트리밍 오류
+                onError: (error: Error) => {
+                    devLog.error('배치 스트리밍 오류:', error);
+                    throw error;
                 }
             });
 
-            // 서버에서 배치 실행
-            const batchResult = await executeWorkflowBatch(batchRequest) as BatchExecuteResponse;
-
-            console.log('배치 실행 완료:', {
-                batchId: batchResult.batch_id,
-                총개수: batchResult.total_count,
-                성공: batchResult.success_count,
-                실패: batchResult.error_count,
-                총실행시간: `${batchResult.total_execution_time}ms`,
-                평균실행시간: `${(batchResult.total_execution_time / batchResult.total_count).toFixed(2)}ms`
-            });
-
-            // 결과를 testData에 매핑
-            const updatedTestData: TestData[] = testData.map(item => {
-                const result = batchResult.results.find((r: BatchTestResult) => r.id === item.id);
-                if (result) {
+            setTestData(prevData =>
+                prevData.map(item => {
+                    const result = streamResults.find(r => r.id === item.id);
+                    if (result) {
+                        return {
+                            ...item,
+                            status: result.status as 'success' | 'error',
+                            actualOutput: result.actual_output || '결과 없음',
+                            executionTime: result.execution_time || 0,
+                            error: result.error || null
+                        };
+                    }
                     return {
                         ...item,
-                        status: result.status as 'success' | 'error',
-                        actualOutput: result.actual_output || '결과 없음',
-                        executionTime: result.execution_time || 0,
-                        error: result.error || null
+                        status: 'error' as const,
+                        error: '서버에서 결과를 찾을 수 없습니다.',
+                        actualOutput: null,
+                        executionTime: 0
                     };
-                }
-                return {
-                    ...item,
-                    status: 'error' as const,
-                    error: '서버에서 결과를 찾을 수 없습니다.',
-                    actualOutput: null,
-                    executionTime: 0
-                };
-            });
+                })
+            );
 
-            // 직접 상태 업데이트 (한 번에)
-            console.log('완료 상태로 업데이트 중...');
-            setTestData(updatedTestData);
-            setCompletedCount(batchResult.total_count);
-            setProgress(100);
             setIsRunning(false);
-
-            console.log('완료 상태 업데이트 완료');
-
-            // 최종 저장 (상태 업데이트 완료 후)
             if (workflow) {
-                console.log('최종 상태 저장 중...');
+                devLog.log('최종 상태 저장 중...');
                 setTimeout(() => {
-                    // 수동으로 정확한 상태 저장
-                    const finalState = {
-                        testData: updatedTestData.map(item => ({
-                            ...item,
-                            actualOutput: item.actualOutput ? item.actualOutput.substring(0, 300) : null,
-                            error: item.error ? item.error.substring(0, 200) : null
-                        })),
-                        uploadedFileName: uploadedFile?.name || null,
-                        isRunning: false,
-                        progress: 100,
-                        completedCount: batchResult.total_count,
-                        batchSize: batchSize,
-                        timestamp: Date.now()
-                    };
-
-                    try {
-                        localStorage.setItem(`batchTester_${workflow.workflow_id}`, JSON.stringify(finalState));
-                        console.log('수동 저장 완료:', {
-                            completedCount: batchResult.total_count,
+                    setTestData(currentTestData => {
+                        const finalState = {
+                            testData: currentTestData.map(item => ({
+                                ...item,
+                                actualOutput: item.actualOutput ? item.actualOutput.substring(0, 300) : null,
+                                error: item.error ? item.error.substring(0, 200) : null
+                            })),
+                            uploadedFileName: uploadedFile?.name || null,
                             isRunning: false,
-                            testDataCount: updatedTestData.length
-                        });
-                    } catch (error) {
-                        console.error('❌ 수동 저장 실패:', error);
-                    }
+                            progress: 100,
+                            completedCount: finalStats.total_count,
+                            batchSize: batchSize,
+                            timestamp: Date.now()
+                        };
 
-                    console.log('최종 상태 저장 완료');
+                        try {
+                            localStorage.setItem(`batchTester_${workflow.workflow_id}`, JSON.stringify(finalState));
+                            devLog.log('수동 저장 완료:', {
+                                completedCount: finalStats.total_count,
+                                isRunning: false,
+                                testDataCount: currentTestData.length
+                            });
+                        } catch (error) {
+                            devLog.error('❌ 수동 저장 실패:', error);
+                        }
+
+                        return currentTestData; // 상태는 변경하지 않고 현재 상태 유지
+                    });
+
+                    devLog.log('최종 상태 저장 완료');
                 }, 1000); // 1초 후 확실히 저장
             }
 
-            // 성공/실패 통계 알림
-            const message = `배치 테스트 완료!\n\n` +
-                           `결과 요약:\n` +
-                           `• 총 ${batchResult.total_count}개 테스트\n` +
-                           `• 성공: ${batchResult.success_count}개\n` +
-                           `• 실패: ${batchResult.error_count}개\n` +
-                           `• 총 소요시간: ${(batchResult.total_execution_time / 1000).toFixed(2)}초\n` +
-                           `• 평균 실행시간: ${(batchResult.total_execution_time / batchResult.total_count).toFixed(2)}ms`;
-
-            console.log(message);
-
-            const successRate = (batchResult.success_count / batchResult.total_count) * 100;
+            const successRate = finalStats.total_count > 0 ? (finalStats.success_count / finalStats.total_count) * 100 : 0;
             if (successRate === 100) {
-                alert(message + '\n\n모든 테스트가 성공했습니다!');
+                toast.success('모든 테스트가 성공했습니다!');
             } else if (successRate >= 80) {
-                alert(message + '\n\n대부분의 테스트가 성공했습니다.');
-            } else if (batchResult.error_count > 0) {
-                alert(message + '\n\n일부 테스트가 실패했습니다. 결과를 확인해주세요.');
+                toast.success('대부분의 테스트가 성공했습니다.');
+            } else if (finalStats.error_count > 0) {
+                toast.error('일부 테스트가 실패했습니다. 결과를 확인해주세요.');
             }
 
         } catch (error: unknown) {
-            console.error('❌ 배치 테스트 중 오류:', error);
+            devLog.error('❌ 배치 테스트 중 오류:', error);
 
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
 
@@ -536,7 +576,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                 executionTime: 0
             }));
 
-            console.log('에러 상태로 업데이트 중...');
+            devLog.log('에러 상태로 업데이트 중...');
             setTestData(errorData);
             setCompletedCount(0);
             setProgress(0);
@@ -561,12 +601,12 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
 
                     try {
                         localStorage.setItem(`batchTester_${workflow.workflow_id}`, JSON.stringify(errorState));
-                        console.log('에러 상태 수동 저장 완료');
+                        devLog.log('에러 상태 수동 저장 완료');
                     } catch (error) {
-                        console.error('❌ 에러 상태 저장 실패:', error);
+                        devLog.error('❌ 에러 상태 저장 실패:', error);
                     }
 
-                    console.log('에러 상태 저장 완료');
+                    devLog.log('에러 상태 저장 완료');
                 }, 1000);
             }
 
@@ -580,7 +620,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             alert(detailedErrorMessage);
         }
 
-        console.log('배치 테스트 프로세스 완료');
+        devLog.log('배치 테스트 프로세스 완료');
     };
 
     const formatExecutionTime = (ms?: number): string => {
@@ -670,10 +710,10 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                         onClick={runBatchTest}
                         disabled={!testData.length || isRunning}
                         className={`${styles.btn} ${styles.run}`}
-                        title="서버에서 모든 테스트를 배치로 처리합니다."
+                        title="실시간 스트리밍으로 모든 테스트를 배치 처리하며 진행 상황을 실시간으로 확인할 수 있습니다."
                     >
                         {isRunning ? <FiRefreshCw className={styles.spinning} /> : <FiPlay />}
-                        {isRunning ? '서버에서 처리 중...' : '배치 실행 (서버)'}
+                        {isRunning ? '실시간 스트리밍 중...' : '배치 실행 (실시간)'}
                     </button>
                     <button
                         onClick={downloadResults}
@@ -712,7 +752,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             {isRunning && (
                 <div className={styles.progressContainer}>
                     <div className={styles.progressHeader}>
-                        <span>서버에서 배치 처리 중...</span>
+                        <span>실시간 스트리밍으로 배치 처리 중...</span>
                         <span className={styles.progressStats}>
                             {completedCount} / {testData.length} 완료 ({Math.round(progress)}%)
                         </span>
@@ -725,7 +765,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                     </div>
                     <div className={styles.progressDetails}>
                         <span>배치 크기: {batchSize}개씩 병렬 처리</span>
-                        <span>상태가 자동으로 저장됩니다</span>
+                        <span>실시간 결과 업데이트 및 상태 자동 저장</span>
                     </div>
                 </div>
             )}
@@ -763,7 +803,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                             <h5>성능 통계</h5>
                             <div className={styles.statsGrid}>
                                 <div className={styles.statItem}>
-                                    <span className={styles.statLabel}>평균 실행시간:</span>
+                                    <span>평균 실행시간:</span>
                                     <span className={styles.statValue}>
                                         {(() => {
                                             const completedTests = testData.filter(item => item.executionTime && item.executionTime > 0);
@@ -775,7 +815,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                                     </span>
                                 </div>
                                 <div className={styles.statItem}>
-                                    <span className={styles.statLabel}>최고 속도:</span>
+                                    <span>최고 속도:</span>
                                     <span className={styles.statValue}>
                                         {(() => {
                                             const times = testData.filter(item => item.executionTime && item.executionTime > 0).map(item => item.executionTime || 0);
@@ -784,7 +824,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                                     </span>
                                 </div>
                                 <div className={styles.statItem}>
-                                    <span className={styles.statLabel}>최저 속도:</span>
+                                    <span>최저 속도:</span>
                                     <span className={styles.statValue}>
                                         {(() => {
                                             const times = testData.filter(item => item.executionTime && item.executionTime > 0).map(item => item.executionTime || 0);
