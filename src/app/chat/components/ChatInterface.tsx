@@ -132,15 +132,15 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         }
     }, []);
 
-
     // workflow 데이터 로드
     useEffect(() => {
-        if (workflow && workflow.id) {
+        if (workflow && workflow.id && workflow.id !== "default_mode") {
             const loadWorkflowContent = async () => {
                 if (user_id) {
                     try {
                         const workflowData = await loadWorkflowDeploy(workflow.name, user_id);
                         setWorkflowContentDetail(workflowData);
+                        localStorage.setItem('workflowContentDetail', JSON.stringify(workflowData));
                         devLog.log('Successfully loaded workflow content detail:', workflowData);
                     } catch (error) {
                         devLog.error('Failed to load workflow content detail:', error);
@@ -149,6 +149,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                     try {
                         const workflowData = await loadWorkflow(workflow.name);
                         setWorkflowContentDetail(workflowData);
+                        localStorage.setItem('workflowContentDetail', JSON.stringify(workflowData));
                         devLog.log('Successfully loaded workflow content detail:', workflowData);
                     } catch (error) {
                         devLog.error('Failed to load workflow content detail:', error);
@@ -156,7 +157,9 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                 }
             };
 
+            setLoading(true);
             loadWorkflowContent();
+            setLoading(false);
         }
     }, [workflow, user_id]);
 
@@ -194,10 +197,28 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
             if (workflow.name == 'default_mode') {
                 isStreaming = true;
             } else {
-                if (!workflowContentDetail) {
+                let workflowData = null;
+
+                // 1차: localStorage에서 workflowContentDetail 가져오기 시도
+                try {
+                    const storedWorkflowData = localStorage.getItem('workflowContentDetail');
+                    if (storedWorkflowData) {
+                        workflowData = JSON.parse(storedWorkflowData);
+                    }
+                } catch (error) {
+                    console.warn('Failed to load workflow data from localStorage:', error);
+                }
+
+                // 2차: state의 workflowContentDetail 사용
+                if (!workflowData && workflowContentDetail) {
+                    workflowData = workflowContentDetail;
+                }
+
+                if (!workflowData) {
                     throw new Error("워크플로우 데이터가 로드되지 않았습니다.");
                 }
-                isStreaming = await isStreamingWorkflowFromWorkflow(workflowContentDetail);
+
+                isStreaming = await isStreamingWorkflowFromWorkflow(workflowData);
             }
 
             const { interactionId, workflowId, workflowName } = existingChatData || {
@@ -291,10 +312,28 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
             if (workflow.name == 'default_mode') {
                 isStreaming = true;
             } else {
-                if (!workflowContentDetail) {
+                let workflowData = null;
+
+                // 1차: localStorage에서 workflowContentDetail 가져오기 시도
+                try {
+                    const storedWorkflowData = localStorage.getItem('workflowContentDetail');
+                    if (storedWorkflowData) {
+                        workflowData = JSON.parse(storedWorkflowData);
+                    }
+                } catch (error) {
+                    console.warn('Failed to load workflow data from localStorage:', error);
+                }
+
+                // 2차: state의 workflowContentDetail 사용
+                if (!workflowData && workflowContentDetail) {
+                    workflowData = workflowContentDetail;
+                }
+
+                if (!workflowData) {
                     throw new Error("워크플로우 데이터가 로드되지 않았습니다.");
                 }
-                isStreaming = await isStreamingWorkflowFromWorkflow(workflowContentDetail);
+
+                isStreaming = await isStreamingWorkflowFromWorkflow(workflowData);
             }
 
             const { interactionId, workflowId, workflowName } = existingChatData || {

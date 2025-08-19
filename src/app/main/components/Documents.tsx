@@ -636,7 +636,7 @@ const Documents: React.FC = () => {
                     {viewMode === 'collections' && (
                         <>
                             <button onClick={handleSwitchToAllGraphView} className={`${styles.button} ${styles.secondary}`}>
-                                [주의] 모든 그래프 보기
+                                모든 그래프 보기
                             </button>
                             <button onClick={() => setShowCreateModal(true)} className={`${styles.button} ${styles.primary}`}>
                                 새 컬렉션 생성
