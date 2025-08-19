@@ -402,8 +402,8 @@ const Documents: React.FC = () => {
                         await uploadDocument(
                             file,
                             selectedCollection.collection_name,
-                            3000,
-                            500,
+                            4000,
+                            1000,
                             metadata
                         );
 
@@ -458,8 +458,8 @@ const Documents: React.FC = () => {
                     await uploadDocument(
                         file,
                         selectedCollection.collection_name,
-                        3000,
-                        500,
+                        4000,
+                        1000,
                         { upload_type: 'single' }
                     );
 
