@@ -144,14 +144,14 @@ const LoginPage = () => {
             <button type="submit" className={styles.loginButton} disabled={isLoading || isGuestLoading}>
               {isLoading ? '로그인 중...' : '로그인'}
             </button>
-            <button
+            {/* <button
               type="button"
               className={styles.guestButton}
               disabled={isLoading || isGuestLoading}
               onClick={handleGuestLogin}
             >
               {isGuestLoading ? '게스트 계정 생성 중...' : '게스트로 입장'}
-            </button>
+            </button> */}
           </div>
         </form>
 

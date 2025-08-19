@@ -5,7 +5,8 @@ import { BsRobot } from 'react-icons/bs';
 import toast from 'react-hot-toast';
 import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/baseConfigPanel';
 import {
-    getCurrentEmbeddingDimension
+    getCurrentEmbeddingDimension,
+    refreshRetrievalConfig
 } from '@/app/api/retrievalAPI';
 import {
     getEmbeddingStatus,
@@ -385,6 +386,23 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
         }
     };
 
+    const handleRefreshConfig = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            await refreshRetrievalConfig();
+            await loadEmbeddingStatus(); // 상태 새로고침
+            toast.success('Retrieval 설정이 성공적으로 새로고침되었습니다.');
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Retrieval 설정 새로고침에 실패했습니다.';
+            setError(errorMessage);
+            toast.error(errorMessage);
+            console.error('Failed to refresh retrieval config:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const renderEmbeddingTab = () => {
         const currentDefaultProvider = getCurrentDefaultProvider();
 
@@ -397,8 +415,17 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
 
                 {/* 현재 제공자 상태 - 최상단으로 이동 */}
                 <div className={styles.currentProviderSection}>
-                    <div className={styles.sectionTitle}>
+                    <div className={styles.sectionTitle} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                         <h4>현재 활성 제공자</h4>
+                        <button
+                            onClick={handleRefreshConfig}
+                            className={`${styles.button} ${styles.secondary} ${styles.refreshButton}`}
+                            disabled={loading}
+                            title="Retrieval 설정 새로고침"
+                        >
+                            <FiRefreshCw className={loading ? styles.spinning : ''} />
+                            설정 초기화
+                        </button>
                     </div>
 
                     {embeddingStatus && (
@@ -488,11 +515,13 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
                 </div>
                 {/* 제공자 선택 카드 */}
                 <div className={styles.providersSection}>
-                    <div className={styles.sectionTitle}>
-                        <h4>사용 가능한 임베딩 제공자</h4>
-                        <span className={styles.sectionSubtitle}>
-                            제공자를 클릭하여 기본 제공자로 변경하세요
-                        </span>
+                    <div className={styles.sectionTitle} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <div>
+                            <h4>사용 가능한 임베딩 제공자</h4>
+                            <span className={styles.sectionSubtitle}>
+                                제공자를 클릭하여 기본 제공자로 변경하세요
+                            </span>
+                        </div>
                     </div>
 
                     <div className={styles.providersGrid}>

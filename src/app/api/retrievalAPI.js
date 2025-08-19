@@ -802,6 +802,9 @@ export const getCurrentEmbeddingDimension = async (provider, model) => {
     }
 };
 
+
+
+
 // /**
 //  * 현재 설정된 임베딩 제공자와 모델에 따른 벡터 차원을 조회하는 함수
 //  * @returns {Promise<Object>} 벡터 차원 정보
@@ -840,3 +843,32 @@ export const getCurrentEmbeddingDimension = async (provider, model) => {
 //         };
 //     }
 // };
+
+/**
+ * Retrieval 설정을 새로고침하는 함수
+ * @returns {Promise<Object>} 새로고침 결과
+ */
+export const refreshRetrievalConfig = async () => {
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/api/retrieval/refresh-db`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Retrieval configuration refreshed:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to refresh retrieval configuration:', error);
+        throw error;
+    }
+};
