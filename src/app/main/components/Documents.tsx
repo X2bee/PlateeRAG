@@ -116,6 +116,10 @@ const Documents: React.FC = () => {
     const [isSearching, setIsSearching] = useState(false);
     const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
 
+    // 청크 설정 상태
+    const [chunkSize, setChunkSize] = useState(4000);
+    const [overlapSize, setOverlapSize] = useState(1000);
+
     // Graph 데이터 상태
     const [documentDetailMeta, setDocumentDetailMeta] = useState<any>(null);
     const [documentDetailEdges, setDocumentDetailEdges] = useState<any>(null);
@@ -127,6 +131,8 @@ const Documents: React.FC = () => {
     // 모달 상태
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showChunkSettingsModal, setShowChunkSettingsModal] = useState(false);
+    const [isFolderUpload, setIsFolderUpload] = useState(false);
     const [collectionToDelete, setCollectionToDelete] = useState<Collection | null>(null);
 
     // 폼 상태
@@ -137,7 +143,7 @@ const Documents: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    useSidebarManager(showCreateModal || showDeleteModal)
+    useSidebarManager(showCreateModal || showDeleteModal || showChunkSettingsModal)
 
     // 컬렉션 목록 로드
     useEffect(() => {
@@ -402,8 +408,8 @@ const Documents: React.FC = () => {
                         await uploadDocument(
                             file,
                             selectedCollection.collection_name,
-                            4000,
-                            1000,
+                            chunkSize,
+                            overlapSize,
                             metadata
                         );
 
@@ -458,8 +464,8 @@ const Documents: React.FC = () => {
                     await uploadDocument(
                         file,
                         selectedCollection.collection_name,
-                        4000,
-                        1000,
+                        chunkSize,
+                        overlapSize,
                         { upload_type: 'single' }
                     );
 
@@ -497,23 +503,28 @@ const Documents: React.FC = () => {
     };
 
     const handleSingleFileUpload = () => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.onchange = (e) => {
-            const files = (e.target as HTMLInputElement).files;
-            if (files) handleFileUpload(files, false);
-        };
-        input.click();
+        setIsFolderUpload(false);
+        setShowChunkSettingsModal(true);
     };
 
     const handleFolderUpload = () => {
+        setIsFolderUpload(true);
+        setShowChunkSettingsModal(true);
+    };
+
+    const handleConfirmChunkSettings = () => {
+        setShowChunkSettingsModal(false);
         const input = document.createElement('input');
         input.type = 'file';
-        input.webkitdirectory = true;
-        input.multiple = true;
+
+        if (isFolderUpload) {
+            input.webkitdirectory = true;
+            input.multiple = true;
+        }
+
         input.onchange = (e) => {
             const files = (e.target as HTMLInputElement).files;
-            if (files) handleFileUpload(files, true);
+            if (files) handleFileUpload(files, isFolderUpload);
         };
         input.click();
     };
@@ -911,6 +922,51 @@ const Documents: React.FC = () => {
                     documentDetailMeta={allDocumentDetailMeta}
                     documentDetailEdges={allDocumentDetailEdges}
                 />
+            )}
+
+            {/* 청크 설정 모달 */}
+            {showChunkSettingsModal && (
+                <div className={styles.modalBackdrop} onClick={() => setShowChunkSettingsModal(false)}>
+                    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+                        <h3>{isFolderUpload ? '폴더 업로드 청크 설정' : '단일 파일 업로드 청크 설정'}</h3>
+                        <div className={styles.formGroup}>
+                            <label>청크 사이즈</label>
+                            <input
+                                type="number"
+                                value={chunkSize}
+                                onChange={(e) => setChunkSize(Number(e.target.value))}
+                                placeholder="4000"
+                                min="100"
+                                max="65000"
+                            />
+                        </div>
+                        <div className={styles.formGroup}>
+                            <label>오버랩 사이즈</label>
+                            <input
+                                type="number"
+                                value={overlapSize}
+                                onChange={(e) => setOverlapSize(Number(e.target.value))}
+                                placeholder="1000"
+                                min="0"
+                                max="65000"
+                            />
+                        </div>
+                        <div className={styles.modalActions}>
+                            <button
+                                onClick={() => setShowChunkSettingsModal(false)}
+                                className={`${styles.button} ${styles.secondary}`}
+                            >
+                                취소
+                            </button>
+                            <button
+                                onClick={handleConfirmChunkSettings}
+                                className={`${styles.button} ${styles.primary}`}
+                            >
+                                설정 완료
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* 컬렉션 생성 모달 */}
