@@ -40,8 +40,9 @@ const Node: React.FC<NodeProps> = ({
     const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
     const [isEditingName, setIsEditingName] = useState<boolean>(false);
     const [editingName, setEditingName] = useState<string>(nodeName);
-    const [tool_name, setToolNameValue] = useState('tool_name');
+    const [tool_name, setToolNameValue] = useState('');
     const [error, setError] = useState('');
+    //TODO 최초 렌더링 될때 워크플로우 데이터에서 tool_name 가져오기 구현
 
 
     // API 기반 옵션을 관리하는 상태
