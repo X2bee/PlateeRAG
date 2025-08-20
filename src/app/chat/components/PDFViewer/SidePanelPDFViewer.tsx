@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { FiX, FiZoomIn, FiZoomOut, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiX, FiZoomIn, FiZoomOut, FiChevronLeft, FiChevronRight, FiRotateCcw } from 'react-icons/fi';
 import { PDFViewerProps, HighlightRange } from '../../types/source';
 import { fetchDocumentByPath, hasDocumentInCache } from '../../../api/documentAPI';
 import CacheStatusIndicator from './CacheStatusIndicator';
@@ -64,7 +64,7 @@ interface SidePanelPDFViewerProps {
 const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mode, userId, onClose }) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
-  const [scale, setScale] = useState<number>(0.8);
+  const [scale, setScale] = useState<number>(1.0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
@@ -165,8 +165,47 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
       if (documentType === 'docx') {
         try {
           const mammoth = await import('mammoth');
-          const result = await mammoth.convertToHtml({ arrayBuffer: documentData });
-          setDocxHtml(result.value);
+          
+          // 표와 스타일을 더 잘 처리하기 위한 옵션 설정
+          const options = {
+            arrayBuffer: documentData,
+            styleMap: [
+              // 표 스타일 매핑
+              "p[style-name='Table Grid'] => table",
+              "p[style-name='Table'] => table",
+              "r[style-name='Table Grid'] => td",
+              "r[style-name='Table'] => td",
+              // 헤더 스타일
+              "p[style-name='Heading 1'] => h1:fresh",
+              "p[style-name='Heading 2'] => h2:fresh",
+              "p[style-name='Heading 3'] => h3:fresh",
+              "p[style-name='Heading 4'] => h4:fresh",
+              // 본문 스타일
+              "p[style-name='Normal'] => p:fresh",
+              // 강조 스타일
+              "r[style-name='Strong'] => strong",
+              "r[style-name='Emphasis'] => em"
+            ],
+            includeDefaultStyleMap: true,
+            includeEmbeddedStyleMap: true
+          };
+          
+          const result = await mammoth.convertToHtml(options);
+          
+          // HTML 후처리를 통해 표 스타일 개선
+          let processedHtml = result.value;
+          
+          // 표 요소에 클래스 추가
+          processedHtml = processedHtml.replace(/<table/g, '<table class="docx-table"');
+          
+          // 빈 표 셀 처리
+          processedHtml = processedHtml.replace(/<td><\/td>/g, '<td>&nbsp;</td>');
+          processedHtml = processedHtml.replace(/<th><\/th>/g, '<th>&nbsp;</th>');
+          
+          // 여러 줄의 빈 공간 제거
+          processedHtml = processedHtml.replace(/\n\s*\n/g, '\n');
+          
+          setDocxHtml(processedHtml);
           console.log('✅ [SidePanelPDFViewer] DOCX converted to HTML successfully');
           
           // 변환 시 발생한 메시지가 있다면 로그 출력
@@ -202,6 +241,57 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
       setDocxHtml(null);
     }
   }, [sourceInfo?.file_path, mode, userId]);
+
+  const handleZoomIn = useCallback(() => {
+    setScale(prev => {
+      const newScale = prev + 0.1;
+      return Math.min(newScale, 3.0); // 최대 300%까지 확대
+    });
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setScale(prev => {
+      const newScale = prev - 0.1;
+      return Math.max(newScale, 0.2); // 최소 20%까지 축소
+    });
+  }, []);
+
+  // 키보드 단축키를 위한 이벤트 핸들러
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey) {
+        if (event.key === '=' || event.key === '+') {
+          event.preventDefault();
+          handleZoomIn();
+        } else if (event.key === '-') {
+          event.preventDefault();
+          handleZoomOut();
+        } else if (event.key === '0') {
+          event.preventDefault();
+          setScale(1.0); // 기본 크기로 리셋
+        }
+      }
+    };
+
+    const handleWheel = (event: WheelEvent) => {
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+        if (event.deltaY < 0) {
+          handleZoomIn();
+        } else {
+          handleZoomOut();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('wheel', handleWheel);
+    };
+  }, [handleZoomIn, handleZoomOut]);
 
   // sourceInfo가 변경될 때 문서 로딩 및 페이지 설정
   useEffect(() => {
@@ -248,14 +338,6 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
       console.warn('텍스트 콘텐츠를 가져올 수 없습니다:', err);
     });
   }, [pageNumber]);
-
-  const handleZoomIn = () => {
-    setScale(prev => Math.min(prev + 0.1, 2.0));
-  };
-
-  const handleZoomOut = () => {
-    setScale(prev => Math.max(prev - 0.1, 0.3));
-  };
 
   const goToPrevPage = () => {
     setPageNumber(prev => Math.max(prev - 1, 1));
@@ -333,6 +415,13 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
           <button onClick={handleZoomIn} className={styles.controlButton}>
             <FiZoomIn />
           </button>
+          <button 
+            onClick={() => setScale(1.0)} 
+            className={styles.controlButton}
+            title="기본 크기로 리셋 (Ctrl+0)"
+          >
+            <FiRotateCcw />
+          </button>
         </div>
       </div>
 
@@ -372,17 +461,14 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
         )}
         
         {!loading && !error && docxHtml && fileType === 'docx' && (
-          <div 
-            className={styles.docxContainer} 
-            style={{ 
-              transform: `scale(${scale})`, 
-              transformOrigin: 'top left',
-              width: `${100 / scale}%`,
-              height: `${100 / scale}%`
-            }}
-          >
+          <div className={styles.docxContainer}>
             <div 
               className={styles.docxContent}
+              style={{ 
+                transform: `scale(${scale})`, 
+                transformOrigin: 'top center',
+                transition: 'transform 0.2s ease'
+              }}
               dangerouslySetInnerHTML={{ __html: docxHtml }}
             />
           </div>
