@@ -180,7 +180,7 @@ export interface NodeProps {
     onPortMouseUp: (data: PortMouseEventData, mouseEvent?: React.MouseEvent) => void;
     registerPortRef: (nodeId: string, portId: string, portType: string, el: HTMLElement | null) => void;
     snappedPortKey: string | null;
-    onParameterChange: (nodeId: string, paramId: string, value: string | number) => void;
+    onParameterChange: (nodeId: string, paramId: string, value: string | number | boolean) => void;
     isSnapTargetInvalid: boolean;
     isPreview?: boolean;
     onNodeNameChange: (nodeId: string, newName: string) => void;
@@ -327,7 +327,7 @@ export interface DummyHandlers {
     onPortMouseDown: (data: PortMouseEventData, mouseEvent?: React.MouseEvent) => void;
     onPortMouseUp: (data: PortMouseEventData, mouseEvent?: React.MouseEvent) => void;
     registerPortRef: (nodeId: string, portId: string, portType: string, el: HTMLElement | null) => void;
-    onParameterChange: (nodeId: string, paramId: string, value: string | number) => void;
+    onParameterChange: (nodeId: string, paramId: string, value: string | number | boolean) => void;
     onParameterNameChange: (nodeId: string, paramId: string, newName: string) => void;
     onNodeNameChange: (nodeId: string, newName: string) => void;
     onClearSelection: () => void;

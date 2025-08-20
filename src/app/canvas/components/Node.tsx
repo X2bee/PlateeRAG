@@ -349,6 +349,7 @@ const Node: React.FC<NodeProps> = ({
     };
 
     const numberList = ['INT', 'FLOAT', 'NUMBER', 'INTEGER'];
+    const booleanList = ['BOOL', 'BOOLEAN', 'TRUE', 'FALSE', 'bool'];
 
     // Separate parameters into basic/advanced
     const basicParameters = parameters?.filter(param => !param.optional) || [];
@@ -591,13 +592,22 @@ const Node: React.FC<NodeProps> = ({
                             </>
                         )}
                     </select>
-                ) : param.type === 'BOOL' ? (
+                ) : param.type && booleanList.includes(param.type) ? (
                     <select
                         value={param.value !== undefined && param.value !== null ? param.value.toString() : ''}
                         onChange={(e) => {
                             devLog.log('=== Boolean Parameter Change ===');
                             devLog.log('Parameter:', param.name, 'Previous value:', param.value, 'New value:', e.target.value);
-                            handleParamValueChange(e, param.id);
+                            
+                            // Boolean 값으로 변환하여 전달
+                            const booleanValue = e.target.value === 'true' ? true : e.target.value === 'false' ? false : e.target.value;
+                            
+                            // handleParamValueChange 대신 직접 onParameterChange 호출
+                            if (typeof onParameterChange === 'function') {
+                                onParameterChange(id, param.id, booleanValue);
+                                devLog.log('Boolean value sent:', booleanValue, 'type:', typeof booleanValue);
+                            }
+                            
                             devLog.log('=== Boolean Parameter Change Complete ===');
                         }}
                         onMouseDown={(e) => {
