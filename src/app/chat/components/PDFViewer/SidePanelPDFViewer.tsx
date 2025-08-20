@@ -87,10 +87,16 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
   });
 
   // 하이라이트 범위 계산
+  // const highlightRange: HighlightRange = {
+  //   pageNumber: sourceInfo.page_number,
+  //   lineStart: sourceInfo.line_start,
+  //   lineEnd: sourceInfo.line_end
+  // };
+
   const highlightRange: HighlightRange = {
     pageNumber: sourceInfo.page_number,
-    lineStart: sourceInfo.line_start,
-    lineEnd: sourceInfo.line_end
+    lineStart: 1,
+    lineEnd: 1
   };
 
   // 문서 파일 로딩 (PDF 및 HTML 지원)
