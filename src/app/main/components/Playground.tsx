@@ -6,7 +6,6 @@ import styles from '@/app/main/assets/Playground.module.scss';
 import Executor from '@/app/main/components/Executor';
 import Monitor from '@/app/main/components/Monitor';
 import BatchTester from '@/app/main/components/BatchTester';
-import { BatchTesterProvider } from '@/app/main/contexts/BatchTesterContext';
 import { useSearchParams } from 'next/navigation';
 
 interface PlaygroundProps {
@@ -75,7 +74,7 @@ const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
     const loadChatLogs = async (workflow: Workflow) => {
         try {
             setSelectedWorkflow(workflow);
-            onTabChange('executor');
+            // onTabChange('executor');
         } catch (err) {
             setError('워크플로우 셋팅에 문제가 발생했습니다.');
         } finally {
@@ -94,11 +93,7 @@ const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
             case 'monitoring':
                 return <Monitor workflow={selectedWorkflow} />;
             case 'batchtester':
-                return (
-                    <BatchTesterProvider>
-                        <BatchTester workflow={selectedWorkflow} />
-                    </BatchTesterProvider>
-                );
+                return <BatchTester workflow={selectedWorkflow} />;
             default:
                 return <Executor workflow={selectedWorkflow} />;
         }

@@ -2,148 +2,152 @@
 @use "@/app/_common/_variables" as *;
 
 .container {
-  max-width: 1200px;
-  margin: 0 auto;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 // Header
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .headerInfo {
-  h2 {
-    font-size: 1.875rem;
-    font-weight: 700;
-    color: $gray-900;
-    margin: 0 0 0.5rem 0;
-  }
+    h2 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: $gray-900;
+        margin: 0 0 0.5rem 0;
+    }
 
-  p {
-    color: $gray-600;
-    margin: 0;
-    line-height: 1.6;
-  }
+    p {
+        color: $gray-600;
+        margin: 0;
+        line-height: 1.6;
+    }
 }
 
 .headerActions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
-// 새로고침 버튼 스타일
 .refreshButton {
-  background: transparent;
-  border: 1px solid $gray-300;
-  border-radius: 6px;
-  padding: 0.5rem;
-  cursor: pointer;
-  color: $gray-600;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
+    background: transparent;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: $gray-600;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
 
-  &:hover:not(:disabled) {
-    background: $gray-50;
-    border-color: $primary-blue;
-    color: $primary-blue;
-  }
+    &:hover:not(:disabled) {
+        background: $gray-50;
+        border-color: $primary-blue;
+        color: $primary-blue;
+    }
 
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
 
-  svg {
-    width: 16px;
-    height: 16px;
-  }
+    svg {
+        width: 16px;
+        height: 16px;
+    }
 }
 
 // 스피닝 애니메이션
 .spinning {
-  animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 // Executor 헤더
 .executorHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
 
-  h3 {
-    font-size: 1.875rem;
-    font-weight: 700;
-    color: $gray-900;
-    margin: 0 0 0.5rem 0;
-  }
+    h3 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: $gray-900;
+        margin: 0 0 0.5rem 0;
+    }
 }
 
 .logCount {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  color: $gray-500;
-  font-size: 0.875rem;
-  padding: 0.375rem 0.75rem;
-  background: $gray-50;
-  border-radius: 6px;
-  border: 1px solid $gray-200;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: $gray-500;
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+    background: $gray-50;
+    border-radius: 6px;
+    border: 1px solid $gray-200;
 
-  svg {
-    width: 0.875rem;
-    height: 0.875rem;
-  }
+    svg {
+        width: 0.875rem;
+        height: 0.875rem;
+    }
 }
 
 .clearLogsBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background: $white;
-  border: 1px solid $gray-300;
-  border-radius: 6px;
-  color: $gray-600;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: $white;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    color: $gray-600;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
 
-  &:hover:not(:disabled) {
-    background: #fef2f2;
-    border-color: #fca5a5;
-    color: #dc2626;
-  }
+    &:hover:not(:disabled) {
+        background: #fef2f2;
+        border-color: #fca5a5;
+        color: #dc2626;
+    }
 
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-    background: $gray-100;
-  }
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        background: $gray-100;
+    }
 
-  svg {
-    width: 1rem;
-    height: 1rem;
-  }
+    svg {
+        width: 1rem;
+        height: 1rem;
+    }
 }
 
 .executorPanel {
@@ -248,7 +252,8 @@
     }
 }
 
-.userMessage, .botMessage {
+.userMessage,
+.botMessage {
     margin-bottom: 0.75rem;
 
     .messageContent {
@@ -317,10 +322,14 @@
 }
 
 @keyframes typing {
-    0%, 80%, 100% {
+
+    0%,
+    80%,
+    100% {
         transform: scale(0.8);
         opacity: 0.5;
     }
+
     40% {
         transform: scale(1);
         opacity: 1;
@@ -427,8 +436,13 @@
 }
 
 @keyframes pulse {
-    from { opacity: 0.6; }
-    to { opacity: 1; }
+    from {
+        opacity: 0.6;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 // 반응형 디자인

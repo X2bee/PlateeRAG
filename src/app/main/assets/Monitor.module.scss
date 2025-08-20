@@ -46,27 +46,16 @@
     justify-content: center;
     height: 100%;
     text-align: center;
-    color: $bootstrap-gray-500;
-    padding: $spacing-xl;
+    color: $gray-500;
 
     h3 {
-        margin-bottom: $spacing-sm;
-        color: $bootstrap-gray-600;
-        font-size: $font-size-xl;
+        margin-bottom: 0.5rem;
+        color: $gray-700;
     }
 
     p {
         max-width: 400px;
         line-height: 1.5;
-        margin-bottom: $spacing-lg;
-    }
-
-    strong {
-        color: $bootstrap-gray-700;
-    }
-
-    .refreshButton {
-        margin-top: $spacing-md;
     }
 }
 
@@ -143,7 +132,7 @@
     }
 }
 
-.refreshButton {
+.refreshButton, .chartButton {
     background: $bootstrap-blue;
     color: $white;
     border: none;
@@ -152,30 +141,8 @@
     cursor: pointer;
     font-size: $font-size-sm;
     transition: background-color 0.2s ease;
-
-    &:hover:not(:disabled) {
-        background: #0056b3;
-    }
-
-    &:disabled {
-        background: $bootstrap-gray-500;
-        cursor: not-allowed;
-        opacity: 0.7;
-    }
-}
-
-.refreshButton, .chartButton { // .chartButton 추가
-    background: $bootstrap-blue;
-    color: $white;
-    border: none;
-    padding: $spacing-sm $spacing-md;
-    border-radius: $radius-sm;
-    cursor: pointer;
-    font-size: $font-size-sm;
-    transition: background-color 0.2s ease;
-    display: inline-flex; // 추가
-    align-items: center; // 추가
-    margin-left: $spacing-sm; // 버튼 간격
+    display: inline-flex;
+    align-items: center;
 
     &:hover:not(:disabled) {
         background: #0056b3;
