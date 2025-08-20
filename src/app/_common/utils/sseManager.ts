@@ -1,7 +1,7 @@
 import { devLog } from './logger';
 
 export interface SSEMessage {
-    type: 'batch_start' | 'group_start' | 'test_result' | 'progress' | 'batch_complete' | 'error';
+    type: 'tester_start' | 'group_start' | 'test_result' | 'progress' | 'tester_complete' | 'error';
     batch_id?: string;
     total_count?: number;
     batch_size?: number;

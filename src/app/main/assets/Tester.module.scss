@@ -39,7 +39,7 @@
 // Header
 .batchTesterHeader {
     display: flex;
-	flex-direction: column;
+    flex-direction: column;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 2rem;
@@ -126,7 +126,8 @@
         height: $spacing-md;
     }
 
-    &.upload, &.download {
+    &.upload,
+    &.download {
         border-color: $bootstrap-blue;
         color: $bootstrap-blue;
 
@@ -251,13 +252,13 @@
 }
 
 @keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
+    0% {
+        transform: translateX(-100%);
+    }
 
-  100% {
-    transform: translateX(100%);
-  }
+    100% {
+        transform: translateX(100%);
+    }
 }
 
 .performanceStats {
@@ -437,7 +438,10 @@
 }
 
 .emptyState {
-    @include card;
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -450,7 +454,6 @@
         font-size: 1.25rem;
         font-weight: 600;
         color: $gray-700;
-        margin: 0 0 0.5rem 0;
     }
 
     p {
@@ -543,13 +546,13 @@
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
+    0% {
+        transform: rotate(0deg);
+    }
 
-  100% {
-    transform: rotate(360deg);
-  }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 // Hidden Input

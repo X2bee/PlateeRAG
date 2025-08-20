@@ -1,8 +1,8 @@
 'use client'
 import React, { useRef, useEffect, useState } from 'react';
-import styles from '@/app/main/assets/BatchTester.module.scss';
+import styles from '@/app/main/assets/Tester.module.scss';
 import { FiUpload, FiDownload, FiPlay, FiFileText, FiTable, FiCheckCircle, FiXCircle, FiClock, FiRefreshCw, FiTrash2, FiAlertCircle } from 'react-icons/fi';
-import { executeWorkflowBatchStream } from '@/app/api/workflowAPI';
+import { executeWorkflowTesterStream } from '@/app/api/workflowAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import { useWorkflowBatchTester } from '@/app/_common/hooks/useWorkflowBatchTester';
 import { TestData } from '@/app/_common/contexts/BatchTesterContext';
@@ -27,11 +27,11 @@ interface Workflow {
     has_endnode: boolean;
 }
 
-interface BatchTesterProps {
+interface TesterProps {
     workflow: Workflow | null;
 }
 
-interface BatchTestResult {
+interface TestResult {
     id: number;
     input: string;
     expected_output?: string | null;
@@ -41,7 +41,7 @@ interface BatchTestResult {
     error?: string | null;
 }
 
-const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
+const Tester: React.FC<TesterProps> = ({ workflow }) => {
     // 워크플로우별 상태 관리 Hook 사용
     const workflowId = workflow?.workflow_id || 'no-workflow';
     const workflowName = workflow?.workflow_name || 'Unknown Workflow';
@@ -61,9 +61,10 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
         setCompletedCount,
         setBatchSize,
         clearTestData,
+        resetForBatchRun,
         getWorkflowState,
         updateWorkflowState,
-        // SSE 관련 기능은 executeWorkflowBatchStream에서 직접 처리하므로 제거
+        // SSE 관련 기능은 executeWorkflowTesterStream에서 직접 처리하므로 제거
         // isSSEConnected,
         // startSSEConnection,
         // stopSSEConnection
@@ -198,7 +199,10 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             const firstLine = lines[0];
             const hasHeader = firstLine.toLowerCase().includes('input') ||
                              firstLine.toLowerCase().includes('question') ||
-                             firstLine.toLowerCase().includes('질문');
+                             firstLine.toLowerCase().includes('질문') ||
+                             firstLine.toLowerCase().includes('expected') ||
+                             firstLine.toLowerCase().includes('예상') ||
+                             firstLine.toLowerCase().includes('output');
 
             const startIndex = hasHeader ? 1 : 0;
 
@@ -275,7 +279,10 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             const hasHeader = jsonData.length > 0 && jsonData[0].some(cell =>
                 String(cell).toLowerCase().includes('input') ||
                 String(cell).toLowerCase().includes('question') ||
-                String(cell).toLowerCase().includes('질문')
+                String(cell).toLowerCase().includes('질문') ||
+                String(cell).toLowerCase().includes('expected') ||
+                String(cell).toLowerCase().includes('예상') ||
+                String(cell).toLowerCase().includes('output')
             );
 
             const startIndex = hasHeader ? 1 : 0;
@@ -312,10 +319,8 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
 
             const lines = text.split('\n').filter((line: string) => line.trim());
 
-            // "Q1.", "Q2." 형식의 질문 찾기
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
-                //TODO 수정했는데 문제 없는지 확인.
                 const questionMatch = line.match(/^Q\d*[.:\s]+(.+)/i);
 
                 if (questionMatch) {
@@ -346,31 +351,23 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
         }
     };
 
-    const runBatchTest = async () => {
+    const runTest = async () => {
         if (!workflow || testData.length === 0) {
             alert('워크플로우를 선택하고 테스트 데이터를 업로드해주세요.');
             return;
         }
 
-        const initializedData: TestData[] = testData.map((item: TestData) => ({
-            ...item,
-            status: 'pending' as const,
-            actualOutput: null,
-            error: null,
-            executionTime: undefined
-        }));
+        // 테스터 실행 전 완전 초기화 (파일 정보는 유지하고 이전 결과만 모두 제거)
+        resetForBatchRun();
 
-        // 상태 초기화
-        updateTestData(initializedData);
-        setCompletedCount(0);
-        setProgress(0);
+        // 실행 상태로 변경
         setIsRunning(true);
 
         try {
-            // 실행 시점의 최신 데이터를 함수형으로 가져오기
+            // 실행 시점의 최신 데이터를 함수형으로 가져오기 (모든 상태가 pending으로 초기화된 상태)
             const currentTestData = getWorkflowState().testData;
 
-            const batchRequest = {
+            const testRequest = {
                 workflowName: workflow.workflow_name.replace('.json', ''),
                 workflowId: workflow.workflow_id,
                 testCases: currentTestData.map((item: TestData) => ({
@@ -379,15 +376,12 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                     expectedOutput: item.expectedOutput || null
                 })),
                 batchSize: batchSize,
-                interactionId: 'batch_test',
+                interactionId: 'tester_test',
                 selectedCollections: null
             };
 
-            // 실행 중 상태로 변경 - 함수형 업데이트 사용
-            updateTestData((prevData: TestData[]) =>
-                prevData.map((item: TestData) => ({ ...item, status: 'running' as const }))
-            );            // streamResults는 더 이상 사용하지 않음 (즉시 Context 업데이트로 대체)
-            let batchId = '';
+            // streamResults는 더 이상 사용하지 않음 (즉시 Context 업데이트로 대체)
+            let testId = '';
             let finalStats = {
                 total_count: 0,
                 success_count: 0,
@@ -395,18 +389,23 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                 total_execution_time: 0
             };
 
-            // 실제 배치 실행 - SSE 콜백과 함께
-            await (executeWorkflowBatchStream as any)({
-                workflowName: batchRequest.workflowName,
-                workflowId: batchRequest.workflowId,
-                testCases: batchRequest.testCases,
-                batchSize: batchRequest.batchSize,
-                interactionId: batchRequest.interactionId,
-                selectedCollections: batchRequest.selectedCollections,
+            // 실제 배치 실행 직전에 실행 중 상태로 변경
+            updateTestData((prevData: TestData[]) =>
+                prevData.map((item: TestData) => ({ ...item, status: 'running' as const }))
+            );
+
+            // 실제 테스터 실행 - SSE 콜백과 함께
+            await (executeWorkflowTesterStream as any)({
+                workflowName: testRequest.workflowName,
+                workflowId: testRequest.workflowId,
+                testCases: testRequest.testCases,
+                batchSize: testRequest.batchSize,
+                interactionId: testRequest.interactionId,
+                selectedCollections: testRequest.selectedCollections,
                 onMessage: (data: SSEMessage) => {
                     switch (data.type) {
-                        case 'batch_start':
-                            batchId = data.batch_id || '';
+                        case 'tester_start':
+                            testId = data.batch_id || '';
                             break;
 
                         case 'group_start':
@@ -443,7 +442,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                             setCompletedCount(data.completed_count || 0);
                             break;
 
-                        case 'batch_complete':
+                        case 'tester_complete':
                             finalStats = {
                                 total_count: data.total_count || 0,
                                 success_count: data.success_count || 0,
@@ -455,8 +454,8 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                             break;
 
                         case 'error':
-                            devLog.error('배치 실행 오류:', data);
-                            throw new Error(data.error || data.message || '배치 실행 중 오류 발생');
+                            devLog.error('테스터 실행 오류:', data);
+                            throw new Error(data.error || data.message || '테스터 실행 중 오류 발생');
 
                         default:
                             break;
@@ -478,14 +477,14 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                     }
                 },
                 onError: (error: Error) => {
-                    devLog.error('배치 스트리밍 오류:', error);
+                    devLog.error('테스터 스트리밍 오류:', error);
                     setIsRunning(false);
                     throw error;
                 }
             });
 
         } catch (error: unknown) {
-            devLog.error('❌ 배치 테스트 중 오류:', error);
+            devLog.error('❌ 테스터 실행 중 오류:', error);
 
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
 
@@ -504,7 +503,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             setProgress(0);
             setIsRunning(false);
 
-            const detailedErrorMessage = `❌ 배치 테스트 실행 중 오류가 발생했습니다.\n\n` +
+            const detailedErrorMessage = `❌ 테스터 실행 중 오류가 발생했습니다.\n\n` +
                                        `🔍 오류 내용:\n${errorMessage}\n\n` +
                                        `💡 해결 방법:\n` +
                                        `• 워크플로우가 올바르게 설정되어 있는지 확인\n` +
@@ -514,7 +513,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             alert(detailedErrorMessage);
         }
 
-        devLog.log('배치 테스트 프로세스 완료');
+        devLog.log('테스터 프로세스 완료');
     };
 
     const formatExecutionTime = (ms?: number): string => {
@@ -527,12 +526,13 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
         if (testData.length === 0) return;
 
         const csvContent = [
-            'ID,입력 내용,결과,상태,소요 시간,오류',
+            'ID,입력 내용,예상 결과,실제 결과,상태,소요 시간,오류',
             ...testData.map(item => {
                 const escapeCsv = (str: string) => `"${(str || '').replace(/"/g, '""')}"`;
                 return [
                     item.id,
                     escapeCsv(item.input),
+                    escapeCsv(item.expectedOutput || ''),
                     escapeCsv(item.actualOutput || ''),
                     item.status,
                     formatExecutionTime(item.executionTime),
@@ -544,7 +544,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
         const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `batch_test_results_${workflow?.workflow_name.replace('.json', '') || 'unknown'}_${new Date().toISOString().split('T')[0]}.csv`;
+        link.download = `test_results_${workflow?.workflow_name.replace('.json', '') || 'unknown'}_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
         URL.revokeObjectURL(link.href);
     };
@@ -555,7 +555,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                 <div className={styles.placeholder}>
                     <h3>워크플로우를 선택하세요</h3>
                     <p>
-                        왼쪽 목록에서 워크플로우를 선택하면 배치 테스트를 시작할 수 있습니다.
+                        왼쪽 목록에서 워크플로우를 선택하면 테스터를 시작할 수 있습니다.
                     </p>
                 </div>
             </div>
@@ -574,7 +574,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
 
             {/* Header */}
             <div className={styles.batchTesterHeader}>
-                <h3>{workflow.workflow_name.replace('.json', '')} - 배치 테스터</h3>
+                <h3>{workflow.workflow_name.replace('.json', '')} - 테스터</h3>
                 <div className={styles.headerActions}>
                     <div className={styles.batchSizeSelector}>
                         <label>동시 실행:</label>
@@ -601,13 +601,13 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                         파일 업로드
                     </button>
                     <button
-                        onClick={runBatchTest}
+                        onClick={runTest}
                         disabled={!testData.length || isRunning}
                         className={`${styles.btn} ${styles.run}`}
-                        title="실시간 스트리밍으로 모든 테스트를 배치 처리하며 진행 상황을 실시간으로 확인할 수 있습니다."
+                        title="실시간 스트리밍으로 모든 테스트를 처리하며 진행 상황을 실시간으로 확인할 수 있습니다."
                     >
                         {isRunning ? <FiRefreshCw className={styles.spinning} /> : <FiPlay />}
-                        {isRunning ? '실시간 스트리밍 중...' : '배치 실행 (실시간)'}
+                        {isRunning ? '실시간 스트리밍 중...' : '테스터 실행 (실시간)'}
                     </button>
                     <button
                         onClick={downloadResults}
@@ -652,7 +652,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                 <div className={styles.progressContainer}>
                     <div className={styles.progressHeader}>
                         <span>
-                            실시간 스트리밍으로 배치 처리 중...
+                            실시간 스트리밍으로 테스터 처리 중...
                         </span>
                         <span className={styles.progressStats}>
                             {completedCount} / {testData.length} 완료 ({Math.round(progress)}%)
@@ -737,7 +737,8 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                         <div className={styles.results__header}>
                             <div>ID</div>
                             <div>입력 내용</div>
-                            <div>결과</div>
+                            <div>예상 결과</div>
+                            <div>실제 결과</div>
                             <div>상태</div>
                             <div>소요 시간</div>
                         </div>
@@ -748,6 +749,12 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                                     <div className={styles.results__id}>{item.id}</div>
                                     <div className={styles.results__input} title={item.input}>
                                         {item.input.length > 50 ? `${item.input.substring(0, 50)}...` : item.input}
+                                    </div>
+                                    <div className={styles.results__expected} title={item.expectedOutput || undefined}>
+                                        {item.expectedOutput ?
+                                            (item.expectedOutput.length > 50 ? `${item.expectedOutput.substring(0, 50)}...` : item.expectedOutput)
+                                            : '-'
+                                        }
                                     </div>
                                     <div className={styles.results__actual} title={item.actualOutput || undefined}>
                                         {item.actualOutput ?
@@ -781,7 +788,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                 </div>
             ) : (
                 <div className={styles.emptyState}>
-                    <h4>배치 테스트를 시작해보세요</h4>
+                    <h4>테스터를 시작해보세요</h4>
                     <p>CSV 또는 Excel 파일을 업로드하여 여러 테스트를 한 번에 실행할 수 있습니다.</p>
 
                     <div className={styles.fileFormatInfo}>
@@ -791,10 +798,13 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                                 <strong>첫 번째 열:</strong> 입력 데이터 (필수)
                             </div>
                             <div className={styles.formatItem}>
-                                <strong>두 번째 열:</strong> 예상 출력 (선택사항)
+                                <strong>두 번째 열:</strong> 예상 결과 (선택사항)
                             </div>
                             <div className={styles.formatItem}>
-                                <strong>첫 번째 행:</strong> 헤더 (자동 감지)
+                                <strong>첫 번째 행:</strong> 헤더 (input, expected, output 등 키워드 자동 감지)
+                            </div>
+                            <div className={styles.formatItem}>
+                                <strong>예시 헤더:</strong> "Input,Expected Output" 또는 "질문,예상답변"
                             </div>
                         </div>
                         <div className={styles.supportedFormats}>
@@ -812,4 +822,4 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
     );
 };
 
-export default BatchTester;
+export default Tester;

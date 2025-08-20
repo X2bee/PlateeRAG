@@ -5,12 +5,13 @@ import { listWorkflowsDetail } from '@/app/api/workflowAPI';
 import styles from '@/app/main/assets/Playground.module.scss';
 import Executor from '@/app/main/components/Executor';
 import Monitor from '@/app/main/components/Monitor';
-import BatchTester from '@/app/main/components/BatchTester';
+import BatchTester from '@/app/main/components/Tester';
+import TesterLogs from '@/app/main/components/TesterLogs';
 import { useSearchParams } from 'next/navigation';
 
 interface PlaygroundProps {
-    activeTab: 'executor' | 'monitoring' | 'batchtester';
-    onTabChange: (tab: 'executor' | 'monitoring' | 'batchtester') => void;
+    activeTab: 'executor' | 'monitoring' | 'batchtester' | 'test-logs';
+    onTabChange: (tab: 'executor' | 'monitoring' | 'batchtester' | 'test-logs') => void;
 }
 interface Workflow {
     id: number;
@@ -94,6 +95,8 @@ const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
                 return <Monitor workflow={selectedWorkflow} />;
             case 'batchtester':
                 return <BatchTester workflow={selectedWorkflow} />;
+            case 'test-logs':
+                return <TesterLogs workflow={selectedWorkflow} />;
             default:
                 return <Executor workflow={selectedWorkflow} />;
         }

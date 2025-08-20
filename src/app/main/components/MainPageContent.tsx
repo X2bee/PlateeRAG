@@ -14,7 +14,7 @@ import styles from '@/app/main/assets/MainPage.module.scss';
 const MainPage: React.FC = () => {
     const searchParams = useSearchParams();
     const [activeSection, setActiveSection] = useState<string>('canvas');
-    const [execTab, setExecTab] = useState<'executor' | 'monitoring' | 'batchtester'>('executor');
+    const [execTab, setExecTab] = useState<'executor' | 'monitoring' | 'batchtester' | 'test-logs'>('executor');
 
     useEffect(() => {
         const view = searchParams.get('view');
@@ -25,7 +25,7 @@ const MainPage: React.FC = () => {
         }
     }, [searchParams]);
 
-    const handleTabChange = (tab: 'executor' | 'monitoring' | 'batchtester') => {
+    const handleTabChange = (tab: 'executor' | 'monitoring' | 'batchtester' | 'test-logs') => {
         setExecTab(tab);
         localStorage.setItem('execMonitorTab', tab);
     };
@@ -49,6 +49,12 @@ const MainPage: React.FC = () => {
                 className={`${styles.tabToggleButton} ${execTab === 'batchtester' ? styles.active : ''}`}
             >
                 배치 테스터
+            </button>
+            <button
+                onClick={() => handleTabChange('test-logs')}
+                className={`${styles.tabToggleButton} ${execTab === 'test-logs' ? styles.active : ''}`}
+            >
+                테스트 로그
             </button>
         </div>
     );

@@ -43,6 +43,24 @@ export const useWorkflowBatchTester = (workflowId: string) => {
             uploadedFileName: undefined
         }),
 
+        // 배치 실행 전 초기화 (파일 정보는 유지하고 결과만 초기화)
+        resetForBatchRun: () => {
+            updateTestData((prevData: TestData[]) => 
+                prevData.map((item: TestData) => ({
+                    ...item,
+                    status: 'pending' as const,
+                    actualOutput: null,
+                    error: null,
+                    executionTime: undefined
+                }))
+            );
+            updateWorkflowState(workflowId, {
+                progress: 0,
+                completedCount: 0,
+                isRunning: false
+            });
+        },
+
         // 전체 상태 관리
         getWorkflowState: () => getWorkflowState(workflowId),
         updateWorkflowState: (updates: any) => updateWorkflowState(workflowId, updates),

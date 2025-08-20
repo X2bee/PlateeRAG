@@ -592,33 +592,33 @@ export const deleteWorkflowPerformance = async (workflowName, workflowId) => {
 };
 
 /**
- * 워크플로우를 배치로 실행하며 실시간 진행 상황을 SSE로 스트리밍합니다.
- * @param {Object} batchRequest - 배치 실행 요청 객체
- * @param {string} batchRequest.workflowName - 워크플로우 이름
- * @param {string} batchRequest.workflowId - 워크플로우 ID
- * @param {Array<Object>} batchRequest.testCases - 테스트 케이스 배열
- * @param {number} batchRequest.batchSize - 배치 크기 (기본값: 5)
- * @param {string} batchRequest.interactionId - 상호작용 ID (기본값: 'batch_test')
- * @param {Array<string>|null} batchRequest.selectedCollections - 선택된 컬렉션
+ * 워크플로우를 테스터로 실행하며 실시간 진행 상황을 SSE로 스트리밍합니다.
+ * @param {Object} testerRequest - 테스터 실행 요청 객체
+ * @param {string} testerRequest.workflowName - 워크플로우 이름
+ * @param {string} testerRequest.workflowId - 워크플로우 ID
+ * @param {Array<Object>} testerRequest.testCases - 테스트 케이스 배열
+ * @param {number} testerRequest.batchSize - 배치 크기 (기본값: 5)
+ * @param {string} testerRequest.interactionId - 상호작용 ID (기본값: 'tester_test')
+ * @param {Array<string>|null} testerRequest.selectedCollections - 선택된 컬렉션
  * @param {function(Object): void} onMessage - SSE 메시지를 수신할 때마다 호출될 콜백
  * @param {function(): void} onEnd - 스트림이 정상적으로 종료될 때 호출될 콜백
  * @param {function(Error): void} onError - 오류 발생 시 호출될 콜백
  * @returns {Promise<void>} 스트리밍 완료 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
-export const executeWorkflowBatchStream = async ({
+export const executeWorkflowTesterStream = async ({
     workflowName,
     workflowId,
     testCases,
     batchSize = 5,
-    interactionId = 'batch_test',
+    interactionId = 'tester_test',
     selectedCollections = null,
     onMessage,
     onEnd,
     onError
 }) => {
     try {
-        devLog.log('배치 스트리밍 실행 시작:', {
+        devLog.log('테스터 스트리밍 실행 시작:', {
             workflowName,
             workflowId,
             testCaseCount: testCases.length,
@@ -640,7 +640,7 @@ export const executeWorkflowBatchStream = async ({
         };
 
         // SSE 스트리밍 API 호출
-        const response = await apiClient(`${API_BASE_URL}/api/workflow/execute/batch/stream`, {
+        const response = await apiClient(`${API_BASE_URL}/api/workflow/execute/tester/stream`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -676,12 +676,12 @@ export const executeWorkflowBatchStream = async ({
 
                         // 메시지 타입에 따른 처리
                         switch (parsedData.type) {
-                            case 'batch_start':
-                                devLog.log('배치 시작:', parsedData);
+                            case 'tester_start':
+                                devLog.log('테스터 시작:', parsedData);
                                 onMessage(parsedData);
                                 break;
                             case 'group_start':
-                                devLog.log(`배치 그룹 ${parsedData.group_number} 시작`);
+                                devLog.log(`테스터 그룹 ${parsedData.group_number} 시작`);
                                 onMessage(parsedData);
                                 break;
                             case 'test_result':
@@ -691,13 +691,13 @@ export const executeWorkflowBatchStream = async ({
                                 devLog.log(`진행률: ${parsedData.progress}% (${parsedData.completed_count}/${parsedData.total_count})`);
                                 onMessage(parsedData);
                                 break;
-                            case 'batch_complete':
-                                devLog.log('배치 완료:', parsedData);
+                            case 'tester_complete':
+                                devLog.log('테스터 완료:', parsedData);
                                 onMessage(parsedData);
                                 onEnd();
                                 return;
                             case 'error':
-                                devLog.error('배치 실행 오류:', parsedData);
+                                devLog.error('테스터 실행 오류:', parsedData);
                                 throw new Error(parsedData.error || parsedData.message);
                             default:
                                 onMessage(parsedData);
@@ -710,7 +710,45 @@ export const executeWorkflowBatchStream = async ({
             }
         }
     } catch (error) {
-        devLog.error('배치 스트리밍 실행 실패:', error);
+        devLog.error('테스터 스트리밍 실행 실패:', error);
         onError(error);
+    }
+};
+
+/**
+ * 특정 워크플로우의 테스터 실행 IO 로그를 가져옵니다.
+ * @param {string} workflowName - 워크플로우 이름
+ * @returns {Promise<Object>} interaction_batch_id별로 그룹화된 IO 로그 데이터
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const getWorkflowTesterIOLogs = async (workflowName) => {
+    try {
+        devLog.log('getWorkflowTesterIOLogs called with:');
+        devLog.log('- workflowName:', workflowName);
+
+        const response = await apiClient(`${API_BASE_URL}/api/workflow/tester/io_logs?workflow_name=${encodeURIComponent(workflowName)}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`,
+            );
+        }
+
+        devLog.log('Tester IO logs retrieved successfully:', {
+            workflowName: result.workflow_name,
+            batchGroupsCount: result.response_data_list?.length || 0
+        });
+
+        return result;
+    } catch (error) {
+        devLog.error('Failed to get workflow tester IO logs:', error);
+        throw error;
     }
 };

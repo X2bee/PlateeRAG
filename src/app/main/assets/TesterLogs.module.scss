@@ -1,0 +1,307 @@
+.testerLogsPanel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #1a1a2e;
+    color: #ffffff;
+    overflow: hidden;
+}
+
+.testerLogsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #16213e;
+    border-bottom: 1px solid #2a2d47;
+
+    h3 {
+        margin: 0;
+        color: #ffffff;
+        font-size: 1.2rem;
+    }
+}
+
+.headerActions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    background: #0f3460;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background: #1a4971;
+        transform: translateY(-1px);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    &.refresh {
+        background: #2563eb;
+
+        &:hover:not(:disabled) {
+            background: #3b82f6;
+        }
+    }
+
+    &.download {
+        background: #059669;
+
+        &:hover:not(:disabled) {
+            background: #10b981;
+        }
+    }
+
+    &.expand {
+        background: #7c3aed;
+
+        &:hover:not(:disabled) {
+            background: #8b5cf6;
+        }
+    }
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    color: #9ca3af;
+
+    h3 {
+        margin-bottom: 0.5rem;
+        color: #ffffff;
+    }
+
+    p {
+        margin: 0;
+        max-width: 400px;
+        line-height: 1.5;
+    }
+}
+
+.loadingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    gap: 1rem;
+    color: #9ca3af;
+
+    svg {
+        font-size: 2rem;
+        color: #2563eb;
+    }
+}
+
+.errorContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    gap: 1rem;
+    color: #ef4444;
+    text-align: center;
+
+    .retryBtn {
+        padding: 0.5rem 1rem;
+        background: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+
+        &:hover {
+            background: #dc2626;
+        }
+    }
+}
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    color: #9ca3af;
+    gap: 1rem;
+
+    svg {
+        font-size: 3rem;
+        color: #6b7280;
+    }
+
+    h4 {
+        margin: 0;
+        color: #ffffff;
+        font-size: 1.25rem;
+    }
+
+    p {
+        margin: 0;
+        max-width: 400px;
+        line-height: 1.5;
+    }
+}
+
+.batchGroupsContainer {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.summaryInfo {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: #0f172a;
+    border-radius: 8px;
+    border: 1px solid #334155;
+
+    span {
+        color: #94a3b8;
+        font-size: 0.875rem;
+    }
+}
+
+.batchGroup {
+    margin-bottom: 1rem;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.batchHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+}
+
+.batchInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    h4 {
+        margin: 0;
+        color: #ffffff;
+        font-size: 1rem;
+        font-family: monospace;
+    }
+
+    .logCount {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        color: #94a3b8;
+        font-size: 0.875rem;
+    }
+}
+
+.batchActions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.logsTable {
+    background: #0f172a;
+}
+
+.logsHeader {
+    display: grid;
+    grid-template-columns: 80px 1fr 1fr 180px;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+    font-weight: 600;
+    color: #e2e8f0;
+    font-size: 0.875rem;
+
+    div {
+        text-align: left;
+    }
+}
+
+.logsBody {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.logRow {
+    display: grid;
+    grid-template-columns: 80px 1fr 1fr 180px;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #2a2d47;
+    transition: background 0.2s ease;
+
+    &:hover {
+        background: #1e293b;
+    }
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.logId {
+    color: #60a5fa;
+    font-weight: 600;
+    font-family: monospace;
+}
+
+.logData {
+    color: #e2e8f0;
+    font-family: monospace;
+    font-size: 0.875rem;
+    word-break: break-all;
+    cursor: help;
+}
+
+.logTime {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #94a3b8;
+    font-size: 0.875rem;
+}
