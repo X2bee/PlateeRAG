@@ -95,8 +95,8 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
 
   const highlightRange: HighlightRange = {
     pageNumber: sourceInfo.page_number,
-    lineStart: 1,
-    lineEnd: 1
+    lineStart: 0,
+    lineEnd: 0
   };
 
   // 문서 파일 로딩 (PDF 및 HTML 지원)

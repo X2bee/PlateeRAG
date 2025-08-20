@@ -81,6 +81,14 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         return 65;
     });
 
+    // showPDFViewer가 false일 때 패널 크기를 100%로 설정
+    useEffect(() => {
+        if (!showPDFViewer) {
+            setPanelSplit(100);
+            localStorage.setItem('chatPanelSplit', '100');
+        }
+    }, [showPDFViewer]);
+
     const hasExecutedInitialMessage = useRef(false);
 
     const messagesRef = useRef<HTMLDivElement>(null);
@@ -91,6 +99,9 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
     const handleViewSource = (sourceInfo: SourceInfo) => {
         setCurrentSourceInfo(sourceInfo);
         setShowPDFViewer(true);
+        // 출처 뷰어가 켜질 때 패널 크기를 적절히 조정 (65% 채팅, 35% 출처)
+        setPanelSplit(65);
+        localStorage.setItem('chatPanelSplit', '65');
     };
 
     // additionalParams에서 유효한 값만 필터링하는 함수
@@ -818,6 +829,9 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                                 onClose={() => {
                                     setShowPDFViewer(false);
                                     setCurrentSourceInfo(null);
+                                    // 출처 뷰어 닫힘 시 패널 크기를 초기화하여 채팅 영역이 꽉 차게 설정
+                                    setPanelSplit(100);
+                                    localStorage.setItem('chatPanelSplit', '100');
                                 }}
                             />
                         </div>
