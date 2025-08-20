@@ -86,7 +86,6 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
     pageNumber
   });
 
-  // 하이라이트 범위 계산
   // const highlightRange: HighlightRange = {
   //   pageNumber: sourceInfo.page_number,
   //   lineStart: sourceInfo.line_start,
