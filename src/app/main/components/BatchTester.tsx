@@ -388,7 +388,7 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
             const runningData = initializedData.map(item => ({ ...item, status: 'running' as const }));
             setTestData(runningData);
 
-            let streamResults: BatchTestResult[] = [];
+            const streamResults: BatchTestResult[] = [];
             let batchId = '';
             let finalStats = {
                 total_count: 0,
@@ -417,25 +417,26 @@ const BatchTester: React.FC<BatchTesterProps> = ({ workflow }) => {
                             break;
 
                         case 'test_result':
-                            const result = data.result;
-                            if (result) {
-                                streamResults.push(result);
-                                setTestData(prevData =>
-                                    prevData.map(item => {
-                                        if (item.id === result.id) {
-                                            return {
-                                                ...item,
-                                                status: result.status as 'success' | 'error',
-                                                actualOutput: result.actual_output || '결과 없음',
-                                                executionTime: result.execution_time || 0,
-                                                error: result.error || null
-                                            };
-                                        }
-                                        return item;
-                                    })
-                                );
-                            }
-                            break;
+                            { 
+                                const result = data.result;
+                                if (result) {
+                                    streamResults.push(result);
+                                    setTestData(prevData =>
+                                        prevData.map(item => {
+                                            if (item.id === result.id) {
+                                                return {
+                                                    ...item,
+                                                    status: result.status as 'success' | 'error',
+                                                    actualOutput: result.actual_output || '결과 없음',
+                                                    executionTime: result.execution_time || 0,
+                                                    error: result.error || null
+                                                };
+                                            }
+                                            return item;
+                                        })
+                                    );
+                                }
+                            break; }
 
                         case 'progress':
                             devLog.log(`진행률: ${data.progress || 0}% (${data.completed_count || 0}/${data.total_count || 0})`);
