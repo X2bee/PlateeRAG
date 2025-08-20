@@ -93,29 +93,37 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ language, code, className 
  * Citation 정보를 파싱하는 함수
  */
 const parseCitation = (citationText: string): SourceInfo | null => {
+    console.log('🔍 [parseCitation] Attempting to parse citation:', citationText);
     try {
         // 단계별로 다양한 패턴 시도
         let jsonString = '';
         
-        // 1. 기본 패턴: [Cite. {JSON}]
-        let match = citationText.match(/\[Cite\.\s*(\{.*?\})\]/);
+        // 1. 기본 패턴: [Cite. {JSON}] (끝에 추가 문자가 있을 수도 있음)
+        let match = citationText.match(/\[Cite\.\s*(\{.*?\})[\].\s\\]*\.?$/);
         if (match) {
             jsonString = match[1];
+            console.log('✅ [parseCitation] Pattern 1 matched:', jsonString);
         } else {
-            // 2. 닫는 대괄호가 없는 경우: [Cite. {JSON}
-            match = citationText.match(/\[Cite\.\s*(\{.*?\})/);
+            // 2. 기본 패턴 (닫는 대괄호와 함께): [Cite. {JSON}]
+            match = citationText.match(/\[Cite\.\s*(\{.*?\})\]/);
             if (match) {
                 jsonString = match[1];
             } else {
-                // 3. Citation 키워드 뒤에 JSON만 있는 경우
-                match = citationText.match(/Cite\.\s*(\{.*?\})/);
+                // 3. 닫는 대괄호가 없는 경우: [Cite. {JSON}
+                match = citationText.match(/\[Cite\.\s*(\{.*?\})/);
                 if (match) {
                     jsonString = match[1];
                 } else {
-                    // 4. JSON만 있는 경우 (배열 포함)
-                    match = citationText.match(/(\{.*?\}|\[.*?\])/);
+                    // 4. Citation 키워드 뒤에 JSON만 있는 경우
+                    match = citationText.match(/Cite\.\s*(\{.*?\})/);
                     if (match) {
                         jsonString = match[1];
+                    } else {
+                        // 5. JSON만 있는 경우 (배열 포함)
+                        match = citationText.match(/(\{.*?\}|\[.*?\])/);
+                        if (match) {
+                            jsonString = match[1];
+                        }
                     }
                 }
             }
@@ -139,6 +147,8 @@ const parseCitation = (citationText: string): SourceInfo | null => {
         try {
             const sourceInfo = JSON.parse(jsonString);
             
+            console.log('✅ [parseCitation] JSON parsed successfully:', sourceInfo);
+            
             // 필수 필드 확인
             if (!sourceInfo.file_name && !sourceInfo.filename && !sourceInfo.fileName && 
                 !sourceInfo.file_path && !sourceInfo.filepath && !sourceInfo.filePath) {
@@ -146,13 +156,16 @@ const parseCitation = (citationText: string): SourceInfo | null => {
                 return null;
             }
             
-            return {
+            const result = {
                 file_name: sourceInfo.file_name || sourceInfo.filename || sourceInfo.fileName || '',
                 file_path: sourceInfo.file_path || sourceInfo.filepath || sourceInfo.filePath || '',
-                page_number: sourceInfo.page_number || sourceInfo.pagenumber || sourceInfo.pageNumber || 0,
-                line_start: sourceInfo.line_start || sourceInfo.linestart || sourceInfo.lineStart || 0,
-                line_end: sourceInfo.line_end || sourceInfo.lineend || sourceInfo.lineEnd || 0
+                page_number: sourceInfo.page_number || sourceInfo.pagenumber || sourceInfo.pageNumber || 1,
+                line_start: sourceInfo.line_start || sourceInfo.linestart || sourceInfo.lineStart || 1,
+                line_end: sourceInfo.line_end || sourceInfo.lineend || sourceInfo.lineEnd || 1
             };
+            
+            console.log('✅ [parseCitation] Final result:', result);
+            return result;
         } catch (parseError) {
             console.error('JSON.parse failed, trying manual parsing...');
             
@@ -205,9 +218,9 @@ const tryManualParsing = (jsonString: string): SourceInfo | null => {
             return {
                 file_name: result.file_name || '',
                 file_path: result.file_path || '',
-                page_number: result.page_number || 0,
-                line_start: result.line_start || 0,
-                line_end: result.line_end || 0
+                page_number: result.page_number || 1,
+                line_start: result.line_start || 1,
+                line_end: result.line_end || 1
             };
         }
         
@@ -684,8 +697,8 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
     const elements: React.ReactNode[] = [];
     let currentIndex = 0;
     
-    // 완전한 Citation 패턴: [Cite. {JSON}] 또는 [Cite. {JSON} (닫는 대괄호 없음)
-    const completeCitationRegex = /\[Cite\.\s*[\{\[][^\}\]]*[\}\]](?:\])?/g;
+    // 완전한 Citation 패턴: [Cite. {JSON}] - 중첩된 JSON 구조를 처리하기 위해 탐욕적 매칭 사용
+    const completeCitationRegex = /\[Cite\.\s*\{.*?\}[\].\s\\]*\.?/g;
     
     // 부분적인 Citation 패턴: [Cite. 또는 [Cite. { 등 스트리밍 중인 상태
     const partialCitationRegex = /\[Cite\.(?:\s*\{[^}]*)?$/;
@@ -694,7 +707,9 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
     let hasPartialCitation = false;
     
     // 완전한 citation 처리
+    console.log('🔍 [processInlineMarkdownWithCitations] Looking for citations in text:', text);
     while ((match = completeCitationRegex.exec(text)) !== null) {
+        console.log('✅ [processInlineMarkdownWithCitations] Found citation match:', match[0]);
         // Citation 이전 텍스트 처리
         if (match.index > currentIndex) {
             const beforeText = text.slice(currentIndex, match.index);
@@ -728,7 +743,12 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
         const citationText = match[0];
         const sourceInfo = parseCitation(citationText);
         
+        console.log('🔍 [processInlineMarkdownWithCitations] Citation text:', citationText);
+        console.log('🔍 [processInlineMarkdownWithCitations] Parsed sourceInfo:', sourceInfo);
+        console.log('🔍 [processInlineMarkdownWithCitations] onViewSource available:', !!onViewSource);
+        
         if (sourceInfo && onViewSource) {
+            console.log('✅ [processInlineMarkdownWithCitations] Creating SourceButton');
             elements.push(
                 <SourceButton
                     key={`${key}-citation-${match.index}`}
@@ -738,6 +758,7 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
                 />
             );
         } else {
+            console.log('❌ [processInlineMarkdownWithCitations] Citation parsing failed, showing fallback');
             // 파싱 실패 시 원본 텍스트 표시
             elements.push(
                 <span key={`${key}-citation-fallback-${match.index}`}>

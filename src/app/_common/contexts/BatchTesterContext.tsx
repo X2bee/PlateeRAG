@@ -64,7 +64,7 @@ const BatchTesterContext = createContext<BatchTesterContextType | undefined>(und
 function batchTesterReducer(state: BatchTesterState, action: BatchTesterAction): BatchTesterState {
     switch (action.type) {
         case 'SET_WORKFLOW_STATE':
-            const currentWorkflowState = state.workflowStates[action.workflowId] || defaultBatchTestState;
+            { const currentWorkflowState = state.workflowStates[action.workflowId] || defaultBatchTestState;
             const updatedState = {
                 ...currentWorkflowState,
                 ...action.state,
@@ -82,10 +82,10 @@ function batchTesterReducer(state: BatchTesterState, action: BatchTesterAction):
             return {
                 ...state,
                 workflowStates: newWorkflowStates
-            };
+            }; }
 
         case 'UPDATE_WORKFLOW_TESTDATA':
-            const baseWorkflowState = state.workflowStates[action.workflowId] || defaultBatchTestState;
+            { const baseWorkflowState = state.workflowStates[action.workflowId] || defaultBatchTestState;
             const updatedTestData = action.updater(baseWorkflowState.testData);
 
             return {
@@ -98,14 +98,14 @@ function batchTesterReducer(state: BatchTesterState, action: BatchTesterAction):
                         lastActivityTimestamp: Date.now()
                     }
                 }
-            };
+            }; }
 
         case 'CLEAR_WORKFLOW_STATE':
-            const { [action.workflowId]: removed, ...remainingStates } = state.workflowStates;
+            { const { [action.workflowId]: removed, ...remainingStates } = state.workflowStates;
             return {
                 ...state,
                 workflowStates: remainingStates
-            };
+            }; }
 
         case 'SET_CURRENT_WORKFLOW':
             return {
