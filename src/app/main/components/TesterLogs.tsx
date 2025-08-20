@@ -22,6 +22,7 @@ interface LogEntry {
     workflow_id: string;
     input_data: any;
     output_data: any;
+    expected_output: any;
     updated_at: string;
 }
 
@@ -89,13 +90,14 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
 
     const downloadBatchLogs = (batchGroup: BatchGroup) => {
         const csvContent = [
-            'Log ID,Interaction ID,Input Data,Output Data,Updated At',
+            'Log ID,Interaction ID,Input Data,Expected Output,Output Data,Updated At',
             ...batchGroup.in_out_logs.map(log => {
                 const escapeCsv = (str: string) => `"${(str || '').replace(/"/g, '""')}"`;
                 return [
                     log.log_id,
                     escapeCsv(log.interaction_id),
                     escapeCsv(typeof log.input_data === 'string' ? log.input_data : JSON.stringify(log.input_data || {})),
+                    escapeCsv(typeof log.expected_output === 'string' ? log.expected_output : JSON.stringify(log.expected_output || {})),
                     escapeCsv(typeof log.output_data === 'string' ? log.output_data : JSON.stringify(log.output_data || {})),
                     escapeCsv(log.updated_at)
                 ].join(',');
@@ -116,7 +118,7 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
                 <div className={styles.placeholder}>
                     <h3>워크플로우를 선택하세요</h3>
                     <p>
-                        왼쪽 목록에서 워크플로우를 선택하면 배치 테스트 로그를 확인할 수 있습니다.
+                        왼쪽 목록에서 워크플로우를 선택하면 테스터 로그를 확인할 수 있습니다.
                     </p>
                 </div>
             </div>
@@ -127,8 +129,11 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
         <div className={styles.testerLogsPanel}>
             {/* Header */}
             <div className={styles.testerLogsHeader}>
-                <h3>{workflow.workflow_name.replace('.json', '')} - 배치 테스트 로그</h3>
+                <h3>{workflow.workflow_name.replace('.json', '')} - 테스터 로그</h3>
                 <div className={styles.headerActions}>
+                    <div className={styles.recordCount}>
+                        <span>총 {batchGroups.reduce((sum, group) => sum + group.in_out_logs.length, 0)}개 로그</span>
+                    </div>
                     <button
                         onClick={loadBatchLogs}
                         disabled={loading}
@@ -142,9 +147,9 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
 
             {/* Loading State */}
             {loading && (
-                <div className={styles.loadingContainer}>
-                    <FiRefreshCw className={styles.spinning} />
-                    <span>배치 로그를 불러오는 중...</span>
+                <div className={styles.testerLogsLoading}>
+                    <div className={styles.loadingSpinner}></div>
+                    <span>테스터 로그를 불러오는 중...</span>
                 </div>
             )}
 
@@ -161,81 +166,123 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
             {/* Empty State */}
             {!loading && !error && batchGroups.length === 0 && (
                 <div className={styles.emptyState}>
-                    <FiDatabase />
-                    <h4>배치 테스트 로그가 없습니다</h4>
-                    <p>이 워크플로우에 대한 배치 테스트 실행 기록이 없습니다.</p>
+                    <h4>테스터 로그가 없습니다</h4>
+                    <p>이 워크플로우에 대한 테스터 실행 기록이 없습니다.</p>
                 </div>
             )}
 
             {/* Batch Groups List */}
             {!loading && !error && batchGroups.length > 0 && (
-                <div className={styles.batchGroupsContainer}>
-                    <div className={styles.summaryInfo}>
-                        <span>총 {batchGroups.length}개의 배치 그룹</span>
-                        <span>총 {batchGroups.reduce((sum, group) => sum + group.in_out_logs.length, 0)}개의 로그 항목</span>
+                <div className={styles.testerLogsData}>
+                    {/* Summary Section */}
+                    <div className={styles.summarySection}>
+                        <h4>실행 통계</h4>
+                        <div className={styles.summaryGrid}>
+                            <div className={styles.summaryItem}>
+                                <span className={styles.label}>총 그룹</span>
+                                <span className={styles.value}>{batchGroups.length}개</span>
+                            </div>
+                            <div className={styles.summaryItem}>
+                                <span className={styles.label}>총 로그 항목</span>
+                                <span className={styles.value}>{batchGroups.reduce((sum, group) => sum + group.in_out_logs.length, 0)}개</span>
+                            </div>
+                            <div className={styles.summaryItem}>
+                                <span className={styles.label}>평균 그룹 크기</span>
+                                <span className={styles.value}>
+                                    {Math.round(batchGroups.reduce((sum, group) => sum + group.in_out_logs.length, 0) / batchGroups.length)}개
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
-                    {batchGroups.map((batchGroup) => (
-                        <div key={batchGroup.interaction_batch_id} className={styles.batchGroup}>
-                            <div className={styles.batchHeader}>
-                                <div className={styles.batchInfo}>
-                                    <h4>배치 ID: {batchGroup.interaction_batch_id}</h4>
-                                    <span className={styles.logCount}>
-                                        <FiEye /> {batchGroup.in_out_logs.length}개 로그
-                                    </span>
-                                </div>
-                                <div className={styles.batchActions}>
-                                    <button
-                                        onClick={() => downloadBatchLogs(batchGroup)}
-                                        className={`${styles.btn} ${styles.download}`}
-                                        title="CSV로 다운로드"
-                                    >
-                                        <FiDownload />
-                                    </button>
-                                    <button
-                                        onClick={() => toggleBatchExpansion(batchGroup.interaction_batch_id)}
-                                        className={`${styles.btn} ${styles.expand}`}
-                                    >
-                                        {expandedBatch === batchGroup.interaction_batch_id ? '접기' : '펼치기'}
-                                    </button>
-                                </div>
-                            </div>
-
-                            {expandedBatch === batchGroup.interaction_batch_id && (
-                                <div className={styles.logsTable}>
-                                    <div className={styles.logsHeader}>
-                                        <div>Log ID</div>
-                                        <div>입력 데이터</div>
-                                        <div>출력 데이터</div>
-                                        <div>실행 시간</div>
-                                    </div>
-                                    <div className={styles.logsBody}>
-                                        {batchGroup.in_out_logs.map((log) => (
-                                            <div key={log.log_id} className={styles.logRow}>
-                                                <div className={styles.logId}>{log.log_id}</div>
-                                                <div
-                                                    className={styles.logData}
-                                                    title={typeof log.input_data === 'string' ? log.input_data : JSON.stringify(log.input_data, null, 2)}
-                                                >
-                                                    {formatData(log.input_data)}
-                                                </div>
-                                                <div
-                                                    className={styles.logData}
-                                                    title={typeof log.output_data === 'string' ? log.output_data : JSON.stringify(log.output_data, null, 2)}
-                                                >
-                                                    {formatData(log.output_data)}
-                                                </div>
-                                                <div className={styles.logTime}>
-                                                    <FiClock />
-                                                    {formatDate(log.updated_at)}
+                    {/* Batch Groups Section */}
+                    <div className={styles.batchGroupsContainer}>
+                        <div className={styles.batchGroupsSection}>
+                            <h4>배치 그룹 목록</h4>
+                            <div className={styles.batchGroupsList}>
+                                {batchGroups.map((batchGroup) => (
+                                    <div key={batchGroup.interaction_batch_id} className={styles.batchGroup}>
+                                        <div
+                                            className={styles.batchHeader}
+                                            onClick={() => toggleBatchExpansion(batchGroup.interaction_batch_id)}
+                                        >
+                                            <div className={styles.batchInfo}>
+                                                <h5>배치 ID: {batchGroup.interaction_batch_id}</h5>
+                                                <div className={styles.batchId}>
+                                                    ID: {batchGroup.interaction_batch_id}
                                                 </div>
                                             </div>
-                                        ))}
+                                            <div className={styles.batchStats}>
+                                                <div className={styles.stat}>
+                                                    <span className={styles.statLabel}>로그 개수</span>
+                                                    <span className={styles.statValue}>{batchGroup.in_out_logs.length}개</span>
+                                                </div>
+                                                <div className={styles.stat}>
+                                                    <span className={styles.statLabel}>상태</span>
+                                                    <span className={styles.statValue}>완료</span>
+                                                </div>
+                                            </div>
+                                            <div className={styles.batchActions}>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        downloadBatchLogs(batchGroup);
+                                                    }}
+                                                    className={`${styles.btn} ${styles.download}`}
+                                                    title="CSV로 다운로드"
+                                                >
+                                                    <FiDownload />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {expandedBatch === batchGroup.interaction_batch_id && (
+                                            <div className={styles.logsTable}>
+                                                <div className={styles.logsHeader}>
+                                                    <div>Log ID</div>
+                                                    <div>입력 데이터</div>
+                                                    <div>기대 답변</div>
+                                                    <div>출력 데이터</div>
+                                                    <div>실행 시간</div>
+                                                </div>
+                                                <div className={styles.logsBody}>
+                                                    {batchGroup.in_out_logs
+                                                        .sort((a, b) => a.log_id - b.log_id)
+                                                        .map((log) => (
+                                                        <div key={log.log_id} className={styles.logRow}>
+                                                            <div className={styles.logId}>{log.log_id}</div>
+                                                            <div
+                                                                className={styles.logData}
+                                                                title={typeof log.input_data === 'string' ? log.input_data : JSON.stringify(log.input_data, null, 2)}
+                                                            >
+                                                                {formatData(log.input_data)}
+                                                            </div>
+                                                            <div
+                                                                className={styles.logData}
+                                                                title={typeof log.expected_output === 'string' ? log.expected_output : JSON.stringify(log.expected_output, null, 2)}
+                                                            >
+                                                                {formatData(log.expected_output)}
+                                                            </div>
+                                                            <div
+                                                                className={styles.logData}
+                                                                title={typeof log.output_data === 'string' ? log.output_data : JSON.stringify(log.output_data, null, 2)}
+                                                            >
+                                                                {formatData(log.output_data)}
+                                                            </div>
+                                                            <div className={styles.logTime}>
+                                                                <FiClock />
+                                                                {formatDate(log.updated_at)}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                </div>
-                            )}
+                                ))}
+                            </div>
                         </div>
-                    ))}
+                    </div>
                 </div>
             )}
         </div>

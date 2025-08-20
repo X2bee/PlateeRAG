@@ -737,7 +737,7 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                         <div className={styles.results__header}>
                             <div>ID</div>
                             <div>입력 내용</div>
-                            <div>예상 결과</div>
+                            <div>기대 답변</div>
                             <div>실제 결과</div>
                             <div>상태</div>
                             <div>소요 시간</div>

@@ -71,8 +71,6 @@ function batchTesterReducer(state: BatchTesterState, action: BatchTesterAction):
                 lastActivityTimestamp: Date.now()
             };
 
-
-
             // 불변성을 보장하면서 업데이트
             const newWorkflowStates = {
                 ...state.workflowStates,
