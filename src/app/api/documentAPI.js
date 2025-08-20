@@ -3,16 +3,38 @@ import { API_BASE_URL } from '../config';
 import { documentCache } from '../_common/utils/documentCache';
 
 /**
+ * 파일 경로를 URL 안전 형태로 인코딩
+ * @param {string} filePath - 원본 파일 경로
+ * @returns {string} URL 인코딩된 파일 경로
+ */
+const encodeFilePath = (filePath) => {
+    if (!filePath) return filePath;
+    
+    // 경로를 '/' 기준으로 분리하여 각 부분을 개별적으로 인코딩
+    return filePath.split('/').map(part => {
+        if (!part) return part; // 빈 문자열은 그대로 반환
+        // URI 컴포넌트 인코딩 (한글, 특수문자 포함)
+        return encodeURIComponent(part);
+    }).join('/');
+};
+
+
+/**
  * 파일 경로를 기반으로 문서를 가져오는 API (캐싱 지원)
  * @param {string} filePath - 문서 파일 경로 
  * @param {boolean} useCache - 캐시 사용 여부 (기본값: true)
  * @param {string} mode - 현재 모드 ('deploy' 등)
  * @param {string} userId - 사용자 ID (deploy 모드에서 필요)
- * @returns {Promise<ArrayBuffer>} PDF 파일의 바이너리 데이터
+ * @returns {Promise<ArrayBuffer>} PDF 또는 HTML 파일의 바이너리 데이터
  */
 export const fetchDocumentByPath = async (filePath, useCache = true, mode = null, userId = null) => {
     try {
-        // 캐시에서 먼저 확인
+        // 파일 경로 URL 인코딩
+        const encodedFilePath = encodeFilePath(filePath);
+        console.log(`🔤 [DocumentAPI] Original path: ${filePath}`);
+        console.log(`🔤 [DocumentAPI] Encoded path: ${encodedFilePath}`);
+        
+        // 캐시에서 먼저 확인 (원본 경로를 키로 사용)
         if (useCache) {
             const cachedData = documentCache.get(filePath);
             if (cachedData) {
@@ -107,9 +129,9 @@ startxref
             return arrayBuffer;
         }
         
-        // 요청 body 구성
+        // 요청 body 구성 (인코딩된 경로 사용)
         const requestBody = {
-            file_path: filePath
+            file_path: encodedFilePath
         };
 
         // deploy 모드인 경우 user_id 추가
@@ -169,9 +191,9 @@ startxref
  */
 export const fetchDocumentMetadata = async (filePath, mode = null, userId = null) => {
     try {
-        // 요청 body 구성
+        // 요청 body 구성 (인코딩된 경로 사용)
         const requestBody = {
-            file_path: filePath
+            file_path: encodeFilePath(filePath)
         };
 
         // deploy 모드인 경우 user_id 추가
@@ -221,9 +243,9 @@ export const fetchDocumentMetadata = async (filePath, mode = null, userId = null
  */
 export const checkDocumentAccess = async (filePath, mode = null, userId = null) => {
     try {
-        // 요청 body 구성
+        // 요청 body 구성 (인코딩된 경로 사용)
         const requestBody = {
-            file_path: filePath
+            file_path: encodeFilePath(filePath)
         };
 
         // deploy 모드인 경우 user_id 추가

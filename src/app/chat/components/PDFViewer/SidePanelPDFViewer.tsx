@@ -29,6 +29,31 @@ if (typeof window !== 'undefined') {
   });
 }
 
+/**
+ * 파일 확장자를 기반으로 파일 타입 검사
+ */
+const getFileType = (filePath: string): 'pdf' | 'html' | 'docx' | 'unknown' => {
+  if (!filePath) return 'unknown';
+  
+  const extension = filePath.toLowerCase().split('.').pop();
+  switch (extension) {
+    case 'pdf':
+      return 'pdf';
+    case 'html':
+    case 'htm':
+      return 'html';
+    case 'docx':
+    case 'doc':
+      return 'docx';
+    default:
+      // 변환된 파일 이름에 '_변환'이 포함되어 있고 확장자가 html인 경우
+      if (filePath.includes('_변환') && extension === 'html') {
+        return 'html';
+      }
+      return 'unknown';
+  }
+};
+
 interface SidePanelPDFViewerProps {
   sourceInfo: PDFViewerProps['sourceInfo'] | null;
   mode?: string;
@@ -46,6 +71,8 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
   const [textContent, setTextContent] = useState<any>(null);
   const [pdfData, setPdfData] = useState<ArrayBuffer | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [fileType, setFileType] = useState<'pdf' | 'html' | 'docx' | 'unknown'>('unknown');
+  const [docxHtml, setDocxHtml] = useState<string | null>(null);
 
   if (!sourceInfo) return null;
 
@@ -66,11 +93,13 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
     lineEnd: sourceInfo.line_end
   };
 
-  // PDF 파일 로딩
+  // 문서 파일 로딩 (PDF 및 HTML 지원)
   const loadPdfDocument = useCallback(async () => {
     if (!sourceInfo?.file_path) return;
 
     const filePath = sourceInfo.file_path;
+    const documentType = getFileType(filePath);
+    setFileType(documentType);
     
     // 이미 캐시에 있다면 빠른 로딩 표시
     const isInCache = hasDocumentInCache(filePath);
@@ -81,9 +110,10 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
     setError(null);
     setPdfData(null);
     setPdfUrl(null);
+    setDocxHtml(null);
     
     try {
-      console.log('📄 [SidePanelPDFViewer] Loading document from path:', filePath, isInCache ? '(cached)' : '(from server)');
+      console.log('📄 [SidePanelPDFViewer] Loading document from path:', filePath, `(${documentType})`, isInCache ? '(cached)' : '(from server)');
       
       // 파일 경로 유효성 검사
       if (!filePath.trim()) {
@@ -99,11 +129,25 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
       
       setPdfData(documentData);
       
-      // ArrayBuffer를 Blob URL로 변환
-      const blob = new Blob([documentData], { type: 'application/pdf' });
+      // ArrayBuffer를 Blob URL로 변환 (파일 타입에 따라 MIME 타입 결정)
+      let mimeType = 'application/octet-stream';
+      switch (documentType) {
+        case 'pdf':
+          mimeType = 'application/pdf';
+          break;
+        case 'html':
+          mimeType = 'text/html';
+          break;
+        case 'docx':
+          mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+          break;
+      }
+      
+      const blob = new Blob([documentData], { type: mimeType });
       const url = URL.createObjectURL(blob);
       
       console.log('📄 [SidePanelPDFViewer] Creating Blob URL:', {
+        type: documentType,
         size: documentData.byteLength,
         blobSize: blob.size,
         blobType: blob.type,
@@ -112,10 +156,37 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
       
       setPdfUrl(url);
       
+      // DOCX 파일의 경우 mammoth.js를 사용해서 HTML로 변환
+      if (documentType === 'docx') {
+        try {
+          const mammoth = await import('mammoth');
+          const result = await mammoth.convertToHtml({ arrayBuffer: documentData });
+          setDocxHtml(result.value);
+          console.log('✅ [SidePanelPDFViewer] DOCX converted to HTML successfully');
+          
+          // 변환 시 발생한 메시지가 있다면 로그 출력
+          if (result.messages.length > 0) {
+            console.warn('📝 [SidePanelPDFViewer] DOCX conversion messages:', result.messages);
+          }
+        } catch (docxError) {
+          console.error('❌ [SidePanelPDFViewer] Failed to convert DOCX:', docxError);
+          throw new Error(`DOCX 변환 실패: ${docxError instanceof Error ? docxError.message : '알 수 없는 오류'}`);
+        }
+      }
+      
+      // HTML 및 DOCX 파일의 경우 페이지 수를 1로 설정
+      if (documentType === 'html' || documentType === 'docx') {
+        setNumPages(1);
+        setPageNumber(1);
+      }
+      
       // 로딩 완료 상태로 변경
       setLoading(false);
       
-      console.log('✅ [SidePanelPDFViewer] Document loaded successfully, size:', documentData.byteLength, 'bytes');
+      console.log('✅ [SidePanelPDFViewer] Document loaded successfully:', {
+        type: documentType,
+        size: documentData.byteLength
+      });
     } catch (err) {
       console.error('❌ [SidePanelPDFViewer] Failed to load document:', err);
       const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
@@ -123,6 +194,7 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
       setLoading(false);
       setPdfData(null);
       setPdfUrl(null);
+      setDocxHtml(null);
     }
   }, [sourceInfo?.file_path, mode, userId]);
 
@@ -204,7 +276,11 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
         <div className={styles.fileInfo}>
           <h3 className={styles.fileName}>{sourceInfo.file_name}</h3>
           <span className={styles.location}>
-            페이지 {sourceInfo.page_number}, 라인 {sourceInfo.line_start}-{sourceInfo.line_end}
+            {fileType === 'pdf' ? (
+              `페이지 ${sourceInfo.page_number}, 라인 ${sourceInfo.line_start}-${sourceInfo.line_end}`
+            ) : (
+              `라인 ${sourceInfo.line_start}-${sourceInfo.line_end}`
+            )}
           </span>
         </div>
         <div className={styles.headerActions}>
@@ -220,26 +296,30 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
 
       {/* Toolbar */}
       <div className={styles.toolbar}>
-        <div className={styles.pageControls}>
-          <button 
-            onClick={goToPrevPage} 
-            disabled={pageNumber <= 1}
-            className={styles.controlButton}
-          >
-            <FiChevronLeft />
-          </button>
-          <span className={styles.pageInfo}>
-            {pageNumber} / {numPages}
-          </span>
-          <button 
-            onClick={goToNextPage} 
-            disabled={pageNumber >= numPages}
-            className={styles.controlButton}
-          >
-            <FiChevronRight />
-          </button>
-        </div>
+        {/* 페이지 컨트롤은 PDF에만 표시 */}
+        {fileType === 'pdf' && (
+          <div className={styles.pageControls}>
+            <button 
+              onClick={goToPrevPage} 
+              disabled={pageNumber <= 1}
+              className={styles.controlButton}
+            >
+              <FiChevronLeft />
+            </button>
+            <span className={styles.pageInfo}>
+              {pageNumber} / {numPages}
+            </span>
+            <button 
+              onClick={goToNextPage} 
+              disabled={pageNumber >= numPages}
+              className={styles.controlButton}
+            >
+              <FiChevronRight />
+            </button>
+          </div>
+        )}
         
+        {/* 줌 컨트롤은 모든 파일 타입에 표시 */}
         <div className={styles.zoomControls}>
           <button onClick={handleZoomOut} className={styles.controlButton}>
             <FiZoomOut />
@@ -251,9 +331,13 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
         </div>
       </div>
 
-      {/* PDF Content */}
+      {/* Document Content */}
       <div className={styles.content}>
-        {loading && !error && <div className={styles.loading}>PDF를 로드하는 중...</div>}
+        {loading && !error && (
+          <div className={styles.loading}>
+            {fileType === 'html' ? 'HTML' : fileType === 'docx' ? 'DOCX' : 'PDF'}을 로드하는 중...
+          </div>
+        )}
         {error && (
           <div className={styles.error}>
             <p>{error}</p>
@@ -266,35 +350,72 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
           </div>
         )}
         
-        {!loading && !error && pdfUrl && (
-          <Document
-            file={pdfUrl}
-          onLoadSuccess={onDocumentLoadSuccess}
-          onLoadError={onDocumentLoadError}
-          loading={<div>PDF 문서를 로드하는 중...</div>}
-          error={<div>PDF 문서 로드 오류</div>}
-        >
-          <div className={styles.pageContainer}>
-            <Page
-              pageNumber={pageNumber}
-              scale={scale}
-              loading=""
-              error=""
-              className={styles.page}
-              onLoadSuccess={onPageLoadSuccess}
-            />
-            
-            {/* PDF 하이라이터 */}
-            <PDFHighlighter
-              pageNumber={pageNumber}
-              highlightRange={highlightRange}
-              scale={scale}
-              pageWidth={pageSize.width}
-              pageHeight={pageSize.height}
-              textContent={textContent}
+        {!loading && !error && pdfUrl && fileType === 'html' && (
+          <div className={styles.htmlContainer} style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+            <iframe
+              src={pdfUrl}
+              className={styles.htmlFrame}
+              title={sourceInfo.file_name}
+              sandbox="allow-same-origin"
+              style={{
+                width: `${100 / scale}%`,
+                height: `${100 / scale}%`,
+                border: 'none'
+              }}
             />
           </div>
+        )}
+        
+        {!loading && !error && docxHtml && fileType === 'docx' && (
+          <div 
+            className={styles.docxContainer} 
+            style={{ 
+              transform: `scale(${scale})`, 
+              transformOrigin: 'top left',
+              width: `${100 / scale}%`,
+              height: `${100 / scale}%`
+            }}
+          >
+            <div 
+              className={styles.docxContent}
+              dangerouslySetInnerHTML={{ __html: docxHtml }}
+            />
+          </div>
+        )}
+        
+        {!loading && !error && pdfUrl && fileType === 'pdf' && (
+          <Document
+            file={pdfUrl}
+            onLoadSuccess={onDocumentLoadSuccess}
+            onLoadError={onDocumentLoadError}
+            loading={<div>PDF 문서를 로드하는 중...</div>}
+            error={<div>PDF 문서 로드 오류</div>}
+          >
+            <div className={styles.pageContainer}>
+              <Page
+                pageNumber={pageNumber}
+                scale={scale}
+                loading=""
+                error=""
+                className={styles.page}
+                onLoadSuccess={onPageLoadSuccess}
+              />
+              
+              {/* PDF 하이라이터 */}
+              <PDFHighlighter
+                pageNumber={pageNumber}
+                highlightRange={highlightRange}
+                scale={scale}
+                pageWidth={pageSize.width}
+                pageHeight={pageSize.height}
+                textContent={textContent}
+              />
+            </div>
           </Document>
+        )}
+        
+        {!loading && !error && fileType === 'unknown' && (
+          <div className={styles.error}>지원하지 않는 파일 형식입니다.</div>
         )}
       </div>
     </div>
