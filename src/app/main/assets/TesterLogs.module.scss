@@ -141,6 +141,14 @@
         }
     }
 
+    &.delete {
+        background: $bootstrap-red;
+
+        &:hover:not(:disabled) {
+            background: #dc2626;
+        }
+    }
+
     &.expand {
         background: $bootstrap-gray-600;
 

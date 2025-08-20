@@ -1,8 +1,8 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import styles from '@/app/main/assets/TesterLogs.module.scss';
-import { FiRefreshCw, FiDownload, FiEye, FiClock, FiDatabase } from 'react-icons/fi';
-import { getWorkflowTesterIOLogs } from '@/app/api/workflowAPI';
+import { FiRefreshCw, FiDownload, FiEye, FiClock, FiDatabase, FiTrash2 } from 'react-icons/fi';
+import { getWorkflowTesterIOLogs, deleteWorkflowTesterIOLogs } from '@/app/api/workflowAPI';
 import { devLog } from '@/app/_common/utils/logger';
 
 interface Workflow {
@@ -110,6 +110,33 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
         link.download = `batch_logs_${batchGroup.interaction_batch_id.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
         URL.revokeObjectURL(link.href);
+    };
+
+    const deleteBatchLogs = async (batchGroup: BatchGroup) => {
+        if (!workflow) return;
+
+        const confirmDelete = window.confirm(
+            `배치 그룹 "${batchGroup.interaction_batch_id}"의 로그를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`
+        );
+
+        if (!confirmDelete) return;
+
+        try {
+            const workflowName = workflow.workflow_name.replace('.json', '');
+            const result = await deleteWorkflowTesterIOLogs(workflowName, batchGroup.interaction_batch_id) as any;
+
+            devLog.log('Batch logs deleted successfully:', result);
+
+            // 삭제 후 목록 새로고침
+            await loadBatchLogs();
+
+            // 성공 메시지 (선택사항)
+            alert(`${result.deleted_count || 0}개의 로그가 성공적으로 삭제되었습니다.`);
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : '로그 삭제에 실패했습니다.';
+            devLog.error('Failed to delete batch logs:', err);
+            alert(`삭제 실패: ${errorMessage}`);
+        }
     };
 
     if (!workflow) {
@@ -232,6 +259,16 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
                                                     title="CSV로 다운로드"
                                                 >
                                                     <FiDownload />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        deleteBatchLogs(batchGroup);
+                                                    }}
+                                                    className={`${styles.btn} ${styles.delete}`}
+                                                    title="배치 로그 삭제"
+                                                >
+                                                    <FiTrash2 />
                                                 </button>
                                             </div>
                                         </div>

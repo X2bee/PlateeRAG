@@ -752,3 +752,47 @@ export const getWorkflowTesterIOLogs = async (workflowName) => {
         throw error;
     }
 };
+
+/**
+ * 특정 워크플로우의 테스터 실행 IO 로그를 삭제합니다.
+ * @param {string} workflowName - 워크플로우 이름
+ * @param {string} interactionBatchId - 삭제할 interaction_batch_id
+ * @returns {Promise<Object>} 삭제 결과를 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const deleteWorkflowTesterIOLogs = async (workflowName, interactionBatchId) => {
+    try {
+        devLog.log('deleteWorkflowTesterIOLogs called with:');
+        devLog.log('- workflowName:', workflowName);
+        devLog.log('- interactionBatchId:', interactionBatchId);
+
+        const params = new URLSearchParams({
+            workflow_name: workflowName,
+            interaction_batch_id: interactionBatchId,
+        });
+
+        const response = await apiClient(
+            `${API_BASE_URL}/api/workflow/tester/io_logs?${params}`,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
+        }
+
+        const result = await response.json();
+        devLog.log('Tester IO logs deleted successfully:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to delete workflow tester IO logs:', error);
+        throw error;
+    }
+};
