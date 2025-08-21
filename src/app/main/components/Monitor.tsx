@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import { FiTrash2 } from 'react-icons/fi';
-import { FiBarChart2 } from 'react-icons/fi';
+import { FiTrash2, FiRefreshCw, FiBarChart } from 'react-icons/fi';
 import { getWorkflowPerformance, deleteWorkflowPerformance } from '@/app/api/workflowAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import toast from 'react-hot-toast';
@@ -313,19 +312,20 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                             <div className={styles.headerActions}>
                                 <button
                                     onClick={() => setIsChartDashboardOpen(true)}
-                                    className={`${styles.refreshButton} ${styles.chartButton}`}
+                                    className={`${styles.btn} ${styles.chart}`}
                                     disabled={performanceLoading}
                                 >
-                                    <FiBarChart2 style={{marginRight: '8px'}} />
-                                    차트 보기
+                                    <FiBarChart />
+                                    차트보기
                                 </button>
                                 <button
                                     onClick={() =>
                                         loadPerformanceData(selectedWorkflow)
                                     }
-                                    className={styles.refreshButton}
+                                    className={`${styles.btn} ${styles.refresh}`}
                                     disabled={performanceLoading}
                                 >
+                                    {performanceLoading ? <FiRefreshCw className={styles.spinning} /> : <FiRefreshCw />}
                                     {performanceLoading ? '로딩 중...' : '새로고침'}
                                 </button>
                                 {performanceData.performance_stats && performanceData.performance_stats.length > 0 && (

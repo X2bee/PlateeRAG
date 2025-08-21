@@ -132,6 +132,50 @@
     }
 }
 
+.btn {
+    background: $bootstrap-blue;
+    color: $white;
+    border: none;
+    padding: $spacing-sm $spacing-md;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    font-size: $font-size-sm;
+    transition: background-color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-sm;
+
+    &:hover:not(:disabled) {
+        background: #0056b3;
+    }
+
+    &:disabled {
+        background: $bootstrap-gray-500;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    &.refresh {
+        background: $bootstrap-blue;
+
+        &:hover:not(:disabled) {
+            background: #0056b3;
+        }
+    }
+
+    &.chart {
+        background: $bootstrap-blue;
+
+        &:hover:not(:disabled) {
+            background: #0056b3;
+        }
+    }
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
 .refreshButton, .chartButton {
     background: $bootstrap-blue;
     color: $white;

@@ -133,6 +133,14 @@
         }
     }
 
+    &.chart {
+        background: $bootstrap-blue;
+
+        &:hover:not(:disabled) {
+            background: #0056b3;
+        }
+    }
+
     &.download {
         background: $green-600;
 
@@ -318,8 +326,9 @@
 
 .stat {
     display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: center;
 
     .statLabel {
         font-size: $font-size-xs;

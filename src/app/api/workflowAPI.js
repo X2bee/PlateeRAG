@@ -700,6 +700,22 @@ export const executeWorkflowTesterStream = async ({
                                 devLog.log(`진행률: ${parsedData.progress}% (${parsedData.completed_count}/${parsedData.total_count})`);
                                 onMessage(parsedData);
                                 break;
+                            case 'eval_start':
+                                devLog.log('LLM 평가 시작:', parsedData);
+                                onMessage(parsedData);
+                                break;
+                            case 'eval_result':
+                                devLog.log(`LLM 평가 결과: 테스트 ${parsedData.test_id}, 점수: ${parsedData.llm_eval_score}`);
+                                onMessage(parsedData);
+                                break;
+                            case 'eval_error':
+                                devLog.error(`LLM 평가 오류: 테스트 ${parsedData.test_id}`, parsedData.error);
+                                onMessage(parsedData);
+                                break;
+                            case 'eval_complete':
+                                devLog.log('LLM 평가 완료:', parsedData);
+                                onMessage(parsedData);
+                                break;
                             case 'tester_complete':
                                 devLog.log('테스터 완료:', parsedData);
                                 onMessage(parsedData);
