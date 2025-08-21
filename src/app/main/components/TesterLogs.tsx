@@ -1,11 +1,12 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from '@/app/main/assets/TesterLogs.module.scss';
 import { FiRefreshCw, FiDownload, FiEye, FiClock, FiDatabase, FiTrash2, FiBarChart } from 'react-icons/fi';
 import { getWorkflowTesterIOLogs, deleteWorkflowTesterIOLogs } from '@/app/api/workflowAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import toast from 'react-hot-toast';
 import TesterChartDashboard from './charts/TesterChartDashboard';
+import { usePagesLayout } from '@/app/_common/components/PagesLayoutContent';
 
 interface Workflow {
     id: number;
@@ -41,12 +42,35 @@ interface TesterLogsProps {
 }
 
 const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
+    const layoutContext = usePagesLayout();
+    const sidebarWasOpenRef = useRef<boolean | null>(null);
     const [batchGroups, setBatchGroups] = useState<BatchGroup[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [expandedBatch, setExpandedBatch] = useState<string | null>(null);
     const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc'); // 기본값을 desc(최신순)로 설정
     const [isChartDashboardOpen, setIsChartDashboardOpen] = useState(false);
+
+    const isAnyModalOpen = isChartDashboardOpen
+
+    useEffect(() => {
+        if (layoutContext) {
+            const { isSidebarOpen, setIsSidebarOpen } = layoutContext;
+            if (isAnyModalOpen) {
+                if (sidebarWasOpenRef.current === null) {
+                    sidebarWasOpenRef.current = isSidebarOpen;
+                    if (isSidebarOpen) {
+                        setIsSidebarOpen(false);
+                    }
+                }
+            } else {
+                if (sidebarWasOpenRef.current === true) {
+                    setIsSidebarOpen(true);
+                }
+                sidebarWasOpenRef.current = null;
+            }
+        }
+    }, [isAnyModalOpen, layoutContext]);
 
     useEffect(() => {
         if (workflow) {
