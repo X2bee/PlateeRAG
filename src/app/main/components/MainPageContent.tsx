@@ -14,7 +14,7 @@ import styles from '@/app/main/assets/MainPage.module.scss';
 const MainPage: React.FC = () => {
     const searchParams = useSearchParams();
     const [activeSection, setActiveSection] = useState<string>('canvas');
-    const [execTab, setExecTab] = useState<'executor' | 'monitoring' | 'batchtester'>('executor');
+    const [execTab, setExecTab] = useState<'executor' | 'monitoring' | 'batchtester' | 'test-logs'>('executor');
 
     useEffect(() => {
         const view = searchParams.get('view');
@@ -25,7 +25,7 @@ const MainPage: React.FC = () => {
         }
     }, [searchParams]);
 
-    const handleTabChange = (tab: 'executor' | 'monitoring' | 'batchtester') => {
+    const handleTabChange = (tab: 'executor' | 'monitoring' | 'batchtester' | 'test-logs') => {
         setExecTab(tab);
         localStorage.setItem('execMonitorTab', tab);
     };
@@ -48,7 +48,13 @@ const MainPage: React.FC = () => {
                 onClick={() => handleTabChange('batchtester')}
                 className={`${styles.tabToggleButton} ${execTab === 'batchtester' ? styles.active : ''}`}
             >
-                배치 테스터
+                테스트
+            </button>
+            <button
+                onClick={() => handleTabChange('test-logs')}
+                className={`${styles.tabToggleButton} ${execTab === 'test-logs' ? styles.active : ''}`}
+            >
+                테스트 로그
             </button>
         </div>
     );
@@ -61,6 +67,8 @@ const MainPage: React.FC = () => {
                 return '워크플로우의 실행 성능과 리소스 사용량을 실시간으로 모니터링하세요.';
             case 'batchtester':
                 return 'CSV나 Excel 파일을 업로드하여 워크플로우를 배치로 테스트하세요.';
+            case 'test-logs':
+                return '테스트 로그를 확인하세요.';
             default:
                 return '완성된 워크플로우를 실제 환경에서 실행하고 모니터링하세요.';
         }

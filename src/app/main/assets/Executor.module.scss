@@ -1,164 +1,153 @@
 @use "sass:color";
-
-// Color Variables
-$primary-blue: #2563eb;
-$primary-green: #059669;
-$primary-yellow: #d97706;
-$primary-red: #dc2626;
-$gray-50: #f9fafb;
-$gray-100: #f3f4f6;
-$gray-200: #e5e7eb;
-$gray-300: #d1d5db;
-$gray-400: #9ca3af;
-$gray-500: #6b7280;
-$gray-600: #4b5563;
-$gray-700: #374151;
-$gray-900: #111827;
-$white: #ffffff;
+@use "@/app/_common/_variables" as *;
 
 .container {
-  max-width: 1200px;
-  margin: 0 auto;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 // Header
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .headerInfo {
-  h2 {
-    font-size: 1.875rem;
-    font-weight: 700;
-    color: $gray-900;
-    margin: 0 0 0.5rem 0;
-  }
+    h2 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: $gray-900;
+        margin: 0 0 0.5rem 0;
+    }
 
-  p {
-    color: $gray-600;
-    margin: 0;
-    line-height: 1.6;
-  }
+    p {
+        color: $gray-600;
+        margin: 0;
+        line-height: 1.6;
+    }
 }
 
 .headerActions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
-// 새로고침 버튼 스타일
 .refreshButton {
-  background: transparent;
-  border: 1px solid $gray-300;
-  border-radius: 6px;
-  padding: 0.5rem;
-  cursor: pointer;
-  color: $gray-600;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
+    background: transparent;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: $gray-600;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
 
-  &:hover:not(:disabled) {
-    background: $gray-50;
-    border-color: $primary-blue;
-    color: $primary-blue;
-  }
+    &:hover:not(:disabled) {
+        background: $gray-50;
+        border-color: $primary-blue;
+        color: $primary-blue;
+    }
 
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
 
-  svg {
-    width: 16px;
-    height: 16px;
-  }
+    svg {
+        width: 16px;
+        height: 16px;
+    }
 }
 
 // 스피닝 애니메이션
 .spinning {
-  animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 // Executor 헤더
 .executorHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
 
-  h3 {
-    font-size: 1.875rem;
-    font-weight: 700;
-    color: $gray-900;
-    margin: 0 0 0.5rem 0;
-  }
+    h3 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: $gray-900;
+        margin: 0 0 0.5rem 0;
+    }
 }
 
 .logCount {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  color: $gray-500;
-  font-size: 0.875rem;
-  padding: 0.375rem 0.75rem;
-  background: $gray-50;
-  border-radius: 6px;
-  border: 1px solid $gray-200;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: $gray-500;
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+    background: $gray-50;
+    border-radius: 6px;
+    border: 1px solid $gray-200;
 
-  svg {
-    width: 0.875rem;
-    height: 0.875rem;
-  }
+    svg {
+        width: 0.875rem;
+        height: 0.875rem;
+    }
 }
 
 .clearLogsBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background: $white;
-  border: 1px solid $gray-300;
-  border-radius: 6px;
-  color: $gray-600;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: $white;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    color: $gray-600;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
 
-  &:hover:not(:disabled) {
-    background: #fef2f2;
-    border-color: #fca5a5;
-    color: #dc2626;
-  }
+    &:hover:not(:disabled) {
+        background: #fef2f2;
+        border-color: #fca5a5;
+        color: #dc2626;
+    }
 
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-    background: $gray-100;
-  }
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        background: $gray-100;
+    }
 
-  svg {
-    width: 1rem;
-    height: 1rem;
-  }
+    svg {
+        width: 1rem;
+        height: 1rem;
+    }
 }
 
 .executorPanel {
@@ -242,7 +231,7 @@ $white: #ffffff;
     border-radius: 8px;
     background: white;
     color: #6c757d;
-    
+
     .emptyIcon {
         width: 2.5rem;
         height: 2.5rem;
@@ -263,9 +252,10 @@ $white: #ffffff;
     }
 }
 
-.userMessage, .botMessage {
+.userMessage,
+.botMessage {
     margin-bottom: 0.75rem;
-    
+
     .messageContent {
         max-width: 75%;
         padding: 0.875rem 1.125rem;
@@ -285,7 +275,7 @@ $white: #ffffff;
 
 .userMessage {
     text-align: right;
-    
+
     .messageContent {
         background: #007bff;
         color: white;
@@ -296,7 +286,7 @@ $white: #ffffff;
 
 .botMessage {
     text-align: left;
-    
+
     .messageContent {
         background: white;
         color: #343a40;
@@ -313,18 +303,18 @@ $white: #ffffff;
     align-items: center;
     gap: 0.25rem;
     padding: 0.25rem 0;
-    
+
     span {
         width: 6px;
         height: 6px;
         background-color: #6c757d;
         border-radius: 50%;
         animation: typing 1.4s infinite ease-in-out;
-        
+
         &:nth-child(1) {
             animation-delay: -0.32s;
         }
-        
+
         &:nth-child(2) {
             animation-delay: -0.16s;
         }
@@ -332,10 +322,14 @@ $white: #ffffff;
 }
 
 @keyframes typing {
-    0%, 80%, 100% {
+
+    0%,
+    80%,
+    100% {
         transform: scale(0.8);
         opacity: 0.5;
     }
+
     40% {
         transform: scale(1);
         opacity: 1;
@@ -359,7 +353,7 @@ $white: #ffffff;
             border-radius: 6px;
             font-size: 0.9rem;
             background: #f8f9fa;
-            
+
             &:disabled {
                 color: #6c757d;
                 cursor: not-allowed;
@@ -442,8 +436,13 @@ $white: #ffffff;
 }
 
 @keyframes pulse {
-    from { opacity: 0.6; }
-    to { opacity: 1; }
+    from {
+        opacity: 0.6;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 // 반응형 디자인

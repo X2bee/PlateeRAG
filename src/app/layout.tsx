@@ -4,6 +4,7 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import ToastProvider from '@/app/_common/components/ToastProvider';
 import CookieProvider from '@/app/_common/components/CookieProvider';
+import { BatchTesterProvider } from '@/app/_common/contexts/BatchTesterContext';
 
 export const metadata: Metadata = {
     title: 'XGEN',
@@ -33,8 +34,10 @@ export default function RootLayout({
             </head>
             <body>
                 <CookieProvider>
-                    <ToastProvider />
-                    {children}
+                    <BatchTesterProvider>
+                        <ToastProvider />
+                        {children}
+                    </BatchTesterProvider>
                 </CookieProvider>
             </body>
         </html>

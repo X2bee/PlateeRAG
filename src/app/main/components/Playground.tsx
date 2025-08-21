@@ -5,13 +5,13 @@ import { listWorkflowsDetail } from '@/app/api/workflowAPI';
 import styles from '@/app/main/assets/Playground.module.scss';
 import Executor from '@/app/main/components/Executor';
 import Monitor from '@/app/main/components/Monitor';
-import BatchTester from '@/app/main/components/BatchTester';
-import { BatchTesterProvider } from '@/app/main/contexts/BatchTesterContext';
+import BatchTester from '@/app/main/components/Tester';
+import TesterLogs from '@/app/main/components/TesterLogs';
 import { useSearchParams } from 'next/navigation';
 
 interface PlaygroundProps {
-    activeTab: 'executor' | 'monitoring' | 'batchtester';
-    onTabChange: (tab: 'executor' | 'monitoring' | 'batchtester') => void;
+    activeTab: 'executor' | 'monitoring' | 'batchtester' | 'test-logs';
+    onTabChange: (tab: 'executor' | 'monitoring' | 'batchtester' | 'test-logs') => void;
 }
 interface Workflow {
     id: number;
@@ -41,7 +41,6 @@ const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
         const workflowId = searchParams.get('workflowId');
 
         if (workflowName && workflowId && workflows.length > 0) {
-            // Find the workflow in the loaded list
             const workflow = workflows.find(
                 (w) =>
                     w.workflow_name.replace('.json', '') === workflowName &&
@@ -50,7 +49,6 @@ const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
 
             if (workflow) {
                 setSelectedWorkflow(workflow);
-                // 무조건 executor 탭으로 전환
                 onTabChange('executor');
             } else {
                 console.log(
@@ -77,8 +75,7 @@ const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
     const loadChatLogs = async (workflow: Workflow) => {
         try {
             setSelectedWorkflow(workflow);
-            // 워크플로우 선택 시 항상 executor 탭으로 전환
-            onTabChange('executor');
+            // onTabChange('executor');
         } catch (err) {
             setError('워크플로우 셋팅에 문제가 발생했습니다.');
         } finally {
@@ -97,11 +94,9 @@ const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
             case 'monitoring':
                 return <Monitor workflow={selectedWorkflow} />;
             case 'batchtester':
-                return (
-                    <BatchTesterProvider>
-                        <BatchTester workflow={selectedWorkflow} />
-                    </BatchTesterProvider>
-                );
+                return <BatchTester workflow={selectedWorkflow} />;
+            case 'test-logs':
+                return <TesterLogs workflow={selectedWorkflow} />;
             default:
                 return <Executor workflow={selectedWorkflow} />;
         }

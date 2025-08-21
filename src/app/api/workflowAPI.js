@@ -2,106 +2,6 @@ import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
 import { apiClient } from './apiClient';
 
-// /**
-//  * 주어진 워크플로우 데이터를 백엔드로 전송하여 실행합니다.
-//  * @param {Object} workflowData - 노드와 엣지 정보를 포함하는 워크플로우 객체.
-//  * @returns {Promise<Object>} API 응답 객체를 포함하는 프로미스.
-//  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
-//  */
-// export const executeWorkflow = async (workflowData) => {
-//     try {
-//         const response = await apiClient(`${API_BASE_URL}/api/workflow/execute`, {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify(workflowData),
-//         });
-
-//         const result = await response.json();
-
-//         if (!response.ok) {
-//             // FastAPI에서 HTTPException으로 반환된 detail 메시지를 사용
-//             throw new Error(
-//                 result.detail || `HTTP error! status: ${response.status}`,
-//             );
-//         }
-
-//         return result;
-//     } catch (error) {
-//         devLog.error('Failed to execute workflow:', error);
-//         // UI에서 에러 메시지를 표시할 수 있도록 에러를 다시 던집니다.
-//         throw error;
-//     }
-// };
-// /**
-//  * 주어진 워크플로우 데이터를 백엔드로 전송하여 스트리밍 방식으로 실행합니다.
-//  * @param {object} params - 실행에 필요한 파라미터 객체.
-//  * @param {Object} params.workflowData - 노드와 엣지 정보를 포함하는 워크플로우 객체.
-//  * @param {function(string): void} params.onData - 데이터 조각(chunk)을 수신할 때마다 호출될 콜백.
-//  * @param {function(): void} params.onEnd - 스트림이 정상적으로 종료될 때 호출될 콜백.
-//  * @param {function(Error): void} params.onError - 오류 발생 시 호출될 콜백.
-//  * @returns {Promise<Object>} API 응답 객체를 포함하는 프로미스.
-//  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
-//  */
-// export const executeWorkflowStream = async ({
-//     workflowData,
-//     onData,
-//     onEnd,
-//     onError,
-// }
-// ) => {
-//     try {
-//         const response = await apiClient(`${API_BASE_URL}/api/workflow/execute/stream`, {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify(workflowData),
-//         });
-
-//         if (!response.ok) {
-//             const errorData = await response.json();
-//             throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-//         }
-
-//         const reader = response.body.getReader();
-//         const decoder = new TextDecoder('utf-8');
-
-//         while (true) {
-//             const { done, value } = await reader.read();
-//             if (done) {
-//                 onEnd();
-//                 break;
-//             }
-//             const chunk = decoder.decode(value);
-
-//             const lines = chunk.split('\n\n');
-//             for (const line of lines) {
-//                 if (line.startsWith('data: ')) {
-//                     const jsonData = line.substring(6);
-//                     try {
-//                         const parsedData = JSON.parse(jsonData);
-//                         if (parsedData.type === 'data') {
-//                             onData(parsedData.content);
-//                         } else if (parsedData.type === 'end') {
-//                             onEnd();
-//                             return;
-//                         } else if (parsedData.type === 'error') {
-//                             throw new Error(parsedData.detail);
-//                         }
-//                     } catch (e) {
-//                         devLog.error('Failed to parse stream data chunk:', jsonData, e);
-//                     }
-//                 }
-//             }
-//         }
-//     } catch (error) {
-//         devLog.error('Failed to execute streaming workflow:', error);
-//         onError(error);
-//     }
-// };
-
 /**
  * 워크플로우 데이터를 백엔드 서버에 저장합니다.
  * @param {string} workflowName - 워크플로우 식별자 (파일명으로 사용됨)
@@ -691,47 +591,70 @@ export const deleteWorkflowPerformance = async (workflowName, workflowId) => {
     }
 };
 
-
 /**
- * 워크플로우를 배치로 실행합니다.
- * @param {Object} batchRequest - 배치 실행 요청 객체
- * @param {string} batchRequest.workflowName - 워크플로우 이름
- * @param {string} batchRequest.workflowId - 워크플로우 ID
- * @param {Array<Object>} batchRequest.testCases - 테스트 케이스 배열
- * @param {number} batchRequest.batchSize - 배치 크기 (기본값: 5)
- * @param {string} batchRequest.interactionId - 상호작용 ID (기본값: 'batch_test')
- * @param {Array<string>|null} batchRequest.selectedCollections - 선택된 컬렉션
- * @returns {Promise<Object>} 배치 실행 결과
+ * 워크플로우를 테스터로 실행하며 실시간 진행 상황을 SSE로 스트리밍합니다.
+ * @param {Object} testerRequest - 테스터 실행 요청 객체
+ * @param {string} testerRequest.workflowName - 워크플로우 이름
+ * @param {string} testerRequest.workflowId - 워크플로우 ID
+ * @param {Array<Object>} testerRequest.testCases - 테스트 케이스 배열
+ * @param {number} testerRequest.batchSize - 배치 크기 (기본값: 5)
+ * @param {string} testerRequest.interactionId - 상호작용 ID (기본값: 'tester_test')
+ * @param {Array<string>|null} testerRequest.selectedCollections - 선택된 컬렉션
+ * @param {boolean} testerRequest.llmEvalEnabled - LLM 평가 활성화 여부 (기본값: false)
+ * @param {string} testerRequest.llmEvalType - LLM 평가 종류 ('vLLM' | 'OpenAI')
+ * @param {string} testerRequest.llmEvalModel - LLM 평가 모델명
+ * @param {function(Object): void} onMessage - SSE 메시지를 수신할 때마다 호출될 콜백
+ * @param {function(): void} onEnd - 스트림이 정상적으로 종료될 때 호출될 콜백
+ * @param {function(Error): void} onError - 오류 발생 시 호출될 콜백
+ * @returns {Promise<void>} 스트리밍 완료 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
-export const executeWorkflowBatch = async (batchRequest) => {
+export const executeWorkflowTesterStream = async ({
+    workflowName,
+    workflowId,
+    testCases,
+    batchSize = 5,
+    interactionId = 'tester_test',
+    selectedCollections = null,
+    llmEvalEnabled = false,
+    llmEvalType = 'OpenAI',
+    llmEvalModel = 'gpt-4o',
+    onMessage,
+    onEnd,
+    onError
+}) => {
     try {
-        devLog.log('배치 실행 시작:', {
-            workflowName: batchRequest.workflowName,
-            workflowId: batchRequest.workflowId,
-            testCaseCount: batchRequest.testCases.length,
-            batchSize: batchRequest.batchSize
+        devLog.log('테스터 스트리밍 실행 시작:', {
+            workflowName,
+            workflowId,
+            testCaseCount: testCases.length,
+            batchSize
         });
 
-        // 요청 데이터 구성 (백엔드 API 스펙에 맞춤)
+        // 요청 데이터 구성
         const requestBody = {
-            workflow_name: batchRequest.workflowName,
-            workflow_id: batchRequest.workflowId,
-            test_cases: batchRequest.testCases.map(testCase => ({
+            workflow_name: workflowName,
+            workflow_id: workflowId,
+            test_cases: testCases.map(testCase => ({
                 id: testCase.id,
                 input: testCase.input,
                 expected_output: testCase.expectedOutput || null
             })),
-            batch_size: batchRequest.batchSize || 5, // 여기서 기본값 수정
-            interaction_id: batchRequest.interactionId || 'batch_test',
-            selected_collections: batchRequest.selectedCollections || null
+            batch_size: batchSize,
+            interaction_id: interactionId,
+            selected_collections: selectedCollections,
+            llm_eval_enabled: llmEvalEnabled,
+            llm_eval_type: llmEvalType,
+            llm_eval_model: llmEvalModel
         };
 
-        // API 호출
-        const response = await apiClient(`${API_BASE_URL}/api/workflow/execute/batch`, {
+        // SSE 스트리밍 API 호출
+        const response = await apiClient(`${API_BASE_URL}/api/workflow/execute/tester/stream`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'text/event-stream',
+                'Cache-Control': 'no-cache'
             },
             body: JSON.stringify(requestBody),
         });
@@ -741,47 +664,144 @@ export const executeWorkflowBatch = async (batchRequest) => {
             throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
         }
 
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+                onEnd();
+                break;
+            }
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n\n');
+
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const jsonData = line.substring(6);
+                    try {
+                        const parsedData = JSON.parse(jsonData);
+
+                        // 메시지 타입에 따른 처리
+                        switch (parsedData.type) {
+                            case 'tester_start':
+                                devLog.log('테스터 시작:', parsedData);
+                                onMessage(parsedData);
+                                break;
+                            case 'group_start':
+                                devLog.log(`테스터 그룹 ${parsedData.group_number} 시작`);
+                                onMessage(parsedData);
+                                break;
+                            case 'test_result':
+                                onMessage(parsedData);
+                                break;
+                            case 'progress':
+                                devLog.log(`진행률: ${parsedData.progress}% (${parsedData.completed_count}/${parsedData.total_count})`);
+                                onMessage(parsedData);
+                                break;
+                            case 'tester_complete':
+                                devLog.log('테스터 완료:', parsedData);
+                                onMessage(parsedData);
+                                onEnd();
+                                return;
+                            case 'error':
+                                devLog.error('테스터 실행 오류:', parsedData);
+                                throw new Error(parsedData.error || parsedData.message);
+                            default:
+                                onMessage(parsedData);
+                                break;
+                        }
+                    } catch (parseError) {
+                        devLog.error('SSE 데이터 파싱 실패:', jsonData, parseError);
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        devLog.error('테스터 스트리밍 실행 실패:', error);
+        onError(error);
+    }
+};
+
+/**
+ * 특정 워크플로우의 테스터 실행 IO 로그를 가져옵니다.
+ * @param {string} workflowName - 워크플로우 이름
+ * @returns {Promise<Object>} interaction_batch_id별로 그룹화된 IO 로그 데이터
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const getWorkflowTesterIOLogs = async (workflowName) => {
+    try {
+        devLog.log('getWorkflowTesterIOLogs called with:');
+        devLog.log('- workflowName:', workflowName);
+
+        const response = await apiClient(`${API_BASE_URL}/api/workflow/tester/io_logs?workflow_name=${encodeURIComponent(workflowName)}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
         const result = await response.json();
 
-        devLog.log('배치 실행 완료:', {
-            batchId: result.batch_id,
-            totalCount: result.total_count,
-            successCount: result.success_count,
-            errorCount: result.error_count,
-            totalExecutionTime: `${result.total_execution_time}ms`
+        if (!response.ok) {
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`,
+            );
+        }
+
+        devLog.log('Tester IO logs retrieved successfully:', {
+            workflowName: result.workflow_name,
+            batchGroupsCount: result.response_data_list?.length || 0
         });
 
         return result;
     } catch (error) {
-        devLog.error('배치 실행 실패:', error);
+        devLog.error('Failed to get workflow tester IO logs:', error);
         throw error;
     }
 };
 
 /**
- * 배치 실행 상태를 조회합니다. (선택사항)
- * @param {string} batchId - 배치 ID
- * @returns {Promise<Object>} 배치 상태 정보
+ * 특정 워크플로우의 테스터 실행 IO 로그를 삭제합니다.
+ * @param {string} workflowName - 워크플로우 이름
+ * @param {string} interactionBatchId - 삭제할 interaction_batch_id
+ * @returns {Promise<Object>} 삭제 결과를 포함하는 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
-export const getBatchStatus = async (batchId) => {
+export const deleteWorkflowTesterIOLogs = async (workflowName, interactionBatchId) => {
     try {
-        const response = await apiClient(`${API_BASE_URL}/api/workflow/batch/status/${batchId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+        devLog.log('deleteWorkflowTesterIOLogs called with:');
+        devLog.log('- workflowName:', workflowName);
+        devLog.log('- interactionBatchId:', interactionBatchId);
+
+        const params = new URLSearchParams({
+            workflow_name: workflowName,
+            interaction_batch_id: interactionBatchId,
         });
+
+        const response = await apiClient(
+            `${API_BASE_URL}/api/workflow/tester/io_logs?${params}`,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
         }
 
         const result = await response.json();
+        devLog.log('Tester IO logs deleted successfully:', result);
         return result;
     } catch (error) {
-        devLog.error('배치 상태 조회 실패:', error);
+        devLog.error('Failed to delete workflow tester IO logs:', error);
         throw error;
     }
 };

@@ -357,7 +357,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({ onStateChange, nodesInitial
         }
     };
 
-    const handleParameterChange = useCallback((nodeId: string, paramId: string, value: string | number): void => {
+    const handleParameterChange = useCallback((nodeId: string, paramId: string, value: string | number | boolean): void => {
         devLog.log('=== Canvas Parameter Change ===');
         devLog.log('Received:', { nodeId, paramId, value });
 
