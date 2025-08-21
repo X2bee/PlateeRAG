@@ -1,9 +1,10 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import styles from '@/app/main/assets/TesterLogs.module.scss';
-import { FiRefreshCw, FiDownload, FiEye, FiClock, FiDatabase, FiTrash2 } from 'react-icons/fi';
+import { FiRefreshCw, FiDownload, FiEye, FiClock, FiDatabase, FiTrash2, FiBarChart } from 'react-icons/fi';
 import { getWorkflowTesterIOLogs, deleteWorkflowTesterIOLogs } from '@/app/api/workflowAPI';
 import { devLog } from '@/app/_common/utils/logger';
+import toast from 'react-hot-toast';
 
 interface Workflow {
     id: number;
@@ -43,6 +44,7 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [expandedBatch, setExpandedBatch] = useState<string | null>(null);
+    const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc'); // 기본값을 desc(최신순)로 설정
 
     useEffect(() => {
         if (workflow) {
@@ -92,6 +94,26 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
         return formatDate(sortedLogs[0].updated_at);
     };
 
+    const getEarliestExecutionTimeRaw = (logs: LogEntry[]) => {
+        if (logs.length === 0) return new Date(0);
+
+        const sortedLogs = logs.sort((a, b) => new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime());
+        return new Date(sortedLogs[0].updated_at);
+    };
+
+    const getSortedBatchGroups = () => {
+        return [...batchGroups].sort((a, b) => {
+            const timeA = getEarliestExecutionTimeRaw(a.in_out_logs).getTime();
+            const timeB = getEarliestExecutionTimeRaw(b.in_out_logs).getTime();
+
+            return sortOrder === 'desc' ? timeB - timeA : timeA - timeB;
+        });
+    };
+
+    const toggleSortOrder = () => {
+        setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
+    };
+
     const toggleBatchExpansion = (batchId: string) => {
         setExpandedBatch(expandedBatch === batchId ? null : batchId);
     };
@@ -101,9 +123,13 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
             'Log ID,Interaction ID,Input Data,Expected Output,Output Data,평가,Updated At',
             ...batchGroup.in_out_logs.map(log => {
                 const escapeCsv = (str: string) => `"${(str || '').replace(/"/g, '""')}"`;
-                const score = (log as any).llm_eval_score !== undefined
-                    ? parseFloat((log as any).llm_eval_score).toFixed(1)
-                    : '0.0';
+                const score = (() => {
+                    const scoreValue = (log as any).llm_eval_score;
+                    if (scoreValue !== null && scoreValue !== undefined && !isNaN(scoreValue)) {
+                        return parseFloat(scoreValue).toFixed(1);
+                    }
+                    return '0.0';
+                })();
                 return [
                     log.log_id,
                     escapeCsv(log.interaction_id),
@@ -127,11 +153,104 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
     const deleteBatchLogs = async (batchGroup: BatchGroup) => {
         if (!workflow) return;
 
-        const confirmDelete = window.confirm(
-            `배치 그룹 "${batchGroup.interaction_batch_id}"의 로그를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`
-        );
+        // Toast를 사용한 확인 메시지
+        const confirmToast = new Promise<boolean>((resolve) => {
+            toast((t) => (
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                    }}
+                >
+                    <div
+                        style={{
+                            fontWeight: '600',
+                            color: '#dc2626',
+                            fontSize: '1rem',
+                        }}
+                    >
+                        배치 그룹 삭제
+                    </div>
+                    <div
+                        style={{
+                            fontSize: '0.9rem',
+                            color: '#374151',
+                            lineHeight: '1.4',
+                        }}
+                    >
+                        정말로 &quot;<strong>{batchGroup.interaction_batch_id}</strong>&quot;를 삭제하시겠습니까?
+                        <br />
+                        이 작업은 되돌릴 수 없습니다.
+                    </div>
+                    <div
+                        style={{
+                            display: 'flex',
+                            gap: '8px',
+                            justifyContent: 'flex-end',
+                            marginTop: '4px',
+                        }}
+                    >
+                        <button
+                            onClick={() => {
+                                toast.dismiss(t.id);
+                                resolve(false);
+                            }}
+                            style={{
+                                padding: '8px 16px',
+                                backgroundColor: '#ffffff',
+                                border: '2px solid #6b7280',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem',
+                                fontWeight: '500',
+                                color: '#374151',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                            }}
+                        >
+                            취소
+                        </button>
+                        <button
+                            onClick={() => {
+                                toast.dismiss(t.id);
+                                resolve(true);
+                            }}
+                            style={{
+                                padding: '8px 16px',
+                                backgroundColor: '#dc2626',
+                                color: 'white',
+                                border: '2px solid #b91c1c',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem',
+                                fontWeight: '500',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                            }}
+                        >
+                            삭제
+                        </button>
+                    </div>
+                </div>
+            ), {
+                duration: Infinity,
+                style: {
+                    maxWidth: '420px',
+                    padding: '20px',
+                    backgroundColor: '#f9fafb',
+                    border: '2px solid #374151',
+                    borderRadius: '12px',
+                    boxShadow:
+                        '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
+                    color: '#374151',
+                    fontFamily: 'system-ui, -apple-system, sans-serif',
+                },
+            });
+        });
 
-        if (!confirmDelete) return;
+        const confirmed = await confirmToast;
+        if (!confirmed) return;
 
         try {
             const workflowName = workflow.workflow_name.replace('.json', '');
@@ -142,12 +261,12 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
             // 삭제 후 목록 새로고침
             await loadBatchLogs();
 
-            // 성공 메시지 (선택사항)
-            alert(`${result.deleted_count || 0}개의 로그가 성공적으로 삭제되었습니다.`);
+            // 성공 토스트 메시지
+            toast.success(`${result.deleted_count || 0}개의 로그가 성공적으로 삭제되었습니다.`);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : '로그 삭제에 실패했습니다.';
             devLog.error('Failed to delete batch logs:', err);
-            alert(`삭제 실패: ${errorMessage}`);
+            toast.error(`삭제 실패: ${errorMessage}`);
         }
     };
 
@@ -173,6 +292,15 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
                     <div className={styles.recordCount}>
                         <span>총 {batchGroups.reduce((sum, group) => sum + group.in_out_logs.length, 0)}개 로그</span>
                     </div>
+                    <button
+                        onClick={() => {/* TODO: 차트 기능 구현 */}}
+                        disabled={loading}
+                        className={`${styles.btn} ${styles.chart}`}
+                        title="차트 보기"
+                    >
+                        <FiBarChart />
+                        차트보기
+                    </button>
                     <button
                         onClick={loadBatchLogs}
                         disabled={loading}
@@ -237,9 +365,18 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
                     {/* Batch Groups Section */}
                     <div className={styles.batchGroupsContainer}>
                         <div className={styles.batchGroupsSection}>
-                            <h4>배치 그룹 목록</h4>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                                <h4>배치 그룹 목록</h4>
+                                <button
+                                    onClick={toggleSortOrder}
+                                    className={`${styles.btn} ${styles.sortBtn}`}
+                                    title={sortOrder === 'desc' ? '오래된 순으로 정렬' : '최신 순으로 정렬'}
+                                >
+                                    {sortOrder === 'desc' ? '최신순 ↓' : '오래된순 ↑'}
+                                </button>
+                            </div>
                             <div className={styles.batchGroupsList}>
-                                {batchGroups.map((batchGroup) => (
+                                {getSortedBatchGroups().map((batchGroup) => (
                                     <div key={batchGroup.interaction_batch_id} className={styles.batchGroup}>
                                         <div
                                             className={styles.batchHeader}
@@ -255,6 +392,29 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
                                                 <div className={styles.stat}>
                                                     <span className={styles.statLabel}>로그 개수</span>
                                                     <span className={styles.statValue}>{batchGroup.in_out_logs.length}개</span>
+                                                </div>
+                                                <div className={styles.stat}>
+                                                    <span className={styles.statLabel}>정답률</span>
+                                                    <span className={styles.statValue}>
+                                                        {(() => {
+                                                            const scores = batchGroup.in_out_logs.map(log => {
+                                                                const score = (log as any).llm_eval_score;
+                                                                return (score === null || score === undefined || isNaN(score)) ? 0.0 : parseFloat(score);
+                                                            });
+                                                            const validScores = batchGroup.in_out_logs.filter(log => {
+                                                                const score = (log as any).llm_eval_score;
+                                                                return score !== null && score !== undefined && !isNaN(score);
+                                                            });
+
+                                                            if (validScores.length === 0) {
+                                                                return "점수 없음";
+                                                            }
+
+                                                            const avgScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+                                                            const scorePercent = (avgScore * 100).toFixed(1);
+                                                            return `${scorePercent}%`;
+                                                        })()}
+                                                    </span>
                                                 </div>
                                                 <div className={styles.stat}>
                                                     <span className={styles.statLabel}>상태</span>
@@ -319,10 +479,7 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
                                                                 {formatData(log.output_data)}
                                                             </div>
                                                             <div className={styles.logScore}>
-                                                                {(log as any).llm_eval_score !== undefined
-                                                                    ? parseFloat((log as any).llm_eval_score).toFixed(1)
-                                                                    : '0.0'
-                                                                }
+                                                                {isNaN((log as any).llm_eval_score) ? 'NaN' : parseFloat((log as any).llm_eval_score).toFixed(2)}
                                                             </div>
                                                         </div>
                                                     ))}

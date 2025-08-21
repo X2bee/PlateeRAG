@@ -401,6 +401,16 @@
                 background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
                 animation: shimmer 2s infinite;
             }
+
+            // LLM 평가용 빨간색 프로그레스 바
+            &--eval {
+                background: linear-gradient(to right, #e53e3e, #c53030);
+
+                &::after {
+                    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+                    animation: shimmer 2s infinite;
+                }
+            }
         }
     }
 }

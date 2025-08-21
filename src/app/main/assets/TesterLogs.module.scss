@@ -318,8 +318,9 @@
 
 .stat {
     display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: center;
 
     .statLabel {
         font-size: $font-size-xs;
