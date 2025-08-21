@@ -137,12 +137,24 @@ const parseCitation = (citationText: string): SourceInfo | null => {
         // JSON 문자열 정리
         jsonString = jsonString.trim();
         
-        // 다양한 이스케이프 처리
-        jsonString = jsonString.replace(/\\"/g, '"');     // 이스케이프된 따옴표
-        jsonString = jsonString.replace(/\\n/g, '\n');    // 이스케이프된 줄바꿈
-        jsonString = jsonString.replace(/\\t/g, '\t');    // 이스케이프된 탭
-        jsonString = jsonString.replace(/\\r/g, '\r');    // 이스케이프된 캐리지 리턴
-        jsonString = jsonString.replace(/\\+/g, '\\');    // 연속된 백슬래시 처리
+        // 이스케이프 처리를 더 신중하게 수행
+        // 우선 임시 플레이스홀더로 변환하여 다른 처리와 충돌 방지
+        const ESCAPED_QUOTE_PLACEHOLDER = '__ESCAPED_QUOTE__';
+        const ESCAPED_NEWLINE_PLACEHOLDER = '__ESCAPED_NEWLINE__';
+        const ESCAPED_TAB_PLACEHOLDER = '__ESCAPED_TAB__';
+        const ESCAPED_RETURN_PLACEHOLDER = '__ESCAPED_RETURN__';
+        
+        jsonString = jsonString.replace(/\\"/g, ESCAPED_QUOTE_PLACEHOLDER);
+        jsonString = jsonString.replace(/\\n/g, ESCAPED_NEWLINE_PLACEHOLDER);
+        jsonString = jsonString.replace(/\\t/g, ESCAPED_TAB_PLACEHOLDER);
+        jsonString = jsonString.replace(/\\r/g, ESCAPED_RETURN_PLACEHOLDER);
+        jsonString = jsonString.replace(/\\+/g, '\\');
+        
+        // 플레이스홀더를 실제 값으로 복원
+        jsonString = jsonString.replace(new RegExp(ESCAPED_QUOTE_PLACEHOLDER, 'g'), '"');
+        jsonString = jsonString.replace(new RegExp(ESCAPED_NEWLINE_PLACEHOLDER, 'g'), '\n');
+        jsonString = jsonString.replace(new RegExp(ESCAPED_TAB_PLACEHOLDER, 'g'), '\t');
+        jsonString = jsonString.replace(new RegExp(ESCAPED_RETURN_PLACEHOLDER, 'g'), '\r');
         
         // 한국어가 포함된 경우를 위한 UTF-8 처리
         try {
@@ -724,7 +736,7 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
                 continue;
             }
             
-            // 균형잡힌 괄호 찾기
+            // 균형잡힌 괄호 찾기 - 이스케이프 문자 처리 개선
             let braceCount = 1;
             let braceEnd = -1;
             let inString = false;
@@ -733,21 +745,25 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
             for (let j = braceStart + 1; j < inputText.length; j++) {
                 const char = inputText[j];
                 
+                // 이전 문자가 백슬래시인 경우 현재 문자는 이스케이프됨
                 if (escaped) {
                     escaped = false;
                     continue;
                 }
                 
+                // 백슬래시 처리 - 다음 문자를 이스케이프
                 if (char === '\\') {
                     escaped = true;
                     continue;
                 }
                 
-                if (char === '"') {
+                // 따옴표 처리 - 문자열 상태 토글
+                if (char === '"' && !escaped) {
                     inString = !inString;
                     continue;
                 }
                 
+                // 문자열 내부가 아닐 때만 중괄호 카운팅
                 if (!inString) {
                     if (char === '{') {
                         braceCount++;
