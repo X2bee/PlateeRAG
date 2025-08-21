@@ -7,6 +7,7 @@ import { APP_CONFIG } from '@/app/config';
 import SourceButton from '@/app/chat/components/SourceButton';
 import { SourceInfo } from '@/app/chat/types/source';
 import sourceStyles from '@/app/chat/assets/SourceButton.module.scss';
+import { devLog } from '@/app/_common/utils/logger';
 
 import { Prism } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -147,12 +148,12 @@ const parseCitation = (citationText: string): SourceInfo | null => {
         try {
             const sourceInfo = JSON.parse(jsonString);
             
-            console.log('✅ [parseCitation] JSON parsed successfully:', sourceInfo);
+            devLog.log('✅ [parseCitation] JSON parsed successfully:', sourceInfo);
             
             // 필수 필드 확인
             if (!sourceInfo.file_name && !sourceInfo.filename && !sourceInfo.fileName && 
                 !sourceInfo.file_path && !sourceInfo.filepath && !sourceInfo.filePath) {
-                console.warn('Missing required fields in citation:', sourceInfo);
+                devLog.warn('Missing required fields in citation:', sourceInfo);
                 return null;
             }
             
@@ -743,12 +744,10 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
         const citationText = match[0];
         const sourceInfo = parseCitation(citationText);
         
-        console.log('🔍 [processInlineMarkdownWithCitations] Citation text:', citationText);
-        console.log('🔍 [processInlineMarkdownWithCitations] Parsed sourceInfo:', sourceInfo);
-        console.log('🔍 [processInlineMarkdownWithCitations] onViewSource available:', !!onViewSource);
+        devLog.log('🔍 [processInlineMarkdownWithCitations] Parsed sourceInfo:', sourceInfo);
         
         if (sourceInfo && onViewSource) {
-            console.log('✅ [processInlineMarkdownWithCitations] Creating SourceButton');
+            devLog.log('✅ [processInlineMarkdownWithCitations] Creating SourceButton');
             elements.push(
                 <SourceButton
                     key={`${key}-citation-${match.index}`}

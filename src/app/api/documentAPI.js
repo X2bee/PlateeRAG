@@ -1,6 +1,7 @@
 import { apiClient } from './apiClient';
 import { API_BASE_URL } from '../config';
 import { documentCache } from '../_common/utils/documentCache';
+import { devLog } from '../_common/utils/logger';
 
 /**
  * 파일 경로를 URL 안전 형태로 인코딩
@@ -31,23 +32,22 @@ export const fetchDocumentByPath = async (filePath, useCache = true, mode = null
     try {
         // 파일 경로 URL 인코딩
         const encodedFilePath = encodeFilePath(filePath);
-        console.log(`🔤 [DocumentAPI] Original path: ${filePath}`);
-        console.log(`🔤 [DocumentAPI] Encoded path: ${encodedFilePath}`);
+        devLog.log(`🔤 [DocumentAPI] Original path: ${filePath}`);
+        devLog.log(`🔤 [DocumentAPI] Encoded path: ${encodedFilePath}`);
         
         // 캐시에서 먼저 확인 (원본 경로를 키로 사용)
         if (useCache) {
             const cachedData = documentCache.get(filePath);
             if (cachedData) {
-                console.log(`📄 [DocumentAPI] Using cached document: ${filePath}`);
+                devLog.log(`📄 [DocumentAPI] Using cached document: ${filePath}`);
                 return cachedData;
             }
         }
 
-        console.log(`🌐 [DocumentAPI] Fetching document from server: ${filePath}`);
+        devLog.log(`🌐 [DocumentAPI] Fetching document from server: ${filePath}`);
         
         // 개발 환경에서 백엔드 API가 없는 경우 샘플 PDF 제공
         if (process.env.NODE_ENV === 'development' && filePath.includes('sample')) {
-            console.log('🔧 [DocumentAPI] Development mode: using sample PDF');
             
             // 간단한 PDF 헤더 생성 (실제로는 백엔드에서 실제 PDF 파일을 반환해야 함)
             const samplePdfContent = `%PDF-1.4
@@ -137,10 +137,9 @@ startxref
         // deploy 모드인 경우 user_id 추가
         if (mode === 'deploy' && userId) {
             requestBody.user_id = userId;
-            console.log(`🔑 [DocumentAPI] Deploy mode: Adding user_id: ${userId}`);
+            devLog.log(`🔑 [DocumentAPI] Deploy mode: Adding user_id: ${userId}`);
         }
 
-        console.log(`📤 [DocumentAPI] Request body:`, requestBody);
         
         // deploy 모드에서는 별도 엔드포인트 사용 (인증 없음)
         const endpoint = mode === 'deploy' 
@@ -199,7 +198,7 @@ export const fetchDocumentMetadata = async (filePath, mode = null, userId = null
         // deploy 모드인 경우 user_id 추가
         if (mode === 'deploy' && userId) {
             requestBody.user_id = userId;
-            console.log(`🔑 [DocumentAPI] Deploy mode: Adding user_id for metadata: ${userId}`);
+            devLog.log(`🔑 [DocumentAPI] Deploy mode: Adding user_id for metadata: ${userId}`);
         }
 
         // deploy 모드에서는 별도 엔드포인트 사용 (인증 없음)
@@ -251,7 +250,7 @@ export const checkDocumentAccess = async (filePath, mode = null, userId = null) 
         // deploy 모드인 경우 user_id 추가
         if (mode === 'deploy' && userId) {
             requestBody.user_id = userId;
-            console.log(`🔑 [DocumentAPI] Deploy mode: Adding user_id for access check: ${userId}`);
+            devLog.log(`🔑 [DocumentAPI] Deploy mode: Adding user_id for access check: ${userId}`);
         }
 
         // deploy 모드에서는 별도 엔드포인트 사용 (인증 없음)
