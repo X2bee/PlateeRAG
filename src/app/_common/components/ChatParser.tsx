@@ -692,7 +692,7 @@ const CitationPlaceholder: React.FC = () => {
 };
 
 /**
- * Citation을 포함한 인라인 마크다운 처리
+ * Citation을 포함한 텍스트 처리 - Citation 파싱을 마크다운보다 먼저 수행
  */
 const processInlineMarkdownWithCitations = (text: string, key: string, onViewSource?: (sourceInfo: SourceInfo) => void): React.ReactNode[] => {
     const elements: React.ReactNode[] = [];
@@ -792,7 +792,7 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
     
     console.log('🔍 [processInlineMarkdownWithCitations] Looking for citations in text:', text);
     
-    // Citation 찾기
+    // 1. Citation 우선 처리 - 마크다운 파싱보다 먼저 수행
     const citations = findCitations(text);
     
     if (citations.length === 0) {
@@ -801,7 +801,7 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
         const partialMatch = partialCitationRegex.exec(text);
         
         if (partialMatch) {
-            // 부분적인 citation 이전 텍스트 처리
+            // 부분적인 citation 이전 텍스트 처리 - 마크다운 파싱 적용
             const beforeText = text.slice(0, partialMatch.index);
             if (beforeText) {
                 const processedText = processInlineMarkdown(beforeText);
@@ -817,19 +817,19 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
             
             return [<div key={key} className={sourceStyles.lineWithCitations}>{elements}</div>];
         } else {
-            // Citation이 전혀 없는 경우 기존 방식으로 처리
+            // Citation이 전혀 없는 경우 마크다운 파싱 적용
             const processedText = processInlineMarkdown(text);
             return [<div key={key} dangerouslySetInnerHTML={{ __html: processedText }} />];
         }
     }
     
-    // Citation이 있는 경우 텍스트를 분할하여 처리
+    // 2. Citation이 있는 경우 Citation과 텍스트를 분할하여 처리
     let currentIndex = 0;
     
     for (let i = 0; i < citations.length; i++) {
         const citation = citations[i];
         
-        // Citation 이전 텍스트 처리
+        // Citation 이전 텍스트 처리 - 마크다운 파싱 적용
         if (citation.start > currentIndex) {
             const beforeText = text.slice(currentIndex, citation.start);
             if (beforeText.trim()) {
@@ -840,7 +840,7 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
             }
         }
         
-        // Citation 처리
+        // Citation 처리 - 버튼으로 변환 (마크다운 파싱 제외)
         const sourceInfo = parseCitation(citation.content);
         
         console.log('✅ [processInlineMarkdownWithCitations] Found citation:', citation.content);
@@ -858,7 +858,7 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
             );
         } else {
             console.log('❌ [processInlineMarkdownWithCitations] Citation parsing failed, showing fallback');
-            // 파싱 실패 시 원본 텍스트 표시
+            // 파싱 실패 시 원본 텍스트 표시 (마크다운 파싱 제외)
             elements.push(
                 <span key={`${key}-citation-fallback-${i}`}>
                     {citation.content}
@@ -869,7 +869,7 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
         currentIndex = citation.end;
     }
     
-    // 남은 텍스트 처리
+    // 남은 텍스트 처리 - 마크다운 파싱 적용
     if (currentIndex < text.length) {
         const remainingText = text.slice(currentIndex);
         if (remainingText.trim()) {
