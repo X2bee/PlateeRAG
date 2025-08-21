@@ -133,6 +133,14 @@
         }
     }
 
+    &.chart {
+        background: $bootstrap-blue;
+
+        &:hover:not(:disabled) {
+            background: #0056b3;
+        }
+    }
+
     &.download {
         background: $green-600;
 

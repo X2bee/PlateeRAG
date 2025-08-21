@@ -5,6 +5,7 @@ import { FiRefreshCw, FiDownload, FiEye, FiClock, FiDatabase, FiTrash2, FiBarCha
 import { getWorkflowTesterIOLogs, deleteWorkflowTesterIOLogs } from '@/app/api/workflowAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import toast from 'react-hot-toast';
+import TesterChartDashboard from './charts/TesterChartDashboard';
 
 interface Workflow {
     id: number;
@@ -45,6 +46,7 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
     const [error, setError] = useState<string | null>(null);
     const [expandedBatch, setExpandedBatch] = useState<string | null>(null);
     const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc'); // 기본값을 desc(최신순)로 설정
+    const [isChartDashboardOpen, setIsChartDashboardOpen] = useState(false);
 
     useEffect(() => {
         if (workflow) {
@@ -293,8 +295,8 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
                         <span>총 {batchGroups.reduce((sum, group) => sum + group.in_out_logs.length, 0)}개 로그</span>
                     </div>
                     <button
-                        onClick={() => {/* TODO: 차트 기능 구현 */}}
-                        disabled={loading}
+                        onClick={() => setIsChartDashboardOpen(true)}
+                        disabled={loading || batchGroups.length === 0}
                         className={`${styles.btn} ${styles.chart}`}
                         title="차트 보기"
                     >
@@ -493,6 +495,12 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
                     </div>
                 </div>
             )}
+            <TesterChartDashboard
+                isOpen={isChartDashboardOpen}
+                onClose={() => setIsChartDashboardOpen(false)}
+                workflow={workflow}
+                batchGroups={batchGroups}
+            />
         </div>
     );
 };
