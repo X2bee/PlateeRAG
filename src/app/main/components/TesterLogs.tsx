@@ -23,6 +23,7 @@ interface LogEntry {
     input_data: any;
     output_data: any;
     expected_output: any;
+    execution_time?: number;
     updated_at: string;
 }
 
@@ -84,21 +85,32 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
             : JSON.stringify(data);
     };
 
+    const getEarliestExecutionTime = (logs: LogEntry[]) => {
+        if (logs.length === 0) return '-';
+
+        const sortedLogs = logs.sort((a, b) => new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime());
+        return formatDate(sortedLogs[0].updated_at);
+    };
+
     const toggleBatchExpansion = (batchId: string) => {
         setExpandedBatch(expandedBatch === batchId ? null : batchId);
     };
 
     const downloadBatchLogs = (batchGroup: BatchGroup) => {
         const csvContent = [
-            'Log ID,Interaction ID,Input Data,Expected Output,Output Data,Updated At',
+            'Log ID,Interaction ID,Input Data,Expected Output,Output Data,평가,Updated At',
             ...batchGroup.in_out_logs.map(log => {
                 const escapeCsv = (str: string) => `"${(str || '').replace(/"/g, '""')}"`;
+                const score = (log as any).llm_eval_score !== undefined
+                    ? parseFloat((log as any).llm_eval_score).toFixed(1)
+                    : '0.0';
                 return [
                     log.log_id,
                     escapeCsv(log.interaction_id),
                     escapeCsv(typeof log.input_data === 'string' ? log.input_data : JSON.stringify(log.input_data || {})),
                     escapeCsv(typeof log.expected_output === 'string' ? log.expected_output : JSON.stringify(log.expected_output || {})),
                     escapeCsv(typeof log.output_data === 'string' ? log.output_data : JSON.stringify(log.output_data || {})),
+                    score,
                     escapeCsv(log.updated_at)
                 ].join(',');
             })
@@ -234,9 +246,9 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
                                             onClick={() => toggleBatchExpansion(batchGroup.interaction_batch_id)}
                                         >
                                             <div className={styles.batchInfo}>
-                                                <h5>배치 ID: {batchGroup.interaction_batch_id}</h5>
+                                                <h5>ID: {batchGroup.interaction_batch_id}</h5>
                                                 <div className={styles.batchId}>
-                                                    ID: {batchGroup.interaction_batch_id}
+                                                    {getEarliestExecutionTime(batchGroup.in_out_logs)}
                                                 </div>
                                             </div>
                                             <div className={styles.batchStats}>
@@ -280,7 +292,7 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
                                                     <div>입력 데이터</div>
                                                     <div>기대 답변</div>
                                                     <div>출력 데이터</div>
-                                                    <div>실행 시간</div>
+                                                    <div>평가</div>
                                                 </div>
                                                 <div className={styles.logsBody}>
                                                     {batchGroup.in_out_logs
@@ -306,9 +318,11 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
                                                             >
                                                                 {formatData(log.output_data)}
                                                             </div>
-                                                            <div className={styles.logTime}>
-                                                                <FiClock />
-                                                                {formatDate(log.updated_at)}
+                                                            <div className={styles.logScore}>
+                                                                {(log as any).llm_eval_score !== undefined
+                                                                    ? parseFloat((log as any).llm_eval_score).toFixed(1)
+                                                                    : '0.0'
+                                                                }
                                                             </div>
                                                         </div>
                                                     ))}

@@ -72,7 +72,22 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
 
     const [isXLSXLoaded, setIsXLSXLoaded] = useState(false);
     const [isMammothLoaded, setIsMammothLoaded] = useState(false);
+    const [llmEvalEnabled, setLLMEvalEnabled] = useState(false);
+    const [llmEvalType, setLLMEvalType] = useState<'vLLM' | 'OpenAI'>('OpenAI');
+    const [llmEvalModel, setLLMEvalModel] = useState('gpt-5-mini');
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // OpenAI 모델 옵션
+    const openAIModels = [
+        {"value": "gpt-oss-20b", "label": "GPT-OSS-20B"},
+        {"value": "gpt-oss-120b", "label": "GPT-OSS-120B"},
+        {"value": "gpt-3.5-turbo", "label": "GPT-3.5 Turbo"},
+        {"value": "gpt-4", "label": "GPT-4"},
+        {"value": "gpt-4o", "label": "GPT-4o"},
+        {"value": "gpt-5", "label": "GPT-5"},
+        {"value": "gpt-5-mini", "label": "GPT-5 Mini"},
+        {"value": "gpt-5-nano", "label": "GPT-5 Nano"},
+    ];
 
     // 파일명이 있지만 File 객체가 없는 경우 (페이지 새로고침 후) UI에 파일명 표시
     useEffect(() => {
@@ -377,7 +392,10 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                 })),
                 batchSize: batchSize,
                 interactionId: 'tester_test',
-                selectedCollections: null
+                selectedCollections: null,
+                llmEvalEnabled: llmEvalEnabled,
+                llmEvalType: llmEvalType,
+                llmEvalModel: llmEvalModel
             };
 
             // streamResults는 더 이상 사용하지 않음 (즉시 Context 업데이트로 대체)
@@ -402,6 +420,9 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                 batchSize: testRequest.batchSize,
                 interactionId: testRequest.interactionId,
                 selectedCollections: testRequest.selectedCollections,
+                llmEvalEnabled: testRequest.llmEvalEnabled,
+                llmEvalType: testRequest.llmEvalType,
+                llmEvalModel: testRequest.llmEvalModel,
                 onMessage: (data: SSEMessage) => {
                     switch (data.type) {
                         case 'tester_start':
@@ -436,6 +457,39 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                                     devLog.error('❌ 결과 데이터가 없습니다:', data);
                                 }
                             break; }
+
+                        case 'eval_start':
+                            devLog.log('LLM 평가 시작:', data.message);
+                            break;
+
+                        case 'eval_result':
+                            {
+                                // LLM 평가 점수를 테스트 데이터에 반영
+                                const testId = data.test_id;
+                                const score = data.llm_eval_score;
+
+                                updateTestData((prevData: TestData[]) => {
+                                    return prevData.map((item: TestData) => {
+                                        if (item.id === testId) {
+                                            return {
+                                                ...item,
+                                                llm_eval_score: score
+                                            };
+                                        }
+                                        return item;
+                                    });
+                                });
+
+                                devLog.log(`테스트 ${testId} LLM 평가 완료: ${score}`);
+                            break; }
+
+                        case 'eval_error':
+                            devLog.error(`테스트 ${data.test_id} LLM 평가 실패:`, data.error);
+                            break;
+
+                        case 'eval_complete':
+                            devLog.log('LLM 평가 완료:', data.message);
+                            break;
 
                         case 'progress':
                             setProgress(data.progress || 0);
@@ -525,19 +579,35 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
     const downloadResults = () => {
         if (testData.length === 0) return;
 
+        const headers = llmEvalEnabled
+            ? 'ID,입력 내용,예상 결과,실제 결과,평가,상태,소요 시간,오류'
+            : 'ID,입력 내용,예상 결과,실제 결과,상태,소요 시간,오류';
+
         const csvContent = [
-            'ID,입력 내용,예상 결과,실제 결과,상태,소요 시간,오류',
+            headers,
             ...testData.map(item => {
                 const escapeCsv = (str: string) => `"${(str || '').replace(/"/g, '""')}"`;
-                return [
+                const baseData = [
                     item.id,
                     escapeCsv(item.input),
                     escapeCsv(item.expectedOutput || ''),
                     escapeCsv(item.actualOutput || ''),
-                    item.status,
+                ];
+
+                if (llmEvalEnabled) {
+                    const score = (item as any).llm_eval_score !== undefined
+                        ? parseFloat((item as any).llm_eval_score).toFixed(1)
+                        : '0.0';
+                    baseData.push(score);
+                }
+
+                baseData.push(
+                    item.status || 'pending',
                     formatExecutionTime(item.executionTime),
                     escapeCsv(item.error || '')
-                ].join(',');
+                );
+
+                return baseData.join(',');
             })
         ].join('\n');
 
@@ -604,10 +674,10 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                         onClick={runTest}
                         disabled={!testData.length || isRunning}
                         className={`${styles.btn} ${styles.run}`}
-                        title="실시간 스트리밍으로 모든 테스트를 처리하며 진행 상황을 실시간으로 확인할 수 있습니다."
+                        title="워크플로우를 테스트합니다."
                     >
                         {isRunning ? <FiRefreshCw className={styles.spinning} /> : <FiPlay />}
-                        {isRunning ? '실시간 스트리밍 중...' : '테스터 실행 (실시간)'}
+                        {isRunning ? '워크플로우 테스트 진행 중...' : '테스터 실행 (실시간)'}
                     </button>
                     <button
                         onClick={downloadResults}
@@ -628,6 +698,75 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                         </button>
                     )}
                 </div>
+            </div>
+
+            {/* LLM 평가 설정 */}
+            <div className={styles.llmEvalSection}>
+                <div className={styles.llmEvalMainRow}>
+                    <label className={styles.llmEvalLabel}>
+                        <div className={styles.customCheckbox}>
+                            <input
+                                type="checkbox"
+                                checked={llmEvalEnabled}
+                                onChange={(e) => setLLMEvalEnabled(e.target.checked)}
+                                disabled={isRunning}
+                            />
+                            <span className={styles.checkmark}></span>
+                        </div>
+                        LLM 평가 사용
+                    </label>
+                </div>
+
+                {llmEvalEnabled && (
+                    <>
+                        <div className={styles.llmEvalDivider}></div>
+                        <div className={styles.llmEvalContent}>
+                            <div className={styles.llmEvalRow}>
+                                <label>LLM 평가 종류:</label>
+                                <select
+                                    value={llmEvalType}
+                                    onChange={(e) => {
+                                        const newType = e.target.value as 'vLLM' | 'OpenAI';
+                                        setLLMEvalType(newType);
+                                        // OpenAI로 변경 시 기본 모델 설정
+                                        if (newType === 'OpenAI') {
+                                            setLLMEvalModel('gpt-4o');
+                                        } else {
+                                            setLLMEvalModel('vllm_model');
+                                        }
+                                    }}
+                                    disabled={isRunning}
+                                    className={styles.llmEvalSelect}
+                                >
+                                    <option value="vLLM">vLLM</option>
+                                    <option value="OpenAI">OpenAI</option>
+                                </select>
+                            </div>
+
+                            <div className={styles.llmEvalRow}>
+                                <label>LLM 평가 모델:</label>
+                                {llmEvalType === 'OpenAI' ? (
+                                    <select
+                                        value={llmEvalModel}
+                                        onChange={(e) => setLLMEvalModel(e.target.value)}
+                                        disabled={isRunning}
+                                        className={styles.llmEvalSelect}
+                                    >
+                                        {openAIModels.map(model => (
+                                            <option key={model.value} value={model.value}>
+                                                {model.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <div className={styles.llmEvalNotice}>
+                                        vLLM 선택시, 현재 환경 설정된 vLLM 모델을 사용하여 작업을 진행합니다.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
 
             {/* File Info */}
@@ -652,7 +791,7 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                 <div className={styles.progressContainer}>
                     <div className={styles.progressHeader}>
                         <span>
-                            실시간 스트리밍으로 테스터 처리 중...
+                            워크플로우 테스트 진행 중...
                         </span>
                         <span className={styles.progressStats}>
                             {completedCount} / {testData.length} 완료 ({Math.round(progress)}%)
@@ -734,18 +873,19 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                     )}
 
                     <div className={styles.resultsTable}>
-                        <div className={styles.results__header}>
+                        <div className={`${styles.results__header} ${llmEvalEnabled ? styles.withEval : ''}`}>
                             <div>ID</div>
                             <div>입력 내용</div>
                             <div>기대 답변</div>
                             <div>실제 결과</div>
+                            {llmEvalEnabled && <div>평가</div>}
                             <div>상태</div>
                             <div>소요 시간</div>
                         </div>
 
                         <div className={styles.results__body}>
                             {testData.map((item, index) => (
-                                <div key={item.id} className={styles.results__row}>
+                                <div key={item.id} className={`${styles.results__row} ${llmEvalEnabled ? styles.withEval : ''}`}>
                                     <div className={styles.results__id}>{item.id}</div>
                                     <div className={styles.results__input} title={item.input}>
                                         {item.input.length > 50 ? `${item.input.substring(0, 50)}...` : item.input}
@@ -767,6 +907,14 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                                                 : '-')
                                         }
                                     </div>
+                                    {llmEvalEnabled && (
+                                        <div className={styles.results__score}>
+                                            {(item as any).llm_eval_score !== undefined
+                                                ? parseFloat((item as any).llm_eval_score).toFixed(1)
+                                                : '0.0'
+                                            }
+                                        </div>
+                                    )}
                                     <div className={styles.results__status}>
                                         <span className={`${styles.status} ${styles[`status--${item.status}`]}`}>
                                             {item.status === 'success' && <FiCheckCircle />}

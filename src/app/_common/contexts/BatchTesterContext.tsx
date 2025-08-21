@@ -10,6 +10,7 @@ export interface TestData {
     status?: 'pending' | 'running' | 'success' | 'error';
     executionTime?: number;
     error?: string | null;
+    llm_eval_score?: number;
 }
 
 export interface BatchTestState {

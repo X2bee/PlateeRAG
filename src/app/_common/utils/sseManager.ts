@@ -1,7 +1,7 @@
 import { devLog } from './logger';
 
 export interface SSEMessage {
-    type: 'tester_start' | 'group_start' | 'test_result' | 'progress' | 'tester_complete' | 'error';
+    type: 'tester_start' | 'group_start' | 'test_result' | 'progress' | 'tester_complete' | 'error' | 'eval_start' | 'eval_result' | 'eval_error' | 'eval_complete';
     batch_id?: string;
     total_count?: number;
     batch_size?: number;
@@ -17,6 +17,8 @@ export interface SSEMessage {
     total_execution_time?: number;
     message?: string;
     error?: string;
+    test_id?: number;
+    llm_eval_score?: number;
 }
 
 export interface SSEConnectionOptions {

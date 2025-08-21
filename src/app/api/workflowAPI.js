@@ -600,6 +600,9 @@ export const deleteWorkflowPerformance = async (workflowName, workflowId) => {
  * @param {number} testerRequest.batchSize - 배치 크기 (기본값: 5)
  * @param {string} testerRequest.interactionId - 상호작용 ID (기본값: 'tester_test')
  * @param {Array<string>|null} testerRequest.selectedCollections - 선택된 컬렉션
+ * @param {boolean} testerRequest.llmEvalEnabled - LLM 평가 활성화 여부 (기본값: false)
+ * @param {string} testerRequest.llmEvalType - LLM 평가 종류 ('vLLM' | 'OpenAI')
+ * @param {string} testerRequest.llmEvalModel - LLM 평가 모델명
  * @param {function(Object): void} onMessage - SSE 메시지를 수신할 때마다 호출될 콜백
  * @param {function(): void} onEnd - 스트림이 정상적으로 종료될 때 호출될 콜백
  * @param {function(Error): void} onError - 오류 발생 시 호출될 콜백
@@ -613,6 +616,9 @@ export const executeWorkflowTesterStream = async ({
     batchSize = 5,
     interactionId = 'tester_test',
     selectedCollections = null,
+    llmEvalEnabled = false,
+    llmEvalType = 'OpenAI',
+    llmEvalModel = 'gpt-4o',
     onMessage,
     onEnd,
     onError
@@ -636,7 +642,10 @@ export const executeWorkflowTesterStream = async ({
             })),
             batch_size: batchSize,
             interaction_id: interactionId,
-            selected_collections: selectedCollections
+            selected_collections: selectedCollections,
+            llm_eval_enabled: llmEvalEnabled,
+            llm_eval_type: llmEvalType,
+            llm_eval_model: llmEvalModel
         };
 
         // SSE 스트리밍 API 호출
