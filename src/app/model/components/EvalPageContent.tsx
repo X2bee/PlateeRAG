@@ -443,7 +443,7 @@ const Evaluation = () => {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // 가짜 Job ID 생성
-      const fakeJobId = `fake-job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const fakeJobId = `job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
       // 가짜 작업을 evalJobs에 추가 (계속 running 상태로 유지)
       const fakeJob = {
