@@ -482,11 +482,15 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
             if (!showThinkBlock && !isStreaming) {
                 // 완성된 think 블록은 렌더링하지 않음
             } else {
+                // showThinkBlock이 false이면서 스트리밍 중이라면 애니메이션 프리뷰 모드로 전달
+                const streamingPreview = (!showThinkBlock && isStreaming);
                 elements.push(
                     <ThinkBlock
                         key={`think-${elements.length}`}
                         content={block.content}
                         isStreaming={isStreaming}
+                        streamingPreview={streamingPreview}
+                        previewLines={3}
                     />
                 );
             }
@@ -909,6 +913,18 @@ const cleanupJsonFragments = (text: string): string => {
 };
 
 /**
+ * 텍스트에서 마지막 N줄만 추출하는 헬퍼
+ * 스트리밍 중 긴 사고과정에서 최근 일부만 미리보기로 보여주기 위해 사용
+ */
+const getLastLines = (text: string, n: number = 3): string => {
+    if (!text) return text;
+    const lines = text.split('\n');
+    if (lines.length <= n) return text;
+    const lastLines = lines.slice(-n).join('\n');
+    return `...\n${lastLines}`;
+};
+
+/**
  * 인라인 마크다운 처리 (볼드, 이탤릭, 링크 등)
  */
 const processInlineMarkdown = (text: string): string => {
@@ -964,30 +980,98 @@ interface ThinkBlockProps {
     content: string;
     className?: string;
     isStreaming?: boolean; // 스트리밍 중인지 여부
+    // streamingPreview: showThinkBlock이 false인 상태에서 스트리밍 중일 때 애니메이션 프리뷰를 표시
+    streamingPreview?: boolean;
+    previewLines?: number;
 }
 
 export const ThinkBlock: React.FC<ThinkBlockProps> = ({
     content,
     className = '',
-    isStreaming = false
+    isStreaming = false,
+    streamingPreview = false,
+    previewLines = 3
 }) => {
-    // 스트리밍 중일 때는 펼쳐진 상태, 완료되면 접힌 상태
+    // streamingPreview 모드에서는 짧은 라인들을 스스륵 나타났다 사라지게 보여줌
+    if (streamingPreview) {
+        const lines = content ? content.split('\n').filter(l => l.trim()) : [];
+        const preview = lines.length ? lines.slice(-previewLines) : ['...'];
+
+        return (
+            <div
+                className={`think-block-container streaming ${className}`}
+                style={{
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '0.5rem',
+                    margin: '0.5rem 0',
+                    backgroundColor: '#eff6ff'
+                }}
+            >
+                {/* 헤더(이전 디자인과 동일하게 표시) */}
+                <div
+                    style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        color: '#6b7280',
+                        fontSize: '0.875rem',
+                        borderRadius: '0.5rem'
+                    }}
+                >
+                    <FiChevronDown size={16} style={{ opacity: 0.85 }} />
+                    <span>💭 사고 과정</span>
+                    <span style={{ color: '#3b82f6', fontSize: '0.75rem', fontWeight: 'bold', marginLeft: '0.5rem' }}>(진행 중...)</span>
+                </div>
+
+                {/* 간단한 keyframes를 인라인으로 추가하여 외부 CSS 의존성 없이 동작하게 함 */}
+                <style>{`
+                    @keyframes thinkFade {
+                        0% { opacity: 0; transform: translateY(6px); }
+                        20% { opacity: 1; transform: translateY(0); }
+                        80% { opacity: 1; transform: translateY(0); }
+                        100% { opacity: 0; transform: translateY(-6px); }
+                    }
+                `}</style>
+
+                <div style={{ padding: '0 1rem 0.75rem 1rem', marginTop: '-1px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', padding: '0.5rem 0.75rem' }}>
+                        {preview.map((line, idx) => (
+                            <div
+                                key={idx}
+                                style={{
+                                    // backgroundColor: '#ffffff',
+                                    padding: '0.375rem 0.5rem',
+                                    borderRadius: '0.375rem',
+                                    color: '#374151',
+                                    fontSize: '0.875rem',
+                                    lineHeight: '1.4',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    animation: `thinkFade 2s ease-in-out ${idx * 0.45}s infinite`
+                                }}
+                            >
+                                {line}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // 기본 동작: 스트리밍 중이면 펼친 상태, 완료되면 접힌 상태
     const [isExpanded, setIsExpanded] = useState(isStreaming);
 
-    // isStreaming 상태가 변경될 때 UI 상태 업데이트
     useEffect(() => {
-        if (isStreaming) {
-            setIsExpanded(true);  // 스트리밍 중일 때는 펼쳐진 상태
-        } else {
-            setIsExpanded(false); // 완료되면 접힌 상태
-        }
+        if (isStreaming) setIsExpanded(true);
+        else setIsExpanded(false);
     }, [isStreaming]);
 
     const toggleExpanded = () => {
-        // 스트리밍 중일 때는 접기/펼치기 비활성화
-        if (!isStreaming) {
-            setIsExpanded(!isExpanded);
-        }
+        if (!isStreaming) setIsExpanded(!isExpanded);
     };
 
     return (
@@ -1022,14 +1106,10 @@ export const ThinkBlock: React.FC<ThinkBlockProps> = ({
                     opacity: isStreaming ? 0.8 : 1
                 }}
                 onMouseEnter={(e) => {
-                    if (!isStreaming) {
-                        e.currentTarget.style.backgroundColor = '#f3f4f6';
-                    }
+                    if (!isStreaming) e.currentTarget.style.backgroundColor = '#f3f4f6';
                 }}
                 onMouseLeave={(e) => {
-                    if (!isStreaming) {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                    }
+                    if (!isStreaming) e.currentTarget.style.backgroundColor = 'transparent';
                 }}
             >
                 {isStreaming ? (
@@ -1039,43 +1119,19 @@ export const ThinkBlock: React.FC<ThinkBlockProps> = ({
                 )}
                 <span>💭 사고 과정</span>
                 {isStreaming && (
-                    <span style={{
-                        color: '#3b82f6',
-                        fontSize: '0.75rem',
-                        fontWeight: 'bold'
-                    }}>
-                        (진행 중...)
-                    </span>
+                    <span style={{ color: '#3b82f6', fontSize: '0.75rem', fontWeight: 'bold' }}>(진행 중...)</span>
                 )}
                 {!isExpanded && !isStreaming && (
-                    <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>
-                        (클릭하여 보기)
-                    </span>
+                    <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>(클릭하여 보기)</span>
                 )}
             </button>
+
             {isExpanded && (
-                <div style={{
-                    padding: '0 1rem 1rem 1rem',
-                    borderTop: '1px solid #e5e7eb',
-                    marginTop: '-1px'
-                }}>
-                    <div style={{
-                        backgroundColor: '#ffffff',
-                        padding: '1rem',
-                        borderRadius: '0.375rem',
-                        fontSize: '0.875rem',
-                        lineHeight: '1.5',
-                        color: '#374151',
-                        whiteSpace: 'pre-wrap'
-                    }}>
+                <div style={{ padding: '0 1rem 1rem 1rem', borderTop: '1px solid #e5e7eb', marginTop: '-1px' }}>
+                    <div style={{ backgroundColor: '#ffffff', padding: '1rem', borderRadius: '0.375rem', fontSize: '0.875rem', lineHeight: '1.5', color: '#374151', whiteSpace: 'pre-wrap' }}>
                         {content}
                         {isStreaming && (
-                            <span className="pulse-animation" style={{
-                                color: '#3b82f6',
-                                marginLeft: '0.25rem'
-                            }}>
-                                ▋
-                            </span>
+                            <span className="pulse-animation" style={{ color: '#3b82f6', marginLeft: '0.25rem' }}>▮</span>
                         )}
                     </div>
                 </div>
