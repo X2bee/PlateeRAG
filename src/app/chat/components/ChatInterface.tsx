@@ -80,6 +80,10 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         }
         return 65;
     });
+    const [scrollPosition, setScrollPosition] = useState(0);
+    const [isUserScrolling, setIsUserScrolling] = useState(false);
+    const [isResizing, setIsResizing] = useState(false);
+    const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // showPDFViewer가 false일 때 패널 크기를 100%로 설정
     useEffect(() => {
@@ -97,11 +101,23 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
     useSidebarManager(showDeploymentModal || showCollectionModal);
 
     const handleViewSource = (sourceInfo: SourceInfo) => {
+        // 스크롤 위치 저장 (사용자가 스크롤 중이 아닐 때만)
+        if (!isUserScrolling) {
+            saveScrollPosition();
+        }
+        
         setCurrentSourceInfo(sourceInfo);
         setShowPDFViewer(true);
         // 출처 뷰어가 켜질 때 패널 크기를 적절히 조정 (65% 채팅, 35% 출처)
         setPanelSplit(65);
         localStorage.setItem('chatPanelSplit', '65');
+        
+        // 스크롤 위치 복원 (DOM 렌더링 후, 사용자가 스크롤 중이 아닐 때만)
+        setTimeout(() => {
+            if (!isUserScrolling) {
+                restoreScrollPosition();
+            }
+        }, 150);
     };
 
     // additionalParams에서 유효한 값만 필터링하는 함수
@@ -130,6 +146,44 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
 
         return Object.keys(validParams).length > 0 ? validParams : null;
     }, [additionalParams]);
+
+    // 사용자 스크롤 감지 함수
+    const handleUserScroll = useCallback(() => {
+        if (!isResizing) {
+            setIsUserScrolling(true);
+            
+            // 스크롤 정지 감지
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+            
+            scrollTimeoutRef.current = setTimeout(() => {
+                setIsUserScrolling(false);
+                // 스크롤이 정지된 후 현재 위치를 저장
+                if (messagesRef.current) {
+                    setScrollPosition(messagesRef.current.scrollTop);
+                }
+            }, 150);
+        }
+    }, [isResizing]);
+
+    // 스크롤 위치 저장 함수 (조건부)
+    const saveScrollPosition = useCallback(() => {
+        if (messagesRef.current && !isUserScrolling) {
+            setScrollPosition(messagesRef.current.scrollTop);
+        }
+    }, [isUserScrolling]);
+
+    // 스크롤 위치 복원 함수 (조건부)
+    const restoreScrollPosition = useCallback(() => {
+        if (messagesRef.current && scrollPosition > 0 && !isUserScrolling && !isResizing) {
+            requestAnimationFrame(() => {
+                if (messagesRef.current && !isUserScrolling) {
+                    messagesRef.current.scrollTop = scrollPosition;
+                }
+            });
+        }
+    }, [scrollPosition, isUserScrolling, isResizing]);
 
     // 강화된 스크롤 함수
     const scrollToBottom = useCallback(() => {
@@ -446,6 +500,27 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         }
     }, [initialMessageToExecute, executeWorkflow, router]);
 
+    // 스크롤 이벤트 리스너 등록
+    useEffect(() => {
+        const messagesElement = messagesRef.current;
+        if (messagesElement) {
+            messagesElement.addEventListener('scroll', handleUserScroll, { passive: true });
+            
+            return () => {
+                messagesElement.removeEventListener('scroll', handleUserScroll);
+            };
+        }
+    }, [handleUserScroll]);
+
+    // 컴포넌트 언마운트 시 타이머 정리
+    useEffect(() => {
+        return () => {
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+        };
+    }, []);
+
 
 
 
@@ -635,8 +710,15 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                         maxSize={80}
                         direction="horizontal"
                         onResize={(size) => {
+                            // 리사이즈 시작 시 플래그 설정
+                            setIsResizing(true);
                             setPanelSplit(size);
                             localStorage.setItem('chatPanelSplit', size.toString());
+                            
+                            // 리사이즈 완료 후 플래그 해제
+                            setTimeout(() => {
+                                setIsResizing(false);
+                            }, 100);
                         }}
                     >
                         <div className={styles.chatContent}>
@@ -827,11 +909,23 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                                 mode={mode}
                                 userId={user_id}
                                 onClose={() => {
+                                    // 스크롤 위치 저장 (사용자가 스크롤 중이 아닐 때만)
+                                    if (!isUserScrolling) {
+                                        saveScrollPosition();
+                                    }
+                                    
                                     setShowPDFViewer(false);
                                     setCurrentSourceInfo(null);
                                     // 출처 뷰어 닫힘 시 패널 크기를 초기화하여 채팅 영역이 꽉 차게 설정
                                     setPanelSplit(100);
                                     localStorage.setItem('chatPanelSplit', '100');
+                                    
+                                    // 스크롤 위치 복원 (DOM 렌더링 후, 사용자가 스크롤 중이 아닐 때만)
+                                    setTimeout(() => {
+                                        if (!isUserScrolling) {
+                                            restoreScrollPosition();
+                                        }
+                                    }, 150);
                                 }}
                             />
                         </div>
