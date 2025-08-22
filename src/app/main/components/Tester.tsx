@@ -484,35 +484,36 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                             break; }
 
                         case 'eval_start':
-                            devLog.log('LLM 평가 시작:', data.message);
+                            { 
+                                devLog.log('LLM 평가 시작:', data.message);
 
-                            // 전체 테스트 케이스 개수를 기준으로 LLM 평가 진행률 계산
-                            const currentTestData = getWorkflowState().testData;
-                            const totalTestCount = currentTestData.length;
+                                // 전체 테스트 케이스 개수를 기준으로 LLM 평가 진행률 계산
+                                const currentTestData = getWorkflowState().testData;
+                                const totalTestCount = currentTestData.length;
 
-                            // eval 상태를 강제로 초기화
-                            updateWorkflowState({
-                                isEvalRunning: true,
-                                evalProgress: 0,
-                                evalCompletedCount: 0,  // 강제로 0으로 초기화
-                                evalTotalCount: totalTestCount
-                            });
-
-                            devLog.log(`LLM 평가 진행률 기준: ${totalTestCount}개 (전체 테스트)`);
-
-                            // 성공한 테스트들을 평가 진행중 상태로 변경
-                            updateTestData((prevData: TestData[]) => {
-                                return prevData.map((item: TestData) => {
-                                    if (item.status === 'success') {
-                                        return {
-                                            ...item,
-                                            evalStatus: 'running' // 평가 진행중
-                                        };
-                                    }
-                                    return item;
+                                // eval 상태를 강제로 초기화
+                                updateWorkflowState({
+                                    isEvalRunning: true,
+                                    evalProgress: 0,
+                                    evalCompletedCount: 0,  // 강제로 0으로 초기화
+                                    evalTotalCount: totalTestCount
                                 });
-                            });
-                            break;
+
+                                devLog.log(`LLM 평가 진행률 기준: ${totalTestCount}개 (전체 테스트)`);
+
+                                // 성공한 테스트들을 평가 진행중 상태로 변경
+                                updateTestData((prevData: TestData[]) => {
+                                    return prevData.map((item: TestData) => {
+                                        if (item.status === 'success') {
+                                            return {
+                                                ...item,
+                                                evalStatus: 'running' // 평가 진행중
+                                            };
+                                        }
+                                        return item;
+                                    });
+                                });
+                            break; }
 
                         case 'eval_result':
                             {
