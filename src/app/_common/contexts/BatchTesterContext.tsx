@@ -28,11 +28,17 @@ export interface BatchTestState {
     llmEvalEnabled: boolean;
     llmEvalType: 'vLLM' | 'OpenAI';
     llmEvalModel: string;
+    // LLM 평가 진행 상태
+    isEvalRunning: boolean;
+    evalProgress: number;
+    evalCompletedCount: number;
+    evalTotalCount: number;
 }
 
 interface BatchTesterContextType {
     getWorkflowState: (workflowId: string) => BatchTestState;
     updateWorkflowState: (workflowId: string, updates: Partial<BatchTestState>) => void;
+    updateWorkflowStateFunc: (workflowId: string, updater: (prev: BatchTestState) => Partial<BatchTestState>) => void;
     updateWorkflowTestData: (workflowId: string, updater: (prev: TestData[]) => TestData[]) => void;
     clearWorkflowState: (workflowId: string) => void;
     setCurrentWorkflow: (workflowId: string | null) => void;
@@ -55,11 +61,17 @@ const defaultBatchTestState: BatchTestState = {
     // LLM 평가 관련 기본값
     llmEvalEnabled: false,
     llmEvalType: 'OpenAI',
-    llmEvalModel: 'gpt-5-mini'
+    llmEvalModel: 'gpt-5-mini',
+    // LLM 평가 진행 상태 기본값
+    isEvalRunning: false,
+    evalProgress: 0,
+    evalCompletedCount: 0,
+    evalTotalCount: 0
 };
 
 type BatchTesterAction =
     | { type: 'SET_WORKFLOW_STATE'; workflowId: string; state: Partial<BatchTestState> }
+    | { type: 'UPDATE_WORKFLOW_STATE_FUNC'; workflowId: string; updater: (prev: BatchTestState) => Partial<BatchTestState> }
     | { type: 'UPDATE_WORKFLOW_TESTDATA'; workflowId: string; updater: (prev: TestData[]) => TestData[] }
     | { type: 'CLEAR_WORKFLOW_STATE'; workflowId: string }
     | { type: 'SET_CURRENT_WORKFLOW'; workflowId: string | null }
@@ -89,6 +101,23 @@ function batchTesterReducer(state: BatchTesterState, action: BatchTesterAction):
             return {
                 ...state,
                 workflowStates: newWorkflowStates
+            }; }
+
+        case 'UPDATE_WORKFLOW_STATE_FUNC':
+            { const currentWorkflowState = state.workflowStates[action.workflowId] || defaultBatchTestState;
+            const updates = action.updater(currentWorkflowState);
+            const updatedState = {
+                ...currentWorkflowState,
+                ...updates,
+                lastActivityTimestamp: Date.now()
+            };
+
+            return {
+                ...state,
+                workflowStates: {
+                    ...state.workflowStates,
+                    [action.workflowId]: updatedState
+                }
             }; }
 
         case 'UPDATE_WORKFLOW_TESTDATA':
@@ -236,6 +265,14 @@ export const BatchTesterProvider: React.FC<{ children: React.ReactNode }> = ({ c
         });
     };
 
+    const updateWorkflowStateFunc = (workflowId: string, updater: (prev: BatchTestState) => Partial<BatchTestState>) => {
+        dispatch({
+            type: 'UPDATE_WORKFLOW_STATE_FUNC',
+            workflowId,
+            updater
+        });
+    };
+
     const updateWorkflowTestData = (workflowId: string, updater: (prev: TestData[]) => TestData[]) => {
         dispatch({
             type: 'UPDATE_WORKFLOW_TESTDATA',
@@ -271,6 +308,7 @@ export const BatchTesterProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const value: BatchTesterContextType = {
         getWorkflowState,
         updateWorkflowState,
+        updateWorkflowStateFunc,
         updateWorkflowTestData,
         clearWorkflowState,
         setCurrentWorkflow,
