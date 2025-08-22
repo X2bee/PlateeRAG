@@ -24,6 +24,10 @@ export interface BatchTestState {
     batchId?: string;
     streamResults: any[];
     lastActivityTimestamp?: number;
+    // LLM 평가 관련 상태
+    llmEvalEnabled: boolean;
+    llmEvalType: 'vLLM' | 'OpenAI';
+    llmEvalModel: string;
 }
 
 interface BatchTesterContextType {
@@ -47,7 +51,11 @@ const defaultBatchTestState: BatchTestState = {
     batchSize: 3,
     batchId: undefined,
     streamResults: [],
-    lastActivityTimestamp: undefined
+    lastActivityTimestamp: undefined,
+    // LLM 평가 관련 기본값
+    llmEvalEnabled: false,
+    llmEvalType: 'OpenAI',
+    llmEvalModel: 'gpt-5-mini'
 };
 
 type BatchTesterAction =

@@ -54,12 +54,18 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
         progress,
         completedCount,
         batchSize,
+        llmEvalEnabled,
+        llmEvalType,
+        llmEvalModel,
         updateTestData,
         setUploadedFile,
         setIsRunning,
         setProgress,
         setCompletedCount,
         setBatchSize,
+        setLLMEvalEnabled,
+        setLLMEvalType,
+        setLLMEvalModel,
         clearTestData,
         resetForBatchRun,
         getWorkflowState,
@@ -72,9 +78,6 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
 
     const [isXLSXLoaded, setIsXLSXLoaded] = useState(false);
     const [isMammothLoaded, setIsMammothLoaded] = useState(false);
-    const [llmEvalEnabled, setLLMEvalEnabled] = useState(false);
-    const [llmEvalType, setLLMEvalType] = useState<'vLLM' | 'OpenAI'>('OpenAI');
-    const [llmEvalModel, setLLMEvalModel] = useState('gpt-5-mini');
     const [isEvalRunning, setIsEvalRunning] = useState(false);
     const [evalProgress, setEvalProgress] = useState(0);
     const [evalCompletedCount, setEvalCompletedCount] = useState(0);
@@ -647,6 +650,23 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
         return `${(ms / 1000).toFixed(2)}s`;
     };
 
+    // 실제 결과에서 <think> 태그와 [Cite.{...}] 패턴을 제거하는 helper 함수
+    const parseActualOutput = (output: string | null | undefined): string => {
+        if (!output) return '';
+
+        let cleanedOutput = output;
+
+        // <think>...</think> 패턴을 모두 제거 (멀티라인, 대소문자 무관)
+        cleanedOutput = cleanedOutput.replace(/<think>[\s\S]*?<\/think>/gi, '');
+
+        // [Cite.{...}] 패턴을 모두 제거 (멀티라인)
+        if (cleanedOutput.includes('[Cite.') && cleanedOutput.includes('}]')) {
+            cleanedOutput = cleanedOutput.replace(/\[Cite\.\s*\{[\s\S]*?\}\]/g, '');
+        }
+
+        return cleanedOutput.trim();
+    };
+
     const downloadResults = () => {
         if (testData.length === 0) return;
 
@@ -662,7 +682,7 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                     item.id,
                     escapeCsv(item.input),
                     escapeCsv(item.expectedOutput || ''),
-                    escapeCsv(item.actualOutput || ''),
+                    escapeCsv(parseActualOutput(item.actualOutput) || ''),
                 ];
 
                 if (llmEvalEnabled) {
@@ -987,10 +1007,11 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                                             : '-'
                                         }
                                     </div>
-                                    <div className={styles.results__actual} title={item.actualOutput || undefined}>
-                                        {item.actualOutput ?
-                                            (item.actualOutput.length > 50 ? `${item.actualOutput.substring(0, 50)}...` : item.actualOutput)
-                                            : (item.status === 'running' ?
+                                    <div className={styles.results__actual} title={parseActualOutput(item.actualOutput) || undefined}>
+                                        {item.actualOutput ? (() => {
+                                            const parsedOutput = parseActualOutput(item.actualOutput);
+                                            return parsedOutput.length > 50 ? `${parsedOutput.substring(0, 50)}...` : parsedOutput;
+                                        })() : (item.status === 'running' ?
                                                 <span className={styles.running}>
                                                     <FiRefreshCw className={styles.spinning} />
                                                     실행 중...

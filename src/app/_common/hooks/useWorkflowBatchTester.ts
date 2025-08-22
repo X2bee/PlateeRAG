@@ -29,6 +29,10 @@ export const useWorkflowBatchTester = (workflowId: string) => {
         progress: state.progress,
         completedCount: state.completedCount,
         batchSize: state.batchSize,
+        // LLM 평가 관련 상태
+        llmEvalEnabled: state.llmEvalEnabled,
+        llmEvalType: state.llmEvalType,
+        llmEvalModel: state.llmEvalModel,
 
         // 액션
         updateTestData,
@@ -37,6 +41,10 @@ export const useWorkflowBatchTester = (workflowId: string) => {
         setProgress: (progress: number) => updateWorkflowState(workflowId, { progress }),
         setCompletedCount: (count: number) => updateWorkflowState(workflowId, { completedCount: count }),
         setBatchSize: (size: number) => updateWorkflowState(workflowId, { batchSize: size }),
+        // LLM 평가 관련 액션
+        setLLMEvalEnabled: (enabled: boolean) => updateWorkflowState(workflowId, { llmEvalEnabled: enabled }),
+        setLLMEvalType: (type: 'vLLM' | 'OpenAI') => updateWorkflowState(workflowId, { llmEvalType: type }),
+        setLLMEvalModel: (model: string) => updateWorkflowState(workflowId, { llmEvalModel: model }),
         clearTestData: () => updateWorkflowState(workflowId, {
             testData: [],
             uploadedFile: null,
@@ -45,7 +53,7 @@ export const useWorkflowBatchTester = (workflowId: string) => {
 
         // 배치 실행 전 초기화 (파일 정보는 유지하고 결과만 초기화)
         resetForBatchRun: () => {
-            updateTestData((prevData: TestData[]) => 
+            updateTestData((prevData: TestData[]) =>
                 prevData.map((item: TestData) => ({
                     ...item,
                     status: 'pending' as const,
