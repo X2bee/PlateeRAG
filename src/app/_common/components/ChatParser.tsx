@@ -150,7 +150,7 @@ const parseCitation = (citationText: string): SourceInfo | null => {
         jsonString = jsonString.replace(/\\r/g, ESCAPED_RETURN_PLACEHOLDER);
         jsonString = jsonString.replace(/\\+/g, '\\');
         
-        // 플레이스홀더를 실제 값으로 복원
+        // 플레이스홀더를 실제 값으로 복원 - \" 를 " 로 변환
         jsonString = jsonString.replace(new RegExp(ESCAPED_QUOTE_PLACEHOLDER, 'g'), '"');
         jsonString = jsonString.replace(new RegExp(ESCAPED_NEWLINE_PLACEHOLDER, 'g'), '\n');
         jsonString = jsonString.replace(new RegExp(ESCAPED_TAB_PLACEHOLDER, 'g'), '\t');
@@ -709,6 +709,7 @@ const CitationPlaceholder: React.FC = () => {
 
 /**
  * Citation을 포함한 텍스트 처리 - Citation 파싱을 마크다운보다 먼저 수행
+ * Cite.로 시작하는 텍스트는 마크다운 렌더링하지 말고 무조건 출처 버튼 처리만 함
  */
 const processInlineMarkdownWithCitations = (text: string, key: string, onViewSource?: (sourceInfo: SourceInfo) => void): React.ReactNode[] => {
     const elements: React.ReactNode[] = [];
@@ -861,7 +862,13 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
         }
         
         // Citation 처리 - 버튼으로 변환 (마크다운 파싱 제외)
-        const sourceInfo = parseCitation(citation.content);
+        // Cite.로 시작하면 이스케이프 문자 변환: \" → "
+        let processedCitationContent = citation.content;
+        if (citation.content.trim().startsWith('Cite.')) {
+            processedCitationContent = citation.content.replace(/\\"/g, '"');
+        }
+        
+        const sourceInfo = parseCitation(processedCitationContent);
         
         console.log('✅ [processInlineMarkdownWithCitations] Found citation:', citation.content);
         devLog.log('🔍 [processInlineMarkdownWithCitations] Parsed sourceInfo:', sourceInfo);
@@ -881,7 +888,7 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
             // 파싱 실패 시 원본 텍스트 표시 (마크다운 파싱 제외)
             elements.push(
                 <span key={`${key}-citation-fallback-${i}`}>
-                    {citation.content}
+                    {processedCitationContent}
                 </span>
             );
         }
