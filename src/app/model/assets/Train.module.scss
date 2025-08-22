@@ -269,9 +269,36 @@
     color: $gray-700;
     cursor: pointer;
     user-select: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease-in-out;
 
     &:hover {
         color: $gray-900;
+        background: $gray-100;
+    }
+
+    &.highlighted {
+        background: rgba(59, 130, 246, 0.1);
+        // border: 1px solid rgba(59, 130, 246, 0.3);
+        color: $primary-blue;
+        font-weight: 500;
+
+        &:hover {
+            background: rgba(59, 130, 246, 0.15);
+            color: darken($primary-blue, 10%);
+        }
+    }
+
+    &.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        color: $gray-400;
+
+        &:hover {
+            background: transparent;
+            color: $gray-400;
+        }
     }
 }
 

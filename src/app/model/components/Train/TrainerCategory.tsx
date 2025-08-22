@@ -57,11 +57,15 @@ interface TrainerConfig {
 interface TrainerCategoryProps {
     trainerConfig: TrainerConfig;
     handleTrainerConfigChange: (field: keyof TrainerConfig, value: any) => void;
+    availableTrainers: string[];
+    trainingMethod: string;
 }
 
 const TrainerCategory: React.FC<TrainerCategoryProps> = ({
     trainerConfig,
-    handleTrainerConfigChange
+    handleTrainerConfigChange,
+    availableTrainers,
+    trainingMethod
 }) => {
     return (
         <div className={styles.configSection}>
@@ -72,51 +76,67 @@ const TrainerCategory: React.FC<TrainerCategoryProps> = ({
                         <label>트레이너 타입</label>
                     </div>
                     <div className={styles.checkboxGroup}>
-                        <label className={styles.checkboxLabel}>
+                        <label className={`${styles.checkboxLabel} ${
+                            availableTrainers.includes('use_sfttrainer') ? styles.highlighted : styles.disabled
+                        }`}>
                             <input
                                 type="checkbox"
                                 checked={trainerConfig.use_sfttrainer}
                                 onChange={(e) => handleTrainerConfigChange('use_sfttrainer', e.target.checked)}
                                 className={styles.checkbox}
+                                disabled={!availableTrainers.includes('use_sfttrainer')}
                             />
                             SFT Trainer
                         </label>
-                        <label className={styles.checkboxLabel}>
-                            <input
-                                type="checkbox"
-                                checked={trainerConfig.use_dpotrainer}
-                                onChange={(e) => handleTrainerConfigChange('use_dpotrainer', e.target.checked)}
-                                className={styles.checkbox}
-                            />
-                            DPO Trainer
-                        </label>
-                        <label className={styles.checkboxLabel}>
-                            <input
-                                type="checkbox"
-                                checked={trainerConfig.use_ppotrainer}
-                                onChange={(e) => handleTrainerConfigChange('use_ppotrainer', e.target.checked)}
-                                className={styles.checkbox}
-                            />
-                            PPO Trainer
-                        </label>
-                        <label className={styles.checkboxLabel}>
-                            <input
-                                type="checkbox"
-                                checked={trainerConfig.use_grpotrainer}
-                                onChange={(e) => handleTrainerConfigChange('use_grpotrainer', e.target.checked)}
-                                className={styles.checkbox}
-                            />
-                            GRPO Trainer
-                        </label>
-                        <label className={styles.checkboxLabel}>
+                        <label className={`${styles.checkboxLabel} ${
+                            availableTrainers.includes('use_custom_kl_sfttrainer') ? styles.highlighted : styles.disabled
+                        }`}>
                             <input
                                 type="checkbox"
                                 checked={trainerConfig.use_custom_kl_sfttrainer}
                                 onChange={(e) => handleTrainerConfigChange('use_custom_kl_sfttrainer', e.target.checked)}
                                 className={styles.checkbox}
+                                disabled={!availableTrainers.includes('use_custom_kl_sfttrainer')}
                             />
                             Custom KL SFT Trainer
                         </label>
+                        <label className={`${styles.checkboxLabel} ${
+                            availableTrainers.includes('use_dpotrainer') ? styles.highlighted : styles.disabled
+                        }`}>
+                            <input
+                                type="checkbox"
+                                checked={trainerConfig.use_dpotrainer}
+                                onChange={(e) => handleTrainerConfigChange('use_dpotrainer', e.target.checked)}
+                                className={styles.checkbox}
+                                disabled={!availableTrainers.includes('use_dpotrainer')}
+                            />
+                            DPO Trainer
+                        </label>
+                        {/* <label className={`${styles.checkboxLabel} ${
+                            availableTrainers.includes('use_ppotrainer') ? styles.highlighted : styles.disabled
+                        }`}>
+                            <input
+                                type="checkbox"
+                                checked={trainerConfig.use_ppotrainer}
+                                onChange={(e) => handleTrainerConfigChange('use_ppotrainer', e.target.checked)}
+                                className={styles.checkbox}
+                                disabled={!availableTrainers.includes('use_ppotrainer')}
+                            />
+                            PPO Trainer
+                        </label> */}
+                        <label className={`${styles.checkboxLabel} ${
+                            availableTrainers.includes('use_grpotrainer') ? styles.highlighted : styles.disabled
+                        }`}>
+                            <input
+                                type="checkbox"
+                                checked={trainerConfig.use_grpotrainer}
+                                onChange={(e) => handleTrainerConfigChange('use_grpotrainer', e.target.checked)}
+                                className={styles.checkbox}
+                                disabled={!availableTrainers.includes('use_grpotrainer')}
+                            />
+                            GRPO Trainer
+                        </label>
+
                     </div>
                 </div>
 

@@ -65,7 +65,9 @@ const BasicCategory: React.FC<BasicCategoryProps> = ({
                             >
                                 <option value="mlm">Masked Language Model</option>
                                 <option value="clm">Causal Language Model</option>
-                                <option value="sft">Supervised Fine Tune (Instruction)</option>
+                                <option value="sft">Supervised Fine Tune (Instruction Tune)</option>
+                                <option value="dpo">Direct Preference Optimization (RL)</option>
+                                <option value="grpo">Group Relative Policy Optimization (RL)</option>
                             </select>
                         </div>
                         <div className={styles.formField}>
