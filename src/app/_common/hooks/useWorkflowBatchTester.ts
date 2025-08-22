@@ -4,6 +4,7 @@ export const useWorkflowBatchTester = (workflowId: string) => {
     const {
         getWorkflowState,
         updateWorkflowState,
+        updateWorkflowStateFunc,
         updateWorkflowTestData,
         clearWorkflowState
     } = useBatchTester();
@@ -29,6 +30,15 @@ export const useWorkflowBatchTester = (workflowId: string) => {
         progress: state.progress,
         completedCount: state.completedCount,
         batchSize: state.batchSize,
+        // LLM 평가 관련 상태
+        llmEvalEnabled: state.llmEvalEnabled,
+        llmEvalType: state.llmEvalType,
+        llmEvalModel: state.llmEvalModel,
+        // LLM 평가 진행 상태
+        isEvalRunning: state.isEvalRunning,
+        evalProgress: state.evalProgress,
+        evalCompletedCount: state.evalCompletedCount,
+        evalTotalCount: state.evalTotalCount,
 
         // 액션
         updateTestData,
@@ -37,6 +47,15 @@ export const useWorkflowBatchTester = (workflowId: string) => {
         setProgress: (progress: number) => updateWorkflowState(workflowId, { progress }),
         setCompletedCount: (count: number) => updateWorkflowState(workflowId, { completedCount: count }),
         setBatchSize: (size: number) => updateWorkflowState(workflowId, { batchSize: size }),
+        // LLM 평가 관련 액션
+        setLLMEvalEnabled: (enabled: boolean) => updateWorkflowState(workflowId, { llmEvalEnabled: enabled }),
+        setLLMEvalType: (type: 'vLLM' | 'OpenAI') => updateWorkflowState(workflowId, { llmEvalType: type }),
+        setLLMEvalModel: (model: string) => updateWorkflowState(workflowId, { llmEvalModel: model }),
+        // LLM 평가 진행 상태 액션
+        setIsEvalRunning: (running: boolean) => updateWorkflowState(workflowId, { isEvalRunning: running }),
+        setEvalProgress: (progress: number) => updateWorkflowState(workflowId, { evalProgress: progress }),
+        setEvalCompletedCount: (count: number) => updateWorkflowState(workflowId, { evalCompletedCount: count }),
+        setEvalTotalCount: (count: number) => updateWorkflowState(workflowId, { evalTotalCount: count }),
         clearTestData: () => updateWorkflowState(workflowId, {
             testData: [],
             uploadedFile: null,
@@ -45,7 +64,7 @@ export const useWorkflowBatchTester = (workflowId: string) => {
 
         // 배치 실행 전 초기화 (파일 정보는 유지하고 결과만 초기화)
         resetForBatchRun: () => {
-            updateTestData((prevData: TestData[]) => 
+            updateTestData((prevData: TestData[]) =>
                 prevData.map((item: TestData) => ({
                     ...item,
                     status: 'pending' as const,
@@ -57,13 +76,19 @@ export const useWorkflowBatchTester = (workflowId: string) => {
             updateWorkflowState(workflowId, {
                 progress: 0,
                 completedCount: 0,
-                isRunning: false
+                isRunning: false,
+                // LLM 평가 관련 상태도 초기화
+                isEvalRunning: false,
+                evalProgress: 0,
+                evalCompletedCount: 0,
+                evalTotalCount: 0
             });
         },
 
         // 전체 상태 관리
         getWorkflowState: () => getWorkflowState(workflowId),
         updateWorkflowState: (updates: any) => updateWorkflowState(workflowId, updates),
+        updateWorkflowStateFunc: (updater: (prev: any) => any) => updateWorkflowStateFunc(workflowId, updater),
         clearWorkflowState: () => clearWorkflowState(workflowId)
     };
 };

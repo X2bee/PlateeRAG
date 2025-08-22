@@ -103,14 +103,32 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
         return new Date(dateString).toLocaleString('ko-KR');
     };
 
-    const formatData = (data: any) => {
+    const formatData = (data: any, isOutputData: boolean = false) => {
         if (!data) return '-';
         if (typeof data === 'string') {
-            return data.length > 100 ? `${data.substring(0, 100)}...` : data;
+            const processedData = isOutputData ? parseActualOutput(data) : data;
+            return processedData.length > 100 ? `${processedData.substring(0, 100)}...` : processedData;
         }
         return JSON.stringify(data).length > 100
             ? `${JSON.stringify(data).substring(0, 100)}...`
             : JSON.stringify(data);
+    };
+
+    // 실제 결과에서 <think> 태그와 [Cite.{...}] 패턴을 제거하는 helper 함수
+    const parseActualOutput = (output: string | null | undefined): string => {
+        if (!output) return '';
+
+        let cleanedOutput = output;
+
+        // <think>...</think> 패턴을 모두 제거 (멀티라인, 대소문자 무관)
+        cleanedOutput = cleanedOutput.replace(/<think>[\s\S]*?<\/think>/gi, '');
+
+        // [Cite.{...}] 패턴을 모두 제거 (멀티라인)
+        if (cleanedOutput.includes('[Cite.') && cleanedOutput.includes('}]')) {
+            cleanedOutput = cleanedOutput.replace(/\[Cite\.\s*\{[\s\S]*?\}\]/g, '');
+        }
+
+        return cleanedOutput.trim();
     };
 
     const getEarliestExecutionTime = (logs: LogEntry[]) => {
@@ -161,7 +179,7 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
                     escapeCsv(log.interaction_id),
                     escapeCsv(typeof log.input_data === 'string' ? log.input_data : JSON.stringify(log.input_data || {})),
                     escapeCsv(typeof log.expected_output === 'string' ? log.expected_output : JSON.stringify(log.expected_output || {})),
-                    escapeCsv(typeof log.output_data === 'string' ? log.output_data : JSON.stringify(log.output_data || {})),
+                    escapeCsv(typeof log.output_data === 'string' ? parseActualOutput(log.output_data) : JSON.stringify(log.output_data || {})),
                     score,
                     escapeCsv(log.updated_at)
                 ].join(',');
@@ -500,9 +518,9 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
                                                             </div>
                                                             <div
                                                                 className={styles.logData}
-                                                                title={typeof log.output_data === 'string' ? log.output_data : JSON.stringify(log.output_data, null, 2)}
+                                                                title={typeof log.output_data === 'string' ? parseActualOutput(log.output_data) : JSON.stringify(log.output_data, null, 2)}
                                                             >
-                                                                {formatData(log.output_data)}
+                                                                {formatData(log.output_data, true)}
                                                             </div>
                                                             <div className={styles.logScore}>
                                                                 {isNaN((log as any).llm_eval_score) ? 'NaN' : parseFloat((log as any).llm_eval_score).toFixed(2)}

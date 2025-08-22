@@ -54,16 +54,31 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
         progress,
         completedCount,
         batchSize,
+        llmEvalEnabled,
+        llmEvalType,
+        llmEvalModel,
+        isEvalRunning,
+        evalProgress,
+        evalCompletedCount,
+        evalTotalCount,
         updateTestData,
         setUploadedFile,
         setIsRunning,
         setProgress,
         setCompletedCount,
         setBatchSize,
+        setLLMEvalEnabled,
+        setLLMEvalType,
+        setLLMEvalModel,
+        setIsEvalRunning,
+        setEvalProgress,
+        setEvalCompletedCount,
+        setEvalTotalCount,
         clearTestData,
         resetForBatchRun,
         getWorkflowState,
         updateWorkflowState,
+        updateWorkflowStateFunc,
         // SSE 관련 기능은 executeWorkflowTesterStream에서 직접 처리하므로 제거
         // isSSEConnected,
         // startSSEConnection,
@@ -72,13 +87,6 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
 
     const [isXLSXLoaded, setIsXLSXLoaded] = useState(false);
     const [isMammothLoaded, setIsMammothLoaded] = useState(false);
-    const [llmEvalEnabled, setLLMEvalEnabled] = useState(false);
-    const [llmEvalType, setLLMEvalType] = useState<'vLLM' | 'OpenAI'>('OpenAI');
-    const [llmEvalModel, setLLMEvalModel] = useState('gpt-5-mini');
-    const [isEvalRunning, setIsEvalRunning] = useState(false);
-    const [evalProgress, setEvalProgress] = useState(0);
-    const [evalCompletedCount, setEvalCompletedCount] = useState(0);
-    const [evalTotalCount, setEvalTotalCount] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // OpenAI 모델 옵션
@@ -379,11 +387,14 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
         // 테스터 실행 전 완전 초기화 (파일 정보는 유지하고 이전 결과만 모두 제거)
         resetForBatchRun();
 
-        // LLM 평가 관련 상태도 초기화
-        setIsEvalRunning(false);
-        setEvalProgress(0);
-        setEvalCompletedCount(0);
-        setEvalTotalCount(0);
+        // 초기화 후 상태 확인
+        const initialState = getWorkflowState();
+        devLog.log('🔄 테스터 실행 전 eval 상태 확인:', {
+            isEvalRunning: initialState.isEvalRunning,
+            evalProgress: initialState.evalProgress,
+            evalCompletedCount: initialState.evalCompletedCount,
+            evalTotalCount: initialState.evalTotalCount
+        });
 
         // 실행 상태로 변경
         setIsRunning(true);
@@ -473,26 +484,36 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                             break; }
 
                         case 'eval_start':
-                            devLog.log('LLM 평가 시작:', data.message);
-                            setIsEvalRunning(true);
-                            setEvalProgress(0);
-                            setEvalCompletedCount(0);
-                            setEvalTotalCount(testData.length);
-                            devLog.log(`LLM 평가 진행률 기준: ${testData.length}개 (전체 테스트)`);
+                            { 
+                                devLog.log('LLM 평가 시작:', data.message);
 
-                            // 성공한 테스트들을 평가 진행중 상태로 변경
-                            updateTestData((prevData: TestData[]) => {
-                                return prevData.map((item: TestData) => {
-                                    if (item.status === 'success') {
-                                        return {
-                                            ...item,
-                                            evalStatus: 'running' // 평가 진행중
-                                        };
-                                    }
-                                    return item;
+                                // 전체 테스트 케이스 개수를 기준으로 LLM 평가 진행률 계산
+                                const currentTestData = getWorkflowState().testData;
+                                const totalTestCount = currentTestData.length;
+
+                                // eval 상태를 강제로 초기화
+                                updateWorkflowState({
+                                    isEvalRunning: true,
+                                    evalProgress: 0,
+                                    evalCompletedCount: 0,  // 강제로 0으로 초기화
+                                    evalTotalCount: totalTestCount
                                 });
-                            });
-                            break;
+
+                                devLog.log(`LLM 평가 진행률 기준: ${totalTestCount}개 (전체 테스트)`);
+
+                                // 성공한 테스트들을 평가 진행중 상태로 변경
+                                updateTestData((prevData: TestData[]) => {
+                                    return prevData.map((item: TestData) => {
+                                        if (item.status === 'success') {
+                                            return {
+                                                ...item,
+                                                evalStatus: 'running' // 평가 진행중
+                                            };
+                                        }
+                                        return item;
+                                    });
+                                });
+                            break; }
 
                         case 'eval_result':
                             {
@@ -513,13 +534,17 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                                     });
                                 });
 
-                                // 평가 진행 상태 업데이트
-                                setEvalCompletedCount(prev => {
-                                    const newCount = prev + 1;
-                                    const progress = testData.length > 0 ? (newCount / testData.length) * 100 : 0;
-                                    setEvalProgress(progress);
-                                    devLog.log(`LLM 평가 진행: ${newCount}/${testData.length} (${Math.round(progress)}%)`);
-                                    return newCount;
+                                // 평가 진행 상태 업데이트 - 함수형 업데이트로 정확한 계산
+                                updateWorkflowStateFunc((prevState) => {
+                                    const newCount = prevState.evalCompletedCount + 1;
+                                    const progress = prevState.evalTotalCount > 0 ? (newCount / prevState.evalTotalCount) * 100 : 0;
+
+                                    devLog.log(`LLM 평가 진행: ${newCount}/${prevState.evalTotalCount} (${Math.round(progress)}%)`);
+
+                                    return {
+                                        evalCompletedCount: newCount,
+                                        evalProgress: progress
+                                    };
                                 });
 
                                 devLog.log(`테스트 ${testId} LLM 평가 완료: ${score}`);
@@ -541,13 +566,17 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                                 });
                             });
 
-                            // 에러가 발생해도 진행 상태는 업데이트
-                            setEvalCompletedCount(prev => {
-                                const newCount = prev + 1;
-                                const progress = testData.length > 0 ? (newCount / testData.length) * 100 : 0;
-                                setEvalProgress(progress);
-                                devLog.log(`LLM 평가 진행 (오류 포함): ${newCount}/${testData.length} (${Math.round(progress)}%)`);
-                                return newCount;
+                            // 에러가 발생해도 진행 상태는 업데이트 - 함수형 업데이트로 정확한 계산
+                            updateWorkflowStateFunc((prevState) => {
+                                const newCount = prevState.evalCompletedCount + 1;
+                                const progress = prevState.evalTotalCount > 0 ? (newCount / prevState.evalTotalCount) * 100 : 0;
+
+                                devLog.log(`LLM 평가 진행 (오류 포함): ${newCount}/${prevState.evalTotalCount} (${Math.round(progress)}%)`);
+
+                                return {
+                                    evalCompletedCount: newCount,
+                                    evalProgress: progress
+                                };
                             });
                             break;
 
@@ -628,6 +657,8 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
             setEvalCompletedCount(0);
             setEvalTotalCount(0);
 
+            devLog.log('❌ 에러로 인한 eval 상태 초기화 완료');
+
             const detailedErrorMessage = `❌ 테스터 실행 중 오류가 발생했습니다.\n\n` +
                                        `🔍 오류 내용:\n${errorMessage}\n\n` +
                                        `💡 해결 방법:\n` +
@@ -647,6 +678,23 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
         return `${(ms / 1000).toFixed(2)}s`;
     };
 
+    // 실제 결과에서 <think> 태그와 [Cite.{...}] 패턴을 제거하는 helper 함수
+    const parseActualOutput = (output: string | null | undefined): string => {
+        if (!output) return '';
+
+        let cleanedOutput = output;
+
+        // <think>...</think> 패턴을 모두 제거 (멀티라인, 대소문자 무관)
+        cleanedOutput = cleanedOutput.replace(/<think>[\s\S]*?<\/think>/gi, '');
+
+        // [Cite.{...}] 패턴을 모두 제거 (멀티라인)
+        if (cleanedOutput.includes('[Cite.') && cleanedOutput.includes('}]')) {
+            cleanedOutput = cleanedOutput.replace(/\[Cite\.\s*\{[\s\S]*?\}\]/g, '');
+        }
+
+        return cleanedOutput.trim();
+    };
+
     const downloadResults = () => {
         if (testData.length === 0) return;
 
@@ -662,7 +710,7 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                     item.id,
                     escapeCsv(item.input),
                     escapeCsv(item.expectedOutput || ''),
-                    escapeCsv(item.actualOutput || ''),
+                    escapeCsv(parseActualOutput(item.actualOutput) || ''),
                 ];
 
                 if (llmEvalEnabled) {
@@ -748,7 +796,7 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                         title="워크플로우를 테스트합니다."
                     >
                         {isRunning ? <FiRefreshCw className={styles.spinning} /> : <FiPlay />}
-                        {isRunning ? '워크플로우 테스트 진행 중...' : '테스터 실행 (실시간)'}
+                        {isRunning ? '진행 중...' : '테스트 시작'}
                     </button>
                     <button
                         onClick={downloadResults}
@@ -987,10 +1035,11 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                                             : '-'
                                         }
                                     </div>
-                                    <div className={styles.results__actual} title={item.actualOutput || undefined}>
-                                        {item.actualOutput ?
-                                            (item.actualOutput.length > 50 ? `${item.actualOutput.substring(0, 50)}...` : item.actualOutput)
-                                            : (item.status === 'running' ?
+                                    <div className={styles.results__actual} title={parseActualOutput(item.actualOutput) || undefined}>
+                                        {item.actualOutput ? (() => {
+                                            const parsedOutput = parseActualOutput(item.actualOutput);
+                                            return parsedOutput.length > 50 ? `${parsedOutput.substring(0, 50)}...` : parsedOutput;
+                                        })() : (item.status === 'running' ?
                                                 <span className={styles.running}>
                                                     <FiRefreshCw className={styles.spinning} />
                                                     실행 중...

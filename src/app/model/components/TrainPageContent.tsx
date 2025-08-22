@@ -149,6 +149,22 @@ const TrainPageContent: React.FC = () => {
         setActiveTab(tab);
     };
 
+    // 현재 training_method에 따라 선택 가능한 트레이너들을 계산
+    const getAvailableTrainers = () => {
+        const { training_method } = basicConfig;
+        
+        switch (training_method) {
+            case 'sft':
+                return ['use_sfttrainer', 'use_custom_kl_sfttrainer'];
+            case 'dpo':
+                return ['use_dpotrainer'];
+            case 'grpo':
+                return ['use_grpotrainer'];
+            default:
+                return ['use_sfttrainer', 'use_dpotrainer', 'use_ppotrainer', 'use_grpotrainer', 'use_custom_kl_sfttrainer'];
+        }
+    };
+
     const renderTabContent = () => {
         switch (activeTab) {
             case 'basic':
@@ -180,6 +196,8 @@ const TrainPageContent: React.FC = () => {
                     <TrainerCategory
                         trainerConfig={trainerConfig}
                         handleTrainerConfigChange={handleTrainerConfigChange}
+                        availableTrainers={getAvailableTrainers()}
+                        trainingMethod={basicConfig.training_method}
                     />
                 );
 
@@ -194,16 +212,35 @@ const TrainPageContent: React.FC = () => {
             [key]: value
         }));
 
-        // training_method이 sft로 변경되면 use_sfttrainer를 자동으로 설정
-        if (key === 'training_method' && value === 'sft') {
-            setTrainerConfig(prev => ({
-                ...prev,
-                use_sfttrainer: true,
+        // training_method에 따라 해당 트레이너를 자동으로 설정
+        if (key === 'training_method') {
+            const trainerReset = {
+                use_sfttrainer: false,
                 use_dpotrainer: false,
                 use_ppotrainer: false,
                 use_grpotrainer: false,
                 use_custom_kl_sfttrainer: false
-            }));
+            };
+
+            if (value === 'sft') {
+                setTrainerConfig(prev => ({
+                    ...prev,
+                    ...trainerReset,
+                    use_sfttrainer: true
+                }));
+            } else if (value === 'dpo') {
+                setTrainerConfig(prev => ({
+                    ...prev,
+                    ...trainerReset,
+                    use_dpotrainer: true
+                }));
+            } else if (value === 'grpo') {
+                setTrainerConfig(prev => ({
+                    ...prev,
+                    ...trainerReset,
+                    use_grpotrainer: true
+                }));
+            }
         }
     };
 
@@ -228,21 +265,34 @@ const TrainPageContent: React.FC = () => {
                 [key]: value
             };
 
-            // optim 값이 변경되면 use_stableadamw를 자동으로 설정
             if (key === 'optim') {
                 newConfig.use_stableadamw = value === 'stable_adamw';
             }
 
-            // BF16과 FP16은 상호 배타적
             if (key === 'bf16' && value === true) {
                 newConfig.fp16 = false;
             } else if (key === 'fp16' && value === true) {
                 newConfig.bf16 = false;
             }
 
-            // 트레이너 타입들은 상호 배타적 (하나만 선택 가능)
             const trainerTypes = ['use_sfttrainer', 'use_dpotrainer', 'use_ppotrainer', 'use_grpotrainer', 'use_custom_kl_sfttrainer'];
             if (trainerTypes.includes(key) && value === true) {
+                // training_method에 따라 선택 가능한 트레이너 제한
+                if (basicConfig.training_method === 'sft' &&
+                    (key === 'use_dpotrainer' || key === 'use_ppotrainer' || key === 'use_grpotrainer')) {
+                    return prev; // SFT에서는 DPO, PPO, GRPO 선택 불가
+                }
+
+                if (basicConfig.training_method === 'dpo' &&
+                    (key === 'use_sfttrainer' || key === 'use_custom_kl_sfttrainer' || key === 'use_ppotrainer' || key === 'use_grpotrainer')) {
+                    return prev; // DPO에서는 DPO 트레이너만 선택 가능
+                }
+
+                if (basicConfig.training_method === 'grpo' &&
+                    (key === 'use_sfttrainer' || key === 'use_custom_kl_sfttrainer' || key === 'use_dpotrainer' || key === 'use_ppotrainer')) {
+                    return prev; // GRPO에서는 GRPO 트레이너만 선택 가능
+                }
+
                 // 선택된 트레이너 외의 모든 트레이너를 false로 설정
                 trainerTypes.forEach(trainerType => {
                     if (trainerType !== key) {
@@ -251,20 +301,17 @@ const TrainPageContent: React.FC = () => {
                 });
             }
 
+            // SFT 트레이너들 간의 상호 배타적 처리 (use_sfttrainer와 use_custom_kl_sfttrainer)
+            if ((key === 'use_sfttrainer' || key === 'use_custom_kl_sfttrainer') && value === true) {
+                if (key === 'use_sfttrainer') {
+                    newConfig.use_custom_kl_sfttrainer = false;
+                } else if (key === 'use_custom_kl_sfttrainer') {
+                    newConfig.use_sfttrainer = false;
+                }
+            }
+
             return newConfig;
         });
-
-        // training_method이 sft인 경우 use_sfttrainer를 자동으로 설정
-        if (basicConfig.training_method === 'sft') {
-            setTrainerConfig(prevTrainer => ({
-                ...prevTrainer,
-                use_sfttrainer: true,
-                use_dpotrainer: false,
-                use_ppotrainer: false,
-                use_grpotrainer: false,
-                use_custom_kl_sfttrainer: false
-            }));
-        }
     };
 
     const handleStartTraining = async () => {

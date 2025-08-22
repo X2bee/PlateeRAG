@@ -667,6 +667,9 @@ export const executeWorkflowTesterStream = async ({
         const reader = response.body.getReader();
         const decoder = new TextDecoder('utf-8');
 
+        // 누적 버퍼 추가 - 불완전한 데이터를 저장
+        let buffer = '';
+
         while (true) {
             const { done, value } = await reader.read();
             if (done) {
@@ -674,17 +677,24 @@ export const executeWorkflowTesterStream = async ({
                 break;
             }
 
-            const chunk = decoder.decode(value);
-            const lines = chunk.split('\n\n');
+            const chunk = decoder.decode(value, { stream: true });
+            buffer += chunk;
+
+            // 완전한 라인들을 찾아서 처리
+            let lines = buffer.split('\n\n');
+
+            // 마지막 라인은 불완전할 수 있으므로 버퍼에 보관
+            buffer = lines.pop() || '';
 
             for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                    const jsonData = line.substring(6);
-                    try {
-                        const parsedData = JSON.parse(jsonData);
+                if (line.trim() && line.startsWith('data: ')) {
+                    const jsonData = line.substring(6).trim();
+                    if (jsonData) {
+                        try {
+                            const parsedData = JSON.parse(jsonData);
 
-                        // 메시지 타입에 따른 처리
-                        switch (parsedData.type) {
+                            // 메시지 타입에 따른 처리
+                            switch (parsedData.type) {
                             case 'tester_start':
                                 devLog.log('테스터 시작:', parsedData);
                                 onMessage(parsedData);
@@ -728,8 +738,9 @@ export const executeWorkflowTesterStream = async ({
                                 onMessage(parsedData);
                                 break;
                         }
-                    } catch (parseError) {
-                        devLog.error('SSE 데이터 파싱 실패:', jsonData, parseError);
+                        } catch (parseError) {
+                            devLog.error('SSE 데이터 파싱 실패:', jsonData, parseError);
+                        }
                     }
                 }
             }
