@@ -1,0 +1,240 @@
+$primary-color: #e74c3c;
+$primary-hover-color: #c0392b;
+$error-color: #dc3545;
+$text-color: #333;
+$label-color: #555;
+$border-color: #ddd;
+$background-color: #f8fafc;
+$box-background-color: #ffffff;
+$box-shadow-color: rgba(0, 0, 0, 0.1);
+
+.createSuperuserPage {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  background-color: $background-color;
+  font-family: 'Pretendard', sans-serif;
+}
+
+.leftSection {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba($primary-color, 0.05) 0%, rgba($primary-hover-color, 0.05) 100%);
+}
+
+.rightSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background-color: $box-background-color;
+}
+
+.signupBox {
+  background: $box-background-color;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px $box-shadow-color;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+
+  .title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: $text-color;
+    margin-bottom: 1rem;
+  }
+
+  .subtitle {
+    margin-bottom: 2rem;
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+}
+
+.signupForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.inputGroup {
+  text-align: left;
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: $label-color;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.875rem;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: $primary-color;
+    }
+  }
+}
+
+.error {
+  color: $error-color;
+  font-size: 0.875rem;
+  margin-top: -0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.signupButton {
+  width: 100%;
+  padding: 0.875rem;
+  border: none;
+  border-radius: 8px;
+  background-color: $primary-color;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 1rem;
+
+  &:hover {
+    background-color: $primary-hover-color;
+  }
+
+  &:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+}
+
+.warning {
+  margin-top: 1.5rem;
+  font-size: 0.8rem;
+  color: #888;
+  line-height: 1.4;
+  
+  .warningIcon {
+    margin-right: 0.25rem;
+  }
+}
+
+// 우측 소개 섹션
+.introContent {
+  max-width: 500px;
+  text-align: center;
+
+  .introTitle {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: $text-color;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, $primary-color 0%, $primary-hover-color 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .introSubtitle {
+    font-size: 1.2rem;
+    color: #666;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+}
+
+.featureList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  text-align: left;
+}
+
+.featureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba($primary-color, 0.05);
+  border-radius: 8px;
+  border-left: 4px solid $primary-color;
+
+  .featureIcon {
+    width: 2rem;
+    height: 2rem;
+    background: $primary-color;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    flex-shrink: 0;
+  }
+
+  .featureContent {
+    flex: 1;
+
+    h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: $text-color;
+      margin: 0 0 0.5rem 0;
+    }
+
+    p {
+      font-size: 0.875rem;
+      color: #666;
+      margin: 0;
+      line-height: 1.4;
+    }
+  }
+}
+
+// 반응형 디자인
+@media (max-width: 1024px) {
+  .createSuperuserPage {
+    flex-direction: column;
+  }
+
+  .leftSection,
+  .rightSection {
+    flex: none;
+    min-height: 50vh;
+  }
+
+  .rightSection {
+    order: -1; // 모바일에서는 소개를 위에 표시
+  }
+
+  .introContent {
+    .introTitle {
+      font-size: 2rem;
+    }
+  }
+
+  .featureList {
+    gap: 1rem;
+  }
+
+  .featureItem {
+    padding: 0.75rem;
+    
+    .featureIcon {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+  }
+}
