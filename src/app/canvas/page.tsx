@@ -32,10 +32,6 @@ import { generateWorkflowHash } from '@/app/_common/utils/generateSha1Hash';
 import { isStreamingWorkflowFromWorkflow } from '../_common/utils/isStreamingWorkflow';
 
 function CanvasPageContent() {
-    // CookieProvider의 useAuth 훅 사용
-    const { user, isAuthenticated } = useAuth();
-
-    // URL 파라미터 처리
     const searchParams = useSearchParams();
 
     // 페이지 레벨에서 노드 초기화 관리 (중복 호출 방지)
@@ -62,6 +58,7 @@ function CanvasPageContent() {
     const [showDeploymentModal, setShowDeploymentModal] = useState(false);
     const [isDeploy, setIsDeploy] = useState(false);
     const [workflowDetailData, setWorkflowDetailData] = useState<any>(null);
+    const [loadingCanvas, setLoadingCanvas] = useState(true);
 
     // NodeModal 관련 상태
     const [nodeModalState, setNodeModalState] = useState<{
@@ -102,17 +99,13 @@ function CanvasPageContent() {
         );
     }
 
-    // 컴포넌트 마운트 시 워크플로우 이름과 상태 복원
     useEffect(() => {
+        setLoadingCanvas(true);
         devLog.log('=== Page useEffect: Restoring workflow state ===');
         devLog.log('Current URL:', typeof window !== 'undefined' ? window.location.href : 'SSR');
         devLog.log('Search params object:', searchParams);
-
-        // URL 파라미터에서 load할 워크플로우 이름 확인 (production 환경 대응)
         let loadWorkflowName = searchParams.get('load');
         devLog.log('searchParams.get("load"):', loadWorkflowName);
-
-        // Production 환경에서 searchParams가 제대로 동작하지 않는 경우 fallback
         if (!loadWorkflowName && typeof window !== 'undefined') {
             const urlParams = new URLSearchParams(window.location.search);
             loadWorkflowName = urlParams.get('load');
@@ -121,46 +114,41 @@ function CanvasPageContent() {
         }
 
         if (loadWorkflowName) {
-            // URL 파라미터로 워크플로우 이름이 전달된 경우
-            devLog.log('Loading workflow from URL parameter:', loadWorkflowName);
             const decodedWorkflowName = decodeURIComponent(loadWorkflowName);
-            devLog.log('Decoded workflow name:', decodedWorkflowName);
             setCurrentWorkflowName(decodedWorkflowName);
 
-            // 해당 워크플로우를 자동으로 로드
             const loadFromServer = async () => {
                 try {
-                    devLog.log('Attempting to load workflow:', decodedWorkflowName);
                     const workflowData = await loadWorkflow(decodedWorkflowName);
-                    devLog.log('Workflow data received:', workflowData);
 
                     if (canvasRef.current && workflowData) {
-                        devLog.log('Canvas ref exists, loading workflow...');
                         await handleLoadWorkflow(workflowData, decodedWorkflowName);
                     } else {
                         const errorMsg = !canvasRef.current ? 'Canvas not ready' : 'Workflow data is empty';
-                        devLog.error('Load failed:', errorMsg);
                         throw new Error(errorMsg);
                     }
                 } catch (error) {
-                    devLog.error('Failed to load workflow from URL parameter:', error);
                     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
                     toast.error(`Failed to load workflow: ${errorMessage}`);
                 }
             };
 
-            // Canvas가 준비될 때까지 대기 (production에서 더 긴 시간 필요할 수 있음)
-            devLog.log('Setting timeout for workflow loading...');
-            setTimeout(loadFromServer, 1500);
+            loadFromServer();
+            setLoadingCanvas(false);
         } else {
-            // 저장된 워크플로우 이름 복원
             const savedName = getWorkflowName();
-            devLog.log('No load parameter found, restored workflow name:', savedName);
             setCurrentWorkflowName(savedName);
         }
 
         setIsCanvasReady(true);
     }, [searchParams]);
+
+    useEffect(() => {
+        let loadWorkflowName = searchParams.get('load');
+        if (!loadWorkflowName) {
+            setLoadingCanvas(false);
+        }
+    }, []);
 
     useEffect(() => {
         setWorkflow({
@@ -174,7 +162,6 @@ function CanvasPageContent() {
         setIsDeploy(false)
     }, [workflowId, currentWorkflowName])
 
-    // Canvas가 준비되고 노드가 초기화된 후 상태 복원을 위한 useEffect
     useEffect(() => {
         if (!isCanvasReady || !canvasRef.current || !nodesInitialized) {
             devLog.log('Canvas state restoration delayed:', {
@@ -898,7 +885,6 @@ function CanvasPageContent() {
         setExecutionOutput(null);
     };
 
-    // NodeModal 관련 핸들러 함수들
     const handleOpenNodeModal = (nodeId: string, paramId: string, paramName: string, currentValue: string) => {
         setNodeModalState({
             isOpen: true,
@@ -931,7 +917,8 @@ function CanvasPageContent() {
         handleCloseNodeModal();
     };
 
-    // 브라우저 뒤로가기 방지
+
+
     useEffect(() => {
         const preventBackspace = (e: KeyboardEvent) => {
             // 입력 필드가 아닌 곳에서 백스페이스 키를 눌렀을 때 뒤로가기 방지
@@ -966,6 +953,59 @@ function CanvasPageContent() {
             updateWorkflowData();
         }
     }, [showDeploymentModal]);
+
+    if (loadingCanvas) {
+        return (
+            <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: '#f8fafc',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                flexDirection: 'column',
+                gap: '1.5rem',
+                zIndex: 9999
+            }}>
+                <div style={{
+                    width: '50px',
+                    height: '50px',
+                    border: '4px solid #e2e8f0',
+                    borderTop: '4px solid #3b82f6',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                }}></div>
+                <div style={{
+                    textAlign: 'center',
+                    color: '#64748b'
+                }}>
+                    <p style={{
+                        fontSize: '1rem',
+                        fontWeight: '500',
+                        margin: '0 0 0.5rem 0'
+                    }}>
+                        Canvas를 불러오는 중...
+                    </p>
+                    <p style={{
+                        fontSize: '0.875rem',
+                        margin: 0,
+                        opacity: 0.7
+                    }}>
+                        잠시만 기다려주세요
+                    </p>
+                </div>
+                <style jsx>{`
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                `}</style>
+            </div>
+        );
+    }
 
     return (
         <div
