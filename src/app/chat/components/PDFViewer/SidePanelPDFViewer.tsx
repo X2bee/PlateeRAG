@@ -80,17 +80,6 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
 
   if (!sourceInfo) return null;
 
-  // 디버깅을 위한 상태 로깅
-  console.log('🔍 [SidePanelPDFViewer] Render state:', {
-    loading,
-    error,
-    pdfUrl: !!pdfUrl,
-    pdfUrlValue: pdfUrl,
-    numPages,
-    pageNumber,
-    responseContent: sourceInfo.response_content
-  });
-
   const highlightRange: HighlightRange = {
     pageNumber: sourceInfo.page_number,
     searchText: sourceInfo.response_content // 답변 내용을 검색 텍스트로 사용

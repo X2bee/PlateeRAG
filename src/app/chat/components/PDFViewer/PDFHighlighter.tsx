@@ -3,6 +3,7 @@
 import React, { useEffect, useCallback } from 'react';
 import { HighlightRange } from '../../types/source';
 import styles from './PDFHighlighter.module.scss';
+import { filterHighlightWords, isTextMatch } from './highlightConstants';
 
 interface PDFHighlighterProps {
   pageNumber: number;
@@ -86,27 +87,24 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
     if (highlightRange.searchText && highlightRange.searchText.trim()) {
       const searchText = highlightRange.searchText.trim().toLowerCase();
       
-      // 검색 텍스트를 단어 단위로 분리 (공백, 구두점으로 분리)
-      const searchWords = searchText.split(/[\s,.\-!?;:()]+/).filter(word => word.length > 2);
+      // 검색 텍스트를 단어 단위로 분리하고 제외할 단어들 필터링
+      const searchWords = filterHighlightWords(searchText);
       
-      console.log('🔍 [PDFHighlighter] Searching for words:', searchWords);
+      // 유효한 검색 단어가 없으면 하이라이팅 안 함
+      if (searchWords.length === 0) {
+        return;
+      }
       
-      let highlightedSpans = 0;
       validSpans.forEach(span => {
         const spanText = span.textContent?.trim().toLowerCase() || '';
         
         // 스팬의 텍스트가 검색 단어 중 하나라도 포함하면 하이라이팅
-        const hasMatch = searchWords.some(word => 
-          spanText.includes(word) || word.includes(spanText.replace(/[.,!?;:()]/g, ''))
-        );
+        const hasMatch = searchWords.some(word => isTextMatch(word, spanText));
         
         if (hasMatch) {
           span.classList.add(styles.pdfHighlight);
-          highlightedSpans++;
         }
       });
-      
-      console.log('🔍 [PDFHighlighter] Highlighted spans:', highlightedSpans);
     }
   }, [highlightRange, findPDFTextLayer, removeExistingHighlights]);
 

@@ -3,6 +3,7 @@
 import React, { useEffect, useCallback } from 'react';
 import { HighlightRange } from '../../types/source';
 import './DocxHighlighter.css';
+import { filterHighlightWords, isTextMatch } from './highlightConstants';
 
 interface DocxHighlighterProps {
   highlightRange: HighlightRange;
@@ -57,27 +58,24 @@ const DocxHighlighter: React.FC<DocxHighlighterProps> = ({
     if (highlightRange.searchText && highlightRange.searchText.trim()) {
       const searchText = highlightRange.searchText.trim().toLowerCase();
       
-      // 검색 텍스트를 단어 단위로 분리 (공백, 구두점으로 분리)
-      const searchWords = searchText.split(/[\s,.\-!?;:()]+/).filter(word => word.length > 2);
+      // 검색 텍스트를 단어 단위로 분리하고 제외할 단어들 필터링
+      const searchWords = filterHighlightWords(searchText);
       
-      console.log('🔍 [DocxHighlighter] Searching for words:', searchWords);
+      // 유효한 검색 단어가 없으면 하이라이팅 안 함
+      if (searchWords.length === 0) {
+        return;
+      }
       
-      let highlightedElements = 0;
       textElements.forEach(element => {
         const elementText = element.textContent?.trim().toLowerCase() || '';
         
         // 요소의 텍스트가 검색 단어 중 하나라도 포함하면 하이라이팅
-        const hasMatch = searchWords.some(word => 
-          elementText.includes(word) || word.includes(elementText.replace(/[.,!?;:()]/g, ''))
-        );
+        const hasMatch = searchWords.some(word => isTextMatch(word, elementText));
         
         if (hasMatch) {
           element.classList.add('docx-highlight');
-          highlightedElements++;
         }
       });
-      
-      console.log('🔍 [DocxHighlighter] Highlighted elements:', highlightedElements);
     }
   }, [highlightRange, removeExistingHighlights]);
 
