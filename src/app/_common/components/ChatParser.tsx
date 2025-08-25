@@ -91,6 +91,44 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ language, code, className 
 };
 
 /**
+ * JSON 문자열 전처리 함수 - 데이터 타입 정규화
+ */
+const preprocessJsonString = (jsonString: string): string => {
+    // 문자열 필드와 숫자 필드를 올바르게 처리
+    let processed = jsonString;
+    
+    // 숫자 필드들에 대해 따옴표가 있으면 제거하고, 없으면 그대로 유지
+    const numericFields = ['page_number', 'line_start', 'line_end'];
+    
+    numericFields.forEach(field => {
+        // "field": "숫자" 형태를 "field": 숫자 로 변경
+        const quotedNumberPattern = new RegExp(`"${field}"\\s*:\\s*"(\\d+)"`, 'g');
+        processed = processed.replace(quotedNumberPattern, `"${field}": $1`);
+        
+        // "field": 숫자" 형태 (끝에 쌍따옴표가 남은 경우) 를 "field": 숫자 로 변경
+        const malformedNumberPattern = new RegExp(`"${field}"\\s*:\\s*(\\d+)"`, 'g');
+        processed = processed.replace(malformedNumberPattern, `"${field}": $1`);
+    });
+    
+    // 문자열 필드들에 대해 따옴표가 없으면 추가
+    const stringFields = ['file_name', 'file_path'];
+    
+    stringFields.forEach(field => {
+        // "field": 값 (따옴표 없음) 형태를 "field": "값" 으로 변경
+        const unquotedStringPattern = new RegExp(`"${field}"\\s*:\\s*([^",}]+)`, 'g');
+        processed = processed.replace(unquotedStringPattern, (match, value) => {
+            // 이미 숫자인 경우는 건드리지 않음
+            if (/^\d+$/.test(value.trim())) {
+                return match;
+            }
+            return `"${field}": "${value.trim()}"`;
+        });
+    });
+    
+    return processed;
+};
+
+/**
  * Citation 정보를 파싱하는 함수
  */
 const parseCitation = (citationText: string): SourceInfo | null => {
@@ -155,6 +193,9 @@ const parseCitation = (citationText: string): SourceInfo | null => {
         jsonString = jsonString.replace(new RegExp(ESCAPED_NEWLINE_PLACEHOLDER, 'g'), '\n');
         jsonString = jsonString.replace(new RegExp(ESCAPED_TAB_PLACEHOLDER, 'g'), '\t');
         jsonString = jsonString.replace(new RegExp(ESCAPED_RETURN_PLACEHOLDER, 'g'), '\r');
+        
+        // JSON 문자열 전처리 - 데이터 타입 정규화
+        jsonString = preprocessJsonString(jsonString);
         
         // 한국어가 포함된 경우를 위한 UTF-8 처리
         try {
