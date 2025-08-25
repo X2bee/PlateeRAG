@@ -40,10 +40,7 @@ const Node: React.FC<NodeProps> = ({
     const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
     const [isEditingName, setIsEditingName] = useState<boolean>(false);
     const [editingName, setEditingName] = useState<string>(nodeName);
-    const [tool_name, setToolNameValue] = useState('');
     const [error, setError] = useState('');
-    //TODO 최초 렌더링 될때 워크플로우 데이터에서 tool_name 가져오기 구현
-
 
     // API 기반 옵션을 관리하는 상태
     const [apiOptions, setApiOptions] = useState<Record<string, ParameterOption[]>>({});
@@ -330,14 +327,11 @@ const Node: React.FC<NodeProps> = ({
             setError('');
         }
 
-
         const value = processedValue;
         if (value === undefined || value === null) {
             devLog.warn('Invalid parameter value:', value);
             return;
         }
-
-        setToolNameValue(processedValue);
 
         devLog.log('Calling onParameterChange...');
         if (typeof onParameterChange === 'function') {
@@ -598,16 +592,16 @@ const Node: React.FC<NodeProps> = ({
                         onChange={(e) => {
                             devLog.log('=== Boolean Parameter Change ===');
                             devLog.log('Parameter:', param.name, 'Previous value:', param.value, 'New value:', e.target.value);
-                            
+
                             // Boolean 값으로 변환하여 전달
                             const booleanValue = e.target.value === 'true' ? true : e.target.value === 'false' ? false : e.target.value;
-                            
+
                             // handleParamValueChange 대신 직접 onParameterChange 호출
                             if (typeof onParameterChange === 'function') {
                                 onParameterChange(id, param.id, booleanValue);
                                 devLog.log('Boolean value sent:', booleanValue, 'type:', typeof booleanValue);
                             }
-                            
+
                             devLog.log('=== Boolean Parameter Change Complete ===');
                         }}
                         onMouseDown={(e) => {
@@ -649,7 +643,7 @@ const Node: React.FC<NodeProps> = ({
                     <div className={styles.inputWrapper}>
                         <input
                             type={'text'}
-                            value={tool_name}
+                            value={param.value !== undefined && param.value !== null ? param.value.toString() : ''}
                             onChange={(e) => handleToolNameChange(e, param.id)}
                             onMouseDown={(e) => {
                                 devLog.log('input onMouseDown');
