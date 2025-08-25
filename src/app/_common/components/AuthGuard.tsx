@@ -129,13 +129,18 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback, redirectTo = 
     if (isLoading) {
         return (
             <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                height: '100vh',
                 flexDirection: 'column',
                 gap: '1rem',
-                backgroundColor: '#f8fafc'
+                backgroundColor: '#f8fafc',
+                zIndex: 9999
             }}>
                 <div style={{
                     width: '40px',
@@ -148,7 +153,8 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback, redirectTo = 
                 <p style={{
                     color: '#64748b',
                     fontSize: '0.875rem',
-                    margin: 0
+                    margin: 0,
+                    textAlign: 'center'
                 }}>
                     인증 상태를 확인하는 중...
                 </p>
@@ -166,18 +172,24 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback, redirectTo = 
         // 커스텀 fallback이 있으면 표시, 없으면 기본 메시지
         return fallback || (
             <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                height: '100vh',
                 flexDirection: 'column',
                 gap: '1rem',
-                backgroundColor: '#f8fafc'
+                backgroundColor: '#f8fafc',
+                zIndex: 9999
             }}>
                 <p style={{
                     color: '#64748b',
                     fontSize: '0.875rem',
-                    margin: 0
+                    margin: 0,
+                    textAlign: 'center'
                 }}>
                     로그인 페이지로 이동 중...
                 </p>

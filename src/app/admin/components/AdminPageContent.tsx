@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import AdminSidebar from '@/app/admin/components/AdminSidebar';
 import AdminContentArea from '@/app/admin/components/AdminContentArea';
 import AdminIntroduction from '@/app/admin/components/AdminIntroduction';
+import AdminUserContent from '@/app/admin/components/AdminUserContent';
 import {
     getUserSidebarItems,
     getSystemSidebarItems,
@@ -79,7 +80,7 @@ const AdminPageContent: React.FC = () => {
                         title="사용자 목록"
                         description="등록된 사용자 목록을 확인하고 관리하세요."
                     >
-                        <div>사용자 목록 컴포넌트가 여기에 표시됩니다.</div>
+                        <AdminUserContent />
                     </AdminContentArea>
                 );
             case 'user-create':

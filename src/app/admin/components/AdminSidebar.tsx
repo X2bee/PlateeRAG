@@ -84,7 +84,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                         className={styles.logoButton}
                         onClick={handleLogoClick}
                     >
-                        <Image src="/main_simbol.png" alt="ADMIN" width={23} height={0}/>
+                        <Image src="/main_simbol.png" alt="ADMIN" width={23} height={0} />
                         <h2>ADMIN</h2>
                     </button>
                     {user && (

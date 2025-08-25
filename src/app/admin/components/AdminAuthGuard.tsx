@@ -177,13 +177,18 @@ const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({ children, fallback }) =
     if (isLoading) {
         return (
             <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                height: '100vh',
                 flexDirection: 'column',
                 gap: '1rem',
-                backgroundColor: '#f8fafc'
+                backgroundColor: '#f8fafc',
+                zIndex: 9999
             }}>
                 <div style={{
                     width: '40px',
@@ -196,7 +201,8 @@ const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({ children, fallback }) =
                 <p style={{
                     color: '#64748b',
                     fontSize: '0.875rem',
-                    margin: 0
+                    margin: 0,
+                    textAlign: 'center'
                 }}>
                     관리자 권한을 확인하는 중...
                 </p>
@@ -214,18 +220,24 @@ const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({ children, fallback }) =
     if (authStatus !== 'authenticated') {
         return fallback || (
             <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                height: '100vh',
                 flexDirection: 'column',
                 gap: '1rem',
-                backgroundColor: '#f8fafc'
+                backgroundColor: '#f8fafc',
+                zIndex: 9999
             }}>
                 <p style={{
                     color: '#64748b',
                     fontSize: '0.875rem',
-                    margin: 0
+                    margin: 0,
+                    textAlign: 'center'
                 }}>
                     {authStatus === 'no-superuser' && '슈퍼유저 생성 페이지로 이동 중...'}
                     {authStatus === 'need-login' && '관리자 로그인 페이지로 이동 중...'}

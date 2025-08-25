@@ -7,7 +7,7 @@ import styles from '@/app/admin/assets/AdminPage.module.scss';
 const LoadingFallback = () => (
     <div className={styles.container}>
         <div className={styles.loadingContainer}>
-            <div className={styles.spinner}></div>
+            {/* <div className={styles.spinner}></div> */}
         </div>
     </div>
 );
