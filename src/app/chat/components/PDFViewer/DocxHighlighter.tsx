@@ -3,6 +3,7 @@
 import React, { useEffect, useCallback } from 'react';
 import { HighlightRange } from '../../types/source';
 import './DocxHighlighter.css';
+import { filterHighlightWords, isTextMatch } from './highlightConstants';
 
 interface DocxHighlighterProps {
   highlightRange: HighlightRange;
@@ -53,62 +54,28 @@ const DocxHighlighter: React.FC<DocxHighlighterProps> = ({
       }
     });
 
-    // Y 좌표로 정렬하여 라인 구조 만들기
-    const elementsWithPosition = textElements.map(element => {
-      const rect = element.getBoundingClientRect();
-      const containerRect = docxContainer.getBoundingClientRect();
+    // 텍스트 매칭 기반 하이라이팅만 적용
+    if (highlightRange.searchText && highlightRange.searchText.trim()) {
+      const searchText = highlightRange.searchText.trim().toLowerCase();
       
-      return {
-        element,
-        top: rect.top - containerRect.top,
-        left: rect.left - containerRect.left,
-        text: element.textContent?.trim() || ''
-      };
-    }).filter(item => item.text.length > 0);
-
-    // Y 좌표로 정렬
-    elementsWithPosition.sort((a, b) => a.top - b.top);
-
-    // 라인별로 그룹화
-    const lineGroups: Array<{ y: number, elements: typeof elementsWithPosition }> = [];
-
-    elementsWithPosition.forEach(item => {
-      const tolerance = 15; // 15px 오차 허용
+      // 검색 텍스트를 단어 단위로 분리하고 제외할 단어들 필터링
+      const searchWords = filterHighlightWords(searchText);
       
-      // 기존 라인 그룹과 매칭
-      let foundGroup = false;
-      for (const group of lineGroups) {
-        const yDiff = Math.abs(item.top - group.y);
-        if (yDiff <= tolerance) {
-          group.elements.push(item);
-          group.y = (group.y * (group.elements.length - 1) + item.top) / group.elements.length;
-          foundGroup = true;
-          break;
+      // 유효한 검색 단어가 없으면 하이라이팅 안 함
+      if (searchWords.length === 0) {
+        return;
+      }
+      
+      textElements.forEach(element => {
+        const elementText = element.textContent?.trim().toLowerCase() || '';
+        
+        // 요소의 텍스트가 검색 단어 중 하나라도 포함하면 하이라이팅
+        const hasMatch = searchWords.some(word => isTextMatch(word, elementText));
+        
+        if (hasMatch) {
+          element.classList.add('docx-highlight');
         }
-      }
-
-      if (!foundGroup) {
-        lineGroups.push({
-          y: item.top,
-          elements: [item]
-        });
-      }
-    });
-
-    // 라인 그룹을 Y 좌표로 정렬
-    lineGroups.sort((a, b) => a.y - b.y);
-
-    // 지정된 라인 범위에 하이라이팅 적용
-    const startLine = highlightRange.lineStart - 1; // 0-based index
-    const endLine = highlightRange.lineEnd - 1;
-
-    for (let lineIndex = startLine; lineIndex <= endLine && lineIndex < lineGroups.length; lineIndex++) {
-      const lineGroup = lineGroups[lineIndex];
-      if (lineGroup && lineGroup.elements) {
-        lineGroup.elements.forEach(item => {
-          item.element.classList.add('docx-highlight');
-        });
-      }
+      });
     }
   }, [highlightRange, removeExistingHighlights]);
 

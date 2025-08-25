@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect, useRef } from 'react';
 import styles from '@/app/main/assets/TesterLogs.module.scss';
-import { FiRefreshCw, FiDownload, FiEye, FiClock, FiDatabase, FiTrash2, FiBarChart } from 'react-icons/fi';
+import { FiRefreshCw, FiDownload, FiEye, FiClock, FiDatabase, FiTrash2, FiBarChart, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 import { getWorkflowTesterIOLogs, deleteWorkflowTesterIOLogs } from '@/app/api/workflowAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import toast from 'react-hot-toast';
@@ -444,26 +444,72 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
                                                 </div>
                                                 <div className={styles.stat}>
                                                     <span className={styles.statLabel}>정답률</span>
-                                                    <span className={styles.statValue}>
-                                                        {(() => {
-                                                            const scores = batchGroup.in_out_logs.map(log => {
-                                                                const score = (log as any).llm_eval_score;
-                                                                return (score === null || score === undefined || isNaN(score)) ? 0.0 : parseFloat(score);
-                                                            });
-                                                            const validScores = batchGroup.in_out_logs.filter(log => {
-                                                                const score = (log as any).llm_eval_score;
-                                                                return score !== null && score !== undefined && !isNaN(score);
-                                                            });
+                                                    <div className={styles.statWithTooltip}>
+                                                        <span className={styles.statValue}>
+                                                            {(() => {
+                                                                const validScores = batchGroup.in_out_logs.filter(log => {
+                                                                    const score = (log as any).llm_eval_score;
+                                                                    return score !== null && score !== undefined && !isNaN(score);
+                                                                });
 
-                                                            if (validScores.length === 0) {
-                                                                return "점수 없음";
-                                                            }
+                                                                if (validScores.length === 0) {
+                                                                    return "점수 없음";
+                                                                }
 
-                                                            const avgScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
-                                                            const scorePercent = (avgScore * 100).toFixed(1);
-                                                            return `${scorePercent}%`;
-                                                        })()}
-                                                    </span>
+                                                                const correctCount = batchGroup.in_out_logs.filter(log => {
+                                                                    const score = (log as any).llm_eval_score;
+                                                                    return score !== null && score !== undefined && !isNaN(score) && parseFloat(score) >= 0.5;
+                                                                }).length;
+
+                                                                const correctRate = (correctCount / validScores.length) * 100;
+                                                                return `${correctRate.toFixed(1)}%`;
+                                                            })()}
+                                                        </span>
+                                                        <div className={styles.tooltip}>
+                                                            <div className={styles.tooltipContent}>
+                                                                <div className={styles.tooltipTitle}>세부 점수</div>
+                                                                <div className={styles.tooltipScore}>
+                                                                    {(() => {
+                                                                        const scores = batchGroup.in_out_logs.map(log => {
+                                                                            const score = (log as any).llm_eval_score;
+                                                                            return (score === null || score === undefined || isNaN(score)) ? 0.0 : parseFloat(score);
+                                                                        });
+                                                                        const validScores = batchGroup.in_out_logs.filter(log => {
+                                                                            const score = (log as any).llm_eval_score;
+                                                                            return score !== null && score !== undefined && !isNaN(score);
+                                                                        });
+
+                                                                        if (validScores.length === 0) {
+                                                                            return "점수 없음";
+                                                                        }
+
+                                                                        const avgScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+                                                                        const scorePercent = (avgScore * 100).toFixed(1);
+                                                                        return `${scorePercent}%`;
+                                                                    })()}
+                                                                </div>
+                                                                <div className={styles.tooltipDetails}>
+                                                                    {(() => {
+                                                                        const validScores = batchGroup.in_out_logs.filter(log => {
+                                                                            const score = (log as any).llm_eval_score;
+                                                                            return score !== null && score !== undefined && !isNaN(score);
+                                                                        });
+
+                                                                        if (validScores.length === 0) {
+                                                                            return "평가 데이터가 없습니다";
+                                                                        }
+
+                                                                        const correctCount = batchGroup.in_out_logs.filter(log => {
+                                                                            const score = (log as any).llm_eval_score;
+                                                                            return score !== null && score !== undefined && !isNaN(score) && parseFloat(score) >= 0.5;
+                                                                        }).length;
+
+                                                                        return `정답: ${correctCount}개 / 전체: ${validScores.length}개`;
+                                                                    })()}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 <div className={styles.stat}>
                                                     <span className={styles.statLabel}>상태</span>
@@ -501,6 +547,7 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
                                                     <div>입력 데이터</div>
                                                     <div>기대 답변</div>
                                                     <div>출력 데이터</div>
+                                                    <div>정답여부</div>
                                                     <div>평가</div>
                                                 </div>
                                                 <div className={styles.logsBody}>
@@ -526,6 +573,15 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
                                                                 title={typeof log.output_data === 'string' ? parseActualOutput(log.output_data) : JSON.stringify(log.output_data, null, 2)}
                                                             >
                                                                 {formatData(log.output_data, true)}
+                                                            </div>
+                                                            <div className={styles.logCorrect}>
+                                                                {(log as any).llm_eval_score !== undefined && !isNaN((log as any).llm_eval_score) ? (
+                                                                    parseFloat((log as any).llm_eval_score) >= 0.5 ? (
+                                                                        <FiCheckCircle style={{ color: 'green' }} />
+                                                                    ) : (
+                                                                        <FiXCircle style={{ color: 'red' }} />
+                                                                    )
+                                                                ) : '-'}
                                                             </div>
                                                             <div className={styles.logScore}>
                                                                 {isNaN((log as any).llm_eval_score) ? 'NaN' : parseFloat((log as any).llm_eval_score).toFixed(2)}

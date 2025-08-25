@@ -1023,6 +1023,7 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                             <div>입력 내용</div>
                             <div>기대 답변</div>
                             <div>실제 결과</div>
+                            {llmEvalEnabled && <div>정답여부</div>}
                             {llmEvalEnabled && <div>평가</div>}
                             <div>상태</div>
                             <div>소요 시간</div>
@@ -1053,6 +1054,17 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                                                 : '-')
                                         }
                                     </div>
+                                    {llmEvalEnabled && (
+                                        <div className={styles.results__correct}>
+                                            {(item as any).llm_eval_score !== undefined ? (
+                                                parseFloat((item as any).llm_eval_score) >= 0.5 ? (
+                                                    <FiCheckCircle style={{ color: 'green' }} />
+                                                ) : (
+                                                    <FiXCircle style={{ color: 'red' }} />
+                                                )
+                                            ) : '-'}
+                                        </div>
+                                    )}
                                     {llmEvalEnabled && (
                                         <div className={styles.results__score}>
                                             {(item as any).llm_eval_score !== undefined
