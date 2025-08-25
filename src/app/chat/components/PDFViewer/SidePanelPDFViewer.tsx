@@ -73,10 +73,10 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
   const [error, setError] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const [textContent, setTextContent] = useState<any>(null);
-  const [pdfData, setPdfData] = useState<ArrayBuffer | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [fileType, setFileType] = useState<'pdf' | 'html' | 'docx' | 'unknown'>('unknown');
   const [docxHtml, setDocxHtml] = useState<string | null>(null);
+  const [pdfScrollContainer, setPdfScrollContainer] = useState<HTMLDivElement | null>(null);
 
   if (!sourceInfo) return null;
 
@@ -100,7 +100,6 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
     }
     
     setError(null);
-    setPdfData(null);
     setPdfUrl(null);
     setDocxHtml(null);
     
@@ -118,8 +117,6 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
       if (!documentData || documentData.byteLength === 0) {
         throw new Error('문서 데이터가 비어있습니다.');
       }
-      
-      setPdfData(documentData);
       
       // ArrayBuffer를 Blob URL로 변환 (파일 타입에 따라 MIME 타입 결정)
       let mimeType = 'application/octet-stream';
@@ -223,7 +220,6 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
       const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
       setError(`문서를 로드할 수 없습니다: ${errorMessage}`);
       setLoading(false);
-      setPdfData(null);
       setPdfUrl(null);
       setDocxHtml(null);
     }
@@ -243,7 +239,7 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
     });
   }, []);
 
-  // 키보드 단축키를 위한 이벤트 핸들러
+  // 키보드 단축키와 휠 스크롤 이벤트 핸들러
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey || event.metaKey) {
@@ -268,6 +264,10 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
         } else {
           handleZoomOut();
         }
+      } else if (event.shiftKey && pdfScrollContainer) {
+        // Shift + 휠로 좌우 스크롤
+        event.preventDefault();
+        pdfScrollContainer.scrollLeft += event.deltaY;
       }
     };
 
@@ -278,7 +278,7 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('wheel', handleWheel);
     };
-  }, [handleZoomIn, handleZoomOut]);
+  }, [handleZoomIn, handleZoomOut, pdfScrollContainer]);
 
   // sourceInfo가 변경될 때 문서 로딩 및 페이지 설정
   useEffect(() => {
@@ -333,6 +333,23 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
   const goToNextPage = () => {
     setPageNumber(prev => Math.min(prev + 1, numPages));
   };
+
+  // 스케일 변경 시 스크롤 위치 조정
+  useEffect(() => {
+    if (pdfScrollContainer && fileType === 'pdf') {
+      // 줌인된 상태에서는 스크롤을 왼쪽 상단으로 이동
+      if (scale > 1.0) {
+        const scrollLeft = pdfScrollContainer.scrollLeft;
+        const scrollTop = pdfScrollContainer.scrollTop;
+        
+        // 약간의 지연을 두고 스크롤 위치 조정
+        setTimeout(() => {
+          pdfScrollContainer.scrollLeft = Math.max(0, scrollLeft);
+          pdfScrollContainer.scrollTop = Math.max(0, scrollTop);
+        }, 50);
+      }
+    }
+  }, [scale, pdfScrollContainer, fileType]);
 
   // PDF URL 정리
   useEffect(() => {
@@ -467,35 +484,40 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
           </div>
         )}
         
-        {!loading && !error && pdfUrl && fileType === 'pdf' && (
-          <Document
-            file={pdfUrl}
-            onLoadSuccess={onDocumentLoadSuccess}
-            onLoadError={onDocumentLoadError}
-            loading={<div>PDF 문서를 로드하는 중...</div>}
-            error={<div>PDF 문서 로드 오류</div>}
+{!loading && !error && pdfUrl && fileType === 'pdf' && (
+          <div 
+            ref={setPdfScrollContainer}
+            className={`${styles.pdfScrollContainer} ${scale <= 1.0 ? styles.centered : ''}`}
           >
-            <div className={styles.pageContainer}>
-              <Page
-                pageNumber={pageNumber}
-                scale={scale}
-                loading=""
-                error=""
-                className={styles.page}
-                onLoadSuccess={onPageLoadSuccess}
-              />
-              
-              {/* PDF 하이라이터 */}
-              <PDFHighlighter
-                pageNumber={pageNumber}
-                highlightRange={highlightRange}
-                scale={scale}
-                pageWidth={pageSize.width}
-                pageHeight={pageSize.height}
-                textContent={textContent}
-              />
-            </div>
-          </Document>
+            <Document
+              file={pdfUrl}
+              onLoadSuccess={onDocumentLoadSuccess}
+              onLoadError={onDocumentLoadError}
+              loading={<div>PDF 문서를 로드하는 중...</div>}
+              error={<div>PDF 문서 로드 오류</div>}
+            >
+              <div className={styles.pageContainer}>
+                <Page
+                  pageNumber={pageNumber}
+                  scale={scale}
+                  loading=""
+                  error=""
+                  className={styles.page}
+                  onLoadSuccess={onPageLoadSuccess}
+                />
+                
+                {/* PDF 하이라이터 */}
+                <PDFHighlighter
+                  pageNumber={pageNumber}
+                  highlightRange={highlightRange}
+                  scale={scale}
+                  pageWidth={pageSize.width}
+                  pageHeight={pageSize.height}
+                  textContent={textContent}
+                />
+              </div>
+            </Document>
+          </div>
         )}
         
         {!loading && !error && fileType === 'unknown' && (
