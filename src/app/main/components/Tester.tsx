@@ -484,7 +484,7 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                             break; }
 
                         case 'eval_start':
-                            { 
+                            {
                                 devLog.log('LLM 평가 시작:', data.message);
 
                                 // 전체 테스트 케이스 개수를 기준으로 LLM 평가 진행률 계산
@@ -684,10 +684,16 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
 
         let cleanedOutput = output;
 
-        // <think>...</think> 패턴을 모두 제거 (멀티라인, 대소문자 무관)
         cleanedOutput = cleanedOutput.replace(/<think>[\s\S]*?<\/think>/gi, '');
 
-        // [Cite.{...}] 패턴을 모두 제거 (멀티라인)
+        if (cleanedOutput.includes('<TOOLUSELOG>') && cleanedOutput.includes('</TOOLUSELOG>')) {
+            cleanedOutput = cleanedOutput.replace(/<TOOLUSELOG>[\s\S]*?<\/TOOLUSELOG>/g, '');
+        }
+
+        if (cleanedOutput.includes('<TOOLOUTPUTLOG>') && cleanedOutput.includes('</TOOLOUTPUTLOG>')) {
+            cleanedOutput = cleanedOutput.replace(/<TOOLOUTPUTLOG>[\s\S]*?<\/TOOLOUTPUTLOG>/g, '');
+        }
+
         if (cleanedOutput.includes('[Cite.') && cleanedOutput.includes('}]')) {
             cleanedOutput = cleanedOutput.replace(/\[Cite\.\s*\{[\s\S]*?\}\]/g, '');
         }
