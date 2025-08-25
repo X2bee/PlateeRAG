@@ -114,16 +114,21 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
             : JSON.stringify(data);
     };
 
-    // 실제 결과에서 <think> 태그와 [Cite.{...}] 패턴을 제거하는 helper 함수
     const parseActualOutput = (output: string | null | undefined): string => {
         if (!output) return '';
 
         let cleanedOutput = output;
 
-        // <think>...</think> 패턴을 모두 제거 (멀티라인, 대소문자 무관)
         cleanedOutput = cleanedOutput.replace(/<think>[\s\S]*?<\/think>/gi, '');
 
-        // [Cite.{...}] 패턴을 모두 제거 (멀티라인)
+        if (cleanedOutput.includes('<TOOLUSELOG>') && cleanedOutput.includes('</TOOLUSELOG>')) {
+            cleanedOutput = cleanedOutput.replace(/<TOOLUSELOG>[\s\S]*?<\/TOOLUSELOG>/g, '');
+        }
+
+        if (cleanedOutput.includes('<TOOLOUTPUTLOG>') && cleanedOutput.includes('</TOOLOUTPUTLOG>')) {
+            cleanedOutput = cleanedOutput.replace(/<TOOLOUTPUTLOG>[\s\S]*?<\/TOOLOUTPUTLOG>/g, '');
+        }
+
         if (cleanedOutput.includes('[Cite.') && cleanedOutput.includes('}]')) {
             cleanedOutput = cleanedOutput.replace(/\[Cite\.\s*\{[\s\S]*?\}\]/g, '');
         }
