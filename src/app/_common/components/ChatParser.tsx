@@ -8,12 +8,13 @@ import SourceButton from '@/app/chat/components/SourceButton';
 import { SourceInfo } from '@/app/chat/types/source';
 import sourceStyles from '@/app/chat/assets/SourceButton.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
-
 import { Prism } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 // Think 블록 표시 여부를 제어하는 상수 (환경변수에서 가져옴)
 const showThinkBlock = APP_CONFIG.SHOW_THINK_BLOCK;
+// const showToolOutputBlock = APP_CONFIG.SHOW_TOOL_OUTPUT_BLOCK;
+const showToolOutputBlock = true;
 
 export interface ParsedContent {
     html: string;
@@ -91,84 +92,159 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ language, code, className 
 };
 
 /**
+ * JSON 문자열 전처리 함수 - 데이터 타입 정규화
+ */
+const preprocessJsonString = (jsonString: string): string => {
+    console.log('🔍 [preprocessJsonString] Input:', jsonString);
+
+
+    // 문자열 필드와 숫자 필드를 올바르게 처리
+    let processed = jsonString;
+
+    // 이중 중괄호 {{}} 를 단일 중괄호 {} 로 변경
+    processed = processed.replace(/\{\{/g, '{').replace(/\}\}/g, '}');
+    console.log('🔍 [preprocessJsonString] After brace fix:', processed);
+
+
+    // 숫자 필드들에 대해 따옴표가 있으면 제거하고, 없으면 그대로 유지
+    const numericFields = ['page_number', 'line_start', 'line_end'];
+
+    numericFields.forEach(field => {
+        // "field": "숫자" 형태를 "field": 숫자 로 변경
+        const quotedNumberPattern = new RegExp(`"${field}"\\s*:\\s*"(\\d+)"`, 'g');
+        processed = processed.replace(quotedNumberPattern, `"${field}": $1`);
+
+        // "field": 숫자" 형태 (끝에 쌍따옴표가 남은 경우) 를 "field": 숫자 로 변경
+        const malformedNumberPattern = new RegExp(`"${field}"\\s*:\\s*(\\d+)"`, 'g');
+        processed = processed.replace(malformedNumberPattern, `"${field}": $1`);
+    });
+    console.log('🔍 [preprocessJsonString] After numeric fix:', processed);
+
+
+    // 문자열 필드에서 중복된 따옴표 제거 먼저 수행
+    processed = processed.replace(/"""([^"]*?)"/g, '"$1"'); // 3개 따옴표 -> 1개
+    processed = processed.replace(/""([^"]*?)"/g, '"$1"');  // 2개 따옴표 -> 1개
+    console.log('🔍 [preprocessJsonString] After quote dedup:', processed);
+
+    console.log('🔍 [preprocessJsonString] Final output:', processed);
+
+    return processed;
+};
+
+/**
  * Citation 정보를 파싱하는 함수
  */
 const parseCitation = (citationText: string): SourceInfo | null => {
-    console.log('🔍 [parseCitation] Attempting to parse citation:', citationText);
+    console.log('🔍 [parseCitation] Raw citation text:', JSON.stringify(citationText));
+    console.log('🔍 [parseCitation] Citation text length:', citationText.length);
+    console.log('🔍 [parseCitation] Contains {{:', citationText.includes('{{'));
+    console.log('🔍 [parseCitation] Contains }}:', citationText.includes('}}'));
+
+
     try {
         // 단계별로 다양한 패턴 시도
         let jsonString = '';
-        
-        // 1. 기본 패턴: [Cite. {JSON}] (끝에 추가 문자가 있을 수도 있음)
-        let match = citationText.match(/\[Cite\.\s*(\{.*?\})[\].\s\\]*\.?$/);
-        if (match) {
-            jsonString = match[1];
-            console.log('✅ [parseCitation] Pattern 1 matched:', jsonString);
-        } else {
-            // 2. 기본 패턴 (닫는 대괄호와 함께): [Cite. {JSON}]
-            match = citationText.match(/\[Cite\.\s*(\{.*?\})\]/);
-            if (match) {
-                jsonString = match[1];
-            } else {
-                // 3. 닫는 대괄호가 없는 경우: [Cite. {JSON}
-                match = citationText.match(/\[Cite\.\s*(\{.*?\})/);
-                if (match) {
-                    jsonString = match[1];
-                } else {
-                    // 4. Citation 키워드 뒤에 JSON만 있는 경우
-                    match = citationText.match(/Cite\.\s*(\{.*?\})/);
-                    if (match) {
-                        jsonString = match[1];
-                    } else {
-                        // 5. JSON만 있는 경우 (배열 포함)
-                        match = citationText.match(/(\{.*?\}|\[.*?\])/);
-                        if (match) {
-                            jsonString = match[1];
+
+        // 먼저 균형잡힌 중괄호 찾기 (단일 또는 이중)
+        const findBalancedBraces = (text: string, startPattern: string): string | null => {
+            const startIdx = text.indexOf(startPattern);
+            if (startIdx === -1) return null;
+
+            let braceCount = 0;
+            let endIdx = -1;
+            let inString = false;
+            let escaped = false;
+
+            for (let i = startIdx; i < text.length; i++) {
+                const char = text[i];
+
+                if (escaped) {
+                    escaped = false;
+                    continue;
+                }
+
+                if (char === '\\') {
+                    escaped = true;
+                    continue;
+                }
+
+                if (char === '"' && !escaped) {
+                    inString = !inString;
+                    continue;
+                }
+
+                if (!inString) {
+                    if (char === '{') {
+                        braceCount++;
+                    } else if (char === '}') {
+                        braceCount--;
+                        if (braceCount === 0) {
+                            endIdx = i + 1;
+                            break;
                         }
                     }
                 }
             }
+
+            return endIdx !== -1 ? text.slice(startIdx, endIdx) : null;
+        };
+
+        // 1. 이중 중괄호 패턴 시도
+        const doubleBraceResult = findBalancedBraces(citationText, '{{');
+        if (doubleBraceResult) {
+            jsonString = doubleBraceResult;
+        } else {
+            // 2. 단일 중괄호 패턴 시도
+            const singleBraceResult = findBalancedBraces(citationText, '{');
+            if (singleBraceResult) {
+                jsonString = singleBraceResult;
+            }
         }
-        
+
         if (!jsonString) {
             return null;
         }
-        
+
         // JSON 문자열 정리
         jsonString = jsonString.trim();
-        
+
         // 이스케이프 처리를 더 신중하게 수행
         // 우선 임시 플레이스홀더로 변환하여 다른 처리와 충돌 방지
         const ESCAPED_QUOTE_PLACEHOLDER = '__ESCAPED_QUOTE__';
         const ESCAPED_NEWLINE_PLACEHOLDER = '__ESCAPED_NEWLINE__';
         const ESCAPED_TAB_PLACEHOLDER = '__ESCAPED_TAB__';
         const ESCAPED_RETURN_PLACEHOLDER = '__ESCAPED_RETURN__';
-        
+
         jsonString = jsonString.replace(/\\"/g, ESCAPED_QUOTE_PLACEHOLDER);
         jsonString = jsonString.replace(/\\n/g, ESCAPED_NEWLINE_PLACEHOLDER);
         jsonString = jsonString.replace(/\\t/g, ESCAPED_TAB_PLACEHOLDER);
         jsonString = jsonString.replace(/\\r/g, ESCAPED_RETURN_PLACEHOLDER);
         jsonString = jsonString.replace(/\\+/g, '\\');
-        
-        // 플레이스홀더를 실제 값으로 복원
+
+        // 플레이스홀더를 실제 값으로 복원 - \" 를 " 로 변환
         jsonString = jsonString.replace(new RegExp(ESCAPED_QUOTE_PLACEHOLDER, 'g'), '"');
         jsonString = jsonString.replace(new RegExp(ESCAPED_NEWLINE_PLACEHOLDER, 'g'), '\n');
         jsonString = jsonString.replace(new RegExp(ESCAPED_TAB_PLACEHOLDER, 'g'), '\t');
         jsonString = jsonString.replace(new RegExp(ESCAPED_RETURN_PLACEHOLDER, 'g'), '\r');
-        
+
+        // JSON 문자열 전처리 - 데이터 타입 정규화
+        jsonString = preprocessJsonString(jsonString);
+        console.log('🔍 [parseCitation] After preprocessing:', jsonString);
+
+
         // 한국어가 포함된 경우를 위한 UTF-8 처리
         try {
             const sourceInfo = JSON.parse(jsonString);
-            
+
             devLog.log('✅ [parseCitation] JSON parsed successfully:', sourceInfo);
-            
+
             // 필수 필드 확인
-            if (!sourceInfo.file_name && !sourceInfo.filename && !sourceInfo.fileName && 
+            if (!sourceInfo.file_name && !sourceInfo.filename && !sourceInfo.fileName &&
                 !sourceInfo.file_path && !sourceInfo.filepath && !sourceInfo.filePath) {
                 devLog.warn('Missing required fields in citation:', sourceInfo);
                 return null;
             }
-            
+
             const result = {
                 file_name: sourceInfo.file_name || sourceInfo.filename || sourceInfo.fileName || '',
                 file_path: sourceInfo.file_path || sourceInfo.filepath || sourceInfo.filePath || '',
@@ -176,24 +252,24 @@ const parseCitation = (citationText: string): SourceInfo | null => {
                 line_start: sourceInfo.line_start || sourceInfo.linestart || sourceInfo.lineStart || 1,
                 line_end: sourceInfo.line_end || sourceInfo.lineend || sourceInfo.lineEnd || 1
             };
-            
+
             console.log('✅ [parseCitation] Final result:', result);
+
             return result;
         } catch (parseError) {
             console.error('JSON.parse failed, trying manual parsing...');
-            
+
+
             // 수동 파싱 시도
             const manualParsed = tryManualParsing(jsonString);
             if (manualParsed) {
                 return manualParsed;
             }
-            
+
             throw parseError;
         }
-        
+
     } catch (error) {
-        console.error('Failed to parse citation:', error);
-        console.error('Citation text:', citationText);
         return null;
     }
 };
@@ -207,25 +283,25 @@ const tryManualParsing = (jsonString: string): SourceInfo | null => {
         if (!jsonString.startsWith('{') || !jsonString.endsWith('}')) {
             return null;
         }
-        
+
         const result: Partial<SourceInfo> = {};
-        
+
         // 각 필드를 개별적으로 추출
         const fileNameMatch = jsonString.match(/"(?:file_name|filename|fileName)"\s*:\s*"([^"]+)"/);
         if (fileNameMatch) result.file_name = fileNameMatch[1];
-        
+
         const filePathMatch = jsonString.match(/"(?:file_path|filepath|filePath)"\s*:\s*"([^"]+)"/);
         if (filePathMatch) result.file_path = filePathMatch[1];
-        
+
         const pageNumberMatch = jsonString.match(/"(?:page_number|pagenumber|pageNumber)"\s*:\s*(\d+)/);
         if (pageNumberMatch) result.page_number = parseInt(pageNumberMatch[1]);
-        
+
         const lineStartMatch = jsonString.match(/"(?:line_start|linestart|lineStart)"\s*:\s*(\d+)/);
         if (lineStartMatch) result.line_start = parseInt(lineStartMatch[1]);
-        
+
         const lineEndMatch = jsonString.match(/"(?:line_end|lineend|lineEnd)"\s*:\s*(\d+)/);
         if (lineEndMatch) result.line_end = parseInt(lineEndMatch[1]);
-        
+
         // 최소한 file_name이나 file_path가 있어야 함
         if (result.file_name || result.file_path) {
             return {
@@ -236,10 +312,9 @@ const tryManualParsing = (jsonString: string): SourceInfo | null => {
                 line_end: result.line_end || 1
             };
         }
-        
+
         return null;
     } catch (error) {
-        console.error('Manual parsing failed:', error);
         return null;
     }
 };
@@ -374,6 +449,110 @@ interface ThinkBlockInfo {
 }
 
 /**
+ * Tool Use Log 블록 정보
+ */
+interface ToolUseLogInfo {
+    start: number;
+    end: number;
+    content: string;
+}
+
+/**
+ * Tool Output Log 블록 정보
+ */
+interface ToolOutputLogInfo {
+    start: number;
+    end: number;
+    content: string;
+}
+
+/**
+ * <TOOLUSELOG></TOOLUSELOG> 블록 찾기 (스트리밍 지원)
+ * 완성된 블록과 미완성된 블록 모두 처리
+ */
+const findToolUseLogBlocks = (content: string): ToolUseLogInfo[] => {
+    const blocks: ToolUseLogInfo[] = [];
+
+    // 완성된 <TOOLUSELOG></TOOLUSELOG> 블록 찾기
+    const completeToolLogRegex = /<TOOLUSELOG>([\s\S]*?)<\/TOOLUSELOG>/gi;
+    let match;
+
+    while ((match = completeToolLogRegex.exec(content)) !== null) {
+        blocks.push({
+            start: match.index,
+            end: match.index + match[0].length,
+            content: match[1].trim()
+        });
+    }
+
+    // 미완성된 <TOOLUSELOG> 블록 찾기 (스트리밍 중)
+    const incompleteToolLogRegex = /<TOOLUSELOG>(?![\s\S]*?<\/TOOLUSELOG>)([\s\S]*)$/gi;
+    const incompleteMatch = incompleteToolLogRegex.exec(content);
+
+    if (incompleteMatch) {
+        // 이미 완성된 tooluselog 블록과 겹치지 않는지 확인
+        const incompleteStart = incompleteMatch.index;
+        const isOverlapping = blocks.some(block =>
+            incompleteStart >= block.start && incompleteStart < block.end
+        );
+
+        if (!isOverlapping) {
+            blocks.push({
+                start: incompleteStart,
+                end: content.length,
+                content: incompleteMatch[1].trim()
+            });
+        }
+    }
+
+    // 시작 위치 순으로 정렬
+    return blocks.sort((a, b) => a.start - b.start);
+};
+
+/**
+ * <TOOLOUTPUTLOG></TOOLOUTPUTLOG> 블록 찾기 (스트리밍 지원)
+ * 완성된 블록과 미완성된 블록 모두 처리
+ */
+const findToolOutputLogBlocks = (content: string): ToolOutputLogInfo[] => {
+    const blocks: ToolOutputLogInfo[] = [];
+
+    // 완성된 <TOOLOUTPUTLOG></TOOLOUTPUTLOG> 블록 찾기
+    const completeToolOutputLogRegex = /<TOOLOUTPUTLOG>([\s\S]*?)<\/TOOLOUTPUTLOG>/gi;
+    let match;
+
+    while ((match = completeToolOutputLogRegex.exec(content)) !== null) {
+        blocks.push({
+            start: match.index,
+            end: match.index + match[0].length,
+            content: match[1].trim()
+        });
+    }
+
+    // 미완성된 <TOOLOUTPUTLOG> 블록 찾기 (스트리밍 중)
+    const incompleteToolOutputLogRegex = /<TOOLOUTPUTLOG>(?![\s\S]*?<\/TOOLOUTPUTLOG>)([\s\S]*)$/gi;
+    const incompleteMatch = incompleteToolOutputLogRegex.exec(content);
+
+    if (incompleteMatch) {
+        // 이미 완성된 tooloutputlog 블록과 겹치지 않는지 확인
+        const incompleteStart = incompleteMatch.index;
+        const isOverlapping = blocks.some(block =>
+            incompleteStart >= block.start && incompleteStart < block.end
+        );
+
+        if (!isOverlapping) {
+            blocks.push({
+                start: incompleteStart,
+                end: content.length,
+                content: incompleteMatch[1].trim()
+            });
+        }
+    }
+
+    // 시작 위치 순으로 정렬
+    return blocks.sort((a, b) => a.start - b.start);
+};
+
+/**
  * <think></think> 블록 찾기 (스트리밍 지원)
  * 완성된 블록과 미완성된 블록 모두 처리
  */
@@ -454,14 +633,18 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
     const elements: React.ReactNode[] = [];
     let currentIndex = 0;
 
-    // Think 블록 먼저 처리
+    // Think 블록, Tool Use Log 블록, Tool Output Log 블록 먼저 처리
     const thinkBlocks = findThinkBlocks(processed);
+    const toolUseLogBlocks = findToolUseLogBlocks(processed);
+    const toolOutputLogBlocks = findToolOutputLogBlocks(processed);
     // 코드 블록 처리
     const codeBlocks = findCodeBlocks(processed);
 
     // 모든 블록을 시작 위치 순으로 정렬
     const allBlocks = [
         ...thinkBlocks.map(block => ({ ...block, type: 'think' as const })),
+        ...toolUseLogBlocks.map(block => ({ ...block, type: 'tooluselog' as const })),
+        ...toolOutputLogBlocks.map(block => ({ ...block, type: 'tooloutputlog' as const })),
         ...codeBlocks.map(block => ({ ...block, type: 'code' as const }))
     ].sort((a, b) => a.start - b.start);
 
@@ -476,7 +659,7 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
         if (block.type === 'think') {
             // 스트리밍 중인지 확인 (블록이 문서 끝까지 이어지고 </think>가 없는 경우)
             const isStreaming = block.end === processed.length &&
-                               !processed.slice(block.start).includes('</think>');
+                !processed.slice(block.start).includes('</think>');
 
             // showThinkBlock이 false이고 완성된 블록인 경우 숨김
             if (!showThinkBlock && !isStreaming) {
@@ -494,6 +677,38 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
                     />
                 );
             }
+        } else if (block.type === 'tooluselog') {
+            // 스트리밍 중인지 확인 (블록이 문서 끝까지 이어지고 </TOOLUSELOG>가 없는 경우)
+            const isStreaming = block.end === processed.length &&
+                !processed.slice(block.start).includes('</TOOLUSELOG>');
+
+            // 해당 도구 사용 로그 바로 다음에 오는 도구 출력 로그 찾기
+            const nextOutputBlock = toolOutputLogBlocks.find(outputBlock =>
+                outputBlock.start >= block.end &&
+                outputBlock.start <= block.end + 100 // 100자 이내에 있는 경우만
+            );
+
+            // showToolOutputBlock이 false이고 완성된 블록인 경우 숨김
+            if (!showToolOutputBlock && !isStreaming) {
+                // 완성된 tool use log 블록은 렌더링하지 않음
+            } else {
+                // showToolOutputBlock이 false이면서 스트리밍 중이라면 애니메이션 프리뷰 모드로 전달
+                const streamingPreview = (!showToolOutputBlock && isStreaming);
+                elements.push(
+                    <ToolUseLogBlock
+                        key={`tooluselog-${elements.length}`}
+                        content={block.content}
+                        outputContent={nextOutputBlock?.content}
+                        isStreaming={isStreaming}
+                        streamingPreview={streamingPreview}
+                        previewLines={3}
+                        onViewSource={onViewSource}
+                    />
+                );
+            }
+        } else if (block.type === 'tooloutputlog') {
+            // 도구 출력 로그는 독립적으로 렌더링하지 않고, 위의 tooluselog에서 함께 처리함
+            // 따라서 여기서는 아무것도 하지 않음
         } else if (block.type === 'code') {
             elements.push(
                 <CodeBlock
@@ -592,7 +807,7 @@ const parseSimpleMarkdown = (text: string, startKey: number, onViewSource?: (sou
             // 헤더 생성
             const headers = parseTableRow(headerLine);
             const headerElement = (
-                 <tr key="header">
+                <tr key="header">
                     {headers.map((header, index) => (
                         <th key={index} style={{ textAlign: alignments[index] || 'left', padding: '0.5rem 1rem', border: '1px solid #d1d5db' }}>
                             <div dangerouslySetInnerHTML={{ __html: processInlineMarkdown(header) }} />
@@ -691,7 +906,7 @@ const parseSimpleMarkdown = (text: string, startKey: number, onViewSource?: (sou
  */
 const CitationPlaceholder: React.FC = () => {
     return (
-        <span 
+        <span
             style={{
                 backgroundColor: '#f3f4f6',
                 color: '#6b7280',
@@ -709,64 +924,85 @@ const CitationPlaceholder: React.FC = () => {
 
 /**
  * Citation을 포함한 텍스트 처리 - Citation 파싱을 마크다운보다 먼저 수행
+ * Cite.로 시작하는 텍스트는 마크다운 렌더링하지 말고 무조건 출처 버튼 처리만 함
  */
 const processInlineMarkdownWithCitations = (text: string, key: string, onViewSource?: (sourceInfo: SourceInfo) => void): React.ReactNode[] => {
     const elements: React.ReactNode[] = [];
-    
+
     // Citation을 찾기 위한 더 안전한 접근법 - 수동으로 파싱
     const findCitations = (inputText: string): Array<{ start: number, end: number, content: string }> => {
+        console.log('🔍 [findCitations] Input text:', inputText);
+
+
+        // 먼저 전체 텍스트에 대해 기본적인 전처리 수행
+        let preprocessedText = inputText;
+        // 이중 중괄호를 단일 중괄호로 변환
+        preprocessedText = preprocessedText.replace(/\{\{/g, '{').replace(/\}\}/g, '}');
+        // 숫자 필드 뒤의 잘못된 따옴표 제거
+        preprocessedText = preprocessedText.replace(/(\d)"\s*([,}])/g, '$1$2');
+
+        console.log('🔍 [findCitations] After basic preprocessing:', preprocessedText);
+
+
+
         const citations: Array<{ start: number, end: number, content: string }> = [];
         let i = 0;
-        
-        while (i < inputText.length) {
+
+        while (i < preprocessedText.length) {
             // [Cite. 패턴 찾기
-            const citeStart = inputText.indexOf('[Cite.', i);
+            const citeStart = preprocessedText.indexOf('[Cite.', i);
             if (citeStart === -1) break;
-            
-            // { 찾기
+
+            // { 또는 {{ 찾기
             let braceStart = -1;
-            for (let j = citeStart + 6; j < inputText.length; j++) {
-                if (inputText[j] === '{') {
+            for (let j = citeStart + 6; j < preprocessedText.length; j++) {
+                if (preprocessedText[j] === '{') {
                     braceStart = j;
                     break;
-                } else if (inputText[j] !== ' ' && inputText[j] !== '\t') {
+                } else if (preprocessedText[j] !== ' ' && preprocessedText[j] !== '\t') {
                     // 공백이 아닌 다른 문자가 나오면 유효하지 않은 citation
                     break;
                 }
             }
-            
+
+            console.log('🔍 [findCitations] Brace start found at:', braceStart);
+
             if (braceStart === -1) {
                 i = citeStart + 6;
                 continue;
             }
-            
+
             // 균형잡힌 괄호 찾기 - 이스케이프 문자 처리 개선
             let braceCount = 1;
             let braceEnd = -1;
             let inString = false;
             let escaped = false;
-            
-            for (let j = braceStart + 1; j < inputText.length; j++) {
-                const char = inputText[j];
-                
+
+            console.log('🔍 [findCitations] Starting brace counting from position:', braceStart + 1);
+
+
+
+            for (let j = braceStart + 1; j < preprocessedText.length; j++) {
+                const char = preprocessedText[j];
+
                 // 이전 문자가 백슬래시인 경우 현재 문자는 이스케이프됨
                 if (escaped) {
                     escaped = false;
                     continue;
                 }
-                
+
                 // 백슬래시 처리 - 다음 문자를 이스케이프
                 if (char === '\\') {
                     escaped = true;
                     continue;
                 }
-                
-                // 따옴표 처리 - 문자열 상태 토글
+
+                // 따옴표 처리 - 문자열 상태 토글 (전처리로 인해 더 간단해짐)
                 if (char === '"' && !escaped) {
                     inString = !inString;
                     continue;
                 }
-                
+
                 // 문자열 내부가 아닐 때만 중괄호 카운팅
                 if (!inString) {
                     if (char === '{') {
@@ -780,46 +1016,66 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
                     }
                 }
             }
-            
+
+            console.log('🔍 [findCitations] Final brace end:', braceEnd);
+
+
+
             if (braceEnd !== -1) {
-                // 닫는 ] 찾기 (선택적)
+                // 닫는 ] 찾기 (선택적) - 백슬래시는 텍스트 끝까지 포함
                 let finalEnd = braceEnd + 1;
-                while (finalEnd < inputText.length && 
-                       (inputText[finalEnd] === ' ' || inputText[finalEnd] === '\t' || 
-                        inputText[finalEnd] === ']' || inputText[finalEnd] === '.' || 
-                        inputText[finalEnd] === '\\')) {
-                    if (inputText[finalEnd] === ']') {
+                while (finalEnd < preprocessedText.length &&
+                    (preprocessedText[finalEnd] === ' ' || preprocessedText[finalEnd] === '\t' ||
+                        preprocessedText[finalEnd] === ']' || preprocessedText[finalEnd] === '.' ||
+                        preprocessedText[finalEnd] === '\\')) {
+                    if (preprocessedText[finalEnd] === ']') {
                         finalEnd++;
                         break;
                     }
                     finalEnd++;
                 }
-                
+
+                // 텍스트 끝에 백슬래시가 있는 경우 포함
+                if (finalEnd === preprocessedText.length && preprocessedText.endsWith('\\')) {
+                    // 백슬래시까지 포함
+                }
+
+                console.log('🔍 [findCitations] Found citation from', citeStart, 'to', finalEnd);
+
+
+
                 citations.push({
                     start: citeStart,
                     end: finalEnd,
-                    content: inputText.slice(citeStart, finalEnd)
+                    content: preprocessedText.slice(citeStart, finalEnd)
                 });
-                
+
                 i = finalEnd;
             } else {
                 i = citeStart + 6;
             }
         }
-        
+
         return citations;
     };
-    
+
     console.log('🔍 [processInlineMarkdownWithCitations] Looking for citations in text:', text);
-    
+
+
+
     // 1. Citation 우선 처리 - 마크다운 파싱보다 먼저 수행
     const citations = findCitations(text);
-    
+    console.log('🔍 [processInlineMarkdownWithCitations] Found citations count:', citations.length);
+    citations.forEach((cite, idx) => {
+        console.log(`🔍 [processInlineMarkdownWithCitations] Citation ${idx}:`, cite);
+    });
+
+
     if (citations.length === 0) {
         // Citation이 없는 경우 부분적인 citation 확인
         const partialCitationRegex = /\[Cite\.(?:\s*\{[^}]*)?$/;
         const partialMatch = partialCitationRegex.exec(text);
-        
+
         if (partialMatch) {
             // 부분적인 citation 이전 텍스트 처리 - 마크다운 파싱 적용
             const beforeText = text.slice(0, partialMatch.index);
@@ -829,12 +1085,12 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
                     <span key={`${key}-text-before`} dangerouslySetInnerHTML={{ __html: processedText }} />
                 );
             }
-            
+
             // 부분적인 citation placeholder 추가
             elements.push(
                 <CitationPlaceholder key={`${key}-partial`} />
             );
-            
+
             return [<div key={key} className={sourceStyles.lineWithCitations}>{elements}</div>];
         } else {
             // Citation이 전혀 없는 경우 마크다운 파싱 적용
@@ -842,13 +1098,13 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
             return [<div key={key} dangerouslySetInnerHTML={{ __html: processedText }} />];
         }
     }
-    
+
     // 2. Citation이 있는 경우 Citation과 텍스트를 분할하여 처리
     let currentIndex = 0;
-    
+
     for (let i = 0; i < citations.length; i++) {
         const citation = citations[i];
-        
+
         // Citation 이전 텍스트 처리 - 마크다운 파싱 적용
         if (citation.start > currentIndex) {
             const beforeText = text.slice(currentIndex, citation.start);
@@ -859,13 +1115,20 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
                 );
             }
         }
-        
+
         // Citation 처리 - 버튼으로 변환 (마크다운 파싱 제외)
-        const sourceInfo = parseCitation(citation.content);
-        
+        // Cite.로 시작하면 이스케이프 문자 변환: \" → "
+        let processedCitationContent = citation.content;
+        if (citation.content.trim().startsWith('Cite.')) {
+            processedCitationContent = citation.content.replace(/\\"/g, '"');
+        }
+
+        const sourceInfo = parseCitation(processedCitationContent);
+
         console.log('✅ [processInlineMarkdownWithCitations] Found citation:', citation.content);
+
         devLog.log('🔍 [processInlineMarkdownWithCitations] Parsed sourceInfo:', sourceInfo);
-        
+
         if (sourceInfo && onViewSource) {
             devLog.log('✅ [processInlineMarkdownWithCitations] Creating SourceButton');
             elements.push(
@@ -877,18 +1140,25 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
                 />
             );
         } else {
-            console.log('❌ [processInlineMarkdownWithCitations] Citation parsing failed, showing fallback');
             // 파싱 실패 시 원본 텍스트 표시 (마크다운 파싱 제외)
             elements.push(
                 <span key={`${key}-citation-fallback-${i}`}>
-                    {citation.content}
+                    {processedCitationContent}
                 </span>
             );
         }
-        
-        currentIndex = citation.end;
+
+        // Citation 처리 후 trailing 문자들 건너뛰기
+        let nextIndex = citation.end;
+        // Citation 뒤에 있는 }], \, 공백 문자들을 모두 건너뛰기
+        while (nextIndex < text.length &&
+            /[}\]\\.\s]/.test(text[nextIndex])) {
+            nextIndex++;
+        }
+
+        currentIndex = nextIndex;
     }
-    
+
     // 남은 텍스트 처리 - 마크다운 파싱 적용
     if (currentIndex < text.length) {
         const remainingText = text.slice(currentIndex);
@@ -899,7 +1169,7 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
             );
         }
     }
-    
+
     // Citation이 있는 경우 div로 감싸기
     return [<div key={key} className={sourceStyles.lineWithCitations}>{elements}</div>];
 };
@@ -971,6 +1241,354 @@ export const detectCodeLanguage = (code: string): string => {
 export const truncateText = (text: string, maxLength: number = 100): string => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
+};
+
+/**
+ * Tool Use Log 블록 컴포넌트 - 접힐 수 있는 도구 사용 로그 표시 (스트리밍 지원)
+ */
+interface ToolUseLogBlockProps {
+    content: string;
+    outputContent?: string; // 도구 출력 데이터
+    className?: string;
+    isStreaming?: boolean; // 스트리밍 중인지 여부
+    // streamingPreview: showToolOutputBlock이 false인 상태에서 스트리밍 중일 때 애니메이션 프리뷰를 표시
+    streamingPreview?: boolean;
+    previewLines?: number;
+    onViewSource?: (sourceInfo: SourceInfo) => void;
+}
+
+/**
+ * 도구 사용 로그 내용 파싱 함수
+ */
+const parseToolUseLogContent = (content: string): { toolName: string; toolInput: any } => {
+    try {
+        const lines = content.split('\n').filter(line => line.trim());
+        if (lines.length >= 2) {
+            const toolName = lines[0].trim();
+            const toolInputStr = lines.slice(1).join('\n').trim();
+            let toolInput;
+
+            try {
+                toolInput = JSON.parse(toolInputStr);
+            } catch {
+                toolInput = toolInputStr;
+            }
+
+            return { toolName, toolInput };
+        }
+
+        // 한 줄인 경우 전체를 도구명으로 처리
+        return { toolName: content.trim(), toolInput: null };
+    } catch {
+        return { toolName: content, toolInput: null };
+    }
+};
+
+/**
+ * 도구 출력 로그에서 Tool_Cite 항목들을 파싱하는 함수
+ */
+const parseToolOutputContent = (outputContent: string): Array<{
+    documentNumber?: number;
+    relevanceScore?: number;
+    sourceInfo: SourceInfo | null;
+    originalText: string;
+}> => {
+    if (!outputContent) return [];
+
+    const results: Array<{
+        documentNumber?: number;
+        relevanceScore?: number;
+        sourceInfo: SourceInfo | null;
+        originalText: string;
+    }> = [];
+
+    // [Tool_Cite. {...}] 패턴 찾기
+    const toolCiteRegex = /\[Tool_Cite\.\s*(\{[^}]*\})\]/g;
+    let match;
+
+    while ((match = toolCiteRegex.exec(outputContent)) !== null) {
+        const originalText = match[0];
+        const jsonStr = match[1];
+
+        try {
+            const parsed = JSON.parse(jsonStr);
+
+            // document_number와 relevance_score 추출
+            const documentNumber = parsed.document_number;
+            const relevanceScore = parsed.relevance_score;
+
+            // parseCitation을 위한 SourceInfo 형태로 변환
+            const sourceInfo = parseCitation(`[Cite. ${jsonStr}]`);
+
+            results.push({
+                documentNumber,
+                relevanceScore,
+                sourceInfo,
+                originalText
+            });
+        } catch (error) {
+            // JSON 파싱 실패 시 원본 텍스트만 저장
+            results.push({
+                sourceInfo: null,
+                originalText
+            });
+        }
+    }
+
+    return results;
+};
+
+export const ToolUseLogBlock: React.FC<ToolUseLogBlockProps> = ({
+    content,
+    outputContent,
+    className = '',
+    isStreaming = false,
+    streamingPreview = false,
+    previewLines = 3,
+    onViewSource
+}) => {
+    const { toolName, toolInput } = parseToolUseLogContent(content);
+    const parsedOutputs = parseToolOutputContent(outputContent || '');
+
+    // streamingPreview 모드에서는 짧은 라인들을 스스륵 나타났다 사라지게 보여줌
+    if (streamingPreview) {
+        return (
+            <div
+                className={`tool-use-log-container streaming ${className}`}
+                style={{
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '0.5rem',
+                    margin: '0.5rem 0',
+                    backgroundColor: '#fefdf8'
+                }}
+            >
+                {/* 헤더 */}
+                <div
+                    style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        color: '#6b7280',
+                        fontSize: '0.875rem',
+                        borderRadius: '0.5rem'
+                    }}
+                >
+                    <FiChevronDown size={16} style={{ opacity: 0.85 }} />
+                    <span>🔧 도구 사용 로그</span>
+                    <span style={{ color: '#f59e0b', fontSize: '0.75rem', fontWeight: 'bold', marginLeft: '0.5rem' }}>(진행 중...)</span>
+                </div>
+
+                {/* 간단한 keyframes를 인라인으로 추가 */}
+                <style>{`
+                    @keyframes toolLogFade {
+                        0% { opacity: 0; transform: translateY(6px); }
+                        20% { opacity: 1; transform: translateY(0); }
+                        80% { opacity: 1; transform: translateY(0); }
+                        100% { opacity: 0; transform: translateY(-6px); }
+                    }
+                `}</style>
+
+                <div style={{ padding: '0 1rem 0.75rem 1rem', marginTop: '-1px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', padding: '0.5rem 0.75rem' }}>
+                        <div
+                            style={{
+                                padding: '0.375rem 0.5rem',
+                                borderRadius: '0.375rem',
+                                color: '#374151',
+                                fontSize: '0.875rem',
+                                lineHeight: '1.4',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                animation: 'toolLogFade 2s ease-in-out 0s infinite'
+                            }}
+                        >
+                            도구: {toolName || '...'}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // 기본 동작: 스트리밍 중이면 펼친 상태, 완료되면 접힌 상태
+    const [isExpanded, setIsExpanded] = useState(isStreaming);
+
+    useEffect(() => {
+        if (isStreaming) setIsExpanded(true);
+        else setIsExpanded(false);
+    }, [isStreaming]);
+
+    const toggleExpanded = () => {
+        if (!isStreaming) setIsExpanded(!isExpanded);
+    };
+
+    return (
+        <div
+            className={`tool-use-log-container ${isStreaming ? 'streaming' : ''} ${className}`}
+            style={{
+                border: '1px solid #e5e7eb',
+                borderRadius: '0.5rem',
+                margin: '0.5rem 0',
+                backgroundColor: '#fefdf8',
+                ...(isStreaming && {
+                    borderColor: '#f59e0b',
+                    backgroundColor: '#fefdf8'
+                })
+            }}
+        >
+            <button
+                onClick={toggleExpanded}
+                disabled={isStreaming}
+                style={{
+                    width: '100%',
+                    padding: '0.75rem 1rem',
+                    border: 'none',
+                    background: 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    cursor: isStreaming ? 'default' : 'pointer',
+                    fontSize: '0.875rem',
+                    color: '#6b7280',
+                    borderRadius: '0.5rem',
+                    opacity: isStreaming ? 0.8 : 1
+                }}
+                onMouseEnter={(e) => {
+                    if (!isStreaming) e.currentTarget.style.backgroundColor = '#f3f4f6';
+                }}
+                onMouseLeave={(e) => {
+                    if (!isStreaming) e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+            >
+                {isStreaming ? (
+                    <FiChevronDown size={16} style={{ opacity: 0.5 }} />
+                ) : (
+                    isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />
+                )}
+                <span>🔧 도구 사용 로그</span>
+                {toolName && (
+                    <span style={{ color: '#f59e0b', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                        {toolName}
+                    </span>
+                )}
+                {isStreaming && (
+                    <span style={{ color: '#f59e0b', fontSize: '0.75rem', fontWeight: 'bold' }}>(진행 중...)</span>
+                )}
+                {!isExpanded && !isStreaming && (
+                    <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>(클릭하여 보기)</span>
+                )}
+            </button>
+
+            {isExpanded && (
+                <div style={{ padding: '0 1rem 1rem 1rem', borderTop: '1px solid #e5e7eb', marginTop: '-1px' }}>
+                    <div style={{ backgroundColor: '#ffffff', padding: '1rem', borderRadius: '0.375rem', fontSize: '0.875rem', lineHeight: '1.5', color: '#374151' }}>
+                        <div style={{ marginBottom: '0.75rem' }}>
+                            <span style={{ fontWeight: 'bold', color: '#f59e0b' }}>도구명:</span>
+                            <span style={{ marginLeft: '0.5rem', fontFamily: 'monospace', backgroundColor: '#f3f4f6', padding: '0.125rem 0.375rem', borderRadius: '0.25rem' }}>
+                                {toolName}
+                            </span>
+                        </div>
+                        {toolInput && (
+                            <div style={{ marginBottom: '0.75rem' }}>
+                                <div style={{ fontWeight: 'bold', color: '#f59e0b', marginBottom: '0.5rem' }}>입력 데이터:</div>
+                                <pre style={{
+                                    backgroundColor: '#f9fafb',
+                                    padding: '0.75rem',
+                                    borderRadius: '0.375rem',
+                                    fontSize: '0.8rem',
+                                    fontFamily: 'monospace',
+                                    whiteSpace: 'pre-wrap',
+                                    overflow: 'auto',
+                                    margin: 0
+                                }}>
+                                    {typeof toolInput === 'object' ? JSON.stringify(toolInput, null, 2) : toolInput}
+                                </pre>
+                            </div>
+                        )}
+                        {outputContent && (
+                            <div style={{ marginBottom: '0.75rem' }}>
+                                <div style={{ fontWeight: 'bold', color: '#f59e0b', marginBottom: '0.5rem' }}>출력 데이터:</div>
+                                {parsedOutputs.length > 0 ? (
+                                    <div style={{
+                                        backgroundColor: '#f0f9ff',
+                                        padding: '0.75rem',
+                                        borderRadius: '0.375rem',
+                                        border: '1px solid #e0f2fe',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '0.5rem'
+                                    }}>
+                                        {parsedOutputs.map((item, index) => (
+                                            <div key={index} style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem',
+                                                fontSize: '0.875rem'
+                                            }}>
+                                                {item.documentNumber && (
+                                                    <span style={{
+                                                        color: '#3b82f6',
+                                                        fontWeight: 'bold',
+                                                        fontSize: '0.8rem'
+                                                    }}>
+                                                        문서 번호 {item.documentNumber}
+                                                    </span>
+                                                )}
+                                                {item.relevanceScore && (
+                                                    <span style={{
+                                                        color: '#6b7280',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: 'normal'
+                                                    }}>
+                                                        [관련도: {item.relevanceScore.toFixed(3)}]
+                                                    </span>
+                                                )}
+                                                {item.sourceInfo ? (
+                                                    <SourceButton
+                                                        sourceInfo={item.sourceInfo}
+                                                        onViewSource={onViewSource || (() => { })}
+                                                        className={sourceStyles.inlineCitation}
+                                                    />
+                                                ) : (
+                                                    <span style={{
+                                                        fontFamily: 'monospace',
+                                                        fontSize: '0.75rem',
+                                                        color: '#6b7280'
+                                                    }}>
+                                                        {item.originalText}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <pre style={{
+                                        backgroundColor: '#f0f9ff',
+                                        padding: '0.75rem',
+                                        borderRadius: '0.375rem',
+                                        fontSize: '0.8rem',
+                                        fontFamily: 'monospace',
+                                        whiteSpace: 'pre-wrap',
+                                        overflow: 'auto',
+                                        margin: 0,
+                                        border: '1px solid #e0f2fe'
+                                    }}>
+                                        {outputContent}
+                                    </pre>
+                                )}
+                            </div>
+                        )}
+                        {isStreaming && (
+                            <span className="pulse-animation" style={{ color: '#f59e0b', marginLeft: '0.25rem' }}>▮</span>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 };
 
 /**

@@ -35,6 +35,8 @@ export const APP_CONFIG = {
     THINK_DISPLAY_MODE: process.env.NEXT_PUBLIC_THINK_DISPLAY_MODE || 'hide',
     SHOW_THINK_BLOCK:
         process.env.NEXT_PUBLIC_SHOW_THINK_BLOCK === 'true' || false,
+    SHOW_TOOL_OUTPUT_BLOCK:
+        process.env.NEXT_PUBLIC_SHOW_TOOL_OUTPUT_BLOCK === 'true' || false
 };
 
 // Export individual configs for convenience

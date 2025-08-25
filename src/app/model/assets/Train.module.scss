@@ -286,7 +286,7 @@
 
         &:hover {
             background: rgba(59, 130, 246, 0.15);
-            color: darken($primary-blue, 10%);
+            color: color.adjust($primary-blue, $lightness: -10%);
         }
     }
 
