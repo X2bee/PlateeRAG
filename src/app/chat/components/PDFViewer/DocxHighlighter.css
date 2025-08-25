@@ -1,0 +1,17 @@
+/* DOCX 하이라이팅 스타일 */
+.docx-highlight {
+  background-color: rgba(255, 255, 0, 0.3) !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 0, 0.5) !important;
+  border-radius: 2px !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.docx-highlight:hover {
+  background-color: rgba(255, 255, 0, 0.4) !important;
+}
+
+/* 하이라이팅된 텍스트의 가독성 향상 */
+.docx-highlight * {
+  position: relative !important;
+  z-index: 1 !important;
+}

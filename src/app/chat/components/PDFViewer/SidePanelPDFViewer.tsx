@@ -22,6 +22,10 @@ const PDFHighlighter = dynamic(() => import('./PDFHighlighter'), {
   ssr: false 
 });
 
+const DocxHighlighter = dynamic(() => import('./DocxHighlighter'), { 
+  ssr: false 
+});
+
 // PDF.js worker 설정 - 클라이언트 사이드에서만 실행
 if (typeof window !== 'undefined') {
   import('react-pdf').then(({ pdfjs }) => {
@@ -76,6 +80,9 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
 
   if (!sourceInfo) return null;
 
+  const [lineStart, setlineStart] = useState<number>(() => Math.floor(Math.random() * 10) + 1);
+  const [lineEnd, setlineEnd] = useState<number>(() => Math.floor(Math.random() * 21) + 20);
+
   // 디버깅을 위한 상태 로깅
   console.log('🔍 [SidePanelPDFViewer] Render state:', {
     loading,
@@ -94,8 +101,8 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
 
   const highlightRange: HighlightRange = {
     pageNumber: sourceInfo.page_number,
-    lineStart: 0,
-    lineEnd: 0
+    lineStart: lineStart,
+    lineEnd: lineEnd
   };
 
   // 문서 파일 로딩 (PDF 및 HTML 지원)
@@ -470,6 +477,12 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
                 transition: 'transform 0.2s ease'
               }}
               dangerouslySetInnerHTML={{ __html: docxHtml }}
+            />
+            
+            {/* DOCX 하이라이터 - CSS 클래스를 직접 DOM에 적용 */}
+            <DocxHighlighter
+              highlightRange={highlightRange}
+              scale={scale}
             />
           </div>
         )}
