@@ -8,12 +8,12 @@ import SourceButton from '@/app/chat/components/SourceButton';
 import { SourceInfo } from '@/app/chat/types/source';
 import sourceStyles from '@/app/chat/assets/SourceButton.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
-
 import { Prism } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 // Think 블록 표시 여부를 제어하는 상수 (환경변수에서 가져옴)
 const showThinkBlock = APP_CONFIG.SHOW_THINK_BLOCK;
+const showToolOutputBlock = APP_CONFIG.SHOW_TOOL_OUTPUT_BLOCK;
 
 export interface ParsedContent {
     html: string;
@@ -98,7 +98,7 @@ const parseCitation = (citationText: string): SourceInfo | null => {
     try {
         // 단계별로 다양한 패턴 시도
         let jsonString = '';
-        
+
         // 1. 기본 패턴: [Cite. {JSON}] (끝에 추가 문자가 있을 수도 있음)
         let match = citationText.match(/\[Cite\.\s*(\{.*?\})[\].\s\\]*\.?$/);
         if (match) {
@@ -129,46 +129,46 @@ const parseCitation = (citationText: string): SourceInfo | null => {
                 }
             }
         }
-        
+
         if (!jsonString) {
             return null;
         }
-        
+
         // JSON 문자열 정리
         jsonString = jsonString.trim();
-        
+
         // 이스케이프 처리를 더 신중하게 수행
         // 우선 임시 플레이스홀더로 변환하여 다른 처리와 충돌 방지
         const ESCAPED_QUOTE_PLACEHOLDER = '__ESCAPED_QUOTE__';
         const ESCAPED_NEWLINE_PLACEHOLDER = '__ESCAPED_NEWLINE__';
         const ESCAPED_TAB_PLACEHOLDER = '__ESCAPED_TAB__';
         const ESCAPED_RETURN_PLACEHOLDER = '__ESCAPED_RETURN__';
-        
+
         jsonString = jsonString.replace(/\\"/g, ESCAPED_QUOTE_PLACEHOLDER);
         jsonString = jsonString.replace(/\\n/g, ESCAPED_NEWLINE_PLACEHOLDER);
         jsonString = jsonString.replace(/\\t/g, ESCAPED_TAB_PLACEHOLDER);
         jsonString = jsonString.replace(/\\r/g, ESCAPED_RETURN_PLACEHOLDER);
         jsonString = jsonString.replace(/\\+/g, '\\');
-        
+
         // 플레이스홀더를 실제 값으로 복원 - \" 를 " 로 변환
         jsonString = jsonString.replace(new RegExp(ESCAPED_QUOTE_PLACEHOLDER, 'g'), '"');
         jsonString = jsonString.replace(new RegExp(ESCAPED_NEWLINE_PLACEHOLDER, 'g'), '\n');
         jsonString = jsonString.replace(new RegExp(ESCAPED_TAB_PLACEHOLDER, 'g'), '\t');
         jsonString = jsonString.replace(new RegExp(ESCAPED_RETURN_PLACEHOLDER, 'g'), '\r');
-        
+
         // 한국어가 포함된 경우를 위한 UTF-8 처리
         try {
             const sourceInfo = JSON.parse(jsonString);
-            
+
             devLog.log('✅ [parseCitation] JSON parsed successfully:', sourceInfo);
-            
+
             // 필수 필드 확인
-            if (!sourceInfo.file_name && !sourceInfo.filename && !sourceInfo.fileName && 
+            if (!sourceInfo.file_name && !sourceInfo.filename && !sourceInfo.fileName &&
                 !sourceInfo.file_path && !sourceInfo.filepath && !sourceInfo.filePath) {
                 devLog.warn('Missing required fields in citation:', sourceInfo);
                 return null;
             }
-            
+
             const result = {
                 file_name: sourceInfo.file_name || sourceInfo.filename || sourceInfo.fileName || '',
                 file_path: sourceInfo.file_path || sourceInfo.filepath || sourceInfo.filePath || '',
@@ -176,21 +176,21 @@ const parseCitation = (citationText: string): SourceInfo | null => {
                 line_start: sourceInfo.line_start || sourceInfo.linestart || sourceInfo.lineStart || 1,
                 line_end: sourceInfo.line_end || sourceInfo.lineend || sourceInfo.lineEnd || 1
             };
-            
+
             console.log('✅ [parseCitation] Final result:', result);
             return result;
         } catch (parseError) {
             console.error('JSON.parse failed, trying manual parsing...');
-            
+
             // 수동 파싱 시도
             const manualParsed = tryManualParsing(jsonString);
             if (manualParsed) {
                 return manualParsed;
             }
-            
+
             throw parseError;
         }
-        
+
     } catch (error) {
         console.error('Failed to parse citation:', error);
         console.error('Citation text:', citationText);
@@ -207,25 +207,25 @@ const tryManualParsing = (jsonString: string): SourceInfo | null => {
         if (!jsonString.startsWith('{') || !jsonString.endsWith('}')) {
             return null;
         }
-        
+
         const result: Partial<SourceInfo> = {};
-        
+
         // 각 필드를 개별적으로 추출
         const fileNameMatch = jsonString.match(/"(?:file_name|filename|fileName)"\s*:\s*"([^"]+)"/);
         if (fileNameMatch) result.file_name = fileNameMatch[1];
-        
+
         const filePathMatch = jsonString.match(/"(?:file_path|filepath|filePath)"\s*:\s*"([^"]+)"/);
         if (filePathMatch) result.file_path = filePathMatch[1];
-        
+
         const pageNumberMatch = jsonString.match(/"(?:page_number|pagenumber|pageNumber)"\s*:\s*(\d+)/);
         if (pageNumberMatch) result.page_number = parseInt(pageNumberMatch[1]);
-        
+
         const lineStartMatch = jsonString.match(/"(?:line_start|linestart|lineStart)"\s*:\s*(\d+)/);
         if (lineStartMatch) result.line_start = parseInt(lineStartMatch[1]);
-        
+
         const lineEndMatch = jsonString.match(/"(?:line_end|lineend|lineEnd)"\s*:\s*(\d+)/);
         if (lineEndMatch) result.line_end = parseInt(lineEndMatch[1]);
-        
+
         // 최소한 file_name이나 file_path가 있어야 함
         if (result.file_name || result.file_path) {
             return {
@@ -236,7 +236,7 @@ const tryManualParsing = (jsonString: string): SourceInfo | null => {
                 line_end: result.line_end || 1
             };
         }
-        
+
         return null;
     } catch (error) {
         console.error('Manual parsing failed:', error);
@@ -691,7 +691,7 @@ const parseSimpleMarkdown = (text: string, startKey: number, onViewSource?: (sou
  */
 const CitationPlaceholder: React.FC = () => {
     return (
-        <span 
+        <span
             style={{
                 backgroundColor: '#f3f4f6',
                 color: '#6b7280',
@@ -713,17 +713,17 @@ const CitationPlaceholder: React.FC = () => {
  */
 const processInlineMarkdownWithCitations = (text: string, key: string, onViewSource?: (sourceInfo: SourceInfo) => void): React.ReactNode[] => {
     const elements: React.ReactNode[] = [];
-    
+
     // Citation을 찾기 위한 더 안전한 접근법 - 수동으로 파싱
     const findCitations = (inputText: string): Array<{ start: number, end: number, content: string }> => {
         const citations: Array<{ start: number, end: number, content: string }> = [];
         let i = 0;
-        
+
         while (i < inputText.length) {
             // [Cite. 패턴 찾기
             const citeStart = inputText.indexOf('[Cite.', i);
             if (citeStart === -1) break;
-            
+
             // { 찾기
             let braceStart = -1;
             for (let j = citeStart + 6; j < inputText.length; j++) {
@@ -735,39 +735,39 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
                     break;
                 }
             }
-            
+
             if (braceStart === -1) {
                 i = citeStart + 6;
                 continue;
             }
-            
+
             // 균형잡힌 괄호 찾기 - 이스케이프 문자 처리 개선
             let braceCount = 1;
             let braceEnd = -1;
             let inString = false;
             let escaped = false;
-            
+
             for (let j = braceStart + 1; j < inputText.length; j++) {
                 const char = inputText[j];
-                
+
                 // 이전 문자가 백슬래시인 경우 현재 문자는 이스케이프됨
                 if (escaped) {
                     escaped = false;
                     continue;
                 }
-                
+
                 // 백슬래시 처리 - 다음 문자를 이스케이프
                 if (char === '\\') {
                     escaped = true;
                     continue;
                 }
-                
+
                 // 따옴표 처리 - 문자열 상태 토글
                 if (char === '"' && !escaped) {
                     inString = !inString;
                     continue;
                 }
-                
+
                 // 문자열 내부가 아닐 때만 중괄호 카운팅
                 if (!inString) {
                     if (char === '{') {
@@ -781,13 +781,13 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
                     }
                 }
             }
-            
+
             if (braceEnd !== -1) {
                 // 닫는 ] 찾기 (선택적)
                 let finalEnd = braceEnd + 1;
-                while (finalEnd < inputText.length && 
-                       (inputText[finalEnd] === ' ' || inputText[finalEnd] === '\t' || 
-                        inputText[finalEnd] === ']' || inputText[finalEnd] === '.' || 
+                while (finalEnd < inputText.length &&
+                       (inputText[finalEnd] === ' ' || inputText[finalEnd] === '\t' ||
+                        inputText[finalEnd] === ']' || inputText[finalEnd] === '.' ||
                         inputText[finalEnd] === '\\')) {
                     if (inputText[finalEnd] === ']') {
                         finalEnd++;
@@ -795,32 +795,32 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
                     }
                     finalEnd++;
                 }
-                
+
                 citations.push({
                     start: citeStart,
                     end: finalEnd,
                     content: inputText.slice(citeStart, finalEnd)
                 });
-                
+
                 i = finalEnd;
             } else {
                 i = citeStart + 6;
             }
         }
-        
+
         return citations;
     };
-    
+
     console.log('🔍 [processInlineMarkdownWithCitations] Looking for citations in text:', text);
-    
+
     // 1. Citation 우선 처리 - 마크다운 파싱보다 먼저 수행
     const citations = findCitations(text);
-    
+
     if (citations.length === 0) {
         // Citation이 없는 경우 부분적인 citation 확인
         const partialCitationRegex = /\[Cite\.(?:\s*\{[^}]*)?$/;
         const partialMatch = partialCitationRegex.exec(text);
-        
+
         if (partialMatch) {
             // 부분적인 citation 이전 텍스트 처리 - 마크다운 파싱 적용
             const beforeText = text.slice(0, partialMatch.index);
@@ -830,12 +830,12 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
                     <span key={`${key}-text-before`} dangerouslySetInnerHTML={{ __html: processedText }} />
                 );
             }
-            
+
             // 부분적인 citation placeholder 추가
             elements.push(
                 <CitationPlaceholder key={`${key}-partial`} />
             );
-            
+
             return [<div key={key} className={sourceStyles.lineWithCitations}>{elements}</div>];
         } else {
             // Citation이 전혀 없는 경우 마크다운 파싱 적용
@@ -843,13 +843,13 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
             return [<div key={key} dangerouslySetInnerHTML={{ __html: processedText }} />];
         }
     }
-    
+
     // 2. Citation이 있는 경우 Citation과 텍스트를 분할하여 처리
     let currentIndex = 0;
-    
+
     for (let i = 0; i < citations.length; i++) {
         const citation = citations[i];
-        
+
         // Citation 이전 텍스트 처리 - 마크다운 파싱 적용
         if (citation.start > currentIndex) {
             const beforeText = text.slice(currentIndex, citation.start);
@@ -860,19 +860,19 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
                 );
             }
         }
-        
+
         // Citation 처리 - 버튼으로 변환 (마크다운 파싱 제외)
         // Cite.로 시작하면 이스케이프 문자 변환: \" → "
         let processedCitationContent = citation.content;
         if (citation.content.trim().startsWith('Cite.')) {
             processedCitationContent = citation.content.replace(/\\"/g, '"');
         }
-        
+
         const sourceInfo = parseCitation(processedCitationContent);
-        
+
         console.log('✅ [processInlineMarkdownWithCitations] Found citation:', citation.content);
         devLog.log('🔍 [processInlineMarkdownWithCitations] Parsed sourceInfo:', sourceInfo);
-        
+
         if (sourceInfo && onViewSource) {
             devLog.log('✅ [processInlineMarkdownWithCitations] Creating SourceButton');
             elements.push(
@@ -892,10 +892,10 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
                 </span>
             );
         }
-        
+
         currentIndex = citation.end;
     }
-    
+
     // 남은 텍스트 처리 - 마크다운 파싱 적용
     if (currentIndex < text.length) {
         const remainingText = text.slice(currentIndex);
@@ -906,7 +906,7 @@ const processInlineMarkdownWithCitations = (text: string, key: string, onViewSou
             );
         }
     }
-    
+
     // Citation이 있는 경우 div로 감싸기
     return [<div key={key} className={sourceStyles.lineWithCitations}>{elements}</div>];
 };
