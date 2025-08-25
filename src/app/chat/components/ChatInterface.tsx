@@ -100,13 +100,19 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
 
     useSidebarManager(showDeploymentModal || showCollectionModal);
 
-    const handleViewSource = (sourceInfo: SourceInfo) => {
+    const handleViewSource = (sourceInfo: SourceInfo, messageContent?: string) => {
         // 스크롤 위치 저장 (사용자가 스크롤 중이 아닐 때만)
         if (!isUserScrolling) {
             saveScrollPosition();
         }
         
-        setCurrentSourceInfo(sourceInfo);
+        // 답변 내용을 sourceInfo에 추가
+        const enrichedSourceInfo = {
+            ...sourceInfo,
+            response_content: messageContent || sourceInfo.response_content
+        };
+        
+        setCurrentSourceInfo(enrichedSourceInfo);
         setShowPDFViewer(true);
         // 출처 뷰어가 켜질 때 패널 크기를 적절히 조정 (65% 채팅, 35% 출처)
         setPanelSplit(65);
@@ -621,11 +627,16 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
     const renderMessageContent = (content: string, isUserMessage: boolean = false) => {
         if (!content) return null;
 
+        // 답변 내용을 전달하는 헬퍼 함수
+        const handleViewSourceWithContext = (sourceInfo: SourceInfo) => {
+            handleViewSource(sourceInfo, content);
+        };
+
         return (
             <MessageRenderer
                 content={content}
                 isUserMessage={isUserMessage}
-                onViewSource={handleViewSource}
+                onViewSource={handleViewSourceWithContext}
             />
         );
     };

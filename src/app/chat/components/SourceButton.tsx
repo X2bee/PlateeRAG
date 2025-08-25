@@ -34,7 +34,7 @@ const SourceButton: React.FC<SourceButtonProps> = ({
     <button
       className={`${styles.sourceButton} ${className}`}
       onClick={handleClick}
-      title={`출처: ${sourceInfo.file_name} (페이지 ${sourceInfo.page_number}, 라인 ${sourceInfo.line_start}-${sourceInfo.line_end})`}
+      title={`출처: ${sourceInfo.file_name} (페이지 ${sourceInfo.page_number})`}
     >
       {getFileIcon(sourceInfo.file_name)}
       <span className={styles.sourceText}>

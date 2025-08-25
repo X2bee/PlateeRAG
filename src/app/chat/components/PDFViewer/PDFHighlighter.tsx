@@ -82,58 +82,31 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
       return;
     }
 
-    // Y 좌표로 정렬하여 라인 구조 만들기
-    const spanData = validSpans.map(span => {
-      const rect = span.getBoundingClientRect();
-      const containerRect = textLayer.getBoundingClientRect();
+    // 텍스트 매칭 기반 하이라이팅만 적용
+    if (highlightRange.searchText && highlightRange.searchText.trim()) {
+      const searchText = highlightRange.searchText.trim().toLowerCase();
       
-      return {
-        span,
-        top: rect.top - containerRect.top,
-        text: span.textContent?.trim() || ''
-      };
-    }).sort((a, b) => a.top - b.top);
-
-    // 라인별로 그룹화
-    const lineGroups: Array<{ y: number, spans: typeof spanData }> = [];
-
-    spanData.forEach(item => {
-      const tolerance = 15; // 15px 오차 허용
+      // 검색 텍스트를 단어 단위로 분리 (공백, 구두점으로 분리)
+      const searchWords = searchText.split(/[\s,.\-!?;:()]+/).filter(word => word.length > 2);
       
-      // 기존 라인 그룹과 매칭
-      let foundGroup = false;
-      for (const group of lineGroups) {
-        const yDiff = Math.abs(item.top - group.y);
-        if (yDiff <= tolerance) {
-          group.spans.push(item);
-          group.y = (group.y * (group.spans.length - 1) + item.top) / group.spans.length;
-          foundGroup = true;
-          break;
+      console.log('🔍 [PDFHighlighter] Searching for words:', searchWords);
+      
+      let highlightedSpans = 0;
+      validSpans.forEach(span => {
+        const spanText = span.textContent?.trim().toLowerCase() || '';
+        
+        // 스팬의 텍스트가 검색 단어 중 하나라도 포함하면 하이라이팅
+        const hasMatch = searchWords.some(word => 
+          spanText.includes(word) || word.includes(spanText.replace(/[.,!?;:()]/g, ''))
+        );
+        
+        if (hasMatch) {
+          span.classList.add(styles.pdfHighlight);
+          highlightedSpans++;
         }
-      }
-
-      if (!foundGroup) {
-        lineGroups.push({
-          y: item.top,
-          spans: [item]
-        });
-      }
-    });
-
-    // 라인 그룹을 Y 좌표로 정렬
-    lineGroups.sort((a, b) => a.y - b.y);
-
-    // 지정된 라인 범위에 하이라이팅 적용
-    const startLine = highlightRange.lineStart - 1; // 0-based index
-    const endLine = highlightRange.lineEnd - 1;
-
-    for (let lineIndex = startLine; lineIndex <= endLine && lineIndex < lineGroups.length; lineIndex++) {
-      const lineGroup = lineGroups[lineIndex];
-      if (lineGroup && lineGroup.spans) {
-        lineGroup.spans.forEach(item => {
-          item.span.classList.add(styles.pdfHighlight);
-        });
-      }
+      });
+      
+      console.log('🔍 [PDFHighlighter] Highlighted spans:', highlightedSpans);
     }
   }, [highlightRange, findPDFTextLayer, removeExistingHighlights]);
 

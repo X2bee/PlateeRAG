@@ -80,9 +80,6 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
 
   if (!sourceInfo) return null;
 
-  const [lineStart, setlineStart] = useState<number>(() => Math.floor(Math.random() * 10) + 1);
-  const [lineEnd, setlineEnd] = useState<number>(() => Math.floor(Math.random() * 21) + 20);
-
   // 디버깅을 위한 상태 로깅
   console.log('🔍 [SidePanelPDFViewer] Render state:', {
     loading,
@@ -90,19 +87,13 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
     pdfUrl: !!pdfUrl,
     pdfUrlValue: pdfUrl,
     numPages,
-    pageNumber
+    pageNumber,
+    responseContent: sourceInfo.response_content
   });
-
-  // const highlightRange: HighlightRange = {
-  //   pageNumber: sourceInfo.page_number,
-  //   lineStart: sourceInfo.line_start,
-  //   lineEnd: sourceInfo.line_end
-  // };
 
   const highlightRange: HighlightRange = {
     pageNumber: sourceInfo.page_number,
-    lineStart: lineStart,
-    lineEnd: lineEnd
+    searchText: sourceInfo.response_content // 답변 내용을 검색 텍스트로 사용
   };
 
   // 문서 파일 로딩 (PDF 및 HTML 지원)
@@ -371,9 +362,9 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
           <h3 className={styles.fileName}>{sourceInfo.file_name}</h3>
           <span className={styles.location}>
             {fileType === 'pdf' ? (
-              `페이지 ${sourceInfo.page_number}, 라인 ${sourceInfo.line_start}-${sourceInfo.line_end}`
+              `페이지 ${sourceInfo.page_number}`
             ) : (
-              `라인 ${sourceInfo.line_start}-${sourceInfo.line_end}`
+              '문서 내용'
             )}
           </span>
         </div>
