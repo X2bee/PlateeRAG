@@ -144,7 +144,7 @@ function CanvasPageContent() {
     }, [searchParams]);
 
     useEffect(() => {
-        let loadWorkflowName = searchParams.get('load');
+        const loadWorkflowName = searchParams.get('load');
         if (!loadWorkflowName) {
             setLoadingCanvas(false);
         }
