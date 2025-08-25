@@ -226,18 +226,68 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
   }, [sourceInfo?.file_path, mode, userId]);
 
   const handleZoomIn = useCallback(() => {
+    if (!pdfScrollContainer) return;
+    
+    // 현재 스크롤 위치와 컨테이너 크기 저장
+    const scrollLeft = pdfScrollContainer.scrollLeft;
+    const scrollTop = pdfScrollContainer.scrollTop;
+    const containerWidth = pdfScrollContainer.clientWidth;
+    const containerHeight = pdfScrollContainer.clientHeight;
+    
+    // 현재 보이는 중심점 계산
+    const centerX = scrollLeft + containerWidth / 2;
+    const centerY = scrollTop + containerHeight / 2;
+    
     setScale(prev => {
-      const newScale = prev + 0.1;
-      return Math.min(newScale, 3.0); // 최대 300%까지 확대
+      const newScale = Math.min(prev + 0.1, 3.0);
+      const scaleRatio = newScale / prev;
+      
+      // 새로운 중심점 계산 후 스크롤 위치 조정
+      setTimeout(() => {
+        if (pdfScrollContainer) {
+          const newCenterX = centerX * scaleRatio;
+          const newCenterY = centerY * scaleRatio;
+          
+          pdfScrollContainer.scrollLeft = newCenterX - containerWidth / 2;
+          pdfScrollContainer.scrollTop = newCenterY - containerHeight / 2;
+        }
+      }, 50);
+      
+      return newScale;
     });
-  }, []);
+  }, [pdfScrollContainer]);
 
   const handleZoomOut = useCallback(() => {
+    if (!pdfScrollContainer) return;
+    
+    // 현재 스크롤 위치와 컨테이너 크기 저장
+    const scrollLeft = pdfScrollContainer.scrollLeft;
+    const scrollTop = pdfScrollContainer.scrollTop;
+    const containerWidth = pdfScrollContainer.clientWidth;
+    const containerHeight = pdfScrollContainer.clientHeight;
+    
+    // 현재 보이는 중심점 계산
+    const centerX = scrollLeft + containerWidth / 2;
+    const centerY = scrollTop + containerHeight / 2;
+    
     setScale(prev => {
-      const newScale = prev - 0.1;
-      return Math.max(newScale, 0.2); // 최소 20%까지 축소
+      const newScale = Math.max(prev - 0.1, 0.2);
+      const scaleRatio = newScale / prev;
+      
+      // 새로운 중심점 계산 후 스크롤 위치 조정
+      setTimeout(() => {
+        if (pdfScrollContainer) {
+          const newCenterX = centerX * scaleRatio;
+          const newCenterY = centerY * scaleRatio;
+          
+          pdfScrollContainer.scrollLeft = newCenterX - containerWidth / 2;
+          pdfScrollContainer.scrollTop = newCenterY - containerHeight / 2;
+        }
+      }, 50);
+      
+      return newScale;
     });
-  }, []);
+  }, [pdfScrollContainer]);
 
   // 키보드 단축키와 휠 스크롤 이벤트 핸들러
   useEffect(() => {
@@ -251,7 +301,17 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
           handleZoomOut();
         } else if (event.key === '0') {
           event.preventDefault();
-          setScale(1.0); // 기본 크기로 리셋
+          // 기본 크기로 리셋하면서 중앙 정렬
+          setScale(1.0);
+          if (pdfScrollContainer) {
+            setTimeout(() => {
+              // 1.0 스케일에서는 중앙 정렬되므로 스크롤 초기화
+              const containerWidth = pdfScrollContainer.clientWidth;
+              const containerHeight = pdfScrollContainer.clientHeight;
+              pdfScrollContainer.scrollLeft = 0;
+              pdfScrollContainer.scrollTop = 0;
+            }, 100);
+          }
         }
       }
     };
@@ -334,22 +394,6 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
     setPageNumber(prev => Math.min(prev + 1, numPages));
   };
 
-  // 스케일 변경 시 스크롤 위치 조정
-  useEffect(() => {
-    if (pdfScrollContainer && fileType === 'pdf') {
-      // 줌인된 상태에서는 스크롤을 왼쪽 상단으로 이동
-      if (scale > 1.0) {
-        const scrollLeft = pdfScrollContainer.scrollLeft;
-        const scrollTop = pdfScrollContainer.scrollTop;
-        
-        // 약간의 지연을 두고 스크롤 위치 조정
-        setTimeout(() => {
-          pdfScrollContainer.scrollLeft = Math.max(0, scrollLeft);
-          pdfScrollContainer.scrollTop = Math.max(0, scrollTop);
-        }, 50);
-      }
-    }
-  }, [scale, pdfScrollContainer, fileType]);
 
   // PDF URL 정리
   useEffect(() => {
@@ -420,7 +464,15 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
             <FiZoomIn />
           </button>
           <button 
-            onClick={() => setScale(1.0)} 
+            onClick={() => {
+              setScale(1.0);
+              if (pdfScrollContainer) {
+                setTimeout(() => {
+                  pdfScrollContainer.scrollLeft = 0;
+                  pdfScrollContainer.scrollTop = 0;
+                }, 100);
+              }
+            }} 
             className={styles.controlButton}
             title="기본 크기로 리셋 (Ctrl+0)"
           >
