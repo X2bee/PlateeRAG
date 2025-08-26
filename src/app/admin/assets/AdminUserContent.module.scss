@@ -1,4 +1,4 @@
-@import '../../../app/_common/variables';
+@use "@/app/_common/_variables" as *;
 
 .container {
     padding: 0;
