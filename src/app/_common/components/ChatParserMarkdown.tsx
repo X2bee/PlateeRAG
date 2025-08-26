@@ -69,6 +69,18 @@ export const getLastLines = (text: string, n: number = 3): string => {
 export const processInlineMarkdown = (text: string): string => {
     let processed = cleanupJsonFragments(text);
 
+    // Citation 보호를 위한 플레이스홀더 생성
+    const citationPlaceholders: string[] = [];
+    const CITATION_PLACEHOLDER = '__CITATION_PLACEHOLDER_';
+    
+    // Citation 패턴을 플레이스홀더로 임시 교체하여 마크다운 처리에서 보호
+    processed = processed.replace(/\[Cite\.[^\]]*\]/g, (match) => {
+        const placeholder = `${CITATION_PLACEHOLDER}${citationPlaceholders.length}__`;
+        citationPlaceholders.push(match);
+        console.log('🔒 [processInlineMarkdown] Protected citation:', match, '-> placeholder:', placeholder);
+        return placeholder;
+    });
+
     // 인라인 코드 처리 (가장 먼저)
     processed = processed.replace(/`([^`\n]+)`/g, '<code class="inline-code">$1</code>');
 
@@ -83,9 +95,16 @@ export const processInlineMarkdown = (text: string): string => {
     // 취소선 처리
     processed = processed.replace(/~~([^~]+)~~/g, '<del>$1</del>');
 
-    // 링크 처리
+    // 링크 처리 - Citation이 아닌 일반 링크만 처리
     processed = processed.replace(/\[([^\]]+)\]\(([^)]+)\)/g,
         '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+    // Citation 플레이스홀더를 원본으로 복원
+    citationPlaceholders.forEach((originalCitation, index) => {
+        const placeholder = `${CITATION_PLACEHOLDER}${index}__`;
+        processed = processed.replace(placeholder, originalCitation);
+        console.log('🔓 [processInlineMarkdown] Restored citation:', placeholder, '-> original:', originalCitation);
+    });
 
     return processed;
 };
@@ -338,11 +357,27 @@ export const processInlineMarkdownWithCitations = (
 
         // Citation 처리 후 trailing 문자들 건너뛰기
         let nextIndex = citation.end;
-        // Citation 뒤에 있는 }], \, 공백 문자들을 모두 건너뛰기
-        while (nextIndex < text.length &&
-            /[}\]\\.\s]/.test(text[nextIndex])) {
-            nextIndex++;
+        
+        console.log('🧹 [processInlineMarkdownWithCitations] Cleaning up after citation at index:', nextIndex);
+        console.log('🧹 [processInlineMarkdownWithCitations] Text after citation:', text.slice(nextIndex, nextIndex + 20));
+        
+        // Citation 뒤에 남은 불완전한 JSON 구문이나 특수 문자들 정리
+        // }], \, 공백, 숫자, 콤마, 세미콜론 등 Citation 관련 잔여물 제거
+        while (nextIndex < text.length) {
+            const char = text[nextIndex];
+            
+            // Citation 관련 잔여 문자들: }, ], \, 공백, 숫자, 특수문자
+            if (/[}\]\\.\s,;:]/.test(char) || /\d/.test(char)) {
+                console.log('🧹 [processInlineMarkdownWithCitations] Skipping character:', JSON.stringify(char));
+                nextIndex++;
+            } else {
+                // 일반 텍스트 문자가 나오면 정리 중단
+                break;
+            }
         }
+        
+        console.log('🧹 [processInlineMarkdownWithCitations] Cleanup finished at index:', nextIndex);
+        console.log('🧹 [processInlineMarkdownWithCitations] Remaining text:', text.slice(nextIndex, nextIndex + 20));
 
         currentIndex = nextIndex;
     }
