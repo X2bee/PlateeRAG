@@ -16,12 +16,6 @@ import {
     type ToolOutputLogInfo
 } from '@/app/_common/components/ChatParserToolResponse';
 import {
-    CitationPlaceholder,
-    isSeparatorLine,
-    cleanupJsonFragments,
-    getLastLines,
-    processInlineMarkdown,
-    processInlineMarkdownWithCitations,
     parseSimpleMarkdown
 } from '@/app/_common/components/ChatParserMarkdown';
 import { parseCitation } from './ChatParserCite';
