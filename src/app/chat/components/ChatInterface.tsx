@@ -500,9 +500,15 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
             hasExecutedInitialMessage.current = true;
 
             setInputMessage(initialMessageToExecute);
+            
+            // 메시지 설정 후 즉시 실행
+            setTimeout(() => {
+                executeWorkflow(initialMessageToExecute);
+            }, 0);
 
             const newSearchParams = new URLSearchParams(window.location.search);
             newSearchParams.delete('initial_message');
+            newSearchParams.delete('initial_message_id');
             router.replace(`${window.location.pathname}?${newSearchParams.toString()}`, { scroll: false });
         }
     }, [initialMessageToExecute, executeWorkflow, router]);
