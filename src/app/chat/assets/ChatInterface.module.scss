@@ -540,7 +540,7 @@
     font-size: 0.95rem;
     resize: none;
     outline: none;
-    transition: all 0.2s ease;
+    transition: height 0.2s ease-in-out;
     background: $white;
     overflow-y: hidden; // 높이가 자동 조절될 때 스크롤 숨김
     line-height: 1.4;
