@@ -7,6 +7,7 @@ import AdminSidebar from '@/app/admin/components/AdminSidebar';
 import AdminContentArea from '@/app/admin/components/AdminContentArea';
 import AdminIntroduction from '@/app/admin/components/AdminIntroduction';
 import AdminUserContent from '@/app/admin/components/AdminUserContent';
+import AdminConfigViewer from '@/app/admin/components/AdminConfigViewer';
 import {
     getUserSidebarItems,
     getSystemSidebarItems,
@@ -56,7 +57,7 @@ const AdminPageContent: React.FC = () => {
         const validSections = [
             'dashboard',
             'users', 'user-create', 'user-permissions',
-            'system-config', 'system-monitor', 'system-health',
+            'system-config', 'chat-monitoring', 'system-monitor', 'system-health',
             'database', 'storage', 'backup',
             'security-settings', 'audit-logs', 'error-logs', 'access-logs'
         ];
@@ -107,7 +108,16 @@ const AdminPageContent: React.FC = () => {
                         title="시스템 설정"
                         description="전역 시스템 설정 및 환경변수를 관리하세요."
                     >
-                        <div>시스템 설정 컴포넌트가 여기에 표시됩니다.</div>
+                        <AdminConfigViewer />
+                    </AdminContentArea>
+                );
+            case 'chat-monitoring':
+                return (
+                    <AdminContentArea
+                        title="채팅 모니터링"
+                        description="실시간 채팅 활동 및 상태를 모니터링하세요."
+                    >
+                        <div>채팅 모니터링 컴포넌트가 여기에 표시됩니다.</div>
                     </AdminContentArea>
                 );
             case 'system-monitor':
@@ -215,7 +225,7 @@ const AdminPageContent: React.FC = () => {
                 activeItem={activeSection}
                 onItemClick={(itemId: string) => setActiveSection(itemId)}
                 initialUserExpanded={['users', 'user-create', 'user-permissions'].includes(activeSection)}
-                initialSystemExpanded={['system-config', 'system-monitor', 'system-health'].includes(activeSection)}
+                initialSystemExpanded={['system-config', 'chat-monitoring', 'system-monitor', 'system-health'].includes(activeSection)}
                 initialDataExpanded={['database', 'storage', 'backup'].includes(activeSection)}
                 initialSecurityExpanded={['security-settings', 'audit-logs', 'error-logs', 'access-logs'].includes(activeSection)}
             />

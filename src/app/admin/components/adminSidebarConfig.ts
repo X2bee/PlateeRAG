@@ -14,6 +14,7 @@ import {
     FiEye,
     FiFileText,
     FiAlertTriangle,
+    FiMessageSquare,
 } from 'react-icons/fi';
 import { AdminSidebarItem } from '@/app/admin/components/types';
 
@@ -40,7 +41,7 @@ export const getUserSidebarItems = (): AdminSidebarItem[] => [
     },
 ];
 
-export const getSystemItems = ['system-config', 'system-monitor', 'system-health'];
+export const getSystemItems = ['system-config', 'chat-monitoring', 'system-monitor', 'system-health'];
 
 export const getSystemSidebarItems = (): AdminSidebarItem[] => [
     {
@@ -48,6 +49,12 @@ export const getSystemSidebarItems = (): AdminSidebarItem[] => [
         title: '시스템 설정',
         description: '전역 시스템 설정 및 환경변수',
         icon: React.createElement(FiSettings),
+    },
+    {
+        id: 'chat-monitoring',
+        title: '채팅 모니터링',
+        description: '실시간 채팅 활동 및 상태 모니터링',
+        icon: React.createElement(FiMessageSquare),
     },
     {
         id: 'system-monitor',

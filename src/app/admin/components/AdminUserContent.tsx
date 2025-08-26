@@ -198,6 +198,17 @@ const AdminUserContent: React.FC = () => {
                         <tr>
                             <th
                                 className={styles.sortable}
+                                onClick={() => handleSort('id')}
+                            >
+                                ID
+                                {sortField === 'id' && (
+                                    <span className={styles.sortIcon}>
+                                        {sortDirection === 'asc' ? '↑' : '↓'}
+                                    </span>
+                                )}
+                            </th>
+                            <th
+                                className={styles.sortable}
                                 onClick={() => handleSort('email')}
                             >
                                 이메일
@@ -279,7 +290,7 @@ const AdminUserContent: React.FC = () => {
                     <tbody>
                         {sortedUsers.length === 0 ? (
                             <tr>
-                                <td colSpan={8} className={styles.noData}>
+                                <td colSpan={9} className={styles.noData}>
                                     {searchTerm ? '검색 결과가 없습니다.' : '등록된 사용자가 없습니다.'}
                                 </td>
                             </tr>
@@ -288,6 +299,7 @@ const AdminUserContent: React.FC = () => {
                                 const roleInfo = getUserRoleDisplay(user);
                                 return (
                                     <tr key={user.id} className={styles.tableRow}>
+                                        <td className={styles.userId}>{user.id}</td>
                                         <td className={styles.email}>{user.email}</td>
                                         <td className={styles.username}>{user.username}</td>
                                         <td className={styles.fullName}>{user.full_name || '-'}</td>
