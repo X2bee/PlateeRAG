@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getAllUsers } from '@/app/admin/api/users';
+import { getAllUsers, deleteUser } from '@/app/admin/api/users';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/AdminUserContent.module.scss';
 
@@ -28,6 +28,7 @@ const AdminUserContent: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortField, setSortField] = useState<keyof User>('created_at');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+    const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 
     // 사용자 데이터 로드
     const loadUsers = async () => {
@@ -142,6 +143,39 @@ const AdminUserContent: React.FC = () => {
         }
     };
 
+    // 사용자 삭제 핸들러
+    const handleDeleteUser = async (user: User) => {
+        const confirmed = window.confirm(
+            `정말로 "${user.username}" (${user.email}) 사용자와 관련된 모든 데이터를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`
+        );
+
+        if (!confirmed) return;
+
+        try {
+            setDeleteLoading(user.id);
+
+            const userData = {
+                id: user.id,
+                username: user.username,
+                email: user.email
+            };
+
+            const result = await deleteUser(userData);
+            devLog.log('User deleted successfully:', result);
+
+            // 삭제 성공 후 사용자 목록 새로고침
+            await loadUsers();
+
+            alert('사용자와 관련된 모든 데이터가 성공적으로 삭제되었습니다.');
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : '사용자 삭제에 실패했습니다.';
+            devLog.error('Failed to delete user:', err);
+            alert(`삭제 실패: ${errorMessage}`);
+        } finally {
+            setDeleteLoading(null);
+        }
+    };
+
     if (loading) {
         return (
             <div className={styles.container}>
@@ -196,6 +230,17 @@ const AdminUserContent: React.FC = () => {
                 <table className={styles.table}>
                     <thead>
                         <tr>
+                            <th
+                                className={styles.sortable}
+                                onClick={() => handleSort('id')}
+                            >
+                                ID
+                                {sortField === 'id' && (
+                                    <span className={styles.sortIcon}>
+                                        {sortDirection === 'asc' ? '↑' : '↓'}
+                                    </span>
+                                )}
+                            </th>
                             <th
                                 className={styles.sortable}
                                 onClick={() => handleSort('email')}
@@ -279,7 +324,7 @@ const AdminUserContent: React.FC = () => {
                     <tbody>
                         {sortedUsers.length === 0 ? (
                             <tr>
-                                <td colSpan={8} className={styles.noData}>
+                                <td colSpan={9} className={styles.noData}>
                                     {searchTerm ? '검색 결과가 없습니다.' : '등록된 사용자가 없습니다.'}
                                 </td>
                             </tr>
@@ -288,6 +333,7 @@ const AdminUserContent: React.FC = () => {
                                 const roleInfo = getUserRoleDisplay(user);
                                 return (
                                     <tr key={user.id} className={styles.tableRow}>
+                                        <td className={styles.userId}>{user.id}</td>
                                         <td className={styles.email}>{user.email}</td>
                                         <td className={styles.username}>{user.username}</td>
                                         <td className={styles.fullName}>{user.full_name || '-'}</td>
@@ -308,9 +354,10 @@ const AdminUserContent: React.FC = () => {
                                             </button>
                                             <button
                                                 className={`${styles.actionButton} ${styles.dangerButton}`}
-                                                onClick={() => console.log('Delete user:', user.id)}
+                                                onClick={() => handleDeleteUser(user)}
+                                                disabled={deleteLoading === user.id}
                                             >
-                                                삭제
+                                                {deleteLoading === user.id ? '삭제 중...' : '삭제'}
                                             </button>
                                         </td>
                                     </tr>

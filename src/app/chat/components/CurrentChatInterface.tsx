@@ -16,7 +16,25 @@ const CurrentChatInterface: React.FC<CurrentChatInterfaceProps> = ({ onBack }) =
     const [loading, setLoading] = useState(true);
     const searchParams = useSearchParams();
 
-    const initialMessageToExecute = useMemo(() => searchParams.get('initial_message'), [searchParams]);
+    const initialMessageToExecute = useMemo(() => {
+        const directMessage = searchParams.get('initial_message');
+        if (directMessage) {
+            return directMessage;
+        }
+        
+        // URL 파라미터에 직접 메시지가 없으면 localStorage에서 찾기
+        const messageId = searchParams.get('initial_message_id');
+        if (messageId) {
+            const storedMessage = localStorage.getItem(messageId);
+            if (storedMessage) {
+                // 사용 후 정리
+                localStorage.removeItem(messageId);
+                return storedMessage;
+            }
+        }
+        
+        return null;
+    }, [searchParams]);
 
     useEffect(() => {
         setLoading(true);

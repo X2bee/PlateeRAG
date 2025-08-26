@@ -24,3 +24,36 @@ export const getAllUsers = async () => {
         throw error;
     }
 };
+
+/**
+ * 사용자와 관련된 모든 데이터를 삭제하는 함수 (슈퍼유저 권한 필요)
+ * @param {Object} userData - 삭제할 사용자 정보
+ * @param {number} userData.id - 사용자 ID
+ * @param {string} userData.username - 사용자명
+ * @param {string} userData.email - 사용자 이메일
+ * @returns {Promise<Object>} 삭제 결과
+ */
+export const deleteUser = async (userData) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/admin/user/user-account`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData)
+        });
+
+        const data = await response.json();
+        devLog.log('Delete user result:', data);
+
+        if (!response.ok) {
+            devLog.error('Failed to delete user:', data);
+            throw new Error(data.detail || 'Failed to delete user');
+        }
+
+        return data;
+    } catch (error) {
+        devLog.error('Failed to delete user:', error);
+        throw error;
+    }
+};

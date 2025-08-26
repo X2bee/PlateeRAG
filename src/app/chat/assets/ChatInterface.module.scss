@@ -540,8 +540,12 @@
     font-size: 0.95rem;
     resize: none;
     outline: none;
-    transition: all 0.2s ease;
+    transition: height 0.2s ease-in-out;
     background: $white;
+    overflow-y: hidden; // 높이가 자동 조절될 때 스크롤 숨김
+    line-height: 1.4;
+    min-height: 45px; // 폰트 크기에 맞는 최소 높이 (15.2px * 1.4 + 24px padding)
+    max-height: 200px;
 
     &:focus {
         border-color: $primary-blue;
@@ -555,6 +559,11 @@
 
     &::placeholder {
         color: $gray-400;
+    }
+
+    // 최대 높이에 도달했을 때만 스크롤 표시
+    &.scrollable {
+        overflow-y: auto;
     }
 }
 
