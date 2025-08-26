@@ -66,20 +66,8 @@ export const getLastLines = (text: string, n: number = 3): string => {
 /**
  * 인라인 마크다운 처리 (볼드, 이탤릭, 링크 등)
  */
-export const processInlineMarkdown = (text: string): string => {
+export const processInlineMarkdown = (text: string, isStreaming: boolean = false): string => {
     let processed = cleanupJsonFragments(text);
-
-    // Citation 보호를 위한 플레이스홀더 생성
-    const citationPlaceholders: string[] = [];
-    const CITATION_PLACEHOLDER = '__CITATION_PLACEHOLDER_';
-    
-    // Citation 패턴을 플레이스홀더로 임시 교체하여 마크다운 처리에서 보호
-    processed = processed.replace(/\[Cite\.[^\]]*\]/g, (match) => {
-        const placeholder = `${CITATION_PLACEHOLDER}${citationPlaceholders.length}__`;
-        citationPlaceholders.push(match);
-        console.log('🔒 [processInlineMarkdown] Protected citation:', match, '-> placeholder:', placeholder);
-        return placeholder;
-    });
 
     // 인라인 코드 처리 (가장 먼저)
     processed = processed.replace(/`([^`\n]+)`/g, '<code class="inline-code">$1</code>');
@@ -90,7 +78,7 @@ export const processInlineMarkdown = (text: string): string => {
 
     // 이탤릭 처리 (*text* 우선, _text_ 나중에) - 볼드와 겹치지 않도록
     processed = processed.replace(/(?<!\*)\*([^*\s][^*]*[^*\s]|\S)\*(?!\*)/g, '<em>$1</em>');
-    processed = processed.replace(/(?<!_)_([^_\s][^_]*[^_\s]|\S)_(?!_)/g, '<em>$1</em>');
+    // processed = processed.replace(/(?<!_)_([^_\s][^_]*[^_\s]|\S)_(?!_)/g, '<em>$1</em>');
 
     // 취소선 처리
     processed = processed.replace(/~~([^~]+)~~/g, '<del>$1</del>');
@@ -98,13 +86,6 @@ export const processInlineMarkdown = (text: string): string => {
     // 링크 처리 - Citation이 아닌 일반 링크만 처리
     processed = processed.replace(/\[([^\]]+)\]\(([^)]+)\)/g,
         '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-
-    // Citation 플레이스홀더를 원본으로 복원
-    citationPlaceholders.forEach((originalCitation, index) => {
-        const placeholder = `${CITATION_PLACEHOLDER}${index}__`;
-        processed = processed.replace(placeholder, originalCitation);
-        console.log('🔓 [processInlineMarkdown] Restored citation:', placeholder, '-> original:', originalCitation);
-    });
 
     return processed;
 };
@@ -117,13 +98,14 @@ export const processInlineMarkdownWithCitations = (
     text: string,
     key: string,
     onViewSource?: (sourceInfo: SourceInfo) => void,
-    parseCitation?: (citationText: string) => SourceInfo | null
+    parseCitation?: (citationText: string) => SourceInfo | null,
+    isStreaming: boolean = false
 ): React.ReactNode[] => {
     const elements: React.ReactNode[] = [];
 
     // parseCitation이 없으면 Citation 처리 없이 마크다운만 처리
     if (!parseCitation) {
-        const processedText = processInlineMarkdown(text);
+        const processedText = processInlineMarkdown(text, isStreaming);
         return [<div key={key} dangerouslySetInnerHTML={{ __html: processedText }} />];
     }
 
@@ -276,7 +258,7 @@ export const processInlineMarkdownWithCitations = (
             // 부분적인 citation 이전 텍스트 처리 - 마크다운 파싱 적용
             const beforeText = text.slice(0, partialMatch.index);
             if (beforeText) {
-                const processedText = processInlineMarkdown(beforeText);
+                const processedText = processInlineMarkdown(beforeText, isStreaming);
                 elements.push(
                     <span key={`${key}-text-before`} dangerouslySetInnerHTML={{ __html: processedText }} />
                 );
@@ -290,7 +272,7 @@ export const processInlineMarkdownWithCitations = (
             return [<div key={key} className={sourceStyles.lineWithCitations}>{elements}</div>];
         } else {
             // Citation이 전혀 없는 경우 마크다운 파싱 적용
-            const processedText = processInlineMarkdown(text);
+            const processedText = processInlineMarkdown(text, isStreaming);
             return [<div key={key} dangerouslySetInnerHTML={{ __html: processedText }} />];
         }
     }
@@ -305,7 +287,7 @@ export const processInlineMarkdownWithCitations = (
         if (citation.start > currentIndex) {
             const beforeText = text.slice(currentIndex, citation.start);
             if (beforeText.trim()) {
-                const processedText = processInlineMarkdown(beforeText);
+                const processedText = processInlineMarkdown(beforeText, isStreaming);
                 elements.push(
                     <span key={`${key}-text-${i}`} dangerouslySetInnerHTML={{ __html: processedText }} />
                 );
@@ -386,7 +368,7 @@ export const processInlineMarkdownWithCitations = (
     if (currentIndex < text.length) {
         const remainingText = text.slice(currentIndex);
         if (remainingText.trim()) {
-            const processedText = processInlineMarkdown(remainingText);
+            const processedText = processInlineMarkdown(remainingText, isStreaming);
             elements.push(
                 <span key={`${key}-text-remaining`} dangerouslySetInnerHTML={{ __html: processedText }} />
             );
@@ -404,7 +386,8 @@ export const parseSimpleMarkdown = (
     text: string,
     startKey: number,
     onViewSource?: (sourceInfo: SourceInfo) => void,
-    parseCitation?: (citationText: string) => SourceInfo | null
+    parseCitation?: (citationText: string) => SourceInfo | null,
+    isStreaming: boolean = false
 ): React.ReactNode[] => {
     if (!text.trim()) return [];
 
@@ -464,7 +447,7 @@ export const parseSimpleMarkdown = (
                 <tr key="header">
                     {headers.map((header, index) => (
                         <th key={index} style={{ textAlign: alignments[index] || 'left', padding: '0.5rem 1rem', border: '1px solid #d1d5db' }}>
-                            <div dangerouslySetInnerHTML={{ __html: processInlineMarkdown(header) }} />
+                            <div dangerouslySetInnerHTML={{ __html: processInlineMarkdown(header, isStreaming) }} />
                         </th>
                     ))}
                 </tr>
@@ -477,7 +460,7 @@ export const parseSimpleMarkdown = (
                     <tr key={rowIndex}>
                         {cells.map((cell, cellIndex) => (
                             <td key={cellIndex} style={{ textAlign: alignments[cellIndex] || 'left', padding: '0.5rem 1rem', border: '1px solid #d1d5db' }}>
-                                <div dangerouslySetInnerHTML={{ __html: processInlineMarkdown(cell) }} />
+                                <div dangerouslySetInnerHTML={{ __html: processInlineMarkdown(cell, isStreaming) }} />
                             </td>
                         ))}
                     </tr>
@@ -506,7 +489,7 @@ export const parseSimpleMarkdown = (
         const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
         if (headingMatch) {
             const level = headingMatch[1].length;
-            const headingText = processInlineMarkdown(headingMatch[2]);
+            const headingText = processInlineMarkdown(headingMatch[2], isStreaming);
             const headingElement = React.createElement(`h${level}`, { key, dangerouslySetInnerHTML: { __html: headingText } });
             elements.push(headingElement);
             continue;
@@ -515,7 +498,7 @@ export const parseSimpleMarkdown = (
         // 인용문 처리
         const blockquoteMatch = line.match(/^>\s*(.+)$/);
         if (blockquoteMatch) {
-            const quoteText = processInlineMarkdown(blockquoteMatch[1]);
+            const quoteText = processInlineMarkdown(blockquoteMatch[1], isStreaming);
             elements.push(
                 <blockquote key={key} style={{ borderLeft: '4px solid #2563eb', margin: '0.5rem 0', padding: '0.5rem 0 0.5rem 1rem', background: 'rgba(37, 99, 235, 0.05)', borderRadius: '0 0.25rem 0.25rem 0', fontStyle: 'italic' }}>
                     <div dangerouslySetInnerHTML={{ __html: quoteText }} />
@@ -528,7 +511,7 @@ export const parseSimpleMarkdown = (
         const listMatch = line.match(/^(\s*)-\s+(.+)$/);
         if (listMatch) {
             const indent = listMatch[1].length;
-            const listText = processInlineMarkdown(listMatch[2]);
+            const listText = processInlineMarkdown(listMatch[2], isStreaming);
             const marginLeft = indent * 1.5;
             elements.push(
                 <div key={key} style={{ marginLeft: `${marginLeft}rem`, position: 'relative', paddingLeft: '1.5rem', margin: '0.25rem 0' }}>
@@ -543,7 +526,7 @@ export const parseSimpleMarkdown = (
         if (line.trim()) {
             const cleanedLine = cleanupJsonFragments(line);
             if (cleanedLine) {
-                const processedElements = processInlineMarkdownWithCitations(cleanedLine, key, onViewSource, parseCitation);
+                const processedElements = processInlineMarkdownWithCitations(cleanedLine, key, onViewSource, parseCitation, isStreaming);
                 elements.push(...processedElements);
             }
         } else if (elements.length > 0 && processedLines[i - 1]?.trim() !== '') {

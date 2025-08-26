@@ -311,6 +311,17 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
  */
 const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo: SourceInfo) => void): React.ReactNode[] => {
     let processed = content;
+    
+    // 스트림 모드 감지를 위한 헬퍼 함수
+    const detectStreaming = (text: string, textStartIndex: number, totalLength: number): boolean => {
+        // 텍스트가 전체 콘텐츠의 끝 부분인지 확인
+        const isAtEnd = textStartIndex + text.length === totalLength;
+        if (!isAtEnd) return false;
+        
+        // 불완전한 citation 패턴 확인
+        const partialCitationRegex = /\[Cite\.(?:\s*\{[^}]*)?$/;
+        return partialCitationRegex.test(text.trim());
+    };
 
     // 이스케이프된 문자 처리
     processed = processed.replace(/\\n/g, '\n');
@@ -363,7 +374,8 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
         // 블록 이전 텍스트 처리
         if (block.start > currentIndex) {
             const beforeText = processed.slice(currentIndex, block.start);
-            elements.push(...parseSimpleMarkdown(beforeText, elements.length, onViewSource, parseCitation));
+            const isStreamingBefore = detectStreaming(beforeText, currentIndex, processed.length);
+            elements.push(...parseSimpleMarkdown(beforeText, elements.length, onViewSource, parseCitation, isStreamingBefore));
         }
 
         // 블록 타입에 따라 컴포넌트 추가
@@ -444,7 +456,8 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
     // 남은 텍스트 처리
     if (currentIndex < processed.length) {
         const remainingText = processed.slice(currentIndex);
-        elements.push(...parseSimpleMarkdown(remainingText, elements.length, onViewSource, parseCitation));
+        const isStreamingRemaining = detectStreaming(remainingText, currentIndex, processed.length);
+        elements.push(...parseSimpleMarkdown(remainingText, elements.length, onViewSource, parseCitation, isStreamingRemaining));
     }
 
     return elements;
