@@ -92,7 +92,7 @@ export const processInlineMarkdown = (text: string, isStreaming: boolean = false
 
     // 이탤릭 처리 (*text* 우선, _text_ 나중에) - 볼드와 겹치지 않도록
     processed = processed.replace(/(?<!\*)\*([^*\s][^*]*[^*\s]|\S)\*(?!\*)/g, '<em>$1</em>');
-    processed = processed.replace(/(?<!_)_([^_\s][^_]*[^_\s]|\S)_(?!_)/g, '<em>$1</em>');
+    // processed = processed.replace(/(?<!_)_([^_\s][^_]*[^_\s]|\S)_(?!_)/g, '<em>$1</em>');
 
     // 취소선 처리
     processed = processed.replace(/~~([^~]+)~~/g, '<del>$1</del>');
