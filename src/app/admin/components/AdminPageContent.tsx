@@ -8,6 +8,7 @@ import AdminContentArea from '@/app/admin/components/AdminContentArea';
 import AdminIntroduction from '@/app/admin/components/AdminIntroduction';
 import AdminUserContent from '@/app/admin/components/AdminUserContent';
 import AdminConfigViewer from '@/app/admin/components/AdminConfigViewer';
+import AdminWorkflowLogsContent from '@/app/admin/components/AdminWorkflowLogsContent';
 import {
     getUserSidebarItems,
     getSystemSidebarItems,
@@ -117,7 +118,7 @@ const AdminPageContent: React.FC = () => {
                         title="채팅 모니터링"
                         description="실시간 채팅 활동 및 상태를 모니터링하세요."
                     >
-                        <div>채팅 모니터링 컴포넌트가 여기에 표시됩니다.</div>
+                        <AdminWorkflowLogsContent />
                     </AdminContentArea>
                 );
             case 'system-monitor':

@@ -23,7 +23,7 @@
 
 .searchContainer {
     flex: 1;
-    max-width: 400px;
+    max-width: 500px;
 }
 
 .searchInput {
@@ -86,10 +86,11 @@
     width: 100%;
     border-collapse: collapse;
     background: white;
+    min-width: 1200px; // 많은 컬럼으로 인한 최소 너비 설정
 
     th {
         background: #f8f9fa;
-        padding: 15px 12px;
+        padding: 12px 8px;
         text-align: left;
         font-weight: 600;
         color: #333;
@@ -98,6 +99,7 @@
         top: 0;
         z-index: 10;
         white-space: nowrap;
+        font-size: 13px;
 
         &.sortable {
             cursor: pointer;
@@ -111,9 +113,10 @@
     }
 
     td {
-        padding: 12px;
+        padding: 10px 8px;
         border-bottom: 1px solid #e9ecef;
         vertical-align: middle;
+        font-size: 13px;
     }
 
     tr:hover {
@@ -132,123 +135,71 @@
 }
 
 .badge {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 12px;
+    padding: 3px 6px;
+    border-radius: 10px;
+    font-size: 11px;
     font-weight: 500;
     text-align: center;
-    min-width: 50px;
+    min-width: 40px;
     display: inline-block;
 
-    &.badgeActive {
+    &.badgeTest {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+
+    &.badgeProduction {
         background: #d4edda;
         color: #155724;
         border: 1px solid #c3e6cb;
     }
-
-    &.badgeInactive {
-        background: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-    }
 }
 
-.role {
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
-    border: 1px solid;
-
-    &.roleSuperuser {
-        background: #fff3cd;
-        color: #856404;
-        border-color: #ffeaa7;
-        font-weight: 700;
-    }
-
-    &.roleAdmin {
-        background: #d1ecf1;
-        color: #0c5460;
-        border-color: #bee5eb;
-        font-weight: 600;
-    }
-
-    &.roleUser {
-        background: #e7f3ff;
-        color: #0066cc;
-        border-color: #b3d7ff;
-    }
-
-    &.roleUnknown {
-        background: #f8d7da;
-        color: #721c24;
-        border-color: #f5c6cb;
-    }
-}
-
-.email {
-    font-weight: 500;
-    color: #333;
-}
-
-.userId {
+.logId {
     font-weight: 600;
     color: #666;
     font-family: monospace;
-    font-size: 13px;
-}
-
-.username {
-    color: #666;
-}
-
-.fullName {
-    color: #333;
-    font-weight: 500;
-}
-
-.actions {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-start;
-}
-
-.actionButton {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
     font-size: 12px;
+    min-width: 60px;
+}
+
+.userId {
     font-weight: 500;
-    transition: all 0.2s ease;
-    background: #6c757d;
-    color: white;
+    color: #666;
+    font-family: monospace;
+    font-size: 12px;
+    min-width: 80px;
+}
 
-    &:hover:not(:disabled) {
-        background: #5a6268;
-        transform: translateY(-1px);
-    }
+.workflowName {
+    font-weight: 500;
+    color: #333;
+    max-width: 150px;
+    word-break: break-word;
+}
 
-    &:disabled {
-        background: #adb5bd;
-        cursor: not-allowed;
-        transform: none;
-        opacity: 0.7;
-    }
+.interactionId {
+    font-family: monospace;
+    color: #666;
+    font-size: 11px;
+    max-width: 120px;
+    word-break: break-all;
+}
 
-    &.dangerButton {
-        background: #dc3545;
+.dataCell {
+    max-width: 150px;
+    word-break: break-word;
+    color: #555;
+    font-size: 12px;
+    line-height: 1.4;
+}
 
-        &:hover:not(:disabled) {
-            background: #c82333;
-        }
-
-        &:disabled {
-            background: #f8d7da;
-            color: #721c24;
-        }
-    }
+.score {
+    text-align: center;
+    font-weight: 500;
+    font-family: monospace;
+    min-width: 70px;
 }
 
 .loading {
@@ -320,27 +271,29 @@
 }
 
 // 반응형 처리
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .table {
-        font-size: 14px;
+        font-size: 12px;
 
         th, td {
-            padding: 8px;
+            padding: 8px 6px;
         }
     }
 
-    .actions {
-        flex-direction: column;
-        gap: 4px;
+    .dataCell {
+        max-width: 100px;
     }
 
-    .actionButton {
-        font-size: 11px;
-        padding: 4px 8px;
+    .workflowName {
+        max-width: 100px;
+    }
+
+    .interactionId {
+        max-width: 80px;
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
     .container {
         margin: 0 -10px;
         border-radius: 0;
@@ -351,10 +304,14 @@
     }
 
     .table {
-        font-size: 12px;
+        font-size: 11px;
 
         th, td {
-            padding: 6px;
+            padding: 6px 4px;
         }
+    }
+
+    .dataCell, .workflowName, .interactionId {
+        max-width: 80px;
     }
 }
