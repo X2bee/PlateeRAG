@@ -452,7 +452,7 @@ export const parseSimpleMarkdown = (
                 <tr key="header">
                     {headers.map((header, index) => (
                         <th key={index} style={{ textAlign: alignments[index] || 'left', padding: '0.5rem 1rem', border: '1px solid #d1d5db' }}>
-                            <div dangerouslySetInnerHTML={{ __html: processInlineMarkdown(header, isStreaming) }} />
+                            <div>{processInlineMarkdownWithCitations(header, `${key}-header-${index}`, onViewSource, parseCitation, isStreaming)}</div>
                         </th>
                     ))}
                 </tr>
@@ -465,7 +465,7 @@ export const parseSimpleMarkdown = (
                     <tr key={rowIndex}>
                         {cells.map((cell, cellIndex) => (
                             <td key={cellIndex} style={{ textAlign: alignments[cellIndex] || 'left', padding: '0.5rem 1rem', border: '1px solid #d1d5db' }}>
-                                <div dangerouslySetInnerHTML={{ __html: processInlineMarkdown(cell, isStreaming) }} />
+                                <div>{processInlineMarkdownWithCitations(cell, `${key}-cell-${rowIndex}-${cellIndex}`, onViewSource, parseCitation, isStreaming)}</div>
                             </td>
                         ))}
                     </tr>
@@ -494,8 +494,9 @@ export const parseSimpleMarkdown = (
         const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
         if (headingMatch) {
             const level = headingMatch[1].length;
-            const headingText = processInlineMarkdown(headingMatch[2], isStreaming);
-            const headingElement = React.createElement(`h${level}`, { key, dangerouslySetInnerHTML: { __html: headingText } });
+            const headingContent = processInlineMarkdownWithCitations(headingMatch[2], `${key}-heading`, onViewSource, parseCitation, isStreaming);
+            // eslint-disable-next-line react/no-children-prop
+            const headingElement = React.createElement(`h${level}`, { key, children: headingContent });
             elements.push(headingElement);
             continue;
         }
@@ -503,10 +504,10 @@ export const parseSimpleMarkdown = (
         // 인용문 처리
         const blockquoteMatch = line.match(/^>\s*(.+)$/);
         if (blockquoteMatch) {
-            const quoteText = processInlineMarkdown(blockquoteMatch[1], isStreaming);
+            const quoteContent = processInlineMarkdownWithCitations(blockquoteMatch[1], `${key}-quote`, onViewSource, parseCitation, isStreaming);
             elements.push(
                 <blockquote key={key} style={{ borderLeft: '4px solid #2563eb', margin: '0.5rem 0', padding: '0.5rem 0 0.5rem 1rem', background: 'rgba(37, 99, 235, 0.05)', borderRadius: '0 0.25rem 0.25rem 0', fontStyle: 'italic' }}>
-                    <div dangerouslySetInnerHTML={{ __html: quoteText }} />
+                    <div>{quoteContent}</div>
                 </blockquote>
             );
             continue;
@@ -516,12 +517,12 @@ export const parseSimpleMarkdown = (
         const listMatch = line.match(/^(\s*)-\s+(.+)$/);
         if (listMatch) {
             const indent = listMatch[1].length;
-            const listText = processInlineMarkdown(listMatch[2], isStreaming);
             const marginLeft = indent * 1.5;
+            const listContent = processInlineMarkdownWithCitations(listMatch[2], `${key}-list`, onViewSource, parseCitation, isStreaming);
             elements.push(
                 <div key={key} style={{ marginLeft: `${marginLeft}rem`, position: 'relative', paddingLeft: '1.5rem', margin: '0.25rem 0' }}>
                     <span style={{ position: 'absolute', left: '0', top: '0', fontWeight: 'bold' }}>•</span>
-                    <div dangerouslySetInnerHTML={{ __html: listText }} />
+                    <div>{listContent}</div>
                 </div>
             );
             continue;
