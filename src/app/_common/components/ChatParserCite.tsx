@@ -1,5 +1,311 @@
 import { SourceInfo } from "@/app/chat/types/source";
 import { devLog } from "../utils/logger";
+import { hasLatex, processLatexInText } from "./ChatParserLatex";
+import { processInlineMarkdown } from "./ChatParserMarkdown";
+import SourceButton from "@/app/chat/components/SourceButton";
+import sourceStyles from '@/app/chat/assets/SourceButton.module.scss';
+
+/**
+ * Citation Placeholder 컴포넌트 - 스트리밍 중 부분적인 citation 표시
+ */
+export const CitationPlaceholder: React.FC = () => {
+    return (
+        <span
+            style={{
+                backgroundColor: '#f3f4f6',
+                color: '#6b7280',
+                padding: '0.125rem 0.375rem',
+                borderRadius: '0.25rem',
+                fontSize: '0.875rem',
+                fontStyle: 'italic',
+                border: '1px dashed #d1d5db'
+            }}
+        >
+            📑 출처 정보 로딩 중...
+        </span>
+    );
+};
+
+/**
+ * Citation과 LaTeX를 포함한 텍스트 처리 - LaTeX, Citation, 마크다운 순서로 처리
+ */
+export const processInlineMarkdownWithCitations = (
+    text: string,
+    key: string,
+    onViewSource?: (sourceInfo: SourceInfo) => void,
+    parseCitation?: (citationText: string) => SourceInfo | null,
+    isStreaming: boolean = false
+): React.ReactNode[] => {
+    const elements: React.ReactNode[] = [];
+
+    // 1. LaTeX와 Citation 모두 체크하여 적절히 처리
+    const hasLatexContent = hasLatex(text);
+    
+    // LaTeX만 있고 Citation이 없는 경우에만 LaTeX 처리로 바로 넘김
+    if (hasLatexContent && !text.includes('[Cite.')) {
+        return processLatexInText(text, key, isStreaming);
+    }
+
+    // 2. parseCitation이 없으면 Citation 처리 없이 처리
+    if (!parseCitation) {
+        if (hasLatexContent) {
+            return processLatexInText(text, key, isStreaming);
+        } else {
+            const processedText = processInlineMarkdown(text);
+            return [<div key={key} dangerouslySetInnerHTML={{ __html: processedText }} />];
+        }
+    }
+
+    // Citation을 찾기 위한 더 안전한 접근법 - 단순화
+    const findCitations = (inputText: string): Array<{ start: number, end: number, content: string }> => {
+        console.log('🔍 [findCitations] Input text:', JSON.stringify(inputText));
+        
+        // LaTeX가 포함된 텍스트에서는 Citation 전처리를 최소화
+        let preprocessedText = inputText;
+        
+        // LaTeX 영역이 아닌 곳에서만 전처리 수행
+        if (!hasLatex(inputText)) {
+            // 이중 중괄호를 단일 중괄호로 변환
+            preprocessedText = preprocessedText.replace(/\{\{/g, '{').replace(/\}\}/g, '}');
+            // }}}] 같은 패턴을 }}] 로 정리
+            preprocessedText = preprocessedText.replace(/\}\}\}/g, '}}');
+            // 숫자 필드 뒤의 잘못된 따옴표 제거
+            preprocessedText = preprocessedText.replace(/(\d)"\s*([,}])/g, '$1$2');
+            // 문자열 필드에서 중복 따옴표 정리
+            preprocessedText = preprocessedText.replace(/"""([^"]*?)"/g, '"$1"'); // 3개 따옴표 -> 1개
+            preprocessedText = preprocessedText.replace(/""([^"]*?)"/g, '"$1"');  // 2개 따옴표 -> 1개
+        }
+
+        const citations: Array<{ start: number, end: number, content: string }> = [];
+        let i = 0;
+
+        while (i < preprocessedText.length) {
+            // [Cite. 패턴 찾기
+            const citeStart = preprocessedText.indexOf('[Cite.', i);
+            if (citeStart === -1) break;
+
+            // { 또는 {{ 찾기
+            let braceStart = -1;
+            for (let j = citeStart + 6; j < preprocessedText.length; j++) {
+                if (preprocessedText[j] === '{') {
+                    braceStart = j;
+                    break;
+                } else if (preprocessedText[j] !== ' ' && preprocessedText[j] !== '\t') {
+                    // 공백이 아닌 다른 문자가 나오면 유효하지 않은 citation
+                    break;
+                }
+            }
+
+            if (braceStart === -1) {
+                i = citeStart + 6;
+                continue;
+            }
+
+            // 균형잡힌 괄호 찾기 - 이스케이프 문자 처리 개선
+            let braceCount = 1;
+            let braceEnd = -1;
+            let inString = false;
+            let escaped = false;
+
+            for (let j = braceStart + 1; j < preprocessedText.length; j++) {
+                const char = preprocessedText[j];
+
+                // 이전 문자가 백슬래시인 경우 현재 문자는 이스케이프됨
+                if (escaped) {
+                    escaped = false;
+                    continue;
+                }
+
+                // 백슬래시 처리 - 다음 문자를 이스케이프
+                if (char === '\\') {
+                    escaped = true;
+                    continue;
+                }
+
+                // 따옴표 처리 - 문자열 상태 토글 (전처리로 인해 더 간단해짐)
+                if (char === '"' && !escaped) {
+                    inString = !inString;
+                    continue;
+                }
+
+                // 문자열 내부가 아닐 때만 중괄호 카운팅
+                if (!inString) {
+                    if (char === '{') {
+                        braceCount++;
+                    } else if (char === '}') {
+                        braceCount--;
+                        if (braceCount === 0) {
+                            braceEnd = j;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (braceEnd !== -1) {
+                // 닫는 ] 찾기 (선택적) - 백슬래시는 텍스트 끝까지 포함
+                let finalEnd = braceEnd + 1;
+                while (finalEnd < preprocessedText.length &&
+                    (preprocessedText[finalEnd] === ' ' || preprocessedText[finalEnd] === '\t' ||
+                        preprocessedText[finalEnd] === ']' || preprocessedText[finalEnd] === '.' ||
+                        preprocessedText[finalEnd] === '\\')) {
+                    if (preprocessedText[finalEnd] === ']') {
+                        finalEnd++;
+                        break;
+                    }
+                    finalEnd++;
+                }
+
+                // 텍스트 끝에 백슬래시가 있는 경우 포함
+                if (finalEnd === preprocessedText.length && preprocessedText.endsWith('\\')) {
+                    // 백슬래시까지 포함
+                }
+
+                const citationContent = preprocessedText.slice(citeStart, finalEnd);
+
+                citations.push({
+                    start: citeStart,
+                    end: finalEnd,
+                    content: citationContent
+                });
+
+                i = finalEnd;
+            } else {
+                i = citeStart + 6;
+            }
+        }
+
+        return citations;
+    };
+
+    // 1. Citation 우선 처리 - 마크다운 파싱보다 먼저 수행
+    const citations = findCitations(text);
+
+    if (citations.length === 0) {
+        // Citation이 없는 경우 부분적인 citation 확인
+        const partialCitationRegex = /\[Cite\.(?:\s*\{[^}]*)?$/;
+        const partialMatch = partialCitationRegex.exec(text);
+
+        if (partialMatch) {
+            // 부분적인 citation 이전 텍스트 처리 - LaTeX 먼저 확인 후 마크다운 파싱 적용
+            const beforeText = text.slice(0, partialMatch.index);
+            if (beforeText) {
+                if (hasLatex(beforeText)) {
+                    const latexElements = processLatexInText(beforeText, `${key}-text-before`, isStreaming);
+                    elements.push(...latexElements);
+                } else {
+                    const processedText = processInlineMarkdown(beforeText);
+                    elements.push(
+                        <span key={`${key}-text-before`} dangerouslySetInnerHTML={{ __html: processedText }} />
+                    );
+                }
+            }
+
+            // 부분적인 citation placeholder 추가
+            elements.push(
+                <CitationPlaceholder key={`${key}-partial`} />
+            );
+
+            return [<div key={key} className={sourceStyles.lineWithCitations}>{elements}</div>];
+        } else {
+            // Citation이 전혀 없는 경우 LaTeX 먼저 확인 후 마크다운 파싱 적용
+            if (hasLatexContent) {
+                return processLatexInText(text, key, isStreaming);
+            } else {
+                const processedText = processInlineMarkdown(text);
+                return [<div key={key} dangerouslySetInnerHTML={{ __html: processedText }} />];
+            }
+        }
+    }
+
+    // 2. Citation이 있는 경우 Citation과 텍스트를 분할하여 처리
+    let currentIndex = 0;
+
+    for (let i = 0; i < citations.length; i++) {
+        const citation = citations[i];
+
+        // Citation 이전 텍스트 처리 - LaTeX 먼저 확인 후 마크다운 파싱 적용
+        if (citation.start > currentIndex) {
+            const beforeText = text.slice(currentIndex, citation.start);
+            if (beforeText.trim()) {
+                if (hasLatex(beforeText)) {
+                    const latexElements = processLatexInText(beforeText, `${key}-text-${i}`, isStreaming);
+                    elements.push(...latexElements);
+                } else {
+                    const processedText = processInlineMarkdown(beforeText);
+                    elements.push(
+                        <span key={`${key}-text-${i}`} dangerouslySetInnerHTML={{ __html: processedText }} />
+                    );
+                }
+            }
+        }
+
+        // Citation 처리 - 버튼으로 변환 (마크다운 파싱 제외)
+        // Cite.로 시작하면 이스케이프 문자 변환: \" → "
+        let processedCitationContent = citation.content;
+        if (citation.content.trim().startsWith('Cite.')) {
+            processedCitationContent = citation.content.replace(/\\"/g, '"');
+        }
+        const sourceInfo = parseCitation(processedCitationContent);
+
+
+        if (sourceInfo && onViewSource) {
+            elements.push(
+                <SourceButton
+                    key={`${key}-citation-${i}`}
+                    sourceInfo={sourceInfo}
+                    onViewSource={onViewSource}
+                    className={sourceStyles.inlineCitation}
+                />
+            );
+        } else {
+            
+            elements.push(
+                <span key={`${key}-citation-fallback-${i}`}>
+                    {processedCitationContent}
+                </span>
+            );
+        }
+
+        // Citation 처리 후 trailing 문자들 건너뛰기
+        let nextIndex = citation.end;
+        
+        // Citation 뒤에 남은 불완전한 JSON 구문이나 특수 문자들 정리
+        // }], \, 공백, 숫자, 콤마, 세미콜론 등 Citation 관련 잔여물 제거
+        while (nextIndex < text.length) {
+            const char = text[nextIndex];
+            
+            // Citation 관련 잔여 문자들: }, ], \, 공백, 숫자, 특수문자
+            if (/[}\]\\.\s,;:]/.test(char) || /\d/.test(char)) {
+                nextIndex++;
+            } else {
+                // 일반 텍스트 문자가 나오면 정리 중단
+                break;
+            }
+        }
+
+        currentIndex = nextIndex;
+    }
+
+    // 남은 텍스트 처리 - LaTeX 먼저 확인 후 마크다운 파싱 적용
+    if (currentIndex < text.length) {
+        const remainingText = text.slice(currentIndex);
+        if (remainingText.trim()) {
+            if (hasLatex(remainingText)) {
+                const latexElements = processLatexInText(remainingText, `${key}-text-remaining`, isStreaming);
+                elements.push(...latexElements);
+            } else {
+                const processedText = processInlineMarkdown(remainingText);
+                elements.push(
+                    <span key={`${key}-text-remaining`} dangerouslySetInnerHTML={{ __html: processedText }} />
+                );
+            }
+        }
+    }
+
+    // Citation이 있는 경우 div로 감싸기
+    return [<div key={key} className={sourceStyles.lineWithCitations}>{elements}</div>];
+};
 
 /**
  * Citation 정보를 파싱하는 함수
@@ -119,7 +425,6 @@ export const parseCitation = (citationText: string): SourceInfo | null => {
 
             return result;
         } catch (parseError) {
-            console.error('JSON.parse failed, trying manual parsing...');
 
             // 수동 파싱 시도
             const manualParsed = tryManualParsing(jsonString);
@@ -195,7 +500,6 @@ const preprocessJsonString = (jsonString: string): string => {
     // 문자열 필드에서 중복된 따옴표 제거
     processed = processed.replace(/"""([^"]*?)"/g, '"$1"'); // 3개 따옴표 -> 1개
     processed = processed.replace(/""([^"]*?)"/g, '"$1"');  // 2개 따옴표 -> 1개
-    console.log('🔍 [preprocessJsonString] After quote dedup:', processed);
 
     // 숫자 필드들에 대해 따옴표가 있으면 제거하고, 없으면 그대로 유지
     const numericFields = ['page_number', 'line_start', 'line_end'];
@@ -209,9 +513,6 @@ const preprocessJsonString = (jsonString: string): string => {
         const malformedNumberPattern = new RegExp(`"${field}"\\s*:\\s*(\\d+)"`, 'g');
         processed = processed.replace(malformedNumberPattern, `"${field}": $1`);
     });
-    console.log('🔍 [preprocessJsonString] After numeric fix:', processed);
-
-    console.log('🔍 [preprocessJsonString] Final output:', processed);
 
     return processed;
 };
