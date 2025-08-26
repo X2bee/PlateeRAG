@@ -140,8 +140,8 @@ export const processInlineMarkdownWithCitations = (
         const latexBlockRegex = /\$\$[\s\S]*?\$\$/g;
         const latexInlineRegex = /\$[^$\n]+\$/g;
         
-        let match;
-        const allMatches = [];
+        let match: RegExpExecArray | null;
+        const allMatches: Array<{ start: number, end: number, content: string }> = [];
         
         // 블록 수식 찾기
         while ((match = latexBlockRegex.exec(inputText)) !== null) {
@@ -149,11 +149,11 @@ export const processInlineMarkdownWithCitations = (
         }
         
         // 인라인 수식 찾기
-        latexBlockRegex.lastIndex = 0;
+        latexInlineRegex.lastIndex = 0;
         while ((match = latexInlineRegex.exec(inputText)) !== null) {
             // 블록 수식과 겹치지 않는지 확인
             const isOverlapping = allMatches.some(block => 
-                match.index >= block.start && match.index < block.end
+                match!.index >= block.start && match!.index < block.end
             );
             if (!isOverlapping) {
                 allMatches.push({ start: match.index, end: match.index + match[0].length, content: match[0] });
