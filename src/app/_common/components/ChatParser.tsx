@@ -52,6 +52,11 @@ const preprocessJsonString = (jsonString: string): string => {
     processed = processed.replace(/\{\{/g, '{').replace(/\}\}/g, '}');
     console.log('🔍 [preprocessJsonString] After brace fix:', processed);
 
+    // 문자열 필드에서 중복된 따옴표 제거
+    processed = processed.replace(/"""([^"]*?)"/g, '"$1"'); // 3개 따옴표 -> 1개
+    processed = processed.replace(/""([^"]*?)"/g, '"$1"');  // 2개 따옴표 -> 1개
+    console.log('🔍 [preprocessJsonString] After quote dedup:', processed);
+
     // 숫자 필드들에 대해 따옴표가 있으면 제거하고, 없으면 그대로 유지
     const numericFields = ['page_number', 'line_start', 'line_end'];
 
@@ -65,11 +70,6 @@ const preprocessJsonString = (jsonString: string): string => {
         processed = processed.replace(malformedNumberPattern, `"${field}": $1`);
     });
     console.log('🔍 [preprocessJsonString] After numeric fix:', processed);
-
-    // 문자열 필드에서 중복된 따옴표 제거 먼저 수행
-    processed = processed.replace(/"""([^"]*?)"/g, '"$1"'); // 3개 따옴표 -> 1개
-    processed = processed.replace(/""([^"]*?)"/g, '"$1"');  // 2개 따옴표 -> 1개
-    console.log('🔍 [preprocessJsonString] After quote dedup:', processed);
 
     console.log('🔍 [preprocessJsonString] Final output:', processed);
 

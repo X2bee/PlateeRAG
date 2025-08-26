@@ -121,6 +121,9 @@ export const processInlineMarkdownWithCitations = (
         preprocessedText = preprocessedText.replace(/\{\{/g, '{').replace(/\}\}/g, '}');
         // 숫자 필드 뒤의 잘못된 따옴표 제거
         preprocessedText = preprocessedText.replace(/(\d)"\s*([,}])/g, '$1$2');
+        // 문자열 필드에서 중복 따옴표 정리
+        preprocessedText = preprocessedText.replace(/"""([^"]*?)"/g, '"$1"'); // 3개 따옴표 -> 1개
+        preprocessedText = preprocessedText.replace(/""([^"]*?)"/g, '"$1"');  // 2개 따옴표 -> 1개
 
         console.log('🔍 [findCitations] After basic preprocessing:', preprocessedText);
 
