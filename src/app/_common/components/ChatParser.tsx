@@ -50,6 +50,8 @@ const preprocessJsonString = (jsonString: string): string => {
 
     // 이중 중괄호 {{}} 를 단일 중괄호 {} 로 변경
     processed = processed.replace(/\{\{/g, '{').replace(/\}\}/g, '}');
+    // }}}] 같은 패턴을 }}] 로 정리
+    processed = processed.replace(/\}\}\}/g, '}}');
     console.log('🔍 [preprocessJsonString] After brace fix:', processed);
 
     // 문자열 필드에서 중복된 따옴표 제거

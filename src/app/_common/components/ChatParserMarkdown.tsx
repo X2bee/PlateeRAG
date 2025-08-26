@@ -119,6 +119,8 @@ export const processInlineMarkdownWithCitations = (
         let preprocessedText = inputText;
         // 이중 중괄호를 단일 중괄호로 변환
         preprocessedText = preprocessedText.replace(/\{\{/g, '{').replace(/\}\}/g, '}');
+        // }}}] 같은 패턴을 }}] 로 정리
+        preprocessedText = preprocessedText.replace(/\}\}\}/g, '}}');
         // 숫자 필드 뒤의 잘못된 따옴표 제거
         preprocessedText = preprocessedText.replace(/(\d)"\s*([,}])/g, '$1$2');
         // 문자열 필드에서 중복 따옴표 정리
