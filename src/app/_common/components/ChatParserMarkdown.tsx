@@ -111,10 +111,6 @@ export const processInlineMarkdownWithCitations = (
 
     // Citation을 찾기 위한 더 안전한 접근법 - 수동으로 파싱
     const findCitations = (inputText: string): Array<{ start: number, end: number, content: string }> => {
-        console.log('🔍 [findCitations] Input text:', inputText);
-        console.log('🔍 [findCitations] Text length:', inputText.length);
-        console.log('🔍 [findCitations] Text preview (first 200 chars):', inputText.substring(0, 200));
-
         // 먼저 전체 텍스트에 대해 기본적인 전처리 수행
         let preprocessedText = inputText;
         // 이중 중괄호를 단일 중괄호로 변환
@@ -136,9 +132,6 @@ export const processInlineMarkdownWithCitations = (
             // [Cite. 패턴 찾기
             const citeStart = preprocessedText.indexOf('[Cite.', i);
             if (citeStart === -1) break;
-            
-            console.log('🔍 [findCitations] Found [Cite. at position:', citeStart);
-            console.log('🔍 [findCitations] Context around [Cite.:', preprocessedText.substring(Math.max(0, citeStart - 20), citeStart + 100));
 
             // { 또는 {{ 찾기
             let braceStart = -1;
@@ -155,8 +148,6 @@ export const processInlineMarkdownWithCitations = (
             console.log('🔍 [findCitations] Brace start found at:', braceStart);
 
             if (braceStart === -1) {
-                console.log('⚠️ [findCitations] No opening brace found after [Cite. at position:', citeStart);
-                console.log('⚠️ [findCitations] Raw text after [Cite.:', preprocessedText.substring(citeStart + 6, citeStart + 50));
                 i = citeStart + 6;
                 continue;
             }
@@ -166,8 +157,6 @@ export const processInlineMarkdownWithCitations = (
             let braceEnd = -1;
             let inString = false;
             let escaped = false;
-
-            console.log('🔍 [findCitations] Starting brace counting from position:', braceStart + 1);
 
             for (let j = braceStart + 1; j < preprocessedText.length; j++) {
                 const char = preprocessedText[j];
@@ -204,8 +193,6 @@ export const processInlineMarkdownWithCitations = (
                 }
             }
 
-            console.log('🔍 [findCitations] Final brace end:', braceEnd);
-
             if (braceEnd !== -1) {
                 // 닫는 ] 찾기 (선택적) - 백슬래시는 텍스트 끝까지 포함
                 let finalEnd = braceEnd + 1;
@@ -226,9 +213,6 @@ export const processInlineMarkdownWithCitations = (
                 }
 
                 const citationContent = preprocessedText.slice(citeStart, finalEnd);
-                console.log('🔍 [findCitations] Found citation from', citeStart, 'to', finalEnd);
-                console.log('🔍 [findCitations] Citation content:', citationContent);
-                console.log('🔍 [findCitations] Citation JSON-like part:', citationContent.substring(citationContent.indexOf('{')));
 
                 citations.push({
                     start: citeStart,
@@ -245,14 +229,8 @@ export const processInlineMarkdownWithCitations = (
         return citations;
     };
 
-    console.log('🔍 [processInlineMarkdownWithCitations] Looking for citations in text:', text);
-
     // 1. Citation 우선 처리 - 마크다운 파싱보다 먼저 수행
     const citations = findCitations(text);
-    console.log('🔍 [processInlineMarkdownWithCitations] Found citations count:', citations.length);
-    citations.forEach((cite, idx) => {
-        console.log(`🔍 [processInlineMarkdownWithCitations] Citation ${idx}:`, cite);
-    });
 
     if (citations.length === 0) {
         // Citation이 없는 경우 부분적인 citation 확인
@@ -305,20 +283,11 @@ export const processInlineMarkdownWithCitations = (
         if (citation.content.trim().startsWith('Cite.')) {
             processedCitationContent = citation.content.replace(/\\"/g, '"');
         }
-
-        console.log('🔥 [processInlineMarkdownWithCitations] Raw citation content:', citation.content);
-        console.log('🔥 [processInlineMarkdownWithCitations] Processed citation content:', processedCitationContent);
-        console.log('🔥 [processInlineMarkdownWithCitations] About to parse citation...');
-
         const sourceInfo = parseCitation(processedCitationContent);
-
-        console.log('✅ [processInlineMarkdownWithCitations] Found citation:', citation.content);
-        console.log('✅ [processInlineMarkdownWithCitations] Parsing result:', sourceInfo);
 
         devLog.log('🔍 [processInlineMarkdownWithCitations] Parsed sourceInfo:', sourceInfo);
 
         if (sourceInfo && onViewSource) {
-            console.log('🎯 [processInlineMarkdownWithCitations] Creating source button with:', sourceInfo);
             devLog.log('✅ [processInlineMarkdownWithCitations] Creating SourceButton');
             elements.push(
                 <SourceButton
@@ -329,11 +298,6 @@ export const processInlineMarkdownWithCitations = (
                 />
             );
         } else {
-            // 파싱 실패 시 원본 텍스트 표시 (마크다운 파싱 제외)
-            console.log('❌ [processInlineMarkdownWithCitations] Citation parsing failed or no sourceInfo');
-            console.log('❌ [processInlineMarkdownWithCitations] Failed citation content:', citation.content);
-            console.log('❌ [processInlineMarkdownWithCitations] sourceInfo is null:', sourceInfo === null);
-            console.log('❌ [processInlineMarkdownWithCitations] onViewSource exists:', !!onViewSource);
             
             elements.push(
                 <span key={`${key}-citation-fallback-${i}`}>
@@ -345,9 +309,6 @@ export const processInlineMarkdownWithCitations = (
         // Citation 처리 후 trailing 문자들 건너뛰기
         let nextIndex = citation.end;
         
-        console.log('🧹 [processInlineMarkdownWithCitations] Cleaning up after citation at index:', nextIndex);
-        console.log('🧹 [processInlineMarkdownWithCitations] Text after citation:', text.slice(nextIndex, nextIndex + 20));
-        
         // Citation 뒤에 남은 불완전한 JSON 구문이나 특수 문자들 정리
         // }], \, 공백, 숫자, 콤마, 세미콜론 등 Citation 관련 잔여물 제거
         while (nextIndex < text.length) {
@@ -355,16 +316,12 @@ export const processInlineMarkdownWithCitations = (
             
             // Citation 관련 잔여 문자들: }, ], \, 공백, 숫자, 특수문자
             if (/[}\]\\.\s,;:]/.test(char) || /\d/.test(char)) {
-                console.log('🧹 [processInlineMarkdownWithCitations] Skipping character:', JSON.stringify(char));
                 nextIndex++;
             } else {
                 // 일반 텍스트 문자가 나오면 정리 중단
                 break;
             }
         }
-        
-        console.log('🧹 [processInlineMarkdownWithCitations] Cleanup finished at index:', nextIndex);
-        console.log('🧹 [processInlineMarkdownWithCitations] Remaining text:', text.slice(nextIndex, nextIndex + 20));
 
         currentIndex = nextIndex;
     }
