@@ -84,6 +84,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
     const [isUserScrolling, setIsUserScrolling] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     // showPDFViewer가 false일 때 패널 크기를 100%로 설정
     useEffect(() => {
@@ -648,7 +649,35 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         onStartNewChat(messageToSend);
     }, [inputMessage, onStartNewChat]);
 
-    const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
+    // Textarea 높이 자동 조절 함수
+    const adjustTextareaHeight = useCallback(() => {
+        const textarea = textareaRef.current;
+        if (textarea) {
+            // 먼저 높이를 auto로 설정하여 scrollHeight를 정확히 계산
+            textarea.style.height = 'auto';
+            
+            const scrollHeight = textarea.scrollHeight;
+            const minHeight = 45; // 최소 높이
+            const maxHeight = 200; // 최대 높이
+            
+            if (scrollHeight <= maxHeight) {
+                // 최대 높이보다 작으면 스크롤 숨김하고 내용에 맞게 높이 설정
+                textarea.style.height = `${Math.max(scrollHeight, minHeight)}px`;
+                textarea.classList.remove(styles.scrollable);
+            } else {
+                // 최대 높이에 도달하면 스크롤 표시
+                textarea.style.height = `${maxHeight}px`;
+                textarea.classList.add(styles.scrollable);
+            }
+        }
+    }, []);
+
+    // 입력 메시지 변경 시 높이 조절
+    useEffect(() => {
+        adjustTextareaHeight();
+    }, [inputMessage, adjustTextareaHeight]);
+
+    const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey && !executing) {
             e.preventDefault();
             if (mode === 'new-default' || mode === 'new-workflow') {
@@ -661,6 +690,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                 executeWorkflow();
             }
         }
+        // Shift+Enter는 줄바꿈을 허용 (기본 동작)
     }, [executing, mode, handleStartNewChatFlow, executeWorkflow]);
 
     const handleAttachmentClick = () => {
@@ -824,14 +854,15 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                                 {/* Input Area */}
                                 <div className={styles.inputArea} style={{ pointerEvents: loading ? 'none' : 'auto' }}>
                                     <div className={styles.inputContainer}>
-                                        <input
-                                            type="text"
+                                        <textarea
+                                            ref={textareaRef}
                                             placeholder="메시지를 입력하세요..."
                                             value={inputMessage}
                                             onChange={(e) => setInputMessage(e.target.value)}
-                                            onKeyPress={handleKeyPress}
+                                            onKeyDown={handleKeyPress}
                                             disabled={executing}
                                             className={styles.messageInput}
+                                            rows={1}
                                         />
                                         <div className={styles.buttonGroup}>
                                             <div className={styles.attachmentWrapper} ref={attachmentButtonRef}>
@@ -1034,14 +1065,15 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                             {/* Input Area */}
                             <div className={styles.inputArea} style={{ pointerEvents: loading ? 'none' : 'auto' }}>
                                 <div className={styles.inputContainer}>
-                                    <input
-                                        type="text"
+                                    <textarea
+                                        ref={textareaRef}
                                         placeholder="메시지를 입력하세요..."
                                         value={inputMessage}
                                         onChange={(e) => setInputMessage(e.target.value)}
-                                        onKeyPress={handleKeyPress}
+                                        onKeyDown={handleKeyPress}
                                         disabled={executing}
                                         className={styles.messageInput}
+                                        rows={1}
                                     />
                                     <div className={styles.buttonGroup}>
                                         <div className={styles.attachmentWrapper} ref={attachmentButtonRef}>
