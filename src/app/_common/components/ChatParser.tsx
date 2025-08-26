@@ -325,10 +325,12 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
         return partialCitationRegex.test(text.trim());
     };
 
-    // 이스케이프된 문자 처리
-    processed = processed.replace(/\\n/g, '\n');
-    processed = processed.replace(/\\t/g, '\t');
-    processed = processed.replace(/\\r/g, '\r');
+    // 이스케이프된 문자 처리 (LaTeX가 포함된 경우 건너뛰기)
+    if (!processed.includes('$$') && !processed.includes('$')) {
+        processed = processed.replace(/\\n/g, '\n');
+        processed = processed.replace(/\\t/g, '\t');
+        processed = processed.replace(/\\r/g, '\r');
+    }
 
     // 불필요한 따옴표 제거 (문장 전체를 감싸는 따옴표)
     processed = processed.trim();

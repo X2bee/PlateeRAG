@@ -5,6 +5,7 @@ import SourceButton from '@/app/chat/components/SourceButton';
 import { SourceInfo } from '@/app/chat/types/source';
 import sourceStyles from '@/app/chat/assets/SourceButton.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
+import { processLatexInText, hasLatex } from './ChatParserLatex';
 
 /**
  * Citation Placeholder 컴포넌트 - 스트리밍 중 부분적인 citation 표시
@@ -64,10 +65,15 @@ export const getLastLines = (text: string, n: number = 3): string => {
 };
 
 /**
- * 인라인 마크다운 처리 (볼드, 이탤릭, 링크 등)
+ * 인라인 마크다운 처리 (볼드, 이탤릭, 링크 등) - LaTeX 제외
  */
-export const processInlineMarkdown = (text: string, isStreaming: boolean = false): string => {
+export const processInlineMarkdown = (text: string): string => {
     let processed = cleanupJsonFragments(text);
+
+    // LaTeX가 있는 경우 처리하지 않고 원본 반환 (LaTeX는 별도 처리됨)
+    if (hasLatex(processed)) {
+        return processed;
+    }
 
     // 인라인 코드 처리 (가장 먼저)
     processed = processed.replace(/`([^`\n]+)`/g, '<code class="inline-code">$1</code>');
@@ -91,8 +97,7 @@ export const processInlineMarkdown = (text: string, isStreaming: boolean = false
 };
 
 /**
- * Citation을 포함한 텍스트 처리 - Citation 파싱을 마크다운보다 먼저 수행
- * Cite.로 시작하는 텍스트는 마크다운 렌더링하지 말고 무조건 출처 버튼 처리만 함
+ * Citation과 LaTeX를 포함한 텍스트 처리 - LaTeX, Citation, 마크다운 순서로 처리
  */
 export const processInlineMarkdownWithCitations = (
     text: string,
@@ -103,16 +108,76 @@ export const processInlineMarkdownWithCitations = (
 ): React.ReactNode[] => {
     const elements: React.ReactNode[] = [];
 
-    // parseCitation이 없으면 Citation 처리 없이 마크다운만 처리
+    // 1. LaTeX와 Citation 모두 체크하여 적절히 처리
+    const hasLatexContent = hasLatex(text);
+    
+    // LaTeX만 있고 Citation이 없는 경우에만 LaTeX 처리로 바로 넘김
+    if (hasLatexContent && !text.includes('[Cite.')) {
+        return processLatexInText(text, key, isStreaming);
+    }
+    
+    // Citation만 있고 LaTeX가 없는 경우는 기존 로직 사용
+    // LaTeX와 Citation이 모두 있는 경우는 혼합 처리 (아래에서 구현)
+
+    // 2. parseCitation이 없으면 Citation 처리 없이 처리
     if (!parseCitation) {
-        const processedText = processInlineMarkdown(text, isStreaming);
-        return [<div key={key} dangerouslySetInnerHTML={{ __html: processedText }} />];
+        if (hasLatexContent) {
+            return processLatexInText(text, key, isStreaming);
+        } else {
+            const processedText = processInlineMarkdown(text);
+            return [<div key={key} dangerouslySetInnerHTML={{ __html: processedText }} />];
+        }
     }
 
-    // Citation을 찾기 위한 더 안전한 접근법 - 수동으로 파싱
+    // Citation을 찾기 위한 더 안전한 접근법 - LaTeX 영역 보호
     const findCitations = (inputText: string): Array<{ start: number, end: number, content: string }> => {
-        // 먼저 전체 텍스트에 대해 기본적인 전처리 수행
-        let preprocessedText = inputText;
+        // LaTeX 수식 영역을 임시로 보호
+        const latexBlocks: Array<{ start: number, end: number, placeholder: string }> = [];
+        let protectedText = inputText;
+        let latexIndex = 0;
+        
+        // LaTeX 블록 찾아서 보호
+        const latexBlockRegex = /\$\$[\s\S]*?\$\$/g;
+        const latexInlineRegex = /\$[^$\n]+\$/g;
+        
+        let match;
+        const allMatches = [];
+        
+        // 블록 수식 찾기
+        while ((match = latexBlockRegex.exec(inputText)) !== null) {
+            allMatches.push({ start: match.index, end: match.index + match[0].length, content: match[0] });
+        }
+        
+        // 인라인 수식 찾기
+        latexBlockRegex.lastIndex = 0;
+        while ((match = latexInlineRegex.exec(inputText)) !== null) {
+            // 블록 수식과 겹치지 않는지 확인
+            const isOverlapping = allMatches.some(block => 
+                match.index >= block.start && match.index < block.end
+            );
+            if (!isOverlapping) {
+                allMatches.push({ start: match.index, end: match.index + match[0].length, content: match[0] });
+            }
+        }
+        
+        // 시작 위치 순으로 정렬
+        allMatches.sort((a, b) => a.start - b.start);
+        
+        // 뒤에서부터 치환 (인덱스가 변하지 않도록)
+        for (let i = allMatches.length - 1; i >= 0; i--) {
+            const placeholder = `__LATEX_PROTECTED_${latexIndex++}__`;
+            latexBlocks.unshift({
+                start: allMatches[i].start,
+                end: allMatches[i].end,
+                placeholder: placeholder
+            });
+            protectedText = protectedText.slice(0, allMatches[i].start) + 
+                           placeholder + 
+                           protectedText.slice(allMatches[i].end);
+        }
+        
+        // Citation 전처리 (LaTeX 보호된 텍스트에서)
+        let preprocessedText = protectedText;
         // 이중 중괄호를 단일 중괄호로 변환
         preprocessedText = preprocessedText.replace(/\{\{/g, '{').replace(/\}\}/g, '}');
         // }}}] 같은 패턴을 }}] 로 정리
@@ -122,6 +187,11 @@ export const processInlineMarkdownWithCitations = (
         // 문자열 필드에서 중복 따옴표 정리
         preprocessedText = preprocessedText.replace(/"""([^"]*?)"/g, '"$1"'); // 3개 따옴표 -> 1개
         preprocessedText = preprocessedText.replace(/""([^"]*?)"/g, '"$1"');  // 2개 따옴표 -> 1개
+
+        // LaTeX 보호 해제
+        for (const block of latexBlocks) {
+            preprocessedText = preprocessedText.replace(block.placeholder, inputText.slice(block.start, block.end));
+        }
 
         console.log('🔍 [findCitations] After basic preprocessing:', preprocessedText);
 
@@ -238,13 +308,18 @@ export const processInlineMarkdownWithCitations = (
         const partialMatch = partialCitationRegex.exec(text);
 
         if (partialMatch) {
-            // 부분적인 citation 이전 텍스트 처리 - 마크다운 파싱 적용
+            // 부분적인 citation 이전 텍스트 처리 - LaTeX 먼저 확인 후 마크다운 파싱 적용
             const beforeText = text.slice(0, partialMatch.index);
             if (beforeText) {
-                const processedText = processInlineMarkdown(beforeText, isStreaming);
-                elements.push(
-                    <span key={`${key}-text-before`} dangerouslySetInnerHTML={{ __html: processedText }} />
-                );
+                if (hasLatex(beforeText)) {
+                    const latexElements = processLatexInText(beforeText, `${key}-text-before`, isStreaming);
+                    elements.push(...latexElements);
+                } else {
+                    const processedText = processInlineMarkdown(beforeText);
+                    elements.push(
+                        <span key={`${key}-text-before`} dangerouslySetInnerHTML={{ __html: processedText }} />
+                    );
+                }
             }
 
             // 부분적인 citation placeholder 추가
@@ -254,9 +329,13 @@ export const processInlineMarkdownWithCitations = (
 
             return [<div key={key} className={sourceStyles.lineWithCitations}>{elements}</div>];
         } else {
-            // Citation이 전혀 없는 경우 마크다운 파싱 적용
-            const processedText = processInlineMarkdown(text, isStreaming);
-            return [<div key={key} dangerouslySetInnerHTML={{ __html: processedText }} />];
+            // Citation이 전혀 없는 경우 LaTeX 먼저 확인 후 마크다운 파싱 적용
+            if (hasLatexContent) {
+                return processLatexInText(text, key, isStreaming);
+            } else {
+                const processedText = processInlineMarkdown(text);
+                return [<div key={key} dangerouslySetInnerHTML={{ __html: processedText }} />];
+            }
         }
     }
 
@@ -266,14 +345,19 @@ export const processInlineMarkdownWithCitations = (
     for (let i = 0; i < citations.length; i++) {
         const citation = citations[i];
 
-        // Citation 이전 텍스트 처리 - 마크다운 파싱 적용
+        // Citation 이전 텍스트 처리 - LaTeX 먼저 확인 후 마크다운 파싱 적용
         if (citation.start > currentIndex) {
             const beforeText = text.slice(currentIndex, citation.start);
             if (beforeText.trim()) {
-                const processedText = processInlineMarkdown(beforeText, isStreaming);
-                elements.push(
-                    <span key={`${key}-text-${i}`} dangerouslySetInnerHTML={{ __html: processedText }} />
-                );
+                if (hasLatex(beforeText)) {
+                    const latexElements = processLatexInText(beforeText, `${key}-text-${i}`, isStreaming);
+                    elements.push(...latexElements);
+                } else {
+                    const processedText = processInlineMarkdown(beforeText);
+                    elements.push(
+                        <span key={`${key}-text-${i}`} dangerouslySetInnerHTML={{ __html: processedText }} />
+                    );
+                }
             }
         }
 
@@ -326,14 +410,19 @@ export const processInlineMarkdownWithCitations = (
         currentIndex = nextIndex;
     }
 
-    // 남은 텍스트 처리 - 마크다운 파싱 적용
+    // 남은 텍스트 처리 - LaTeX 먼저 확인 후 마크다운 파싱 적용
     if (currentIndex < text.length) {
         const remainingText = text.slice(currentIndex);
         if (remainingText.trim()) {
-            const processedText = processInlineMarkdown(remainingText, isStreaming);
-            elements.push(
-                <span key={`${key}-text-remaining`} dangerouslySetInnerHTML={{ __html: processedText }} />
-            );
+            if (hasLatex(remainingText)) {
+                const latexElements = processLatexInText(remainingText, `${key}-text-remaining`, isStreaming);
+                elements.push(...latexElements);
+            } else {
+                const processedText = processInlineMarkdown(remainingText);
+                elements.push(
+                    <span key={`${key}-text-remaining`} dangerouslySetInnerHTML={{ __html: processedText }} />
+                );
+            }
         }
     }
 
