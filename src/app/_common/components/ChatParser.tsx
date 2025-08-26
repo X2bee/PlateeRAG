@@ -326,7 +326,11 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
     };
 
     // 이스케이프된 문자 처리 (LaTeX가 포함된 경우 건너뛰기)
-    if (!processed.includes('$$') && !processed.includes('$')) {
+    // LaTeX 수식이나 수학 명령어가 포함된 경우 이스케이프 처리 생략
+    const hasLatexCommands = /\\(text|frac|sqrt|sum|times|alpha|beta|gamma|delta|int|left|right)\b/.test(processed);
+    const hasLatexSyntax = processed.includes('$$') || processed.includes('$');
+    
+    if (!hasLatexCommands && !hasLatexSyntax) {
         processed = processed.replace(/\\n/g, '\n');
         processed = processed.replace(/\\t/g, '\t');
         processed = processed.replace(/\\r/g, '\r');

@@ -14,61 +14,93 @@ export interface LatexBlockInfo {
     isBlock: boolean; // true: $$ block math, false: $ inline math
 }
 
-// 이스케이프 문자 처리는 단순화 - 원본 텍스트를 그대로 사용
+/**
+ * LaTeX 특수 문자 이스케이프 처리 (스마트 처리)
+ */
+const escapeLatexSpecialChars = (text: string): string => {
+    let processed = text;
+    
+    // 1. \text{} 블록 내부의 특수 문자만 이스케이프 처리
+    processed = processed.replace(/\\text\{([^}]*)\}/g, (_match, textContent) => {
+        let escapedTextContent = textContent;
+        
+        // \text{} 내부에서만 특수 문자 이스케이프
+        escapedTextContent = escapedTextContent.replace(/(?<!\\)%/g, '\\%');  // % → \%
+        escapedTextContent = escapedTextContent.replace(/(?<!\\)&/g, '\\&');  // & → \&
+        escapedTextContent = escapedTextContent.replace(/(?<!\\)#/g, '\\#');  // # → \#
+        
+        return `\\text{${escapedTextContent}}`;
+    });
+    
+    // 2. 전체 수식에서 % 문자 처리 (가장 문제가 되는 문자)
+    // 이미 이스케이프된 \%는 건너뛰고, 일반 %만 처리
+    processed = processed.replace(/(?<!\\)%/g, '\\%');
+    
+    return processed;
+};
 
 /**
  * 텍스트에서 LaTeX 수식 블록을 찾는 함수
  */
 export const findLatexBlocks = (text: string): LatexBlockInfo[] => {
-    const blocks: LatexBlockInfo[] = [];
-    let index = 0;
-
-    while (index < text.length) {
-        // 블록 수식 ($$...$$) 먼저 찾기
-        const blockStart = text.indexOf('$$', index);
-        const blockEnd = blockStart !== -1 ? text.indexOf('$$', blockStart + 2) : -1;
-
-        // 인라인 수식 ($...$) 찾기
-        const inlineStart = text.indexOf('$', index);
-        const inlineEnd = inlineStart !== -1 ? text.indexOf('$', inlineStart + 1) : -1;
-
-        // 더 가까운 것부터 처리
-        if (blockStart !== -1 && blockEnd !== -1 && 
-            (inlineStart === -1 || inlineEnd === -1 || blockStart < inlineStart)) {
-            // 블록 수식 처리
-            const content = text.slice(blockStart + 2, blockEnd);
-            console.log('Block content extracted:', {
-                original: text.slice(blockStart, blockEnd + 2),
-                content: content,
-                hasBackslash: content.includes('\\')
+    console.log('🔍 [findLatexBlocks] Input text:', text);
+    
+    // 정규식을 사용한 더 정확한 LaTeX 블록 찾기
+    const blockRegex = /\$\$([\s\S]*?)\$\$/g;
+    const inlineRegex = /(?<!\$)\$(?!\$)([^$\n]+)\$(?!\$)/g;
+    
+    let match;
+    const allMatches: Array<{ start: number, end: number, content: string, isBlock: boolean }> = [];
+    
+    // 블록 수식 찾기
+    while ((match = blockRegex.exec(text)) !== null) {
+        allMatches.push({
+            start: match.index,
+            end: match.index + match[0].length,
+            content: match[1],
+            isBlock: true
+        });
+        console.log('✅ Block math found:', {
+            start: match.index,
+            end: match.index + match[0].length,
+            content: match[1],
+            full: match[0]
+        });
+    }
+    
+    // 인라인 수식 찾기 (블록 수식과 겹치지 않는 것만)
+    blockRegex.lastIndex = 0; // reset
+    while ((match = inlineRegex.exec(text)) !== null) {
+        // 블록 수식과 겹치는지 확인
+        const isOverlapping = allMatches.some(block => 
+            block.isBlock && match!.index >= block.start && match!.index < block.end
+        );
+        
+        if (!isOverlapping) {
+            allMatches.push({
+                start: match.index,
+                end: match.index + match[0].length,
+                content: match[1],
+                isBlock: false
             });
-            if (content.trim()) {
-                blocks.push({
-                    start: blockStart,
-                    end: blockEnd + 2,
-                    content: content.trim(),
-                    isBlock: true
-                });
-            }
-            index = blockEnd + 2;
-        } else if (inlineStart !== -1 && inlineEnd !== -1 && inlineStart !== blockStart) {
-            // 인라인 수식 처리 (블록 수식의 시작이 아닌 경우)
-            const content = text.slice(inlineStart + 1, inlineEnd);
-            if (content.trim() && !content.includes('\n')) { // 인라인은 줄바꿈 없어야 함
-                blocks.push({
-                    start: inlineStart,
-                    end: inlineEnd + 1,
-                    content: content.trim(),
-                    isBlock: false
-                });
-            }
-            index = inlineEnd + 1;
-        } else {
-            break;
+            console.log('✅ Inline math found:', {
+                start: match.index,
+                end: match.index + match[0].length,
+                content: match[1],
+                full: match[0]
+            });
         }
     }
-
-    return blocks.sort((a, b) => a.start - b.start);
+    
+    // 시작 위치 순으로 정렬하고 LatexBlockInfo 형태로 변환
+    return allMatches
+        .sort((a, b) => a.start - b.start)
+        .map(match => ({
+            start: match.start,
+            end: match.end,
+            content: match.content.trim(),
+            isBlock: match.isBlock
+        }));
 };
 
 /**
@@ -98,8 +130,17 @@ export const LatexRenderer: React.FC<LatexRendererProps> = ({
     isBlock
 }) => {
     try {
+        // LaTeX 특수 문자 이스케이프 처리
+        const escapedContent = escapeLatexSpecialChars(content);
+        
+        console.log('🔍 [LatexRenderer] Content processing:', {
+            original: content,
+            escaped: escapedContent,
+            hasPercent: content.includes('%')
+        });
+        
         // KaTeX로 직접 렌더링
-        const html = katex.renderToString(content, {
+        const html = katex.renderToString(escapedContent, {
             displayMode: isBlock,
             throwOnError: false,
             strict: false,

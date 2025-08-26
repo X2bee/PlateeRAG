@@ -129,68 +129,24 @@ export const processInlineMarkdownWithCitations = (
         }
     }
 
-    // Citation을 찾기 위한 더 안전한 접근법 - LaTeX 영역 보호
+    // Citation을 찾기 위한 더 안전한 접근법 - 단순화
     const findCitations = (inputText: string): Array<{ start: number, end: number, content: string }> => {
-        // LaTeX 수식 영역을 임시로 보호
-        const latexBlocks: Array<{ start: number, end: number, placeholder: string }> = [];
-        let protectedText = inputText;
-        let latexIndex = 0;
+        console.log('🔍 [findCitations] Input text:', JSON.stringify(inputText));
         
-        // LaTeX 블록 찾아서 보호
-        const latexBlockRegex = /\$\$[\s\S]*?\$\$/g;
-        const latexInlineRegex = /\$[^$\n]+\$/g;
+        // LaTeX가 포함된 텍스트에서는 Citation 전처리를 최소화
+        let preprocessedText = inputText;
         
-        let match: RegExpExecArray | null;
-        const allMatches: Array<{ start: number, end: number, content: string }> = [];
-        
-        // 블록 수식 찾기
-        while ((match = latexBlockRegex.exec(inputText)) !== null) {
-            allMatches.push({ start: match.index, end: match.index + match[0].length, content: match[0] });
-        }
-        
-        // 인라인 수식 찾기
-        latexInlineRegex.lastIndex = 0;
-        while ((match = latexInlineRegex.exec(inputText)) !== null) {
-            // 블록 수식과 겹치지 않는지 확인
-            const isOverlapping = allMatches.some(block => 
-                match!.index >= block.start && match!.index < block.end
-            );
-            if (!isOverlapping) {
-                allMatches.push({ start: match.index, end: match.index + match[0].length, content: match[0] });
-            }
-        }
-        
-        // 시작 위치 순으로 정렬
-        allMatches.sort((a, b) => a.start - b.start);
-        
-        // 뒤에서부터 치환 (인덱스가 변하지 않도록)
-        for (let i = allMatches.length - 1; i >= 0; i--) {
-            const placeholder = `__LATEX_PROTECTED_${latexIndex++}__`;
-            latexBlocks.unshift({
-                start: allMatches[i].start,
-                end: allMatches[i].end,
-                placeholder: placeholder
-            });
-            protectedText = protectedText.slice(0, allMatches[i].start) + 
-                           placeholder + 
-                           protectedText.slice(allMatches[i].end);
-        }
-        
-        // Citation 전처리 (LaTeX 보호된 텍스트에서)
-        let preprocessedText = protectedText;
-        // 이중 중괄호를 단일 중괄호로 변환
-        preprocessedText = preprocessedText.replace(/\{\{/g, '{').replace(/\}\}/g, '}');
-        // }}}] 같은 패턴을 }}] 로 정리
-        preprocessedText = preprocessedText.replace(/\}\}\}/g, '}}');
-        // 숫자 필드 뒤의 잘못된 따옴표 제거
-        preprocessedText = preprocessedText.replace(/(\d)"\s*([,}])/g, '$1$2');
-        // 문자열 필드에서 중복 따옴표 정리
-        preprocessedText = preprocessedText.replace(/"""([^"]*?)"/g, '"$1"'); // 3개 따옴표 -> 1개
-        preprocessedText = preprocessedText.replace(/""([^"]*?)"/g, '"$1"');  // 2개 따옴표 -> 1개
-
-        // LaTeX 보호 해제
-        for (const block of latexBlocks) {
-            preprocessedText = preprocessedText.replace(block.placeholder, inputText.slice(block.start, block.end));
+        // LaTeX 영역이 아닌 곳에서만 전처리 수행
+        if (!hasLatex(inputText)) {
+            // 이중 중괄호를 단일 중괄호로 변환
+            preprocessedText = preprocessedText.replace(/\{\{/g, '{').replace(/\}\}/g, '}');
+            // }}}] 같은 패턴을 }}] 로 정리
+            preprocessedText = preprocessedText.replace(/\}\}\}/g, '}}');
+            // 숫자 필드 뒤의 잘못된 따옴표 제거
+            preprocessedText = preprocessedText.replace(/(\d)"\s*([,}])/g, '$1$2');
+            // 문자열 필드에서 중복 따옴표 정리
+            preprocessedText = preprocessedText.replace(/"""([^"]*?)"/g, '"$1"'); // 3개 따옴표 -> 1개
+            preprocessedText = preprocessedText.replace(/""([^"]*?)"/g, '"$1"');  // 2개 따옴표 -> 1개
         }
 
         console.log('🔍 [findCitations] After basic preprocessing:', preprocessedText);
