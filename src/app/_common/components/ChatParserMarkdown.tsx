@@ -69,20 +69,6 @@ export const getLastLines = (text: string, n: number = 3): string => {
 export const processInlineMarkdown = (text: string, isStreaming: boolean = false): string => {
     let processed = cleanupJsonFragments(text);
 
-    // 스트림 모드가 아닌 경우에만 Citation 보호 로직 실행
-    const citationPlaceholders: string[] = [];
-    const CITATION_PLACEHOLDER = '__CITATION_PLACEHOLDER_';
-    
-    if (!isStreaming) {
-        // Citation 패턴을 플레이스홀더로 임시 교체하여 마크다운 처리에서 보호
-        processed = processed.replace(/\[Cite\.[^\]]*\]/g, (match) => {
-            const placeholder = `${CITATION_PLACEHOLDER}${citationPlaceholders.length}__`;
-            citationPlaceholders.push(match);
-            console.log('🔒 [processInlineMarkdown] Protected citation:', match, '-> placeholder:', placeholder);
-            return placeholder;
-        });
-    }
-
     // 인라인 코드 처리 (가장 먼저)
     processed = processed.replace(/`([^`\n]+)`/g, '<code class="inline-code">$1</code>');
 
@@ -100,15 +86,6 @@ export const processInlineMarkdown = (text: string, isStreaming: boolean = false
     // 링크 처리 - Citation이 아닌 일반 링크만 처리
     processed = processed.replace(/\[([^\]]+)\]\(([^)]+)\)/g,
         '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-
-    // 스트림 모드가 아닌 경우에만 Citation 플레이스홀더를 원본으로 복원
-    if (!isStreaming) {
-        citationPlaceholders.forEach((originalCitation, index) => {
-            const placeholder = `${CITATION_PLACEHOLDER}${index}__`;
-            processed = processed.replace(placeholder, originalCitation);
-            console.log('🔓 [processInlineMarkdown] Restored citation:', placeholder, '-> original:', originalCitation);
-        });
-    }
 
     return processed;
 };
