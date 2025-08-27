@@ -712,6 +712,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         
         if (e.key === 'Enter' && !e.shiftKey && !executing) {
             e.preventDefault();
+            scrollToBottom();
             if (mode === 'new-default' || mode === 'new-workflow') {
                 handleStartNewChatFlow();
             }

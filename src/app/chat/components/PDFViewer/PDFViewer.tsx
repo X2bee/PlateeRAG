@@ -7,6 +7,7 @@ import { PDFViewerProps, HighlightRange } from '../../types/source';
 import { fetchDocumentByPath, hasDocumentInCache } from '../../../api/documentAPI';
 import CacheStatusIndicator from './CacheStatusIndicator';
 import styles from './PDFViewer.module.scss';
+import { devLog } from '@/app/_common/utils/logger';
 
 // Dynamic imports to prevent SSR issues
 const Document = dynamic(() => import('react-pdf').then(mod => ({ default: mod.Document })), { 
@@ -64,7 +65,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose, mode
     setPdfUrl(null);
     
     try {
-      console.log('📄 [PDFViewer] Loading document from path:', filePath, isInCache ? '(cached)' : '(from server)');
+      devLog.log('📄 [PDFViewer] Loading document from path:', filePath, isInCache ? '(cached)' : '(from server)');
       
       // 파일 경로 유효성 검사
       if (!filePath.trim()) {
@@ -88,9 +89,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose, mode
       // 로딩 완료 상태로 변경
       setLoading(false);
       
-      console.log('✅ [PDFViewer] Document loaded successfully, size:', documentData.byteLength, 'bytes');
     } catch (err) {
-      console.error('❌ [PDFViewer] Failed to load document:', err);
       const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
       setError(`문서를 로드할 수 없습니다: ${errorMessage}`);
       setLoading(false);
@@ -116,7 +115,6 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose, mode
   }, []);
 
   const onDocumentLoadError = useCallback((error: Error) => {
-    console.error('❌ [PDFViewer] PDF document load error:', error);
     setError(`PDF 문서를 로드하는데 실패했습니다: ${error.message || '알 수 없는 오류'}`);
     setLoading(false);
   }, []);
@@ -125,19 +123,15 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose, mode
     const { width, height } = page;
     setPageSize({ width, height });
     
-    console.log('📄 [PDFViewer] Page loaded successfully:', { pageNumber, width, height });
     
     // 텍스트 콘텐츠 추출
     page.getTextContent().then((content: any) => {
-      console.log('📝 [PDFViewer] Text content loaded:', {
-        pageNumber,
-        itemsCount: content?.items?.length || 0
-      });
+
       setTextContent(content);
       
       // 텍스트 콘텐츠가 로드된 후 약간의 지연을 두고 DOM 업데이트 대기
       setTimeout(() => {
-        console.log('🔄 [PDFViewer] Text content DOM should be ready now');
+        
       }, 100);
     }).catch((err: Error) => {
       console.warn('텍스트 콘텐츠를 가져올 수 없습니다:', err);

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
+import { devLog } from '@/app/_common/utils/logger';
 import dynamic from 'next/dynamic';
 import { FiX, FiZoomIn, FiZoomOut, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { PDFViewerProps, HighlightRange } from '../../types/source';
@@ -100,7 +101,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ sourceInfo, isOpen, onC
     setDocxHtml(null);
     
     try {
-      console.log('📄 [DocumentViewer] Loading document from path:', filePath, `(${documentType})`, isInCache ? '(cached)' : '(from server)');
+      devLog.log('📄 [DocumentViewer] Loading document from path:', filePath, `(${documentType})`, isInCache ? '(cached)' : '(from server)');
       
       // 파일 경로 유효성 검사
       if (!filePath.trim()) {
@@ -140,14 +141,12 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ sourceInfo, isOpen, onC
           const mammoth = await import('mammoth');
           const result = await mammoth.convertToHtml({ arrayBuffer: data });
           setDocxHtml(result.value);
-          console.log('✅ [DocumentViewer] DOCX converted to HTML successfully');
           
           // 변환 시 발생한 메시지가 있다면 로그 출력
           if (result.messages.length > 0) {
-            console.warn('📝 [DocumentViewer] DOCX conversion messages:', result.messages);
+            devLog.warn('📝 [DocumentViewer] DOCX conversion messages:', result.messages);
           }
         } catch (docxError) {
-          console.error('❌ [DocumentViewer] Failed to convert DOCX:', docxError);
           throw new Error(`DOCX 변환 실패: ${docxError instanceof Error ? docxError.message : '알 수 없는 오류'}`);
         }
       }
@@ -161,13 +160,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ sourceInfo, isOpen, onC
       // 로딩 완료 상태로 변경
       setLoading(false);
       
-      console.log('✅ [DocumentViewer] Document loaded successfully:', {
-        type: documentType,
-        size: data.byteLength,
-        url
-      });
     } catch (err) {
-      console.error('❌ [DocumentViewer] Failed to load document:', err);
       const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
       setError(`문서를 로드할 수 없습니다: ${errorMessage}`);
       setLoading(false);
@@ -187,14 +180,12 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ sourceInfo, isOpen, onC
   }, [isOpen, loadDocument, sourceInfo?.page_number]);
 
   const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
-    console.log('✅ [DocumentViewer] PDF Document loaded successfully:', { numPages, documentUrl });
     setNumPages(numPages);
     setLoading(false);
     setError(null);
   }, [documentUrl]);
 
   const onDocumentLoadError = useCallback((error: Error) => {
-    console.error('❌ [DocumentViewer] PDF document load error:', error);
     setError(`PDF 문서를 로드하는데 실패했습니다: ${error.message || '알 수 없는 오류'}`);
     setLoading(false);
   }, []);
@@ -203,19 +194,14 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ sourceInfo, isOpen, onC
     const { width, height } = page;
     setPageSize({ width, height });
     
-    console.log('📄 [DocumentViewer] Page loaded successfully:', { pageNumber, width, height });
     
     // 텍스트 콘텐츠 추출
     page.getTextContent().then((content: any) => {
-      console.log('📝 [DocumentViewer] Text content loaded:', {
-        pageNumber,
-        itemsCount: content?.items?.length || 0
-      });
+      
       setTextContent(content);
       
       // 텍스트 콘텐츠가 로드된 후 약간의 지연을 두고 DOM 업데이트 대기
       setTimeout(() => {
-        console.log('🔄 [DocumentViewer] Text content DOM should be ready now');
       }, 100);
     }).catch((err: Error) => {
       console.warn('텍스트 콘텐츠를 가져올 수 없습니다:', err);

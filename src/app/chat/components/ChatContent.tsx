@@ -93,11 +93,6 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted}) => {
             delete (window as any)[debounceKey];
         }, 500);
 
-        console.log('Starting new chat with message:', message);
-        console.log('Message length:', message.length);
-        console.log('Encoded message:', encodeURIComponent(message));
-        console.log('Encoded message length:', encodeURIComponent(message).length);
-
         localStorage.removeItem('currentChatData');
 
         const params = new URLSearchParams();
@@ -114,14 +109,11 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted}) => {
             const messageId = `initial_msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
             localStorage.setItem(messageId, message);
             params.set('initial_message_id', messageId);
-            console.log('Message too long, stored with ID:', messageId);
         } else {
             params.set('initial_message', message);
-            console.log('Message added to URL params');
         }
 
         const finalUrl = `/chat?${params.toString()}`;
-        console.log('Final URL:', finalUrl);
         router.replace(finalUrl);
 
     }, [selectedWorkflow, router]);

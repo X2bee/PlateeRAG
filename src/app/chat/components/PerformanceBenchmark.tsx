@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PerformanceTracker, useRenderTracker, ProfilerWrapper } from '../utils/performanceUtils';
+import { devLog } from '@/app/_common/utils/logger';
 
 interface PerformanceBenchmarkProps {
     children: React.ReactNode;
@@ -60,7 +61,7 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({
     }, [label, renderCount, trackMemory]);
 
     const handleProfilerRender = (id: string, phase: 'mount' | 'update' | 'nested-update', actualDuration: number) => {
-        console.log(`${label} [${phase}]: ${actualDuration.toFixed(2)}ms`);
+        devLog.log(`${label} [${phase}]: ${actualDuration.toFixed(2)}ms`);
     };
 
     if (process.env.NODE_ENV === 'development' && trackRenders) {

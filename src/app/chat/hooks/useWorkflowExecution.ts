@@ -6,6 +6,7 @@ import { generateInteractionId } from '@/app/api/interactionAPI';
 import { isStreamingWorkflowFromWorkflow } from '@/app/_common/utils/isStreamingWorkflow';
 import { WorkflowData } from '@/app/canvas/types';
 import { IOLog } from '../components/types';
+import { devLog } from '@/app/_common/utils/logger';
 
 interface UseWorkflowExecutionProps {
     workflow: any;
@@ -50,7 +51,7 @@ export const useWorkflowExecution = ({
         inputMessage: string | undefined,
         isDeploy: boolean = false
     ) => {
-        console.log(`${isDeploy ? 'executeWorkflowDeploy' : 'executeWorkflow'} called`);
+        devLog.log(`${isDeploy ? 'executeWorkflowDeploy' : 'executeWorkflow'} called`);
         
         if (executing) {
             toast.dismiss();
@@ -134,7 +135,7 @@ export const useWorkflowExecution = ({
                                     : log
                             )
                         );
-                        // 스트리밍 중엔 scroll management에서 처리하므로 제거
+                        scrollToBottom();
                     },
                     onEnd: () => setPendingLogId(null),
                     onError: (err: Error) => { throw err; },

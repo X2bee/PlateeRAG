@@ -41,6 +41,7 @@ export const processInlineMarkdownWithCitations = (
     // 1. LaTeX와 Citation 모두 체크하여 적절히 처리
     const hasLatexContent = hasLatex(text);
     
+    
     // LaTeX만 있고 Citation이 없는 경우에만 LaTeX 처리로 바로 넘김
     if (hasLatexContent && !text.includes('[Cite.')) {
         return processLatexInText(text, key, isStreaming);
@@ -58,7 +59,6 @@ export const processInlineMarkdownWithCitations = (
 
     // Citation을 찾기 위한 더 안전한 접근법 - 단순화
     const findCitations = (inputText: string): Array<{ start: number, end: number, content: string }> => {
-        console.log('🔍 [findCitations] Input text:', JSON.stringify(inputText));
         
         // LaTeX가 포함된 텍스트에서는 Citation 전처리를 최소화
         let preprocessedText = inputText;
@@ -486,7 +486,6 @@ const tryManualParsing = (jsonString: string): SourceInfo | null => {
 };
 
 const preprocessJsonString = (jsonString: string): string => {
-    console.log('🔍 [preprocessJsonString] Input:', jsonString);
 
     // 문자열 필드와 숫자 필드를 올바르게 처리
     let processed = jsonString;
@@ -495,7 +494,6 @@ const preprocessJsonString = (jsonString: string): string => {
     processed = processed.replace(/\{\{/g, '{').replace(/\}\}/g, '}');
     // }}}] 같은 패턴을 }}] 로 정리
     processed = processed.replace(/\}\}\}/g, '}}');
-    console.log('🔍 [preprocessJsonString] After brace fix:', processed);
 
     // 문자열 필드에서 중복된 따옴표 제거
     processed = processed.replace(/"""([^"]*?)"/g, '"$1"'); // 3개 따옴표 -> 1개

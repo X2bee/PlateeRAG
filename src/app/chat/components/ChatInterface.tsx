@@ -104,6 +104,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
     }, [scrollManagement, actions]);
 
     const handleSendMessage = useCallback((message: string) => {
+        scrollManagement.scrollToBottom();
         if (mode === 'new-default' || mode === 'new-workflow') {
             if (onStartNewChat) {
                 onStartNewChat(message);
@@ -143,7 +144,6 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
     }, [actions]);
 
     const handleAttachmentOption = useCallback((option: string) => {
-        console.log('Selected option:', option);
         actions.setAttachmentMenu(false);
 
         if (option === 'collection') {

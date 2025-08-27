@@ -7,6 +7,7 @@ import { PDFViewerProps, HighlightRange } from '../../types/source';
 import { fetchDocumentByPath, hasDocumentInCache } from '../../../api/documentAPI';
 import CacheStatusIndicator from './CacheStatusIndicator';
 import styles from './SidePanelPDFViewer.module.scss';
+import { devLog } from '@/app/_common/utils/logger';
 
 // Dynamic imports to prevent SSR issues
 const Document = dynamic(() => import('react-pdf').then(mod => ({ default: mod.Document })), { 
@@ -104,7 +105,7 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
     setDocxHtml(null);
     
     try {
-      console.log('📄 [SidePanelPDFViewer] Loading document from path:', filePath, `(${documentType})`, isInCache ? '(cached)' : '(from server)');
+      devLog.log('📄 [SidePanelPDFViewer] Loading document from path:', filePath, `(${documentType})`, isInCache ? '(cached)' : '(from server)');
       
       // 파일 경로 유효성 검사
       if (!filePath.trim()) {
@@ -134,14 +135,6 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
       
       const blob = new Blob([documentData], { type: mimeType });
       const url = URL.createObjectURL(blob);
-      
-      console.log('📄 [SidePanelPDFViewer] Creating Blob URL:', {
-        type: documentType,
-        size: documentData.byteLength,
-        blobSize: blob.size,
-        blobType: blob.type,
-        url: url
-      });
       
       setPdfUrl(url);
       
@@ -190,14 +183,12 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
           processedHtml = processedHtml.replace(/\n\s*\n/g, '\n');
           
           setDocxHtml(processedHtml);
-          console.log('✅ [SidePanelPDFViewer] DOCX converted to HTML successfully');
           
           // 변환 시 발생한 메시지가 있다면 로그 출력
           if (result.messages.length > 0) {
-            console.warn('📝 [SidePanelPDFViewer] DOCX conversion messages:', result.messages);
+            devLog.warn('📝 [SidePanelPDFViewer] DOCX conversion messages:', result.messages);
           }
         } catch (docxError) {
-          console.error('❌ [SidePanelPDFViewer] Failed to convert DOCX:', docxError);
           throw new Error(`DOCX 변환 실패: ${docxError instanceof Error ? docxError.message : '알 수 없는 오류'}`);
         }
       }
@@ -211,12 +202,7 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
       // 로딩 완료 상태로 변경
       setLoading(false);
       
-      console.log('✅ [SidePanelPDFViewer] Document loaded successfully:', {
-        type: documentType,
-        size: documentData.byteLength
-      });
     } catch (err) {
-      console.error('❌ [SidePanelPDFViewer] Failed to load document:', err);
       const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
       setError(`문서를 로드할 수 없습니다: ${errorMessage}`);
       setLoading(false);
@@ -351,14 +337,12 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
   }, [sourceInfo, loadPdfDocument]);
 
   const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
-    console.log('✅ [SidePanelPDFViewer] PDF Document loaded successfully:', { numPages, pdfUrl });
     setNumPages(numPages);
     setLoading(false);
     setError(null);
-  }, [pdfUrl]);
+  }, []);
 
   const onDocumentLoadError = useCallback((error: Error) => {
-    console.error('❌ [SidePanelPDFViewer] PDF document load error:', error);
     setError(`PDF 문서를 로드하는데 실패했습니다: ${error.message || '알 수 없는 오류'}`);
     setLoading(false);
   }, []);
@@ -367,19 +351,15 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
     const { width, height } = page;
     setPageSize({ width, height });
     
-    console.log('📄 [SidePanelPDFViewer] Page loaded successfully:', { pageNumber, width, height });
     
     // 텍스트 콘텐츠 추출
     page.getTextContent().then((content: any) => {
-      console.log('📝 [SidePanelPDFViewer] Text content loaded:', {
-        pageNumber,
-        itemsCount: content?.items?.length || 0
-      });
+      
       setTextContent(content);
       
       // 텍스트 콘텐츠가 로드된 후 약간의 지연을 두고 DOM 업데이트 대기
       setTimeout(() => {
-        console.log('🔄 [SidePanelPDFViewer] Text content DOM should be ready now');
+        
       }, 100);
     }).catch((err: Error) => {
       console.warn('텍스트 콘텐츠를 가져올 수 없습니다:', err);

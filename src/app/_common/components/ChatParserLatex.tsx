@@ -3,6 +3,7 @@
 import React from 'react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
+import { processInlineMarkdown } from './ChatParserMarkdown';
 
 /**
  * LaTeX 블록 정보를 나타내는 인터페이스
@@ -43,7 +44,6 @@ const escapeLatexSpecialChars = (text: string): string => {
  * 텍스트에서 LaTeX 수식 블록을 찾는 함수
  */
 export const findLatexBlocks = (text: string): LatexBlockInfo[] => {
-    console.log('🔍 [findLatexBlocks] Input text:', text);
     
     // 정규식을 사용한 더 정확한 LaTeX 블록 찾기
     const blockRegex = /\$\$([\s\S]*?)\$\$/g;
@@ -59,12 +59,6 @@ export const findLatexBlocks = (text: string): LatexBlockInfo[] => {
             end: match.index + match[0].length,
             content: match[1],
             isBlock: true
-        });
-        console.log('✅ Block math found:', {
-            start: match.index,
-            end: match.index + match[0].length,
-            content: match[1],
-            full: match[0]
         });
     }
     
@@ -83,17 +77,12 @@ export const findLatexBlocks = (text: string): LatexBlockInfo[] => {
                 content: match[1],
                 isBlock: false
             });
-            console.log('✅ Inline math found:', {
-                start: match.index,
-                end: match.index + match[0].length,
-                content: match[1],
-                full: match[0]
-            });
-        }
+        } 
     }
     
+    
     // 시작 위치 순으로 정렬하고 LatexBlockInfo 형태로 변환
-    return allMatches
+    const result = allMatches
         .sort((a, b) => a.start - b.start)
         .map(match => ({
             start: match.start,
@@ -101,6 +90,8 @@ export const findLatexBlocks = (text: string): LatexBlockInfo[] => {
             content: match.content.trim(),
             isBlock: match.isBlock
         }));
+        
+    return result;
 };
 
 /**
@@ -133,12 +124,6 @@ export const LatexRenderer: React.FC<LatexRendererProps> = ({
         // LaTeX 특수 문자 이스케이프 처리
         const escapedContent = escapeLatexSpecialChars(content);
         
-        console.log('🔍 [LatexRenderer] Content processing:', {
-            original: content,
-            escaped: escapedContent,
-            hasPercent: content.includes('%')
-        });
-        
         // KaTeX로 직접 렌더링
         const html = katex.renderToString(escapedContent, {
             displayMode: isBlock,
@@ -150,18 +135,25 @@ export const LatexRenderer: React.FC<LatexRendererProps> = ({
         if (isBlock) {
             return (
                 <div 
-                    style={{ margin: '1rem 0', textAlign: 'center' }}
+                    style={{ 
+                        margin: '1rem 0', 
+                        textAlign: 'center',
+                        fontSize: '0.9em' // 블록 수식 크기 증가
+                    }}
                     dangerouslySetInnerHTML={{ __html: html }}
                 />
             );
         } else {
             return (
-                <span dangerouslySetInnerHTML={{ __html: html }} />
+                <span 
+                    style={{ 
+                        fontSize: '0.75em' // 인라인 수식 크기 약간 증가
+                    }}
+                    dangerouslySetInnerHTML={{ __html: html }} 
+                />
             );
         }
     } catch (error) {
-        // LaTeX 파싱 에러 시 원본 텍스트 표시
-        console.error('LaTeX rendering error:', error);
         return (
             <span 
                 style={{ 
@@ -223,8 +215,9 @@ export const processLatexInText = (
             const elements: React.ReactNode[] = [];
 
             if (beforeText) {
+                const processedText = processInlineMarkdown(beforeText);
                 elements.push(
-                    <span key={`${key}-text-before`}>{beforeText}</span>
+                    <span key={`${key}-text-before`} dangerouslySetInnerHTML={{ __html: processedText }} />
                 );
             }
 
@@ -236,8 +229,9 @@ export const processLatexInText = (
 
             return elements;
         } else {
-            // LaTeX가 전혀 없는 경우 원본 텍스트 반환
-            return [<span key={key}>{text}</span>];
+            // LaTeX가 전혀 없는 경우 마크다운 처리된 텍스트 반환
+            const processedText = processInlineMarkdown(text);
+            return [<span key={key} dangerouslySetInnerHTML={{ __html: processedText }} />];
         }
     }
 
@@ -252,8 +246,9 @@ export const processLatexInText = (
         if (block.start > currentIndex) {
             const beforeText = text.slice(currentIndex, block.start);
             if (beforeText.trim()) {
+                const processedText = processInlineMarkdown(beforeText);
                 elements.push(
-                    <span key={`${key}-text-${i}`}>{beforeText}</span>
+                    <span key={`${key}-text-${i}`} dangerouslySetInnerHTML={{ __html: processedText }} />
                 );
             }
         }
@@ -274,8 +269,9 @@ export const processLatexInText = (
     if (currentIndex < text.length) {
         const remainingText = text.slice(currentIndex);
         if (remainingText.trim()) {
+            const processedText = processInlineMarkdown(remainingText);
             elements.push(
-                <span key={`${key}-text-remaining`}>{remainingText}</span>
+                <span key={`${key}-text-remaining`} dangerouslySetInnerHTML={{ __html: processedText }} />
             );
         }
     }
@@ -287,5 +283,10 @@ export const processLatexInText = (
  * 텍스트에 LaTeX가 포함되어 있는지 확인하는 헬퍼 함수
  */
 export const hasLatex = (text: string): boolean => {
-    return /\$+.*?\$+/.test(text);
+    // 블록 수식 ($$...$$) 또는 인라인 수식 ($...$) 패턴 확인
+    // 멀티라인을 고려하여 dotAll 플래그 사용
+    const blockMathRegex = /\$\$[\s\S]*?\$\$/;
+    const inlineMathRegex = /(?<!\$)\$(?!\$)[^$\n]*\$(?!\$)/;
+    
+    return blockMathRegex.test(text) || inlineMathRegex.test(text);
 };

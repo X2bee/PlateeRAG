@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { SourceInfo } from '@/app/chat/types/source';
-import { hasLatex } from './ChatParserLatex';
+import { hasLatex, processLatexInText } from './ChatParserLatex';
 import { processInlineMarkdownWithCitations } from './ChatParserCite';
 
 /**
@@ -84,6 +84,11 @@ export const parseSimpleMarkdown = (
     isStreaming: boolean = false
 ): React.ReactNode[] => {
     if (!text.trim()) return [];
+
+    // LaTeX가 포함된 경우 전체 텍스트를 LaTeX 처리기로 넘김 (라인 분할하지 않음)
+    if (hasLatex(text)) {
+        return processLatexInText(text, `${startKey}-latex`, isStreaming);
+    }
 
     const elements: React.ReactNode[] = [];
     const lines = text.split('\n');
