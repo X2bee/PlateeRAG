@@ -223,7 +223,7 @@ const Settings: React.FC = () => {
     const handleConfigUpdate = useCallback(async () => {
         console.log('📢 Settings: Received config update notification');
         await fetchConfigData();
-    }, [fetchConfigData]);
+    }, []);
 
     const renderWorkflowConfig = () => {
         return (
