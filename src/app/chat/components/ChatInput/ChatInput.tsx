@@ -18,6 +18,7 @@ interface ChatInputProps {
     onAttachmentClick: () => void;
     onAttachmentOption: (option: string) => void;
     onSendMessage: (message: string) => void;
+    onShiftEnter?: () => void;
     initialMessage?: string;
 }
 
@@ -36,6 +37,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
         onAttachmentClick,
         onAttachmentOption,
         onSendMessage,
+        onShiftEnter,
         initialMessage,
     },
     ref
@@ -48,6 +50,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
         onSendMessage: () => {
             onSendMessage(inputHandling.inputMessage);
         },
+        onShiftEnter,
     });
 
     // 외부에서 접근할 수 있는 메서드들을 노출

@@ -4,6 +4,7 @@ interface UseInputHandlingProps {
     executing: boolean;
     mode: string;
     onSendMessage: () => void;
+    onShiftEnter?: () => void;
 }
 
 interface UseInputHandlingReturn {
@@ -21,7 +22,8 @@ interface UseInputHandlingReturn {
 export const useInputHandling = ({ 
     executing, 
     mode, 
-    onSendMessage 
+    onSendMessage,
+    onShiftEnter
 }: UseInputHandlingProps): UseInputHandlingReturn => {
     const [inputMessage, setInputMessage] = useState<string>('');
     const [isComposing, setIsComposing] = useState<boolean>(false);
@@ -70,9 +72,12 @@ export const useInputHandling = ({
             e.preventDefault();
             onSendMessage();
             setInputMessage('');
+        } else if (e.key === 'Enter' && e.shiftKey && onShiftEnter) {
+            // Shift+Enter 시 scrollToBottom 실행
+            onShiftEnter();
         }
         // Shift+Enter는 줄바꿈을 허용 (기본 동작)
-    }, [executing, onSendMessage, isComposing]);
+    }, [executing, onSendMessage, onShiftEnter, isComposing]);
 
     // 입력 변경 처리
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {

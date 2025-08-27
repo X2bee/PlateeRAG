@@ -43,6 +43,7 @@ interface ChatContainerProps {
     onAttachmentClick: () => void;
     onAttachmentOption: (option: string) => void;
     onSendMessage: (message: string) => void;
+    onShiftEnter?: () => void;
     initialMessage?: string;
     
     // PDF Viewer props
@@ -83,6 +84,7 @@ const ChatContainer = forwardRef<ChatContainerRef, ChatContainerProps>((
         onAttachmentClick,
         onAttachmentOption,
         onSendMessage,
+        onShiftEnter,
         initialMessage,
         currentSourceInfo,
         user_id,
@@ -134,6 +136,7 @@ const ChatContainer = forwardRef<ChatContainerRef, ChatContainerProps>((
                 onAttachmentClick={onAttachmentClick}
                 onAttachmentOption={onAttachmentOption}
                 onSendMessage={onSendMessage}
+                onShiftEnter={onShiftEnter}
                 initialMessage={initialMessage}
             />
 
