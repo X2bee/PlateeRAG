@@ -19,7 +19,6 @@ import { useWorkflowExecution } from '../hooks/useWorkflowExecution';
 import { useCollectionManagement } from '../hooks/useCollectionManagement';
 import { useScrollManagement } from '../hooks/useScrollManagement';
 import { useChatState } from '../hooks/useChatState';
-import { useInputHandling } from '../hooks/useInputHandling';
 
 interface NewChatInterfaceProps extends ChatInterfaceProps {
     onStartNewChat?: (message: string) => void;
@@ -304,6 +303,8 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
     useEffect(() => {
         if (mode === 'existing' && existingChatData?.interactionId && !initialMessageToExecute && !hasLoadedExistingChat.current) {
             hasLoadedExistingChat.current = true;
+            const message = chatContainerRef.current?.getInputMessage();
+            chatContainerRef.current?.clearInputMessage();
             actions.setLoading(true);
             getWorkflowIOLogs(existingChatData.workflowName, existingChatData.workflowId, existingChatData.interactionId)
                 .then(logs => {
@@ -314,10 +315,10 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
                 })
                 .finally(() => {
                     actions.setLoading(false);
-                    workflowExecution.executeWorkflow();
+                    workflowExecution.executeWorkflow(undefined, message);
                 });
         }
-    }, [mode, existingChatData, actions, initialMessageToExecute]);
+    }, [mode, existingChatData, actions, initialMessageToExecute, workflowExecution]);
 
     useEffect(() => {
         if (initialMessageToExecute && !hasExecutedInitialMessage.current) {
@@ -332,7 +333,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
             newSearchParams.delete('initial_message_id');
             router.replace(`${window.location.pathname}?${newSearchParams.toString()}`, { scroll: false });
         }
-    }, [initialMessageToExecute, router]);
+    }, [initialMessageToExecute, router, handleSendMessage]);
 
     useEffect(() => {
         scrollManagement.scrollToBottom();

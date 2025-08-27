@@ -69,6 +69,7 @@ export const useInputHandling = ({
         if (e.key === 'Enter' && !e.shiftKey && !executing) {
             e.preventDefault();
             onSendMessage();
+            setInputMessage('');
         }
         // Shift+Enter는 줄바꿈을 허용 (기본 동작)
     }, [executing, onSendMessage, isComposing]);

@@ -60,6 +60,7 @@ export const useWorkflowExecution = ({
 
         const currentMessage = messageOverride || inputMessage || '';
         if (!currentMessage.trim()) return;
+        
 
         setExecuting(true);
         setError(null);
