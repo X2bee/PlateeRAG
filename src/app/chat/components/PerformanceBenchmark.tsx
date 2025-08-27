@@ -59,7 +59,7 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({
         return () => clearInterval(interval);
     }, [label, renderCount, trackMemory]);
 
-    const handleProfilerRender = (id: string, phase: 'mount' | 'update', actualDuration: number) => {
+    const handleProfilerRender = (id: string, phase: 'mount' | 'update' | 'nested-update', actualDuration: number) => {
         console.log(`${label} [${phase}]: ${actualDuration.toFixed(2)}ms`);
     };
 

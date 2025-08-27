@@ -10,7 +10,7 @@ interface UseInputHandlingReturn {
     inputMessage: string;
     isComposing: boolean;
     setInputMessage: React.Dispatch<React.SetStateAction<string>>;
-    textareaRef: React.RefObject<HTMLTextAreaElement>;
+    textareaRef: React.RefObject<HTMLTextAreaElement | null>;
     adjustTextareaHeight: () => void;
     handleCompositionStart: () => void;
     handleCompositionEnd: () => void;
@@ -25,7 +25,7 @@ export const useInputHandling = ({
 }: UseInputHandlingProps): UseInputHandlingReturn => {
     const [inputMessage, setInputMessage] = useState<string>('');
     const [isComposing, setIsComposing] = useState<boolean>(false);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement|null>(null);
 
     // Textarea 높이 자동 조절 함수
     const adjustTextareaHeight = useCallback(() => {

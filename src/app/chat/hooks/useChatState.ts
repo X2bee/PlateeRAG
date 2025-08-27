@@ -58,7 +58,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
 
         case ChatActionType.SHOW_PDF_VIEWER:
             // PDF 뷰어 표시 시 패널 크기도 함께 조정
-            const newSplit = 65;
+            { const newSplit = 65;
             localStorage.setItem('chatPanelSplit', newSplit.toString());
             
             return {
@@ -75,11 +75,11 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
                     ...state.panel,
                     split: newSplit,
                 },
-            };
+            }; }
 
         case ChatActionType.HIDE_PDF_VIEWER:
             // PDF 뷰어 숨김 시 패널을 100%로 설정
-            const fullSplit = 100;
+            { const fullSplit = 100;
             localStorage.setItem('chatPanelSplit', fullSplit.toString());
             
             return {
@@ -96,7 +96,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
                     ...state.panel,
                     split: fullSplit,
                 },
-            };
+            }; }
 
         case ChatActionType.SET_SOURCE_INFO:
             return {

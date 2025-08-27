@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 
 // 렌더링 횟수를 추적하는 Hook
 export const useRenderTracker = (componentName: string) => {
@@ -111,14 +111,14 @@ export const useMemoryTracker = (componentName: string) => {
 export const ProfilerWrapper: React.FC<{
     children: React.ReactNode;
     id: string;
-    onRender?: (id: string, phase: 'mount' | 'update', actualDuration: number) => void;
+    onRender?: (id: string, phase: 'mount' | 'update' | 'nested-update', actualDuration: number) => void;
 }> = ({ children, id, onRender }) => {
     if (process.env.NODE_ENV === 'development') {
-        const { Profiler } = require('react');
+        const { Profiler } = React;
         
         const handleRender = (
             id: string,
-            phase: 'mount' | 'update',
+            phase: 'mount' | 'update' | 'nested-update',
             actualDuration: number,
             baseDuration: number,
             startTime: number,
@@ -135,14 +135,10 @@ export const ProfilerWrapper: React.FC<{
             onRender?.(id, phase, actualDuration);
         };
         
-        return (
-            <Profiler id={id} onRender={handleRender}>
-                {children}
-            </Profiler>
-        );
+        return React.createElement(Profiler, { id, onRender: handleRender }, children);
     }
     
-    return <>{children}</>;
+    return React.createElement(React.Fragment, null, children);
 };
 
 // 컴포넌트 렌더링 시간 측정 Hook
