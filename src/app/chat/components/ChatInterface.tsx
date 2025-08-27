@@ -27,7 +27,7 @@ interface NewChatInterfaceProps extends ChatInterfaceProps {
     user_id?: number | string;
 }
 
-const ChatInterfaceOptimized: React.FC<NewChatInterfaceProps> = React.memo(({
+const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
     mode,
     workflow,
     onBack,
@@ -40,6 +40,7 @@ const ChatInterfaceOptimized: React.FC<NewChatInterfaceProps> = React.memo(({
     const router = useRouter();
     const chatContainerRef = useRef<ChatContainerRef>(null);
     const hasExecutedInitialMessage = useRef(false);
+    const hasLoadedExistingChat = useRef(false);
     const messagesRef = useRef<HTMLDivElement>(null);
 
     // 로컬 상태 (최소화됨)
@@ -274,9 +275,9 @@ const ChatInterfaceOptimized: React.FC<NewChatInterfaceProps> = React.memo(({
         state.workflow.contentDetail,
     ]);
 
-    // Effects
+    // Effects - workflow 데이터 로딩을 한 번만 실행하도록 수정
     useEffect(() => {
-        if (workflow && workflow.id && workflow.id !== "default_mode") {
+        if (workflow && workflow.id && workflow.id !== "default_mode" && !state.workflow.contentDetail) {
             const loadWorkflowContent = async () => {
                 actions.setLoading(true);
                 try {
@@ -298,10 +299,11 @@ const ChatInterfaceOptimized: React.FC<NewChatInterfaceProps> = React.memo(({
 
             loadWorkflowContent();
         }
-    }, [workflow, user_id, actions]);
+    }, [workflow, user_id, actions, state.workflow.contentDetail]);
 
     useEffect(() => {
-        if (mode === 'existing' && existingChatData?.interactionId && !initialMessageToExecute) {
+        if (mode === 'existing' && existingChatData?.interactionId && !initialMessageToExecute && !hasLoadedExistingChat.current) {
+            hasLoadedExistingChat.current = true;
             actions.setLoading(true);
             getWorkflowIOLogs(existingChatData.workflowName, existingChatData.workflowId, existingChatData.interactionId)
                 .then(logs => {
@@ -315,7 +317,7 @@ const ChatInterfaceOptimized: React.FC<NewChatInterfaceProps> = React.memo(({
                     workflowExecution.executeWorkflow();
                 });
         }
-    }, [mode, existingChatData, workflowExecution, actions]);
+    }, [mode, existingChatData, actions, initialMessageToExecute]);
 
     useEffect(() => {
         if (initialMessageToExecute && !hasExecutedInitialMessage.current) {
@@ -354,6 +356,6 @@ const ChatInterfaceOptimized: React.FC<NewChatInterfaceProps> = React.memo(({
     );
 });
 
-ChatInterfaceOptimized.displayName = 'ChatInterfaceOptimized';
+ChatInterface.displayName = 'ChatInterfaceOptimized';
 
-export default ChatInterfaceOptimized;
+export default ChatInterface;
