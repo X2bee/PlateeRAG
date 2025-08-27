@@ -134,7 +134,7 @@ export const useWorkflowExecution = ({
                                     : log
                             )
                         );
-                        scrollToBottom();
+                        // 스트리밍 중엔 scroll management에서 처리하므로 제거
                     },
                     onEnd: () => setPendingLogId(null),
                     onError: (err: Error) => { throw err; },
@@ -198,7 +198,7 @@ export const useWorkflowExecution = ({
         } finally {
             toast.dismiss();
             setExecuting(false);
-            scrollToBottom();
+            // 실행 완료 후 스크롤은 ChatInterface에서 처리
         }
     }, [
         executing, 

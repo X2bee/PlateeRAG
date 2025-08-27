@@ -336,15 +336,15 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
     }, [initialMessageToExecute, router, handleSendMessage]);
 
     useEffect(() => {
-        scrollManagement.scrollToBottom();
-    }, [ioLogs, scrollManagement]);
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            scrollManagement.scrollToBottom();
-        }, 100);
-        return () => clearTimeout(timer);
-    }, [ioLogs, scrollManagement, workflowExecution.executing]);
+        // 새 메시지가 추가되었을 때만 자동 스크롤 (사용자가 위로 스크롤하지 않은 경우)
+        const lastLog = ioLogs[ioLogs.length - 1];
+        if (lastLog && lastLog.output_data) {
+            const timer = setTimeout(() => {
+                scrollManagement.scrollToBottom();
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [ioLogs.length, scrollManagement]);
 
     return (
         <div className={styles.container}>

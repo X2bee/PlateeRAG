@@ -25,12 +25,23 @@ export const useScrollManagement = ({
     const [scrollPosition, setScrollPosition] = useState(0);
     const [isUserScrolling, setIsUserScrolling] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
+    const [userScrolledUp, setUserScrolledUp] = useState(false); // 사용자가 위로 스크롤했는지 추적
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // 사용자 스크롤 감지 함수
     const handleUserScroll = useCallback(() => {
-        if (!isResizing) {
+        if (!isResizing && messagesRef.current) {
+            const element = messagesRef.current;
+            const isAtBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - 5;
+            
             setIsUserScrolling(true);
+            
+            // 사용자가 위로 스크롤했는지 확인
+            if (!isAtBottom) {
+                setUserScrolledUp(true);
+            } else {
+                setUserScrolledUp(false);
+            }
             
             // 스크롤 정지 감지
             if (scrollTimeoutRef.current) {
@@ -67,8 +78,8 @@ export const useScrollManagement = ({
 
     // 강화된 스크롤 함수
     const scrollToBottom = useCallback(() => {
-        if (messagesRef.current) {
-            // 강제로 스크롤을 최하단으로 이동
+        if (messagesRef.current && !userScrolledUp) {
+            // 사용자가 위로 스크롤하지 않았을 때만 자동 스크롤
             const scrollElement = messagesRef.current;
 
             // 즉시 스크롤
@@ -76,15 +87,19 @@ export const useScrollManagement = ({
 
             // 약간의 지연 후 다시 스크롤 (DOM 업데이트 대기)
             requestAnimationFrame(() => {
-                scrollElement.scrollTop = scrollElement.scrollHeight;
+                if (!userScrolledUp) {
+                    scrollElement.scrollTop = scrollElement.scrollHeight;
+                }
             });
 
             // 추가 보장을 위한 setTimeout
             setTimeout(() => {
-                scrollElement.scrollTop = scrollElement.scrollHeight;
+                if (!userScrolledUp) {
+                    scrollElement.scrollTop = scrollElement.scrollHeight;
+                }
             }, 50);
         }
-    }, [messagesRef]);
+    }, [messagesRef, userScrolledUp]);
 
     // 출처 보기 처리 (스크롤 위치 저장/복원 포함)
     const handleViewSource = useCallback((sourceInfo: SourceInfo, messageContent?: string) => {
@@ -118,11 +133,13 @@ export const useScrollManagement = ({
     useEffect(() => {
         let scrollInterval: NodeJS.Timeout;
 
-        if (executing) {
-            // 실행 중일 때 0.5초마다 스크롤 체크
+        if (executing && !isUserScrolling && !userScrolledUp) {
+            // 실행 중이고 사용자가 위로 스크롤하지 않았을 때만 자동 스크롤
             scrollInterval = setInterval(() => {
-                scrollToBottom();
-            }, 500);
+                if (!isUserScrolling && !userScrolledUp) { 
+                    scrollToBottom();
+                }
+            }, 1000);
         }
 
         return () => {
@@ -130,7 +147,7 @@ export const useScrollManagement = ({
                 clearInterval(scrollInterval);
             }
         };
-    }, [executing, scrollToBottom]);
+    }, [executing, isUserScrolling, userScrolledUp, scrollToBottom]);
 
     // 컴포넌트 언마운트 시 타이머 정리
     useEffect(() => {
