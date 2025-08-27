@@ -9,11 +9,8 @@ import {
     refreshRetrievalConfig
 } from '@/app/api/retrievalAPI';
 import {
-    getEmbeddingStatus,
     switchEmbeddingProvider,
-    autoSwitchEmbeddingProvider,
     testEmbeddingQuery,
-    reloadEmbeddingClient,
     getEmbeddingConfigStatus,
 } from '@/app/api/embeddingAPI';
 import styles from '@/app/main/assets/Settings.module.scss';
@@ -44,7 +41,6 @@ interface ProviderConfig {
     error?: string;
 }
 
-// Qdrant 벡터 데이터베이스 관련 설정 필드
 const VECTORDATABASE_CONFIG_FIELDS: Record<string, FieldConfig> = {
     QDRANT_HOST: {
         label: 'Qdrant 호스트',
@@ -106,7 +102,7 @@ const EMBEDDING_CONFIG_FIELDS: Record<string, FieldConfig> = {
         description: 'OpenAI API 키를 입력하세요.',
         required: false,
     },
-    OPENAI_EMBEDDING_MODEL: {
+    OPENAI_EMBEDDING_MODEL_NAME: {
         label: 'OpenAI 임베딩 모델',
         type: 'select',
         options: [
@@ -117,36 +113,36 @@ const EMBEDDING_CONFIG_FIELDS: Record<string, FieldConfig> = {
         description: '사용할 OpenAI 임베딩 모델을 선택하세요. 벡터 차원은 자동으로 설정됩니다.',
         required: false,
     },
-    HUGGINGFACE_MODEL_NAME: {
-        label: 'HuggingFace 모델명',
+    HUGGINGFACE_EMBEDDING_MODEL_NAME: {
+        label: 'HuggingFace Embedding 모델',
         type: 'text',
         placeholder: 'sentence-transformers/all-MiniLM-L6-v2',
         description: 'HuggingFace 모델명을 입력하세요.',
         required: false,
     },
-    HUGGINGFACE_API_KEY: {
-        label: 'HuggingFace API 키',
-        type: 'password',
-        placeholder: '선택사항',
-        description: 'HuggingFace Hub API 키 (선택사항)',
+    HUGGING_FACE_HUB_TOKEN: {
+        label: 'HuggingFace Hub 토큰',
+        type: 'text',
+        placeholder: 'hf_xxx',
+        description: 'HuggingFace Hub API 토큰을 입력하세요.',
         required: false,
     },
     CUSTOM_EMBEDDING_URL: {
-        label: 'VLLM 서버 URL',
+        label: 'Embedding VLLM 서버 URL',
         type: 'text',
         placeholder: 'http://localhost:8000/v1',
         description: 'VLLM 서버의 API 엔드포인트를 입력하세요.',
         required: false,
     },
     CUSTOM_EMBEDDING_API_KEY: {
-        label: 'VLLM API 키',
+        label: 'Embedding VLLM 서버 API 키',
         type: 'password',
         placeholder: '선택사항',
         description: 'VLLM 서버 API 키 (선택사항)',
         required: false,
     },
-    CUSTOM_EMBEDDING_MODEL: {
-        label: 'VLLM 모델명',
+    CUSTOM_EMBEDDING_MODEL_NAME: {
+        label: 'VLLM Embedding 모델명',
         type: 'text',
         placeholder: 'text-embedding-ada-002',
         description: 'VLLM 서버에서 사용하는 모델명을 입력하세요.',
@@ -198,16 +194,14 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
         setLoading(true);
         setError(null);
         try {
-            const [status, configStatus] = await Promise.all([
-                getEmbeddingStatus(),
-                getEmbeddingConfigStatus(),
-            ]);
-            const provider = (status as any).provider_info?.provider || 'openai';
-            const model = (status as any).provider_info?.model || 'text-embedding-3-small';
+            const configStatus = await getEmbeddingConfigStatus();
+
+            const provider = (configStatus as any).provider_info?.provider || 'openai';
+            const model = (configStatus as any).provider_info?.model || 'text-embedding-3-small';
             const dimensionData = await getCurrentEmbeddingDimension(provider, model);
 
-            setEmbeddingStatus(status as EmbeddingStatus);
-            setCurrentProvider((configStatus as any).current_provider || '');
+            setEmbeddingStatus(configStatus as EmbeddingStatus);
+            setCurrentProvider((configStatus as any).provider_info?.provider || '');
             setDimensionInfo(dimensionData);
 
             const providerStatuses = EMBEDDING_PROVIDERS.map(provider => ({
@@ -467,38 +461,6 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
                             </div>
 
                             <div className={styles.statusSection}>
-                                {(() => {
-                                    const configured = true; // 항상 설정됨으로 간주
-                                    const connected = embeddingStatus.available;
-                                    const tested = true; // 상태를 불러왔으므로 테스트됨으로 간주
-
-                                    const statusClass = configured && connected
-                                        ? styles.statusSuccess
-                                        : configured && !connected
-                                            ? styles.statusError
-                                            : configured
-                                                ? styles.statusWarning
-                                                : styles.statusError;
-
-                                    return (
-                                        <div className={`${styles.statusIndicatorLarge} ${statusClass}`}>
-                                            <div className={styles.statusIconWrapper}>
-                                                {getStatusIcon(configured, connected, tested)}
-                                            </div>
-                                            <div className={styles.statusText}>
-                                                <span className={styles.statusLabel}>
-                                                    {getStatusText(configured, connected, tested)}
-                                                </span>
-                                                <span className={styles.statusSubtext}>
-                                                    {connected
-                                                        ? '모든 기능을 사용할 수 있습니다'
-                                                        : '연결을 확인해 주세요'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    );
-                                })()}
-
                                 <div className={styles.statusActions}>
                                     <button
                                         onClick={() => handleTestConnection('embedding')}
@@ -628,7 +590,7 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
                 <BaseConfigPanel
                     configData={configData}
                     fieldConfigs={EMBEDDING_CONFIG_FIELDS}
-                    filterPrefix="vectordb"
+                    filterPrefix=""
                 />
             </div>
         );

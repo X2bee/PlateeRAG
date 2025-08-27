@@ -190,11 +190,11 @@ export const uploadDocument = async (
         const userId = getUserId();
         // 파일명은 항상 원본 파일명 사용 (서버 경로 충돌 방지)
         const originalFileName = file.name;
- 
+
         // 폴더 구조 정보 추출
         let folderPath = '';
         let relativePath = originalFileName;
- 
+
         if (file.webkitRelativePath) {
             relativePath = file.webkitRelativePath;
             const lastSlashIndex = relativePath.lastIndexOf('/');
@@ -202,7 +202,7 @@ export const uploadDocument = async (
                 folderPath = relativePath.substring(0, lastSlashIndex);
             }
         }
- 
+
         // 파일은 원본 파일명으로 업로드
         formData.append('file', file, originalFileName);
         formData.append('collection_name', collectionName);
@@ -210,7 +210,7 @@ export const uploadDocument = async (
         formData.append('chunk_overlap', chunkOverlap.toString());
         formData.append('user_id', userId);
         formData.append('process_type', processType); // process_type 추가
- 
+
         // 메타데이터에 폴더 구조 정보 포함
         const enhancedMetadata = {
             ...(metadata || {}),
@@ -222,12 +222,12 @@ export const uploadDocument = async (
             file_type: file.type || 'application/octet-stream',
             process_type: processType, // 메타데이터에도 포함
         };
- 
+
         formData.append('metadata', JSON.stringify(enhancedMetadata));
- 
+
         // 업로드 진행률 추적을 위한 AbortController
         const controller = new AbortController();
- 
+
         const response = await fetch(
             `${API_BASE_URL}/api/retrieval/documents/upload`,
             {
@@ -238,11 +238,11 @@ export const uploadDocument = async (
                 timeout: 5400000,
             },
         );
- 
+
         if (!response.ok) {
             const errorText = await response.text();
             let errorMessage = `HTTP error! status: ${response.status}`;
- 
+
             try {
                 const errorData = JSON.parse(errorText);
                 if (errorData.detail) {
@@ -251,10 +251,10 @@ export const uploadDocument = async (
             } catch (e) {
                 errorMessage += `, message: ${errorText}`;
             }
- 
+
             throw new Error(errorMessage);
         }
- 
+
         const data = await response.json();
         devLog.info('Document uploaded successfully:', {
             fileName: originalFileName,
@@ -855,7 +855,7 @@ export const getCurrentEmbeddingDimension = async (provider, model) => {
 export const refreshRetrievalConfig = async () => {
     try {
         const response = await fetch(
-            `${API_BASE_URL}/api/retrieval/refresh-db`,
+            `${API_BASE_URL}/api/retrieval/refresh/rag-system`,
             {
                 method: 'POST',
                 headers: {
