@@ -61,6 +61,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
     const [executing, setExecuting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [inputMessage, setInputMessage] = useState<string>('');
+    const [isComposing, setIsComposing] = useState<boolean>(false);
     const [pendingLogId, setPendingLogId] = useState<string | null>(null);
     const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
     const [showCollectionModal, setShowCollectionModal] = useState(false);
@@ -247,6 +248,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
     const executeWorkflow = useCallback(async (messageOverride?: string) => {
         console.log('executeWorkflow called')
         if (executing) {
+            toast.dismiss(); // 기존 toast 제거
             toast.loading('이전 작업이 완료될 때까지 잠시만 기다려주세요.');
             return;
         }
@@ -354,6 +356,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
             setPendingLogId(null);
             toast.error(err.message || '메시지 처리 중 오류가 발생했습니다.');
         } finally {
+            toast.dismiss();
             setExecuting(false);
             scrollToBottom();
         }
@@ -362,6 +365,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
     const executeWorkflowDeploy = useCallback(async (messageOverride?: string) => {
         console.log('executeWorkflowDeploy called')
         if (executing) {
+            toast.dismiss(); // 기존 toast 제거
             toast.loading('이전 작업이 완료될 때까지 잠시만 기다려주세요.');
             return;
         }
@@ -470,6 +474,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
             setPendingLogId(null);
             toast.error(err.message || '메시지 처리 중 오류가 발생했습니다.');
         } finally {
+            toast.dismiss();
             setExecuting(false);
             scrollToBottom();
         }
@@ -525,12 +530,24 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         }
     }, [handleUserScroll]);
 
-    // 컴포넌트 언마운트 시 타이머 정리
+    // 컴포넌트 마운트 시 상태 초기화
+    useEffect(() => {
+        // 컴포넌트가 새로 마운트될 때 executing 상태를 초기화
+        setExecuting(false);
+        setPendingLogId(null);
+        setError(null);
+    }, []);
+
+    // 컴포넌트 언마운트 시 타이머 정리 및 상태 초기화
     useEffect(() => {
         return () => {
             if (scrollTimeoutRef.current) {
                 clearTimeout(scrollTimeoutRef.current);
             }
+            // 컴포넌트 언마운트 시 상태 초기화
+            setExecuting(false);
+            setPendingLogId(null);
+            setError(null);
         };
     }, []);
 
@@ -683,7 +700,21 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         adjustTextareaHeight();
     }, [inputMessage, adjustTextareaHeight]);
 
+    // IME composition 이벤트 핸들러들
+    const handleCompositionStart = useCallback(() => {
+        setIsComposing(true);
+    }, []);
+
+    const handleCompositionEnd = useCallback(() => {
+        setIsComposing(false);
+    }, []);
+
     const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        // 한글 입력 중(composition 중)이면 Enter 키 무시
+        if (isComposing) {
+            return;
+        }
+        
         if (e.key === 'Enter' && !e.shiftKey && !executing) {
             e.preventDefault();
             if (mode === 'new-default' || mode === 'new-workflow') {
@@ -697,7 +728,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
             }
         }
         // Shift+Enter는 줄바꿈을 허용 (기본 동작)
-    }, [executing, mode, handleStartNewChatFlow, executeWorkflow]);
+    }, [executing, mode, handleStartNewChatFlow, executeWorkflow, isComposing]);
 
     const handleAttachmentClick = () => {
         setShowAttachmentMenu(!showAttachmentMenu);
@@ -866,6 +897,8 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                                             value={inputMessage}
                                             onChange={(e) => setInputMessage(e.target.value)}
                                             onKeyDown={handleKeyPress}
+                                            onCompositionStart={handleCompositionStart}
+                                            onCompositionEnd={handleCompositionEnd}
                                             disabled={executing}
                                             className={styles.messageInput}
                                             rows={1}
@@ -1077,6 +1110,8 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                                         value={inputMessage}
                                         onChange={(e) => setInputMessage(e.target.value)}
                                         onKeyDown={handleKeyPress}
+                                        onCompositionStart={handleCompositionStart}
+                                        onCompositionEnd={handleCompositionEnd}
                                         disabled={executing}
                                         className={styles.messageInput}
                                         rows={1}
