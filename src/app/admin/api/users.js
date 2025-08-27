@@ -26,6 +26,116 @@ export const getAllUsers = async () => {
 };
 
 /**
+ * 대기 중인 사용자 목록을 가져오는 함수 (슈퍼유저 권한 필요)
+ * @returns {Promise<Array>} 대기 중인 사용자 목록 배열
+ */
+export const getStandbyUsers = async () => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/admin/user/standby-users`);
+        const data = await response.json();
+        devLog.log('Get standby users result:', data);
+
+        if (!response.ok) {
+            devLog.error('Failed to get standby users:', data);
+            throw new Error(data.detail || 'Failed to get standby users');
+        }
+
+        return data.users;
+    } catch (error) {
+        devLog.error('Failed to get standby users:', error);
+        throw error;
+    }
+};
+
+/**
+ * 대기 중인 사용자를 승인하는 함수 (슈퍼유저 권한 필요)
+ * @param {Object} userData - 승인할 사용자 정보
+ * @param {number} userData.id - 사용자 ID
+ * @param {string} userData.username - 사용자명
+ * @param {string} userData.email - 사용자 이메일
+ * @returns {Promise<Object>} 승인 결과
+ */
+export const approveUser = async (userData) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/admin/user/approve-user`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData)
+        });
+
+        const data = await response.json();
+        devLog.log('Approve user result:', data);
+
+        if (!response.ok) {
+            devLog.error('Failed to approve user:', data);
+            throw new Error(data.detail || 'Failed to approve user');
+        }
+
+        return data;
+    } catch (error) {
+        devLog.error('Failed to approve user:', error);
+        throw error;
+    }
+};
+
+/**
+ * 슈퍼유저 로그인 API
+ * @param {Object} loginData - 로그인 데이터
+ * @param {string} loginData.email - 이메일
+ * @param {string} loginData.password - 비밀번호
+ * @returns {Promise<Object>} 로그인 결과 (토큰 포함)
+ */
+export const superuserLogin = async (loginData) => {
+    try {
+        // 패스워드를 SHA256으로 해시화 (기존 login 함수와 동일한 로직)
+        const { generateSha256Hash } = await import('@/app/_common/utils/generateSha1Hash');
+        const { setCookieAuth } = await import('@/app/_common/utils/cookieUtils');
+
+        const hashedLoginData = {
+            ...loginData,
+            password: generateSha256Hash(loginData.password)
+        };
+
+        const response = await fetch(`${API_BASE_URL}/api/admin/user/superuser-login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(hashedLoginData),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`,
+            );
+        }
+
+        if (result.access_token) {
+            setCookieAuth('access_token', result.access_token);
+        }
+        if (result.refresh_token) {
+            setCookieAuth('refresh_token', result.refresh_token);
+        }
+        if (result.user_id) {
+            setCookieAuth('user_id', result.user_id.toString());
+        }
+        if (result.username) {
+            setCookieAuth('username', result.username);
+        }
+
+        devLog.log('Superuser login successful:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to superuser login:', error);
+        throw error;
+    }
+};
+
+/**
  * 사용자와 관련된 모든 데이터를 삭제하는 함수 (슈퍼유저 권한 필요)
  * @param {Object} userData - 삭제할 사용자 정보
  * @param {number} userData.id - 사용자 ID

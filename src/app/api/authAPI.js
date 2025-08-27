@@ -9,20 +9,62 @@ import {
 import { generateSha256Hash } from '@/app/_common/utils/generateSha1Hash';
 
 /**
+ * 휴대폰 번호를 정규화하는 함수 (010-1234-5678 형태로 변환)
+ * @param {string} phoneNumber - 원본 휴대폰 번호
+ * @returns {string} 정규화된 휴대폰 번호 또는 원본 번호
+ */
+const normalizePhoneNumber = (phoneNumber) => {
+    if (!phoneNumber || typeof phoneNumber !== 'string') {
+        return phoneNumber;
+    }
+
+    try {
+        // 모든 공백, 하이픈, 괄호 등 제거하고 숫자만 추출
+        const numbersOnly = phoneNumber.replace(/[^\d]/g, '');
+
+        // 한국 휴대폰 번호 패턴 확인 (010, 011, 016, 017, 018, 019로 시작하는 11자리)
+        const koreanMobilePattern = /^(010|011|016|017|018|019)(\d{3,4})(\d{4})$/;
+        const match = numbersOnly.match(koreanMobilePattern);
+
+        if (match) {
+            const [, prefix, middle, last] = match;
+            return `${prefix}-${middle}-${last}`;
+        }
+
+        // 패턴이 맞지 않으면 원본 반환
+        return phoneNumber;
+    } catch (error) {
+        devLog.warn('Failed to normalize phone number:', error);
+        return phoneNumber;
+    }
+};
+
+/**
  * 회원가입 API
  * @param {Object} signupData - 회원가입 데이터
  * @param {string} signupData.username - 사용자명
  * @param {string} signupData.email - 이메일
  * @param {string} signupData.password - 비밀번호
  * @param {string} [signupData.full_name] - 전체 이름 (선택사항)
+ * @param {string} [signupData.group_name] - 소속 (선택사항)
+ * @param {string} [signupData.mobile_phone_number] - 휴대폰 번호 (선택사항)
  * @returns {Promise<Object>} 회원가입 결과
  */
 export const signup = async (signupData) => {
     try {
+        // 휴대폰 번호가 있으면 정규화
+        const normalizedSignupData = {
+            ...signupData
+        };
+
+        if (signupData.mobile_phone_number) {
+            normalizedSignupData.mobile_phone_number = normalizePhoneNumber(signupData.mobile_phone_number);
+        }
+
         // 패스워드를 SHA256으로 해시화
         const hashedSignupData = {
-            ...signupData,
-            password: generateSha256Hash(signupData.password)
+            ...normalizedSignupData,
+            password: generateSha256Hash(normalizedSignupData.password)
         };
 
         const response = await fetch(`${API_BASE_URL}/auth/signup`, {
@@ -80,7 +122,6 @@ export const login = async (loginData) => {
             );
         }
 
-        // 토큰을 쿠키에만 저장 (localStorage 사용 안 함)
         if (result.access_token) {
             setCookieAuth('access_token', result.access_token);
         }

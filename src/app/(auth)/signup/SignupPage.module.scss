@@ -24,7 +24,7 @@ $box-shadow-color: rgba(0, 0, 0, 0.1);
   border-radius: 12px;
   box-shadow: 0 8px 25px $box-shadow-color;
   width: 100%;
-  max-width: 420px;
+  max-width: 650px;
   text-align: center;
 
   .title {
@@ -41,8 +41,19 @@ $box-shadow-color: rgba(0, 0, 0, 0.1);
   gap: 1.25rem;
 }
 
+.formRow {
+  display: flex;
+  gap: 1rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+}
+
 .inputGroup {
   text-align: left;
+  flex: 1;
 
   label {
     display: block;
@@ -57,6 +68,7 @@ $box-shadow-color: rgba(0, 0, 0, 0.1);
     border: 1px solid $border-color;
     border-radius: 8px;
     font-size: 1rem;
+    box-sizing: border-box;
   }
 }
 
