@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import styles from '@/app/chat/assets/ChatInterface.module.scss';
 import { useRouter } from 'next/navigation';
 import { useSidebarManager } from '@/app/_common/hooks/useSidebarManager';
 import { getWorkflowIOLogs, loadWorkflow } from '@/app/api/workflowAPI';
@@ -18,6 +19,7 @@ import { useWorkflowExecution } from '../hooks/useWorkflowExecution';
 import { useCollectionManagement } from '../hooks/useCollectionManagement';
 import { useScrollManagement } from '../hooks/useScrollManagement';
 import { useChatState } from '../hooks/useChatState';
+import { useInputHandling } from '../hooks/useInputHandling';
 
 interface NewChatInterfaceProps extends ChatInterfaceProps {
     onStartNewChat?: (message: string) => void;
@@ -89,7 +91,6 @@ const ChatInterfaceOptimized: React.FC<NewChatInterfaceProps> = React.memo(({
         setIOLogs,
         scrollToBottom: scrollManagement.scrollToBottom
     });
-
     // 메모이제이션된 이벤트 핸들러들
     const handleViewSource = useCallback((sourceInfo: SourceInfo, messageContent?: string) => {
         const enrichedSourceInfo = scrollManagement.handleViewSource(sourceInfo, messageContent);
@@ -202,7 +203,9 @@ const ChatInterfaceOptimized: React.FC<NewChatInterfaceProps> = React.memo(({
         ioLogs,
         workflow,
         executing: workflowExecution.executing,
-        setInputMessage: () => {/* 더 이상 사용하지 않음 */},
+        setInputMessage: (message: string) => {
+            chatContainerRef.current?.setInputMessage(message);
+        },
         messagesRef,
         pendingLogId: workflowExecution.pendingLogId,
         renderMessageContent,
@@ -275,28 +278,25 @@ const ChatInterfaceOptimized: React.FC<NewChatInterfaceProps> = React.memo(({
     useEffect(() => {
         if (workflow && workflow.id && workflow.id !== "default_mode") {
             const loadWorkflowContent = async () => {
-                if (user_id) {
-                    try {
+                actions.setLoading(true);
+                try {
+                    if (user_id) {
                         const workflowData = await loadWorkflowDeploy(workflow.name, user_id);
                         actions.setWorkflowDetail(workflowData);
                         devLog.log('Successfully loaded workflow content detail:', workflowData);
-                    } catch (error) {
-                        devLog.error('Failed to load workflow content detail:', error);
-                    }
-                } else {
-                    try {
+                    } else {
                         const workflowData = await loadWorkflow(workflow.name);
                         actions.setWorkflowDetail(workflowData);
                         devLog.log('Successfully loaded workflow content detail:', workflowData);
-                    } catch (error) {
-                        devLog.error('Failed to load workflow content detail:', error);
                     }
+                } catch (error) {
+                    devLog.error('Failed to load workflow content detail:', error);
+                } finally {
+                    actions.setLoading(false);
                 }
             };
 
-            actions.setLoading(true);
             loadWorkflowContent();
-            actions.setLoading(false);
         }
     }, [workflow, user_id, actions]);
 
@@ -334,17 +334,17 @@ const ChatInterfaceOptimized: React.FC<NewChatInterfaceProps> = React.memo(({
 
     useEffect(() => {
         scrollManagement.scrollToBottom();
-    }, [ioLogs, scrollManagement.scrollToBottom]);
+    }, [ioLogs, scrollManagement]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
             scrollManagement.scrollToBottom();
         }, 100);
         return () => clearTimeout(timer);
-    }, [ioLogs, workflowExecution.executing, scrollManagement.scrollToBottom]);
+    }, [ioLogs, scrollManagement, workflowExecution.executing]);
 
     return (
-        <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div className={styles.container}>
             <ChatHeader {...chatHeaderProps} />
             <ChatToolsDisplay {...chatToolsProps} />
             <ChatContainer ref={chatContainerRef} {...chatContainerProps} />
