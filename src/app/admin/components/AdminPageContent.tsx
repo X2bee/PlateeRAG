@@ -7,6 +7,7 @@ import AdminSidebar from '@/app/admin/components/AdminSidebar';
 import AdminContentArea from '@/app/admin/components/AdminContentArea';
 import AdminIntroduction from '@/app/admin/components/AdminIntroduction';
 import AdminUserContent from '@/app/admin/components/AdminUserContent';
+import AdminRegisterUser from '@/app/admin/components/AdminRegisterUser';
 import AdminConfigViewer from '@/app/admin/components/AdminConfigViewer';
 import AdminWorkflowLogsContent from '@/app/admin/components/AdminWorkflowLogsContent';
 import {
@@ -89,9 +90,9 @@ const AdminPageContent: React.FC = () => {
                 return (
                     <AdminContentArea
                         title="사용자 등록"
-                        description="새로운 사용자 계정을 생성하세요."
+                        description="승인 대기 중인 사용자 계정을 확인하고 승인하세요."
                     >
-                        <div>사용자 등록 컴포넌트가 여기에 표시됩니다.</div>
+                        <AdminRegisterUser />
                     </AdminContentArea>
                 );
             case 'user-permissions':

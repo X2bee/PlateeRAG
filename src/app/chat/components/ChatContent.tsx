@@ -81,7 +81,22 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted}) => {
     };
 
     const handleStartNewChat = useCallback((message: string) => {
-        if (!selectedWorkflow) return;
+        if (!selectedWorkflow || !message.trim()) return;
+        
+        // 중복 호출 방지를 위한 debounce 처리
+        const debounceKey = `new-chat-${selectedWorkflow.id}-${Date.now()}`;
+        if ((window as any)[debounceKey]) return;
+        (window as any)[debounceKey] = true;
+        
+        // 500ms 후 debounce 키 제거
+        setTimeout(() => {
+            delete (window as any)[debounceKey];
+        }, 500);
+
+        console.log('Starting new chat with message:', message);
+        console.log('Message length:', message.length);
+        console.log('Encoded message:', encodeURIComponent(message));
+        console.log('Encoded message length:', encodeURIComponent(message).length);
 
         localStorage.removeItem('currentChatData');
 
@@ -99,11 +114,15 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted}) => {
             const messageId = `initial_msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
             localStorage.setItem(messageId, message);
             params.set('initial_message_id', messageId);
+            console.log('Message too long, stored with ID:', messageId);
         } else {
             params.set('initial_message', message);
+            console.log('Message added to URL params');
         }
 
-        router.replace(`/chat?${params.toString()}`);
+        const finalUrl = `/chat?${params.toString()}`;
+        console.log('Final URL:', finalUrl);
+        router.replace(finalUrl);
 
     }, [selectedWorkflow, router]);
 

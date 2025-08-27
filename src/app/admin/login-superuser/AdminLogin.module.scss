@@ -1,0 +1,361 @@
+@use "@/app/_common/_variables" as *;
+
+// Admin 색상 테마
+$admin-primary: #e74c3c;
+$admin-primary-hover: #c0392b;
+$admin-primary-light: rgba(231, 76, 60, 0.1);
+$admin-secondary: #2c3e50;
+$admin-secondary-light: #34495e;
+$admin-background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+$admin-box-background: #ffffff;
+$admin-border: #e9ecef;
+$admin-text: #2c3e50;
+$admin-text-light: #6c757d;
+$admin-shadow: rgba(0, 0, 0, 0.15);
+$admin-error: #dc3545;
+$admin-error-bg: #f8d7da;
+$admin-error-border: #f5c6cb;
+
+.adminLoginPage {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+    }
+}
+
+.loginPanel {
+    width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    position: relative;
+    padding: 2rem;
+
+    &::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: linear-gradient(to bottom, transparent, $admin-border, transparent);
+    }
+
+    @media (max-width: 768px) {
+        width: 100%;
+        min-height: 60vh;
+
+        &::after {
+            display: none;
+        }
+    }
+}
+
+.visualPanel {
+    width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: $admin-background;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background:
+            radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    @media (max-width: 768px) {
+        width: 100%;
+        min-height: 40vh;
+    }
+}
+
+.visualContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem;
+    position: relative;
+    z-index: 1;
+    color: white;
+
+    .visualTitle {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #ffffff, #e9ecef);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+
+        @media (max-width: 768px) {
+            font-size: 2rem;
+        }
+    }
+
+    .visualSubtitle {
+        font-size: 1.2rem;
+        font-weight: 400;
+        opacity: 0.9;
+        line-height: 1.6;
+        max-width: 400px;
+
+        @media (max-width: 768px) {
+            font-size: 1rem;
+        }
+    }
+
+    .visualIcon {
+        width: 120px;
+        height: 120px;
+        margin-bottom: 2rem;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+        @media (max-width: 768px) {
+            width: 80px;
+            height: 80px;
+            font-size: 2rem;
+        }
+    }
+}
+
+.loginBox {
+    background: $admin-box-background;
+    padding: 3rem;
+    border-radius: 16px;
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    width: 100%;
+    max-width: 450px;
+    text-align: center;
+    position: relative;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+
+    @media (max-width: 768px) {
+        padding: 2rem;
+        margin: 1rem;
+        max-width: none;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        backdrop-filter: none;
+        border: none;
+    }
+}
+
+.header {
+    margin-bottom: 2.5rem;
+}
+
+.logoArea {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: $admin-text;
+    margin: 0;
+    background: linear-gradient(135deg, $admin-secondary, $admin-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+
+    @media (max-width: 768px) {
+        font-size: 1.8rem;
+    }
+}
+
+.subtitle {
+    color: $admin-text-light;
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.loginForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.inputGroup {
+    text-align: left;
+
+    label {
+        display: block;
+        margin-bottom: 0.6rem;
+        font-weight: 600;
+        color: $admin-secondary;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+}
+
+.adminInput {
+    width: 100%;
+    padding: 1rem 1.2rem;
+    border: 2px solid $admin-border;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+    color: $admin-text;
+    font-weight: 500;
+
+    &:focus {
+        outline: none;
+        border-color: $admin-primary;
+        background: white;
+        box-shadow:
+            0 0 0 3px $admin-primary-light,
+            0 4px 12px rgba(231, 76, 60, 0.1);
+        transform: translateY(-1px);
+    }
+
+    &::placeholder {
+        color: #adb5bd;
+        font-weight: 400;
+    }
+}
+
+.adminLoginButton {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, $admin-primary, $admin-primary-hover);
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+
+        &::before {
+            left: 100%;
+        }
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+
+    &:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+
+        &::before {
+            display: none;
+        }
+    }
+}
+
+.error {
+    color: $admin-error;
+    font-size: 0.875rem;
+    margin: 0;
+    text-align: center;
+    background: $admin-error-bg;
+    border: 1px solid $admin-error-border;
+    border-radius: 8px;
+    padding: 0.875rem;
+    font-weight: 500;
+    position: relative;
+
+    &::before {
+        content: '⚠️';
+        margin-right: 0.5rem;
+    }
+}
+
+// 반응형 처리
+@media (max-width: 768px) {
+    .adminInput {
+        padding: 0.875rem 1rem;
+        font-size: 0.95rem;
+    }
+
+    .adminLoginButton {
+        padding: 0.875rem 1.25rem;
+        font-size: 0.95rem;
+    }
+}
+
+// 로딩 애니메이션
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.adminLoginButton:disabled {
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 20px;
+        height: 20px;
+        margin: -10px 0 0 -10px;
+        border: 2px solid transparent;
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+}
