@@ -31,17 +31,11 @@ export const useApiParameters = (
             if (options.length === 1 && options[0].isSingleValue) {
                 const singleValue = String(options[0].value);
                 setApiSingleValues(prev => ({ ...prev, [paramKey]: singleValue }));
-
-                // Set parameter default value to API loaded value only if parameter is empty/undefined
-                // Don't override existing saved values
-                devLog.log('Parameter value check - name:', param.name, 'current value:', param.value, 'API value:', singleValue);
+                
                 if ((param.value === undefined || param.value === null || param.value === '') && onParameterChange) {
-                    devLog.log('Setting API default value for parameter:', param.name, 'from:', param.value, 'to:', singleValue);
                     onParameterChange(nodeId, param.id, singleValue);
-                } else {
-                    devLog.log('Preserving existing value for parameter:', param.name, 'value:', param.value);
-                }
-
+                } 
+                
                 devLog.log('Single value loaded for parameter:', param.name, 'value:', singleValue);
             } else {
                 // Array options case

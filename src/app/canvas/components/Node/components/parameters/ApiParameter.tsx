@@ -14,12 +14,9 @@ export const ApiParameter: React.FC<ApiParameterProps> = ({
     onClearSelection
 }) => {
     const eventHandlers = createCommonEventHandlers(onClearSelection);
+    const numberList = ['INT', 'FLOAT', 'NUMBER', 'INTEGER'];
 
     const handleValueChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        devLog.log('=== API Parameter Change ===');
-        devLog.log('Parameter:', parameter.name, 'Previous value:', parameter.value, 'New value:', e.target.value);
-        devLog.log('Available options:', apiOptions);
-        devLog.log('API single value:', apiSingleValue);
 
         e.preventDefault();
         e.stopPropagation();
@@ -40,74 +37,55 @@ export const ApiParameter: React.FC<ApiParameterProps> = ({
     };
 
     // Determine if this should be rendered as input or select
-    const isStringType = parameter.type === 'string' || parameter.type === 'str';
     const hasOptions = apiOptions && apiOptions.length > 0;
-    const hasSingleValue = apiSingleValue !== undefined;
-    
-    // Debug logging for value display
-    devLog.log('ApiParameter render - name:', parameter.name, 'value:', parameter.value, 'type:', parameter.type);
-    devLog.log('ApiParameter render - hasOptions:', hasOptions, 'hasSingleValue:', hasSingleValue, 'apiSingleValue:', apiSingleValue);
-    
-    // String type parameters should always use input field
-    if (isStringType || (hasSingleValue && !hasOptions)) {
-        return (
+    const hasSingleValue = apiSingleValue !== undefined; 
+
+    // Option type parameters should use dropdown select
+    return (
+        hasSingleValue ? (
             <input
                 type="text"
                 value={parameter.value !== undefined && parameter.value !== null ? parameter.value.toString() : (apiSingleValue || '')}
                 onChange={handleValueChange}
                 {...eventHandlers}
                 className={`${styles.paramInput} paramInput`}
-                placeholder={apiSingleValue ? `Default: ${apiSingleValue}` : parameter.description || ''}
+                placeholder={apiSingleValue ? `Default: ${apiSingleValue}` : ''}
                 draggable={false}
             />
-        );
-    }
-
-    // Option type parameters should use dropdown select
-    return (
-        <select
-            value={parameter.value !== undefined && parameter.value !== null ? parameter.value.toString() : ''}
-            onChange={handleValueChange}
-            onMouseDown={eventHandlers.onMouseDown}
-            onFocus={eventHandlers.onFocus}
-            onKeyDown={eventHandlers.onKeyDown}
-            onDragStart={eventHandlers.onDragStart}
-            onClick={(e) => {
-                devLog.log('API select onClick');
-                e.stopPropagation();
-                // Try to load options again if empty and not loading
-                if (apiOptions.length === 0 && !isLoading) {
-                    // This would be handled by parent component
-                }
-            }}
-            className={`${styles.paramSelect} paramSelect`}
-            disabled={isLoading}
-            draggable={false}
-        >
-            {isLoading ? (
-                <option value="">Loading...</option>
-            ) : apiOptions.length === 0 ? (
-                // Show current saved value even if no options are loaded
-                parameter.value && parameter.value !== '' ? (
+        ) : hasOptions ? (
+            <select
+                value={parameter.value !== undefined && parameter.value !== null ? parameter.value.toString() : ''}
+                onChange={handleValueChange}
+                {...eventHandlers}
+                draggable={false}
+                className={`${styles.paramSelect} paramSelect`}
+                disabled={isLoading}
+            >
+                {isLoading ? (
+                    <option value="">Loading...</option>
+                ) : apiOptions.length === 0 ? (
+                    <option value="">-- No options available --</option>
+                ) : (
                     <>
                         <option value="">-- Select --</option>
-                        <option value={parameter.value}>
-                            {parameter.value}
-                        </option>
+                        {apiOptions.map((option, index) => (
+                            <option key={index} value={option.value}>
+                                {option.label || option.value}
+                            </option>
+                        ))}
                     </>
-                ) : (
-                    <option value="">-- No options available --</option>
-                )
-            ) : (
-                <>
-                    <option value="">-- Select --</option>
-                    {apiOptions.map((option, index) => (
-                        <option key={index} value={option.value}>
-                            {option.label || option.value}
-                        </option>
-                    ))}
-                </>
-            )}
-        </select>
+                )}
+            </select>
+        ) : (<input
+                type={parameter.type && numberList.includes(parameter.type) ? 'number' : 'text'}
+                value={(parameter.value !== undefined && parameter.value !== null) ? parameter.type === 'STR' ? parameter.value.toString(): parseFloat(parameter.value.toString()): ''}
+                onChange={handleValueChange}
+                {...eventHandlers}
+                draggable={false}
+                className={`${styles.paramInput} paramInput`}
+                step={parameter.step}
+                min={parameter.min}
+                max={parameter.max}
+        />)
     );
 };
