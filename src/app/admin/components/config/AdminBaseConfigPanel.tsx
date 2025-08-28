@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FiEdit3, FiCheck, FiX } from 'react-icons/fi';
 import { updateConfig } from '@/app/api/configAPI';
 import { devLog } from '@/app/_common/utils/logger';
-import styles from '@/app/main/assets/Settings.module.scss';
+import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
 
 export interface ConfigItem {
     env_name: string;
@@ -24,7 +24,7 @@ export interface FieldConfig {
     options?: Array<{ value: string; label: string }>;
 }
 
-interface BaseConfigPanelProps {
+interface AdminBaseConfigPanelProps {
     configData: ConfigItem[];
     fieldConfigs: Record<string, FieldConfig>;
     filterPrefix?: string; // 필터링할 env_name 또는 config_path 접두사
@@ -34,7 +34,7 @@ interface BaseConfigPanelProps {
     onConfigChange?: () => Promise<void>; // ✅ 이 줄 추가
 }
 
-const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
+const AdminBaseConfigPanel: React.FC<AdminBaseConfigPanelProps> = ({
     configData = [],
     fieldConfigs,
     filterPrefix,
@@ -438,4 +438,4 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
     );
 };
 
-export default BaseConfigPanel;
+export default AdminBaseConfigPanel;

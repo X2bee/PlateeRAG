@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/baseConfigPanel';
+import AdminBaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/admin/components/config/AdminBaseConfigPanel';
 import { testCollectionConnection } from '@/app/api/llmAPI';
 
-interface CollectionConfigProps {
+interface AdminCollectionConfigProps {
     configData?: ConfigItem[];
     onConfigUpdate?: () => Promise<void>; // 설정 업데이트 후 호출될 콜백
 }
@@ -94,13 +94,13 @@ const DOCUMENT_PROCESSOR_CONFIG_FIELDS: Record<string, FieldConfig> = {
     },
 };
 
-const CollectionConfig: React.FC<CollectionConfigProps> = ({
+const AdminCollectionConfig: React.FC<AdminCollectionConfigProps> = ({
     configData = [],
     onConfigUpdate, // 부모로부터 받는 콜백
 }) => {
     const [testing, setTesting] = useState(false);
 
-    // BaseConfigPanel에서 설정이 업데이트될 때 호출될 함수
+    // AdminBaseConfigPanel에서 설정이 업데이트될 때 호출될 함수
     const handleConfigChange = useCallback(async () => {
         if (onConfigUpdate) {
             await onConfigUpdate();
@@ -136,7 +136,7 @@ const CollectionConfig: React.FC<CollectionConfigProps> = ({
     };
 
     return (
-        <BaseConfigPanel
+        <AdminBaseConfigPanel
             configData={configData}
             fieldConfigs={DOCUMENT_PROCESSOR_CONFIG_FIELDS}
             filterPrefix=""
@@ -150,4 +150,4 @@ const CollectionConfig: React.FC<CollectionConfigProps> = ({
     );
 };
 
-export default CollectionConfig;
+export default AdminCollectionConfig;

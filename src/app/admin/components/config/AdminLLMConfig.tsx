@@ -4,15 +4,15 @@ import { SiOpenai } from 'react-icons/si';
 import { BsCpu } from 'react-icons/bs';
 import { TbBrandGolang } from 'react-icons/tb';
 import toast from 'react-hot-toast';
-import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/baseConfigPanel';
-import styles from '@/app/main/assets/Settings.module.scss';
+import AdminBaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/admin/components/config/AdminBaseConfigPanel';
+import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
 import {
     getLLMStatus,
     switchLLMProvider,
     testConnection,
 } from '@/app/api/llmAPI';
 
-interface LLMConfigProps {
+interface AdminLLMConfigProps {
     configData?: ConfigItem[];
     onTestConnection?: (category: string) => void;
 }
@@ -364,7 +364,7 @@ const LLM_PROVIDERS: LLMProvider[] = [
     }
 ];
 
-const LLMConfig: React.FC<LLMConfigProps> = ({
+const AdminLLMConfig: React.FC<AdminLLMConfigProps> = ({
     configData = [],
     onTestConnection,
 }) => {
@@ -381,8 +381,6 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
     useEffect(() => {
         loadLLMStatus();
     }, []);
-
-    // 자동 연결 테스트 제거 - 사용자가 직접 테스트 버튼을 클릭할 때만 실행
 
     const loadLLMStatus = async () => {
         setLoading(true);
@@ -625,7 +623,7 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                     <p>워크플로우에서 기본적으로 사용할 LLM 제공자를 선택하세요.</p>
                 </div>
 
-                <BaseConfigPanel
+                <AdminBaseConfigPanel
                     configData={configData}
                     fieldConfigs={DEFAULT_PROVIDER_CONFIG_FIELDS}
                     filterPrefix="llm"
@@ -860,11 +858,11 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                 <p>OpenAI API 키와 모델 설정을 구성합니다.</p>
             </div>
 
-            <BaseConfigPanel
+            <AdminBaseConfigPanel
                 configData={configData}
                 fieldConfigs={OPENAI_CONFIG_FIELDS}
                 filterPrefix="openai"
-                onTestConnection={(category) => handleTestConnection('openai')}
+                onTestConnection={(_category: string) => handleTestConnection('openai')}
                 testConnectionLabel="OpenAI 연결 테스트"
                 testConnectionCategory="openai"
             />
@@ -878,11 +876,11 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                 <p>vLLM 서버 연결 및 모델 설정을 구성합니다.</p>
             </div>
 
-            <BaseConfigPanel
+            <AdminBaseConfigPanel
                 configData={configData}
                 fieldConfigs={VLLM_CONFIG_FIELDS}
                 filterPrefix="vllm"
-                onTestConnection={(category) => handleTestConnection('vllm')}
+                onTestConnection={(_category: string) => handleTestConnection('vllm')}
                 testConnectionLabel="vLLM 연결 테스트"
                 testConnectionCategory="vllm"
             />
@@ -924,11 +922,11 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
                     </div>
                 )}
 
-                <BaseConfigPanel
+                <AdminBaseConfigPanel
                     configData={configData}
                     fieldConfigs={SGL_CONFIG_FIELDS}
                     filterPrefix="SGL_"  // 대문자로 변경하고 언더스코어 포함
-                    onTestConnection={(category) => handleTestConnection('sgl')}
+                    onTestConnection={(_category: string) => handleTestConnection('sgl')}
                     testConnectionLabel="SGLang 연결 테스트"
                     testConnectionCategory="sgl"
                 />
@@ -1000,4 +998,4 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
     );
 };
 
-export default LLMConfig;
+export default AdminLLMConfig;

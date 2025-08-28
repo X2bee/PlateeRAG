@@ -1,6 +1,6 @@
 import React from 'react';
 import { FiPieChart } from 'react-icons/fi';
-import styles from '@/app/main/assets/ChartDashboard.module.scss';
+import styles from '@/app/admin/assets/playground/ChartDashboard.module.scss';
 
 interface ChartPlaceholderProps {
   title: string;

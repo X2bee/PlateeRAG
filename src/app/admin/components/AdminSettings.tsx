@@ -16,15 +16,15 @@ import {
     fetchAllConfigs,
 } from '@/app/api/configAPI';
 import { devLog } from '@/app/_common/utils/logger';
-import styles from '@/app/main/assets/Settings.module.scss';
+import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
 
-import LLMConfig from '@/app/main/components/config/llmConfig';
-import WorkflowConfig from '@/app/main/components/config/workflowConfig';
-import DatabaseConfig from '@/app/main/components/config/databaseConfig';
-import VectordbConfig from '@/app/main/components/config/vectordbConfig';
-import CollectionConfig from '@/app/main/components/config/collectionConfig';
-import VastAiConfig from '@/app/main/components/config/vastAiConfig';
-import TrainVastConfig from '@/app/main/components/config/trainVastConfig';
+import AdminLLMConfig from '@/app/admin/components/config/AdminLLMConfig';
+import AdminWorkflowConfig from '@/app/admin/components/config/AdminWorkflowConfig';
+import AdminDatabaseConfig from '@/app/admin/components/config/AdminDatabaseConfig';
+import AdminVectordbConfig from '@/app/admin/components/config/AdminVectordbConfig';
+import AdminCollectionConfig from '@/app/admin/components/config/AdminCollectionConfig';
+import AdminVastAiConfig from '@/app/admin/components/config/AdminVastAiConfig';
+import AdminTrainVastConfig from '@/app/admin/components/config/AdminTrainVastConfig';
 
 interface ConfigItem {
     env_name: string;
@@ -72,7 +72,7 @@ interface ApiConfig {
     imageTextModelName?: string;
 }
 
-const Settings: React.FC = () => {
+const AdminSettings: React.FC = () => {
     const [currentView, setCurrentView] = useState<'list' | 'detail'>('list');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(
         null,
@@ -221,13 +221,13 @@ const Settings: React.FC = () => {
     };
 
     const handleConfigUpdate = useCallback(async () => {
-        console.log('📢 Settings: Received config update notification');
+        console.log('📢 AdminSettings: Received config update notification');
         await fetchConfigData();
     }, []);
 
     const renderWorkflowConfig = () => {
         return (
-            <WorkflowConfig
+            <AdminWorkflowConfig
                 configData={configData}
                 onTestConnection={handleTestConnection}
             />
@@ -236,7 +236,7 @@ const Settings: React.FC = () => {
 
     const renderDatabaseConfig = () => {
         return (
-            <DatabaseConfig
+            <AdminDatabaseConfig
                 configData={configData}
                 onTestConnection={handleTestConnection}
             />
@@ -245,7 +245,7 @@ const Settings: React.FC = () => {
 
     const renderVectorDBConfig = () => {
         return (
-            <VectordbConfig
+            <AdminVectordbConfig
                 configData={configData}
                 onTestConnection={handleTestConnection}
             />
@@ -254,7 +254,7 @@ const Settings: React.FC = () => {
 
     const renderCollectionConfig = () => {
         return (
-            <CollectionConfig
+            <AdminCollectionConfig
                 configData={configData}
                 onConfigUpdate={handleConfigUpdate}
             />
@@ -263,7 +263,7 @@ const Settings: React.FC = () => {
 
     const renderLLMconfig = () => {
         return (
-            <LLMConfig
+            <AdminLLMConfig
             configData={configData}
             onTestConnection={handleTestConnection}
         />
@@ -272,7 +272,7 @@ const Settings: React.FC = () => {
 
     const renderVastAiConfig = () => {
         return (
-            <VastAiConfig
+            <AdminVastAiConfig
                 configData={configData}
             />
         );
@@ -280,7 +280,7 @@ const Settings: React.FC = () => {
 
     const renderTrainVastConfig = () => {
         return (
-            <TrainVastConfig
+            <AdminTrainVastConfig
                 configData={configData}
             />
         );
@@ -455,19 +455,4 @@ const Settings: React.FC = () => {
     );
 };
 
-// TODO: 백엔드 API 연동 현황
-// ✅ updateConfig API 연동 완료 - 개별 설정값 업데이트
-// ✅ fetchAllConfigs API 연동 완료 - 모든 설정 정보 조회
-// ✅ saveConfigs API 연동 완료 - 모든 설정 저장
-// ✅ refreshConfigs API 연동 완료 - 설정 새로고침
-// ⏳ testConnection - 임시 더미 함수로 구현 (백엔드 엔드포인트 추가 필요)
-// ❌ resetConfig - 백엔드에 없는 기능, 클라이언트에서만 처리
-// ❌ updateCategoryConfigs - 백엔드에 없는 기능, 개별 업데이트로 대체
-
-// 현재 localStorage와 백엔드 API를 모두 활용하는 하이브리드 방식으로 구현
-// 백엔드에서 추가로 필요한 API:
-// - POST /app/config/test/{category} - 연결 테스트 (OpenAI, vLLM, Collection 포함)
-// - POST /app/config/reset/{category} - 카테고리별 리셋
-// - PUT /app/config/batch/{category} - 카테고리별 일괄 업데이트
-
-export default Settings;
+export default AdminSettings;

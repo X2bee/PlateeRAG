@@ -14,7 +14,6 @@ import { motion } from 'framer-motion';
 const Sidebar: React.FC<SidebarProps> = ({
     isOpen,
     onToggle,
-    items,
     workflowItems = [],
     chatItems = [],
     trainItem = [],
@@ -45,7 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             if (fullUrl && !fullUrl.includes('/login') && !fullUrl.includes('/signup')) {
                 sessionStorage.setItem('logoutFromPage', fullUrl);
             }
-            
+
             // 서버에 로그아웃 요청
             await logout();
             // 통합 로그아웃 처리 (localStorage 정리 포함)
@@ -173,34 +172,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 
                 <nav className={`${styles.sidebarNav} ${isTrainExpanded ? styles.expanded : ''}`}>
                     {trainItem.map((item) => (
-                        <button
-                            key={item.id}
-                            onClick={() => onItemClick(item.id)}
-                            className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
-                        >
-                            {item.icon}
-                            <div className={styles.navText}>
-                                <div className={styles.navTitle}>{item.title}</div>
-                                <div className={styles.navDescription}>
-                                    {item.description}
-                                </div>
-                            </div>
-                        </button>
-                    ))}
-                </nav>
-
-                <button
-                    className={styles.sidebarToggle}
-                    onClick={toggleExpanded}
-                >
-                    <span>환경 설정</span>
-                    <span className={`${styles.toggleIcon} ${isSettingExpanded ? styles.expanded : ''}`}>
-                        ▼
-                    </span>
-                </button>
-
-                <nav className={`${styles.sidebarNav} ${isSettingExpanded ? styles.expanded : ''}`}>
-                    {items.map((item) => (
                         <button
                             key={item.id}
                             onClick={() => onItemClick(item.id)}

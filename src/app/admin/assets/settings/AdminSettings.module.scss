@@ -1,8 +1,7 @@
 @use "sass:color";
 @use "@/app/_common/_variables" as *;
-@use "Settings.Additional.module.scss" as *;
-@use "Settings.Vast.module.scss" as *;
-
+@use "AdminSettings.Additional.module.scss" as *;
+@use "AdminSettings.Vast.module.scss" as *;
 
 .container {
     max-width: 1450px;
@@ -284,8 +283,6 @@
         transform: rotate(360deg);
     }
 }
-
-
 
 // =============================================================================
 // BaseConfigPanel Styles

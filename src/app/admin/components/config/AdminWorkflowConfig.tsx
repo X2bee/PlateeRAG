@@ -1,7 +1,7 @@
 import React from 'react';
-import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/baseConfigPanel';
+import AdminBaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/admin/components/config/AdminBaseConfigPanel';
 
-interface WorkflowConfigProps {
+interface AdminWorkflowConfigProps {
     configData?: ConfigItem[];
     onTestConnection?: (category: string) => void;
 }
@@ -36,12 +36,12 @@ const WORKFLOW_CONFIG_FIELDS: Record<string, FieldConfig> = {
     },
 };
 
-const WorkflowConfig: React.FC<WorkflowConfigProps> = ({
+const AdminWorkflowConfig: React.FC<AdminWorkflowConfigProps> = ({
     configData = [],
     onTestConnection,
 }) => {
     return (
-        <BaseConfigPanel
+        <AdminBaseConfigPanel
             configData={configData}
             fieldConfigs={WORKFLOW_CONFIG_FIELDS}
             filterPrefix="workflow"
@@ -52,4 +52,4 @@ const WorkflowConfig: React.FC<WorkflowConfigProps> = ({
     );
 };
 
-export default WorkflowConfig;
+export default AdminWorkflowConfig;

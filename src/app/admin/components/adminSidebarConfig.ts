@@ -15,6 +15,7 @@ import {
     FiFileText,
     FiAlertTriangle,
     FiMessageSquare,
+    FiBarChart,
 } from 'react-icons/fi';
 import { AdminSidebarItem } from '@/app/admin/components/types';
 
@@ -41,9 +42,9 @@ export const getUserSidebarItems = (): AdminSidebarItem[] => [
     },
 ];
 
-export const getSystemItems = ['system-config', 'chat-monitoring', 'system-monitor', 'system-health'];
+export const getSettingItems = ['system-config', 'system-settings'];
 
-export const getSystemSidebarItems = (): AdminSidebarItem[] => [
+export const getSettingSidebarItems = (): AdminSidebarItem[] => [
     {
         id: 'system-config',
         title: '시스템 설정',
@@ -51,10 +52,26 @@ export const getSystemSidebarItems = (): AdminSidebarItem[] => [
         icon: React.createElement(FiSettings),
     },
     {
+        id: 'system-settings',
+        title: '시스템 세부 설정',
+        description: 'LLM, 데이터베이스, 벡터DB 등 상세 설정',
+        icon: React.createElement(FiServer),
+    },
+];
+export const getSystemItems = ['chat-monitoring', 'workflow-monitoring', 'system-monitor', 'system-health'];
+
+export const getSystemSidebarItems = (): AdminSidebarItem[] => [
+    {
         id: 'chat-monitoring',
         title: '채팅 모니터링',
         description: '실시간 채팅 활동 및 상태 모니터링',
         icon: React.createElement(FiMessageSquare),
+    },
+    {
+        id: 'workflow-monitoring',
+        title: '워크플로우 모니터링',
+        description: '워크플로우 실행, 성능 분석, 배치 테스트',
+        icon: React.createElement(FiBarChart),
     },
     {
         id: 'system-monitor',

@@ -12,7 +12,7 @@ import {
     deleteWorkflowIOLogs,
 } from '@/app/api/workflow/workflowAPI';
 import toast from 'react-hot-toast';
-import styles from '@/app/main/assets/Executor.module.scss';
+import styles from '@/app/admin/assets/playground/Executor.module.scss';
 
 interface Workflow {
     workflow_name: string;

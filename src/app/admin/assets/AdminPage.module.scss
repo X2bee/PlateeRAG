@@ -281,17 +281,18 @@
 
 // Content Area
 .contentArea {
-    background: $white;
+    background: var(--admin-bg-primary);
     border-radius: 0.75rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--admin-shadow);
     padding: 2rem;
     min-height: calc(100vh - 4rem);
     transition: margin-left 0.3s ease-in-out;
+    overflow: hidden; // Playground가 적절한 크기를 가지도록
 }
 
 .contentHeader {
     margin-bottom: 1rem;
-    border-bottom: 1px solid $gray-200;
+    border-bottom: 1px solid var(--admin-border);
     padding-bottom: 1rem;
     display: flex;
     justify-content: space-between;
@@ -311,12 +312,12 @@
     h1 {
         font-size: 1.875rem;
         font-weight: 700;
-        color: $gray-900;
+        color: var(--admin-text-primary);
         margin: 0 0 0.5rem 0;
     }
 
     p {
-        color: $gray-600;
+        color: var(--admin-text-secondary);
         margin: 0;
         line-height: 1.6;
     }

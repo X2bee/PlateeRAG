@@ -4,7 +4,7 @@ import { BsGpuCard } from 'react-icons/bs';
 import toast from 'react-hot-toast';
 import { searchVastOffers, createVastInstance, subscribeToInstanceStatus } from '@/app/api/vastAPI';
 import { devLog } from '@/app/_common/utils/logger';
-import styles from '@/app/main/assets/Settings.module.scss';
+import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
 
 interface VastOffer {
     id: string;
@@ -50,6 +50,8 @@ interface SearchParams {
     min_gpu_ram?: number;
     num_gpus?: number;
     rentable?: boolean;
+    inet_down?: number;
+    inet_up?: number;
     sort_by?: string;
     limit?: number;
 }
@@ -117,12 +119,14 @@ interface VastInstanceCreateResponse {
     next_steps?: Record<string, string>;
 }
 
-export const TrainGpuOfferSearchModal = () => {
+export const AdminGpuOfferSearchModal = () => {
     const [searchParams, setSearchParams] = useState<SearchParams>({
         gpu_name: '',
         max_price: 3,
         min_gpu_ram: 24,
         num_gpus: 1,
+        inet_down: 2500,
+        inet_up: 2500,
         rentable: true,
         sort_by: 'price',
         limit: 30
@@ -139,7 +143,7 @@ export const TrainGpuOfferSearchModal = () => {
         install_requirements: true,
         vllm_config: {
             vllm_serve_model_name: 'x2bee/Polar-14B',
-            vllm_max_model_len: 8192,
+            vllm_max_model_len: 32768,
             vllm_host_ip: '0.0.0.0',
             vllm_port: 12434,
             vllm_controller_port: 12435,
@@ -188,6 +192,8 @@ export const TrainGpuOfferSearchModal = () => {
             if (searchParams.min_gpu_ram) cleanParams.min_gpu_ram = searchParams.min_gpu_ram;
             if (searchParams.num_gpus) cleanParams.num_gpus = searchParams.num_gpus;
             if (searchParams.rentable !== undefined) cleanParams.rentable = searchParams.rentable;
+            if (searchParams.inet_down) cleanParams.inet_down = searchParams.inet_down;
+            if (searchParams.inet_up) cleanParams.inet_up = searchParams.inet_up;
             if (searchParams.sort_by) cleanParams.sort_by = searchParams.sort_by;
             if (searchParams.limit) cleanParams.limit = searchParams.limit;
 
@@ -543,6 +549,31 @@ export const TrainGpuOfferSearchModal = () => {
                                     <option value="gpu_ram">GPU RAM순</option>
                                     <option value="num_gpus">GPU 개수순</option>
                                 </select>
+                            </div>
+                        </div>
+
+                        <div className={styles.compactRow}>
+                            <div className={styles.advancedFormGroup}>
+                                <label className={styles.label}>인터넷 다운로드 속도</label>
+                                <input
+                                    type="number"
+                                    className={styles.input}
+                                    placeholder="1"
+                                    min="1"
+                                    value={searchParams.inet_down || ''}
+                                    onChange={(e) => handleParamChange('inet_down', parseInt(e.target.value) || undefined)}
+                                />
+                            </div>
+                            <div className={styles.advancedFormGroup}>
+                                <label className={styles.label}>인터넷 업로드 속도</label>
+                                <input
+                                    type="number"
+                                    className={styles.input}
+                                    placeholder="1"
+                                    min="1"
+                                    value={searchParams.inet_up || ''}
+                                    onChange={(e) => handleParamChange('inet_up', parseInt(e.target.value) || undefined)}
+                                />
                             </div>
                         </div>
 

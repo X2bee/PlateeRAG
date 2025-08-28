@@ -91,29 +91,6 @@ export const getTrainSidebarItems = (): SidebarItem[] => [
     },
 ];
 
-export const getSettingItems = ['settings', 'exec-monitor', 'config-viewer'];
-
-export const getSettingSidebarItems = (): SidebarItem[] => [
-    {
-        id: 'settings',
-        title: '환경 설정',
-        description: 'LLM 및 Tool 환경변수 직접 관리',
-        icon: React.createElement(FiSettings),
-    },
-    {
-        id: 'exec-monitor',
-        title: '실행 및 모니터링',
-        description: '워크플로우 실행과 성능 모니터링',
-        icon: React.createElement(FiCpu),
-    },
-    {
-        id: 'config-viewer',
-        title: '[고급] 전체 설정 확인',
-        description: '백엔드 환경변수 및 설정 확인',
-        icon: React.createElement(FiEye),
-    },
-];
-
 // 공통 아이템 클릭 핸들러 (localStorage 사용)
 export const createItemClickHandler = (router: any) => {
     return (itemId: string) => {

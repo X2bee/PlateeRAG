@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { FiRefreshCw } from 'react-icons/fi';
 import { listWorkflowsDetail } from '@/app/api/workflow/workflowAPI';
-import styles from '@/app/main/assets/Playground.module.scss';
-import Executor from '@/app/main/components/Executor';
-import Monitor from '@/app/main/components/Monitor';
-import BatchTester from '@/app/main/components/Tester';
-import TesterLogs from '@/app/main/components/TesterLogs';
+import styles from '@/app/admin/assets/playground/AdminPlayground.module.scss';
+import Executor from '@/app/admin/components/playground/Executor';
+import Monitor from '@/app/admin/components/playground/Monitor';
+import BatchTester from '@/app/admin/components/playground/Tester';
+import TesterLogs from '@/app/admin/components/playground/TesterLogs';
 import { useSearchParams } from 'next/navigation';
 
 interface PlaygroundProps {
@@ -23,7 +23,7 @@ interface Workflow {
     has_endnode: boolean;
 }
 
-const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
+const AdminPlayground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
     const searchParams = useSearchParams();
     const [workflows, setWorkflows] = useState<Workflow[]>([]);
     const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(
@@ -164,4 +164,4 @@ const Playground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
     );
 };
 
-export default Playground;
+export default AdminPlayground;

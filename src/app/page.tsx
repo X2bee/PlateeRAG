@@ -90,7 +90,7 @@ export default function HomePage() {
                 <div className={styles.heroSection}>
                     <div className={styles.heroContent}>
                         <div className={styles.heroLabel}>
-                            <span>🚀 Next-Gen AI Platform</span>
+                            <span>Next-Gen AI Platform</span>
                         </div>
                         <h1 className={styles.heroTitle}>
                             Intelligent <br /><i>AI Platform</i>
@@ -180,9 +180,9 @@ export default function HomePage() {
                                     시각적으로 구성하고 실시간으로 미리보기할 수 있습니다.
                                 </p>
                                 <div className={styles.cardFeatures}>
-                                    <span>• 5+ AI 노드 타입</span>
-                                    <span>• 실시간 미리보기</span>
-                                    <span>• 자동 유효성 검사</span>
+                                    <span>5+ AI 노드 타입</span>
+                                    <span>실시간 미리보기</span>
+                                    <span>자동 유효성 검사</span>
                                 </div>
                             </div>
                         </div>
@@ -199,9 +199,9 @@ export default function HomePage() {
                                     AI의 응답을 실시간으로 확인할 수 있습니다.
                                 </p>
                                 <div className={styles.cardFeatures}>
-                                    <span>• 실시간 응답</span>
-                                    <span>• 대화 기록 저장</span>
-                                    <span>• 다중 워크플로우 선택</span>
+                                    <span>실시간 응답</span>
+                                    <span>대화 기록 저장</span>
+                                    <span>다중 워크플로우 선택</span>
                                 </div>
                             </div>
                         </div>
@@ -218,9 +218,9 @@ export default function HomePage() {
                                     그리고 팀 협업을 위한 통합 관리 환경을 제공합니다.
                                 </p>
                                 <div className={styles.cardFeatures}>
-                                    <span>• 성능 대시보드</span>
-                                    <span>• 실행 로그 분석</span>
-                                    <span>• 팀 협업 도구</span>
+                                    <span>성능 대시보드</span>
+                                    <span>실행 로그 분석</span>
+                                    <span>팀 협업 도구</span>
                                 </div>
                             </div>
                         </div>
@@ -237,9 +237,9 @@ export default function HomePage() {
                                     빠르고 안정적으로 처리합니다.
                                 </p>
                                 <div className={styles.cardFeatures}>
-                                    <span>• 병렬 처리 지원</span>
-                                    <span>• 자동 스케일링</span>
-                                    <span>• 에러 복구 시스템</span>
+                                    <span>병렬 처리 지원</span>
+                                    <span>자동 스케일링</span>
+                                    <span>에러 복구 시스템</span>
                                 </div>
                             </div>
                         </div>
@@ -256,9 +256,9 @@ export default function HomePage() {
                                     안전한 AI 워크플로우 환경을 보장합니다.
                                 </p>
                                 <div className={styles.cardFeatures}>
-                                    <span>• 데이터 암호화</span>
-                                    <span>• 접근 권한 제어</span>
-                                    <span>• 감사 로그</span>
+                                    <span>데이터 암호화</span>
+                                    <span>접근 권한 제어</span>
+                                    <span>감사 로그</span>
                                 </div>
                             </div>
                         </div>
@@ -275,9 +275,9 @@ export default function HomePage() {
                                     확장 가능한 플러그인 시스템을 제공합니다.
                                 </p>
                                 <div className={styles.cardFeatures}>
-                                    <span>• API 통합</span>
-                                    <span>• 플러그인 지원</span>
-                                    <span>• 커뮤니티 마켓플레이스</span>
+                                    <span>API 통합</span>
+                                    <span>플러그인 지원</span>
+                                    <span>커뮤니티 마켓플레이스</span>
                                 </div>
                             </div>
                         </div>
@@ -288,7 +288,7 @@ export default function HomePage() {
                 <div className={styles.ctaSection}>
                     <div className={styles.ctaContent}>
                         <div className={styles.ctaLabel}>
-                            <span>🎯 Ready to Transform Your AI Workflow?</span>
+                            <span>Ready to Transform Your AI Workflow?</span>
                         </div>
                         <h2>지금 바로 시작해보세요</h2>
                         <p>몇 분 안에 첫 번째 AI 워크플로우를 만들고 실행해보세요</p>

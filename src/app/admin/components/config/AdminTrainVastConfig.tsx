@@ -1,46 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { FiRefreshCw, FiCheck, FiX, FiPlay, FiSquare, FiCopy, FiExternalLink, FiChevronDown, FiChevronUp, FiServer, FiSettings, FiTrash2 } from 'react-icons/fi';
-import { BsGpuCard } from 'react-icons/bs';
+import React, { useState } from 'react';
+import { FiRefreshCw, FiSettings, FiServer } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/baseConfigPanel';
-import { checkVastHealth, searchVastOffers, createVastInstance, listVastInstances, destroyVastInstance } from '@/app/api/vastAPI';
-import { createTrainVastInstance } from '@/app/api/trainer/trainAPI';
+import AdminBaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/admin/components/config/AdminBaseConfigPanel';
+import { checkVastHealth } from '@/app/api/vastAPI';
 import { devLog } from '@/app/_common/utils/logger';
-import styles from '@/app/main/assets/Settings.module.scss';
-import { TrainGpuOfferSearchModal } from '@/app/main/components/config/trainVastModal/TrainGpuOfferSearchModal';
-import { TrainInstanceManagementModal } from '@/app/main/components/config/trainVastModal/TrainInstanceManagementModal';
-interface VastAiConfigProps {
+import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
+
+interface TrainVastAiConfigProps {
     configData?: ConfigItem[];
     onTestConnection?: (category: string) => void;
-}
-
-interface VastInstanceData {
-    id: number;
-    created_at: string;
-    updated_at: string;
-    instance_id: string;
-    offer_id: string;
-    image_name: string;
-    status: string;
-    public_ip: string | null;
-    ssh_port: number | null;
-    port_mappings: string | null;
-    start_command: string | null;
-    gpu_info: string;
-    auto_destroy: boolean;
-    template_name: string | null;
-    destroyed_at: string | null;
-    model_name: string;
-    max_model_length: number;
-    dph_total: string;
-    cpu_name: string;
-    cpu_cores: number;
-    ram: number;
-    cuda_max_good: string;
-}
-
-interface VastInstancesResponse {
-    instances: VastInstanceData[];
 }
 
 interface VastHealthResponse {
@@ -73,7 +41,7 @@ const TRAIN_VAST_CONFIG_FIELDS: Record<string, FieldConfig> = {
     },
 };
 
-const TrainVastConfig: React.FC<VastAiConfigProps> = ({
+const AdminTrainVastConfig: React.FC<TrainVastAiConfigProps> = ({
     configData = [],
 }) => {
     const [activeCategory, setActiveCategory] = useState<'vllm' | 'instance'>('vllm');
@@ -118,8 +86,8 @@ const TrainVastConfig: React.FC<VastAiConfigProps> = ({
             </div>
 
             {activeCategory === 'vllm' && (
-                <>
-                    <BaseConfigPanel
+                <div className={styles.configSection}>
+                    <AdminBaseConfigPanel
                         configData={configData}
                         fieldConfigs={TRAIN_VAST_CONFIG_FIELDS}
                         filterPrefix="vast"
@@ -127,7 +95,7 @@ const TrainVastConfig: React.FC<VastAiConfigProps> = ({
                         testConnectionLabel="Vast.ai 연결 테스트"
                         testConnectionCategory="vast"
                     />
-                    <BaseConfigPanel
+                    <AdminBaseConfigPanel
                         configData={configData}
                         fieldConfigs={TRAIN_VAST_CONFIG_FIELDS}
                         filterPrefix="trainer"
@@ -135,14 +103,18 @@ const TrainVastConfig: React.FC<VastAiConfigProps> = ({
                         testConnectionLabel="Trainer 연결 테스트"
                         testConnectionCategory="trainer"
                     />
-                    <TrainGpuOfferSearchModal />
-                </>
+                </div>
             )}
             {activeCategory === 'instance' && (
-                <TrainInstanceManagementModal />
+                <div className={styles.configSection}>
+                    <div className={styles.noticeMessage}>
+                        <p>Instance 관리는 Admin 환경에서 지원되지 않습니다.</p>
+                        <p>Instance 관리는 메인 애플리케이션에서 사용해주세요.</p>
+                    </div>
+                </div>
             )}
         </div>
     );
 };
 
-export default TrainVastConfig;
+export default AdminTrainVastConfig;

@@ -3,7 +3,7 @@ import { FiRefreshCw, FiCheck, FiX, FiAlertCircle, FiPlay, FiSettings, FiServer,
 import { SiOpenai, SiHuggingface } from 'react-icons/si';
 import { BsRobot } from 'react-icons/bs';
 import toast from 'react-hot-toast';
-import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/baseConfigPanel';
+import AdminBaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/admin/components/config/AdminBaseConfigPanel';
 import {
     getCurrentEmbeddingDimension,
     refreshRetrievalConfig
@@ -13,9 +13,9 @@ import {
     testEmbeddingQuery,
     getEmbeddingConfigStatus,
 } from '@/app/api/rag/embeddingAPI';
-import styles from '@/app/main/assets/Settings.module.scss';
+import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
 
-interface VectordbConfigProps {
+interface AdminVectordbConfigProps {
     configData?: ConfigItem[];
     onTestConnection?: (category: string) => void;
 }
@@ -171,7 +171,7 @@ const EMBEDDING_PROVIDERS: EmbeddingProvider[] = [
     }
 ];
 
-const VectordbConfig: React.FC<VectordbConfigProps> = ({
+const AdminVectordbConfig: React.FC<AdminVectordbConfigProps> = ({
     configData = [],
     onTestConnection,
 }) => {
@@ -587,7 +587,7 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
                         })}
                     </div>
                 </div>
-                <BaseConfigPanel
+                <AdminBaseConfigPanel
                     configData={configData}
                     fieldConfigs={EMBEDDING_CONFIG_FIELDS}
                     filterPrefix=""
@@ -603,7 +603,7 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
                 <p>Qdrant 벡터 데이터베이스 연결을 설정합니다.</p>
             </div>
 
-            <BaseConfigPanel
+            <AdminBaseConfigPanel
                 configData={configData}
                 fieldConfigs={VECTORDATABASE_CONFIG_FIELDS}
                 filterPrefix="vectordb"
@@ -662,4 +662,4 @@ const VectordbConfig: React.FC<VectordbConfigProps> = ({
     );
 };
 
-export default VectordbConfig;
+export default AdminVectordbConfig;

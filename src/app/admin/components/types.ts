@@ -12,12 +12,14 @@ export interface AdminSidebarProps {
     onToggle: () => void;
     userItems?: AdminSidebarItem[];
     systemItems?: AdminSidebarItem[];
+    settingItems?: AdminSidebarItem[];
     dataItems?: AdminSidebarItem[];
     securityItems?: AdminSidebarItem[];
     activeItem: string;
     onItemClick: (itemId: string) => void;
     className?: string;
     initialUserExpanded?: boolean;
+    initialSettingExpanded?: boolean;
     initialSystemExpanded?: boolean;
     initialDataExpanded?: boolean;
     initialSecurityExpanded?: boolean;

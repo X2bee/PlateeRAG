@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiCheck, FiX, FiCopy, FiExternalLink, FiServer, FiSettings, FiTrash2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import VastAiConfigModal from '@/app/main/components/config/vastAiConfigModal';
+import AdminVastAiConfigModal from '@/app/admin/components/config/AdminVastModal/AdminVastAiConfigModal';
 import { listVastInstances, destroyVastInstance, updateVllmConnectionConfig, vllmDown, vllmServe, vllmHealthCheck } from '@/app/api/vastAPI';
 import { devLog } from '@/app/_common/utils/logger';
-import styles from '@/app/main/assets/Settings.module.scss';
+import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
 
 interface VastInstanceData {
     id: number;
@@ -35,7 +35,7 @@ interface VastInstancesResponse {
     instances: VastInstanceData[];
 }
 
-export const InstanceManagementModal = () => {
+export const AdminInstanceManagementModal = () => {
     const [instanceFilter, setInstanceFilter] = useState<'active' | 'inactive' | 'all'>('active');
     const [instances, setInstances] = useState<VastInstanceData[]>([]);
     const [isLoadingInstances, setIsLoadingInstances] = useState(false);
@@ -682,7 +682,7 @@ export const InstanceManagementModal = () => {
                     )}
                 </div>
             </div>
-            <VastAiConfigModal
+            <AdminVastAiConfigModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 instanceId={selectedInstanceId}
