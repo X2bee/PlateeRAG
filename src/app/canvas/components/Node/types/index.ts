@@ -16,7 +16,6 @@ export interface ApiParameterProps extends ParameterComponentProps {
     apiOptions: ParameterOption[];
     isLoading: boolean;
     apiSingleValue?: string;
-    onRefreshOptions: () => void;
 }
 
 // Handle Parameter specific types

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LuPlus } from 'react-icons/lu';
+import { LuPlus, LuRefreshCw } from 'react-icons/lu';
 import styles from '@/app/canvas/assets/Node.module.scss';
 import { separateParameters, detectParameterType, createCustomParameter } from '../utils/parameterUtils';
 import { useApiParameters } from '../hooks/useApiParameters';
@@ -58,7 +58,11 @@ export const NodeParameters: React.FC<NodeParametersProps> = ({
             isPreview
         };
 
-        // Parameter name with description tooltip
+        const isApiParam = param.is_api && param.api_name;
+        const apiOptions = apiParamsHook.apiOptions[paramKey] || [];
+        const isLoadingOptions = apiParamsHook.loadingApiOptions[paramKey] || false;
+
+        // Parameter name with description tooltip and refresh button for API parameters
         const parameterLabel = (
             <span className={`${styles.paramKey} ${param.required ? styles.required : ''}`}>
                 {param.description && param.description.trim() !== '' && (
@@ -76,6 +80,20 @@ export const NodeParameters: React.FC<NodeParametersProps> = ({
                     </div>
                 )}
                 {param.name}
+                {isApiParam && (
+                    <button
+                        className={`${styles.refreshButton} ${isLoadingOptions ? styles.loading : ''}`}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            apiParamsHook.refreshApiOptions(param, nodeId);
+                        }}
+                        disabled={isLoadingOptions}
+                        title="Refresh options"
+                        type="button"
+                    >
+                        <LuRefreshCw />
+                    </button>
+                )}
             </span>
         );
 
@@ -92,7 +110,6 @@ export const NodeParameters: React.FC<NodeParametersProps> = ({
                             apiOptions={apiOptions}
                             isLoading={isLoading}
                             apiSingleValue={apiSingleValue}
-                            onRefreshOptions={() => apiParamsHook.refreshApiOptions(param, nodeId)}
                         />
                     );
                 }
@@ -181,7 +198,17 @@ export const NodeParameters: React.FC<NodeParametersProps> = ({
             {/* Advanced Parameters */}
             {hasAdvancedParams && (
                 <div className={styles.advancedParams}>
-                    <div className={styles.advancedHeader} onClick={onToggleAdvanced}>
+                    <div 
+                        className={styles.advancedHeader} 
+                        onClick={onToggleAdvanced}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                onToggleAdvanced(e as any);
+                            }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                    >
                         <span>Advanced {showAdvanced ? '▲' : '▼'}</span>
                     </div>
                     {showAdvanced && advancedParameters.map(param => renderParameter(param))}
