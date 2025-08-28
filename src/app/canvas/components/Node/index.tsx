@@ -1,19 +1,19 @@
 import React, { memo, useState } from 'react';
 import styles from '@/app/canvas/assets/Node.module.scss';
 import type { NodeProps } from '@/app/canvas/types';
-import { useNodeEditing } from '@/app/canvas/components/Node/hooks/useNodeEditing';
+import { useNodeEditing } from './hooks/useNodeEditing';
 import { 
     getDisplayNodeName, 
     hasInputsAndOutputs, 
     hasParameters, 
     getNodeContainerClasses,
     getNodeContainerStyles
-} from '@/app/canvas/components/Node/utils/nodeUtils';
+} from './utils/nodeUtils';
 
 // Components
-import { NodeHeader } from '@/app/canvas/components/Node/components/NodeHeader';
-import { NodePorts } from '@/app/canvas/components/Node/components/NodePorts';
-import { NodeParameters } from '@/app/canvas/components/Node/components/NodeParameters';
+import { NodeHeader } from './components/NodeHeader';
+import { NodePorts } from './components/NodePorts';
+import { NodeParameters } from './components/NodeParameters';
 
 const Node: React.FC<NodeProps> = ({
     id,
@@ -155,7 +155,8 @@ const Node: React.FC<NodeProps> = ({
                             onClearSelection={onClearSelection}
                             onOpenNodeModal={onOpenNodeModal}
                             showAdvanced={showAdvanced}
-                            onToggleAdvanced={handleToggleAdvanced}                        />
+                            onToggleAdvanced={handleToggleAdvanced}
+                        />
                     </>
                 )}
             </div>
