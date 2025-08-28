@@ -5,10 +5,11 @@ interface MessageListProps {
     ioLogs: IOLog[];
     pendingLogId: string | null;
     executing: boolean;
-    renderMessageContent: (content: string, isUserMessage?: boolean) => React.ReactNode;
+    renderMessageContent: (content: string, isUserMessage?: boolean, onHeightChange?: () => void) => React.ReactNode;
     formatDate: (dateString: string) => string;
+    onHeightChange?: () => void;
 }
-export const MessageList: React.FC<MessageListProps> = ({ ioLogs, pendingLogId, executing, renderMessageContent, formatDate }) => {
+export const MessageList: React.FC<MessageListProps> = ({ ioLogs, pendingLogId, executing, renderMessageContent, formatDate, onHeightChange }) => {
     return ioLogs.map((log) => {
         const isStreamingInProgress = String(log.log_id) === pendingLogId && executing;
 
@@ -16,7 +17,7 @@ export const MessageList: React.FC<MessageListProps> = ({ ioLogs, pendingLogId, 
             <div key={log.log_id} className={styles.messageExchange}>
                 <div className={styles.userMessage}>
                     <div className={styles.messageContent}>
-                        {renderMessageContent(log.input_data, true)}
+                        {renderMessageContent(log.input_data, true, onHeightChange)}
                     </div>
                     <div className={styles.messageTime}>
                         {formatDate(log.updated_at)}
@@ -30,7 +31,7 @@ export const MessageList: React.FC<MessageListProps> = ({ ioLogs, pendingLogId, 
                                 <span /><span /><span />
                             </div>
                         ) : (
-                            renderMessageContent(log.output_data)
+                            renderMessageContent(log.output_data, false, onHeightChange)
                         )}
                     </div>
                 </div>

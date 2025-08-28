@@ -35,23 +35,19 @@ interface MessageRendererProps {
     isUserMessage?: boolean;
     className?: string;
     onViewSource?: (sourceInfo: SourceInfo) => void;
+    onHeightChange?: () => void;
 }
 
 /**
  * 마크다운 메시지 렌더러 컴포넌트
  */
-interface MessageRendererProps {
-    content: string;
-    isUserMessage?: boolean;
-    className?: string;
-    onViewSource?: (sourceInfo: SourceInfo) => void;
-}
 
 export const MessageRenderer: React.FC<MessageRendererProps> = ({
     content,
     isUserMessage = false,
     className = '',
-    onViewSource
+    onViewSource,
+    onHeightChange
 }) => {
 
     if (!content) {
@@ -66,7 +62,7 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
         );
     }
 
-    const parsedElements = parseContentToReactElements(content, onViewSource);
+    const parsedElements = parseContentToReactElements(content, onViewSource, onHeightChange);
 
     return (
         <div
@@ -84,7 +80,7 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
 /**
  * 컨텐츠를 React 엘리먼트로 파싱
  */
-const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo: SourceInfo) => void): React.ReactNode[] => {
+const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo: SourceInfo) => void, onHeightChange?: () => void): React.ReactNode[] => {
     let processed = content;
     
     // 스트림 모드 감지를 위한 헬퍼 함수
@@ -156,7 +152,7 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
         if (block.start > currentIndex) {
             const beforeText = processed.slice(currentIndex, block.start);
             const isStreamingBefore = detectStreaming(beforeText, currentIndex, processed.length);
-            elements.push(...parseSimpleMarkdown(beforeText, elements.length, onViewSource, parseCitation, isStreamingBefore));
+            elements.push(...parseSimpleMarkdown(beforeText, elements.length, onViewSource, parseCitation, isStreamingBefore, onHeightChange));
         }
 
         // 블록 타입에 따라 컴포넌트 추가
@@ -238,7 +234,7 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
     if (currentIndex < processed.length) {
         const remainingText = processed.slice(currentIndex);
         const isStreamingRemaining = detectStreaming(remainingText, currentIndex, processed.length);
-        elements.push(...parseSimpleMarkdown(remainingText, elements.length, onViewSource, parseCitation, isStreamingRemaining));
+        elements.push(...parseSimpleMarkdown(remainingText, elements.length, onViewSource, parseCitation, isStreamingRemaining, onHeightChange));
     }
 
     return elements;

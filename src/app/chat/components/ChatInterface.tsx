@@ -152,11 +152,23 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
     }, [actions]);
 
     // 메모이제이션된 렌더 함수들
-    const renderMessageContent = useCallback((content: string, isUserMessage: boolean = false) => {
+    const renderMessageContent = useCallback((content: string, isUserMessage: boolean = false, onHeightChange?: () => void) => {
         if (!content) return null;
 
         const handleViewSourceWithContext = (sourceInfo: SourceInfo) => {
             handleViewSource(sourceInfo, content);
+        };
+
+        const handleHeightChangeInternal = () => {
+            if (onHeightChange) {
+                onHeightChange();
+            }
+            // LaTeX 렌더링으로 인한 높이 변화 시 스크롤 위치 조정
+            if (messagesRef.current && !scrollManagement.isUserScrolling) {
+                setTimeout(() => {
+                    scrollManagement.scrollToBottom();
+                }, 50);
+            }
         };
 
         return (
@@ -164,9 +176,10 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
                 content={content}
                 isUserMessage={isUserMessage}
                 onViewSource={handleViewSourceWithContext}
+                onHeightChange={handleHeightChangeInternal}
             />
         );
-    }, [handleViewSource]);
+    }, [handleViewSource, scrollManagement]);
 
     const formatDate = useCallback((dateString: string) => {
         return new Date(dateString).toLocaleString('ko-KR', {
@@ -276,31 +289,35 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
         state.workflow.contentDetail,
     ]);
 
-    // Effects - workflow 데이터 로딩을 한 번만 실행하도록 수정
     useEffect(() => {
-        if (workflow && workflow.id && workflow.id !== "default_mode" && !state.workflow.contentDetail) {
+        if (workflow && workflow.id && workflow.id !== "default_mode") {
             const loadWorkflowContent = async () => {
-                actions.setLoading(true);
-                try {
-                    if (user_id) {
+                if (user_id) {
+                    try {
                         const workflowData = await loadWorkflowDeploy(workflow.name, user_id);
                         actions.setWorkflowDetail(workflowData);
+                        localStorage.setItem('workflowContentDetail', JSON.stringify(workflowData));
                         devLog.log('Successfully loaded workflow content detail:', workflowData);
-                    } else {
+                    } catch (error) {
+                        devLog.error('Failed to load workflow content detail:', error);
+                    }
+                } else {
+                    try {
                         const workflowData = await loadWorkflow(workflow.name);
                         actions.setWorkflowDetail(workflowData);
+                        localStorage.setItem('workflowContentDetail', JSON.stringify(workflowData));
                         devLog.log('Successfully loaded workflow content detail:', workflowData);
+                    } catch (error) {
+                        devLog.error('Failed to load workflow content detail:', error);
                     }
-                } catch (error) {
-                    devLog.error('Failed to load workflow content detail:', error);
-                } finally {
-                    actions.setLoading(false);
                 }
             };
 
+            actions.setLoading(true);
             loadWorkflowContent();
+            actions.setLoading(false);
         }
-    }, [workflow, user_id, actions, state.workflow.contentDetail]);
+    }, [workflow, user_id]);
 
     useEffect(() => {
         if (mode === 'existing' && existingChatData?.interactionId && !initialMessageToExecute && !hasLoadedExistingChat.current) {
