@@ -13,8 +13,9 @@ interface ChatAreaProps {
     setInputMessage: (message: string) => void;
     messagesRef: React.RefObject<HTMLDivElement | null>;
     pendingLogId: string | null;
-    renderMessageContent: (content: string, isUserMessage?: boolean) => React.ReactNode;
+    renderMessageContent: (content: string, isUserMessage?: boolean, onHeightChange?: () => void) => React.ReactNode;
     formatDate: (dateString: string) => string;
+    onHeightChange?: () => void;
 }
 
 export const ChatArea: React.FC<ChatAreaProps> = ({
@@ -28,6 +29,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     pendingLogId,
     renderMessageContent,
     formatDate,
+    onHeightChange,
 }) => {
     // 1. 로딩 상태 처리 (existing 모드 전용)
     if (mode === 'existing' && loading) {
@@ -56,6 +58,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                     executing={executing}
                     renderMessageContent={renderMessageContent}
                     formatDate={formatDate}
+                    onHeightChange={onHeightChange}
                 />
             );
         }

@@ -320,23 +320,124 @@
 }
 
 // 반응형 처리
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .table {
-        font-size: 14px;
+        th:nth-child(6), td:nth-child(6), // 등록일
+        th:nth-child(7), td:nth-child(7)  // 마지막 로그인
+        {
+            display: none;
+        }
+    }
+}
 
-        th, td {
-            padding: 8px;
+@media (max-width: 768px) {
+    .tableContainer {
+        display: none;
+    }
+
+    .cardContainer {
+        display: block;
+        padding: 20px;
+        gap: 16px;
+    }
+
+    .userCard {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+        .cardHeader {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+
+            .userInfo {
+                flex: 1;
+                min-width: 0;
+
+                .userName {
+                    font-weight: 600;
+                    font-size: 16px;
+                    color: #333;
+                    margin-bottom: 4px;
+                }
+
+                .userEmail {
+                    font-size: 14px;
+                    color: #666;
+                    word-break: break-all;
+                }
+            }
+
+            .userStatus {
+                flex-shrink: 0;
+            }
+        }
+
+        .cardBody {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+
+            .cardField {
+                .fieldLabel {
+                    font-size: 12px;
+                    font-weight: 500;
+                    color: #666;
+                    margin-bottom: 4px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                .fieldValue {
+                    font-size: 14px;
+                    color: #333;
+                }
+            }
+        }
+
+        .cardActions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            padding-top: 12px;
+            border-top: 1px solid #e9ecef;
         }
     }
 
-    .actions {
-        flex-direction: column;
-        gap: 4px;
+    .controls {
+        .stats {
+            order: 3;
+            width: 100%;
+            justify-content: center;
+        }
+    }
+}
+
+@media (min-width: 769px) {
+    .cardContainer {
+        display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .table {
+        th:nth-child(1), td:nth-child(1), // ID
+        th:nth-child(4), td:nth-child(4)  // 이름
+        {
+            display: none;
+        }
     }
 
-    .actionButton {
-        font-size: 11px;
-        padding: 4px 8px;
+    .userCard .cardBody {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -348,13 +449,25 @@
 
     .controls {
         padding: 15px;
+        gap: 12px;
     }
 
     .table {
-        font-size: 12px;
+        th:nth-child(8), td:nth-child(8) { // 조직
+            display: none;
+        }
+    }
 
-        th, td {
-            padding: 6px;
+    .userCard {
+        padding: 12px;
+        margin-bottom: 12px;
+
+        .cardHeader .userInfo .userName {
+            font-size: 15px;
+        }
+
+        .cardBody {
+            gap: 8px;
         }
     }
 }

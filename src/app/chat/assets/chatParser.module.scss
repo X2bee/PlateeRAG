@@ -24,10 +24,27 @@ $white: #ffffff;
 // Markdown Content Styling
 .markdownContent {
     word-wrap: break-word;
+    
+    /* LaTeX 렌더링 시 높이 변화에 대한 부드러운 전환 */
+    transition: height 0.2s ease-out;
+    contain: layout;
+    
+    /* LaTeX 수식 컨테이너 */
+    :global(.katex-display) {
+        transition: all 0.15s ease-out;
+        margin: 1rem 0;
+    }
+    
+    :global(.katex) {
+        transition: all 0.15s ease-out;
+        display: inline-block;
+        vertical-align: baseline;
+    }
 
     :global(p) {
         margin: 0 0 0.5rem 0;
         line-height: 1.5;
+        transition: height 0.15s ease-out;
 
         &:last-child {
             margin-bottom: 0;

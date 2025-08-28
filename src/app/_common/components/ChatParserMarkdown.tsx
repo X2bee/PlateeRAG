@@ -81,13 +81,14 @@ export const parseSimpleMarkdown = (
     startKey: number,
     onViewSource?: (sourceInfo: SourceInfo) => void,
     parseCitation?: (citationText: string) => SourceInfo | null,
-    isStreaming: boolean = false
+    isStreaming: boolean = false,
+    onHeightChange?: () => void
 ): React.ReactNode[] => {
     if (!text.trim()) return [];
 
     // LaTeX가 포함된 경우 전체 텍스트를 LaTeX 처리기로 넘김 (라인 분할하지 않음)
     if (hasLatex(text)) {
-        return processLatexInText(text, `${startKey}-latex`, isStreaming);
+        return processLatexInText(text, `${startKey}-latex`, isStreaming, onHeightChange);
     }
 
     const elements: React.ReactNode[] = [];

@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getAllUsers, deleteUser } from '@/app/admin/api/users';
+import { getAllUsers, deleteUser, editUser } from '@/app/admin/api/users';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/AdminUserContent.module.scss';
+import AdminUserEditModal from './AdminUserEditModal';
 
 interface User {
     id: number;
@@ -29,6 +30,8 @@ const AdminUserContent: React.FC = () => {
     const [sortField, setSortField] = useState<keyof User>('created_at');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
     const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [editingUser, setEditingUser] = useState<User | null>(null);
 
     // 사용자 데이터 로드
     const loadUsers = async () => {
@@ -143,6 +146,14 @@ const AdminUserContent: React.FC = () => {
         }
     };
 
+    // 조직명 표시 함수
+    const getGroupNameDisplay = (groupName: string | null | undefined) => {
+        if (!groupName || groupName.toLowerCase() === 'none') {
+            return '없음';
+        }
+        return groupName;
+    };
+
     // 사용자 삭제 핸들러
     const handleDeleteUser = async (user: User) => {
         const confirmed = window.confirm(
@@ -174,6 +185,46 @@ const AdminUserContent: React.FC = () => {
         } finally {
             setDeleteLoading(null);
         }
+    };
+
+    // 사용자 편집 핸들러
+    const handleEditUser = (user: User) => {
+        setEditingUser(user);
+        setEditModalOpen(true);
+    };
+
+    // 사용자 편집 저장 핸들러
+    const handleSaveUser = async (userData: Partial<User>) => {
+        try {
+            if (!editingUser) {
+                throw new Error('편집 중인 사용자 정보가 없습니다.');
+            }
+
+            // API 호출을 위한 데이터 준비 (ID 포함)
+            const updateData = {
+                id: editingUser.id,
+                ...userData
+            };
+
+            devLog.log('Saving user data:', updateData);
+
+            // API 호출
+            const result = await editUser(updateData);
+
+            // 성공 시 사용자 목록 새로고침
+            await loadUsers();
+
+            alert('사용자 정보가 성공적으로 업데이트되었습니다.');
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '사용자 정보 업데이트에 실패했습니다.';
+            devLog.error('Failed to update user:', error);
+            alert(`업데이트 실패: ${errorMessage}`);
+            throw error; // 모달에서 에러 처리를 위해 다시 throw
+        }
+    };    // 모달 닫기 핸들러
+    const handleCloseModal = () => {
+        setEditModalOpen(false);
+        setEditingUser(null);
     };
 
     if (loading) {
@@ -309,6 +360,17 @@ const AdminUserContent: React.FC = () => {
                             </th>
                             <th
                                 className={styles.sortable}
+                                onClick={() => handleSort('group_name')}
+                            >
+                                조직
+                                {sortField === 'group_name' && (
+                                    <span className={styles.sortIcon}>
+                                        {sortDirection === 'asc' ? '↑' : '↓'}
+                                    </span>
+                                )}
+                            </th>
+                            <th
+                                className={styles.sortable}
                                 onClick={() => handleSort('user_type')}
                             >
                                 권한
@@ -324,7 +386,7 @@ const AdminUserContent: React.FC = () => {
                     <tbody>
                         {sortedUsers.length === 0 ? (
                             <tr>
-                                <td colSpan={9} className={styles.noData}>
+                                <td colSpan={10} className={styles.noData}>
                                     {searchTerm ? '검색 결과가 없습니다.' : '등록된 사용자가 없습니다.'}
                                 </td>
                             </tr>
@@ -340,6 +402,7 @@ const AdminUserContent: React.FC = () => {
                                         <td>{renderStatusBadge(user.is_active)}</td>
                                         <td>{formatDate(user.created_at)}</td>
                                         <td>{formatDate(user.last_login || '')}</td>
+                                        <td className={styles.groupName}>{getGroupNameDisplay(user.group_name)}</td>
                                         <td>
                                             <span className={`${styles.role} ${roleInfo.className}`}>
                                                 {roleInfo.text}
@@ -348,7 +411,7 @@ const AdminUserContent: React.FC = () => {
                                         <td className={styles.actions}>
                                             <button
                                                 className={styles.actionButton}
-                                                onClick={() => console.log('Edit user:', user.id)}
+                                                onClick={() => handleEditUser(user)}
                                             >
                                                 편집
                                             </button>
@@ -367,6 +430,87 @@ const AdminUserContent: React.FC = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* 모바일 카드 레이아웃 */}
+            <div className={styles.cardContainer}>
+                {sortedUsers.length === 0 ? (
+                    <div className={styles.noData}>
+                        {searchTerm ? '검색 결과가 없습니다.' : '등록된 사용자가 없습니다.'}
+                    </div>
+                ) : (
+                    sortedUsers.map((user) => {
+                        const roleInfo = getUserRoleDisplay(user);
+                        return (
+                            <div key={user.id} className={styles.userCard}>
+                                <div className={styles.cardHeader}>
+                                    <div className={styles.userInfo}>
+                                        <div className={styles.userName}>
+                                            {user.username} {user.full_name && `(${user.full_name})`}
+                                        </div>
+                                        <div className={styles.userEmail}>{user.email}</div>
+                                    </div>
+                                    <div className={styles.userStatus}>
+                                        {renderStatusBadge(user.is_active)}
+                                    </div>
+                                </div>
+
+                                <div className={styles.cardBody}>
+                                    <div className={styles.cardField}>
+                                        <div className={styles.fieldLabel}>ID</div>
+                                        <div className={styles.fieldValue}>{user.id}</div>
+                                    </div>
+                                    <div className={styles.cardField}>
+                                        <div className={styles.fieldLabel}>권한</div>
+                                        <div className={styles.fieldValue}>
+                                            <span className={`${styles.role} ${roleInfo.className}`}>
+                                                {roleInfo.text}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className={styles.cardField}>
+                                        <div className={styles.fieldLabel}>조직</div>
+                                        <div className={styles.fieldValue}>{getGroupNameDisplay(user.group_name)}</div>
+                                    </div>
+                                    <div className={styles.cardField}>
+                                        <div className={styles.fieldLabel}>등록일</div>
+                                        <div className={styles.fieldValue}>{formatDate(user.created_at)}</div>
+                                    </div>
+                                    {user.last_login && (
+                                        <div className={styles.cardField}>
+                                            <div className={styles.fieldLabel}>마지막 로그인</div>
+                                            <div className={styles.fieldValue}>{formatDate(user.last_login)}</div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className={styles.cardActions}>
+                                    <button
+                                        className={styles.actionButton}
+                                        onClick={() => handleEditUser(user)}
+                                    >
+                                        편집
+                                    </button>
+                                    <button
+                                        className={`${styles.actionButton} ${styles.dangerButton}`}
+                                        onClick={() => handleDeleteUser(user)}
+                                        disabled={deleteLoading === user.id}
+                                    >
+                                        {deleteLoading === user.id ? '삭제 중...' : '삭제'}
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
+            </div>
+
+            {/* 사용자 편집 모달 */}
+            <AdminUserEditModal
+                user={editingUser}
+                isOpen={editModalOpen}
+                onClose={handleCloseModal}
+                onSave={handleSaveUser}
+            />
         </div>
     );
 };

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useLayoutEffect, useCallback } from 'react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import { processInlineMarkdown } from './ChatParserMarkdown';
@@ -114,12 +114,38 @@ interface LatexRendererProps {
     content: string;
     isBlock: boolean;
     isStreaming?: boolean;
+    onHeightChange?: () => void;
 }
 
 export const LatexRenderer: React.FC<LatexRendererProps> = ({ 
     content, 
-    isBlock
+    isBlock,
+    onHeightChange
 }) => {
+    const containerRef = useRef<HTMLDivElement | HTMLSpanElement>(null);
+
+    // ResizeObserver를 사용하여 높이 변화 감지
+    const observeResize = useCallback((element: HTMLElement) => {
+        if (!element || !onHeightChange) return;
+
+        const resizeObserver = new ResizeObserver(() => {
+            // 높이 변화를 부모에게 알림
+            onHeightChange();
+        });
+
+        resizeObserver.observe(element);
+        
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, [onHeightChange]);
+
+    // LaTeX 렌더링 후 ResizeObserver 설정
+    useLayoutEffect(() => {
+        if (containerRef.current) {
+            return observeResize(containerRef.current);
+        }
+    }, [observeResize]);
     try {
         // LaTeX 특수 문자 이스케이프 처리
         const escapedContent = escapeLatexSpecialChars(content);
@@ -135,6 +161,7 @@ export const LatexRenderer: React.FC<LatexRendererProps> = ({
         if (isBlock) {
             return (
                 <div 
+                    ref={containerRef as React.RefObject<HTMLDivElement>}
                     style={{ 
                         margin: '1rem 0', 
                         textAlign: 'center',
@@ -146,6 +173,7 @@ export const LatexRenderer: React.FC<LatexRendererProps> = ({
         } else {
             return (
                 <span 
+                    ref={containerRef as React.RefObject<HTMLSpanElement>}
                     style={{ 
                         fontSize: '0.75em' // 인라인 수식 크기 약간 증가
                     }}
@@ -199,7 +227,8 @@ export const LatexPlaceholder: React.FC<{ isBlock?: boolean }> = ({ isBlock = fa
 export const processLatexInText = (
     text: string,
     key: string,
-    isStreaming: boolean = false
+    isStreaming: boolean = false,
+    onHeightChange?: () => void
 ): React.ReactNode[] => {
     // LaTeX 블록 찾기 (원본 텍스트에서)
     const latexBlocks = findLatexBlocks(text);
@@ -259,6 +288,7 @@ export const processLatexInText = (
                 key={`${key}-latex-${i}`}
                 content={block.content}
                 isBlock={block.isBlock}
+                onHeightChange={onHeightChange}
             />
         );
 
