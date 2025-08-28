@@ -1,7 +1,7 @@
 // RAG API 호출 함수들을 관리하는 파일
 import { devLog } from '@/app/_common/utils/logger';
-import { API_BASE_URL } from '@/app/config.js';
-import { apiClient } from '@/app/api/apiClient';
+import { API_BASE_URL } from '@/app/config';
+import { apiClient } from '@/app/api/helper/apiClient';
 
 /**
  * 임베딩 생성을 테스트하는 함수

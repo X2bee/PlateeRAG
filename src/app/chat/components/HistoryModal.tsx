@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { FiX, FiMessageSquare } from 'react-icons/fi';
-import { getWorkflowIOLogs } from '@/app/api/workflowAPI';
+import { getWorkflowIOLogs } from '@/app/api/workflow/workflowAPI';
 import { MessageRenderer } from '@/app/_common/components/ChatParser';
 import styles from '@/app/chat/assets/HistoryModal.module.scss';
 

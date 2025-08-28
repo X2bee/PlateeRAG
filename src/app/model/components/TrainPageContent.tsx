@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { FiPlay, FiSettings, FiDatabase, FiCpu, FiBox } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import { startTraining } from '@/app/api/trainAPI';
+import { startTraining } from '@/app/api/trainer/trainAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import { handleGemma3Training, handleQwen3Training } from './sampleHandler';
 import BasicCategory from '@/app/model/components/Train/BasicCategory';
@@ -152,7 +152,7 @@ const TrainPageContent: React.FC = () => {
     // 현재 training_method에 따라 선택 가능한 트레이너들을 계산
     const getAvailableTrainers = () => {
         const { training_method } = basicConfig;
-        
+
         switch (training_method) {
             case 'sft':
                 return ['use_sfttrainer', 'use_custom_kl_sfttrainer'];

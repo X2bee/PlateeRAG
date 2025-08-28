@@ -7,12 +7,12 @@ import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/
 import {
     getCurrentEmbeddingDimension,
     refreshRetrievalConfig
-} from '@/app/api/retrievalAPI';
+} from '@/app/api/rag/retrievalAPI';
 import {
     switchEmbeddingProvider,
     testEmbeddingQuery,
     getEmbeddingConfigStatus,
-} from '@/app/api/embeddingAPI';
+} from '@/app/api/rag/embeddingAPI';
 import styles from '@/app/main/assets/Settings.module.scss';
 
 interface VectordbConfigProps {

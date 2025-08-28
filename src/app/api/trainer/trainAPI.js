@@ -1,6 +1,6 @@
 import { devLog } from '@/app/_common/utils/logger';
-import { apiClient } from '@/app/api/apiClient.js';
-import { API_BASE_URL } from '@/app/config.js';
+import { apiClient } from '@/app/api/helper/apiClient.js';
+import { API_BASE_URL } from '@/app/config';
 
 /**
  * 훈련 작업을 시작합니다.

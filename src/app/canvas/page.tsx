@@ -18,7 +18,7 @@ import {
     loadWorkflow,
     executeWorkflowByIdStream,
     executeWorkflowById,
-} from '@/app/api/workflowAPI';
+} from '@/app/api/workflow/workflowAPI';
 import {
     getWorkflowName,
     getWorkflowState,

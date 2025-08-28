@@ -1,7 +1,7 @@
-import { apiClient } from './apiClient';
-import { API_BASE_URL } from '../config';
-import { documentCache } from '../_common/utils/documentCache';
-import { devLog } from '../_common/utils/logger';
+import { apiClient } from '@/app/api/helper/apiClient';
+import { API_BASE_URL } from '@/app/config';
+import { documentCache } from '@/app/_common/utils/documentCache';
+import { devLog } from '@/app/_common/utils/logger';
 
 /**
  * 파일 경로를 URL 안전 형태로 인코딩
@@ -10,7 +10,7 @@ import { devLog } from '../_common/utils/logger';
  */
 const encodeFilePath = (filePath) => {
     if (!filePath) return filePath;
-    
+
     // 경로를 '/' 기준으로 분리하여 각 부분을 개별적으로 인코딩
     return filePath.split('/').map(part => {
         if (!part) return part; // 빈 문자열은 그대로 반환
@@ -22,7 +22,7 @@ const encodeFilePath = (filePath) => {
 
 /**
  * 파일 경로를 기반으로 문서를 가져오는 API (캐싱 지원)
- * @param {string} filePath - 문서 파일 경로 
+ * @param {string} filePath - 문서 파일 경로
  * @param {boolean} useCache - 캐시 사용 여부 (기본값: true)
  * @param {string} mode - 현재 모드 ('deploy' 등)
  * @param {string} userId - 사용자 ID (deploy 모드에서 필요)
@@ -34,7 +34,7 @@ export const fetchDocumentByPath = async (filePath, useCache = true, mode = null
         const encodedFilePath = encodeFilePath(filePath);
         devLog.log(`🔤 [DocumentAPI] Original path: ${filePath}`);
         devLog.log(`🔤 [DocumentAPI] Encoded path: ${encodedFilePath}`);
-        
+
         // 캐시에서 먼저 확인 (원본 경로를 키로 사용)
         if (useCache) {
             const cachedData = documentCache.get(filePath);
@@ -45,10 +45,10 @@ export const fetchDocumentByPath = async (filePath, useCache = true, mode = null
         }
 
         devLog.log(`🌐 [DocumentAPI] Fetching document from server: ${filePath}`);
-        
+
         // 개발 환경에서 백엔드 API가 없는 경우 샘플 PDF 제공
         if (process.env.NODE_ENV === 'development' && filePath.includes('sample')) {
-            
+
             // 간단한 PDF 헤더 생성 (실제로는 백엔드에서 실제 PDF 파일을 반환해야 함)
             const samplePdfContent = `%PDF-1.4
 1 0 obj
@@ -103,12 +103,12 @@ endobj
 
 xref
 0 6
-0000000000 65535 f 
-0000000010 00000 n 
-0000000053 00000 n 
-0000000110 00000 n 
-0000000251 00000 n 
-0000000329 00000 n 
+0000000000 65535 f
+0000000010 00000 n
+0000000053 00000 n
+0000000110 00000 n
+0000000251 00000 n
+0000000329 00000 n
 trailer
 <<
 /Size 6
@@ -120,15 +120,15 @@ startxref
 
             const encoder = new TextEncoder();
             const arrayBuffer = encoder.encode(samplePdfContent).buffer;
-            
+
             // 캐시에 저장 (유효한 데이터인 경우만)
             if (useCache && arrayBuffer && arrayBuffer.byteLength > 0) {
                 documentCache.set(filePath, arrayBuffer);
             }
-            
+
             return arrayBuffer;
         }
-        
+
         // 요청 body 구성 (인코딩된 경로 사용)
         const requestBody = {
             file_path: encodedFilePath
@@ -140,13 +140,13 @@ startxref
             devLog.log(`🔑 [DocumentAPI] Deploy mode: Adding user_id: ${userId}`);
         }
 
-        
+
         // deploy 모드에서는 별도 엔드포인트 사용 (인증 없음)
-        const endpoint = mode === 'deploy' 
+        const endpoint = mode === 'deploy'
             ? `${API_BASE_URL}/api/documents/fetch/deploy`
             : `${API_BASE_URL}/api/documents/fetch`;
-        
-        const response = mode === 'deploy' 
+
+        const response = mode === 'deploy'
             ? await fetch(endpoint, {
                 method: 'POST',
                 headers: {
@@ -168,12 +168,12 @@ startxref
 
         // PDF 파일은 바이너리 데이터로 반환
         const arrayBuffer = await response.arrayBuffer();
-        
+
         // 캐시에 저장 (유효한 데이터인 경우만)
         if (useCache && arrayBuffer && arrayBuffer.byteLength > 0) {
             documentCache.set(filePath, arrayBuffer);
         }
-        
+
         return arrayBuffer;
     } catch (error) {
         console.error('문서 가져오기 오류:', error);
@@ -202,11 +202,11 @@ export const fetchDocumentMetadata = async (filePath, mode = null, userId = null
         }
 
         // deploy 모드에서는 별도 엔드포인트 사용 (인증 없음)
-        const endpoint = mode === 'deploy' 
+        const endpoint = mode === 'deploy'
             ? `${API_BASE_URL}/api/documents/metadata/deploy`
             : `${API_BASE_URL}/api/documents/metadata`;
-        
-        const response = mode === 'deploy' 
+
+        const response = mode === 'deploy'
             ? await fetch(endpoint, {
                 method: 'POST',
                 headers: {
@@ -254,11 +254,11 @@ export const checkDocumentAccess = async (filePath, mode = null, userId = null) 
         }
 
         // deploy 모드에서는 별도 엔드포인트 사용 (인증 없음)
-        const endpoint = mode === 'deploy' 
+        const endpoint = mode === 'deploy'
             ? `${API_BASE_URL}/api/documents/access/deploy`
             : `${API_BASE_URL}/api/documents/access`;
-        
-        const response = mode === 'deploy' 
+
+        const response = mode === 'deploy'
             ? await fetch(endpoint, {
                 method: 'POST',
                 headers: {

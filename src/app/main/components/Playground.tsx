@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { FiRefreshCw } from 'react-icons/fi';
-import { listWorkflowsDetail } from '@/app/api/workflowAPI';
+import { listWorkflowsDetail } from '@/app/api/workflow/workflowAPI';
 import styles from '@/app/main/assets/Playground.module.scss';
 import Executor from '@/app/main/components/Executor';
 import Monitor from '@/app/main/components/Monitor';

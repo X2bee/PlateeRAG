@@ -10,7 +10,7 @@ import {
     getWorkflowIOLogs,
     executeWorkflowById,
     deleteWorkflowIOLogs,
-} from '@/app/api/workflowAPI';
+} from '@/app/api/workflow/workflowAPI';
 import toast from 'react-hot-toast';
 import styles from '@/app/main/assets/Executor.module.scss';
 

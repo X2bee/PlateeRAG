@@ -1,6 +1,6 @@
 import { devLog } from '@/app/_common/utils/logger';
-import { API_BASE_URL } from '@/app/config.js';
-import { apiClient } from './apiClient';
+import { API_BASE_URL } from '@/app/config';
+import { apiClient } from '@/app/api/helper/apiClient';
 
 /**
  * 워크플로우 데이터를 백엔드 서버에 저장합니다.

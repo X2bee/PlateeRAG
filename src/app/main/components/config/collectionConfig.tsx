@@ -1,10 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/baseConfigPanel';
-import {
-    testOpenACollectionConnection,
-    testVLLMCollectionConnection,
-} from '@/app/api/llmAPI';
+import { testCollectionConnection } from '@/app/api/llmAPI';
 
 interface CollectionConfigProps {
     configData?: ConfigItem[];
@@ -115,9 +112,9 @@ const CollectionConfig: React.FC<CollectionConfigProps> = ({
         try {
             let result;
             if (category === 'openai') {
-                result = await testOpenACollectionConnection();
+                result = await testCollectionConnection('openai');
             } else if (category === 'vllm') {
-                result = await testVLLMCollectionConnection();
+                result = await testCollectionConnection('vllm');
             } else {
                 toast.error('지원되지 않는 제공자입니다.');
                 return;
@@ -146,7 +143,7 @@ const CollectionConfig: React.FC<CollectionConfigProps> = ({
             onTestConnection={handleTestConnection}
             testConnectionLabel="모델 연결 테스트"
             testConnectionCategory={
-                configData.find(item => item.env_name === "IMAGE_TEXT_MODEL_PROVIDER")?.current_value || ""
+                configData.find(item => item.env_name === "DOCUMENT_PROCESSOR_IMAGE_TEXT_MODEL_PROVIDER")?.current_value || ""
             }
             onConfigChange={handleConfigChange} // 새로 추가
         />

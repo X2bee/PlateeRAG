@@ -9,9 +9,7 @@ import styles from '@/app/main/assets/Settings.module.scss';
 import {
     getLLMStatus,
     switchLLMProvider,
-    testOpenAIConnection,
-    testVLLMConnection,
-    testSGLConnection,
+    testConnection,
 } from '@/app/api/llmAPI';
 
 interface LLMConfigProps {
@@ -545,11 +543,11 @@ const LLMConfig: React.FC<LLMConfigProps> = ({
         try {
             let result;
             if (providerName === 'openai') {
-                result = await testOpenAIConnection();
+                result = await testConnection('openai');
             } else if (providerName === 'vllm') {
-                result = await testVLLMConnection();
+                result = await testConnection('vllm');
             } else if (providerName === 'sgl') {
-                result = await testSGLConnection();
+                result = await testConnection('sgl');
             } else {
                 // Fallback to original onTestConnection
                 if (onTestConnection) {

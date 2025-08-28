@@ -19,7 +19,7 @@ import {
     getDocumentDetailEdges,
     getAllDocumentDetailMeta,
     getAllDocumentDetailEdges
-} from '@/app/api/retrievalAPI';
+} from '@/app/api/rag/retrievalAPI';
 import useSidebarManager from '@/app/_common/hooks/useSidebarManager';
 
 interface Collection {
@@ -364,7 +364,7 @@ const Documents: React.FC = () => {
             setError('컬렉션을 먼저 선택해주세요.');
             return;
         }
-    
+
         const fileArray = Array.from(files);
         const initialProgress: UploadProgress[] = fileArray.map(file => ({
             fileName: file.name,
@@ -372,27 +372,27 @@ const Documents: React.FC = () => {
             progress: 0
         }));
         setUploadProgress(initialProgress);
-    
+
         try {
             // 폴더 업로드의 경우 순차 처리
             if (isFolder) {
                 let successful = 0;
                 let failed = 0;
-    
+
                 // 순차적으로 파일 업로드
                 for (let index = 0; index < fileArray.length; index++) {
                     const file = fileArray[index];
-    
+
                     try {
                         // 진행 상태 업데이트 (시작)
                         setUploadProgress(prev => prev.map((item, idx) =>
                             idx === index ? { ...item, progress: 10 } : item
                         ));
-    
+
                         // 폴더 경로 정보를 메타데이터에 포함
                         const relativePath = file.webkitRelativePath || file.name;
                         const folderPath = relativePath.substring(0, relativePath.lastIndexOf('/')) || '';
-    
+
                         const metadata = {
                             upload_type: 'folder',
                             folder_path: folderPath,
@@ -402,12 +402,12 @@ const Documents: React.FC = () => {
                             total_files: fileArray.length,
                             process_type: processType
                         };
-    
+
                         // 진행 상태 업데이트 (업로드 중)
                         setUploadProgress(prev => prev.map((item, idx) =>
                             idx === index ? { ...item, progress: 50 } : item
                         ));
-    
+
                         await uploadDocument(
                             file,
                             selectedCollection.collection_name,
@@ -416,19 +416,19 @@ const Documents: React.FC = () => {
                             metadata,
                             processType
                         );
-    
+
                         // 성공 시 진행 상태 업데이트
                         setUploadProgress(prev => prev.map((item, idx) =>
                             idx === index ? { ...item, status: 'success', progress: 100 } : item
                         ));
-    
+
                         successful++;
-    
+
                         // 파일 업로드 성공 시 즉시 문서 목록 새로고침
                         if (selectedCollection) {
                             loadDocumentsInCollection(selectedCollection.collection_name);
                         }
-    
+
                     } catch (error) {
                         // 실패 시 진행 상태 업데이트
                         setUploadProgress(prev => prev.map((item, idx) =>
@@ -439,24 +439,24 @@ const Documents: React.FC = () => {
                                 error: error instanceof Error ? error.message : '업로드 실패'
                             } : item
                         ));
-    
+
                         console.error(`Failed to upload file ${file.name}:`, error);
                         failed++;
                     }
-    
+
                     // 잠시 대기 (서버 부하 방지)
                     if (index < fileArray.length - 1) {
                         await new Promise(resolve => setTimeout(resolve, 100));
                     }
                 }
-    
+
                 // 결과 통계 표시
                 if (failed > 0) {
                     setError(`${successful}개 파일 업로드 성공, ${failed}개 파일 실패`);
                 } else {
                     setError(null);
                 }
-    
+
             } else {
                 // 단일 파일 업로드
                 const file = fileArray[0];
@@ -464,23 +464,23 @@ const Documents: React.FC = () => {
                     setUploadProgress(prev => prev.map((item, index) =>
                         index === 0 ? { ...item, progress: 50 } : item
                     ));
-    
+
                     await uploadDocument(
                         file,
                         selectedCollection.collection_name,
                         chunkSize,
                         overlapSize,
-                        { 
+                        {
                             upload_type: 'single',
                             process_type: processType
                         },
                         processType
                     );
-    
+
                     setUploadProgress(prev => prev.map((item, index) =>
                         index === 0 ? { ...item, status: 'success', progress: 100 } : item
                     ));
-    
+
                     // 단일 파일 업로드 성공 시 즉시 문서 목록 새로고침
                     if (selectedCollection) {
                         loadDocumentsInCollection(selectedCollection.collection_name);
@@ -498,12 +498,12 @@ const Documents: React.FC = () => {
                     setError('파일 업로드에 실패했습니다.');
                 }
             }
-    
+
         } catch (error) {
             console.error('Upload process failed:', error);
             setError('업로드 처리 중 오류가 발생했습니다.');
         }
-    
+
         // 업로드 완료 후 진행 상태 정리
         setTimeout(() => {
             setUploadProgress([]);
@@ -937,7 +937,7 @@ const Documents: React.FC = () => {
                 <div className={styles.modalBackdrop} onClick={() => setShowChunkSettingsModal(false)}>
                     <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                         <h3>{isFolderUpload ? '폴더 업로드 설정' : '단일 파일 업로드 설정'}</h3>
-                        
+
                         {/* 청크 설정 */}
                         <div className={styles.formGroup}>
                             <label>청크 사이즈</label>
@@ -961,7 +961,7 @@ const Documents: React.FC = () => {
                                 max="65000"
                             />
                         </div>
-                        
+
                         {/* 처리 방식 선택 */}
                         <div className={styles.formGroup}>
                             <label>문서 처리 방식 (PDF/DOCX 파일에만 적용)</label>
@@ -986,7 +986,7 @@ const Documents: React.FC = () => {
                                 </small>
                             </div>
                         </div>
-                        
+
                         <div className={styles.modalActions}>
                             <button
                                 onClick={() => {

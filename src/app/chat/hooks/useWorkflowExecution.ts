@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { executeWorkflowById, executeWorkflowByIdStream } from '@/app/api/workflowAPI';
+import { executeWorkflowById, executeWorkflowByIdStream } from '@/app/api/workflow/workflowAPI';
 import { executeWorkflowByIdDeploy, executeWorkflowByIdStreamDeploy } from '@/app/api/workflow/workflowDeployAPI';
 import { generateInteractionId } from '@/app/api/interactionAPI';
 import { isStreamingWorkflowFromWorkflow } from '@/app/_common/utils/isStreamingWorkflow';
@@ -52,7 +52,7 @@ export const useWorkflowExecution = ({
         isDeploy: boolean = false
     ) => {
         devLog.log(`${isDeploy ? 'executeWorkflowDeploy' : 'executeWorkflow'} called`);
-        
+
         if (executing) {
             toast.dismiss();
             toast.loading('이전 작업이 완료될 때까지 잠시만 기다려주세요.');
@@ -61,7 +61,7 @@ export const useWorkflowExecution = ({
 
         const currentMessage = messageOverride || inputMessage || '';
         if (!currentMessage.trim()) return;
-        
+
 
         setExecuting(true);
         setError(null);
@@ -153,21 +153,21 @@ export const useWorkflowExecution = ({
                 let result: any;
                 if (isDeploy) {
                     result = await executeWorkflowByIdDeploy(
-                        workflowName, 
-                        workflowId, 
-                        currentMessage, 
-                        interactionId, 
-                        selectedCollection, 
-                        user_id, 
+                        workflowName,
+                        workflowId,
+                        currentMessage,
+                        interactionId,
+                        selectedCollection,
+                        user_id,
                         getValidAdditionalParams()
                     );
                 } else {
                     result = await executeWorkflowById(
-                        workflowName, 
-                        workflowId, 
-                        currentMessage, 
-                        interactionId, 
-                        selectedCollection, 
+                        workflowName,
+                        workflowId,
+                        currentMessage,
+                        interactionId,
+                        selectedCollection,
                         getValidAdditionalParams() as any
                     );
                 }
@@ -175,11 +175,11 @@ export const useWorkflowExecution = ({
                 setIOLogs((prev) =>
                     prev.map((log) =>
                         String(log.log_id) === tempId
-                            ? { 
-                                ...log, 
-                                output_data: result.outputs 
-                                    ? JSON.stringify(result.outputs[0], null, 2) 
-                                    : result.message || '처리 완료' 
+                            ? {
+                                ...log,
+                                output_data: result.outputs
+                                    ? JSON.stringify(result.outputs[0], null, 2)
+                                    : result.message || '처리 완료'
                             }
                             : log
                     )
@@ -202,14 +202,14 @@ export const useWorkflowExecution = ({
             // 실행 완료 후 스크롤은 ChatInterface에서 처리
         }
     }, [
-        executing, 
-        workflow, 
-        existingChatData, 
-        workflowContentDetail, 
-        selectedCollection, 
-        getValidAdditionalParams, 
-        user_id, 
-        setIOLogs, 
+        executing,
+        workflow,
+        existingChatData,
+        workflowContentDetail,
+        selectedCollection,
+        getValidAdditionalParams,
+        user_id,
+        setIOLogs,
         scrollToBottom
     ]);
 

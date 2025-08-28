@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 
-import { EvaluationAPI } from '@/app/api/evalAPI';
+import { EvaluationAPI } from '@/app/api/trainer/evalAPI';
 
 import { ModelInfo , PopupState } from '@/app/model/components/types'
 
@@ -18,9 +18,9 @@ import styles from '@/app/model/assets/Eval.module.scss';
 import useSidebarManager from '@/app/_common/hooks/useSidebarManager';
 
 export const DEFAULT_TASKS = [
-    'global_mmlu_ko', 
-    'hellaswag', 
-    'arc_easy', 
+    'global_mmlu_ko',
+    'hellaswag',
+    'arc_easy',
 ] as const;
 
 export const TASK_OPTIONS = [
@@ -98,12 +98,12 @@ const Evaluation = () => {
 
   // Task Selector 상태
   const [showTaskSelector, setShowTaskSelector] = useState(false);
-  
+
   // Computed values
   const isCausalLMTask = selectedTask === 'CausalLM_task';
-  const showBaseModelOption = isCausalLMTask && 
-    selectedModelInfo?.base_model && 
-    selectedModelInfo.base_model !== "Unknown" && 
+  const showBaseModelOption = isCausalLMTask &&
+    selectedModelInfo?.base_model &&
+    selectedModelInfo.base_model !== "Unknown" &&
     selectedModelInfo.base_model !== selectedModel;
 
   // 디바운싱된 로딩 상태 설정
@@ -134,7 +134,7 @@ const Evaluation = () => {
       if (statusFilter !== 'all' && job.status !== statusFilter) {
         return false;
       }
-      
+
       // 검색 필터
       if (searchFilter) {
         const query = searchFilter.toLowerCase();
@@ -145,7 +145,7 @@ const Evaluation = () => {
           job.job_info.job_name.toLowerCase().includes(query)
         );
       }
-      
+
       return true;
     }).sort((a: any, b: any) => {
       // 정렬
@@ -154,13 +154,13 @@ const Evaluation = () => {
         const timeB = b.start_time ? new Date(b.start_time).getTime() : 0;
         return sortDirection === 'asc' ? timeA - timeB : timeB - timeA;
       }
-      
+
       if (sortField === 'score') {
         const scoreA = a.result ? Number(Object.values(a.result)[0]) || 0 : 0;
         const scoreB = b.result ? Number(Object.values(b.result)[0]) || 0 : 0;
         return sortDirection === 'asc' ? scoreA - scoreB : scoreB - scoreA;
       }
-      
+
       return 0;
     });
 
@@ -184,16 +184,16 @@ const Evaluation = () => {
       setShowTaskSelector(true);
       return;
     }
-  
+
     setSearchQuery("");
     setPopupState(prev => ({
       ...prev,
       [type]: { ...prev[type], loading: true, show: true, error: null, options: prev[type].options ?? [] }
     }));
-  
+
     try {
       const raw: any = await EvaluationAPI.loadMinioItems('dataset');
-      
+
       // 안전한 타입 체크와 함께 배열 추출
       let options: any[] = [];
       if (Array.isArray(raw)) {
@@ -201,7 +201,7 @@ const Evaluation = () => {
       } else if (raw && typeof raw === 'object' && 'items' in raw && Array.isArray(raw.items)) {
         options = raw.items;
       }
-      
+
       setPopupState(prev => ({
         ...prev,
         [type]: { ...prev[type], options, loading: false, error: null }
@@ -211,11 +211,11 @@ const Evaluation = () => {
       toast.error('데이터셋 목록을 불러오는데 실패했습니다.');
       setPopupState(prev => ({
         ...prev,
-        [type]: { 
-          ...prev[type], 
-          options: [], 
+        [type]: {
+          ...prev[type],
+          options: [],
           error: err?.message ?? 'load_failed',
-          loading: false 
+          loading: false
         }
       }));
     }
@@ -255,10 +255,10 @@ const Evaluation = () => {
   const fetchDatasetInfo = useCallback(async (datasetName : string) => {
     try {
       console.log(`Fetching dataset info for: ${datasetName}`);
-      
+
       const columns = await EvaluationAPI.fetchDatasetInfo(datasetName);
       setDatasetColumns(columns);
-      
+
       if (columns.length > 0) {
         setColumn1(columns.includes('input') ? 'input' : columns[0] || '');
         setColumn2(columns.includes('output') ? 'output' : '');
@@ -281,10 +281,10 @@ const Evaluation = () => {
       toast.error("데이터셋 컬럼 정보가 없습니다. 먼저 데이터셋을 선택하세요.");
       return;
     }
-    
+
     let options: string[] = [];
     let selected = '';
-    
+
     if (mode === 'main') {
       options = datasetColumns;
       selected = column1;
@@ -295,7 +295,7 @@ const Evaluation = () => {
       options = datasetColumns.filter(col => col !== column1 && col !== column2);
       selected = column3;
     }
-    
+
     setPopupState(prev => ({
       ...prev,
       columns: {
@@ -311,7 +311,7 @@ const Evaluation = () => {
   // 컬럼 선택 확인
   const confirmColumnSelection = useCallback(() => {
     const selectedCol = popupState.columns.selected;
-    
+
     if (selectedCol) {
       if (popupState.columns.mode === 'main') {
         if (column1 !== selectedCol) {
@@ -328,7 +328,7 @@ const Evaluation = () => {
         setColumn3(selectedCol);
       }
     }
-    
+
     setPopupState(prev => ({
       ...prev,
       columns: { ...prev.columns, show: false }
@@ -340,18 +340,18 @@ const Evaluation = () => {
     setDebouncedLoading(true);
     try {
       const updatedJobs: { [key: string]: any } = await EvaluationAPI.loadEvalResults();
-      
+
       // 상태 비교 로직을 setEvalJobs 내부에서 처리
       setEvalJobs(prevJobs => {
         const mergedJobs: { [key: string]: any } = {};
-        
+
         Object.keys(updatedJobs).forEach(jobId => {
           const newJobData = updatedJobs[jobId];
-          
+
           // 기존 작업이 있으면 상태 변경 확인
           if (prevJobs[jobId]) {
             // 상태가 변경된 경우에만 업데이트
-            if (prevJobs[jobId].status !== newJobData.status || 
+            if (prevJobs[jobId].status !== newJobData.status ||
                 JSON.stringify(prevJobs[jobId].result) !== JSON.stringify(newJobData.result)) {
               mergedJobs[jobId] = newJobData;
             } else {
@@ -363,19 +363,19 @@ const Evaluation = () => {
             mergedJobs[jobId] = newJobData;
           }
         });
-        
+
         // 실제로 변경된 경우에만 새 객체 반환
         const prevJobsStr = JSON.stringify(prevJobs);
         const mergedJobsStr = JSON.stringify(mergedJobs);
-        
+
         if (prevJobsStr !== mergedJobsStr) {
           console.log('Updated evaluation jobs:', mergedJobs);
           return mergedJobs;
         }
-        
+
         return prevJobs; // 변경사항 없으면 기존 객체 반환
       });
-      
+
     } catch (error) {
       console.error('평가 결과 로딩 에러:', error);
       toast.error('평가 결과를 불러오는데 실패했습니다');
@@ -390,24 +390,24 @@ const Evaluation = () => {
       toast.error('모델과 작업 이름을 입력해주세요');
       return;
     }
-  
+
     if (isCausalLMTask && selectedBenchmarkTasks.length === 0) {
       toast.error('최소 하나의 벤치마크 태스크를 선택해주세요');
       return;
     }
-  
+
     if (!isCausalLMTask && !selectedDataset) {
       toast.error('데이터셋을 선택해주세요');
       return;
     }
-    
+
     setIsRunningEval(true);
-    
+
     // ==================== FAKE EVALUATION START ====================
     // TODO: 나중에 실제 API 연동 시 이 부분 삭제하고 아래 주석 해제
     try {
       let requestBody;
-  
+
       if (isCausalLMTask) {
         requestBody = {
           job_name: jobName,
@@ -438,13 +438,13 @@ const Evaluation = () => {
           use_cot: selectedTask === 'CausalLM' ? useCot : undefined
         };
       }
-        
+
       // 가짜 지연 시간 (2초)
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       // 가짜 Job ID 생성
       const fakeJobId = `job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      
+
       // 가짜 작업을 evalJobs에 추가 (계속 running 상태로 유지)
       const fakeJob = {
         job_id: fakeJobId,
@@ -461,17 +461,17 @@ const Evaluation = () => {
         result: null,
         error: null
       };
-  
+
       // evalJobs 상태에 가짜 작업 추가
       setEvalJobs(prev => ({
         ...prev,
         [fakeJobId]: fakeJob
       }));
-      
+
       toast.success(`평가가 시작되었습니다. Job ID: ${fakeJobId}`);
-  
+
       // 완료 상태로 변경하는 코드 제거 - 계속 running 상태로 유지
-      
+
     } catch (error: any) {
       console.error('평가 실행 에러:', error);
       toast.error('평가 실행에 실패했습니다');
@@ -479,13 +479,13 @@ const Evaluation = () => {
       setIsRunningEval(false);
     }
     // ==================== FAKE EVALUATION END ====================
-  
-    /* 
+
+    /*
     // ==================== REAL EVALUATION START ====================
     // TODO: 실제 API 연동 시 이 주석을 해제하고 위의 FAKE 부분 삭제
     try {
       let requestBody;
-  
+
       if (isCausalLMTask) {
         requestBody = {
           job_name: jobName,
@@ -516,18 +516,18 @@ const Evaluation = () => {
           use_cot: selectedTask === 'CausalLM' ? useCot : undefined
         };
       }
-  
+
       console.log('Sending evaluation request:', requestBody);
-      
+
       const data = await EvaluationAPI.runEvaluation(requestBody) as { job_id: string };
-      
+
       if (data.job_id) {
         toast.success(`평가가 시작되었습니다. Job ID: ${data.job_id}`);
         await loadEvalResults();
       } else {
         throw new Error('Job ID를 받지 못했습니다');
       }
-      
+
     } catch (error: any) {
       console.error('평가 실행 에러:', error);
       toast.error(error.message || '평가 실행에 실패했습니다');
@@ -536,26 +536,26 @@ const Evaluation = () => {
     }
     // ==================== REAL EVALUATION END ====================
     */
-  
+
   }, [selectedModel, jobName, isCausalLMTask, selectedBenchmarkTasks, selectedDataset, selectedTask, column1, column2, column3, label, topK, gpuNum, useCot, evaluateWithBaseModel, selectedModelInfo]);
 
   // 평가 작업 상세 조회
   // 평가 작업 상세 조회
 const getEvaluationDetails = useCallback(async (jobId : any) => {
   setIsLoadingJobDetails(true);
-  
+
   // ==================== FAKE JOB DETAILS START ====================
   // TODO: 나중에 실제 API 연동 시 이 부분 삭제하고 아래 주석 해제
-  try {    
+  try {
     // 가짜 지연 시간 (1초)
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     // 현재 작업 정보 가져오기
     const currentJob = evalJobs[jobId];
 
     const safeCreateDate = (dateInput: any): Date => {
       if (!dateInput) return new Date();
-      
+
       const date = new Date(dateInput);
       return isNaN(date.getTime()) ? new Date() : date;
     };
@@ -603,7 +603,7 @@ const getEvaluationDetails = useCallback(async (jobId : any) => {
       metrics: currentJob.status === 'running' ? {
         processed_samples: Math.floor(Math.random() * 5000) + 1000,
         total_samples: Math.floor(Math.random() * 2000) + 8000,
-        current_task: currentJob.job_info.task === 'CausalLM_task' ? 
+        current_task: currentJob.job_info.task === 'CausalLM_task' ?
           currentJob.job_info.dataset_name.split(',')[Math.floor(Math.random() * currentJob.job_info.dataset_name.split(',').length)] :
           currentJob.job_info.dataset_name,
         gpu_utilization: `${Math.floor(Math.random() * 30) + 60}%`,
@@ -628,10 +628,10 @@ const getEvaluationDetails = useCallback(async (jobId : any) => {
         disk_io_mb: Math.floor(Math.random() * 500) + 100
       } : null
     };
-    
+
     setSelectedJob(fakeJobDetails);
     setShowJobDetails(true);
-    
+
   } catch (error) {
     console.error('작업 상세 조회 에러:', error);
     toast.error('평가 작업 상세 정보를 불러오는데 실패했습니다');
@@ -640,7 +640,7 @@ const getEvaluationDetails = useCallback(async (jobId : any) => {
   }
   // ==================== FAKE JOB DETAILS END ====================
 
-  /* 
+  /*
   // ==================== REAL JOB DETAILS START ====================
   // TODO: 실제 API 연동 시 이 주석을 해제하고 위의 FAKE 부분 삭제
   try {
@@ -666,7 +666,7 @@ const handleJobDeleteFromTable = useCallback((jobId: string) => {
     delete newJobs[jobId];
     return newJobs;
   });
-  
+
   // 선택된 작업이 삭제된 작업이면 모달 닫기
   if (selectedJob?.job_id === jobId) {
     setShowJobDetails(false);
@@ -686,7 +686,7 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
     });
     return newJobs;
   });
-  
+
   // 선택된 작업이 삭제된 작업 중 하나면 모달 닫기
   if (selectedJob?.job_id && jobIds.includes(selectedJob.job_id)) {
     setShowJobDetails(false);
@@ -717,7 +717,7 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
   // 팝업 이벤트 핸들러
   const handlePopupSelect = useCallback((type : any , name : any , item : any) => {
     console.log('Item selected:', { type, name, item });
-    
+
     setPopupState(prev => ({
       ...prev,
       [type]: { ...prev[type], selected: name }
@@ -758,14 +758,14 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
       delete newJobs[jobId];
       return newJobs;
     });
-    
+
     // 모달 닫기 (JobDetailModal에서 onClose도 호출하지만 안전하게)
     setShowJobDetails(false);
     setSelectedJob(null);
     // ==================== FAKE MODAL DELETE END ====================
   }, []);
 
-  
+
   // 필터 변경 핸들러들
   const handleStatusFilterChange = useCallback((value : any) => {
     setStatusFilter(value);
@@ -796,21 +796,21 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
           {/* 평가 설정 영역 (좌측) */}
           <div className={styles.settingsPanel}>
             <h2 className={styles.sectionTitle}>평가 설정</h2>
-            
+
             {/* 기본 설정 섹션 */}
             <div className={styles.section}>
               <div className={styles.gridTwoCol}>
                 <div className={styles.inputGroup}>
                   <label className={styles.label}>작업 이름</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={jobName}
                     onChange={(e) => setJobName(e.target.value)}
                     className={styles.input}
                     placeholder="평가 작업 이름"
                   />
                 </div>
-                
+
                 <div className={styles.inputGroup}>
                   <label className={styles.label}>평가 타입</label>
                   <select
@@ -834,14 +834,14 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
                 <label className={styles.label}>모델</label>
                 {selectedTask !== 'RAG' ? (
                   <div className={styles.inputWithButton}>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       className={`${styles.input} ${styles.inputDisabled}`}
-                      value={selectedModel} 
+                      value={selectedModel}
                       placeholder="모델을 선택하세요"
                       disabled
                     />
-                    <button 
+                    <button
                       onClick={handleOpenModelStorageModal}
                       className={styles.inputButton}
                     >
@@ -851,14 +851,14 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
                     </button>
                   </div>
                 ) : (
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     className={styles.input}
                     value={ragApiPath}
                     onChange={(e) => setRagApiPath(e.target.value)}
                     placeholder="RAG API 경로를 입력하세요"
                   />
-                )}   
+                )}
               </div>
             </div>
 
@@ -866,17 +866,17 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
               <div className={styles.section}>
                 <label className={styles.label}>벤치마크 태스크</label>
                 <div className={styles.inputWithButton}>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     className={`${styles.input} ${styles.inputDisabled}`}
-                    value={selectedBenchmarkTasks.length > 0 ? 
-                      `${selectedBenchmarkTasks.length}개 선택됨: ${selectedBenchmarkTasks.slice(0, 2).join(', ')}${selectedBenchmarkTasks.length > 2 ? '...' : ''}` : 
+                    value={selectedBenchmarkTasks.length > 0 ?
+                      `${selectedBenchmarkTasks.length}개 선택됨: ${selectedBenchmarkTasks.slice(0, 2).join(', ')}${selectedBenchmarkTasks.length > 2 ? '...' : ''}` :
                       ''
-                    } 
+                    }
                     placeholder="벤치마크 태스크를 선택하세요"
                     disabled
                   />
-                  <button 
+                  <button
                     onClick={() => setShowTaskSelector(true)}
                     className={styles.inputButton}
                   >
@@ -885,7 +885,7 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
                     </svg>
                   </button>
                 </div>
-                
+
                 {/* 선택된 태스크들 표시 */}
                 {selectedBenchmarkTasks.length > 0 && (
                   <div className={styles.taskDisplay}>
@@ -893,8 +893,8 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
                       <span className={styles.taskCount}>
                         선택된 태스크 ({selectedBenchmarkTasks.length}개)
                       </span>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         className={styles.clearAllButton}
                         onClick={() => setSelectedBenchmarkTasks([])}
                       >
@@ -906,8 +906,8 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
                         <span key={task} className={styles.taskTag}>
                           <span className={styles.taskNumber}>{index + 1}.</span>
                           {task}
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             className={styles.taskRemoveButton}
                             onClick={() => {
                               setSelectedBenchmarkTasks(prev => prev.filter(t => t !== task));
@@ -928,14 +928,14 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
                 <div className={styles.inputGroup}>
                   <label className={styles.label}>데이터셋</label>
                   <div className={styles.inputWithButton}>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       className={`${styles.input} ${styles.inputDisabled}`}
-                      value={selectedDataset} 
+                      value={selectedDataset}
                       placeholder="데이터셋을 선택하세요"
                       disabled
                     />
-                    <button 
+                    <button
                       onClick={() => openPopup('dataset')}
                       className={styles.inputButton}
                     >
@@ -947,7 +947,7 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
                 </div>
               </div>
             )}
-            
+
             {/* 데이터셋 열 설정 섹션 - CausalLM_task일 때 숨김 */}
             {!isCausalLMTask && (
               <div className={styles.section}>
@@ -958,7 +958,7 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
                       주요 데이터 열 <span className={styles.required}>*</span>
                     </label>
                     <div className={styles.inputWithButton}>
-                      <select 
+                      <select
                         value={column1}
                         onChange={(e) => setColumn1(e.target.value)}
                         className={styles.select}
@@ -968,7 +968,7 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
                          <option key={column} value={column}>{column}</option>
                        ))}
                      </select>
-                     <button 
+                     <button
                        onClick={() => openColumnSelection('main')}
                        className={styles.inputButton}
                        disabled={datasetColumns.length === 0}
@@ -979,11 +979,11 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
                      </button>
                    </div>
                  </div>
-                 
+
                  <div className={styles.inputGroup}>
                    <label className={styles.label}>보조 데이터 열</label>
                    <div className={styles.inputWithButton}>
-                     <select 
+                     <select
                        value={column2}
                        onChange={(e) => setColumn2(e.target.value)}
                        className={styles.select}
@@ -994,7 +994,7 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
                          <option key={column} value={column}>{column}</option>
                        ))}
                      </select>
-                     <button 
+                     <button
                        onClick={() => openColumnSelection('sub')}
                        className={styles.inputButton}
                        disabled={!column1 || datasetColumns.length === 0}
@@ -1005,11 +1005,11 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
                      </button>
                    </div>
                  </div>
-                 
+
                  <div className={styles.inputGroup}>
                    <label className={styles.label}>보조 데이터 열 2</label>
                    <div className={styles.inputWithButton}>
-                     <select 
+                     <select
                        value={column3}
                        onChange={(e) => setColumn3(e.target.value)}
                        className={styles.select}
@@ -1020,7 +1020,7 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
                          <option key={column} value={column}>{column}</option>
                        ))}
                      </select>
-                     <button 
+                     <button
                        onClick={() => openColumnSelection('minor')}
                        className={styles.inputButton}
                        disabled={!column1 || !column2 || datasetColumns.length === 0}
@@ -1031,10 +1031,10 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
                     </button>
                   </div>
                 </div>
-                
+
                 <div className={styles.inputGroup}>
                   <label className={styles.label}>라벨 (종속 변수)</label>
-                  <select 
+                  <select
                     value={label}
                     onChange={(e) => setLabel(e.target.value)}
                     className={styles.select}
@@ -1048,7 +1048,7 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
               </div>
             </div>
           )}
-          
+
           {/* 추가 설정 섹션 */}
           {selectedTask !== 'RAG' && (
             <div className={styles.section}>
@@ -1057,8 +1057,8 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
                 {selectedTask !== 'CausalLM' && !isCausalLMTask && (
                   <div className={styles.inputGroup}>
                     <label className={styles.label}>Top K</label>
-                    <input 
-                      type="number" 
+                    <input
+                      type="number"
                       value={topK}
                       onChange={(e) => setTopK(parseInt(e.target.value) || 1)}
                       min="1"
@@ -1069,8 +1069,8 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
 
                 <div className={styles.inputGroup}>
                   <label className={styles.label}>GPU 수</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     value={gpuNum}
                     onChange={(e) => setGpuNum(parseInt(e.target.value) || 1)}
                     min="1"
@@ -1083,8 +1083,8 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
               <div className={styles.checkboxSection}>
                 {selectedTask === 'CausalLM' && (
                   <label className={styles.checkbox}>
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={useCot}
                       onChange={(e) => setUseCot(e.target.checked)}
                       className={styles.checkboxInput}
@@ -1097,8 +1097,8 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
                 {showBaseModelOption && (
                   <div className={styles.baseModelOption}>
                     <label className={styles.checkbox}>
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         checked={evaluateWithBaseModel}
                         onChange={(e) => setEvaluateWithBaseModel(e.target.checked)}
                         className={styles.checkboxInput}
@@ -1121,14 +1121,14 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
           )}
 
           <div className={styles.actionSection}>
-            <button 
-              onClick={runEvaluation} 
+            <button
+              onClick={runEvaluation}
               className={`${styles.runButton} ${
-                (!selectedModel || !jobName || isRunningEval || 
-                 (isCausalLMTask ? selectedBenchmarkTasks.length === 0 : !selectedDataset)) 
+                (!selectedModel || !jobName || isRunningEval ||
+                 (isCausalLMTask ? selectedBenchmarkTasks.length === 0 : !selectedDataset))
                   ? styles.runButtonDisabled : ''
               }`}
-              disabled={!selectedModel || !jobName || isRunningEval || 
+              disabled={!selectedModel || !jobName || isRunningEval ||
                        (isCausalLMTask ? selectedBenchmarkTasks.length === 0 : !selectedDataset)}
             >
               {isRunningEval ? (
@@ -1144,7 +1144,7 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
         </div>
 
         {/* 평가 결과 목록 (우측) */}
-        <EvaluationTable 
+        <EvaluationTable
           jobs={filteredJobs}
           isLoading={isLoading}
           statusFilter={statusFilter}
@@ -1163,7 +1163,7 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
     </div>
 
     {/* Task Selector */}
-    <TaskSelector 
+    <TaskSelector
       show={showTaskSelector}
       taskGroups={taskGroups}
       selectedTasks={selectedBenchmarkTasks}
@@ -1181,7 +1181,7 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
     />
 
     {/* 데이터셋 선택 팝업 */}
-    <PopupSelector 
+    <PopupSelector
       show={popupState.dataset.show}
       type="dataset"
       title="데이터셋 선택"
@@ -1195,11 +1195,11 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
     />
 
     {/* 컬럼 선택 팝업 */}
-    <PopupSelector 
+    <PopupSelector
       show={popupState.columns.show}
       type="columns"
-      title={popupState.columns.mode === 'main' ? '주요 데이터 열 선택' : 
-             popupState.columns.mode === 'sub' ? '보조 데이터 열 선택' : 
+      title={popupState.columns.mode === 'main' ? '주요 데이터 열 선택' :
+             popupState.columns.mode === 'sub' ? '보조 데이터 열 선택' :
              '보조 데이터 열 2 선택'}
       options={popupState.columns.options}
       selected={popupState.columns.selected}
@@ -1211,7 +1211,7 @@ const handleJobsDeleteFromTable = useCallback((jobIds: string[]) => {
     />
 
     {/* 작업 상세 정보 모달 */}
-    <JobDetailModal 
+    <JobDetailModal
       show={showJobDetails}
       job={selectedJob}
       loading={isLoadingJobDetails}

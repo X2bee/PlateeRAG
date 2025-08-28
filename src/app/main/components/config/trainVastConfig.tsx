@@ -4,7 +4,7 @@ import { BsGpuCard } from 'react-icons/bs';
 import toast from 'react-hot-toast';
 import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/baseConfigPanel';
 import { checkVastHealth, searchVastOffers, createVastInstance, listVastInstances, destroyVastInstance } from '@/app/api/vastAPI';
-import { createTrainVastInstance } from '@/app/api/trainAPI';
+import { createTrainVastInstance } from '@/app/api/trainer/trainAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/main/assets/Settings.module.scss';
 import { TrainGpuOfferSearchModal } from '@/app/main/components/config/trainVastModal/TrainGpuOfferSearchModal';

@@ -1,4 +1,4 @@
-import { loadWorkflow } from "@/app/api/workflowAPI";
+import { loadWorkflow } from "@/app/api/workflow/workflowAPI";
 import { loadWorkflow as loadWorkflowDeploy } from "@/app/api/workflow/workflowDeployAPI";
 import { WorkflowData } from "@/app/canvas/types";
 

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
 import { useRouter } from 'next/navigation';
 import { useSidebarManager } from '@/app/_common/hooks/useSidebarManager';
-import { getWorkflowIOLogs, loadWorkflow } from '@/app/api/workflowAPI';
+import { getWorkflowIOLogs, loadWorkflow } from '@/app/api/workflow/workflowAPI';
 import { loadWorkflow as loadWorkflowDeploy } from '@/app/api/workflow/workflowDeployAPI';
 import { MessageRenderer } from '@/app/_common/components/ChatParser';
 import CollectionModal from '@/app/chat/components/CollectionModal';
@@ -325,11 +325,11 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
     useEffect(() => {
         if (initialMessageToExecute && !hasExecutedInitialMessage.current) {
             hasExecutedInitialMessage.current = true;
-            
+
             if (chatContainerRef.current) {
                 chatContainerRef.current.setInputMessage(initialMessageToExecute);
             }
-            
+
             const newSearchParams = new URLSearchParams(window.location.search);
             newSearchParams.delete('initial_message');
             newSearchParams.delete('initial_message_id');

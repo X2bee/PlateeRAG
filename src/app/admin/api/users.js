@@ -1,7 +1,7 @@
 // User 관리 API 호출 함수들을 관리하는 파일
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
-import { apiClient } from '@/app/api/apiClient';
+import { apiClient } from '@/app/api/helper/apiClient';
 
 /**
  * 모든 사용자 목록을 가져오는 함수 (슈퍼유저 권한 필요)

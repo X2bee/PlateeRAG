@@ -7,7 +7,7 @@ import {
     FiPlay,
 } from 'react-icons/fi';
 import { listInteractions } from '@/app/api/interactionAPI';
-import { deleteWorkflowIOLogs, listWorkflowsDetail } from '@/app/api/workflowAPI';
+import { deleteWorkflowIOLogs, listWorkflowsDetail } from '@/app/api/workflow/workflowAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/chat/assets/ChatHistory.module.scss';
 import toast from 'react-hot-toast';
