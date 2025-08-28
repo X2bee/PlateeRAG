@@ -19,6 +19,7 @@ export const ApiParameter: React.FC<ApiParameterProps> = ({
         devLog.log('=== API Parameter Change ===');
         devLog.log('Parameter:', parameter.name, 'Previous value:', parameter.value, 'New value:', e.target.value);
         devLog.log('Available options:', apiOptions);
+        devLog.log('API single value:', apiSingleValue);
 
         e.preventDefault();
         e.stopPropagation();
@@ -38,8 +39,17 @@ export const ApiParameter: React.FC<ApiParameterProps> = ({
         devLog.log('=== API Parameter Change Complete ===');
     };
 
-    // Single value input
-    if (apiSingleValue !== undefined) {
+    // Determine if this should be rendered as input or select
+    const isStringType = parameter.type === 'string' || parameter.type === 'str';
+    const hasOptions = apiOptions && apiOptions.length > 0;
+    const hasSingleValue = apiSingleValue !== undefined;
+    
+    // Debug logging for value display
+    devLog.log('ApiParameter render - name:', parameter.name, 'value:', parameter.value, 'type:', parameter.type);
+    devLog.log('ApiParameter render - hasOptions:', hasOptions, 'hasSingleValue:', hasSingleValue, 'apiSingleValue:', apiSingleValue);
+    
+    // String type parameters should always use input field
+    if (isStringType || (hasSingleValue && !hasOptions)) {
         return (
             <input
                 type="text"
@@ -47,13 +57,13 @@ export const ApiParameter: React.FC<ApiParameterProps> = ({
                 onChange={handleValueChange}
                 {...eventHandlers}
                 className={`${styles.paramInput} paramInput`}
-                placeholder={apiSingleValue ? `Default: ${apiSingleValue}` : ''}
+                placeholder={apiSingleValue ? `Default: ${apiSingleValue}` : parameter.description || ''}
                 draggable={false}
             />
         );
     }
 
-    // Dropdown select
+    // Option type parameters should use dropdown select
     return (
         <select
             value={parameter.value !== undefined && parameter.value !== null ? parameter.value.toString() : ''}
@@ -77,7 +87,17 @@ export const ApiParameter: React.FC<ApiParameterProps> = ({
             {isLoading ? (
                 <option value="">Loading...</option>
             ) : apiOptions.length === 0 ? (
-                <option value="">-- No options available --</option>
+                // Show current saved value even if no options are loaded
+                parameter.value && parameter.value !== '' ? (
+                    <>
+                        <option value="">-- Select --</option>
+                        <option value={parameter.value}>
+                            {parameter.value}
+                        </option>
+                    </>
+                ) : (
+                    <option value="">-- No options available --</option>
+                )
             ) : (
                 <>
                     <option value="">-- Select --</option>
