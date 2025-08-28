@@ -302,9 +302,7 @@ const AdminGroupContent: React.FC = () => {
                         <thead>
                             <tr>
                                 <th>그룹명</th>
-                                <th>사용자 수</th>
                                 <th>상태</th>
-                                <th>관리자 수</th>
                                 <th>사용 가능 섹션</th>
                                 <th>액션</th>
                             </tr>
@@ -312,7 +310,7 @@ const AdminGroupContent: React.FC = () => {
                         <tbody>
                             {filteredGroups.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className={styles.noData}>
+                                    <td colSpan={4} className={styles.noData}>
                                         {loading ? '그룹 목록을 불러오는 중...' : searchTerm ? '검색 결과가 없습니다.' : '등록된 그룹이 없습니다.'}
                                     </td>
                                 </tr>
@@ -320,9 +318,7 @@ const AdminGroupContent: React.FC = () => {
                                 filteredGroups.map((group) => (
                                     <tr key={group.group_name} className={styles.tableRow}>
                                         <td className={styles.groupName}>{group.group_name}</td>
-                                        <td className={styles.userCount}>{group.number_of_users || 0}</td>
                                         <td>{renderStatusBadge(group.available)}</td>
-                                        <td className={styles.managerCount}>{group.managers?.length || 0}</td>
                                         <td className={styles.sections}>
                                             {group.available_sections?.length > 0
                                                 ? group.available_sections.join(', ')
@@ -339,7 +335,6 @@ const AdminGroupContent: React.FC = () => {
                                             <button
                                                 className={styles.actionButton}
                                                 onClick={() => handleEditPermissions(group)}
-                                                style={{ marginLeft: '0.5rem' }}
                                             >
                                                 권한 편집
                                             </button>

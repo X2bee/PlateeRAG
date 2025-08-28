@@ -133,6 +133,7 @@
     border-collapse: collapse;
     background: var(--admin-bg-primary);
     font-size: var(--admin-font-size-sm);
+    table-layout: fixed; // 고정 테이블 레이아웃으로 컬럼 너비 제어
 
     th, td {
         padding: var(--admin-spacing-md);
@@ -155,9 +156,13 @@
         z-index: 20;
         border-bottom: 2px solid var(--admin-border);
         white-space: nowrap;
-    }
 
-    tbody tr {
+        // 컬럼별 너비 설정
+        &:nth-child(1) { width: 25%; } // 그룹명
+        &:nth-child(2) { width: 20%; } // 상태 (늘려줌)
+        &:nth-child(3) { width: 35%; } // 사용 가능 섹션
+        &:nth-child(4) { width: 20%; } // 액션
+    }    tbody tr {
         transition: var(--admin-transition);
 
         &:hover {
@@ -168,7 +173,6 @@
     td {
         color: var(--admin-text-primary);
         word-wrap: break-word;
-        max-width: 0;
         overflow: hidden;
 
         &.groupName, &.email, &.username {
@@ -176,7 +180,7 @@
             color: var(--admin-primary);
         }
 
-        &.userCount, &.managerCount, &.userId {
+        &.userId {
             text-align: center;
             font-weight: 600;
         }
@@ -186,15 +190,25 @@
         }
 
         &.sections {
-            max-width: 200px;
             font-size: var(--admin-font-size-xs);
             color: var(--admin-text-secondary);
+            word-break: break-word;
         }
 
         &.userType {
             text-transform: uppercase;
             font-size: var(--admin-font-size-xs);
             font-weight: 600;
+        }
+
+        // 상태 컬럼 중앙 정렬
+        &:nth-child(2) {
+            text-align: center;
+        }
+
+        // 액션 컬럼 중앙 정렬
+        &:nth-child(4) {
+            text-align: center;
         }
     }
 }
@@ -239,12 +253,14 @@
 
 .badge {
     display: inline-block;
-    padding: 0.25rem 0.5rem;
+    padding: 0.4rem 0.8rem;
     border-radius: var(--admin-radius-sm);
-    font-size: var(--admin-font-size-xs);
+    font-size: var(--admin-font-size-sm);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.025em;
+    min-width: 60px;
+    text-align: center;
 }
 
 .badgeActive {
@@ -259,6 +275,11 @@
 
 .actions {
     text-align: center;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 .actionButton {
@@ -271,6 +292,8 @@
     cursor: pointer;
     transition: var(--admin-transition);
     white-space: nowrap;
+    flex: 1;
+    min-width: 80px;
 
     &:hover {
         background: var(--admin-primary-dark);
