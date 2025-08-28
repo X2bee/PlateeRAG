@@ -173,6 +173,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
 
         return (
             <MessageRenderer
+                mode={mode}
                 content={content}
                 isUserMessage={isUserMessage}
                 onViewSource={handleViewSourceWithContext}

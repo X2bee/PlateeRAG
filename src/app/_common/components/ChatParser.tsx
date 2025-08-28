@@ -36,6 +36,7 @@ interface MessageRendererProps {
     className?: string;
     onViewSource?: (sourceInfo: SourceInfo) => void;
     onHeightChange?: () => void;
+    mode?: "existing" | "new-workflow" | "new-default" | "deploy";
 }
 
 /**
@@ -43,6 +44,7 @@ interface MessageRendererProps {
  */
 
 export const MessageRenderer: React.FC<MessageRendererProps> = ({
+    mode,
     content,
     isUserMessage = false,
     className = '',
@@ -62,7 +64,7 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
         );
     }
 
-    const parsedElements = parseContentToReactElements(content, onViewSource, onHeightChange);
+    const parsedElements = parseContentToReactElements(content, onViewSource, onHeightChange, mode);
 
     return (
         <div
@@ -80,7 +82,7 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
 /**
  * 컨텐츠를 React 엘리먼트로 파싱
  */
-const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo: SourceInfo) => void, onHeightChange?: () => void): React.ReactNode[] => {
+const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo: SourceInfo) => void, onHeightChange?: () => void, mode?: "existing" | "new-workflow" | "new-default" | "deploy"): React.ReactNode[] => {
     let processed = content;
     
     // 스트림 모드 감지를 위한 헬퍼 함수
@@ -189,7 +191,7 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
             );
 
             // showToolOutputBlock이 false이고 완성된 블록인 경우 숨김
-            if (!showToolOutputBlock && !isStreaming) {
+            if (mode === 'deploy'||!showToolOutputBlock && !isStreaming) {
                 // 완성된 tool use log 블록은 렌더링하지 않음
             } else {
                 // showToolOutputBlock이 false이면서 스트리밍 중이라면 애니메이션 프리뷰 모드로 전달
