@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { Workflow } from './types';
 import { useEffect, useRef, useState, Children, isValidElement, ReactNode } from 'react';
 import { getAuthCookie } from '@/app/_common/utils/cookieUtils';
+import { createEncryptedUrlParams } from '@/app/_common/utils/urlEncryption';
 
 interface DeploymentModalProps {
     isOpen: boolean;
@@ -164,7 +165,8 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
     const workflowId = workflow.id;
     const workflowName = workflow.name;
     const apiEndpoint = `${baseUrl}/api/workflow/deploy/execute/based_id`;
-    const webPageUrl = `${baseUrl}/chatbot/${userId}?workflowName=${workflowName}`;
+    const encryptedParams = createEncryptedUrlParams(userId, workflowName);
+    const webPageUrl = `${baseUrl}/chatbot/${encryptedParams}`;
     const additional_params = parseAdditionalParams(workflowDetail);
     const outputSchema = OutputSchemaProviderParse(workflowDetail);
 
