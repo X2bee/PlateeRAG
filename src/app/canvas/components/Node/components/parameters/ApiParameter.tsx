@@ -38,7 +38,7 @@ export const ApiParameter: React.FC<ApiParameterProps> = ({
 
     // Determine if this should be rendered as input or select
     const hasOptions = apiOptions && apiOptions.length > 0;
-    const hasSingleValue = apiSingleValue !== undefined; 
+    const hasSingleValue = apiSingleValue !== undefined;
 
     // Option type parameters should use dropdown select
     return (
@@ -76,16 +76,6 @@ export const ApiParameter: React.FC<ApiParameterProps> = ({
                     </>
                 )}
             </select>
-        ) : (<input
-                type={parameter.type && numberList.includes(parameter.type) ? 'number' : 'text'}
-                value={(parameter.value !== undefined && parameter.value !== null) ? parameter.type === 'STR' ? parameter.value.toString(): parseFloat(parameter.value.toString()): ''}
-                onChange={handleValueChange}
-                {...eventHandlers}
-                draggable={false}
-                className={`${styles.paramInput} paramInput`}
-                step={parameter.step}
-                min={parameter.min}
-                max={parameter.max}
-        />)
+        ) : (null)
     );
 };

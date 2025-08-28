@@ -100,15 +100,25 @@ export const NodeParameters: React.FC<NodeParametersProps> = ({
         const renderParameterInput = () => {
             switch (parameterType) {
                 case 'api': {
-                    const apiOptions = apiParamsHook.apiOptions[paramKey] || [];
-                    const isLoading = apiParamsHook.loadingApiOptions[paramKey] || false;
-                    const apiSingleValue = apiParamsHook.apiSingleValues[paramKey];
+                    apiParamsHook.loadApiOptions(param, nodeId)
+                    const isApiParam = param.is_api && param.api_name;
                     
+                    // 원본 로직: 기본적으로 param.options 사용, API 파라미터인 경우 API 옵션으로 덮어씀
+                    let effectiveOptions = param.options || [];
+                    let isLoadingOptions = false;
+                    let apiSingleValue = undefined;
+                    
+                    if (isApiParam) {
+                        effectiveOptions = apiParamsHook.apiOptions[paramKey] || [];
+                        isLoadingOptions = apiParamsHook.loadingApiOptions[paramKey] || false;
+                        apiSingleValue = apiParamsHook.apiSingleValues[paramKey];
+                    }
+
                     return (
                         <ApiParameter
                             {...baseProps}
-                            apiOptions={apiOptions}
-                            isLoading={isLoading}
+                            apiOptions={effectiveOptions}
+                            isLoading={isLoadingOptions}
                             apiSingleValue={apiSingleValue}
                         />
                     );

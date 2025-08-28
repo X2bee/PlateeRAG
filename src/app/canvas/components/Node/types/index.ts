@@ -16,6 +16,7 @@ export interface ApiParameterProps extends ParameterComponentProps {
     apiOptions: ParameterOption[];
     isLoading: boolean;
     apiSingleValue?: string;
+    loadApiOptions?:(param: Parameter, nodeId: string) => void
 }
 
 // Handle Parameter specific types
