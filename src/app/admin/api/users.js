@@ -2,6 +2,8 @@
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
 import { apiClient } from '@/app/api/helper/apiClient';
+import { generateSha256Hash } from '@/app/_common/utils/generateSha1Hash';
+import { setCookieAuth } from '@/app/_common/utils/cookieUtils';
 
 /**
  * 모든 사용자 목록을 가져오는 함수 (슈퍼유저 권한 필요)
@@ -89,10 +91,6 @@ export const approveUser = async (userData) => {
  */
 export const superuserLogin = async (loginData) => {
     try {
-        // 패스워드를 SHA256으로 해시화 (기존 login 함수와 동일한 로직)
-        const { generateSha256Hash } = await import('@/app/_common/utils/generateSha1Hash');
-        const { setCookieAuth } = await import('@/app/_common/utils/cookieUtils');
-
         const hashedLoginData = {
             ...loginData,
             password: generateSha256Hash(loginData.password)
@@ -164,6 +162,49 @@ export const deleteUser = async (userData) => {
         return data;
     } catch (error) {
         devLog.error('Failed to delete user:', error);
+        throw error;
+    }
+};
+
+/**
+ * 사용자 정보를 수정하는 함수 (슈퍼유저 권한 필요)
+ * @param {Object} userData - 수정할 사용자 정보
+ * @param {number} userData.id - 사용자 ID
+ * @param {string} [userData.email] - 이메일
+ * @param {string} [userData.username] - 사용자명
+ * @param {string|null} [userData.full_name] - 이름
+ * @param {string} [userData.group_name] - 조직명
+ * @param {boolean} [userData.is_admin] - 관리자 권한
+ * @param {string} [userData.user_type] - 사용자 유형 (standard/admin/superuser)
+ * @param {Object|null} [userData.preferences] - 환경설정
+ * @param {string} [userData.password_hash] - 새 비밀번호 (평문, 서버에서 해시 처리)
+ * @returns {Promise<Object>} 수정 결과
+ */
+export const editUser = async (userData) => {
+    try {
+        if (userData.password_hash) {
+            userData.password_hash = generateSha256Hash(userData.password_hash);
+        }
+
+        const response = await apiClient(`${API_BASE_URL}/api/admin/user/edit-user`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData)
+        });
+
+        const data = await response.json();
+        devLog.log('Edit user result:', data);
+
+        if (!response.ok) {
+            devLog.error('Failed to edit user:', data);
+            throw new Error(data.detail || 'Failed to edit user');
+        }
+
+        return data;
+    } catch (error) {
+        devLog.error('Failed to edit user:', error);
         throw error;
     }
 };
