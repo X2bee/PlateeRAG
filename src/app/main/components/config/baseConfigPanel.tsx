@@ -72,7 +72,6 @@ const BaseConfigPanel: React.FC<BaseConfigPanelProps> = ({
     );
 
     useEffect(() => {
-        // configData에서 현재 값들을 localConfig에 설정
         const newLocalConfig: Record<string, any> = {};
         uniqueConfigs.forEach((item) => {
             newLocalConfig[item.env_name] = item.current_value;

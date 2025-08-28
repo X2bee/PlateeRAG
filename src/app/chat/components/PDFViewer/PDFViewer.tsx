@@ -4,22 +4,23 @@ import React, { useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { FiX, FiZoomIn, FiZoomOut, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { PDFViewerProps, HighlightRange } from '../../types/source';
-import { fetchDocumentByPath, hasDocumentInCache } from '../../../api/documentAPI';
+import { fetchDocumentByPath, hasDocumentInCache } from '../../../api/rag/documentAPI';
 import CacheStatusIndicator from './CacheStatusIndicator';
 import styles from './PDFViewer.module.scss';
+import { devLog } from '@/app/_common/utils/logger';
 
 // Dynamic imports to prevent SSR issues
-const Document = dynamic(() => import('react-pdf').then(mod => ({ default: mod.Document })), { 
+const Document = dynamic(() => import('react-pdf').then(mod => ({ default: mod.Document })), {
   ssr: false,
   loading: () => <div className={styles.loading}>PDF 구성 요소를 로드하는 중...</div>
 });
 
-const Page = dynamic(() => import('react-pdf').then(mod => ({ default: mod.Page })), { 
-  ssr: false 
+const Page = dynamic(() => import('react-pdf').then(mod => ({ default: mod.Page })), {
+  ssr: false
 });
 
-const PDFHighlighter = dynamic(() => import('./PDFHighlighter'), { 
-  ssr: false 
+const PDFHighlighter = dynamic(() => import('./PDFHighlighter'), {
+  ssr: false
 });
 
 // PDF.js worker 설정 - 클라이언트 사이드에서만 실행
@@ -52,45 +53,43 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose, mode
     if (!sourceInfo.file_path || !isOpen) return;
 
     const filePath = sourceInfo.file_path;
-    
+
     // 이미 캐시에 있다면 빠른 로딩 표시
     const isInCache = hasDocumentInCache(filePath);
     if (!isInCache) {
       setLoading(true);
     }
-    
+
     setError(null);
     setPdfData(null);
     setPdfUrl(null);
-    
+
     try {
-      console.log('📄 [PDFViewer] Loading document from path:', filePath, isInCache ? '(cached)' : '(from server)');
-      
+      devLog.log('📄 [PDFViewer] Loading document from path:', filePath, isInCache ? '(cached)' : '(from server)');
+
       // 파일 경로 유효성 검사
       if (!filePath.trim()) {
         throw new Error('파일 경로가 비어있습니다.');
       }
-      
+
       const documentData = await fetchDocumentByPath(filePath, true, mode, userId?.toString());
-      
+
       // 데이터 유효성 검사
       if (!documentData || documentData.byteLength === 0) {
         throw new Error('문서 데이터가 비어있습니다.');
       }
-      
+
       setPdfData(documentData);
-      
+
       // ArrayBuffer를 Blob URL로 변환
       const blob = new Blob([documentData], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
-      
+
       // 로딩 완료 상태로 변경
       setLoading(false);
-      
-      console.log('✅ [PDFViewer] Document loaded successfully, size:', documentData.byteLength, 'bytes');
+
     } catch (err) {
-      console.error('❌ [PDFViewer] Failed to load document:', err);
       const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
       setError(`문서를 로드할 수 없습니다: ${errorMessage}`);
       setLoading(false);
@@ -116,7 +115,6 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose, mode
   }, []);
 
   const onDocumentLoadError = useCallback((error: Error) => {
-    console.error('❌ [PDFViewer] PDF document load error:', error);
     setError(`PDF 문서를 로드하는데 실패했습니다: ${error.message || '알 수 없는 오류'}`);
     setLoading(false);
   }, []);
@@ -124,20 +122,16 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose, mode
   const onPageLoadSuccess = useCallback((page: any) => {
     const { width, height } = page;
     setPageSize({ width, height });
-    
-    console.log('📄 [PDFViewer] Page loaded successfully:', { pageNumber, width, height });
-    
+
+
     // 텍스트 콘텐츠 추출
     page.getTextContent().then((content: any) => {
-      console.log('📝 [PDFViewer] Text content loaded:', {
-        pageNumber,
-        itemsCount: content?.items?.length || 0
-      });
+
       setTextContent(content);
-      
+
       // 텍스트 콘텐츠가 로드된 후 약간의 지연을 두고 DOM 업데이트 대기
       setTimeout(() => {
-        console.log('🔄 [PDFViewer] Text content DOM should be ready now');
+
       }, 100);
     }).catch((err: Error) => {
       console.warn('텍스트 콘텐츠를 가져올 수 없습니다:', err);
@@ -162,7 +156,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose, mode
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (!isOpen) return;
-    
+
     switch (e.key) {
       case 'Escape':
         onClose();
@@ -213,8 +207,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose, mode
             </span>
           </div>
           <div className={styles.headerActions}>
-            <CacheStatusIndicator 
-              filePath={sourceInfo.file_path} 
+            <CacheStatusIndicator
+              filePath={sourceInfo.file_path}
               className={styles.cacheIndicator}
             />
             <button className={styles.closeButton} onClick={onClose}>
@@ -226,8 +220,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose, mode
         {/* Toolbar */}
         <div className={styles.toolbar}>
           <div className={styles.pageControls}>
-            <button 
-              onClick={goToPrevPage} 
+            <button
+              onClick={goToPrevPage}
               disabled={pageNumber <= 1}
               className={styles.controlButton}
             >
@@ -236,15 +230,15 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose, mode
             <span className={styles.pageInfo}>
               {pageNumber} / {numPages}
             </span>
-            <button 
-              onClick={goToNextPage} 
+            <button
+              onClick={goToNextPage}
               disabled={pageNumber >= numPages}
               className={styles.controlButton}
             >
               <FiChevronRight />
             </button>
           </div>
-          
+
           <div className={styles.zoomControls}>
             <button onClick={handleZoomOut} className={styles.controlButton}>
               <FiZoomOut />
@@ -262,7 +256,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose, mode
           {error && (
             <div className={styles.error}>
               <p>{error}</p>
-              <button 
+              <button
                 onClick={loadPdfDocument}
                 className={styles.retryButton}
               >
@@ -270,7 +264,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose, mode
               </button>
             </div>
           )}
-          
+
           {!loading && !error && pdfUrl && (
             <Document
               file={pdfUrl}
@@ -288,7 +282,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose, mode
                 className={styles.page}
                 onLoadSuccess={onPageLoadSuccess}
               />
-              
+
               {/* PDF 하이라이터 */}
               <PDFHighlighter
                 pageNumber={pageNumber}

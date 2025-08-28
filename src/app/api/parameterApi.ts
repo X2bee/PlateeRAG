@@ -1,6 +1,6 @@
-import { apiClient } from '@/app/api/apiClient';
+import { apiClient } from '@/app/api/helper/apiClient';
 import { devLog } from '@/app/_common/utils/logger';
-import { API_BASE_URL } from '@/app/config.js';
+import { API_BASE_URL } from '@/app/config';
 import type { ParameterOption } from '@/app/canvas/types';
 
 /**

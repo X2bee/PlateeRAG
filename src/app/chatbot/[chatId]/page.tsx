@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { loadWorkflow } from '@/app/api/workflowAPI';
+import { loadWorkflow } from '@/app/api/workflow/workflowAPI';
 import ChatInterface from '@/app/chat/components/ChatInterface';
 import { Workflow } from '@/app/chat/components/types';
 import styles from './StandaloneChat.module.scss';

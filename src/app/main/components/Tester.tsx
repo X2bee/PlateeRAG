@@ -2,7 +2,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import styles from '@/app/main/assets/Tester.module.scss';
 import { FiUpload, FiDownload, FiPlay, FiFileText, FiTable, FiCheckCircle, FiXCircle, FiClock, FiRefreshCw, FiTrash2, FiAlertCircle } from 'react-icons/fi';
-import { executeWorkflowTesterStream } from '@/app/api/workflowAPI';
+import { executeWorkflowTesterStream } from '@/app/api/workflow/workflowAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import { useWorkflowBatchTester } from '@/app/_common/hooks/useWorkflowBatchTester';
 import { TestData } from '@/app/_common/contexts/BatchTesterContext';

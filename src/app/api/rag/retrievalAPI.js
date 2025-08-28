@@ -1,39 +1,11 @@
 // RAG API 호출 함수들을 관리하는 파일
 import { devLog } from '@/app/_common/utils/logger';
-import { API_BASE_URL } from '@/app/config.js';
-import { apiClient } from '@/app/api/apiClient';
+import { API_BASE_URL } from '@/app/config';
+import { apiClient } from '@/app/api/helper/apiClient';
 import { getAuthCookie } from '@/app/_common/utils/cookieUtils';
 
 const getUserId = () => {
     return getAuthCookie('user_id');
-};
-
-
-// =============================================================================
-// Health Check
-// =============================================================================
-
-/**
- * RAG 시스템의 연결 상태를 확인하는 함수
- * @returns {Promise<Object>} 헬스 체크 결과
- */
-export const checkRagHealth = async () => {
-    try {
-        const response = await apiClient(
-            `${API_BASE_URL}/api/retrieval/health`,
-        );
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        devLog.info('RAG health check completed:', data);
-        return data;
-    } catch (error) {
-        devLog.error('Failed to check RAG health:', error);
-        throw error;
-    }
 };
 
 // =============================================================================
@@ -190,11 +162,11 @@ export const uploadDocument = async (
         const userId = getUserId();
         // 파일명은 항상 원본 파일명 사용 (서버 경로 충돌 방지)
         const originalFileName = file.name;
- 
+
         // 폴더 구조 정보 추출
         let folderPath = '';
         let relativePath = originalFileName;
- 
+
         if (file.webkitRelativePath) {
             relativePath = file.webkitRelativePath;
             const lastSlashIndex = relativePath.lastIndexOf('/');
@@ -202,7 +174,7 @@ export const uploadDocument = async (
                 folderPath = relativePath.substring(0, lastSlashIndex);
             }
         }
- 
+
         // 파일은 원본 파일명으로 업로드
         formData.append('file', file, originalFileName);
         formData.append('collection_name', collectionName);
@@ -210,7 +182,7 @@ export const uploadDocument = async (
         formData.append('chunk_overlap', chunkOverlap.toString());
         formData.append('user_id', userId);
         formData.append('process_type', processType); // process_type 추가
- 
+
         // 메타데이터에 폴더 구조 정보 포함
         const enhancedMetadata = {
             ...(metadata || {}),
@@ -222,12 +194,12 @@ export const uploadDocument = async (
             file_type: file.type || 'application/octet-stream',
             process_type: processType, // 메타데이터에도 포함
         };
- 
+
         formData.append('metadata', JSON.stringify(enhancedMetadata));
- 
+
         // 업로드 진행률 추적을 위한 AbortController
         const controller = new AbortController();
- 
+
         const response = await fetch(
             `${API_BASE_URL}/api/retrieval/documents/upload`,
             {
@@ -238,11 +210,11 @@ export const uploadDocument = async (
                 timeout: 5400000,
             },
         );
- 
+
         if (!response.ok) {
             const errorText = await response.text();
             let errorMessage = `HTTP error! status: ${response.status}`;
- 
+
             try {
                 const errorData = JSON.parse(errorText);
                 if (errorData.detail) {
@@ -251,10 +223,10 @@ export const uploadDocument = async (
             } catch (e) {
                 errorMessage += `, message: ${errorText}`;
             }
- 
+
             throw new Error(errorMessage);
         }
- 
+
         const data = await response.json();
         devLog.info('Document uploaded successfully:', {
             fileName: originalFileName,
@@ -536,117 +508,6 @@ export const insertPoints = async (collectionName, points) => {
     }
 };
 
-/**
- * 벡터 포인트를 삭제하는 함수
- * @param {string} collectionName - 대상 컬렉션 이름
- * @param {Array} pointIds - 삭제할 포인트 ID 배열
- * @returns {Promise<Object>} 삭제 결과
- */
-export const deletePoints = async (collectionName, pointIds) => {
-    try {
-        const response = await apiClient(
-            `${API_BASE_URL}/api/retrieval/points`,
-            {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    collection_name: collectionName,
-                    point_ids: pointIds,
-                }),
-            },
-        );
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        devLog.info('Points deleted:', data);
-        return data;
-    } catch (error) {
-        devLog.error('Failed to delete points:', error);
-        throw error;
-    }
-};
-
-/**
- * 벡터 유사도 검색을 수행하는 함수
- * @param {string} collectionName - 검색할 컬렉션 이름
- * @param {Array<number>} queryVector - 검색 벡터
- * @param {number} limit - 반환할 결과 수 (기본값: 10)
- * @param {number} scoreThreshold - 점수 임계값 (선택사항)
- * @param {Object} filter - 검색 필터 (선택사항)
- * @returns {Promise<Object>} 검색 결과
- */
-export const searchPoints = async (
-    collectionName,
-    queryVector,
-    limit = 10,
-    scoreThreshold = null,
-    filter = null,
-) => {
-    try {
-        const response = await apiClient(
-            `${API_BASE_URL}/api/retrieval/search`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    collection_name: collectionName,
-                    query: {
-                        vector: queryVector,
-                        limit: limit,
-                        score_threshold: scoreThreshold,
-                        filter: filter,
-                    },
-                }),
-            },
-        );
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        devLog.info('Points search completed:', data);
-        return data;
-    } catch (error) {
-        devLog.error('Failed to search points:', error);
-        throw error;
-    }
-};
-
-// =============================================================================
-// Configuration
-// =============================================================================
-
-/**
- * RAG 시스템 설정을 조회하는 함수
- * @returns {Promise<Object>} RAG 설정 정보
- */
-export const getRagConfig = async () => {
-    try {
-        const response = await apiClient(
-            `${API_BASE_URL}/api/retrieval/config`,
-        );
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        devLog.info('RAG config fetched:', data);
-        return data;
-    } catch (error) {
-        devLog.error('Failed to fetch RAG config:', error);
-        throw error;
-    }
-};
-
 // =============================================================================
 // Utility Functions
 // =============================================================================
@@ -855,7 +716,7 @@ export const getCurrentEmbeddingDimension = async (provider, model) => {
 export const refreshRetrievalConfig = async () => {
     try {
         const response = await fetch(
-            `${API_BASE_URL}/api/retrieval/refresh-db`,
+            `${API_BASE_URL}/api/retrieval/refresh/rag-system`,
             {
                 method: 'POST',
                 headers: {

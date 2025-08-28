@@ -9,7 +9,7 @@ import {
     getPieChartData,
     getBarChartData,
     getLineChartData
-} from '@/app/api/workflowAPI';
+} from '@/app/api/workflow/workflowAPI';
 import styles from '@/app/main/assets/ChartDashboard.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
 import ChartPlaceholder from './ChartPlaceholder';

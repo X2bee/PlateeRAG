@@ -10,7 +10,7 @@ import {
     FiRefreshCw,
 } from 'react-icons/fi';
 import styles from '@/app/main/assets/CompletedWorkflows.module.scss';
-import { listWorkflowsDetail, deleteWorkflow } from '@/app/api/workflowAPI';
+import { listWorkflowsDetail, deleteWorkflow } from '@/app/api/workflow/workflowAPI';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 

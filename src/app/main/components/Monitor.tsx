@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { FiTrash2, FiRefreshCw, FiBarChart } from 'react-icons/fi';
-import { getWorkflowPerformance, deleteWorkflowPerformance } from '@/app/api/workflowAPI';
+import { getWorkflowPerformance, deleteWorkflowPerformance } from '@/app/api/workflow/workflowAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import toast from 'react-hot-toast';
 import styles from '@/app/main/assets/Monitor.module.scss';

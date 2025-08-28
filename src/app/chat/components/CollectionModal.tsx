@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiFolder, FiFileText, FiChevronRight, FiRefreshCw } from 'react-icons/fi';
 import styles from '@/app/chat/assets/CollectionModal.module.scss';
-import { listCollections, listDocumentsInCollection } from '@/app/api/retrievalAPI';
+import { listCollections, listDocumentsInCollection } from '@/app/api/rag/retrievalAPI';
 import { devLog } from '@/app/_common/utils/logger';
 
 interface Collection {

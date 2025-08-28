@@ -51,7 +51,7 @@ export const apiClient = async (url, options = {}) => {
     const response = await fetch(`${url}`, mergedOptions);
 
     if (response.status === 401) {
-        console.error('Unauthorized request. Redirecting to login...');
+        devLog.error('Unauthorized request. Redirecting to login...');
     }
 
     return response;

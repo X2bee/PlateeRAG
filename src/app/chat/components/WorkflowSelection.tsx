@@ -8,7 +8,7 @@ import {
     FiArrowLeft,
 } from 'react-icons/fi';
 import styles from '@/app/chat/assets/WorkflowSelection.module.scss';
-import { listWorkflowsDetail } from '@/app/api/workflowAPI';
+import { listWorkflowsDetail } from '@/app/api/workflow/workflowAPI';
 import toast from 'react-hot-toast';
 
 interface Workflow {

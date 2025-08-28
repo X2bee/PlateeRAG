@@ -1,7 +1,7 @@
 // Configuration API 호출 함수들을 관리하는 파일
 import { devLog } from '@/app/_common/utils/logger';
-import { API_BASE_URL } from '@/app/config.js';
-import { apiClient } from '@/app/api/apiClient';
+import { API_BASE_URL } from '@/app/config';
+import { apiClient } from '@/app/api/helper/apiClient';
 
 /**
  * 백엔드에서 모든 설정 정보를 가져오는 함수
@@ -130,54 +130,6 @@ export const testConnection = async (category) => {
         };
     } catch (error) {
         devLog.error('Failed to test connection:', error);
-        throw error;
-    }
-};
-
-/**
- * 모든 설정 정보를 저장하는 함수
- * @returns {Promise<Object>} 저장 결과
- */
-export const saveConfigs = async () => {
-    try {
-        const response = await apiClient(
-            `${API_BASE_URL}/app/config/persistent/save`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            },
-        );
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        devLog.error('Failed to save configs:', error);
-        throw error;
-    }
-};
-
-/**
- * 앱 설정 정보를 가져오는 함수
- * @returns {Promise<Object>} 앱 설정 정보
- */
-export const fetchAppConfig = async () => {
-    try {
-        const response = await apiClient(`${API_BASE_URL}/app/config`);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        devLog.error('Failed to fetch app config:', error);
         throw error;
     }
 };

@@ -1,7 +1,7 @@
 // lib/api/evaluationApi.js
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config';
-import { apiClient } from '@/app/api/apiClient';
+import { apiClient } from '@/app/api/helper/apiClient';
 
 /**
  * 평가 API 호출 함수들을 관리하는 클래스
@@ -42,10 +42,10 @@ export class EvaluationAPI {
   static async loadMinioItems(type) {
     try {
       // 환경변수 직접 사용
-      const bucketName = type === 'model' 
-        ? process.env.NEXT_PUBLIC_MINIO_MODEL_BUCKET 
+      const bucketName = type === 'model'
+        ? process.env.NEXT_PUBLIC_MINIO_MODEL_BUCKET
         : process.env.NEXT_PUBLIC_MINIO_DATA_BUCKET;
-      
+
       const params = this.buildParams({
         bucket_name: bucketName,
         hugging_face_user_id: process.env.NEXT_PUBLIC_HUGGING_FACE_USER_ID,
@@ -56,13 +56,13 @@ export class EvaluationAPI {
       });
 
       const response = await apiClient(`${API_BASE_URL}/api/loader/minio/subfolders?${params}`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const responseData = await response.json();
-      
+
       if (responseData.status === "success" && Array.isArray(responseData.data)) {
         return responseData.data;
       } else {
@@ -93,17 +93,17 @@ export class EvaluationAPI {
       });
 
       const response = await apiClient(`${API_BASE_URL}/api/loader/minio/dataset/info?${params}`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const responseData = await response.json();
-      
+
       if (responseData.status === "success" && responseData.data?.default) {
         const fetchedInfo = responseData.data;
         const splitKeys = Object.keys(fetchedInfo.default);
-        
+
         if (splitKeys.length > 0) {
           const columnSourceKey = splitKeys.includes('train') ? 'train' : splitKeys[0];
           const columnSource = fetchedInfo.default[columnSourceKey];
@@ -113,7 +113,7 @@ export class EvaluationAPI {
           }
         }
       }
-      
+
       return [];
     } catch (error) {
       devLog.error('Failed to fetch dataset info:', error);
@@ -128,13 +128,13 @@ export class EvaluationAPI {
   static async loadEvalResults() {
     try {
       const response = await apiClient(`${API_BASE_URL}/api/eval`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       // 각 작업 객체에 job_id 필드 추가
       const jobs = {};
       Object.keys(data).forEach(jobId => {
@@ -142,7 +142,7 @@ export class EvaluationAPI {
         jobData.job_id = jobId;
         jobs[jobId] = jobData;
       });
-      
+
       return jobs;
     } catch (error) {
       devLog.error('Failed to load evaluation results:', error);
@@ -164,12 +164,12 @@ export class EvaluationAPI {
         },
         body: JSON.stringify(requestBody)
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.detail || '평가 실행에 실패했습니다');
       }
-      
+
       return response.json();
     } catch (error) {
       devLog.error('Failed to run evaluation:', error);
@@ -185,17 +185,17 @@ export class EvaluationAPI {
   static async getEvaluationDetails(jobId) {
     try {
       const response = await apiClient(`${API_BASE_URL}/api/eval/${jobId}`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (!data || !data.job_id) {
         throw new Error('작업 상세 정보가 없습니다.');
       }
-      
+
       return data;
     } catch (error) {
       devLog.error('Failed to get evaluation details:', error);
@@ -307,7 +307,7 @@ export const testEvaluationConnection = async (jobId) => {
 
     // 실제 연결 테스트 로직 (백엔드 엔드포인트가 있는 경우)
     const job = await EvaluationAPI.getEvaluationDetails(jobId);
-    
+
     return {
       success: true,
       message: `평가 작업 ${jobId} 연결 테스트가 완료되었습니다.`,

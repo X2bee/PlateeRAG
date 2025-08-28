@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import styles from '@/app/canvas/assets/WorkflowPanel.module.scss';
 import sideMenuStyles from '@/app/canvas/assets/SideMenu.module.scss';
 import { LuArrowLeft, LuFolderOpen, LuDownload, LuRefreshCw, LuCalendar, LuTrash2 } from "react-icons/lu";
-import { listWorkflows, loadWorkflow, deleteWorkflow } from '@/app/api/workflowAPI';
+import { listWorkflows, loadWorkflow, deleteWorkflow } from '@/app/api/workflow/workflowAPI';
 import { getWorkflowState } from '@/app/_common/utils/workflowStorage';
 import { devLog } from '@/app/_common/utils/logger';
 import type {

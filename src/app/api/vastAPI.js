@@ -1,6 +1,6 @@
 import { devLog } from '@/app/_common/utils/logger';
-import { API_BASE_URL } from '@/app/config.js';
-import { apiClient } from '@/app/api/apiClient';
+import { API_BASE_URL } from '@/app/config';
+import { apiClient } from '@/app/api/helper/apiClient';
 
 /**
  * Vast 서비스 상태 확인 API

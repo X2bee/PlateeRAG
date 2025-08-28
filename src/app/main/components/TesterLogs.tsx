@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from '@/app/main/assets/TesterLogs.module.scss';
 import { FiRefreshCw, FiDownload, FiEye, FiClock, FiDatabase, FiTrash2, FiBarChart, FiCheckCircle, FiXCircle } from 'react-icons/fi';
-import { getWorkflowTesterIOLogs, deleteWorkflowTesterIOLogs } from '@/app/api/workflowAPI';
+import { getWorkflowTesterIOLogs, deleteWorkflowTesterIOLogs } from '@/app/api/workflow/workflowAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import toast from 'react-hot-toast';
 import TesterChartDashboard from './charts/TesterChartDashboard';
