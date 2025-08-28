@@ -19,7 +19,7 @@ import {
 } from 'react-icons/fi';
 import { AdminSidebarItem } from '@/app/admin/components/types';
 
-export const getUserItems = ['users', 'user-create', 'user-permissions'];
+export const getUserItems = ['users', 'user-create', 'group-permissions'];
 
 export const getUserSidebarItems = (): AdminSidebarItem[] => [
     {
@@ -35,9 +35,9 @@ export const getUserSidebarItems = (): AdminSidebarItem[] => [
         icon: React.createElement(FiUserPlus),
     },
     {
-        id: 'user-permissions',
-        title: '권한 관리',
-        description: '사용자별 권한 설정 및 관리',
+        id: 'group-permissions',
+        title: '그룹 권한 관리',
+        description: '그룹별 권한 설정 및 관리',
         icon: React.createElement(FiShield),
     },
 ];

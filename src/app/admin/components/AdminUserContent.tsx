@@ -22,6 +22,13 @@ interface User {
     preferences?: any;
 }
 
+interface PaginationInfo {
+    page: number;
+    page_size: number;
+    offset: number;
+    total_returned: number;
+}
+
 const AdminUserContent: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -32,14 +39,29 @@ const AdminUserContent: React.FC = () => {
     const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+    const [hasNextPage, setHasNextPage] = useState(false);
+
+    const PAGE_SIZE = 100;
 
     // 사용자 데이터 로드
-    const loadUsers = async () => {
+    const loadUsers = async (page: number = 1, resetUsers: boolean = true) => {
         try {
             setLoading(true);
             setError(null);
-            const userData = await getAllUsers();
-            setUsers(userData || []);
+            const response = await getAllUsers(page, PAGE_SIZE) as any;
+            const newUsers = response.users || [];
+
+            if (resetUsers) {
+                setUsers(newUsers);
+            } else {
+                setUsers(prevUsers => [...prevUsers, ...newUsers]);
+            }
+
+            setPagination(response.pagination);
+            setHasNextPage(newUsers.length === PAGE_SIZE);
+            setCurrentPage(page);
         } catch (err) {
             setError(err instanceof Error ? err.message : '사용자 목록을 불러오는데 실패했습니다.');
             devLog.error('Failed to load users:', err);
@@ -48,8 +70,65 @@ const AdminUserContent: React.FC = () => {
         }
     };
 
+    // 다음 페이지 로드
+    const loadNextPage = () => {
+        if (hasNextPage && !loading) {
+            loadUsers(currentPage + 1, false);
+        }
+    };
+
+    // 이전 페이지 로드
+    const loadPrevPage = () => {
+        if (currentPage > 1 && !loading) {
+            const targetPage = currentPage - 1;
+            loadUsersRange(1, targetPage);
+        }
+    };
+
+    // 특정 범위의 페이지들을 로드하는 함수
+    const loadUsersRange = async (startPage: number, endPage: number) => {
+        try {
+            setLoading(true);
+            setError(null);
+            let allUsers: User[] = [];
+            let lastPagination: any = null;
+
+            for (let page = startPage; page <= endPage; page++) {
+                const response = await getAllUsers(page, PAGE_SIZE) as any;
+                const pageUsers = response.users || [];
+                allUsers = [...allUsers, ...pageUsers];
+                lastPagination = response.pagination;
+
+                if (pageUsers.length < PAGE_SIZE) {
+                    break;
+                }
+            }
+
+            setUsers(allUsers);
+            setCurrentPage(endPage);
+            setPagination(lastPagination);
+
+            if (lastPagination && lastPagination.total_returned === PAGE_SIZE) {
+                setHasNextPage(true);
+            } else {
+                setHasNextPage(false);
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : '사용자 목록을 불러오는데 실패했습니다.');
+            devLog.error('Failed to load users range:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 새로고침 핸들러
+    const handleRefresh = () => {
+        setCurrentPage(1);
+        loadUsers(1, true);
+    };
+
     useEffect(() => {
-        loadUsers();
+        loadUsers(1, true);
     }, []);
 
     // 검색 필터링
@@ -66,8 +145,30 @@ const AdminUserContent: React.FC = () => {
                fullName.includes(searchLower);
     });
 
-    // 정렬
-    const sortedUsers = [...filteredUsers].sort((a, b) => {
+    // 정렬 (검색이 활성화된 경우에만 클라이언트 정렬 적용)
+    const sortedUsers = searchTerm ? [...filteredUsers].sort((a, b) => {
+        const aValue = a[sortField];
+        const bValue = b[sortField];
+
+        // user_type에 대한 특별한 정렬 로직
+        if (sortField === 'user_type') {
+            const userTypeOrder = { 'superuser': 2, 'admin': 1, 'standard': 0 };
+            const aOrder = userTypeOrder[a.user_type];
+            const bOrder = userTypeOrder[b.user_type];
+
+            const comparison = aOrder - bOrder;
+            return sortDirection === 'asc' ? comparison : -comparison;
+        }
+
+        // undefined 값 처리
+        if (aValue === undefined && bValue === undefined) return 0;
+        if (aValue === undefined) return 1;
+        if (bValue === undefined) return -1;
+        if (aValue === bValue) return 0;
+
+        const comparison = aValue < bValue ? -1 : 1;
+        return sortDirection === 'asc' ? comparison : -comparison;
+    }) : [...users].sort((a, b) => {
         const aValue = a[sortField];
         const bValue = b[sortField];
 
@@ -90,6 +191,9 @@ const AdminUserContent: React.FC = () => {
         const comparison = aValue < bValue ? -1 : 1;
         return sortDirection === 'asc' ? comparison : -comparison;
     });
+
+    // 표시할 사용자 결정
+    const displayUsers = searchTerm ? sortedUsers : sortedUsers;
 
     // 정렬 핸들러
     const handleSort = (field: keyof User) => {
@@ -244,7 +348,7 @@ const AdminUserContent: React.FC = () => {
                 <div className={styles.error}>
                     <h3>오류 발생</h3>
                     <p>{error}</p>
-                    <button onClick={loadUsers} className={styles.retryButton}>
+                    <button onClick={() => loadUsers(1, true)} className={styles.retryButton}>
                         다시 시도
                     </button>
                 </div>
@@ -265,15 +369,51 @@ const AdminUserContent: React.FC = () => {
                         className={styles.searchInput}
                     />
                 </div>
+
                 <div className={styles.stats}>
-                    <span>총 {users.length}명의 사용자</span>
+                    <span>총 {users.length}명의 사용자 로드됨</span>
                     {searchTerm && (
-                        <span>({filteredUsers.length}명 검색됨)</span>
+                        <span>({sortedUsers.length}명 검색됨)</span>
+                    )}
+                    {pagination && !searchTerm && (
+                        <>
+                            <span>|</span>
+                            <span>페이지 {pagination.page}</span>
+                            <span>표시: {pagination.total_returned}명</span>
+                            <span>크기: {pagination.page_size}</span>
+                        </>
+                    )}
+                    {searchTerm && (
+                        <>
+                            <span>|</span>
+                            <span>검색 모드: 로드된 모든 사용자 검색</span>
+                        </>
                     )}
                 </div>
-                <button onClick={loadUsers} className={styles.refreshButton}>
-                    새로고침
-                </button>
+
+                <div className={styles.actionButtons}>
+                    {!searchTerm && (
+                        <div className={styles.paginationButtons}>
+                            <button
+                                onClick={loadPrevPage}
+                                disabled={loading || currentPage <= 1}
+                                className={styles.paginationButton}
+                            >
+                                이전
+                            </button>
+                            <button
+                                onClick={loadNextPage}
+                                disabled={loading || !hasNextPage}
+                                className={styles.paginationButton}
+                            >
+                                다음
+                            </button>
+                        </div>
+                    )}
+                    <button onClick={handleRefresh} className={styles.refreshButton}>
+                        새로고침
+                    </button>
+                </div>
             </div>
 
             {/* 사용자 테이블 */}
@@ -384,14 +524,14 @@ const AdminUserContent: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {sortedUsers.length === 0 ? (
+                        {displayUsers.length === 0 ? (
                             <tr>
                                 <td colSpan={10} className={styles.noData}>
                                     {searchTerm ? '검색 결과가 없습니다.' : '등록된 사용자가 없습니다.'}
                                 </td>
                             </tr>
                         ) : (
-                            sortedUsers.map((user) => {
+                            displayUsers.map((user) => {
                                 const roleInfo = getUserRoleDisplay(user);
                                 return (
                                     <tr key={user.id} className={styles.tableRow}>
@@ -433,12 +573,12 @@ const AdminUserContent: React.FC = () => {
 
             {/* 모바일 카드 레이아웃 */}
             <div className={styles.cardContainer}>
-                {sortedUsers.length === 0 ? (
+                {displayUsers.length === 0 ? (
                     <div className={styles.noData}>
                         {searchTerm ? '검색 결과가 없습니다.' : '등록된 사용자가 없습니다.'}
                     </div>
                 ) : (
-                    sortedUsers.map((user) => {
+                    displayUsers.map((user) => {
                         const roleInfo = getUserRoleDisplay(user);
                         return (
                             <div key={user.id} className={styles.userCard}>

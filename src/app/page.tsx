@@ -5,7 +5,6 @@ import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import {
     FiArrowRight,
-    FiGithub,
     FiPlay,
     FiZap,
     FiGrid,
@@ -26,18 +25,16 @@ export default function HomePage() {
     const { user, clearAuth, refreshAuth } = useAuth();
 
     useEffect(() => {
-        // 컴포넌트가 마운트될 때 인증 상태 새로고침
         refreshAuth();
     }, [refreshAuth]);
 
     const handleLogout = async () => {
         try {
             await logout();
-            clearAuth(); // CookieProvider를 통한 인증 정보 정리
+            clearAuth();
             toast.success('로그아웃되었습니다.');
         } catch (error) {
             console.error('Logout failed:', error);
-            // 로그아웃 실패해도 UI는 업데이트 (스토리지는 이미 정리됨)
             clearAuth();
             toast.error('로그아웃 처리 중 오류가 발생했습니다.');
         }

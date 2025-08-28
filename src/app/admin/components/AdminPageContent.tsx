@@ -11,6 +11,7 @@ import AdminRegisterUser from '@/app/admin/components/AdminRegisterUser';
 import AdminConfigViewer from '@/app/admin/components/AdminConfigViewer';
 import AdminSettings from '@/app/admin/components/AdminSettings';
 import AdminWorkflowLogsContent from '@/app/admin/components/AdminWorkflowLogsContent';
+import AdminGroupContent from '@/app/admin/components/AdminGroupContent';
 import AdminPlayground from '@/app/admin/components/playground/AdminPlayground';
 import {
     getUserSidebarItems,
@@ -154,7 +155,7 @@ const AdminPageContent: React.FC = () => {
     const isValidSection = (section: string): boolean => {
         const validSections = [
             'dashboard',
-            'users', 'user-create', 'user-permissions',
+            'users', 'user-create', 'group-permissions',
             'system-config', 'system-settings', 'chat-monitoring', 'workflow-monitoring', 'system-monitor', 'system-health',
             'database', 'storage', 'backup',
             'security-settings', 'audit-logs', 'error-logs', 'access-logs'
@@ -191,13 +192,13 @@ const AdminPageContent: React.FC = () => {
                         <AdminRegisterUser />
                     </AdminContentArea>
                 );
-            case 'user-permissions':
+            case 'group-permissions':
                 return (
                     <AdminContentArea
-                        title="권한 관리"
-                        description="사용자별 권한을 설정하고 관리하세요."
+                        title="그룹 권한 관리"
+                        description="그룹을 생성하고 사용자를 그룹에 할당하여 권한을 관리하세요."
                     >
-                        <div>권한 관리 컴포넌트가 여기에 표시됩니다.</div>
+                        <AdminGroupContent />
                     </AdminContentArea>
                 );
             case 'system-config':
@@ -342,7 +343,7 @@ const AdminPageContent: React.FC = () => {
                 securityItems={securityItems}
                 activeItem={activeSection}
                 onItemClick={(itemId: string) => setActiveSection(itemId)}
-                initialUserExpanded={['users', 'user-create', 'user-permissions'].includes(activeSection)}
+                initialUserExpanded={['users', 'user-create', 'group-permissions'].includes(activeSection)}
                 initialSystemExpanded={['system-config', 'system-settings', 'chat-monitoring', 'workflow-monitoring', 'system-monitor', 'system-health'].includes(activeSection)}
                 initialDataExpanded={['database', 'storage', 'backup'].includes(activeSection)}
                 initialSecurityExpanded={['security-settings', 'audit-logs', 'error-logs', 'access-logs'].includes(activeSection)}

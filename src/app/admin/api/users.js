@@ -7,11 +7,14 @@ import { setCookieAuth } from '@/app/_common/utils/cookieUtils';
 
 /**
  * 모든 사용자 목록을 가져오는 함수 (슈퍼유저 권한 필요)
- * @returns {Promise<Array>} 사용자 목록 배열
+ * @param {number} page - 페이지 번호 (1부터 시작)
+ * @param {number} pageSize - 페이지당 항목 수 (기본값: 100)
+ * @returns {Promise<Object>} 사용자 목록과 페이지네이션 정보가 포함된 객체
  */
-export const getAllUsers = async () => {
+export const getAllUsers = async (page = 1, pageSize = 100) => {
     try {
-        const response = await apiClient(`${API_BASE_URL}/api/admin/user/all-users`);
+        const url = `${API_BASE_URL}/api/admin/user/all-users?page=${page}&page_size=${pageSize}`;
+        const response = await apiClient(url);
         const data = await response.json();
         devLog.log('Get all users result:', data);
 
@@ -20,7 +23,7 @@ export const getAllUsers = async () => {
             throw new Error(data.detail || 'Failed to get all users');
         }
 
-        return data.users;
+        return data;
     } catch (error) {
         devLog.error('Failed to get all users:', error);
         throw error;
