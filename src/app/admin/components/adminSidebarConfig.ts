@@ -46,16 +46,16 @@ export const getSettingItems = ['system-config', 'system-settings'];
 
 export const getSettingSidebarItems = (): AdminSidebarItem[] => [
     {
-        id: 'system-config',
+        id: 'system-settings',
         title: '시스템 설정',
-        description: '전역 시스템 설정 및 환경변수',
-        icon: React.createElement(FiSettings),
+        description: 'LLM, 데이터베이스, 벡터DB 등',
+        icon: React.createElement(FiServer),
     },
     {
-        id: 'system-settings',
+        id: 'system-config',
         title: '시스템 세부 설정',
-        description: 'LLM, 데이터베이스, 벡터DB 등 상세 설정',
-        icon: React.createElement(FiServer),
+        description: '전역 시스템 설정 및 환경변수',
+        icon: React.createElement(FiSettings),
     },
 ];
 export const getSystemItems = ['chat-monitoring', 'workflow-monitoring', 'system-monitor', 'system-health'];

@@ -19,7 +19,6 @@ import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
 
 import AdminLLMConfig from '@/app/admin/components/config/AdminLLMConfig';
-import AdminWorkflowConfig from '@/app/admin/components/config/AdminWorkflowConfig';
 import AdminDatabaseConfig from '@/app/admin/components/config/AdminDatabaseConfig';
 import AdminVectordbConfig from '@/app/admin/components/config/AdminVectordbConfig';
 import AdminCollectionConfig from '@/app/admin/components/config/AdminCollectionConfig';
@@ -161,14 +160,6 @@ const AdminSettings: React.FC = () => {
             status: configs.collection?.imageTextApiKey ? 'connected' : 'disconnected',
         },
         {
-            id: 'workflow',
-            name: '워크플로우',
-            description: '워크플로우 실행 및 관리 설정',
-            icon: <BsGear />,
-            color: '#4f46e5',
-            status: 'connected',
-        },
-        {
             id: 'database',
             name: '데이터베이스',
             description: 'PostgreSQL, SQLite 등 데이터베이스 연결 설정',
@@ -224,15 +215,6 @@ const AdminSettings: React.FC = () => {
         console.log('📢 AdminSettings: Received config update notification');
         await fetchConfigData();
     }, []);
-
-    const renderWorkflowConfig = () => {
-        return (
-            <AdminWorkflowConfig
-                configData={configData}
-                onTestConnection={handleTestConnection}
-            />
-        );
-    };
 
     const renderDatabaseConfig = () => {
         return (
@@ -294,8 +276,6 @@ const AdminSettings: React.FC = () => {
                 return renderVastAiConfig();
             case 'collection':
                 return renderCollectionConfig();
-            case 'workflow':
-                return renderWorkflowConfig();
             case 'database':
                 return renderDatabaseConfig();
             case 'vectordb':
@@ -309,28 +289,6 @@ const AdminSettings: React.FC = () => {
 
     const getCurrentCategory = () => {
         return toolCategories.find((cat) => cat.id === selectedCategory);
-    };
-
-    const getStatusIcon = (status: string) => {
-        switch (status) {
-            case 'connected':
-                return <FiCheck className={styles.statusConnected} />;
-            case 'error':
-                return <FiX className={styles.statusError} />;
-            default:
-                return null;
-        }
-    };
-
-    const getStatusText = (status: string) => {
-        switch (status) {
-            case 'connected':
-                return '연결됨';
-            case 'error':
-                return '오류';
-            default:
-                return '연결 안됨';
-        }
     };
 
     return (
