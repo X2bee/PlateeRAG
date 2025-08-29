@@ -2,6 +2,7 @@
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
 import { apiClient } from '@/app/api/helper/apiClient';
+import { generateSha256Hash } from '@/app/_common/utils/generateSha1Hash';
 
 /**
  * 슈퍼유저 존재 여부를 확인하는 함수
