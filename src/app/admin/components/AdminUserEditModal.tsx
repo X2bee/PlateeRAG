@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { devLog } from '@/app/_common/utils/logger';
-import { getAllGroupsList } from '@/app/admin/api/group';
 import styles from '@/app/admin/assets/AdminUserEditModal.module.scss';
 
 interface User {
@@ -15,7 +14,7 @@ interface User {
     is_active: boolean;
     is_admin: boolean;
     user_type: 'superuser' | 'admin' | 'standard';
-    group_name: string;
+    groups: string[] | null;
     last_login?: string | null;
     password_hash: string;
     preferences?: any;
@@ -38,7 +37,6 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
         email: '',
         username: '',
         full_name: '',
-        group_name: '',
         user_type: 'standard' as 'superuser' | 'admin' | 'standard',
         preferences: ''
     });
@@ -47,29 +45,6 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
     const [showPasswordChange, setShowPasswordChange] = useState(false);
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [groupsList, setGroupsList] = useState<string[]>([]);
-    const [loadingGroups, setLoadingGroups] = useState(false);
-
-    // 그룹 목록 로드
-    const loadGroups = async () => {
-        try {
-            setLoadingGroups(true);
-            const groups = await getAllGroupsList();
-            setGroupsList(groups || []);
-        } catch (error) {
-            devLog.error('Failed to load groups list:', error);
-            setGroupsList([]);
-        } finally {
-            setLoadingGroups(false);
-        }
-    };
-
-    // 모달이 열릴 때 그룹 목록 로드
-    useEffect(() => {
-        if (isOpen) {
-            loadGroups();
-        }
-    }, [isOpen]);
 
     // 사용자 데이터가 변경될 때 폼 데이터 업데이트
     useEffect(() => {
@@ -78,7 +53,6 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
                 email: user.email || '',
                 username: user.username || '',
                 full_name: user.full_name || '',
-                group_name: user.group_name || '',
                 user_type: user.user_type,
                 preferences: user.preferences ? JSON.stringify(user.preferences, null, 2) : ''
             });
@@ -203,7 +177,6 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
                 email: formData.email.trim(),
                 username: formData.username.trim(),
                 full_name: formData.full_name.trim() || null,
-                group_name: formData.group_name.trim(),
                 is_admin: isAdmin,
                 user_type: formData.user_type,
                 preferences: formData.preferences ? JSON.parse(formData.preferences) : null
@@ -341,27 +314,6 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
                             </div>
                         </div>
                     )}
-
-                    <div className={styles.formGroup}>
-                        <label htmlFor="group_name">조직</label>
-                        <select
-                            id="group_name"
-                            name="group_name"
-                            value={formData.group_name}
-                            onChange={handleInputChange}
-                            disabled={loading || loadingGroups}
-                        >
-                            <option value="">
-                                {loadingGroups ? '조직 목록 로딩 중...' :
-                                 groupsList.length === 0 ? '활성화된 조직이 없습니다.' : '조직을 선택하세요'}
-                            </option>
-                            {groupsList.map((groupName) => (
-                                <option key={groupName} value={groupName}>
-                                    {groupName}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
 
                     <div className={styles.formGroup}>
                         <label htmlFor="preferences">환경설정 (JSON)</label>

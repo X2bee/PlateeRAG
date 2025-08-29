@@ -16,7 +16,7 @@ interface User {
     is_active: boolean;
     is_admin: boolean;
     user_type: 'superuser' | 'admin' | 'standard';
-    group_name: string;
+    groups: string[] | null;
     last_login?: string | null;
     password_hash: string;
     preferences?: any;
@@ -228,17 +228,17 @@ const AdminUserContent: React.FC = () => {
     const getUserRoleDisplay = (user: User) => {
         if (user.user_type === 'superuser' && user.is_admin) {
             return {
-                text: '최고 관리자',
+                text: 'SUPER',
                 className: styles.roleSuperuser
             };
         } else if (user.user_type === 'admin' && user.is_admin) {
             return {
-                text: '관리자',
+                text: 'ADMIN',
                 className: styles.roleAdmin
             };
         } else if (user.user_type === 'standard' && !user.is_admin) {
             return {
-                text: '일반 사용자',
+                text: 'USER',
                 className: styles.roleUser
             };
         } else {
@@ -250,12 +250,12 @@ const AdminUserContent: React.FC = () => {
         }
     };
 
-    // 조직명 표시 함수
-    const getGroupNameDisplay = (groupName: string | null | undefined) => {
-        if (!groupName || groupName.toLowerCase() === 'none') {
+    // 조직 표시 함수
+    const getGroupsDisplay = (groups: string[] | null | undefined) => {
+        if (!groups || groups.length === 0) {
             return '없음';
         }
-        return groupName;
+        return groups.join(', ');
     };
 
     // 사용자 삭제 핸들러
@@ -500,10 +500,10 @@ const AdminUserContent: React.FC = () => {
                             </th>
                             <th
                                 className={styles.sortable}
-                                onClick={() => handleSort('group_name')}
+                                onClick={() => handleSort('groups')}
                             >
                                 조직
-                                {sortField === 'group_name' && (
+                                {sortField === 'groups' && (
                                     <span className={styles.sortIcon}>
                                         {sortDirection === 'asc' ? '↑' : '↓'}
                                     </span>
@@ -542,7 +542,7 @@ const AdminUserContent: React.FC = () => {
                                         <td>{renderStatusBadge(user.is_active)}</td>
                                         <td>{formatDate(user.created_at)}</td>
                                         <td>{formatDate(user.last_login || '')}</td>
-                                        <td className={styles.groupName}>{getGroupNameDisplay(user.group_name)}</td>
+                                        <td className={styles.groupName}>{getGroupsDisplay(user.groups)}</td>
                                         <td>
                                             <span className={`${styles.role} ${roleInfo.className}`}>
                                                 {roleInfo.text}
@@ -609,7 +609,7 @@ const AdminUserContent: React.FC = () => {
                                     </div>
                                     <div className={styles.cardField}>
                                         <div className={styles.fieldLabel}>조직</div>
-                                        <div className={styles.fieldValue}>{getGroupNameDisplay(user.group_name)}</div>
+                                        <div className={styles.fieldValue}>{getGroupsDisplay(user.groups)}</div>
                                     </div>
                                     <div className={styles.cardField}>
                                         <div className={styles.fieldLabel}>등록일</div>
