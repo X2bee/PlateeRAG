@@ -13,6 +13,11 @@ const allowedOrigins = process.env.NEXT_PUBLIC_ALLOWED_ORIGINS
 
 let BASE_URL = '';
 
+console.log('Raw NEXT_PUBLIC_ALLOWED_ORIGINS:', process.env.NEXT_PUBLIC_ALLOWED_ORIGINS);
+console.log('Parsed allowedOrigins:', allowedOrigins);
+console.log('Final ALLOWED_ORIGINS:', ALLOWED_ORIGINS);
+
+
 if (!port) {
     BASE_URL = host_url;
 } else {
@@ -20,7 +25,6 @@ if (!port) {
 }
 
 console.log(`Backend server running at ${BASE_URL}`);
-console.log(`Allowed origins:`, allowedOrigins);
 
 // API Configuration
 export const API_CONFIG = {
