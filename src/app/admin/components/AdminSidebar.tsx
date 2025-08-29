@@ -67,7 +67,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     const toggleSecurityExpanded = () => setIsSecurityExpanded(!isSecurityExpanded);
 
     const handleLogoClick = () => {
-        router.push('/');
+        router.push('/main');
     };
 
     return (

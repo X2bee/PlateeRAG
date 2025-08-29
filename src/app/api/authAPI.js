@@ -406,20 +406,6 @@ const generateRandomId = () => {
 };
 
 /**
- * 랜덤 비밀번호 생성 함수
- * @param {number} length - 비밀번호 길이 (기본값: 12)
- * @returns {string} 랜덤 비밀번호
- */
-const generateRandomPassword = (length = 12) => {
-    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-    let password = '';
-    for (let i = 0; i < length; i++) {
-        password += charset.charAt(Math.floor(Math.random() * charset.length));
-    }
-    return password;
-};
-
-/**
  * 사용자 그룹의 사용 가능한 섹션 조회 API
  * @param {number} user_id - 사용자 ID
  * @returns {Promise<Object>} 사용 가능한 섹션 목록

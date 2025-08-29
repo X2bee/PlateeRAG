@@ -395,3 +395,18 @@
         }
     }
 }
+
+.adminSection {
+    margin-top: 0.5rem;
+}
+
+.adminButton {
+    font-weight: 500 !important;
+    letter-spacing: 0.025em !important;
+}
+
+.adminDivider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, #e5e7eb 30%, #d1d5db 50%, #e5e7eb 70%, transparent 100%);
+    margin: 0.75rem 0 0 0;
+}

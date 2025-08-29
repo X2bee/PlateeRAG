@@ -136,6 +136,18 @@ import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<Side
                     )}
                 </div>
 
+                {hasAccessToSection && hasAccessToSection('admin-page') && (
+                    <div className={styles.adminSection}>
+                        <button
+                            onClick={() => router.push('/admin')}
+                            className={`${styles.navItem} ${styles.adminButton}`}
+                        >
+                            <span>🔧 관리자페이지로 이동</span>
+                        </button>
+                        <div className={styles.adminDivider}></div>
+                    </div>
+                )}
+
                 <button
                     className={styles.sidebarToggle}
                     onClick={toggleChatExpanded}
