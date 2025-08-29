@@ -26,7 +26,7 @@ export const getAllGroups = async () => {
 };
 
 /**
- * 모든 그룹명 목록을 가져오는 함수 (슈퍼유저 권한 필요)
+ * 모든 그룹명 목록을 가져오는 함수
  * @returns {Promise<Array>} 그룹명 목록 배열
  */
 export const getAllGroupsList = async () => {
