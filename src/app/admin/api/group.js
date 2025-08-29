@@ -26,6 +26,28 @@ export const getAllGroups = async () => {
 };
 
 /**
+ * 모든 그룹명 목록을 가져오는 함수 (슈퍼유저 권한 필요)
+ * @returns {Promise<Array>} 그룹명 목록 배열
+ */
+export const getAllGroupsList = async () => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/admin/group/all-groups/list`);
+        const data = await response.json();
+        devLog.log('Get all groups list result:', data);
+
+        if (!response.ok) {
+            devLog.error('Failed to get all groups list:', data);
+            throw new Error(data.detail || 'Failed to get all groups list');
+        }
+
+        return data.groups;
+    } catch (error) {
+        devLog.error('Failed to get all groups list:', error);
+        throw error;
+    }
+};
+
+/**
  * 새로운 그룹을 생성하는 함수 (슈퍼유저 권한 필요)
  * @param {Object} groupData - 생성할 그룹 정보
  * @param {string} groupData.group_name - 그룹명
@@ -111,6 +133,34 @@ export const updateGroupPermissions = async (updateData) => {
         return data;
     } catch (error) {
         devLog.error('Failed to update group permissions:', error);
+        throw error;
+    }
+};
+
+
+
+/**
+ * 그룹을 삭제하는 함수 (슈퍼유저 권한 필요)
+ * @param {string} groupName - 삭제할 그룹명
+ * @returns {Promise<Object>} 삭제 결과
+ */
+export const deleteGroup = async (groupName) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/admin/group/group?group_name=${encodeURIComponent(groupName)}`, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+        devLog.log('Delete group result:', data);
+
+        if (!response.ok) {
+            devLog.error('Failed to delete group:', data);
+            throw new Error(data.detail || 'Failed to delete group');
+        }
+
+        return data;
+    } catch (error) {
+        devLog.error('Failed to delete group:', error);
         throw error;
     }
 };

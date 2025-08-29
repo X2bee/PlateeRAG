@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getAllGroups, createGroup, getGroupUsers, updateGroupPermissions } from '@/app/admin/api/group';
+import { getAllGroups, createGroup, getGroupUsers, updateGroupPermissions, deleteGroup } from '@/app/admin/api/group';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/AdminGroupContent.module.scss';
 
@@ -17,8 +17,14 @@ interface User {
     username: string;
     full_name: string | null;
     created_at: string;
+    updated_at?: string;
     is_active: boolean;
-    user_type: string;
+    is_admin?: boolean;
+    user_type: 'superuser' | 'admin' | 'standard' | string;
+    group_name?: string;
+    last_login?: string | null;
+    password_hash?: string;
+    preferences?: any;
 }
 
 const AdminGroupContent: React.FC = () => {
@@ -63,7 +69,7 @@ const AdminGroupContent: React.FC = () => {
             const groupData = await getAllGroups();
             setGroups(groupData || []);
         } catch (err) {
-            setError(err instanceof Error ? err.message : '그룹 목록을 불러오는데 실패했습니다.');
+            setError(err instanceof Error ? err.message : '조직 목록을 불러오는데 실패했습니다.');
             devLog.error('Failed to load groups:', err);
         } finally {
             setLoading(false);
@@ -124,11 +130,30 @@ const AdminGroupContent: React.FC = () => {
             setShowPermissionModal(false);
             setEditingGroup(null);
 
-            alert('그룹 권한이 성공적으로 업데이트되었습니다.');
+            alert('조직 권한이 성공적으로 업데이트되었습니다.');
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : '권한 업데이트에 실패했습니다.';
             devLog.error('Failed to update group permissions:', err);
             alert(`업데이트 실패: ${errorMessage}`);
+        }
+    };
+
+    // 그룹 삭제 핸들러
+    const handleDeleteGroup = async (groupName: string) => {
+        if (!confirm(`정말로 "${groupName}" 조직을 삭제하시겠습니까?\n이 조직에 속한 사용자들은 'none' 그룹으로 이동됩니다.`)) {
+            return;
+        }
+
+        try {
+            await deleteGroup(groupName);
+
+            // 성공 시 목록 새로고침
+            await loadGroups();
+            alert('조직이 성공적으로 삭제되었습니다.');
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : '조직 삭제에 실패했습니다.';
+            devLog.error('Failed to delete group:', err);
+            alert(`삭제 실패: ${errorMessage}`);
         }
     };
 
@@ -160,13 +185,13 @@ const AdminGroupContent: React.FC = () => {
     const handleCreateGroup = async () => {
         try {
             if (!newGroup.group_name.trim()) {
-                alert('그룹명을 입력해주세요.');
+                alert('조직명을 입력해주세요.');
                 return;
             }
 
             await createGroup({
                 group_name: newGroup.group_name.trim(),
-                available: newGroup.available,
+                available: true, // 항상 true로 설정
                 available_sections: newGroup.available_sections,
             });
 
@@ -175,14 +200,14 @@ const AdminGroupContent: React.FC = () => {
             setShowCreateModal(false);
             setNewGroup({
                 group_name: '',
-                available: true,
+                available: true, // 기본값 true 유지
                 available_sections: [],
                 managers: []
             });
 
-            alert('그룹이 성공적으로 생성되었습니다.');
+            alert('조직이 성공적으로 생성되었습니다.');
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : '그룹 생성에 실패했습니다.';
+            const errorMessage = err instanceof Error ? err.message : '조직 생성에 실패했습니다.';
             devLog.error('Failed to create group:', err);
             alert(`생성 실패: ${errorMessage}`);
         }
@@ -212,7 +237,7 @@ const AdminGroupContent: React.FC = () => {
             <div className={styles.container}>
                 <div className={styles.loading}>
                     <div className={styles.spinner}></div>
-                    <p>그룹 목록을 불러오는 중...</p>
+                    <p>조직 목록을 불러오는 중...</p>
                 </div>
             </div>
         );
@@ -240,7 +265,7 @@ const AdminGroupContent: React.FC = () => {
                     <div className={styles.searchContainer}>
                         <input
                             type="text"
-                            placeholder="그룹명으로 검색..."
+                            placeholder="조직명으로 검색..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className={styles.searchInput}
@@ -248,7 +273,7 @@ const AdminGroupContent: React.FC = () => {
                     </div>
 
                     <div className={styles.stats}>
-                        <span>총 {groups.length}개의 그룹</span>
+                        <span>총 {groups.length}개의 조직</span>
                         {searchTerm && (
                             <span>({filteredGroups.length}개 검색됨)</span>
                         )}
@@ -259,7 +284,7 @@ const AdminGroupContent: React.FC = () => {
                             onClick={() => setShowCreateModal(true)}
                             className={styles.refreshButton}
                         >
-                            새 그룹 생성
+                            새 조직 생성
                         </button>
                         <button onClick={loadGroups} className={styles.refreshButton}>
                             새로고침
@@ -276,12 +301,12 @@ const AdminGroupContent: React.FC = () => {
                             onClick={handleBackToGroups}
                             className={styles.refreshButton}
                         >
-                            ← 그룹 목록으로 돌아가기
+                            ← 조직 목록으로 돌아가기
                         </button>
                     </div>
 
                     <div className={styles.stats}>
-                        <span>{selectedGroup} 그룹 사용자 ({groupUsers.length}명)</span>
+                        <span>{selectedGroup} 조직 사용자 ({groupUsers.length}명)</span>
                     </div>
 
                     <div className={styles.actionButtons}>
@@ -301,7 +326,7 @@ const AdminGroupContent: React.FC = () => {
                     <table className={styles.table}>
                         <thead>
                             <tr>
-                                <th>그룹명</th>
+                                <th>조직명</th>
                                 <th>상태</th>
                                 <th>사용 가능 섹션</th>
                                 <th>액션</th>
@@ -311,7 +336,7 @@ const AdminGroupContent: React.FC = () => {
                             {filteredGroups.length === 0 ? (
                                 <tr>
                                     <td colSpan={4} className={styles.noData}>
-                                        {loading ? '그룹 목록을 불러오는 중...' : searchTerm ? '검색 결과가 없습니다.' : '등록된 그룹이 없습니다.'}
+                                        {loading ? '조직 목록을 불러오는 중...' : searchTerm ? '검색 결과가 없습니다.' : '등록된 조직이 없습니다.'}
                                     </td>
                                 </tr>
                             ) : (
@@ -338,6 +363,12 @@ const AdminGroupContent: React.FC = () => {
                                             >
                                                 권한 편집
                                             </button>
+                                            <button
+                                                className={`${styles.actionButton} ${styles.dangerButton}`}
+                                                onClick={() => handleDeleteGroup(group.group_name)}
+                                            >
+                                                삭제
+                                            </button>
                                         </td>
                                     </tr>
                                 ))
@@ -347,7 +378,7 @@ const AdminGroupContent: React.FC = () => {
                 )}
 
                 {activeTab === 'users' && (
-                    <table className={styles.table}>
+                    <table className={`${styles.table} ${styles.userTable}`}>
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -355,21 +386,23 @@ const AdminGroupContent: React.FC = () => {
                                 <th>사용자명</th>
                                 <th>이름</th>
                                 <th>상태</th>
-                                <th>권한</th>
                                 <th>등록일</th>
+                                <th>마지막 로그인</th>
+                                <th>권한</th>
+                                <th>조직</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loadingUsers ? (
                                 <tr>
-                                    <td colSpan={7} className={styles.noData}>
+                                    <td colSpan={9} className={styles.noData}>
                                         사용자 목록을 불러오는 중...
                                     </td>
                                 </tr>
                             ) : groupUsers.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className={styles.noData}>
-                                        이 그룹에 속한 사용자가 없습니다.
+                                    <td colSpan={9} className={styles.noData}>
+                                        이 조직에 속한 사용자가 없습니다.
                                     </td>
                                 </tr>
                             ) : (
@@ -380,8 +413,26 @@ const AdminGroupContent: React.FC = () => {
                                         <td className={styles.username}>{user.username}</td>
                                         <td className={styles.fullName}>{user.full_name || '-'}</td>
                                         <td>{renderStatusBadge(user.is_active)}</td>
-                                        <td className={styles.userType}>{user.user_type}</td>
                                         <td>{formatDate(user.created_at)}</td>
+                                        <td className={styles.lastLogin}>
+                                            {user.last_login ? formatDate(user.last_login) : '로그인 기록 없음'}
+                                        </td>
+                                        <td>
+                                            <span className={`${styles.role} ${
+                                                user.user_type === 'superuser' ? styles.roleSuperuser :
+                                                user.user_type === 'admin' ? styles.roleAdmin :
+                                                user.user_type === 'standard' ? styles.roleUser :
+                                                styles.roleUnknown
+                                            }`}>
+                                                {user.user_type === 'superuser' ? 'SUPER' :
+                                                 user.user_type === 'admin' ? 'ADMIN' :
+                                                 user.user_type === 'standard' ? 'USER' :
+                                                 'UNKNOWN'}
+                                            </span>
+                                        </td>
+                                        <td className={styles.groupName}>
+                                            {user.group_name || selectedGroup || '-'}
+                                        </td>
                                     </tr>
                                 ))
                             )}
@@ -394,26 +445,16 @@ const AdminGroupContent: React.FC = () => {
             {showCreateModal && (
                 <div className={styles.modal}>
                     <div className={styles.modalContent}>
-                        <h3>새 그룹 생성</h3>
+                        <h3>새 조직 생성</h3>
                         <div className={styles.formGroup}>
-                            <label>그룹명 *</label>
+                            <label>조직명 *</label>
                             <input
                                 type="text"
                                 value={newGroup.group_name}
                                 onChange={(e) => setNewGroup({...newGroup, group_name: e.target.value})}
-                                placeholder="그룹명을 입력하세요"
+                                placeholder="조직명을 입력하세요"
                                 className={styles.formInput}
                             />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>
-                                <input
-                                    type="checkbox"
-                                    checked={newGroup.available}
-                                    onChange={(e) => setNewGroup({...newGroup, available: e.target.checked})}
-                                />
-                                그룹 활성화
-                            </label>
                         </div>
                         <div className={styles.modalActions}>
                             <button
@@ -440,32 +481,38 @@ const AdminGroupContent: React.FC = () => {
                         <h3>권한 변경 - {editingGroup.group_name}</h3>
 
                         <div className={styles.formGroup}>
-                            <label>그룹 상태</label>
-                            <label>
-                                <input
-                                    type="checkbox"
-                                    checked={editingGroup.available}
-                                    onChange={(e) => setEditingGroup({
-                                        ...editingGroup,
-                                        available: e.target.checked
-                                    })}
-                                />
-                                그룹 활성화
-                            </label>
+                            <button
+                                type="button"
+                                className={`${styles.statusToggleButton} ${
+                                    editingGroup.available
+                                        ? styles.statusToggleActive
+                                        : styles.statusToggleInactive
+                                }`}
+                                onClick={() => setEditingGroup({
+                                    ...editingGroup,
+                                    available: !editingGroup.available
+                                })}
+                            >
+                                {editingGroup.available ? '활성화 상태입니다.' : '비활성화 상태입니다.'}
+                            </button>
                         </div>
 
                         <div className={styles.formGroup}>
                             <label>사용 가능한 섹션</label>
                             <div className={styles.sectionGrid}>
                                 {availableSectionOptions.map((section) => (
-                                    <label key={section} className={styles.sectionItem}>
-                                        <input
-                                            type="checkbox"
-                                            checked={editingGroup.available_sections?.includes(section) || false}
-                                            onChange={() => handleSectionToggle(section)}
-                                        />
-                                        <span>{section}</span>
-                                    </label>
+                                    <button
+                                        key={section}
+                                        type="button"
+                                        className={`${styles.sectionButton} ${
+                                            editingGroup.available_sections?.includes(section)
+                                                ? styles.sectionButtonActive
+                                                : styles.sectionButtonInactive
+                                        }`}
+                                        onClick={() => handleSectionToggle(section)}
+                                    >
+                                        {section}
+                                    </button>
                                 ))}
                             </div>
                         </div>

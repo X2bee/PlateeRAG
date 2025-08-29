@@ -36,8 +36,8 @@ export const getUserSidebarItems = (): AdminSidebarItem[] => [
     },
     {
         id: 'group-permissions',
-        title: '그룹 권한 관리',
-        description: '그룹별 권한 설정 및 관리',
+        title: '조직 권한 관리',
+        description: '조직별 권한 설정 및 관리',
         icon: React.createElement(FiShield),
     },
 ];

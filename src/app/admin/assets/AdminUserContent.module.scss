@@ -2,29 +2,29 @@
 
 .container {
     padding: 0;
-    background: var(--admin-bg-primary);
-    border-radius: var(--admin-radius-md);
-    box-shadow: var(--admin-shadow);
-    border: 1px solid var(--admin-border);
+    background: $admin-bg-primary;
+    border-radius: $admin-radius-md;
+    box-shadow: $admin-shadow;
+    border: 1px solid $admin-border;
 }
 
 .controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--admin-spacing-md);
-    border-bottom: 1px solid var(--admin-border);
-    gap: var(--admin-spacing-lg);
-    background: var(--admin-bg-secondary);
+    padding: $admin-spacing-md;
+    border-bottom: 1px solid $admin-border;
+    gap: $admin-spacing-lg;
+    background: $admin-bg-secondary;
 
     @media (max-width: 1024px) {
         flex-direction: column;
-        gap: var(--admin-spacing-md);
+        gap: $admin-spacing-md;
         align-items: stretch;
     }
 
     @media (max-width: 768px) {
-        padding: var(--admin-spacing-md);
+        padding: $admin-spacing-md;
     }
 }
 
@@ -35,31 +35,31 @@
 
 .searchInput {
     width: 100%;
-    padding: var(--admin-spacing-sm) var(--admin-spacing-md);
-    border: 1px solid var(--admin-border);
-    border-radius: var(--admin-radius-md);
-    font-size: var(--admin-font-size-sm);
-    font-family: var(--admin-font-family);
-    color: var(--admin-text-primary);
-    background: var(--admin-bg-primary);
-    transition: var(--admin-transition);
+    padding: $admin-spacing-sm $admin-spacing-md;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    font-size: $admin-font-size-sm;
+    font-family: $admin-font-family;
+    color: $admin-text-primary;
+    background: $admin-bg-primary;
+    transition: $admin-transition;
 
     &:focus {
         outline: none;
-        border-color: var(--admin-primary);
-        box-shadow: 0 0 0 3px var(--admin-primary-light);
+        border-color: $admin-primary;
+        box-shadow: 0 0 0 3px $admin-primary-light;
     }
 
     &::placeholder {
-        color: var(--admin-text-muted);
+        color: $admin-text-muted;
     }
 }
 
 .stats {
     display: flex;
-    gap: var(--admin-spacing-sm);
-    color: var(--admin-text-secondary);
-    font-size: var(--admin-font-size-sm);
+    gap: $admin-spacing-sm;
+    color: $admin-text-secondary;
+    font-size: $admin-font-size-sm;
     flex: 1;
     justify-content: center;
     align-items: center;
@@ -74,13 +74,13 @@
     }
 
     @media (max-width: 768px) {
-        font-size: var(--admin-font-size-xs);
+        font-size: $admin-font-size-xs;
     }
 }
 
 .actionButtons {
     display: flex;
-    gap: var(--admin-spacing-md);
+    gap: $admin-spacing-md;
     align-items: center;
 
     @media (max-width: 1024px) {
@@ -91,33 +91,33 @@
 
 .paginationButtons {
     display: flex;
-    gap: var(--admin-spacing-sm);
+    gap: $admin-spacing-sm;
 }
 
 .paginationButton {
-    padding: var(--admin-spacing-sm) var(--admin-spacing-md);
-    background: var(--admin-bg-primary);
-    color: var(--admin-text-primary);
-    border: 1px solid var(--admin-border);
-    border-radius: var(--admin-radius-md);
+    padding: $admin-spacing-sm $admin-spacing-md;
+    background: $admin-bg-primary;
+    color: $admin-text-primary;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
     cursor: pointer;
-    font-size: var(--admin-font-size-sm);
+    font-size: $admin-font-size-sm;
     font-weight: 500;
-    font-family: var(--admin-font-family);
-    transition: var(--admin-transition);
+    font-family: $admin-font-family;
+    transition: $admin-transition;
     min-width: 60px;
 
     &:hover:not(:disabled) {
-        background: var(--admin-bg-hover);
-        border-color: var(--admin-primary);
+        background: $admin-bg-hover;
+        border-color: $admin-primary;
         transform: translateY(-1px);
-        box-shadow: var(--admin-shadow-sm);
+        box-shadow: $admin-shadow-sm;
     }
 
     &:disabled {
-        background: var(--admin-bg-disabled);
-        color: var(--admin-text-disabled);
-        border-color: var(--admin-border-light);
+        background: $admin-bg-disabled;
+        color: $admin-text-disabled;
+        border-color: $admin-border-light;
         cursor: not-allowed;
         transform: none;
         box-shadow: none;
@@ -129,21 +129,21 @@
 }
 
 .refreshButton {
-    padding: var(--admin-spacing-sm) var(--admin-spacing-lg);
-    background: var(--admin-primary);
-    color: var(--admin-text-inverse);
+    padding: $admin-spacing-sm $admin-spacing-lg;
+    background: $admin-primary;
+    color: $admin-text-inverse;
     border: none;
-    border-radius: var(--admin-radius-md);
+    border-radius: $admin-radius-md;
     cursor: pointer;
-    font-size: var(--admin-font-size-sm);
+    font-size: $admin-font-size-sm;
     font-weight: 500;
-    font-family: var(--admin-font-family);
-    transition: var(--admin-transition);
+    font-family: $admin-font-family;
+    transition: $admin-transition;
 
     &:hover {
-        background: var(--admin-primary-hover);
+        background: $admin-primary-hover;
         transform: translateY(-1px);
-        box-shadow: var(--admin-shadow-md);
+        box-shadow: $admin-shadow-md;
     }
 
     &:active {
@@ -160,47 +160,47 @@
 .table {
     width: 100%;
     border-collapse: collapse;
-    background: var(--admin-bg-primary);
+    background: $admin-bg-primary;
     min-width: 1200px; // 많은 컬럼으로 인한 최소 너비 설정
-    font-family: var(--admin-font-family);
+    font-family: $admin-font-family;
 
     th {
-        background: var(--admin-bg-secondary);
-        padding: var(--admin-spacing-sm);
+        background: $admin-bg-secondary;
+        padding: $admin-spacing-sm;
         text-align: left;
         font-weight: 600;
-        color: var(--admin-text-primary);
-        border-bottom: 2px solid var(--admin-border);
+        color: $admin-text-primary;
+        border-bottom: 2px solid $admin-border;
         position: sticky;
         top: 0;
         z-index: 20;
         white-space: nowrap;
-        font-size: var(--admin-font-size-xs);
+        font-size: $admin-font-size-xs;
 
         &.sortable {
             cursor: pointer;
             user-select: none;
-            transition: var(--admin-transition);
+            transition: $admin-transition;
             z-index: 21;
 
             &:hover {
-                background: var(--admin-bg-hover);
+                background: $admin-bg-hover;
             }
         }
     }
 
     td {
-        padding: var(--admin-spacing-sm);
-        border-bottom: 1px solid var(--admin-border-light);
+        padding: $admin-spacing-sm;
+        border-bottom: 1px solid $admin-border-light;
         vertical-align: middle;
-        font-size: var(--admin-font-size-xs);
-        color: var(--admin-text-primary);
+        font-size: $admin-font-size-xs;
+        color: $admin-text-primary;
         position: relative;
         z-index: 1;
     }
 
     tr:hover {
-        background: var(--admin-bg-hover);
+        background: $admin-bg-hover;
         z-index: 5;
 
         td {
@@ -214,147 +214,147 @@
 }
 
 .sortIcon {
-    margin-left: var(--admin-spacing-xs);
-    font-size: var(--admin-font-size-xs);
-    color: var(--admin-primary);
+    margin-left: $admin-spacing-xs;
+    font-size: $admin-font-size-xs;
+    color: $admin-primary;
 }
 
 .badge {
-    padding: var(--admin-spacing-xs) var(--admin-spacing-sm);
-    border-radius: var(--admin-radius-full);
-    font-size: var(--admin-font-size-xs);
+    padding: $admin-spacing-xs $admin-spacing-sm;
+    border-radius: $admin-radius-full;
+    font-size: $admin-font-size-xs;
     font-weight: 500;
     text-align: center;
     min-width: 40px;
     display: inline-block;
 
     &.badgeActive {
-        background: var(--admin-success-light);
-        color: var(--admin-success-hover);
-        border: 1px solid var(--admin-success);
+        background: $admin-success-light;
+        color: $admin-success-hover;
+        border: 1px solid $admin-success;
     }
 
     &.badgeInactive {
-        background: var(--admin-danger-light);
-        color: var(--admin-danger-hover);
-        border: 1px solid var(--admin-danger);
+        background: $admin-danger-light;
+        color: $admin-danger-hover;
+        border: 1px solid $admin-danger;
     }
 }
 
 .role {
-    padding: var(--admin-spacing-xs) var(--admin-spacing-sm);
-    border-radius: var(--admin-radius-sm);
-    font-size: var(--admin-font-size-xs);
+    padding: $admin-spacing-xs $admin-spacing-sm;
+    border-radius: $admin-radius-sm;
+    font-size: $admin-font-size-xs;
     font-weight: 500;
     border: 1px solid;
 
     &.roleSuperuser {
-        background: var(--admin-warning-light);
-        color: var(--admin-warning-hover);
-        border-color: var(--admin-warning);
+        background: $admin-warning-light;
+        color: $admin-warning-hover;
+        border-color: $admin-warning;
         font-weight: 700;
     }
 
     &.roleAdmin {
-        background: var(--admin-info-light);
-        color: var(--admin-info-hover);
-        border-color: var(--admin-info);
+        background: $admin-info-light;
+        color: $admin-info-hover;
+        border-color: $admin-info;
         font-weight: 600;
     }
 
     &.roleUser {
-        background: var(--admin-primary-light);
-        color: var(--admin-primary-hover);
-        border-color: var(--admin-primary);
+        background: $admin-primary-light;
+        color: $admin-primary-hover;
+        border-color: $admin-primary;
     }
 
     &.roleUnknown {
-        background: var(--admin-danger-light);
-        color: var(--admin-danger-hover);
-        border-color: var(--admin-danger);
+        background: $admin-danger-light;
+        color: $admin-danger-hover;
+        border-color: $admin-danger;
     }
 }
 
 .email {
     font-weight: 500;
-    color: var(--admin-text-primary);
-    font-size: var(--admin-font-size-xs);
+    color: $admin-text-primary;
+    font-size: $admin-font-size-xs;
 }
 
 .userId {
     font-weight: 600;
-    color: var(--admin-text-secondary);
+    color: $admin-text-secondary;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    font-size: var(--admin-font-size-xs);
+    font-size: $admin-font-size-xs;
     min-width: 60px;
 }
 
 .username {
-    color: var(--admin-text-primary);
+    color: $admin-text-primary;
     font-weight: 500;
-    font-size: var(--admin-font-size-xs);
+    font-size: $admin-font-size-xs;
 }
 
 .fullName {
-    color: var(--admin-text-primary);
+    color: $admin-text-primary;
     font-weight: 500;
-    font-size: var(--admin-font-size-xs);
+    font-size: $admin-font-size-xs;
 }
 
 .groupName {
-    color: var(--admin-text-secondary);
-    font-size: var(--admin-font-size-xs);
+    color: $admin-text-secondary;
+    font-size: $admin-font-size-xs;
 }
 
 .actions {
     display: flex;
-    gap: var(--admin-spacing-xs);
+    gap: $admin-spacing-xs;
     justify-content: flex-start;
     min-width: 120px;
 }
 
 .actionButton {
-    padding: var(--admin-spacing-xs) var(--admin-spacing-sm);
-    border: 1px solid var(--admin-border);
-    border-radius: var(--admin-radius-sm);
+    padding: $admin-spacing-xs $admin-spacing-sm;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-sm;
     cursor: pointer;
-    font-size: var(--admin-font-size-xs);
+    font-size: $admin-font-size-xs;
     font-weight: 500;
-    font-family: var(--admin-font-family);
-    transition: var(--admin-transition);
-    background: var(--admin-bg-primary);
-    color: var(--admin-text-primary);
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+    background: $admin-bg-primary;
+    color: $admin-text-primary;
 
     &:hover:not(:disabled) {
-        background: var(--admin-bg-hover);
-        border-color: var(--admin-primary);
+        background: $admin-bg-hover;
+        border-color: $admin-primary;
         transform: translateY(-1px);
-        box-shadow: var(--admin-shadow-sm);
+        box-shadow: $admin-shadow-sm;
     }
 
     &:disabled {
-        background: var(--admin-bg-disabled);
-        color: var(--admin-text-disabled);
-        border-color: var(--admin-border-light);
+        background: $admin-bg-disabled;
+        color: $admin-text-disabled;
+        border-color: $admin-border-light;
         cursor: not-allowed;
         transform: none;
         box-shadow: none;
     }
 
     &.dangerButton {
-        background: var(--admin-danger);
-        color: var(--admin-text-inverse);
-        border-color: var(--admin-danger);
+        background: $admin-danger;
+        color: $admin-text-inverse;
+        border-color: $admin-danger;
 
         &:hover:not(:disabled) {
-            background: var(--admin-danger-hover);
-            border-color: var(--admin-danger-hover);
+            background: $admin-danger-hover;
+            border-color: $admin-danger-hover;
         }
 
         &:disabled {
-            background: var(--admin-danger-light);
-            color: var(--admin-danger-hover);
-            border-color: var(--admin-danger-light);
+            background: $admin-danger-light;
+            color: $admin-danger-hover;
+            border-color: $admin-danger-light;
         }
     }
 }
@@ -364,67 +364,133 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: var(--admin-spacing-2xl) var(--admin-spacing-lg);
-    color: var(--admin-text-secondary);
+    padding: $admin-spacing-2xl $admin-spacing-lg;
+    color: $admin-text-secondary;
 
     .spinner {
         width: 40px;
         height: 40px;
-        border: 3px solid var(--admin-border-light);
-        border-top: 3px solid var(--admin-primary);
+        border: 3px solid $admin-border-light;
+        border-top: 3px solid $admin-primary;
         border-radius: 50%;
         animation: spin 1s linear infinite;
-        margin-bottom: var(--admin-spacing-lg);
+        margin-bottom: $admin-spacing-lg;
     }
 
     p {
         margin: 0;
-        font-size: var(--admin-font-size-base);
-        font-family: var(--admin-font-family);
+        font-size: $admin-font-size-sm;
     }
 }
 
 .error {
     text-align: center;
-    padding: var(--admin-spacing-2xl) var(--admin-spacing-lg);
-    color: var(--admin-danger);
+    padding: $admin-spacing-2xl $admin-spacing-lg;
+    color: $admin-danger;
 
     h3 {
-        color: var(--admin-danger);
-        margin-bottom: var(--admin-spacing-sm);
+        color: $admin-danger;
+        margin-bottom: $admin-spacing-sm;
     }
 
     p {
-        margin-bottom: var(--admin-spacing-lg);
-        color: var(--admin-text-secondary);
+        margin-bottom: $admin-spacing-lg;
+        color: $admin-text-secondary;
     }
 }
 
 .retryButton {
-    padding: var(--admin-spacing-sm) var(--admin-spacing-xl);
-    background: var(--admin-primary);
-    color: var(--admin-text-inverse);
+    padding: $admin-spacing-sm $admin-spacing-xl;
+    background: $admin-primary;
+    color: $admin-text-inverse;
     border: none;
-    border-radius: var(--admin-radius-md);
+    border-radius: $admin-radius-md;
     cursor: pointer;
-    font-size: var(--admin-font-size-sm);
+    font-size: $admin-font-size-sm;
     font-weight: 500;
-    font-family: var(--admin-font-family);
-    transition: var(--admin-transition);
+    font-family: $admin-font-family;
+    transition: $admin-transition;
 
     &:hover {
-        background: var(--admin-primary-hover);
+        background: $admin-primary-hover;
         transform: translateY(-1px);
-        box-shadow: var(--admin-shadow-md);
+        box-shadow: $admin-shadow-md;
     }
 }
 
 .noData {
     text-align: center;
-    padding: var(--admin-spacing-xl) var(--admin-spacing-lg);
-    color: var(--admin-text-muted);
+    padding: $admin-spacing-xl $admin-spacing-lg;
+    color: $admin-text-muted;
     font-style: italic;
-    font-family: var(--admin-font-family);
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: $admin-spacing-2xl $admin-spacing-lg;
+    color: $admin-text-secondary;
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid $admin-border-light;
+        border-top: 3px solid $admin-primary;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: $admin-spacing-lg;
+    }
+
+    p {
+        margin: 0;
+        font-size: $admin-font-size-base;
+        font-family: $admin-font-family;
+    }
+}
+
+.error {
+    text-align: center;
+    padding: $admin-spacing-2xl $admin-spacing-lg;
+    color: $admin-danger;
+
+    h3 {
+        color: $admin-danger;
+        margin-bottom: $admin-spacing-sm;
+    }
+
+    p {
+        margin-bottom: $admin-spacing-lg;
+        color: $admin-text-secondary;
+    }
+}
+
+.retryButton {
+    padding: $admin-spacing-sm $admin-spacing-xl;
+    background: $admin-primary;
+    color: $admin-text-inverse;
+    border: none;
+    border-radius: $admin-radius-md;
+    cursor: pointer;
+    font-size: $admin-font-size-sm;
+    font-weight: 500;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+
+    &:hover {
+        background: $admin-primary-hover;
+        transform: translateY(-1px);
+        box-shadow: $admin-shadow-md;
+    }
+}
+
+.noData {
+    text-align: center;
+    padding: $admin-spacing-xl $admin-spacing-lg;
+    color: $admin-text-muted;
+    font-style: italic;
+    font-family: $admin-font-family;
 }
 
 @keyframes spin {
@@ -435,10 +501,10 @@
 // 반응형 처리
 @media (max-width: 1024px) {
     .table {
-        font-size: var(--admin-font-size-xs);
+        font-size: $admin-font-size-xs;
 
         th, td {
-            padding: var(--admin-spacing-xs) var(--admin-spacing-sm);
+            padding: $admin-spacing-xs $admin-spacing-sm;
         }
 
         th:nth-child(6), td:nth-child(6), // 등록일
@@ -451,12 +517,12 @@
 
 @media (max-width: 768px) {
     .container {
-        margin: 0 calc(-1 * var(--admin-spacing-sm));
+        margin: 0 calc(-1 * $admin-spacing-sm);
         border-radius: 0;
     }
 
     .controls {
-        padding: var(--admin-spacing-md);
+        padding: $admin-spacing-md;
     }
 
     .tableContainer {
@@ -465,25 +531,25 @@
 
     .cardContainer {
         display: block;
-        padding: var(--admin-spacing-lg);
-        gap: var(--admin-spacing-md);
+        padding: $admin-spacing-lg;
+        gap: $admin-spacing-md;
     }
 
     .userCard {
-        background: var(--admin-bg-primary);
-        border: 1px solid var(--admin-border);
-        border-radius: var(--admin-radius-md);
-        padding: var(--admin-spacing-md);
-        margin-bottom: var(--admin-spacing-md);
-        box-shadow: var(--admin-shadow-sm);
+        background: $admin-bg-primary;
+        border: 1px solid $admin-border;
+        border-radius: $admin-radius-md;
+        padding: $admin-spacing-md;
+        margin-bottom: $admin-spacing-md;
+        box-shadow: $admin-shadow-sm;
 
         .cardHeader {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: var(--admin-spacing-sm);
+            margin-bottom: $admin-spacing-sm;
             flex-wrap: wrap;
-            gap: var(--admin-spacing-xs);
+            gap: $admin-spacing-xs;
 
             .userInfo {
                 flex: 1;
@@ -491,14 +557,14 @@
 
                 .userName {
                     font-weight: 600;
-                    font-size: var(--admin-font-size-base);
-                    color: var(--admin-text-primary);
-                    margin-bottom: var(--admin-spacing-xs);
+                    font-size: $admin-font-size-base;
+                    color: $admin-text-primary;
+                    margin-bottom: $admin-spacing-xs;
                 }
 
                 .userEmail {
-                    font-size: var(--admin-font-size-sm);
-                    color: var(--admin-text-secondary);
+                    font-size: $admin-font-size-sm;
+                    color: $admin-text-secondary;
                     word-break: break-all;
                 }
             }
@@ -511,32 +577,32 @@
         .cardBody {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: var(--admin-spacing-sm);
-            margin-bottom: var(--admin-spacing-md);
+            gap: $admin-spacing-sm;
+            margin-bottom: $admin-spacing-md;
 
             .cardField {
                 .fieldLabel {
-                    font-size: var(--admin-font-size-xs);
+                    font-size: $admin-font-size-xs;
                     font-weight: 500;
-                    color: var(--admin-text-secondary);
-                    margin-bottom: var(--admin-spacing-xs);
+                    color: $admin-text-secondary;
+                    margin-bottom: $admin-spacing-xs;
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
                 }
 
                 .fieldValue {
-                    font-size: var(--admin-font-size-sm);
-                    color: var(--admin-text-primary);
+                    font-size: $admin-font-size-sm;
+                    color: $admin-text-primary;
                 }
             }
         }
 
         .cardActions {
             display: flex;
-            gap: var(--admin-spacing-xs);
+            gap: $admin-spacing-xs;
             justify-content: flex-end;
-            padding-top: var(--admin-spacing-sm);
-            border-top: 1px solid var(--admin-border);
+            padding-top: $admin-spacing-sm;
+            border-top: 1px solid $admin-border;
         }
     }
 
@@ -571,13 +637,13 @@
 
 @media (max-width: 480px) {
     .container {
-        margin: 0 calc(-1 * var(--admin-spacing-xs));
+        margin: 0 calc(-1 * $admin-spacing-xs);
         border-radius: 0;
     }
 
     .controls {
-        padding: var(--admin-spacing-sm);
-        gap: var(--admin-spacing-sm);
+        padding: $admin-spacing-sm;
+        gap: $admin-spacing-sm;
     }
 
     .table {
@@ -587,15 +653,15 @@
     }
 
     .userCard {
-        padding: var(--admin-spacing-sm);
-        margin-bottom: var(--admin-spacing-sm);
+        padding: $admin-spacing-sm;
+        margin-bottom: $admin-spacing-sm;
 
         .cardHeader .userInfo .userName {
-            font-size: var(--admin-font-size-sm);
+            font-size: $admin-font-size-sm;
         }
 
         .cardBody {
-            gap: var(--admin-spacing-xs);
+            gap: $admin-spacing-xs;
         }
     }
 }

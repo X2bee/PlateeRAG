@@ -2,29 +2,29 @@
 
 .container {
     padding: 0;
-    background: var(--admin-bg-primary);
-    border-radius: var(--admin-radius-md);
-    box-shadow: var(--admin-shadow);
-    border: 1px solid var(--admin-border);
+    background: $admin-bg-primary;
+    border-radius: $admin-radius-md;
+    box-shadow: $admin-shadow;
+    border: 1px solid $admin-border;
 }
 
 .controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--admin-spacing-md);
-    border-bottom: 1px solid var(--admin-border);
-    gap: var(--admin-spacing-lg);
-    background: var(--admin-bg-secondary);
+    padding: $admin-spacing-md;
+    border-bottom: 1px solid $admin-border;
+    gap: $admin-spacing-lg;
+    background: $admin-bg-secondary;
 
     @media (max-width: 1024px) {
         flex-direction: column;
-        gap: var(--admin-spacing-md);
+        gap: $admin-spacing-md;
         align-items: stretch;
     }
 
     @media (max-width: 768px) {
-        padding: var(--admin-spacing-md);
+        padding: $admin-spacing-md;
     }
 }
 
@@ -35,31 +35,31 @@
 
 .searchInput {
     width: 100%;
-    padding: var(--admin-spacing-sm) var(--admin-spacing-md);
-    border: 1px solid var(--admin-border);
-    border-radius: var(--admin-radius-md);
-    font-size: var(--admin-font-size-sm);
-    font-family: var(--admin-font-family);
-    color: var(--admin-text-primary);
-    background: var(--admin-bg-primary);
-    transition: var(--admin-transition);
+    padding: $admin-spacing-sm $admin-spacing-md;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    font-size: $admin-font-size-sm;
+    font-family: $admin-font-family;
+    color: $admin-text-primary;
+    background: $admin-bg-primary;
+    transition: $admin-transition;
 
     &:focus {
         outline: none;
-        border-color: var(--admin-primary);
-        box-shadow: 0 0 0 3px var(--admin-primary-light);
+        border-color: $admin-primary;
+        box-shadow: 0 0 0 3px $admin-primary-light;
     }
 
     &::placeholder {
-        color: var(--admin-text-muted);
+        color: $admin-text-muted;
     }
 }
 
 .stats {
     display: flex;
-    gap: var(--admin-spacing-sm);
-    color: var(--admin-text-secondary);
-    font-size: var(--admin-font-size-sm);
+    gap: $admin-spacing-sm;
+    color: $admin-text-secondary;
+    font-size: $admin-font-size-sm;
     flex: 1;
     justify-content: center;
     align-items: center;
@@ -74,13 +74,13 @@
     }
 
     @media (max-width: 768px) {
-        font-size: var(--admin-font-size-xs);
+        font-size: $admin-font-size-xs;
     }
 }
 
 .actionButtons {
     display: flex;
-    gap: var(--admin-spacing-md);
+    gap: $admin-spacing-md;
     align-items: center;
 
     @media (max-width: 1024px) {
@@ -90,20 +90,20 @@
 }
 
 .refreshButton {
-    padding: var(--admin-spacing-sm) var(--admin-spacing-md);
-    background: var(--admin-bg-primary);
-    color: var(--admin-text-primary);
-    border: 1px solid var(--admin-border);
-    border-radius: var(--admin-radius-md);
-    font-size: var(--admin-font-size-sm);
-    font-family: var(--admin-font-family);
+    padding: $admin-spacing-sm $admin-spacing-md;
+    background: $admin-bg-primary;
+    color: $admin-text-primary;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    font-size: $admin-font-size-sm;
+    font-family: $admin-font-family;
     cursor: pointer;
-    transition: var(--admin-transition);
+    transition: $admin-transition;
     white-space: nowrap;
 
     &:hover {
-        background: var(--admin-hover);
-        border-color: var(--admin-primary);
+        background: $admin-hover;
+        border-color: $admin-primary;
     }
 
     &:disabled {
@@ -111,77 +111,101 @@
         cursor: not-allowed;
 
         &:hover {
-            background: var(--admin-bg-primary);
-            border-color: var(--admin-border);
+            background: $admin-bg-primary;
+            border-color: $admin-border;
         }
     }
 }
 
 .tableContainer {
     overflow-x: auto;
-    height: calc(100vh - 220px);
-    min-height: 400px;
-
-    @media (max-width: 768px) {
-        height: calc(100vh - 280px);
-        min-height: 300px;
-    }
+    max-height: 600px;
+    overflow-y: auto;
 }
 
 .table {
     width: 100%;
     border-collapse: collapse;
-    background: var(--admin-bg-primary);
-    font-size: var(--admin-font-size-sm);
-    table-layout: fixed; // 고정 테이블 레이아웃으로 컬럼 너비 제어
-
-    th, td {
-        padding: var(--admin-spacing-md);
-        text-align: left;
-        border-bottom: 1px solid var(--admin-border);
-        vertical-align: top;
-
-        @media (max-width: 768px) {
-            padding: var(--admin-spacing-sm);
-        }
-    }
+    background: $admin-bg-primary;
+    min-width: 1200px;
+    font-family: $admin-font-family;
 
     th {
-        background: var(--admin-bg-secondary);
-        color: var(--admin-text-primary);
+        background: $admin-bg-secondary;
+        padding: $admin-spacing-sm;
+        text-align: left;
         font-weight: 600;
-        font-size: var(--admin-font-size-sm);
+        color: $admin-text-primary;
+        border-bottom: 2px solid $admin-border;
         position: sticky;
         top: 0;
         z-index: 20;
-        border-bottom: 2px solid var(--admin-border);
         white-space: nowrap;
+        font-size: $admin-font-size-xs;
 
-        // 컬럼별 너비 설정
+        &.sortable {
+            cursor: pointer;
+            user-select: none;
+            transition: $admin-transition;
+            z-index: 21;
+
+            &:hover {
+                background: $admin-bg-hover;
+            }
+        }
+
+        // 그룹 테이블 컬럼별 너비 설정 (4개 컬럼)
         &:nth-child(1) { width: 25%; } // 그룹명
-        &:nth-child(2) { width: 20%; } // 상태 (늘려줌)
+        &:nth-child(2) { width: 20%; } // 상태
         &:nth-child(3) { width: 35%; } // 사용 가능 섹션
         &:nth-child(4) { width: 20%; } // 액션
-    }    tbody tr {
-        transition: var(--admin-transition);
+    }
 
-        &:hover {
-            background: var(--admin-hover);
+    td {
+        padding: $admin-spacing-sm;
+        border-bottom: 1px solid $admin-border-light;
+        vertical-align: middle;
+        font-size: $admin-font-size-xs;
+        color: $admin-text-primary;
+        position: relative;
+        z-index: 1;
+    }
+
+    // 사용자 테이블용 특별 스타일링 (9개 컬럼)
+    &.userTable {
+        th {
+            &:nth-child(1) { width: 6%; }  // ID
+            &:nth-child(2) { width: 20%; } // 이메일
+            &:nth-child(3) { width: 12%; } // 사용자명
+            &:nth-child(4) { width: 12%; } // 이름
+            &:nth-child(5) { width: 8%; }  // 상태
+            &:nth-child(6) { width: 12%; } // 등록일
+            &:nth-child(7) { width: 12%; } // 마지막 로그인
+            &:nth-child(8) { width: 8%; }  // 권한
+            &:nth-child(9) { width: 10%; } // 그룹
+        }
+    }
+
+    tr:hover {
+        background: $admin-bg-hover;
+        z-index: 5;
+
+        td {
+            z-index: 5;
         }
     }
 
     td {
-        color: var(--admin-text-primary);
+        color: $admin-text-primary;
         word-wrap: break-word;
         overflow: hidden;
 
         &.groupName, &.email, &.username {
             font-weight: 500;
-            color: var(--admin-primary);
+            color: $admin-primary;
         }
 
         &.userId {
-            text-align: center;
             font-weight: 600;
         }
 
@@ -190,114 +214,280 @@
         }
 
         &.sections {
-            font-size: var(--admin-font-size-xs);
-            color: var(--admin-text-secondary);
+            font-size: $admin-font-size-xs;
+            color: $admin-text-secondary;
             word-break: break-word;
         }
 
         &.userType {
             text-transform: uppercase;
-            font-size: var(--admin-font-size-xs);
+            font-size: $admin-font-size-xs;
             font-weight: 600;
         }
-
-        // 상태 컬럼 중앙 정렬
-        &:nth-child(2) {
-            text-align: center;
-        }
-
-        // 액션 컬럼 중앙 정렬
-        &:nth-child(4) {
-            text-align: center;
-        }
     }
+}
+
+.tableRow {
+    transition: background 0.2s ease;
+}
+
+.sortIcon {
+    margin-left: $admin-spacing-xs;
+    font-size: $admin-font-size-xs;
+    color: $admin-primary;
 }
 
 .sectionGrid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--admin-spacing-sm);
-    margin-top: var(--admin-spacing-sm);
+    gap: $admin-spacing-sm;
+    margin-top: $admin-spacing-sm;
 }
 
-.sectionItem {
+.sectionButton {
     display: flex;
     align-items: center;
-    gap: var(--admin-spacing-xs);
-    padding: var(--admin-spacing-xs);
-    border: 1px solid var(--admin-border);
-    border-radius: var(--admin-radius-sm);
+    justify-content: center;
+    padding: $admin-spacing-sm $admin-spacing-md;
+    border: 2px solid $admin-border;
+    border-radius: $admin-radius-md;
     cursor: pointer;
-    transition: var(--admin-transition);
+    font-size: $admin-font-size-sm;
+    font-weight: 500;
+    font-family: $admin-font-family;
+    transition: all 0.3s ease;
+    background: transparent;
+    color: $admin-text-secondary;
+    text-transform: capitalize;
 
     &:hover {
-        background: var(--admin-hover);
+        border-color: $admin-primary;
+        transform: translateY(-1px);
+        box-shadow: $admin-shadow-sm;
     }
+}
 
-    input[type="checkbox"] {
-        margin: 0;
+.sectionButtonActive {
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+    border-color: #27ae60;
+    color: white;
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+
+    &:hover {
+        background: linear-gradient(135deg, #229954 0%, #27ae60 100%);
+        border-color: #229954;
+        box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
     }
+}
 
-    span {
-        font-size: var(--admin-font-size-sm);
-        color: var(--admin-text-primary);
+.sectionButtonInactive {
+    background: $admin-bg-primary;
+    border-color: $admin-border-light;
+    color: $admin-text-muted;
+
+    &:hover {
+        background: $admin-bg-hover;
+        border-color: $admin-primary;
+        color: $admin-text-primary;
+    }
+}
+
+.statusToggleButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: $admin-spacing-sm;
+    border: 2px solid;
+    border-radius: $admin-radius-md;
+    cursor: pointer;
+    font-size: $admin-font-size-sm;
+    font-weight: 600;
+    font-family: $admin-font-family;
+    transition: all 0.3s ease;
+    width: 100%;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: $admin-shadow-sm;
+    }
+}
+
+.statusToggleActive {
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+    border-color: #27ae60;
+    color: white;
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+
+    &:hover {
+        background: linear-gradient(135deg, #229954 0%, #27ae60 100%);
+        border-color: #229954;
+        box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+    }
+}
+
+.statusToggleInactive {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    border-color: #e74c3c;
+    color: white;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+
+    &:hover {
+        background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+        border-color: #c0392b;
+        box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
     }
 }
 
 .noData {
-    text-align: center;
-    color: var(--admin-text-muted);
+    color: $admin-text-muted;
     font-style: italic;
-    padding: var(--admin-spacing-xl) !important;
+    padding: $admin-spacing-xl !important;
 }
 
 .badge {
+    padding: $admin-spacing-xs $admin-spacing-sm;
+    border-radius: $admin-radius-full;
+    font-size: $admin-font-size-xs;
+    font-weight: 500;
+    min-width: 40px;
     display: inline-block;
-    padding: 0.4rem 0.8rem;
-    border-radius: var(--admin-radius-sm);
-    font-size: var(--admin-font-size-sm);
+
+    &.badgeActive {
+        background: $admin-success-light;
+        color: $admin-success-hover;
+        border: 1px solid $admin-success;
+    }
+
+    &.badgeInactive {
+        background: $admin-danger-light;
+        color: $admin-danger-hover;
+        border: 1px solid $admin-danger;
+    }
+}
+
+.role {
+    padding: $admin-spacing-xs $admin-spacing-sm;
+    border-radius: $admin-radius-sm;
+    font-size: $admin-font-size-xs;
+    font-weight: 500;
+    border: 1px solid;
+
+    &.roleSuperuser {
+        background: $admin-warning-light;
+        color: $admin-warning-hover;
+        border-color: $admin-warning;
+        font-weight: 700;
+    }
+
+    &.roleAdmin {
+        background: $admin-info-light;
+        color: $admin-info-hover;
+        border-color: $admin-info;
+        font-weight: 600;
+    }
+
+    &.roleUser {
+        background: $admin-primary-light;
+        color: $admin-primary-hover;
+        border-color: $admin-primary;
+    }
+
+    &.roleUnknown {
+        background: $admin-danger-light;
+        color: $admin-danger-hover;
+        border-color: $admin-danger;
+    }
+}
+
+.email {
+    font-weight: 500;
+    color: $admin-text-primary;
+    font-size: $admin-font-size-xs;
+}
+
+.userId {
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
+    color: $admin-text-secondary;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: $admin-font-size-xs;
     min-width: 60px;
-    text-align: center;
 }
 
-.badgeActive {
-    background: var(--admin-success-light);
-    color: var(--admin-success-dark);
+.username {
+    color: $admin-text-primary;
+    font-weight: 500;
+    font-size: $admin-font-size-xs;
 }
 
-.badgeInactive {
-    background: var(--admin-error-light);
-    color: var(--admin-error-dark);
+.fullName {
+    color: $admin-text-primary;
+    font-weight: 500;
+    font-size: $admin-font-size-xs;
+}
+
+.groupName {
+    color: $admin-text-secondary;
+    font-size: $admin-font-size-xs;
+}
+
+.lastLogin {
+    color: $admin-text-secondary;
+    font-size: $admin-font-size-xs;
+    font-style: italic;
 }
 
 .actions {
-    text-align: center;
     display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
+    gap: $admin-spacing-xs;
+    justify-content: flex-start;
+    min-width: 120px;
 }
 
 .actionButton {
-    padding: var(--admin-spacing-xs) var(--admin-spacing-sm);
-    background: var(--admin-primary);
-    color: white;
-    border: none;
-    border-radius: var(--admin-radius-sm);
-    font-size: var(--admin-font-size-xs);
+    padding: $admin-spacing-xs $admin-spacing-sm;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-sm;
     cursor: pointer;
-    transition: var(--admin-transition);
-    white-space: nowrap;
-    flex: 1;
-    min-width: 80px;
+    font-size: $admin-font-size-xs;
+    font-weight: 500;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+    background: $admin-bg-primary;
+    color: $admin-text-primary;
 
-    &:hover {
-        background: var(--admin-primary-dark);
+    &:hover:not(:disabled) {
+        background: $admin-bg-hover;
+        border-color: $admin-primary;
         transform: translateY(-1px);
+        box-shadow: $admin-shadow-sm;
+    }
+
+    &:disabled {
+        background: $admin-bg-disabled;
+        color: $admin-text-disabled;
+        border-color: $admin-border-light;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    &.dangerButton {
+        background: $admin-danger;
+        color: $admin-text-inverse;
+        border-color: $admin-danger;
+
+        &:hover:not(:disabled) {
+            background: $admin-danger-hover;
+            border-color: $admin-danger-hover;
+        }
+
+        &:disabled {
+            background: $admin-danger-light;
+            color: $admin-danger-hover;
+            border-color: $admin-danger-light;
+        }
     }
 }
 
@@ -316,86 +506,86 @@
 }
 
 .modalContent {
-    background: var(--admin-bg-primary);
-    border-radius: var(--admin-radius-md);
-    padding: var(--admin-spacing-xl);
+    background: $admin-bg-primary;
+    border-radius: $admin-radius-md;
+    padding: $admin-spacing-xl;
     max-width: 500px;
     width: 90%;
     max-height: 80vh;
     overflow-y: auto;
-    box-shadow: var(--admin-shadow-lg);
-    border: 1px solid var(--admin-border);
+    box-shadow: $admin-shadow-lg;
+    border: 1px solid $admin-border;
 
     h3 {
-        margin: 0 0 var(--admin-spacing-lg) 0;
-        color: var(--admin-text-primary);
-        font-size: var(--admin-font-size-lg);
+        margin: 0 0 $admin-spacing-lg 0;
+        color: $admin-text-primary;
+        font-size: $admin-font-size-lg;
     }
 }
 
 .formGroup {
-    margin-bottom: var(--admin-spacing-lg);
+    margin-bottom: $admin-spacing-lg;
 
     label {
         display: block;
-        margin-bottom: var(--admin-spacing-sm);
-        color: var(--admin-text-primary);
+        margin-bottom: $admin-spacing-sm;
+        color: $admin-text-primary;
         font-weight: 500;
-        font-size: var(--admin-font-size-sm);
+        font-size: $admin-font-size-sm;
     }
 }
 
 .formInput {
     width: 100%;
-    padding: var(--admin-spacing-sm) var(--admin-spacing-md);
-    border: 1px solid var(--admin-border);
-    border-radius: var(--admin-radius-md);
-    font-size: var(--admin-font-size-sm);
-    color: var(--admin-text-primary);
-    background: var(--admin-bg-primary);
-    transition: var(--admin-transition);
+    padding: $admin-spacing-sm $admin-spacing-md;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    font-size: $admin-font-size-sm;
+    color: $admin-text-primary;
+    background: $admin-bg-primary;
+    transition: $admin-transition;
 
     &:focus {
         outline: none;
-        border-color: var(--admin-primary);
-        box-shadow: 0 0 0 3px var(--admin-primary-light);
+        border-color: $admin-primary;
+        box-shadow: 0 0 0 3px $admin-primary-light;
     }
 }
 
 .modalActions {
     display: flex;
-    gap: var(--admin-spacing-md);
+    gap: $admin-spacing-md;
     justify-content: flex-end;
-    margin-top: var(--admin-spacing-xl);
+    margin-top: $admin-spacing-xl;
 }
 
 .cancelButton {
-    padding: var(--admin-spacing-sm) var(--admin-spacing-lg);
-    background: var(--admin-bg-secondary);
-    color: var(--admin-text-primary);
-    border: 1px solid var(--admin-border);
-    border-radius: var(--admin-radius-md);
-    font-size: var(--admin-font-size-sm);
+    padding: $admin-spacing-sm $admin-spacing-lg;
+    background: $admin-bg-secondary;
+    color: $admin-text-primary;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    font-size: $admin-font-size-sm;
     cursor: pointer;
-    transition: var(--admin-transition);
+    transition: $admin-transition;
 
     &:hover {
-        background: var(--admin-hover);
+        background: $admin-hover;
     }
 }
 
 .createButton {
-    padding: var(--admin-spacing-sm) var(--admin-spacing-lg);
-    background: var(--admin-primary);
+    padding: $admin-spacing-sm $admin-spacing-lg;
+    background: $admin-primary;
     color: white;
     border: none;
-    border-radius: var(--admin-radius-md);
-    font-size: var(--admin-font-size-sm);
+    border-radius: $admin-radius-md;
+    font-size: $admin-font-size-sm;
     cursor: pointer;
-    transition: var(--admin-transition);
+    transition: $admin-transition;
 
     &:hover {
-        background: var(--admin-primary-dark);
+        background: $admin-primary-dark;
     }
 }
 
@@ -405,7 +595,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: var(--admin-spacing-xl);
+    padding: $admin-spacing-xl;
     text-align: center;
     min-height: 200px;
 }
@@ -413,11 +603,11 @@
 .spinner {
     width: 32px;
     height: 32px;
-    border: 3px solid var(--admin-border);
-    border-top: 3px solid var(--admin-primary);
+    border: 3px solid $admin-border;
+    border-top: 3px solid $admin-primary;
     border-radius: 50%;
     animation: spin 1s linear infinite;
-    margin-bottom: var(--admin-spacing-md);
+    margin-bottom: $admin-spacing-md;
 }
 
 @keyframes spin {
@@ -426,16 +616,16 @@
 }
 
 .retryButton {
-    margin-top: var(--admin-spacing-md);
-    padding: var(--admin-spacing-sm) var(--admin-spacing-lg);
-    background: var(--admin-primary);
+    margin-top: $admin-spacing-md;
+    padding: $admin-spacing-sm $admin-spacing-lg;
+    background: $admin-primary;
     color: white;
     border: none;
-    border-radius: var(--admin-radius-md);
+    border-radius: $admin-radius-md;
     cursor: pointer;
-    transition: var(--admin-transition);
+    transition: $admin-transition;
 
     &:hover {
-        background: var(--admin-primary-dark);
+        background: $admin-primary-dark;
     }
 }

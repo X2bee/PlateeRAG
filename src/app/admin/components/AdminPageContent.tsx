@@ -195,8 +195,8 @@ const AdminPageContent: React.FC = () => {
             case 'group-permissions':
                 return (
                     <AdminContentArea
-                        title="그룹 권한 관리"
-                        description="그룹을 생성하고 사용자를 그룹에 할당하여 권한을 관리하세요."
+                        title="조직 권한 관리"
+                        description="조직을 생성하고 사용자를 조직에 할당하여 권한을 관리하세요."
                     >
                         <AdminGroupContent />
                     </AdminContentArea>

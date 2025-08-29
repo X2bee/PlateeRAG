@@ -281,9 +281,9 @@
 
 // Content Area
 .contentArea {
-    background: var(--admin-bg-primary);
+    background: $admin-bg-primary;
     border-radius: 0.75rem;
-    box-shadow: var(--admin-shadow);
+    box-shadow: $admin-shadow;
     padding: 2rem;
     min-height: calc(100vh - 4rem);
     transition: margin-left 0.3s ease-in-out;
@@ -292,7 +292,7 @@
 
 .contentHeader {
     margin-bottom: 1rem;
-    border-bottom: 1px solid var(--admin-border);
+    border-bottom: 1px solid $admin-border;
     padding-bottom: 1rem;
     display: flex;
     justify-content: space-between;
@@ -312,12 +312,12 @@
     h1 {
         font-size: 1.875rem;
         font-weight: 700;
-        color: var(--admin-text-primary);
+        color: $admin-text-primary;
         margin: 0 0 0.5rem 0;
     }
 
     p {
-        color: var(--admin-text-secondary);
+        color: $admin-text-secondary;
         margin: 0;
         line-height: 1.6;
     }
