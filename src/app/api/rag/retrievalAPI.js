@@ -36,6 +36,29 @@ export const listCollections = async () => {
 };
 
 /**
+ * 사용자 그룹의 공유 컬렉션 목록을 조회하는 함수
+ * @returns {Promise<Object>} 공유 컬렉션 목록
+ */
+export const listSharedCollections = async () => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/group/collections`,
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Shared collections fetched:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch shared collections:', error);
+        throw error;
+    }
+};
+
+/**
  * 새 컬렉션을 생성하는 함수
  * @param {string} collectionMakeName - 컬렉션 이름
  * @param {string} distance - 거리 메트릭 ("Cosine", "Euclidean", "Dot")

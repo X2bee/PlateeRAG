@@ -21,8 +21,10 @@ import {
     getAllDocumentDetailEdges
 } from '@/app/api/rag/retrievalAPI';
 import useSidebarManager from '@/app/_common/hooks/useSidebarManager';
+import { useAuth } from '@/app/_common/components/CookieProvider';
 
 interface Collection {
+    id: number;
     collection_name: string;
     collection_make_name: string;
     vector_size?: number;
@@ -30,6 +32,11 @@ interface Collection {
     description?: string;
     registered_at: string;
     updated_at: string;
+    created_at: string;
+    user_id: number;
+    is_shared?: boolean | null;
+    share_group?: string | null;
+    share_permissions?: string | null;
 }
 
 interface DocumentInCollection {
@@ -102,10 +109,12 @@ interface SearchResponse {
 }
 
 type ViewMode = 'collections' | 'documents' | 'documents-graph' | 'document-detail' | 'all-documents-graph';
+type CollectionFilter = 'all' | 'personal' | 'shared';
 
 const Documents: React.FC = () => {
-
+    const { user } = useAuth();
     const [viewMode, setViewMode] = useState<ViewMode>('collections');
+    const [collectionFilter, setCollectionFilter] = useState<CollectionFilter>('all');
     const [collections, setCollections] = useState<Collection[]>([]);
     const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
     const [documentsInCollection, setDocumentsInCollection] = useState<DocumentInCollection[]>([]);
@@ -116,7 +125,6 @@ const Documents: React.FC = () => {
     const [isSearching, setIsSearching] = useState(false);
     const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
     const [processType, setProcessType] = useState<string>('default');
-
 
     // 청크 설정 상태
     const [chunkSize, setChunkSize] = useState(4000);
@@ -146,6 +154,19 @@ const Documents: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     useSidebarManager(showCreateModal || showDeleteModal || showChunkSettingsModal)
+
+    // 컬렉션 필터링
+    const getFilteredCollections = () => {
+        switch (collectionFilter) {
+            case 'personal':
+                return collections.filter(collection => !collection.is_shared || collection.is_shared === null);
+            case 'shared':
+                return collections.filter(collection => collection.is_shared === true);
+            case 'all':
+            default:
+                return collections;
+        }
+    };
 
     // 컬렉션 목록 로드
     useEffect(() => {
@@ -655,6 +676,26 @@ const Documents: React.FC = () => {
                 <div className={styles.headerRight}>
                     {viewMode === 'collections' && (
                         <>
+                            <div className={styles.filterButtons}>
+                                <button
+                                    onClick={() => setCollectionFilter('all')}
+                                    className={`${styles.button} ${collectionFilter === 'all' ? styles.active : styles.secondary}`}
+                                >
+                                    모두
+                                </button>
+                                <button
+                                    onClick={() => setCollectionFilter('personal')}
+                                    className={`${styles.button} ${collectionFilter === 'personal' ? styles.active : styles.secondary}`}
+                                >
+                                    개인
+                                </button>
+                                <button
+                                    onClick={() => setCollectionFilter('shared')}
+                                    className={`${styles.button} ${collectionFilter === 'shared' ? styles.active : styles.secondary}`}
+                                >
+                                    공유
+                                </button>
+                            </div>
                             <button onClick={handleSwitchToAllGraphView} className={`${styles.button} ${styles.secondary}`}>
                                 모든 그래프 보기
                             </button>
@@ -701,7 +742,7 @@ const Documents: React.FC = () => {
                         <div className={styles.loading}>로딩 중...</div>
                     ) : (
                         <div className={styles.collectionGrid}>
-                            {collections.map((collection) => (
+                            {getFilteredCollections().map((collection) => (
                                 <div
                                     key={collection.collection_name}
                                     className={styles.collectionCard}
@@ -714,17 +755,37 @@ const Documents: React.FC = () => {
                                         <p className={styles.docInfo}>
                                             {collection.description}
                                         </p>
+                                        <div className={styles.collectionMeta}>
+                                            <span
+                                                className={styles.shareStatus}
+                                                data-status={collection.is_shared ? 'shared' : 'personal'}
+                                            >
+                                                {collection.is_shared ? '🔗 공유됨' : '👤 개인'}
+                                            </span>
+                                            {collection.user_id === user?.user_id && (
+                                                <span className={styles.ownerStatus}>
+                                                    📝 내가 만든 컬렉션
+                                                </span>
+                                            )}
+                                            {collection.is_shared && collection.share_group && (
+                                                <span className={styles.shareGroup}>
+                                                    그룹: {collection.share_group}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                    <button
-                                        className={`${styles.deleteButton}`}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDeleteCollectionRequest(collection);
-                                        }}
-                                        title="컬렉션 삭제"
-                                    >
-                                        🗑️
-                                    </button>
+                                    {collection.user_id === user?.user_id && (
+                                        <button
+                                            className={`${styles.deleteButton}`}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteCollectionRequest(collection);
+                                            }}
+                                            title="컬렉션 삭제"
+                                        >
+                                            🗑️
+                                        </button>
+                                    )}
                                 </div>
                             ))}
                         </div>
