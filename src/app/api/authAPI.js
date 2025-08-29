@@ -420,57 +420,31 @@ const generateRandomPassword = (length = 12) => {
 };
 
 /**
- * 게스트 계정 생성 및 자동 로그인 API
- * @returns {Promise<Object>} 로그인 결과 (토큰 포함)
+ * 사용자 그룹의 사용 가능한 섹션 조회 API
+ * @param {number} user_id - 사용자 ID
+ * @returns {Promise<Object>} 사용 가능한 섹션 목록
  */
-export const createGuestAccountAndLogin = async () => {
+export const getGroupAvailableSections = async (user_id) => {
     try {
-        devLog.log('Creating guest account...');
-
-        // 게스트 계정 정보 생성
-        const randomId = generateRandomId();
-        const guestUsername = `guest_${randomId}`;
-        const guestEmail = `guest_${randomId}@guest.com`;
-        const guestPassword = generateRandomPassword();
-
-        devLog.log('Guest account info generated:', {
-            username: guestUsername,
-            email: guestEmail
-        });
-
-        // 1. 게스트 계정 회원가입
-        const signupData = {
-            username: guestUsername,
-            email: guestEmail,
-            password: guestPassword, // 원본 패스워드를 signup 함수에 전달 (signup 함수에서 해시화됨)
-            full_name: `Guest User ${randomId}`
-        };
-
-        const signupResult = await signup(signupData);
-        devLog.log('Guest signup successful:', signupResult);
-
-        // 2. 생성된 계정으로 자동 로그인
-        const loginData = {
-            email: guestEmail,
-            password: guestPassword // 원본 패스워드를 login 함수에 전달 (login 함수에서 해시화됨)
-        };
-
-        const loginResult = await login(loginData);
-        devLog.log('Guest auto-login successful:', loginResult);
-
-        return {
-            ...loginResult,
-            isGuest: true,
-            guestInfo: {
-                username: guestUsername,
-                email: guestEmail
+        const response = await authenticatedFetch(
+            `${API_BASE_URL}/auth/available-section?user_id=${user_id}`,
+            {
+                method: 'GET',
             }
-        };
-
-    } catch (error) {
-        devLog.error('Failed to create guest account or login:', error);
-        throw new Error(
-            error.message || '게스트 계정 생성에 실패했습니다. 잠시 후 다시 시도해주세요.'
         );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        devLog.log('Group available sections fetched successfully:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to fetch group available sections:', error);
+        throw error;
     }
 };

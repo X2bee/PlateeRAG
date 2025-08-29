@@ -20,6 +20,9 @@ interface User {
 
 interface TokenValidationResult {
     valid: boolean;
+    user_id?: number;
+    username?: string;
+    is_admin?: boolean;
     message?: string;
 }
 
@@ -47,6 +50,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback, redirectTo = 
         const checkAuthentication = async () => {
             try {
                 devLog.log('AuthGuard: Checking authentication status...');
+                let user_id = null;
 
                 // 1. CookieProvider 초기화 대기
                 if (!isInitialized) {
@@ -91,6 +95,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback, redirectTo = 
                     clearAuth(true); // localStorage도 함께 정리
                 } else {
                     devLog.log('AuthGuard: Token validation successful');
+                    user_id = tokenValidation.user_id;
                     setIsAuthenticated(true);
                 }
 
