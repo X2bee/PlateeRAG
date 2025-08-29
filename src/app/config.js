@@ -9,14 +9,9 @@ const metrics = process.env.NEXT_PUBLIC_METRICS_HOST || '';
 // 허용된 origin URL들을 설정
 const allowedOrigins = process.env.NEXT_PUBLIC_ALLOWED_ORIGINS 
     ? process.env.NEXT_PUBLIC_ALLOWED_ORIGINS.split(',').map(url => url.trim())
-    : ['http://localhost:3000']; // 기본값
+    : ['http://localhost:3000','https://code-assistant.x2bee.com']; // 기본값
 
 let BASE_URL = '';
-
-console.log('Raw NEXT_PUBLIC_ALLOWED_ORIGINS:', process.env.NEXT_PUBLIC_ALLOWED_ORIGINS);
-console.log('Parsed allowedOrigins:', allowedOrigins);
-console.log('Final ALLOWED_ORIGINS:', ALLOWED_ORIGINS);
-
 
 if (!port) {
     BASE_URL = host_url;
