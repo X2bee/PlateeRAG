@@ -318,6 +318,65 @@ const AdminRegisterUser: React.FC = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* 모바일 카드 레이아웃 */}
+            <div className={styles.cardContainer}>
+                {sortedUsers.length === 0 ? (
+                    <div className={styles.noData}>
+                        {searchTerm ? '검색 결과가 없습니다.' : '승인 대기 중인 사용자가 없습니다.'}
+                    </div>
+                ) : (
+                    sortedUsers.map((user) => (
+                        <div key={user.id} className={styles.userCard}>
+                            <div className={styles.cardHeader}>
+                                <div className={styles.userInfo}>
+                                    <div className={styles.userName}>
+                                        {user.username} {user.full_name && `(${user.full_name})`}
+                                    </div>
+                                    <div className={styles.userEmail}>{user.email}</div>
+                                </div>
+                                <div className={styles.userStatus}>
+                                    <span className={styles.statusBadge}>
+                                        승인 대기
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className={styles.cardBody}>
+                                <div className={styles.cardField}>
+                                    <div className={styles.fieldLabel}>ID</div>
+                                    <div className={styles.fieldValue}>{user.id}</div>
+                                </div>
+                                <div className={styles.cardField}>
+                                    <div className={styles.fieldLabel}>그룹</div>
+                                    <div className={styles.fieldValue}>{user.group_name || '-'}</div>
+                                </div>
+                                <div className={styles.cardField}>
+                                    <div className={styles.fieldLabel}>등록 신청일</div>
+                                    <div className={styles.fieldValue}>{formatDate(user.created_at)}</div>
+                                </div>
+                            </div>
+
+                            <div className={styles.cardActions}>
+                                <button
+                                    className={`${styles.actionButton} ${styles.approveButton}`}
+                                    onClick={() => handleApproveUser(user)}
+                                    disabled={approveLoading === user.id || rejectLoading === user.id}
+                                >
+                                    {approveLoading === user.id ? '승인 중...' : '승인'}
+                                </button>
+                                <button
+                                    className={`${styles.actionButton} ${styles.rejectButton}`}
+                                    onClick={() => handleRejectUser(user)}
+                                    disabled={approveLoading === user.id || rejectLoading === user.id}
+                                >
+                                    {rejectLoading === user.id ? '거부 중...' : '거부'}
+                                </button>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
         </div>
     );
 };

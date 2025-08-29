@@ -3,8 +3,8 @@
 import React, { useState, useMemo, createContext, useContext } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/app/_common/components/Sidebar';
-import { getChatSidebarItems, getSettingSidebarItems, getTrainSidebarItems, getWorkflowSidebarItems } from '@/app/_common/components/sidebarConfig';
-import { getChatItems, getSettingItems, getWorkflowItems, getTrainItems } from '@/app/_common/components/sidebarConfig';
+import { getChatSidebarItems,  getTrainSidebarItems, getWorkflowSidebarItems } from '@/app/_common/components/sidebarConfig';
+import { getChatItems,  getWorkflowItems, getTrainItems } from '@/app/_common/components/sidebarConfig';
 import styles from '@/app/main/assets/MainPage.module.scss';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FiChevronRight } from 'react-icons/fi';
@@ -49,7 +49,7 @@ export default function PagesLayoutContent({ children }: { children: React.React
 
     const handleSidebarItemClick = (id: string) => {
         const chatItems = getChatItems;
-        const mainItems = [...getWorkflowItems, ...getSettingItems];
+        const mainItems = [...getWorkflowItems];
         const trainItems = getTrainItems;
 
         if (chatItems.includes(id)) {
@@ -65,7 +65,6 @@ export default function PagesLayoutContent({ children }: { children: React.React
         setIsSidebarOpen(!isSidebarOpen);
     };
 
-    const settingSidebarItems = getSettingSidebarItems();
     const workflowSidebarItems = getWorkflowSidebarItems();
     const chatSidebarItems = getChatSidebarItems();
     const trainItems = getTrainSidebarItems();
@@ -79,7 +78,6 @@ export default function PagesLayoutContent({ children }: { children: React.React
                             key="sidebar-panel"
                             isOpen={isSidebarOpen}
                             onToggle={toggleSidebar}
-                            items={settingSidebarItems}
                             workflowItems={workflowSidebarItems}
                             chatItems={chatSidebarItems}
                             trainItem={trainItems}

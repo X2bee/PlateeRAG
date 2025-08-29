@@ -10,9 +10,9 @@ import {
     getBarChartData,
     getLineChartData
 } from '@/app/api/workflow/workflowAPI';
-import styles from '@/app/main/assets/ChartDashboard.module.scss';
+import styles from '@/app/admin/assets/playground/ChartDashboard.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
-import ChartPlaceholder from './ChartPlaceholder';
+import ChartPlaceholder from '@/app/admin/components/playground/charts/ChartPlaceholder';
 
 interface NodeCount {
   node_name: string;

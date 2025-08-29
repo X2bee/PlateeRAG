@@ -1,0 +1,634 @@
+@use "@/app/_common/_variables" as *;
+
+// Main Container
+.batchTesterPanel {
+    background: var(--admin-bg-primary);
+    border-radius: 8px;
+    box-shadow: var(--admin-shadow);
+    overflow: hidden;
+    padding: 1.5rem;
+}
+
+// Placeholder when no workflow selected
+.placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    text-align: center;
+    color: var(--admin-text-secondary);
+
+    h3 {
+        color: var(--admin-text-primary);
+        margin-bottom: 1rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    p {
+        margin: 0;
+        line-height: 1.5;
+        max-width: 400px;
+    }
+}
+
+// Header Section (Similar to Admin Monitoring)
+.batchTesterHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    h3 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: var(--admin-text-primary);
+        margin: 0;
+    }
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+.batchSizeSelector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--admin-text-primary);
+        white-space: nowrap;
+    }
+
+    select {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--admin-border);
+        border-radius: 6px;
+        background: var(--admin-bg-primary);
+        color: var(--admin-text-primary);
+        font-size: 0.875rem;
+        cursor: pointer;
+
+        &:focus {
+            outline: none;
+            border-color: var(--admin-primary);
+        }
+
+        &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    }
+}
+
+// Buttons
+.btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    &.upload {
+        background: var(--admin-info);
+        color: white;
+
+        &:hover:not(:disabled) {
+            background: var(--admin-info-hover);
+            transform: translateY(-1px);
+        }
+    }
+
+    &.run {
+        background: var(--admin-primary);
+        color: white;
+
+        &:hover:not(:disabled) {
+            background: var(--admin-primary-hover);
+            transform: translateY(-1px);
+        }
+    }
+
+    &.clear {
+        background: var(--admin-danger);
+        color: white;
+
+        &:hover:not(:disabled) {
+            background: var(--admin-danger-hover);
+            transform: translateY(-1px);
+        }
+    }
+}
+
+// LLM Evaluation Section
+.llmEvalSection {
+    background: var(--admin-bg-secondary);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.llmEvalMainRow {
+    margin-bottom: 1rem;
+}
+
+.llmEvalLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--admin-text-primary);
+    cursor: pointer;
+
+    input[type="checkbox"] {
+        margin: 0;
+    }
+}
+
+.llmEvalRow {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+
+    label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--admin-text-primary);
+        min-width: 80px;
+    }
+
+    select {
+        flex: 1;
+        max-width: 200px;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--admin-border);
+        border-radius: 6px;
+        background: var(--admin-bg-primary);
+        color: var(--admin-text-primary);
+        font-size: 0.875rem;
+        cursor: pointer;
+
+        &:focus {
+            outline: none;
+            border-color: var(--admin-primary);
+        }
+
+        &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    }
+}
+
+// File Info
+.fileInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--admin-bg-secondary);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+
+    svg {
+        width: 20px;
+        height: 20px;
+        color: var(--admin-primary);
+    }
+}
+
+.fileName {
+    font-weight: 500;
+    color: var(--admin-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    svg {
+        width: 16px;
+        height: 16px;
+        color: var(--admin-warning);
+    }
+}
+
+.fileType {
+    background: var(--admin-primary);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+// Progress Section
+.progressContainer {
+    background: var(--admin-bg-secondary);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.progressHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+
+    span {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--admin-text-primary);
+    }
+}
+
+.progressStats {
+    color: var(--admin-text-secondary);
+    font-size: 0.8rem;
+}
+
+.progress {
+    width: 100%;
+    height: 8px;
+    background: var(--admin-border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress__fill {
+    height: 100%;
+    background: var(--admin-primary);
+    transition: width 0.3s ease;
+}
+
+// Results Section
+.resultsContainer {
+    background: var(--admin-bg-primary);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.resultsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--admin-border);
+    background: var(--admin-bg-secondary);
+
+    h4 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--admin-text-primary);
+    }
+}
+
+.resultsSummary {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+
+    span {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-weight: 500;
+    }
+}
+
+.successCount {
+    color: var(--admin-success);
+}
+
+.errorCount {
+    color: var(--admin-danger);
+}
+
+.pendingCount {
+    color: var(--admin-warning);
+}
+
+// Results Table
+.resultsTable {
+    overflow-x: auto;
+}
+
+.results__header {
+    display: grid;
+    grid-template-columns: 60px 1fr 1fr 120px 100px;
+    background: var(--admin-bg-secondary);
+    border-bottom: 2px solid var(--admin-border);
+
+    div {
+        padding: 1rem 0.75rem;
+        font-weight: 600;
+        color: var(--admin-text-primary);
+        font-size: 0.875rem;
+        border-right: 1px solid var(--admin-border);
+
+        &:last-child {
+            border-right: none;
+        }
+    }
+}
+
+.results__body {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.results__row {
+    display: grid;
+    grid-template-columns: 60px 1fr 1fr 120px 100px;
+    border-bottom: 1px solid var(--admin-border);
+    transition: background 0.2s ease;
+
+    &:hover {
+        background: var(--admin-bg-hover);
+    }
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    // Status-based row styling
+    &.success {
+        border-left: 3px solid var(--admin-success);
+    }
+
+    &.error {
+        border-left: 3px solid var(--admin-danger);
+    }
+
+    &.running {
+        border-left: 3px solid var(--admin-info);
+        background: rgba(var(--admin-info-rgb), 0.02);
+    }
+
+    &.pending {
+        border-left: 3px solid var(--admin-warning);
+    }
+}
+
+.results__cell {
+    padding: 0.875rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--admin-text-primary);
+    border-right: 1px solid var(--admin-border);
+    display: flex;
+    align-items: center;
+
+    &:last-child {
+        border-right: none;
+    }
+}
+
+.input_content {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--admin-text-primary);
+}
+
+.output_content {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--admin-text-secondary);
+    font-family: monospace;
+    font-size: 0.8rem;
+}
+
+// Status Badge
+.status_badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: capitalize;
+    min-width: 70px;
+    justify-content: center;
+
+    svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    &.success {
+        background: rgba(var(--admin-success-rgb), 0.1);
+        color: var(--admin-success);
+        border: 1px solid rgba(var(--admin-success-rgb), 0.3);
+    }
+
+    &.error {
+        background: rgba(var(--admin-danger-rgb), 0.1);
+        color: var(--admin-danger);
+        border: 1px solid rgba(var(--admin-danger-rgb), 0.3);
+    }
+
+    &.running {
+        background: rgba(var(--admin-info-rgb), 0.1);
+        color: var(--admin-info);
+        border: 1px solid rgba(var(--admin-info-rgb), 0.3);
+    }
+
+    &.pending {
+        background: rgba(var(--admin-warning-rgb), 0.1);
+        color: var(--admin-warning);
+        border: 1px solid rgba(var(--admin-warning-rgb), 0.3);
+    }
+}
+
+// Empty State
+.emptyState {
+    padding: 3rem 2rem;
+    text-align: center;
+    color: var(--admin-text-secondary);
+
+    h4 {
+        color: var(--admin-text-primary);
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    p {
+        margin-bottom: 2rem;
+        line-height: 1.5;
+    }
+}
+
+.fileFormatInfo {
+    background: var(--admin-bg-secondary);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: left;
+    max-width: 500px;
+    margin: 0 auto;
+
+    h5 {
+        margin: 0 0 1rem 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--admin-text-primary);
+    }
+}
+
+.formatList {
+    margin-bottom: 1.5rem;
+}
+
+.formatItem {
+    display: flex;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+
+    strong {
+        min-width: 80px;
+        color: var(--admin-text-primary);
+    }
+
+    span {
+        color: var(--admin-text-secondary);
+    }
+}
+
+.supportedFormats {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.formatTag {
+    background: var(--admin-primary);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+// Animation
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+    .batchTesterHeader {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+
+        h3 {
+            font-size: 1.5rem;
+        }
+    }
+
+    .headerActions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .batchSizeSelector {
+        align-self: flex-start;
+    }
+
+    .results__header,
+    .results__row {
+        grid-template-columns: 50px 1fr 80px 80px;
+
+        div:nth-child(3) { // Output column
+            display: none;
+        }
+    }
+
+    .fileInfo {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .resultsSummary {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .batchTesterPanel {
+        padding: 1rem;
+    }
+
+    .results__header,
+    .results__row {
+        grid-template-columns: 1fr 80px 80px;
+
+        div:nth-child(1) { // ID column
+            display: none;
+        }
+    }
+
+    .btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .fileFormatInfo {
+        padding: 1rem;
+    }
+}

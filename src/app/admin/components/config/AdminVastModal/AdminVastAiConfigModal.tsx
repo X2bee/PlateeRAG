@@ -2,21 +2,21 @@ import React from 'react';
 import { FiX, FiCopy } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { devLog } from '@/app/_common/utils/logger';
-import styles from '@/app/main/assets/Settings.Vastmodal.module.scss';
+import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
 
 interface PortMapping {
     external_ip: string;
     external_port: number;
 }
 
-interface VastAiConfigModalProps {
+interface AdminVastAiConfigModalProps {
     isOpen: boolean;
     onClose: () => void;
     instanceId: string;
     portMappings: string | null;
 }
 
-const VastAiConfigModal: React.FC<VastAiConfigModalProps> = ({
+const AdminVastAiConfigModal: React.FC<AdminVastAiConfigModalProps> = ({
     isOpen,
     onClose,
     instanceId,
@@ -97,4 +97,4 @@ const VastAiConfigModal: React.FC<VastAiConfigModalProps> = ({
     );
 };
 
-export default VastAiConfigModal;
+export default AdminVastAiConfigModal;

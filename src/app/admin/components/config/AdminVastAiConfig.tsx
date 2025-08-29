@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { FiServer, FiSettings } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/baseConfigPanel';
+import AdminBaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/admin/components/config/AdminBaseConfigPanel';
+import { AdminGpuOfferSearchModal } from '@/app/admin/components/config/AdminVastModal/AdminGpuOfferSearchModal';
+import { AdminInstanceManagementModal } from '@/app/admin/components/config/AdminVastModal/AdminInstanceManagementModal';
 import { checkVastHealth } from '@/app/api/vastAPI';
 import { devLog } from '@/app/_common/utils/logger';
-import styles from '@/app/main/assets/Settings.module.scss';
-import { GpuOfferSearchModal } from '@/app/main/components/config/vastAiModal/GpuOfferSearchModal';
-import { InstanceManagementModal } from '@/app/main/components/config/vastAiModal/InstanceManagementModal';
-interface VastAiConfigProps {
+import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
+
+interface AdminVastAiConfigProps {
     configData?: ConfigItem[];
     onTestConnection?: (category: string) => void;
 }
@@ -57,7 +58,7 @@ const VAST_AI_CONFIG_FIELDS: Record<string, FieldConfig> = {
     },
 };
 
-const VastAiConfig: React.FC<VastAiConfigProps> = ({
+const AdminVastAiConfig: React.FC<AdminVastAiConfigProps> = ({
     configData = [],
 }) => {
     const [activeCategory, setActiveCategory] = useState<'vllm' | 'instance'>('vllm');
@@ -103,7 +104,7 @@ const VastAiConfig: React.FC<VastAiConfigProps> = ({
 
             {activeCategory === 'vllm' && (
                 <>
-                    <BaseConfigPanel
+                    <AdminBaseConfigPanel
                         configData={configData}
                         fieldConfigs={VAST_AI_CONFIG_FIELDS}
                         filterPrefix="vast"
@@ -111,14 +112,14 @@ const VastAiConfig: React.FC<VastAiConfigProps> = ({
                         testConnectionLabel="Vast.ai 연결 테스트"
                         testConnectionCategory="vast"
                     />
-                    <GpuOfferSearchModal />
+                    <AdminGpuOfferSearchModal />
                 </>
             )}
             {activeCategory === 'instance' && (
-                <InstanceManagementModal />
+                <AdminInstanceManagementModal />
             )}
         </div>
     );
 };
 
-export default VastAiConfig;
+export default AdminVastAiConfig;

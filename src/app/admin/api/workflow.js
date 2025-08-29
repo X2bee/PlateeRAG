@@ -5,11 +5,21 @@ import { apiClient } from '@/app/api/helper/apiClient';
 
 /**
  * 모든 IO 로그를 가져오는 함수 (슈퍼유저 권한 필요)
- * @returns {Promise<Array>} IO 로그 목록 배열
+ * @param {number} page - 페이지 번호 (1부터 시작)
+ * @param {number} pageSize - 페이지당 항목 수 (기본값: 250)
+ * @param {number|null} userId - 특정 사용자 ID (선택사항, null이면 전체 조회)
+ * @returns {Promise<Object>} IO 로그 목록과 페이지네이션 정보가 포함된 객체
  */
-export const getAllIOLogs = async () => {
+export const getAllIOLogs = async (page = 1, pageSize = 250, userId = null) => {
     try {
-        const response = await apiClient(`${API_BASE_URL}/api/admin/workflow/all-io-logs`);
+        let url = `${API_BASE_URL}/api/admin/workflow/all-io-logs?page=${page}&page_size=${pageSize}`;
+
+        // user_id가 제공된 경우에만 쿼리 파라미터에 추가
+        if (userId !== null && userId !== undefined) {
+            url += `&user_id=${userId}`;
+        }
+
+        const response = await apiClient(url);
         const data = await response.json();
         devLog.log('Get all IO logs result:', data);
 
@@ -18,7 +28,7 @@ export const getAllIOLogs = async () => {
             throw new Error(data.detail || 'Failed to get all IO logs');
         }
 
-        return data.io_logs;
+        return data;
     } catch (error) {
         devLog.error('Failed to get all IO logs:', error);
         throw error;

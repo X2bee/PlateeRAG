@@ -15,6 +15,7 @@ import { LuBrainCircuit } from "react-icons/lu";
 import { HiSaveAs } from "react-icons/hi";
 import { TbBrandSpeedtest } from "react-icons/tb";
 import { SidebarItem } from '@/app/main/components/types';
+import { devLog } from '@/app/_common/utils/logger';
 
 export const getChatItems = ['new-chat', 'current-chat', 'chat-history'];
 
@@ -91,28 +92,37 @@ export const getTrainSidebarItems = (): SidebarItem[] => [
     },
 ];
 
-export const getSettingItems = ['settings', 'exec-monitor', 'config-viewer'];
+/**
+ * 사용자 권한에 따라 워크플로우 아이템 필터링
+ * @param hasAccessToSection - 섹션 접근 권한 확인 함수
+ * @returns 접근 가능한 워크플로우 아이템들
+ */
+export const getFilteredWorkflowSidebarItems = (hasAccessToSection: (sectionId: string) => boolean): SidebarItem[] => {
+    const allItems = getWorkflowSidebarItems();
+    const filteredItems = allItems.filter(item => {
+        const hasAccess = hasAccessToSection(item.id);
+        devLog.log(`SidebarConfig: Checking workflow item '${item.id}': ${hasAccess}`);
+        return hasAccess;
+    });
+    devLog.log('SidebarConfig: Filtered workflow items:', filteredItems.map(item => item.id));
+    return filteredItems;
+};
 
-export const getSettingSidebarItems = (): SidebarItem[] => [
-    {
-        id: 'settings',
-        title: '환경 설정',
-        description: 'LLM 및 Tool 환경변수 직접 관리',
-        icon: React.createElement(FiSettings),
-    },
-    {
-        id: 'exec-monitor',
-        title: '실행 및 모니터링',
-        description: '워크플로우 실행과 성능 모니터링',
-        icon: React.createElement(FiCpu),
-    },
-    {
-        id: 'config-viewer',
-        title: '[고급] 전체 설정 확인',
-        description: '백엔드 환경변수 및 설정 확인',
-        icon: React.createElement(FiEye),
-    },
-];
+/**
+ * 사용자 권한에 따라 훈련 아이템 필터링
+ * @param hasAccessToSection - 섹션 접근 권한 확인 함수
+ * @returns 접근 가능한 훈련 아이템들
+ */
+export const getFilteredTrainSidebarItems = (hasAccessToSection: (sectionId: string) => boolean): SidebarItem[] => {
+    const allItems = getTrainSidebarItems();
+    const filteredItems = allItems.filter(item => {
+        const hasAccess = hasAccessToSection(item.id);
+        devLog.log(`SidebarConfig: Checking train item '${item.id}': ${hasAccess}`);
+        return hasAccess;
+    });
+    devLog.log('SidebarConfig: Filtered train items:', filteredItems.map(item => item.id));
+    return filteredItems;
+};
 
 // 공통 아이템 클릭 핸들러 (localStorage 사용)
 export const createItemClickHandler = (router: any) => {

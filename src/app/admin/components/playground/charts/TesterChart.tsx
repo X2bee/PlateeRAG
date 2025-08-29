@@ -12,7 +12,7 @@ import {
     Tooltip,
     Legend,
 } from 'chart.js';
-import styles from '@/app/main/assets/TesterChart.module.scss';
+import styles from '@/app/admin/assets/playground/TesterChart.module.scss';
 
 // 필요한 Chart.js 모듈 등록
 ChartJS.register(

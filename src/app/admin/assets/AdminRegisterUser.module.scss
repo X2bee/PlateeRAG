@@ -2,77 +2,102 @@
 
 .container {
     padding: 0;
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: $admin-bg-primary;
+    border-radius: $admin-radius-md;
+    box-shadow: $admin-shadow;
+    border: 1px solid $admin-border;
 }
 
 .controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid #e9ecef;
-    gap: 20px;
+    padding: $admin-spacing-md;
+    border-bottom: 1px solid $admin-border;
+    gap: $admin-spacing-lg;
+    background: $admin-bg-secondary;
+
+    @media (max-width: 1024px) {
+        flex-direction: column;
+        gap: $admin-spacing-md;
+        align-items: stretch;
+    }
 
     @media (max-width: 768px) {
-        flex-direction: column;
-        gap: 15px;
+        padding: $admin-spacing-md;
     }
 }
 
 .searchContainer {
     flex: 1;
-    max-width: 400px;
+    max-width: 500px;
 }
 
 .searchInput {
     width: 100%;
-    padding: 10px 15px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-    transition: border-color 0.2s ease;
+    padding: $admin-spacing-sm $admin-spacing-md;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    font-size: $admin-font-size-sm;
+    font-family: $admin-font-family;
+    color: $admin-text-primary;
+    background: $admin-bg-primary;
+    transition: $admin-transition;
 
     &:focus {
         outline: none;
-        border-color: #e74c3c;
-        box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.1);
+        border-color: $admin-primary;
+        box-shadow: 0 0 0 3px $admin-primary-light;
     }
 
     &::placeholder {
-        color: #999;
+        color: $admin-text-muted;
     }
 }
 
 .stats {
     display: flex;
-    gap: 10px;
-    color: #666;
-    font-size: 14px;
+    gap: $admin-spacing-sm;
+    color: $admin-text-secondary;
+    font-size: $admin-font-size-sm;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
 
     span {
         white-space: nowrap;
     }
+
+    @media (max-width: 1024px) {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+        font-size: $admin-font-size-xs;
+    }
 }
 
 .refreshButton {
-    padding: 10px 20px;
-    background: #e74c3c;
-    color: white;
+    padding: $admin-spacing-sm $admin-spacing-lg;
+    background: $admin-primary;
+    color: $admin-text-inverse;
     border: none;
-    border-radius: 6px;
+    border-radius: $admin-radius-md;
     cursor: pointer;
-    font-size: 14px;
+    font-size: $admin-font-size-sm;
     font-weight: 500;
-    transition: background 0.2s ease;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
 
     &:hover {
-        background: #c0392b;
+        background: $admin-primary-hover;
+        transform: translateY(-1px);
+        box-shadow: $admin-shadow-md;
     }
 
     &:active {
-        transform: translateY(1px);
+        transform: translateY(0);
     }
 }
 
@@ -85,39 +110,52 @@
 .table {
     width: 100%;
     border-collapse: collapse;
-    background: white;
+    background: $admin-bg-primary;
+    min-width: 1200px; // 많은 컬럼으로 인한 최소 너비 설정
+    font-family: $admin-font-family;
 
     th {
-        background: #f8f9fa;
-        padding: 15px 12px;
+        background: $admin-bg-secondary;
+        padding: $admin-spacing-sm;
         text-align: left;
         font-weight: 600;
-        color: #333;
-        border-bottom: 2px solid #e9ecef;
+        color: $admin-text-primary;
+        border-bottom: 2px solid $admin-border;
         position: sticky;
         top: 0;
-        z-index: 10;
+        z-index: 20;
         white-space: nowrap;
+        font-size: $admin-font-size-xs;
 
         &.sortable {
             cursor: pointer;
             user-select: none;
-            transition: background 0.2s ease;
+            transition: $admin-transition;
+            z-index: 21;
 
             &:hover {
-                background: #e9ecef;
+                background: $admin-bg-hover;
             }
         }
     }
 
     td {
-        padding: 12px;
-        border-bottom: 1px solid #e9ecef;
+        padding: $admin-spacing-sm;
+        border-bottom: 1px solid $admin-border-light;
         vertical-align: middle;
+        font-size: $admin-font-size-xs;
+        color: $admin-text-primary;
+        position: relative;
+        z-index: 1;
     }
 
     tr:hover {
-        background: #f8f9fa;
+        background: $admin-bg-hover;
+        z-index: 5;
+
+        td {
+            z-index: 5;
+        }
     }
 }
 
@@ -126,98 +164,121 @@
 }
 
 .sortIcon {
-    margin-left: 5px;
-    font-size: 12px;
-    color: #e74c3c;
+    margin-left: $admin-spacing-xs;
+    font-size: $admin-font-size-xs;
+    color: $admin-primary;
 }
 
 .statusBadge {
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 12px;
+    padding: $admin-spacing-xs $admin-spacing-sm;
+    border-radius: $admin-radius-full;
+    font-size: $admin-font-size-xs;
     font-weight: 500;
     text-align: center;
+    min-width: 40px;
     display: inline-block;
-    background: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeaa7;
+    background: $admin-warning-light;
+    color: $admin-warning-hover;
+    border: 1px solid $admin-warning;
 }
 
 .email {
     font-weight: 500;
-    color: #333;
+    color: $admin-text-primary;
+    font-size: $admin-font-size-xs;
 }
 
 .userId {
     font-weight: 600;
-    color: #666;
-    font-family: monospace;
-    font-size: 13px;
+    color: $admin-text-secondary;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: $admin-font-size-xs;
+    min-width: 60px;
 }
 
 .username {
-    color: #666;
+    color: $admin-text-primary;
+    font-weight: 500;
+    font-size: $admin-font-size-xs;
 }
 
 .fullName {
-    color: #333;
+    color: $admin-text-primary;
     font-weight: 500;
+    font-size: $admin-font-size-xs;
 }
 
 .groupName {
-    color: #666;
-    font-style: italic;
+    color: $admin-text-secondary;
+    font-size: $admin-font-size-xs;
 }
 
 .actions {
     display: flex;
-    gap: 8px;
+    gap: $admin-spacing-xs;
     justify-content: flex-start;
+    min-width: 120px;
 }
 
 .actionButton {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
+    padding: $admin-spacing-xs $admin-spacing-sm;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-sm;
     cursor: pointer;
-    font-size: 12px;
+    font-size: $admin-font-size-xs;
     font-weight: 500;
-    transition: all 0.2s ease;
-    min-width: 60px;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+    background: $admin-bg-primary;
+    color: $admin-text-primary;
 
     &:hover:not(:disabled) {
+        background: $admin-bg-hover;
+        border-color: $admin-primary;
         transform: translateY(-1px);
+        box-shadow: $admin-shadow-sm;
     }
 
     &:disabled {
+        background: $admin-bg-disabled;
+        color: $admin-text-disabled;
+        border-color: $admin-border-light;
         cursor: not-allowed;
         transform: none;
-        opacity: 0.7;
+        box-shadow: none;
     }
 
     &.approveButton {
-        background: #28a745;
-        color: white;
+        background: $admin-success;
+        color: $admin-text-inverse;
+        border-color: $admin-success;
 
         &:hover:not(:disabled) {
-            background: #218838;
+            background: $admin-success-hover;
+            border-color: $admin-success-hover;
         }
 
         &:disabled {
-            background: #6c757d;
+            background: $admin-success-light;
+            color: $admin-success-hover;
+            border-color: $admin-success-light;
         }
     }
 
     &.rejectButton {
-        background: #dc3545;
-        color: white;
+        background: $admin-danger;
+        color: $admin-text-inverse;
+        border-color: $admin-danger;
 
         &:hover:not(:disabled) {
-            background: #c82333;
+            background: $admin-danger-hover;
+            border-color: $admin-danger-hover;
         }
 
         &:disabled {
-            background: #6c757d;
+            background: $admin-danger-light;
+            color: $admin-danger-hover;
+            border-color: $admin-danger-light;
         }
     }
 }
@@ -227,62 +288,133 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 60px 20px;
-    color: #666;
+    padding: $admin-spacing-2xl $admin-spacing-lg;
+    color: $admin-text-secondary;
 
     .spinner {
         width: 40px;
         height: 40px;
-        border: 3px solid #f3f3f3;
-        border-top: 3px solid #e74c3c;
+        border: 3px solid $admin-border-light;
+        border-top: 3px solid $admin-primary;
         border-radius: 50%;
         animation: spin 1s linear infinite;
-        margin-bottom: 20px;
+        margin-bottom: $admin-spacing-lg;
     }
 
     p {
         margin: 0;
-        font-size: 16px;
+        font-size: $admin-font-size-sm;
     }
 }
 
 .error {
     text-align: center;
-    padding: 60px 20px;
-    color: #721c24;
+    padding: $admin-spacing-2xl $admin-spacing-lg;
+    color: $admin-danger;
 
     h3 {
-        color: #e74c3c;
-        margin-bottom: 10px;
+        color: $admin-danger;
+        margin-bottom: $admin-spacing-sm;
     }
 
     p {
-        margin-bottom: 20px;
-        color: #666;
+        margin-bottom: $admin-spacing-lg;
+        color: $admin-text-secondary;
     }
 }
 
 .retryButton {
-    padding: 12px 24px;
-    background: #e74c3c;
-    color: white;
+    padding: $admin-spacing-sm $admin-spacing-xl;
+    background: $admin-primary;
+    color: $admin-text-inverse;
     border: none;
-    border-radius: 6px;
+    border-radius: $admin-radius-md;
     cursor: pointer;
-    font-size: 14px;
+    font-size: $admin-font-size-sm;
     font-weight: 500;
-    transition: background 0.2s ease;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
 
     &:hover {
-        background: #c0392b;
+        background: $admin-primary-hover;
+        transform: translateY(-1px);
+        box-shadow: $admin-shadow-md;
     }
 }
 
 .noData {
     text-align: center;
-    padding: 40px 20px;
-    color: #999;
+    padding: $admin-spacing-xl $admin-spacing-lg;
+    color: $admin-text-muted;
     font-style: italic;
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: $admin-spacing-2xl $admin-spacing-lg;
+    color: $admin-text-secondary;
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid $admin-border-light;
+        border-top: 3px solid $admin-primary;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: $admin-spacing-lg;
+    }
+
+    p {
+        margin: 0;
+        font-size: $admin-font-size-base;
+        font-family: $admin-font-family;
+    }
+}
+
+.error {
+    text-align: center;
+    padding: $admin-spacing-2xl $admin-spacing-lg;
+    color: $admin-danger;
+
+    h3 {
+        color: $admin-danger;
+        margin-bottom: $admin-spacing-sm;
+    }
+
+    p {
+        margin-bottom: $admin-spacing-lg;
+        color: $admin-text-secondary;
+    }
+}
+
+.retryButton {
+    padding: $admin-spacing-sm $admin-spacing-xl;
+    background: $admin-primary;
+    color: $admin-text-inverse;
+    border: none;
+    border-radius: $admin-radius-md;
+    cursor: pointer;
+    font-size: $admin-font-size-sm;
+    font-weight: 500;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+
+    &:hover {
+        background: $admin-primary-hover;
+        transform: translateY(-1px);
+        box-shadow: $admin-shadow-md;
+    }
+}
+
+.noData {
+    text-align: center;
+    padding: $admin-spacing-xl $admin-spacing-lg;
+    color: $admin-text-muted;
+    font-style: italic;
+    font-family: $admin-font-family;
 }
 
 @keyframes spin {
@@ -291,41 +423,169 @@
 }
 
 // 반응형 처리
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .table {
-        font-size: 14px;
+        font-size: $admin-font-size-xs;
 
         th, td {
-            padding: 8px;
+            padding: $admin-spacing-xs $admin-spacing-sm;
+        }
+
+        th:nth-child(6), td:nth-child(6), // 등록일
+        th:nth-child(7), td:nth-child(7)  // 마지막 로그인
+        {
+            display: none;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        margin: 0 calc(-1 * $admin-spacing-sm);
+        border-radius: 0;
+    }
+
+    .controls {
+        padding: $admin-spacing-md;
+    }
+
+    .tableContainer {
+        display: none;
+    }
+
+    .cardContainer {
+        display: block;
+        padding: $admin-spacing-lg;
+        gap: $admin-spacing-md;
+    }
+
+    .userCard {
+        background: $admin-bg-primary;
+        border: 1px solid $admin-border;
+        border-radius: $admin-radius-md;
+        padding: $admin-spacing-md;
+        margin-bottom: $admin-spacing-md;
+        box-shadow: $admin-shadow-sm;
+
+        .cardHeader {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: $admin-spacing-sm;
+            flex-wrap: wrap;
+            gap: $admin-spacing-xs;
+
+            .userInfo {
+                flex: 1;
+                min-width: 0;
+
+                .userName {
+                    font-weight: 600;
+                    font-size: $admin-font-size-base;
+                    color: $admin-text-primary;
+                    margin-bottom: $admin-spacing-xs;
+                }
+
+                .userEmail {
+                    font-size: $admin-font-size-sm;
+                    color: $admin-text-secondary;
+                    word-break: break-all;
+                }
+            }
+
+            .userStatus {
+                flex-shrink: 0;
+            }
+        }
+
+        .cardBody {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: $admin-spacing-sm;
+            margin-bottom: $admin-spacing-md;
+
+            .cardField {
+                .fieldLabel {
+                    font-size: $admin-font-size-xs;
+                    font-weight: 500;
+                    color: $admin-text-secondary;
+                    margin-bottom: $admin-spacing-xs;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                .fieldValue {
+                    font-size: $admin-font-size-sm;
+                    color: $admin-text-primary;
+                }
+            }
+        }
+
+        .cardActions {
+            display: flex;
+            gap: $admin-spacing-xs;
+            justify-content: flex-end;
+            padding-top: $admin-spacing-sm;
+            border-top: 1px solid $admin-border;
         }
     }
 
-    .actions {
-        flex-direction: column;
-        gap: 4px;
+    .controls {
+        .stats {
+            order: 3;
+            width: 100%;
+            justify-content: center;
+        }
+    }
+}
+
+@media (min-width: 769px) {
+    .cardContainer {
+        display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .table {
+        th:nth-child(1), td:nth-child(1), // ID
+        th:nth-child(4), td:nth-child(4)  // 이름
+        {
+            display: none;
+        }
     }
 
-    .actionButton {
-        font-size: 11px;
-        padding: 4px 8px;
+    .userCard .cardBody {
+        grid-template-columns: 1fr;
     }
 }
 
 @media (max-width: 480px) {
     .container {
-        margin: 0 -10px;
+        margin: 0 calc(-1 * $admin-spacing-xs);
         border-radius: 0;
     }
 
     .controls {
-        padding: 15px;
+        padding: $admin-spacing-sm;
+        gap: $admin-spacing-sm;
     }
 
     .table {
-        font-size: 12px;
+        th:nth-child(8), td:nth-child(8) { // 조직
+            display: none;
+        }
+    }
 
-        th, td {
-            padding: 6px;
+    .userCard {
+        padding: $admin-spacing-sm;
+        margin-bottom: $admin-spacing-sm;
+
+        .cardHeader .userInfo .userName {
+            font-size: $admin-font-size-sm;
+        }
+
+        .cardBody {
+            gap: $admin-spacing-xs;
         }
     }
 }

@@ -1,7 +1,7 @@
 import React from 'react';
-import BaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/main/components/config/baseConfigPanel';
+import AdminBaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/admin/components/config/AdminBaseConfigPanel';
 
-interface DatabaseConfigProps {
+interface AdminDatabaseConfigProps {
     configData?: ConfigItem[];
     onTestConnection?: (category: string) => void;
 }
@@ -74,12 +74,12 @@ const DATABASE_CONFIG_FIELDS: Record<string, FieldConfig> = {
     },
 };
 
-const DatabaseConfig: React.FC<DatabaseConfigProps> = ({
+const AdminDatabaseConfig: React.FC<AdminDatabaseConfigProps> = ({
     configData = [],
     onTestConnection,
 }) => {
     return (
-        <BaseConfigPanel
+        <AdminBaseConfigPanel
             configData={configData}
             fieldConfigs={DATABASE_CONFIG_FIELDS}
             filterPrefix="database"
@@ -90,4 +90,4 @@ const DatabaseConfig: React.FC<DatabaseConfigProps> = ({
     );
 };
 
-export default DatabaseConfig;
+export default AdminDatabaseConfig;

@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from '@/app/(auth)/signup/SignupPage.module.scss';
 import { signup } from '@/app/api/authAPI';
+import { getAllGroupsList } from '@/app/admin/api/group';
 import ReverseAuthGuard from '@/app/_common/components/ReverseAuthGuard';
 
 const SignupPage = () => {
@@ -15,11 +16,31 @@ const SignupPage = () => {
     const [fullName, setFullName] = useState('');
     const [groupName, setGroupName] = useState('');
     const [mobilePhoneNumber, setMobilePhoneNumber] = useState('');
+    const [groupsList, setGroupsList] = useState<string[]>([]);
+    const [isLoadingGroups, setIsLoadingGroups] = useState(true);
 
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
     const router = useRouter();
+
+    // 컴포넌트 마운트 시 그룹 목록 가져오기
+    useEffect(() => {
+        const fetchGroups = async () => {
+            try {
+                setIsLoadingGroups(true);
+                const groups = await getAllGroupsList();
+                setGroupsList(groups || []);
+            } catch (error) {
+                console.error('Failed to fetch groups:', error);
+                setGroupsList([]);
+            } finally {
+                setIsLoadingGroups(false);
+            }
+        };
+
+        fetchGroups();
+    }, []);
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -43,7 +64,7 @@ const SignupPage = () => {
                 email,
                 password,
                 full_name: fullName || undefined,
-                group_name: groupName || undefined,
+                group_name: groupName === 'none' ? undefined : (groupName || undefined),
                 mobile_phone_number: mobilePhoneNumber || undefined
             };
 
@@ -121,12 +142,29 @@ const SignupPage = () => {
                         </div>
                         <div className={styles.inputGroup}>
                             <label htmlFor="groupName">소속 (선택사항)</label>
-                            <input
-                                type="text"
+                            <select
                                 id="groupName"
                                 value={groupName}
                                 onChange={(e) => setGroupName(e.target.value)}
-                            />
+                                disabled={isLoadingGroups}
+                            >
+                                <option value="">
+                                    {isLoadingGroups
+                                        ? '조직 목록을 불러오는 중...'
+                                        : groupsList.length === 0
+                                            ? '선택할 수 있는 조직이 없습니다.'
+                                            : '조직을 선택하세요'
+                                    }
+                                </option>
+                                {groupsList.length === 0 && !isLoadingGroups && (
+                                    <option value="none">없음</option>
+                                )}
+                                {groupsList.map((group) => (
+                                    <option key={group} value={group}>
+                                        {group}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                     </div>
                     <div className={styles.formRow}>
