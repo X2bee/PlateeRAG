@@ -33,6 +33,8 @@ const AdminWorkflowLogsContent: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [userIdSearch, setUserIdSearch] = useState('');
+    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
     const [sortField, setSortField] = useState<keyof WorkflowLog>('created_at');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
     const [currentPage, setCurrentPage] = useState(1);
@@ -65,11 +67,11 @@ const AdminWorkflowLogsContent: React.FC = () => {
     };
 
     // 로그 데이터 로드
-    const loadLogs = async (page: number = 1, resetLogs: boolean = true) => {
+    const loadLogs = async (page: number = 1, resetLogs: boolean = true, userId: number | null = null) => {
         try {
             setLoading(true);
             setError(null);
-            const response = await getAllIOLogs(page, PAGE_SIZE) as any;
+            const response = await getAllIOLogs(page, PAGE_SIZE, userId) as any;
             const newLogs = response.io_logs || [];
 
             if (resetLogs) {
@@ -92,7 +94,7 @@ const AdminWorkflowLogsContent: React.FC = () => {
     // 다음 페이지 로드
     const loadNextPage = () => {
         if (hasNextPage && !loading) {
-            loadLogs(currentPage + 1, false);
+            loadLogs(currentPage + 1, false, currentUserId);
         }
     };
 
@@ -101,12 +103,12 @@ const AdminWorkflowLogsContent: React.FC = () => {
         if (currentPage > 1 && !loading) {
             // 이전 페이지로 돌아가기 위해 전체를 다시 로드
             const targetPage = currentPage - 1;
-            loadLogsRange(1, targetPage);
+            loadLogsRange(1, targetPage, currentUserId);
         }
     };
 
     // 특정 범위의 페이지들을 로드하는 함수
-    const loadLogsRange = async (startPage: number, endPage: number) => {
+    const loadLogsRange = async (startPage: number, endPage: number, userId: number | null = null) => {
         try {
             setLoading(true);
             setError(null);
@@ -114,7 +116,7 @@ const AdminWorkflowLogsContent: React.FC = () => {
             let lastPagination: any = null;
 
             for (let page = startPage; page <= endPage; page++) {
-                const response = await getAllIOLogs(page, PAGE_SIZE) as any;
+                const response = await getAllIOLogs(page, PAGE_SIZE, userId) as any;
                 const pageLogs = response.io_logs || [];
                 allLogs = [...allLogs, ...pageLogs];
                 lastPagination = response.pagination;
@@ -147,11 +149,39 @@ const AdminWorkflowLogsContent: React.FC = () => {
     // 새로고침 핸들러
     const handleRefresh = () => {
         setCurrentPage(1);
-        loadLogs(1, true);
+        loadLogs(1, true, currentUserId);
+    };
+
+    // ID 검색 핸들러
+    const handleUserIdSearch = () => {
+        const userId = userIdSearch.trim();
+        if (userId === '') {
+            // 빈 값이면 전체 검색으로 리셋
+            setCurrentUserId(null);
+            setCurrentPage(1);
+            loadLogs(1, true, null);
+        } else {
+            const parsedUserId = parseInt(userId);
+            if (isNaN(parsedUserId)) {
+                alert('유효한 사용자 ID를 입력해주세요.');
+                return;
+            }
+            setCurrentUserId(parsedUserId);
+            setCurrentPage(1);
+            loadLogs(1, true, parsedUserId);
+        }
+    };
+
+    // ID 검색 리셋 핸들러
+    const handleResetUserIdSearch = () => {
+        setUserIdSearch('');
+        setCurrentUserId(null);
+        setCurrentPage(1);
+        loadLogs(1, true, null);
     };
 
     useEffect(() => {
-        loadLogs(1, true);
+        loadLogs(1, true, null);
     }, []);
 
     // 검색 필터링
@@ -270,7 +300,7 @@ const AdminWorkflowLogsContent: React.FC = () => {
                 <div className={styles.error}>
                     <h3>오류 발생</h3>
                     <p>{error}</p>
-                    <button onClick={() => loadLogs(1, true)} className={styles.retryButton}>
+                    <button onClick={() => loadLogs(1, true, currentUserId)} className={styles.retryButton}>
                         다시 시도
                     </button>
                 </div>
@@ -285,7 +315,7 @@ const AdminWorkflowLogsContent: React.FC = () => {
                 <div className={styles.searchContainer}>
                     <input
                         type="text"
-                        placeholder="워크플로우 ID, 이름, 상호작용 ID, 사용자 ID로 검색..."
+                        placeholder="결과 필터링..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className={styles.searchInput}
@@ -294,6 +324,9 @@ const AdminWorkflowLogsContent: React.FC = () => {
 
                 <div className={styles.stats}>
                     <span>총 {logs.length}개의 로그 로드됨</span>
+                    {currentUserId && (
+                        <span>(사용자 ID: {currentUserId})</span>
+                    )}
                     {searchTerm && (
                         <span>({sortedLogs.length}개 검색됨)</span>
                     )}
@@ -332,6 +365,34 @@ const AdminWorkflowLogsContent: React.FC = () => {
                             </button>
                         </div>
                     )}
+                    <div className={styles.userIdSearchContainer}>
+                        <input
+                            type="text"
+                            placeholder="사용자 ID"
+                            value={currentUserId ? currentUserId.toString() : userIdSearch}
+                            onChange={(e) => setUserIdSearch(e.target.value)}
+                            className={styles.userIdInput}
+                            onKeyPress={(e) => e.key === 'Enter' && !currentUserId && handleUserIdSearch()}
+                            disabled={currentUserId !== null}
+                        />
+                        {currentUserId ? (
+                            <button
+                                onClick={handleResetUserIdSearch}
+                                className={styles.refreshButton}
+                            >
+                                리셋
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleUserIdSearch}
+                                className={styles.refreshButton}
+                            >
+                                검색
+                            </button>
+                        )}
+                    </div>
+
+
                     <div className={styles.toggleButtons}>
                         <button
                             onClick={() => setShowProcessedOutput(false)}
@@ -346,6 +407,7 @@ const AdminWorkflowLogsContent: React.FC = () => {
                             가공
                         </button>
                     </div>
+
                     <button onClick={handleRefresh} className={styles.refreshButton}>
                         새로고침
                     </button>

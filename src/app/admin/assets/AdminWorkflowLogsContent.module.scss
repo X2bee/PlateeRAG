@@ -16,21 +16,23 @@
     border-bottom: 1px solid $admin-border;
     gap: $admin-spacing-lg;
     background: $admin-bg-secondary;
+    min-height: 60px;
 
-    @media (max-width: 1024px) {
-        flex-direction: column;
+    @media (max-width: 1200px) {
+        flex-wrap: wrap;
         gap: $admin-spacing-md;
-        align-items: stretch;
     }
 
     @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: stretch;
         padding: $admin-spacing-md;
     }
 }
 
 .searchContainer {
-    flex: 1;
-    max-width: 500px;
+    flex: 0 0 250px;
+    min-width: 200px;
 }
 
 .searchInput {
@@ -56,36 +58,128 @@
 }
 
 .stats {
+    flex: 1;
     display: flex;
     gap: $admin-spacing-sm;
     color: $admin-text-secondary;
     font-size: $admin-font-size-sm;
-    flex: 1;
     justify-content: center;
     align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 40px;
 
     span {
         white-space: nowrap;
     }
 
-    @media (max-width: 1024px) {
+    @media (max-width: 1200px) {
         justify-content: flex-start;
         flex-wrap: wrap;
+        min-height: auto;
     }
 
     @media (max-width: 768px) {
         font-size: $admin-font-size-xs;
+        justify-content: center;
     }
 }
 
 .actionButtons {
+    flex: 0 0 auto;
     display: flex;
-    gap: $admin-spacing-md;
+    gap: $admin-spacing-sm;
     align-items: center;
+    justify-content: flex-end;
 
-    @media (max-width: 1024px) {
+    @media (max-width: 1200px) {
         justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
         width: 100%;
+        justify-content: center;
+    }
+}
+
+.userIdSearchContainer {
+    display: flex;
+    gap: $admin-spacing-xs;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.userIdInput {
+    width: 120px;
+    min-width: 120px;
+    padding: $admin-spacing-sm $admin-spacing-sm;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    font-size: $admin-font-size-sm;
+    font-family: $admin-font-family;
+    color: $admin-text-primary;
+    background: $admin-bg-primary;
+    transition: $admin-transition;
+
+    &:focus {
+        outline: none;
+        border-color: $admin-primary;
+        box-shadow: 0 0 0 3px $admin-primary-light;
+    }
+
+    &::placeholder {
+        color: $admin-text-muted;
+    }
+
+    &:disabled {
+        background: $admin-bg-disabled;
+        color: $admin-text-secondary;
+        border-color: $admin-border-light;
+        cursor: not-allowed;
+    }
+
+    @media (max-width: 768px) {
+        width: 100px;
+        min-width: 100px;
+    }
+}
+
+.paginationButtons {
+    display: flex;
+    gap: $admin-spacing-xs;
+}
+
+.refreshButton, .paginationButton {
+    padding: $admin-spacing-xs $admin-spacing-sm;
+    background: $admin-primary;
+    color: $admin-text-inverse;
+    border: none;
+    border-radius: $admin-radius-md;
+    cursor: pointer;
+    font-size: $admin-font-size-xs;
+    font-weight: 500;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+    white-space: nowrap;
+
+    &:hover:not(:disabled) {
+        background: $admin-primary-hover;
+        transform: translateY(-1px);
+        box-shadow: $admin-shadow-sm;
+    }
+
+    &:disabled {
+        background: $admin-bg-disabled;
+        color: $admin-text-disabled;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    &:active {
+        transform: translateY(0);
     }
 }
 
