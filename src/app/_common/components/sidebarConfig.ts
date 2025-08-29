@@ -15,6 +15,7 @@ import { LuBrainCircuit } from "react-icons/lu";
 import { HiSaveAs } from "react-icons/hi";
 import { TbBrandSpeedtest } from "react-icons/tb";
 import { SidebarItem } from '@/app/main/components/types';
+import { devLog } from '@/app/_common/utils/logger';
 
 export const getChatItems = ['new-chat', 'current-chat', 'chat-history'];
 
@@ -90,6 +91,38 @@ export const getTrainSidebarItems = (): SidebarItem[] => [
         icon: React.createElement(HiSaveAs),
     },
 ];
+
+/**
+ * 사용자 권한에 따라 워크플로우 아이템 필터링
+ * @param hasAccessToSection - 섹션 접근 권한 확인 함수
+ * @returns 접근 가능한 워크플로우 아이템들
+ */
+export const getFilteredWorkflowSidebarItems = (hasAccessToSection: (sectionId: string) => boolean): SidebarItem[] => {
+    const allItems = getWorkflowSidebarItems();
+    const filteredItems = allItems.filter(item => {
+        const hasAccess = hasAccessToSection(item.id);
+        devLog.log(`SidebarConfig: Checking workflow item '${item.id}': ${hasAccess}`);
+        return hasAccess;
+    });
+    devLog.log('SidebarConfig: Filtered workflow items:', filteredItems.map(item => item.id));
+    return filteredItems;
+};
+
+/**
+ * 사용자 권한에 따라 훈련 아이템 필터링
+ * @param hasAccessToSection - 섹션 접근 권한 확인 함수
+ * @returns 접근 가능한 훈련 아이템들
+ */
+export const getFilteredTrainSidebarItems = (hasAccessToSection: (sectionId: string) => boolean): SidebarItem[] => {
+    const allItems = getTrainSidebarItems();
+    const filteredItems = allItems.filter(item => {
+        const hasAccess = hasAccessToSection(item.id);
+        devLog.log(`SidebarConfig: Checking train item '${item.id}': ${hasAccess}`);
+        return hasAccess;
+    });
+    devLog.log('SidebarConfig: Filtered train items:', filteredItems.map(item => item.id));
+    return filteredItems;
+};
 
 // 공통 아이템 클릭 핸들러 (localStorage 사용)
 export const createItemClickHandler = (router: any) => {
