@@ -9,7 +9,7 @@ const metrics = process.env.NEXT_PUBLIC_METRICS_HOST || '';
 // 허용된 origin URL들을 설정
 const allowedOrigins = process.env.NEXT_PUBLIC_ALLOWED_ORIGINS 
     ? process.env.NEXT_PUBLIC_ALLOWED_ORIGINS.split(',').map(url => url.trim())
-    : ['http://localhost:3000']; // 기본값
+    : ['http://localhost:3000','https://code-assistant.x2bee.com']; // 기본값
 
 let BASE_URL = '';
 
@@ -20,7 +20,6 @@ if (!port) {
 }
 
 console.log(`Backend server running at ${BASE_URL}`);
-console.log(`Allowed origins:`, allowedOrigins);
 
 // API Configuration
 export const API_CONFIG = {
