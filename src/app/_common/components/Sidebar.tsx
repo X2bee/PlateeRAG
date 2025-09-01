@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import toast from 'react-hot-toast';
 import Image from 'next/image';
 import { SidebarProps } from '@/app/main/components/types';
-import styles from '@/app/main/assets/MainPage.module.scss';
+import styles from '../assets/Sidebar.module.scss';
 import { logout } from '@/app/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useQuickLogout } from '@/app/_common/utils/logoutUtils';

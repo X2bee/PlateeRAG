@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from '../assets/Documents.module.scss';
 import DocumentsGraph from './DocumentsGraph';
+import CollectionEditModal from './CollectionEditModal';
 
 import {
     isValidCollectionName,
@@ -18,7 +19,8 @@ import {
     getDocumentDetailMeta,
     getDocumentDetailEdges,
     getAllDocumentDetailMeta,
-    getAllDocumentDetailEdges
+    getAllDocumentDetailEdges,
+    updateCollection
 } from '@/app/api/rag/retrievalAPI';
 import useSidebarManager from '@/app/_common/hooks/useSidebarManager';
 import { useAuth } from '@/app/_common/components/CookieProvider';
@@ -142,8 +144,10 @@ const Documents: React.FC = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showChunkSettingsModal, setShowChunkSettingsModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [isFolderUpload, setIsFolderUpload] = useState(false);
     const [collectionToDelete, setCollectionToDelete] = useState<Collection | null>(null);
+    const [collectionToEdit, setCollectionToEdit] = useState<Collection | null>(null);
 
     // 폼 상태
     const [newCollectionName, setNewCollectionName] = useState('');
@@ -153,7 +157,7 @@ const Documents: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    useSidebarManager(showCreateModal || showDeleteModal || showChunkSettingsModal)
+    useSidebarManager(showCreateModal || showDeleteModal || showChunkSettingsModal || showEditModal)
 
     // 컬렉션 필터링
     const getFilteredCollections = () => {
@@ -310,6 +314,33 @@ const Documents: React.FC = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    // 컬렉션 편집
+    const handleEditCollectionRequest = (collection: Collection) => {
+        setCollectionToEdit(collection);
+        setShowEditModal(true);
+    };
+
+    const handleUpdateCollection = (updatedCollection: Collection) => {
+        // 컬렉션 목록에서 해당 컬렉션 업데이트
+        setCollections(prevCollections =>
+            prevCollections.map(collection =>
+                collection.collection_name === updatedCollection.collection_name
+                    ? updatedCollection
+                    : collection
+            )
+        );
+
+        // 현재 선택된 컬렉션이 업데이트된 컬렉션이면 상태 업데이트
+        if (selectedCollection?.collection_name === updatedCollection.collection_name) {
+            setSelectedCollection(updatedCollection);
+        }
+    };
+
+    const handleCloseEditModal = () => {
+        setShowEditModal(false);
+        setCollectionToEdit(null);
     };
 
     // 문서 삭제 (바로 삭제)
@@ -756,35 +787,56 @@ const Documents: React.FC = () => {
                                             {collection.description}
                                         </p>
                                         <div className={styles.collectionMeta}>
-                                            <span
-                                                className={styles.shareStatus}
-                                                data-status={collection.is_shared ? 'shared' : 'personal'}
-                                            >
-                                                {collection.is_shared ? '🔗 공유됨' : '👤 개인'}
-                                            </span>
-                                            {collection.user_id === user?.user_id && (
-                                                <span className={styles.ownerStatus}>
-                                                    📝 내가 만든 컬렉션
+                                            {!collection.is_shared ? (
+                                                <span
+                                                    className={styles.shareStatus}
+                                                    data-status="personal"
+                                                >
+                                                    👤 개인
                                                 </span>
-                                            )}
-                                            {collection.is_shared && collection.share_group && (
-                                                <span className={styles.shareGroup}>
-                                                    그룹: {collection.share_group}
-                                                </span>
+                                            ) : (
+                                                <>
+                                                    <span
+                                                        className={styles.shareStatus}
+                                                        data-status="shared"
+                                                    >
+                                                        {collection.user_id === user?.user_id
+                                                            ? '📤 내 컬렉션 공유중'
+                                                            : '📤 조직 컬렉션 공유받음'
+                                                        }
+                                                    </span>
+                                                    {collection.share_group && (
+                                                        <span className={styles.shareGroup}>
+                                                            조직: {collection.share_group}
+                                                        </span>
+                                                    )}
+                                                </>
                                             )}
                                         </div>
                                     </div>
                                     {collection.user_id === user?.user_id && (
-                                        <button
-                                            className={`${styles.deleteButton}`}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDeleteCollectionRequest(collection);
-                                            }}
-                                            title="컬렉션 삭제"
-                                        >
-                                            🗑️
-                                        </button>
+                                        <div className={styles.cardActions}>
+                                            <button
+                                                className={`${styles.settingsButton}`}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleEditCollectionRequest(collection);
+                                                }}
+                                                title="컬렉션 설정"
+                                            >
+                                                ⚙️
+                                            </button>
+                                            <button
+                                                className={`${styles.deleteButton}`}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteCollectionRequest(collection);
+                                                }}
+                                                title="컬렉션 삭제"
+                                            >
+                                                🗑️
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             ))}
@@ -1139,6 +1191,16 @@ const Documents: React.FC = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* 컬렉션 편집 모달 */}
+            {showEditModal && collectionToEdit && (
+                <CollectionEditModal
+                    collection={collectionToEdit}
+                    isOpen={showEditModal}
+                    onClose={handleCloseEditModal}
+                    onUpdate={handleUpdateCollection}
+                />
             )}
 
 
