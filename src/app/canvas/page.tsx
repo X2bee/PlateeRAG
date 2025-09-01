@@ -7,7 +7,7 @@ import Header from '@/app/canvas/components/Header';
 import SideMenu from '@/app/canvas/components/SideMenu';
 import ExecutionPanel from '@/app/canvas/components/ExecutionPanel';
 import NodeModal from '@/app/canvas/components/NodeModal';
-import AuthGuard from '@/app/_common/components/AuthGuard';
+import AuthGuard from '@/app/_common/components/authGuard/AuthGuard';
 import { DeploymentModal } from '@/app/chat/components/DeploymentModal';
 import { useNodes } from '@/app/_common/utils/nodeHook';
 import styles from '@/app/canvas/assets/PlateeRAG.module.scss';

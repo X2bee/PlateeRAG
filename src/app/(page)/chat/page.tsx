@@ -1,7 +1,7 @@
 'use client';
 import React, { Suspense } from 'react';
 import ChatPageContent from '@/app/chat/components/ChatPageContent';
-import AuthGuard from '@/app/_common/components/AuthGuard';
+import AuthGuard from '@/app/_common/components/authGuard/AuthGuard';
 import styles from '@/app/main/assets/MainPage.module.scss';
 
 const LoadingFallback = () => (

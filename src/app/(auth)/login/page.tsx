@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import styles from '@/app/(auth)/login/LoginPage.module.scss';
 import { login } from '@/app/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
-import ReverseAuthGuard from '@/app/_common/components/ReverseAuthGuard';
+import ReverseAuthGuard from '@/app/_common/components/authGuard/ReverseAuthGuard';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');

@@ -352,3 +352,171 @@
         }
     }
 }
+
+// 새로운 와이드 모달 스타일
+.wideModal {
+    min-width: 60rem !important;
+    max-width: 80vw !important;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid $border-color;
+    padding-bottom: 1rem;
+
+    h3 {
+        margin: 0;
+        color: $text-primary;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .collectionInfo {
+        color: $text-secondary;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+}
+
+.modalBody {
+    display: flex;
+    gap: 2rem;
+    min-height: 400px;
+}
+
+.leftPanel {
+    flex: 1;
+    max-width: 350px;
+}
+
+.rightPanel {
+    flex: 2;
+}
+
+// Embedding 정보 스타일
+.embeddingInfo {
+    background: $background-light;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    border: 1px solid $border-color;
+
+    h4 {
+        margin: 0 0 1rem 0;
+        color: $text-primary;
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+}
+
+.loadingText {
+    color: $text-secondary;
+    font-style: italic;
+}
+
+.errorText {
+    color: $primary-red;
+    font-weight: 500;
+}
+
+.embeddingDetails {
+    .infoRow {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba($border-color, 0.5);
+
+        &:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        label {
+            font-weight: 600;
+            color: $text-secondary;
+            font-size: 0.875rem;
+        }
+
+        span {
+            font-weight: 500;
+        }
+    }
+
+    .providerName {
+        color: $primary-blue;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .modelName {
+        color: $text-primary;
+        font-family: 'Courier New', monospace;
+        font-size: 0.875rem;
+    }
+
+    .dimension {
+        font-weight: 600;
+        color: $primary-green;
+
+        &.mismatch {
+            color: $primary-red;
+        }
+    }
+
+    .status {
+        font-weight: 600;
+
+        &.available {
+            color: $primary-green;
+        }
+
+        &.unavailable {
+            color: $primary-red;
+        }
+    }
+}
+
+// 차원 불일치 경고
+.warningSection {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: color.adjust($primary-red, $alpha: -0.9);
+    border: 1px solid $primary-red;
+    border-radius: 0.5rem;
+
+    .warningMessage {
+        color: $primary-red;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        line-height: 1.4;
+    }
+
+    .checkboxLabel {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: $text-primary;
+        font-weight: 500;
+        cursor: pointer;
+
+        input[type="checkbox"] {
+            margin: 0;
+        }
+    }
+}
+
+// 설정 섹션
+.settingsSection {
+    margin-top: 1.5rem;
+
+    h4 {
+        margin: 0 0 1rem 0;
+        color: $text-primary;
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+}

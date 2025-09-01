@@ -18,9 +18,6 @@ import {
 import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<SidebarProps> = ({
     isOpen,
     onToggle,
-    workflowItems = [], // 이제 사용하지 않음 (권한에 따라 동적 생성)
-    chatItems = [], // 이제 사용하지 않음 (권한에 따라 동적 생성)
-    trainItem = [], // 이제 사용하지 않음 (권한에 따라 동적 생성)
     activeItem,
     onItemClick,
     className = '',
@@ -30,7 +27,6 @@ import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<Side
     initialTrainExpanded = false,
 }) => {
     const router = useRouter();
-    const pathname = usePathname();
     const [isSettingExpanded, setIsSettingExpanded] = useState(initialSettingExpanded);
     const [isChatExpanded, setIsChatExpanded] = useState(initialChatExpanded);
     const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(initialWorkflowExpanded);

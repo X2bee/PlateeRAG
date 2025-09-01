@@ -6,7 +6,7 @@ import ToastProvider from '@/app/_common/components/ToastProvider';
 import CookieProvider from '@/app/_common/components/CookieProvider';
 import { BatchTesterProvider } from '@/app/_common/contexts/BatchTesterContext';
 import { DocumentFileModalProvider } from '@/app/_common/contexts/DocumentFileModalContext';
-import GlobalDocumentFileModal from '@/app/_common/components/GlobalDocumentFileModal';
+import GlobalDocumentFileModal from '@/app/_common/components/docsFile/GlobalDocumentFileModal';
 
 export const metadata: Metadata = {
     title: 'XGEN',

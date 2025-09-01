@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from '@/app/(auth)/signup/SignupPage.module.scss';
 import { signup } from '@/app/api/authAPI';
-import ReverseAuthGuard from '@/app/_common/components/ReverseAuthGuard';
+import ReverseAuthGuard from '@/app/_common/components/authGuard/ReverseAuthGuard';
 
 const SignupPage = () => {
     const [username, setUsername] = useState('');

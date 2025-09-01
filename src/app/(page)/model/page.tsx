@@ -1,6 +1,6 @@
 'use client';
 import React, { Suspense } from 'react';
-import AuthGuard from '@/app/_common/components/AuthGuard';
+import AuthGuard from '@/app/_common/components/authGuard/AuthGuard';
 import styles from '@/app/main/assets/MainPage.module.scss';
 import ModelPageContent from '@/app/model/components/ModelPageContent';
 
