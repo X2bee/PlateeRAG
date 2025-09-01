@@ -1,0 +1,382 @@
+name: E2E Tests on Release
+
+on:
+  push:
+    branches:
+      - release
+      - release/*
+  pull_request:
+    branches:
+      - release
+      - release/*
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+
+jobs:
+  # 건강 체크 및 기본 검증
+  health-check:
+    name: Health Check & Basic Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Lint check
+        run: npm run lint
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build check
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+  # E2E 테스트 실행
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: health-check
+    timeout-minutes: 30
+    
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+        shard: [1, 2, 3, 4]
+      fail-fast: false
+      max-parallel: 6
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Build application
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Start application
+        run: |
+          npm start &
+          sleep 10
+          npx wait-on http://localhost:3000 --timeout 60000
+        env:
+          NODE_ENV: production
+
+      - name: Run E2E tests
+        run: npx playwright test --project=${{ matrix.browser }} --shard=${{ matrix.shard }}/4
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.browser }}-shard-${{ matrix.shard }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  # 모바일 브라우저 테스트
+  mobile-e2e-tests:
+    name: Mobile E2E Tests
+    runs-on: ubuntu-latest
+    needs: health-check
+    timeout-minutes: 25
+
+    strategy:
+      matrix:
+        device: ['iPhone 14', 'Pixel 7', 'iPad Pro']
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start application
+        run: |
+          npm start &
+          sleep 10
+          npx wait-on http://localhost:3000 --timeout 60000
+
+      - name: Run Mobile E2E tests
+        run: npx playwright test --project=mobile --grep="@mobile" --reporter=html
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+          DEVICE_NAME: ${{ matrix.device }}
+
+      - name: Upload mobile test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-playwright-report-${{ matrix.device }}
+          path: playwright-report/
+          retention-days: 7
+
+  # 접근성 테스트
+  accessibility-tests:
+    name: Accessibility Tests
+    runs-on: ubuntu-latest
+    needs: health-check
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start application
+        run: |
+          npm start &
+          sleep 10
+          npx wait-on http://localhost:3000 --timeout 60000
+
+      - name: Run accessibility tests
+        run: npx playwright test --grep="@a11y" --reporter=html
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+
+      - name: Upload accessibility results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: accessibility-test-results
+          path: |
+            playwright-report/
+            accessibility-report/
+          retention-days: 7
+
+  # 성능 테스트
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: health-check
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Build application
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Start application
+        run: |
+          npm start &
+          sleep 10
+          npx wait-on http://localhost:3000 --timeout 60000
+        env:
+          NODE_ENV: production
+
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli
+          lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+          LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
+
+      - name: Run performance tests
+        run: npx playwright test --grep="@performance" --reporter=html
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+
+      - name: Upload performance results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-test-results
+          path: |
+            playwright-report/
+            .lighthouseci/
+          retention-days: 7
+
+  # 보안 테스트
+  security-tests:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    needs: health-check
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Run npm audit
+        run: npm audit --audit-level=high
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start application
+        run: |
+          npm start &
+          sleep 10
+          npx wait-on http://localhost:3000 --timeout 60000
+
+      - name: Run security tests
+        run: npx playwright test --grep="@security" --reporter=html
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+
+  # 결과 통합 및 보고서 생성
+  consolidate-results:
+    name: Consolidate Test Results
+    runs-on: ubuntu-latest
+    needs: [e2e-tests, mobile-e2e-tests, accessibility-tests, performance-tests, security-tests]
+    if: always()
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: test-artifacts
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Generate consolidated report
+        run: |
+          mkdir -p consolidated-report
+          echo "# E2E Test Results Summary" > consolidated-report/summary.md
+          echo "" >> consolidated-report/summary.md
+          echo "**Test Run:** $(date)" >> consolidated-report/summary.md
+          echo "**Branch:** ${{ github.ref_name }}" >> consolidated-report/summary.md
+          echo "**Commit:** ${{ github.sha }}" >> consolidated-report/summary.md
+          echo "" >> consolidated-report/summary.md
+          
+          # Count test results
+          TOTAL_TESTS=$(find test-artifacts -name "*.json" -exec grep -l "test" {} \; | wc -l || echo "0")
+          echo "**Total Test Artifacts:** $TOTAL_TESTS" >> consolidated-report/summary.md
+
+      - name: Upload consolidated results
+        uses: actions/upload-artifact@v4
+        with:
+          name: consolidated-test-results
+          path: |
+            consolidated-report/
+            test-artifacts/
+          retention-days: 30
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'consolidated-report/summary.md';
+            if (fs.existsSync(path)) {
+              const summary = fs.readFileSync(path, 'utf8');
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## 🧪 E2E Test Results\n\n${summary}\n\n---\n*Automated test results for commit ${context.sha}*`
+              });
+            }
