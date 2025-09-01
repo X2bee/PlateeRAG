@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import styles from '../assets/CollectionEditModal.module.scss';
+import styles from '@/app/main/assets/CollectionEditModal.module.scss';
 import { updateCollection } from '@/app/api/rag/retrievalAPI';
 import { getGroupAvailableGroups } from '@/app/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';

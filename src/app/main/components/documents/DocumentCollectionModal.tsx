@@ -23,7 +23,6 @@ interface DocumentCollectionModalProps {
     isOpen: boolean;
     onClose: () => void;
     onCollectionCreated?: () => void;
-    // 삭제 모달용 props
     mode?: 'create' | 'delete';
     collectionToDelete?: Collection | null;
     onCollectionDeleted?: () => void;

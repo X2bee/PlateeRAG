@@ -1,9 +1,9 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import styles from '../assets/Documents.module.scss';
-import DocumentsGraph from './DocumentsGraph';
-import CollectionEditModal from './CollectionEditModal';
-import DocumentCollectionModal from './DocumentCollectionModal';
+import DocumentsGraph from './documents/DocumentsGraph';
+import CollectionEditModal from './documents/CollectionEditModal';
+import DocumentCollectionModal from './documents/DocumentCollectionModal';
 
 import {
     formatFileSize,
