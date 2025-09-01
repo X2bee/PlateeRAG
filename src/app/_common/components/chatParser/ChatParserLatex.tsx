@@ -3,7 +3,7 @@
 import React, { useRef, useLayoutEffect, useCallback } from 'react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
-import { processInlineMarkdown } from './ChatParserMarkdown';
+import { processInlineMarkdown } from '@/app/_common/components/chatParser/ChatParserMarkdown';
 
 /**
  * LaTeX 블록 정보를 나타내는 인터페이스
@@ -20,23 +20,23 @@ export interface LatexBlockInfo {
  */
 const escapeLatexSpecialChars = (text: string): string => {
     let processed = text;
-    
+
     // 1. \text{} 블록 내부의 특수 문자만 이스케이프 처리
     processed = processed.replace(/\\text\{([^}]*)\}/g, (_match, textContent) => {
         let escapedTextContent = textContent;
-        
+
         // \text{} 내부에서만 특수 문자 이스케이프
         escapedTextContent = escapedTextContent.replace(/(?<!\\)%/g, '\\%');  // % → \%
         escapedTextContent = escapedTextContent.replace(/(?<!\\)&/g, '\\&');  // & → \&
         escapedTextContent = escapedTextContent.replace(/(?<!\\)#/g, '\\#');  // # → \#
-        
+
         return `\\text{${escapedTextContent}}`;
     });
-    
+
     // 2. 전체 수식에서 % 문자 처리 (가장 문제가 되는 문자)
     // 이미 이스케이프된 \%는 건너뛰고, 일반 %만 처리
     processed = processed.replace(/(?<!\\)%/g, '\\%');
-    
+
     return processed;
 };
 
@@ -44,14 +44,14 @@ const escapeLatexSpecialChars = (text: string): string => {
  * 텍스트에서 LaTeX 수식 블록을 찾는 함수
  */
 export const findLatexBlocks = (text: string): LatexBlockInfo[] => {
-    
+
     // 정규식을 사용한 더 정확한 LaTeX 블록 찾기
     const blockRegex = /\$\$([\s\S]*?)\$\$/g;
     const inlineRegex = /(?<!\$)\$(?!\$)([^$\n]+)\$(?!\$)/g;
-    
+
     let match;
     const allMatches: Array<{ start: number, end: number, content: string, isBlock: boolean }> = [];
-    
+
     // 블록 수식 찾기
     while ((match = blockRegex.exec(text)) !== null) {
         allMatches.push({
@@ -61,15 +61,15 @@ export const findLatexBlocks = (text: string): LatexBlockInfo[] => {
             isBlock: true
         });
     }
-    
+
     // 인라인 수식 찾기 (블록 수식과 겹치지 않는 것만)
     blockRegex.lastIndex = 0; // reset
     while ((match = inlineRegex.exec(text)) !== null) {
         // 블록 수식과 겹치는지 확인
-        const isOverlapping = allMatches.some(block => 
+        const isOverlapping = allMatches.some(block =>
             block.isBlock && match!.index >= block.start && match!.index < block.end
         );
-        
+
         if (!isOverlapping) {
             allMatches.push({
                 start: match.index,
@@ -77,10 +77,10 @@ export const findLatexBlocks = (text: string): LatexBlockInfo[] => {
                 content: match[1],
                 isBlock: false
             });
-        } 
+        }
     }
-    
-    
+
+
     // 시작 위치 순으로 정렬하고 LatexBlockInfo 형태로 변환
     const result = allMatches
         .sort((a, b) => a.start - b.start)
@@ -90,7 +90,7 @@ export const findLatexBlocks = (text: string): LatexBlockInfo[] => {
             content: match.content.trim(),
             isBlock: match.isBlock
         }));
-        
+
     return result;
 };
 
@@ -117,8 +117,8 @@ interface LatexRendererProps {
     onHeightChange?: () => void;
 }
 
-export const LatexRenderer: React.FC<LatexRendererProps> = ({ 
-    content, 
+export const LatexRenderer: React.FC<LatexRendererProps> = ({
+    content,
     isBlock,
     onHeightChange
 }) => {
@@ -134,7 +134,7 @@ export const LatexRenderer: React.FC<LatexRendererProps> = ({
         });
 
         resizeObserver.observe(element);
-        
+
         return () => {
             resizeObserver.disconnect();
         };
@@ -149,7 +149,7 @@ export const LatexRenderer: React.FC<LatexRendererProps> = ({
     try {
         // LaTeX 특수 문자 이스케이프 처리
         const escapedContent = escapeLatexSpecialChars(content);
-        
+
         // KaTeX로 직접 렌더링
         const html = katex.renderToString(escapedContent, {
             displayMode: isBlock,
@@ -160,10 +160,10 @@ export const LatexRenderer: React.FC<LatexRendererProps> = ({
 
         if (isBlock) {
             return (
-                <div 
+                <div
                     ref={containerRef as React.RefObject<HTMLDivElement>}
-                    style={{ 
-                        margin: '1rem 0', 
+                    style={{
+                        margin: '1rem 0',
                         textAlign: 'center',
                         fontSize: '0.9em' // 블록 수식 크기 증가
                     }}
@@ -172,19 +172,19 @@ export const LatexRenderer: React.FC<LatexRendererProps> = ({
             );
         } else {
             return (
-                <span 
+                <span
                     ref={containerRef as React.RefObject<HTMLSpanElement>}
-                    style={{ 
+                    style={{
                         fontSize: '0.75em' // 인라인 수식 크기 약간 증가
                     }}
-                    dangerouslySetInnerHTML={{ __html: html }} 
+                    dangerouslySetInnerHTML={{ __html: html }}
                 />
             );
         }
     } catch (error) {
         return (
-            <span 
-                style={{ 
+            <span
+                style={{
                     backgroundColor: '#fee2e2',
                     color: '#dc2626',
                     padding: '0.125rem 0.25rem',
@@ -317,6 +317,6 @@ export const hasLatex = (text: string): boolean => {
     // 멀티라인을 고려하여 dotAll 플래그 사용
     const blockMathRegex = /\$\$[\s\S]*?\$\$/;
     const inlineMathRegex = /(?<!\$)\$(?!\$)[^$\n]*\$(?!\$)/;
-    
+
     return blockMathRegex.test(text) || inlineMathRegex.test(text);
 };

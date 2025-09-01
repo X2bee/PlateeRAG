@@ -1,7 +1,7 @@
 import { SourceInfo } from "@/app/chat/types/source";
-import { devLog } from "../utils/logger";
-import { hasLatex, processLatexInText } from "./ChatParserLatex";
-import { processInlineMarkdown } from "./ChatParserMarkdown";
+import { devLog } from "@/app/_common/utils/logger";
+import { hasLatex, processLatexInText } from "@/app/_common/components/chatParser/ChatParserLatex";
+import { processInlineMarkdown } from "@/app/_common/components/chatParser/ChatParserMarkdown";
 import SourceButton from "@/app/chat/components/SourceButton";
 import sourceStyles from '@/app/chat/assets/SourceButton.module.scss';
 
@@ -40,8 +40,8 @@ export const processInlineMarkdownWithCitations = (
 
     // 1. LaTeX와 Citation 모두 체크하여 적절히 처리
     const hasLatexContent = hasLatex(text);
-    
-    
+
+
     // LaTeX만 있고 Citation이 없는 경우에만 LaTeX 처리로 바로 넘김
     if (hasLatexContent && !text.includes('[Cite.')) {
         return processLatexInText(text, key, isStreaming);
@@ -59,10 +59,10 @@ export const processInlineMarkdownWithCitations = (
 
     // Citation을 찾기 위한 더 안전한 접근법 - 단순화
     const findCitations = (inputText: string): Array<{ start: number, end: number, content: string }> => {
-        
+
         // LaTeX가 포함된 텍스트에서는 Citation 전처리를 최소화
         let preprocessedText = inputText;
-        
+
         // LaTeX 영역이 아닌 곳에서만 전처리 수행
         if (!hasLatex(inputText)) {
             // 이중 중괄호를 단일 중괄호로 변환
@@ -259,7 +259,7 @@ export const processInlineMarkdownWithCitations = (
                 />
             );
         } else {
-            
+
             elements.push(
                 <span key={`${key}-citation-fallback-${i}`}>
                     {processedCitationContent}
@@ -269,12 +269,12 @@ export const processInlineMarkdownWithCitations = (
 
         // Citation 처리 후 trailing 문자들 건너뛰기
         let nextIndex = citation.end;
-        
+
         // Citation 뒤에 남은 불완전한 JSON 구문이나 특수 문자들 정리
         // }], \, 공백, 숫자, 콤마, 세미콜론 등 Citation 관련 잔여물 제거
         while (nextIndex < text.length) {
             const char = text[nextIndex];
-            
+
             // Citation 관련 잔여 문자들: }, ], \, 공백, 숫자, 특수문자
             if (/[}\]\\.\s,;:]/.test(char) || /\d/.test(char)) {
                 nextIndex++;

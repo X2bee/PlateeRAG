@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSidebarManager } from '@/app/_common/hooks/useSidebarManager';
 import { getWorkflowIOLogs, loadWorkflow } from '@/app/api/workflow/workflowAPI';
 import { loadWorkflow as loadWorkflowDeploy } from '@/app/api/workflow/workflowDeployAPI';
-import { MessageRenderer } from '@/app/_common/components/ChatParser';
+import { MessageRenderer } from '@/app/_common/components/chatParser/ChatParser';
 import CollectionModal from '@/app/chat/components/CollectionModal';
 import { IOLog, ChatInterfaceProps } from './types';
 import ChatHeader from './ChatHeader';

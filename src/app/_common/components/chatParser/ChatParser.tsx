@@ -4,8 +4,8 @@ import React from 'react';
 import styles from '@/app/chat/assets/chatParser.module.scss';
 import { APP_CONFIG } from '@/app/config';
 import { SourceInfo } from '@/app/chat/types/source';
-import { ThinkBlock, findThinkBlocks, type ThinkBlockInfo } from './ChatParserThink';
-import { CodeBlock, findCodeBlocks, type CodeBlockInfo, detectCodeLanguage, truncateText } from '@/app/_common/components/ChatParserCode';
+import { ThinkBlock, findThinkBlocks, type ThinkBlockInfo } from '@/app/_common/components/chatParser/ChatParserThink';
+import { CodeBlock, findCodeBlocks, type CodeBlockInfo, detectCodeLanguage, truncateText } from '@/app/_common/components/chatParser/ChatParserCode';
 import {
     ToolUseLogBlock,
     findToolUseLogBlocks,
@@ -14,11 +14,11 @@ import {
     parseToolOutputContent,
     type ToolUseLogInfo,
     type ToolOutputLogInfo
-} from '@/app/_common/components/ChatParserToolResponse';
+} from '@/app/_common/components/chatParser/ChatParserToolResponse';
 import {
     parseSimpleMarkdown
-} from '@/app/_common/components/ChatParserMarkdown';
-import { parseCitation } from './ChatParserCite';
+} from '@/app/_common/components/chatParser/ChatParserMarkdown';
+import { parseCitation } from '@/app/_common/components/chatParser/ChatParserCite';
 
 // Think 블록 표시 여부를 제어하는 상수 (환경변수에서 가져옴)
 const showThinkBlock = APP_CONFIG.SHOW_THINK_BLOCK;
@@ -84,13 +84,13 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
  */
 const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo: SourceInfo) => void, onHeightChange?: () => void, mode?: "existing" | "new-workflow" | "new-default" | "deploy"): React.ReactNode[] => {
     let processed = content;
-    
+
     // 스트림 모드 감지를 위한 헬퍼 함수
     const detectStreaming = (text: string, textStartIndex: number, totalLength: number): boolean => {
         // 텍스트가 전체 콘텐츠의 끝 부분인지 확인
         const isAtEnd = textStartIndex + text.length === totalLength;
         if (!isAtEnd) return false;
-        
+
         // 불완전한 citation 패턴 확인
         const partialCitationRegex = /\[Cite\.(?:\s*\{[^}]*)?$/;
         return partialCitationRegex.test(text.trim());
@@ -100,7 +100,7 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
     // LaTeX 수식이나 수학 명령어가 포함된 경우 이스케이프 처리 생략
     const hasLatexCommands = /\\(text|frac|sqrt|sum|times|alpha|beta|gamma|delta|int|left|right)\b/.test(processed);
     const hasLatexSyntax = processed.includes('$$') || processed.includes('$');
-    
+
     if (!hasLatexCommands && !hasLatexSyntax) {
         processed = processed.replace(/\\n/g, '\n');
         processed = processed.replace(/\\t/g, '\t');

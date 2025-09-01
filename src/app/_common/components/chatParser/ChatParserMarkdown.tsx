@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { SourceInfo } from '@/app/chat/types/source';
-import { hasLatex, processLatexInText } from './ChatParserLatex';
-import { processInlineMarkdownWithCitations } from './ChatParserCite';
+import { hasLatex, processLatexInText } from '@/app/_common/components/chatParser/ChatParserLatex';
+import { processInlineMarkdownWithCitations } from '@/app/_common/components/chatParser/ChatParserCite';
 
 /**
  * 테이블 구분자 라인인지 확인하는 헬퍼 함수
