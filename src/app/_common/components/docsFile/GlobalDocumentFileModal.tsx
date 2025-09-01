@@ -382,11 +382,11 @@ const GlobalDocumentFileModal: React.FC = () => {
                                     {dimensionMismatch && (
                                         <div className={styles.warningSection}>
                                             <div className={styles.warningMessage}>
-                                                ⚠️ 벡터 차원이 일치하지 않습니다!
+                                                벡터 차원이 일치하지 않습니다!
                                                 <br />
-                                                현재 모델: {embeddingConfig.provider_info.dimension}차원
+                                                Model: {embeddingConfig.provider_info.dimension} 차원
                                                 <br />
-                                                컬렉션: {selectedCollection?.vector_size}차원
+                                                Collection: {selectedCollection?.vector_size} 차원
                                             </div>
                                             <label className={styles.checkboxLabel}>
                                                 <input
@@ -521,23 +521,23 @@ const GlobalDocumentFileModal: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div className={styles.modalActions}>
-                <button
-                    onClick={handleClose}
-                    className={`${styles.button} ${styles.secondary}`}
-                    disabled={loading}
-                >
-                    {loading && uploadProgress.some(item => item.status === 'uploading') ? '최소화' : '취소'}
-                </button>
-                <button
-                    onClick={handleConfirmChunkSettings}
-                    className={`${styles.button} ${styles.primary}`}
-                    disabled={loading || (dimensionMismatch && !ignoreDimensionMismatch) || !embeddingConfig?.client_available}
-                >
-                    {loading ? '업로드 중...' : '설정 완료'}
-                </button>
+                <div className={styles.modalActions}>
+                    <button
+                        onClick={handleClose}
+                        className={`${styles.button} ${styles.secondary}`}
+                        disabled={loading}
+                    >
+                        {loading && uploadProgress.some(item => item.status === 'uploading') ? '최소화' : '취소'}
+                    </button>
+                    <button
+                        onClick={handleConfirmChunkSettings}
+                        className={`${styles.button} ${styles.primary}`}
+                        disabled={loading || (dimensionMismatch && !ignoreDimensionMismatch) || !embeddingConfig?.client_available}
+                    >
+                        {loading ? '업로드 중...' : '설정 완료'}
+                    </button>
+                </div>
             </div>
         </div>
     );
