@@ -6,7 +6,7 @@ import { loadWorkflow } from '@/app/api/workflow/workflowAPI';
 import ChatInterface from '@/app/chat/components/ChatInterface';
 import { Workflow } from '@/app/chat/components/types';
 import { decryptUrlParams } from '@/app/_common/utils/urlEncryption';
-import { ALLOWED_ORIGINS } from '@/app/config'; // config 파일 경로에 맞게 수정
+import { ALLOWED_ORIGINS } from '@/app/config';
 import styles from './StandaloneChat.module.scss';
 
 const StandaloneChatPage = () => {
@@ -15,6 +15,7 @@ const StandaloneChatPage = () => {
     const router = useRouter();
     const encryptedParams = params.chatId as string;
     const workflowNameFromUrl = searchParams.get('workflowName') as string;
+    const hideInputUI = searchParams.get('hideInput') === 'true'; // 새로 추가
 
     const [workflow, setWorkflow] = useState<Workflow | null>(null);
     const [loading, setLoading] = useState(true);
@@ -160,6 +161,7 @@ const StandaloneChatPage = () => {
                         onBack={() => { }}
                         onChatStarted={() => { }}
                         hideBackButton={true}
+                        hideInputUI={hideInputUI} // 새로 추가된 prop
                         existingChatData={undefined}
                         user_id={userId || workflow.id}
                     />
