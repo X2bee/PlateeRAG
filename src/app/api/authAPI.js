@@ -7,6 +7,8 @@ import {
     clearAllAuth
 } from '@/app/_common/utils/cookieUtils';
 import { generateSha256Hash } from '@/app/_common/utils/generateSha1Hash';
+import { apiClient } from '@/app/api/helper/apiClient';
+
 
 /**
  * 휴대폰 번호를 정규화하는 함수 (010-1234-5678 형태로 변환)
@@ -393,16 +395,30 @@ export const logoutAndRedirect = async () => {
 };
 
 /**
- * 8자리 랜덤 ID 생성 함수
- * @returns {string} 8자리 랜덤 문자열
+ * 사용자 그룹의 사용 가능한 그룹 목록 조회 API
+ * @param {number} user_id - 사용자 ID
+ * @returns {Promise<Object>} 사용 가능한 그룹 목록
  */
-const generateRandomId = () => {
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < 8; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
+export const getGroupAvailableGroups = async (user_id) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/auth/available-group?user_id=${user_id}`, {
+            method: 'GET',
+        });
+
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        const result = await response.json();
+        devLog.log('Group available groups fetched successfully:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to fetch group available groups:', error);
+        throw error;
     }
-    return result;
 };
 
 /**
@@ -412,21 +428,21 @@ const generateRandomId = () => {
  */
 export const getGroupAvailableSections = async (user_id) => {
     try {
-        const response = await authenticatedFetch(
+        const response = await apiClient(
             `${API_BASE_URL}/auth/available-section?user_id=${user_id}`,
             {
                 method: 'GET',
             }
         );
 
-        const result = await response.json();
-
         if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
             throw new Error(
                 result.detail || `HTTP error! status: ${response.status}`
             );
         }
 
+        const result = await response.json();
         devLog.log('Group available sections fetched successfully:', result);
         return result;
     } catch (error) {

@@ -176,7 +176,6 @@ export const deleteUser = async (userData) => {
  * @param {string} [userData.email] - 이메일
  * @param {string} [userData.username] - 사용자명
  * @param {string|null} [userData.full_name] - 이름
- * @param {string} [userData.group_name] - 조직명
  * @param {boolean} [userData.is_admin] - 관리자 권한
  * @param {string} [userData.user_type] - 사용자 유형 (standard/admin/superuser)
  * @param {Object|null} [userData.preferences] - 환경설정
@@ -208,6 +207,70 @@ export const editUser = async (userData) => {
         return data;
     } catch (error) {
         devLog.error('Failed to edit user:', error);
+        throw error;
+    }
+};
+
+/**
+ * 사용자에게 그룹을 추가하는 함수 (슈퍼유저 권한 필요)
+ * @param {Object} userData - 그룹을 추가할 사용자 정보
+ * @param {number} userData.id - 사용자 ID
+ * @param {string} userData.group_name - 추가할 그룹명
+ * @returns {Promise<Object>} 그룹 추가 결과
+ */
+export const addUserGroup = async (userData) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/admin/user/edit-user/groups`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData)
+        });
+
+        const data = await response.json();
+        devLog.log('Add user group result:', data);
+
+        if (!response.ok) {
+            devLog.error('Failed to add user group:', data);
+            throw new Error(data.detail || 'Failed to add user group');
+        }
+
+        return data;
+    } catch (error) {
+        devLog.error('Failed to add user group:', error);
+        throw error;
+    }
+};
+
+/**
+ * 사용자에게서 그룹을 제거하는 함수 (슈퍼유저 권한 필요)
+ * @param {Object} userData - 그룹을 제거할 사용자 정보
+ * @param {number} userData.id - 사용자 ID
+ * @param {string} userData.group_name - 제거할 그룹명
+ * @returns {Promise<Object>} 그룹 제거 결과
+ */
+export const removeUserGroup = async (userData) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/admin/user/edit-user/groups`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData)
+        });
+
+        const data = await response.json();
+        devLog.log('Remove user group result:', data);
+
+        if (!response.ok) {
+            devLog.error('Failed to remove user group:', data);
+            throw new Error(data.detail || 'Failed to remove user group');
+        }
+
+        return data;
+    } catch (error) {
+        devLog.error('Failed to remove user group:', error);
         throw error;
     }
 };

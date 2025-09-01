@@ -137,8 +137,6 @@ export const updateGroupPermissions = async (updateData) => {
     }
 };
 
-
-
 /**
  * 그룹을 삭제하는 함수 (슈퍼유저 권한 필요)
  * @param {string} groupName - 삭제할 그룹명

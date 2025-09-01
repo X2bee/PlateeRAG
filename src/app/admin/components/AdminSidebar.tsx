@@ -72,12 +72,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
     return (
         <motion.aside
-            className={`${styles.sidebar} ${className} ${isOpen ? styles.open : styles.closed}`}
+            className={`${styles.sidebar} ${className}`}
             initial={{ x: "-100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "-100%" }}
+            animate={{ x: isOpen ? 0 : "-100%" }}
             transition={{ type: "tween", duration: 0.3 }}
-
         >
             <button onClick={onToggle} className={styles.closeOnlyBtn}>
                 <FiChevronLeft />

@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
+import { AnimatePresence, motion } from 'framer-motion';
+import { FiChevronRight } from 'react-icons/fi';
 import AdminSidebar from '@/app/admin/components/AdminSidebar';
 import AdminContentArea from '@/app/admin/components/AdminContentArea';
 import AdminIntroduction from '@/app/admin/components/AdminIntroduction';
@@ -333,27 +335,36 @@ const AdminPageContent: React.FC = () => {
 
     return (
         <div className={styles.container}>
-            <AdminSidebar
-                isOpen={isSidebarOpen}
-                onToggle={toggleSidebar}
-                userItems={userItems}
-                settingItems={settingItems}
-                systemItems={systemItems}
-                dataItems={dataItems}
-                securityItems={securityItems}
-                activeItem={activeSection}
-                onItemClick={(itemId: string) => setActiveSection(itemId)}
-                initialUserExpanded={['users', 'user-create', 'group-permissions'].includes(activeSection)}
-                initialSystemExpanded={['system-config', 'system-settings', 'chat-monitoring', 'workflow-monitoring', 'system-monitor', 'system-health'].includes(activeSection)}
-                initialDataExpanded={['database', 'storage', 'backup'].includes(activeSection)}
-                initialSecurityExpanded={['security-settings', 'audit-logs', 'error-logs', 'access-logs'].includes(activeSection)}
-            />
-
-            {!isSidebarOpen && (
-                <button onClick={toggleSidebar} className={styles.openOnlyBtn}>
-                    ▶
-                </button>
-            )}
+            <AnimatePresence>
+                <AdminSidebar
+                    key="admin-sidebar"
+                    isOpen={isSidebarOpen}
+                    onToggle={toggleSidebar}
+                    userItems={userItems}
+                    settingItems={settingItems}
+                    systemItems={systemItems}
+                    dataItems={dataItems}
+                    securityItems={securityItems}
+                    activeItem={activeSection}
+                    onItemClick={(itemId: string) => setActiveSection(itemId)}
+                    initialUserExpanded={['users', 'user-create', 'group-permissions'].includes(activeSection)}
+                    initialSystemExpanded={['system-config', 'system-settings', 'chat-monitoring', 'workflow-monitoring', 'system-monitor', 'system-health'].includes(activeSection)}
+                    initialDataExpanded={['database', 'storage', 'backup'].includes(activeSection)}
+                    initialSecurityExpanded={['security-settings', 'audit-logs', 'error-logs', 'access-logs'].includes(activeSection)}
+                />
+                {!isSidebarOpen && (
+                    <motion.button
+                        key="admin-sidebar-open-button"
+                        onClick={toggleSidebar}
+                        className={styles.openOnlyBtn}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <FiChevronRight />
+                    </motion.button>
+                )}
+            </AnimatePresence>
 
             <main className={`${styles.mainContent} ${!isSidebarOpen ? styles.mainContentPushed : ''}`}>
                 {renderContent()}

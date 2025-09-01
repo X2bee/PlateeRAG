@@ -51,6 +51,9 @@ interface ChatContainerProps {
     user_id?: number | string;
     onPDFViewerClose: () => void;
     
+    // Iframe props
+    hideInputUI?: boolean; // 새로 추가
+
     // Error handling
     error: string | null;
 }
@@ -89,6 +92,7 @@ const ChatContainer = forwardRef<ChatContainerRef, ChatContainerProps>((
         currentSourceInfo,
         user_id,
         onPDFViewerClose,
+        hideInputUI = false, // 기본값 설정
         error,
     },
     ref
@@ -106,6 +110,7 @@ const ChatContainer = forwardRef<ChatContainerRef, ChatContainerProps>((
             chatInputRef.current?.clearMessage();
         },
     }), []);
+
     const renderChatContent = () => (
         <div className={styles.chatContent}>
             <ChatArea
@@ -127,18 +132,39 @@ const ChatContainer = forwardRef<ChatContainerRef, ChatContainerProps>((
                 onRemoveCollection={onRemoveCollection}
             />
 
-            <ChatInput
-                ref={chatInputRef}
-                executing={executing}
-                mode={mode}
-                loading={loading}
-                showAttachmentMenu={showAttachmentMenu}
-                onAttachmentClick={onAttachmentClick}
-                onAttachmentOption={onAttachmentOption}
-                onSendMessage={onSendMessage}
-                onShiftEnter={onShiftEnter}
-                initialMessage={initialMessage}
-            />
+            {/* ChatInput을 조건부 렌더링 */}
+            {!hideInputUI && (
+                <ChatInput
+                    ref={chatInputRef}
+                    executing={executing}
+                    mode={mode}
+                    loading={loading}
+                    showAttachmentMenu={showAttachmentMenu}
+                    onAttachmentClick={onAttachmentClick}
+                    onAttachmentOption={onAttachmentOption}
+                    onSendMessage={onSendMessage}
+                    onShiftEnter={onShiftEnter}
+                    initialMessage={initialMessage}
+                />
+            )}
+
+            {/* hideInputUI가 true일 때도 숨겨진 ChatInput을 렌더링하여 ref 기능 유지 */}
+            {hideInputUI && (
+                <div style={{ display: 'none' }}>
+                    <ChatInput
+                        ref={chatInputRef}
+                        executing={executing}
+                        mode={mode}
+                        loading={loading}
+                        showAttachmentMenu={false}
+                        onAttachmentClick={() => {}}
+                        onAttachmentOption={() => {}}
+                        onSendMessage={onSendMessage}
+                        onShiftEnter={onShiftEnter}
+                        initialMessage={initialMessage}
+                    />
+                </div>
+            )}
 
             {error && (
                 <p className={styles.errorNote}>{error}</p>

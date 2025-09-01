@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getAllGroups, createGroup, getGroupUsers, updateGroupPermissions, deleteGroup } from '@/app/admin/api/group';
+import { getAllGroups, updateGroupPermissions, deleteGroup, createGroup, getGroupUsers } from '@/app/admin/api/group';
+import { removeUserGroup } from '@/app/admin/api/users';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/AdminGroupContent.module.scss';
+import AdminGroupAddModal from './AdminGroupAddModal';
 
 interface Group {
     group_name: string;
@@ -41,6 +43,9 @@ const AdminGroupContent: React.FC = () => {
     const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
     const [groupUsers, setGroupUsers] = useState<User[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
+
+    // 조직원 추가 모달 상태
+    const [showAddUserModal, setShowAddUserModal] = useState(false);
 
     // 새 그룹 생성 폼 상태
     const [newGroup, setNewGroup] = useState({
@@ -213,6 +218,30 @@ const AdminGroupContent: React.FC = () => {
         }
     };
 
+    // 사용자 제외 핸들러
+    const handleRemoveUser = async (user: User) => {
+        if (!selectedGroup) return;
+
+        if (!confirm(`정말로 "${user.username}" 사용자를 "${selectedGroup}" 조직에서 제외하시겠습니까?`)) {
+            return;
+        }
+
+        try {
+            await removeUserGroup({
+                id: user.id,
+                group_name: selectedGroup
+            });
+
+            // 성공 시 사용자 목록 새로고침
+            await loadGroupUsers(selectedGroup);
+            alert('사용자가 조직에서 제외되었습니다.');
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : '사용자 제외에 실패했습니다.';
+            devLog.error('Failed to remove user from group:', err);
+            alert(`제외 실패: ${errorMessage}`);
+        }
+    };
+
     // 상태 배지 렌더링
     const renderStatusBadge = (available: boolean) => (
         <span className={`${styles.badge} ${available ? styles.badgeActive : styles.badgeInactive}`}>
@@ -311,6 +340,12 @@ const AdminGroupContent: React.FC = () => {
 
                     <div className={styles.actionButtons}>
                         <button
+                            onClick={() => setShowAddUserModal(true)}
+                            className={styles.refreshButton}
+                        >
+                            조직원 추가
+                        </button>
+                        <button
                             onClick={() => selectedGroup && loadGroupUsers(selectedGroup)}
                             className={styles.refreshButton}
                         >
@@ -389,7 +424,7 @@ const AdminGroupContent: React.FC = () => {
                                 <th>등록일</th>
                                 <th>마지막 로그인</th>
                                 <th>권한</th>
-                                <th>조직</th>
+                                <th>액션</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -430,8 +465,13 @@ const AdminGroupContent: React.FC = () => {
                                                  'UNKNOWN'}
                                             </span>
                                         </td>
-                                        <td className={styles.groupName}>
-                                            {user.group_name || selectedGroup || '-'}
+                                        <td className={styles.actions}>
+                                            <button
+                                                className={`${styles.actionButton} ${styles.dangerButton}`}
+                                                onClick={() => handleRemoveUser(user)}
+                                            >
+                                                제외
+                                            </button>
                                         </td>
                                     </tr>
                                 ))
@@ -536,6 +576,19 @@ const AdminGroupContent: React.FC = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* 조직원 추가 모달 */}
+            {showAddUserModal && selectedGroup && (
+                <AdminGroupAddModal
+                    isOpen={showAddUserModal}
+                    onClose={() => setShowAddUserModal(false)}
+                    groupName={selectedGroup}
+                    onSuccess={() => {
+                        // 사용자 목록 새로고침
+                        loadGroupUsers(selectedGroup);
+                    }}
+                />
             )}
         </div>
     );
