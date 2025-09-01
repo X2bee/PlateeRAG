@@ -4,7 +4,7 @@ import styles from '@/app/main/assets/CollectionEditModal.module.scss';
 import { updateCollection } from '@/app/api/rag/retrievalAPI';
 import { getGroupAvailableGroups } from '@/app/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
-import { Collection, CollectionEditModalProps } from '../../types';
+import { Collection, CollectionEditModalProps } from '@/app/main/types/index';
 
 const CollectionEditModal: React.FC<CollectionEditModalProps> = ({
     collection,

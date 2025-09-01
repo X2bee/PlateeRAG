@@ -1,9 +1,9 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import styles from '../assets/Documents.module.scss';
-import DocumentsGraph from './documents/DocumentsGraph';
-import CollectionEditModal from './documents/CollectionEditModal';
-import DocumentCollectionModal from './documents/DocumentCollectionModal';
+import styles from '@/app/main/assets/Documents.module.scss';
+import DocumentsGraph from '@/app/main/components/documents/DocumentsGraph';
+import CollectionEditModal from '@/app/main/components/documents/CollectionEditModal';
+import DocumentCollectionModal from '@/app/main/components/documents/DocumentCollectionModal';
 
 import {
     formatFileSize,
@@ -24,14 +24,13 @@ import { useDocumentFileModal } from '@/app/_common/contexts/DocumentFileModalCo
 import {
     Collection,
     DocumentInCollection,
-    DocumentDetails,
     SearchResult,
     CollectionsResponse,
     DocumentsInCollectionResponse,
     SearchResponse,
     ViewMode,
     CollectionFilter,
-} from '../types';
+} from '@/app/main/types/index';
 
 const Documents: React.FC = () => {
     const { user } = useAuth();
@@ -42,7 +41,7 @@ const Documents: React.FC = () => {
     const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
     const [documentsInCollection, setDocumentsInCollection] = useState<DocumentInCollection[]>([]);
     const [selectedDocument, setSelectedDocument] = useState<DocumentInCollection | null>(null);
-    const [documentDetails, setDocumentDetails] = useState<DocumentDetails | null>(null);
+    const [documentDetails, setDocumentDetails] = useState<DocumentInCollection | null>(null);
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
@@ -131,7 +130,7 @@ const Documents: React.FC = () => {
         try {
             setLoading(true);
             setError(null);
-            const response = await getDocumentDetails(collectionName, documentId) as DocumentDetails;
+            const response = await getDocumentDetails(collectionName, documentId) as DocumentInCollection;
             setDocumentDetails(response);
         } catch (err) {
             setError('문서 상세 정보를 불러오는데 실패했습니다.');

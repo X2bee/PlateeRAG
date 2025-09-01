@@ -51,7 +51,8 @@ export interface ChunkInfo {
     chunk_id: string;
     chunk_index: number;
     chunk_size: number;
-    chunk_text_preview: string;
+    chunk_text?: string;
+    chunk_text_preview?: string;
 }
 
 export interface DocumentInCollection {
@@ -60,26 +61,9 @@ export interface DocumentInCollection {
     file_type: string;
     processed_at: string;
     total_chunks: number;
-    actual_chunks: number;
-    metadata: any;
+    actual_chunks?: number;
+    metadata?: any;
     chunks: ChunkInfo[];
-}
-
-export interface DetailedChunk {
-    chunk_id: string;
-    chunk_index: number;
-    chunk_size: number;
-    chunk_text: string;
-}
-
-export interface DocumentDetails {
-    document_id: string;
-    file_name: string;
-    file_type: string;
-    processed_at: string;
-    total_chunks: number;
-    metadata: any;
-    chunks: DetailedChunk[];
 }
 
 export interface SearchResult {

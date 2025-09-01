@@ -13,7 +13,7 @@ import styles from '@/app/main/assets/CompletedWorkflows.module.scss';
 import { listWorkflowsDetail, deleteWorkflow } from '@/app/api/workflow/workflowAPI';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { Workflow, WorkflowDetailResponse } from '../types';
+import { Workflow, WorkflowDetailResponse } from '@/app/main/types/index';
 
 const CompletedWorkflows: React.FC = () => {
     const router = useRouter();

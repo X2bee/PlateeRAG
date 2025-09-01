@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import styles from '@/app/main/assets/DocumentCollectionModal.module.scss';
 import { createCollection, isValidCollectionName, deleteCollection } from '@/app/api/rag/retrievalAPI';
-import { Collection, DocumentCollectionModalProps } from '../../types';
+import { DocumentCollectionModalProps } from '@/app/main/types/index';
 
 const DocumentCollectionModal: React.FC<DocumentCollectionModalProps> = ({
     isOpen,

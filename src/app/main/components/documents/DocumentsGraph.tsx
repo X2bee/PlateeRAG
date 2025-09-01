@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import styles from '@/app/main/assets/DocumentsGraph.module.scss';
-import { DocumentsGraphProps, Node, Link, GraphData, GraphViewMode } from '../../types';
+import { DocumentsGraphProps, Node, Link, GraphData, GraphViewMode } from '@/app/main/types/index';
 
 const DocumentsGraph: React.FC<DocumentsGraphProps> = ({
     loading,

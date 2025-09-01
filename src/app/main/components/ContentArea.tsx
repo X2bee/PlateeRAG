@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { ContentAreaProps } from '../types';
+import { ContentAreaProps } from '@/app/main/types/index';
 import styles from '@/app/main/assets/MainPage.module.scss';
 
 const ContentArea: React.FC<ContentAreaProps> = ({

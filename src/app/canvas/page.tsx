@@ -9,7 +9,6 @@ import ExecutionPanel from '@/app/canvas/components/ExecutionPanel';
 import NodeModal from '@/app/canvas/components/NodeModal';
 import AuthGuard from '@/app/_common/components/AuthGuard';
 import { DeploymentModal } from '@/app/chat/components/DeploymentModal';
-import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useNodes } from '@/app/_common/utils/nodeHook';
 import styles from '@/app/canvas/assets/PlateeRAG.module.scss';
 import {
