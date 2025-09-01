@@ -9,20 +9,18 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { getWorkflowItems } from '@/app/_common/components/sidebarConfig';
 import { devLog } from '@/app/_common/utils/logger';
-import styles from '@/app/main/assets/MainPage.module.scss';
 
 const MainPage: React.FC = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
     const [activeSection, setActiveSection] = useState<string>('');
-    const [execTab, setExecTab] = useState<'executor' | 'monitoring' | 'batchtester' | 'test-logs'>('executor');
     const { hasAccessToSection, isInitialized } = useAuth();
 
     useEffect(() => {
         if (!isInitialized) return;
 
         const view = searchParams.get('view');
-        const validSections = [...getWorkflowItems, 'exec-monitor', 'settings', 'config-viewer'];
+        const validSections = [...getWorkflowItems];
 
         // 접근 가능한 첫 번째 섹션을 찾기
         const getAccessibleSection = () => {
@@ -45,7 +43,6 @@ const MainPage: React.FC = () => {
                 }
             }
 
-            // 워크플로우 섹션에 하나도 접근할 수 없으면 채팅으로 리다이렉트
             devLog.log('MainPage: No accessible workflow sections found, redirecting to chat');
             router.push('/chat');
             return null;
@@ -58,40 +55,6 @@ const MainPage: React.FC = () => {
         }
         // accessibleSection이 null이면 이미 /chat으로 리다이렉트됨
     }, [searchParams, hasAccessToSection, isInitialized]);
-
-    const handleTabChange = (tab: 'executor' | 'monitoring' | 'batchtester' | 'test-logs') => {
-        setExecTab(tab);
-        localStorage.setItem('execMonitorTab', tab);
-    };
-
-    const renderExecMonitorToggleButtons = () => (
-        <div className={styles.tabToggleContainer}>
-            <button
-                onClick={() => handleTabChange('executor')}
-                className={`${styles.tabToggleButton} ${execTab === 'executor' ? styles.active : ''}`}
-            >
-                채팅 실행기
-            </button>
-            <button
-                onClick={() => handleTabChange('monitoring')}
-                className={`${styles.tabToggleButton} ${execTab === 'monitoring' ? styles.active : ''}`}
-            >
-                성능 모니터링
-            </button>
-            <button
-                onClick={() => handleTabChange('batchtester')}
-                className={`${styles.tabToggleButton} ${execTab === 'batchtester' ? styles.active : ''}`}
-            >
-                테스트
-            </button>
-            <button
-                onClick={() => handleTabChange('test-logs')}
-                className={`${styles.tabToggleButton} ${execTab === 'test-logs' ? styles.active : ''}`}
-            >
-                테스트 로그
-            </button>
-        </div>
-    );
 
     const renderContent = () => {
         // 초기화가 완료되지 않았거나 섹션이 설정되지 않았으면 로딩 표시
