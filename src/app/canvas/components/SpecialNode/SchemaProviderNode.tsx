@@ -4,7 +4,6 @@ import type { NodeProps } from '@/app/canvas/types';
 import { useNodeEditing } from '../Node/hooks/useNodeEditing';
 import { 
     hasInputsAndOutputs, 
-    hasParameters, 
     getNodeContainerClasses,
     getNodeContainerStyles
 } from '../Node/utils/nodeUtils';
@@ -86,7 +85,6 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
 
     // Utility calculations
     const { hasIO } = hasInputsAndOutputs(inputs, outputs);
-    const hasParams = hasParameters(parameters);
 
     // Node container classes and styles
     const nodeClasses = getNodeContainerClasses(isSelected, isPreview, isPredicted, styles.node);
@@ -138,7 +136,7 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
                 )}
 
                 {/* Parameters */}
-                {hasParams && !isPredicted && (
+                {!isPredicted && (
                     <>
                         {hasIO && <div className={styles.divider}></div>}
                         <SchemaProviderNodeParameters

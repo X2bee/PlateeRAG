@@ -3,13 +3,16 @@ import { LuPlus } from 'react-icons/lu';
 import styles from '@/app/canvas/assets/Node.module.scss';
 import { separateParameters } from '../../utils/parameterUtils';
 import { useParameterEditing } from '../../hooks/useParameterEditing';
-import type { NodeParametersProps, Parameter } from '@/app/canvas/types';
+import type { NodeParametersProps } from '../../types';
+import type { Parameter } from '@/app/canvas/types';
 import { SchemaProviderParameter } from '../parameters/specialized/SchemaProviderParameter';
 
 export const SchemaProviderNodeParameters: React.FC<NodeParametersProps> = ({
     nodeId,
+    nodeDataId,
     parameters,
     isPreview = false,
+    isPredicted = false,
     onParameterChange,
     onParameterNameChange,
     onParameterAdd,
@@ -63,18 +66,18 @@ export const SchemaProviderNodeParameters: React.FC<NodeParametersProps> = ({
     };
 
     // Handle parameter deletion for SchemaProvider (with linked description)
-    const handleDeleteParameter = (paramId: string): void => {
+    const handleDeleteParameter = (deleteNodeId: string, paramId: string): void => {
         if (isPreview || !onParameterDelete) return;
 
-        onParameterDelete(nodeId, paramId);
+        onParameterDelete(deleteNodeId, paramId);
 
         // Delete linked description parameter
-        const param = parameters?.find(p => p.id === paramId);
+        const param = parameters?.find((p: Parameter) => p.id === paramId);
         if (param && param.handle_id && param.is_added) {
             const descriptionParamId = `${paramId}_description`;
-            const descriptionParam = parameters?.find(p => p.id === descriptionParamId);
+            const descriptionParam = parameters?.find((p: Parameter) => p.id === descriptionParamId);
             if (descriptionParam) {
-                onParameterDelete(nodeId, descriptionParamId);
+                onParameterDelete(deleteNodeId, descriptionParamId);
             }
         }
     };
@@ -87,11 +90,11 @@ export const SchemaProviderNodeParameters: React.FC<NodeParametersProps> = ({
         onParameterNameChange(nodeId, paramId, newName);
 
         // Update linked description parameter name
-        const param = parameters?.find(p => p.id === paramId);
+        const param = parameters?.find((p: Parameter) => p.id === paramId);
         if (param && param.handle_id && param.is_added) {
             const descriptionParamId = `${paramId}_description`;
             const descriptionParamName = `${newName}_description`;
-            const descriptionParam = parameters?.find(p => p.id === descriptionParamId);
+            const descriptionParam = parameters?.find((p: Parameter) => p.id === descriptionParamId);
             
             if (descriptionParam && onParameterNameChange) {
                 onParameterNameChange(nodeId, descriptionParamId, descriptionParamName);
@@ -109,7 +112,7 @@ export const SchemaProviderNodeParameters: React.FC<NodeParametersProps> = ({
 
         // Find linked description parameter for handle_id parameters
         const descriptionParam = param.is_added && param.handle_id
-            ? parameters?.find(p => p.id === `${param.id}_description`)
+            ? parameters?.find((p: Parameter) => p.id === `${param.id}_description`)
             : undefined;
 
         // Handle SchemaProvider specific parameters (handle_id params with description)
@@ -145,6 +148,73 @@ export const SchemaProviderNodeParameters: React.FC<NodeParametersProps> = ({
         }
 
         // Regular parameters (non-specialized)
+        const handleValueChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const value = e.target.value;
+            if (typeof onParameterChange === 'function') {
+                onParameterChange(nodeId, param.id, value);
+            }
+        };
+
+        const renderParameterInput = () => {
+            // Handle parameters with options (dropdown)
+            if (param.options && param.options.length > 0) {
+                return (
+                    <select
+                        value={param.value !== undefined && param.value !== null ? param.value.toString() : ''}
+                        onChange={handleValueChange}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onFocus={(e) => {
+                            e.stopPropagation();
+                            if (onClearSelection) {
+                                onClearSelection();
+                            }
+                        }}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        onDragStart={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }}
+                        className={`${styles.paramSelect} paramSelect`}
+                        draggable={false}
+                    >
+                        <option value="">-- Select --</option>
+                        {param.options.map((option, index) => (
+                            <option key={index} value={option.value}>
+                                {option.label || option.value}
+                            </option>
+                        ))}
+                    </select>
+                );
+            }
+
+            // Regular input field
+            return (
+                <input
+                    type="text"
+                    value={param.value !== undefined && param.value !== null ? param.value.toString() : ''}
+                    onChange={handleValueChange}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => {
+                        e.stopPropagation();
+                        if (onClearSelection) {
+                            onClearSelection();
+                        }
+                    }}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    onDragStart={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
+                    draggable={false}
+                    className={`${styles.paramInput} paramInput`}
+                />
+            );
+        };
+
         return (
             <div key={param.id} className={`${styles.param} param`}>
                 <span className={`${styles.paramKey} ${param.required ? styles.required : ''}`}>
@@ -165,39 +235,12 @@ export const SchemaProviderNodeParameters: React.FC<NodeParametersProps> = ({
                     {param.name}
                 </span>
                 
-                {/* Basic parameter input - could be enhanced with parameter type detection */}
-                <input
-                    type="text"
-                    value={param.value !== undefined && param.value !== null ? param.value.toString() : ''}
-                    onChange={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const value = e.target.value;
-                        if (typeof onParameterChange === 'function') {
-                            onParameterChange(nodeId, param.id, value);
-                        }
-                    }}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onClick={(e) => e.stopPropagation()}
-                    onFocus={(e) => {
-                        e.stopPropagation();
-                        if (onClearSelection) {
-                            onClearSelection();
-                        }
-                    }}
-                    onKeyDown={(e) => e.stopPropagation()}
-                    onDragStart={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }}
-                    draggable={false}
-                    className={`${styles.paramInput} paramInput`}
-                />
+                {renderParameterInput()}
             </div>
         );
     };
 
-    if (!parameters || parameters.length === 0) {
+    if (isPredicted) {
         return null;
     }
 
