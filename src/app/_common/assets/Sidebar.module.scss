@@ -13,16 +13,7 @@
     flex-direction: column;
     flex-shrink: 0;
     z-index: 100;
-    transform: translateX(0);
-    transition: transform 0.3s ease-in-out;
-
-    &.closed {
-        transform: translateX(-100%);
-    }
-
-    &.open {
-        transform: translateX(0);
-    }
+    // transform과 transition 제거 - motion.aside가 처리
 }
 
 .sidebarContent {
@@ -46,15 +37,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.3s ease;
 
     &:hover {
         background: $gray-50;
     }
-}
-
-.sidebar.closed .closeOnlyBtn {
-    transform: translate(0, -50%);
 }
 
 .sidebarHeader {
@@ -261,11 +247,6 @@
         border-top: 1px solid $gray-200;
         z-index: auto;
         transform: none;
-
-        &.closed,
-        &.open {
-            transform: none;
-        }
     }
 
     .sidebarNav {
