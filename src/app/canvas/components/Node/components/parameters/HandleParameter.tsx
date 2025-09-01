@@ -51,7 +51,7 @@ export const HandleParameter: React.FC<HandleParameterProps> = ({
     };
 
     return (
-        <div>
+        <>
             {/* Parameter Name (editable) */}
             <span className={`${styles.paramKey} ${parameter.required ? styles.required : ''}`}>
                 {isEditing ? (
@@ -112,6 +112,6 @@ export const HandleParameter: React.FC<HandleParameterProps> = ({
                 className={`${styles.paramInput} paramInput`}
                 draggable={false}
             />
-        </div>
+        </>
     );
 };
