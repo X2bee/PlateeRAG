@@ -1,0 +1,305 @@
+@use "sass:color";
+@use "@/app/_common/_variables" as *;
+
+// Document Graph Styles
+.documentGraphContainer {
+    background: $white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.graphTabHeader {
+    display: flex;
+    border-bottom: 1px solid $gray-200;
+    background: $gray-50;
+}
+
+.tabButton {
+    padding: 1rem 2rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    color: $gray-600;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: $gray-100;
+        color: $gray-800;
+    }
+
+    &.active {
+        color: $primary-blue;
+        border-bottom-color: $primary-blue;
+        background: $white;
+        font-weight: 600;
+    }
+}
+
+.graphContent {
+    padding-top: 1rem;
+}
+
+.graphPlaceholder {
+    text-align: center;
+    padding: 3rem;
+    border: 2px dashed $gray-300;
+    border-radius: 0.5rem;
+    background: $gray-50;
+
+    h3 {
+        color: $gray-700;
+        margin-bottom: 0.5rem;
+        font-size: 1.5rem;
+    }
+
+    p {
+        color: $gray-500;
+        margin-bottom: 2rem;
+    }
+}
+
+.debugInfo {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: $gray-100;
+    border-radius: 0.5rem;
+    text-align: left;
+
+    h4 {
+        color: $gray-700;
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+
+    pre {
+        background: $white;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        overflow-x: auto;
+        font-size: 0.875rem;
+        color: $gray-800;
+        border: 1px solid $gray-200;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+}
+
+// D3 Graph Styles
+.graphContainer {
+    display: flex;
+    height: 60vh;
+    border: 1px solid $gray-200;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.graphWrapper {
+    flex: 1;
+    background: $white;
+    position: relative;
+}
+
+.graphSvg {
+    width: 100%;
+    height: 100%;
+    background: $white;
+    cursor: grab;
+
+    &:active {
+        cursor: grabbing;
+    }
+}
+
+// Zoom Controls
+.zoomControls {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 10;
+}
+
+.zoomButton {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: $white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: $gray-700;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: $gray-50;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.graphLink {
+    stroke: $gray-400;
+    stroke-opacity: 0.6;
+}
+
+.linkLabel {
+    font-size: 10px;
+    fill: $gray-600;
+    text-anchor: middle;
+    pointer-events: none;
+    background: $white;
+    padding: 2px 4px;
+    border-radius: 2px;
+}
+
+.chunkNode {
+    stroke: $white;
+    stroke-width: 2px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        stroke-width: 3px;
+    }
+}
+
+.conceptNode {
+    stroke: $gray-600;
+    stroke-width: 2px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        stroke: $gray-800;
+        stroke-width: 3px;
+    }
+}
+
+.nodeLabel {
+    font-size: 12px;
+    fill: $gray-700;
+    text-anchor: middle;
+    pointer-events: none;
+    font-weight: 500;
+}
+
+// Node Info Panel
+.nodeInfoPanel {
+    width: 350px;
+    background: $white;
+    border-left: 1px solid $gray-200;
+    display: flex;
+    flex-direction: column;
+    max-height: 700px;
+    overflow-y: auto;
+}
+
+.nodeInfoHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid $gray-200;
+    background: $gray-50;
+
+    h4 {
+        margin: 0;
+        color: $gray-800;
+        font-size: 1.125rem;
+    }
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: $gray-500;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+        color: $gray-700;
+        background: $gray-200;
+        border-radius: 50%;
+    }
+}
+
+.nodeInfoContent {
+    padding: 1rem;
+    flex: 1;
+
+    p {
+        margin-bottom: 0.75rem;
+        font-size: 0.875rem;
+        line-height: 1.4;
+
+        strong {
+            color: $gray-800;
+            font-weight: 600;
+        }
+    }
+}
+
+.summaryText {
+    background: $gray-50;
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: $gray-700;
+    margin-bottom: 1rem;
+    border-left: 3px solid $primary-blue;
+}
+
+.keywords, .concepts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.keyword {
+    background: $primary-blue;
+    color: $white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.concept {
+    background: $primary-green;
+    color: $white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.loading {
+    text-align: center;
+    padding: 3rem;
+    color: $gray-500;
+    font-size: 1.125rem;
+}

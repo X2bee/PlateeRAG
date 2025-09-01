@@ -69,17 +69,22 @@ export default function PagesLayoutContent({ children }: { children: React.React
     const chatSidebarItems = getChatSidebarItems();
     const trainItems = getTrainSidebarItems();
 
+    const contextValue = {
+        isSidebarOpen,
+        setIsSidebarOpen,
+        navigateToChatMode,
+    };
+
     return (
-        <PagesLayoutContext.Provider value={{ isSidebarOpen, setIsSidebarOpen, navigateToChatMode }}>
+        <PagesLayoutContext.Provider value={contextValue}>
             <div className={styles.container}>
-                <AnimatePresence>
+                <AnimatePresence mode="wait">
                     {isSidebarOpen ? (
                         <Sidebar
-                            key="sidebar-panel"
+                            key="sidebar"
                             isOpen={isSidebarOpen}
                             onToggle={toggleSidebar}
                             workflowItems={workflowSidebarItems}
-                            chatItems={chatSidebarItems}
                             trainItem={trainItems}
                             activeItem={activeItem}
                             onItemClick={handleSidebarItemClick}

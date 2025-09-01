@@ -183,6 +183,28 @@
         flex-grow: 1;
     }
 
+    .vectorSize {
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+
+        .vectorLabel {
+            color: $gray-700;
+            font-weight: 500;
+        }
+
+        .vectorValue {
+            color: $primary-blue;
+            font-weight: 600;
+            background: rgba($primary-blue, 0.1);
+            padding: 0.125rem 0.25rem;
+            border-radius: 0.25rem;
+            border: 1px solid rgba($primary-blue, 0.2);
+        }
+    }
+
     .collectionMeta {
         display: flex;
         flex-direction: column;
@@ -211,19 +233,6 @@
                 background: color.adjust($gray-500, $alpha: -0.9);
                 color: $gray-700;
             }
-        }
-
-        .ownerStatus {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.75rem;
-            font-weight: 500;
-            padding: 0.25rem 0.5rem;
-            background: color.adjust($primary-blue, $alpha: -0.9);
-            color: $primary-blue;
-            border-radius: 0.25rem;
-            border: 1px solid color.adjust($primary-blue, $alpha: -0.8);
         }
 
         .shareGroup {
@@ -261,162 +270,7 @@
     }
 }
 
-// Document View
-.documentViewContainer {
-    .viewHeader {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 1rem;
-        flex-wrap: wrap;
-        margin-bottom: 1.5rem;
 
-        h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: $gray-800;
-            margin: 0;
-        }
-
-        .actions {
-            display: flex;
-            gap: 1rem;
-        }
-    }
-}
-
-.uploadProgressContainer {
-    background: $gray-50;
-    border: 1px solid $gray-200;
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-
-    .progressHeader {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        flex-wrap: wrap;
-        gap: 1rem;
-
-        h4 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin: 0;
-            color: $gray-800;
-        }
-
-        .progressSummary {
-            display: flex;
-            gap: 1rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-
-            .totalCount {
-                color: $gray-700;
-            }
-
-            .successCount {
-                color: $primary-green;
-            }
-
-            .errorCount {
-                color: $primary-red;
-            }
-
-            .uploadingCount {
-                color: $primary-blue;
-            }
-        }
-    }
-
-    .progressList {
-        max-height: 300px;
-        overflow-y: auto;
-    }
-}
-
-.progressItem {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
-    border-radius: 0.5rem;
-    background: $white;
-    border: 1px solid $gray-200;
-    transition: all 0.2s ease-in-out;
-
-    &.uploading {
-        border-color: $primary-blue;
-        background: color.mix($primary-blue, $white, 5%);
-    }
-
-    &.success {
-        border-color: $primary-green;
-        background: color.mix($primary-green, $white, 5%);
-    }
-
-    &.error {
-        border-color: $primary-red;
-        background: color.mix($primary-red, $white, 5%);
-    }
-
-    .fileInfo {
-        flex: 1;
-        min-width: 0;
-        margin-right: 1rem;
-
-        .fileName {
-            font-weight: 500;
-            color: $gray-700;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: block;
-            margin-bottom: 0.25rem;
-        }
-
-        .progressPercent {
-            font-size: 0.75rem;
-            color: $gray-500;
-            font-weight: 600;
-        }
-    }
-
-    .progressStatus {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        flex-shrink: 0;
-
-        .progressBar {
-            width: 100px;
-            height: 6px;
-            background: $gray-200;
-            border-radius: 3px;
-            overflow: hidden;
-
-            .progressFill {
-                height: 100%;
-                background: linear-gradient(90deg, $primary-blue, color.adjust($primary-blue, $lightness: 10%));
-                transition: width 0.3s ease;
-                border-radius: 3px;
-            }
-        }
-
-        .statusText {
-            font-size: 0.875rem;
-            font-weight: 600;
-            white-space: nowrap;
-
-            &.uploading { color: $primary-blue; }
-            &.success { color: $primary-green; }
-            &.error { color: $primary-red; }
-        }
-    }
-}
 
 .documentListContainer {
     h4 {
@@ -462,26 +316,6 @@
             color: $gray-500;
             line-height: 1.4;
         }
-    }
-
-    .docId {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: $gray-500;
-        margin-bottom: 0.5rem;
-    }
-
-    .docContent {
-        font-size: 0.9rem;
-        color: $gray-700;
-        line-height: 1.5;
-        margin-bottom: 1rem;
-    }
-
-    .docScore {
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: $primary-green;
     }
 }
 
@@ -654,76 +488,6 @@
     }
 }
 
-// Modal Styles
-.modalBackdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modalContent {
-    background: $white;
-    padding: 2rem;
-    border-radius: 0.75rem;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-
-    h3 {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: $gray-800;
-        margin: 0 0 1.5rem 0;
-    }
-}
-
-.formGroup {
-    margin-bottom: 1.5rem;
-
-    label {
-        display: block;
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: $gray-700;
-        margin-bottom: 0.5rem;
-    }
-
-    input,
-    textarea {
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid $gray-300;
-        border-radius: 0.5rem;
-        font-size: 1rem;
-        transition: border-color 0.2s ease-in-out;
-
-        &:focus {
-            outline: none;
-            border-color: $primary-blue;
-            box-shadow: 0 0 0 3px rgba($primary-blue, 0.1);
-        }
-    }
-
-    textarea {
-        resize: vertical;
-        min-height: 100px;
-    }
-}
-
-.modalActions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    margin-top: 2rem;
-}
-
 // Responsive Design
 @media (max-width: 768px) {
     .header {
@@ -763,307 +527,6 @@
             gap: 0.5rem;
         }
     }
-
-    .modalContent {
-        width: 95%;
-        padding: 1.5rem;
-    }
-}
-
-// Document Graph Styles
-.documentGraphContainer {
-    background: $white;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-}
-
-.graphTabHeader {
-    display: flex;
-    border-bottom: 1px solid $gray-200;
-    background: $gray-50;
-}
-
-.tabButton {
-    padding: 1rem 2rem;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 500;
-    color: $gray-600;
-    border-bottom: 3px solid transparent;
-    transition: all 0.2s ease;
-
-    &:hover {
-        background: $gray-100;
-        color: $gray-800;
-    }
-
-    &.active {
-        color: $primary-blue;
-        border-bottom-color: $primary-blue;
-        background: $white;
-        font-weight: 600;
-    }
-}
-
-.graphContent {
-    padding-top: 1rem;
-}
-
-.graphPlaceholder {
-    text-align: center;
-    padding: 3rem;
-    border: 2px dashed $gray-300;
-    border-radius: 0.5rem;
-    background: $gray-50;
-
-    h3 {
-        color: $gray-700;
-        margin-bottom: 0.5rem;
-        font-size: 1.5rem;
-    }
-
-    p {
-        color: $gray-500;
-        margin-bottom: 2rem;
-    }
-}
-
-.debugInfo {
-    margin-top: 2rem;
-    padding: 1rem;
-    background: $gray-100;
-    border-radius: 0.5rem;
-    text-align: left;
-
-    h4 {
-        color: $gray-700;
-        margin-bottom: 0.5rem;
-        font-size: 1rem;
-    }
-
-    pre {
-        background: $white;
-        padding: 1rem;
-        border-radius: 0.25rem;
-        overflow-x: auto;
-        font-size: 0.875rem;
-        color: $gray-800;
-        border: 1px solid $gray-200;
-        max-height: 300px;
-        overflow-y: auto;
-    }
-}
-
-// D3 Graph Styles
-.graphContainer {
-    display: flex;
-    height: 60vh;
-    border: 1px solid $gray-200;
-    border-radius: 0.5rem;
-    overflow: hidden;
-}
-
-.graphWrapper {
-    flex: 1;
-    background: $white;
-    position: relative;
-}
-
-.graphSvg {
-    width: 100%;
-    height: 100%;
-    background: $white;
-    cursor: grab;
-
-    &:active {
-        cursor: grabbing;
-    }
-}
-
-// Zoom Controls
-.zoomControls {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    z-index: 10;
-}
-
-.zoomButton {
-    width: 40px;
-    height: 40px;
-    border: none;
-    border-radius: 50%;
-    background: $white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: $gray-700;
-    transition: all 0.2s ease;
-
-    &:hover {
-        background: $gray-50;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        transform: translateY(-1px);
-    }
-
-    &:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-}
-
-.graphLink {
-    stroke: $gray-400;
-    stroke-opacity: 0.6;
-}
-
-.linkLabel {
-    font-size: 10px;
-    fill: $gray-600;
-    text-anchor: middle;
-    pointer-events: none;
-    background: $white;
-    padding: 2px 4px;
-    border-radius: 2px;
-}
-
-.chunkNode {
-    stroke: $white;
-    stroke-width: 2px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    &:hover {
-        stroke-width: 3px;
-    }
-}
-
-.conceptNode {
-    stroke: $gray-600;
-    stroke-width: 2px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    &:hover {
-        stroke: $gray-800;
-        stroke-width: 3px;
-    }
-}
-
-.nodeLabel {
-    font-size: 12px;
-    fill: $gray-700;
-    text-anchor: middle;
-    pointer-events: none;
-    font-weight: 500;
-}
-
-// Node Info Panel
-.nodeInfoPanel {
-    width: 350px;
-    background: $white;
-    border-left: 1px solid $gray-200;
-    display: flex;
-    flex-direction: column;
-    max-height: 700px;
-    overflow-y: auto;
-}
-
-.nodeInfoHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    border-bottom: 1px solid $gray-200;
-    background: $gray-50;
-
-    h4 {
-        margin: 0;
-        color: $gray-800;
-        font-size: 1.125rem;
-    }
-}
-
-.closeButton {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: $gray-500;
-    padding: 0;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    &:hover {
-        color: $gray-700;
-        background: $gray-200;
-        border-radius: 50%;
-    }
-}
-
-.nodeInfoContent {
-    padding: 1rem;
-    flex: 1;
-
-    p {
-        margin-bottom: 0.75rem;
-        font-size: 0.875rem;
-        line-height: 1.4;
-
-        strong {
-            color: $gray-800;
-            font-weight: 600;
-        }
-    }
-}
-
-.summaryText {
-    background: $gray-50;
-    padding: 0.75rem;
-    border-radius: 0.25rem;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    color: $gray-700;
-    margin-bottom: 1rem;
-    border-left: 3px solid $primary-blue;
-}
-
-.keywords, .concepts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.keyword {
-    background: $primary-blue;
-    color: $white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-}
-
-.concept {
-    background: $primary-green;
-    color: $white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.75rem;
-    font-weight: 500;
 }
 
 // 컬렉션 카드 액션 버튼들

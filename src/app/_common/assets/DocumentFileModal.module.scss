@@ -1,0 +1,354 @@
+@use "sass:color";
+@use "@/app/_common/_variables" as *;
+
+// 최소화된 업로드 버튼
+.minimizedButton {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: $primary-blue;
+    color: $white;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba($primary-blue, 0.3);
+    z-index: 1001;
+    transition: all 0.2s ease-in-out;
+    font-size: 0.875rem;
+    font-weight: 600;
+
+    &:hover {
+        background: color.adjust($primary-blue, $lightness: -7%);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba($primary-blue, 0.4);
+    }
+
+    .uploadIcon {
+        font-size: 1rem;
+        animation: pulse 2s infinite;
+    }
+
+    .uploadText {
+        white-space: nowrap;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+// Modal Styles
+.modalBackdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: $white;
+    padding: 2rem;
+    border-radius: 0.75rem;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+
+    h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: $gray-800;
+        margin: 0 0 1.5rem 0;
+    }
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 2rem;
+}
+
+.button {
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    &.primary {
+        background-color: $primary-blue;
+        color: $white;
+        &:hover:not(:disabled) {
+            background-color: color.adjust($primary-blue, $lightness: -7%);
+        }
+    }
+
+    &.secondary {
+        background-color: $white;
+        color: $gray-700;
+        border-color: $gray-300;
+        &:hover:not(:disabled) {
+            background-color: $gray-50;
+        }
+    }
+}
+
+.error {
+    background-color: color.adjust($primary-red, $alpha: -0.9);
+    color: $primary-red;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+
+.completedMessage {
+    background-color: color.adjust($primary-green, $alpha: -0.9);
+    color: $primary-green;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .completedIcon {
+        font-size: 1.125rem;
+    }
+}
+
+.formGroup {
+    margin-bottom: 1.5rem;
+
+    label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: $gray-700;
+        margin-bottom: 0.5rem;
+    }
+
+    input,
+    textarea,
+    select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid $gray-300;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        transition: border-color 0.2s ease-in-out;
+
+        &:focus {
+            outline: none;
+            border-color: $primary-blue;
+            box-shadow: 0 0 0 3px rgba($primary-blue, 0.1);
+        }
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+}
+
+.selectInput {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+
+.helpText {
+    margin-top: 0.5rem;
+    color: $gray-600;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+// Upload Progress Styles
+.uploadProgressContainer {
+    background: $gray-50;
+    border: 1px solid $gray-200;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+
+    .progressHeader {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+
+        h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin: 0;
+            color: $gray-800;
+        }
+
+        .progressSummary {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+
+            .totalCount {
+                color: $gray-700;
+            }
+
+            .successCount {
+                color: $primary-green;
+            }
+
+            .errorCount {
+                color: $primary-red;
+            }
+
+            .uploadingCount {
+                color: $primary-blue;
+            }
+        }
+    }
+
+    .progressList {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+}
+
+.progressItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    background: $white;
+    border: 1px solid $gray-200;
+    transition: all 0.2s ease-in-out;
+
+    &.uploading {
+        border-color: $primary-blue;
+        background: color.mix($primary-blue, $white, 5%);
+    }
+
+    &.success {
+        border-color: $primary-green;
+        background: color.mix($primary-green, $white, 5%);
+    }
+
+    &.error {
+        border-color: $primary-red;
+        background: color.mix($primary-red, $white, 5%);
+    }
+
+    .fileInfo {
+        flex: 1;
+        min-width: 0;
+        margin-right: 1rem;
+
+        .fileName {
+            font-weight: 500;
+            color: $gray-700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .progressPercent {
+            font-size: 0.75rem;
+            color: $gray-500;
+            font-weight: 600;
+        }
+    }
+
+    .progressStatus {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-shrink: 0;
+
+        .progressBar {
+            width: 100px;
+            height: 6px;
+            background: $gray-200;
+            border-radius: 3px;
+            overflow: hidden;
+
+            .progressFill {
+                height: 100%;
+                background: linear-gradient(90deg, $primary-blue, color.adjust($primary-blue, $lightness: 10%));
+                transition: width 0.3s ease;
+                border-radius: 3px;
+            }
+        }
+
+        .statusText {
+            font-size: 0.875rem;
+            font-weight: 600;
+            white-space: nowrap;
+
+            &.uploading { color: $primary-blue; }
+            &.success { color: $primary-green; }
+            &.error { color: $primary-red; }
+        }
+    }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+    .modalContent {
+        width: 95%;
+        padding: 1.5rem;
+    }
+
+    .progressItem .progressStatus {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-end;
+    }
+
+    .minimizedButton {
+        top: 10px;
+        right: 10px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+
+        .uploadText {
+            font-size: 0.75rem;
+        }
+    }
+}

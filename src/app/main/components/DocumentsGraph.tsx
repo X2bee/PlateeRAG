@@ -1,9 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
-import styles from '@/app/main/assets/Documents.module.scss';
-import { IoCodeSlashOutline } from 'react-icons/io5';
-import { devLog } from '@/app/_common/utils/logger';
+import styles from '@/app/main/assets/DocumentsGraph.module.scss';
 
 interface DocumentsGraphProps {
     loading: boolean;
