@@ -24,6 +24,7 @@ interface NewChatInterfaceProps extends ChatInterfaceProps {
     onStartNewChat?: (message: string) => void;
     initialMessageToExecute?: string | null;
     user_id?: number | string;
+    hideInputUI?: boolean; // 새로 추가된 prop
 }
 
 const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
@@ -35,6 +36,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
     onStartNewChat,
     initialMessageToExecute,
     user_id,
+    hideInputUI = false, // 새로 추가된 prop
 }) => {
     const router = useRouter();
     const chatContainerRef = useRef<ChatContainerRef>(null);
@@ -91,6 +93,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
         setIOLogs,
         scrollToBottom: scrollManagement.scrollToBottom
     });
+
     // 메모이제이션된 이벤트 핸들러들
     const handleViewSource = useCallback((sourceInfo: SourceInfo, messageContent?: string) => {
         const enrichedSourceInfo = scrollManagement.handleViewSource(sourceInfo, messageContent);
@@ -237,6 +240,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
         user_id,
         onPDFViewerClose: handlePDFViewerClose,
         error: workflowExecution.error,
+        hideInputUI, // 새로 추가된 prop 전달
     }), [
         state.ui.showPDFViewer,
         state.ui.loading,
@@ -264,6 +268,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
         initialMessageToExecute,
         user_id,
         handlePDFViewerClose,
+        hideInputUI, // dependency에도 추가
     ]);
 
     const collectionModalProps = useMemo(() => ({
