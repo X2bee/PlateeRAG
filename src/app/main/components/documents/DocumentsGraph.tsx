@@ -2,37 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import styles from '@/app/main/assets/DocumentsGraph.module.scss';
-
-interface DocumentsGraphProps {
-    loading: boolean;
-    documentDetailMeta: any;
-    documentDetailEdges: any;
-}
-
-interface Node {
-    id: string;
-    label: string;
-    type: 'chunk' | 'concept';
-    data?: any;
-    x?: number;
-    y?: number;
-    fx?: number | null;
-    fy?: number | null;
-}
-
-interface Link {
-    source: string | Node;
-    target: string | Node;
-    relation_type: string;
-    edge_weight: number;
-}
-
-interface GraphData {
-    nodes: Node[];
-    links: Link[];
-}
-
-type GraphViewMode = 'graph' | 'data';
+import { DocumentsGraphProps, Node, Link, GraphData, GraphViewMode } from '../../types';
 
 const DocumentsGraph: React.FC<DocumentsGraphProps> = ({
     loading,

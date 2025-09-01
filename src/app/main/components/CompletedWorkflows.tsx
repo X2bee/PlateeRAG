@@ -13,32 +13,7 @@ import styles from '@/app/main/assets/CompletedWorkflows.module.scss';
 import { listWorkflowsDetail, deleteWorkflow } from '@/app/api/workflow/workflowAPI';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-
-interface Workflow {
-    id: string;
-    name: string;
-    description?: string;
-    createdAt?: string;
-    lastModified?: string;
-    author: string;
-    nodeCount: number;
-    status: 'active' | 'draft' | 'archived';
-    filename?: string;
-    error?: string;
-    key_value?: number;
-}
-
-interface WorkflowDetailResponse {
-    id: number;
-    workflow_name: string;
-    workflow_id: string;
-    user_name: string;
-    node_count: number;
-    updated_at: string;
-    has_startnode: boolean;
-    has_endnode: boolean;
-    error?: string;
-}
+import { Workflow, WorkflowDetailResponse } from '../types';
 
 const CompletedWorkflows: React.FC = () => {
     const router = useRouter();

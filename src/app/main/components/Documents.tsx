@@ -21,86 +21,17 @@ import {
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useDocumentFileModal } from '@/app/_common/contexts/DocumentFileModalContext';
 
-interface Collection {
-    id: number;
-    collection_name: string;
-    collection_make_name: string;
-    vector_size?: number;
-    points_count?: number;
-    description?: string;
-    registered_at: string;
-    updated_at: string;
-    created_at: string;
-    user_id: number;
-    is_shared?: boolean | null;
-    share_group?: string | null;
-    share_permissions?: string | null;
-}
-
-interface DocumentInCollection {
-    document_id: string;
-    file_name: string;
-    file_type: string;
-    processed_at: string;
-    total_chunks: number;
-    actual_chunks: number;
-    metadata: any;
-    chunks: ChunkInfo[];
-}
-
-interface ChunkInfo {
-    chunk_id: string;
-    chunk_index: number;
-    chunk_size: number;
-    chunk_text_preview: string;
-}
-
-interface DocumentDetails {
-    document_id: string;
-    file_name: string;
-    file_type: string;
-    processed_at: string;
-    total_chunks: number;
-    metadata: any;
-    chunks: DetailedChunk[];
-}
-
-interface DetailedChunk {
-    chunk_id: string;
-    chunk_index: number;
-    chunk_size: number;
-    chunk_text: string;
-}
-
-interface SearchResult {
-    id: string;
-    score: number;
-    document_id: string;
-    chunk_index: number;
-    chunk_text: string;
-    file_name: string;
-    file_type: string;
-    metadata: any;
-}
-
-type CollectionsResponse = Collection[];
-
-interface DocumentsInCollectionResponse {
-    collection_name: string;
-    total_documents: number;
-    total_chunks: number;
-    documents: DocumentInCollection[];
-}
-
-interface SearchResponse {
-    query: string;
-    results: SearchResult[];
-    total: number;
-    search_params: any;
-}
-
-type ViewMode = 'collections' | 'documents' | 'documents-graph' | 'document-detail' | 'all-documents-graph';
-type CollectionFilter = 'all' | 'personal' | 'shared';
+import {
+    Collection,
+    DocumentInCollection,
+    DocumentDetails,
+    SearchResult,
+    CollectionsResponse,
+    DocumentsInCollectionResponse,
+    SearchResponse,
+    ViewMode,
+    CollectionFilter,
+} from '../types';
 
 const Documents: React.FC = () => {
     const { user } = useAuth();

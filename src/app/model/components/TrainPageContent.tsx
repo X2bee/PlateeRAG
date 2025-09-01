@@ -5,7 +5,7 @@ import { FiPlay, FiSettings, FiDatabase, FiCpu, FiBox } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { startTraining } from '@/app/api/trainer/trainAPI';
 import { devLog } from '@/app/_common/utils/logger';
-import { handleGemma3Training, handleQwen3Training } from './sampleHandler';
+import { handleGemma3Training, handleQwen3Training } from './Train/sampleHandler';
 import BasicCategory from '@/app/model/components/Train/BasicCategory';
 import ModelCategory from '@/app/model/components/Train/ModelCategory';
 import DataCategory from '@/app/model/components/Train/DataCategory';

@@ -16,8 +16,8 @@ import {
 import ContentArea from '@/app/main/components/ContentArea';
 import styles from '@/app/model/assets/StoragePage.module.scss';
 import { getAllHuggingFaceResources } from '@/app/api/huggingfaceAPI';
-import StorageModelInfoModal from './StorageModelInfoModal';
-import StorageDatasetInfoModal from './StorageDatasetInfoModal';
+import StorageModelInfoModal from './Storage/StorageModelInfoModal';
+import StorageDatasetInfoModal from './Storage/StorageDatasetInfoModal';
 
 interface HuggingFaceModel {
     id: string;

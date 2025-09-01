@@ -4,29 +4,7 @@ import styles from '@/app/main/assets/CollectionEditModal.module.scss';
 import { updateCollection } from '@/app/api/rag/retrievalAPI';
 import { getGroupAvailableGroups } from '@/app/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
-
-interface Collection {
-    id: number;
-    collection_name: string;
-    collection_make_name: string;
-    vector_size?: number;
-    points_count?: number;
-    description?: string;
-    registered_at: string;
-    updated_at: string;
-    created_at: string;
-    user_id: number;
-    is_shared?: boolean | null;
-    share_group?: string | null;
-    share_permissions?: string | null;
-}
-
-interface CollectionEditModalProps {
-    collection: Collection;
-    isOpen: boolean;
-    onClose: () => void;
-    onUpdate: (updatedCollection: Collection) => void;
-}
+import { Collection, CollectionEditModalProps } from '../../types';
 
 const CollectionEditModal: React.FC<CollectionEditModalProps> = ({
     collection,

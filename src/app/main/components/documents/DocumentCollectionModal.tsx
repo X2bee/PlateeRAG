@@ -2,31 +2,7 @@
 import React, { useState } from 'react';
 import styles from '@/app/main/assets/DocumentCollectionModal.module.scss';
 import { createCollection, isValidCollectionName, deleteCollection } from '@/app/api/rag/retrievalAPI';
-
-interface Collection {
-    id: number;
-    collection_name: string;
-    collection_make_name: string;
-    vector_size?: number;
-    points_count?: number;
-    description?: string;
-    registered_at: string;
-    updated_at: string;
-    created_at: string;
-    user_id: number;
-    is_shared?: boolean | null;
-    share_group?: string | null;
-    share_permissions?: string | null;
-}
-
-interface DocumentCollectionModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onCollectionCreated?: () => void;
-    mode?: 'create' | 'delete';
-    collectionToDelete?: Collection | null;
-    onCollectionDeleted?: () => void;
-}
+import { Collection, DocumentCollectionModalProps } from '../../types';
 
 const DocumentCollectionModal: React.FC<DocumentCollectionModalProps> = ({
     isOpen,
