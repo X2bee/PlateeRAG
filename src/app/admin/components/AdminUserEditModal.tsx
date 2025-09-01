@@ -14,7 +14,7 @@ interface User {
     is_active: boolean;
     is_admin: boolean;
     user_type: 'superuser' | 'admin' | 'standard';
-    group_name: string;
+    groups: string[] | null;
     last_login?: string | null;
     password_hash: string;
     preferences?: any;
@@ -37,7 +37,6 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
         email: '',
         username: '',
         full_name: '',
-        group_name: '',
         user_type: 'standard' as 'superuser' | 'admin' | 'standard',
         preferences: ''
     });
@@ -54,7 +53,6 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
                 email: user.email || '',
                 username: user.username || '',
                 full_name: user.full_name || '',
-                group_name: user.group_name || '',
                 user_type: user.user_type,
                 preferences: user.preferences ? JSON.stringify(user.preferences, null, 2) : ''
             });
@@ -179,7 +177,6 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
                 email: formData.email.trim(),
                 username: formData.username.trim(),
                 full_name: formData.full_name.trim() || null,
-                group_name: formData.group_name.trim(),
                 is_admin: isAdmin,
                 user_type: formData.user_type,
                 preferences: formData.preferences ? JSON.parse(formData.preferences) : null
@@ -317,18 +314,6 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
                             </div>
                         </div>
                     )}
-
-                    <div className={styles.formGroup}>
-                        <label htmlFor="group_name">조직</label>
-                        <input
-                            type="text"
-                            id="group_name"
-                            name="group_name"
-                            value={formData.group_name}
-                            onChange={handleInputChange}
-                            disabled={loading}
-                        />
-                    </div>
 
                     <div className={styles.formGroup}>
                         <label htmlFor="preferences">환경설정 (JSON)</label>

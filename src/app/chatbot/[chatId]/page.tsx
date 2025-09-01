@@ -5,34 +5,109 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { loadWorkflow } from '@/app/api/workflow/workflowAPI';
 import ChatInterface from '@/app/chat/components/ChatInterface';
 import { Workflow } from '@/app/chat/components/types';
+import { decryptUrlParams } from '@/app/_common/utils/urlEncryption';
+import { ALLOWED_ORIGINS } from '@/app/config';
 import styles from './StandaloneChat.module.scss';
 
 const StandaloneChatPage = () => {
     const params = useParams();
     const searchParams = useSearchParams();
     const router = useRouter();
-    const chatId = params.chatId as string;
+    const encryptedParams = params.chatId as string;
     const workflowNameFromUrl = searchParams.get('workflowName') as string;
-
+    const hideInputUI = searchParams.get('hideInput') === 'true'; // 새로 추가
 
     const [workflow, setWorkflow] = useState<Workflow | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [userId, setUserId] = useState<string>('');
+    const [workflowName, setWorkflowName] = useState<string>('');
+
+    // origin 검증 함수
+    const isAllowedOrigin = (origin: string): boolean => {
+        return ALLOWED_ORIGINS.includes(origin);
+    };
 
     useEffect(() => {
-        if (!chatId) {
-            setError('잘못된 접근입니다. 워크플로우 ID가 필요합니다.');
+        const handleMessage = (event: MessageEvent) => {
+            // 여러 origin 검증
+            if (!isAllowedOrigin(event.origin)) {
+                console.warn(`Message from unauthorized origin: ${event.origin}`);
+                return;
+            }
+            
+            if (event.data?.type === 'SEND_QUERY' && event.data?.query) {
+                const query = event.data.query;
+                console.log('Received query from parent:', query);
+                
+                setTimeout(() => {
+                    const textarea = document.querySelector('textarea');
+                    const sendButton = document.querySelector('button[class*="sendButton"]');
+                    
+                    if (textarea && sendButton) {
+                        // React의 내부 상태를 강제로 업데이트
+                        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+                        if (nativeInputValueSetter) {
+                            nativeInputValueSetter.call(textarea, query);
+                        }
+                        
+                        // 다양한 이벤트 발생으로 React 상태 동기화
+                        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                        textarea.dispatchEvent(new Event('change', { bubbles: true }));
+                        textarea.focus();
+                        
+                        // 상태 업데이트 확인
+                        setTimeout(() => {
+                            (sendButton as HTMLButtonElement).click();
+                        }, 200);
+                    }
+                }, 300);
+            }
+        };
+    
+        window.addEventListener('message', handleMessage);
+        return () => window.removeEventListener('message', handleMessage);
+    }, []);
+
+    useEffect(() => {
+        if (!encryptedParams) {
+            setError('잘못된 접근입니다. 암호화된 파라미터가 필요합니다.');
             setLoading(false);
             return;
+        }
+
+        // 암호화된 파라미터 복호화
+        const decryptedParams = decryptUrlParams(encryptedParams);
+        if (!decryptedParams) {
+            // 기존 방식으로 fallback (하위 호환성)
+            if (workflowNameFromUrl) {
+                setUserId(encryptedParams);
+                setWorkflowName(workflowNameFromUrl);
+            } else {
+                setError('URL 파라미터를 복호화할 수 없습니다.');
+                setLoading(false);
+                return;
+            }
+        } else {
+            setUserId(decryptedParams.userId);
+            setWorkflowName(decryptedParams.workflowName);
         }
 
         const fetchWorkflow = async () => {
             try {
                 setLoading(true);
+                const currentUserId = decryptedParams?.userId || userId;
+                const currentWorkflowName = decryptedParams?.workflowName || workflowName;
+                
+                if (!currentUserId || !currentWorkflowName) {
+                    setError('사용자 ID 또는 워크플로우 이름이 없습니다.');
+                    return;
+                }
+                
                 const fetchedWorkflow: Workflow | null = {
-                    id: chatId,
-                    name: workflowNameFromUrl,
-                    filename: workflowNameFromUrl,
+                    id: currentUserId,
+                    name: currentWorkflowName,
+                    filename: currentWorkflowName,
                     author: 'Unknown',
                     nodeCount: 0,
                     status: 'active' as const,
@@ -41,7 +116,7 @@ const StandaloneChatPage = () => {
                 setError(null);
             } catch (err) {
                 console.error(err);
-                setError('워크플로우를 불러오는 데 실패했습니다. ID를 확인해 주세요.');
+                setError('워크플로우를 불러오는 데 실패했습니다. 파라미터를 확인해 주세요.');
                 setWorkflow(null);
             } finally {
                 setLoading(false);
@@ -49,7 +124,7 @@ const StandaloneChatPage = () => {
         };
 
         fetchWorkflow();
-    }, [chatId]);
+    }, [encryptedParams, workflowNameFromUrl, userId, workflowName]);
 
     if (loading) {
         return (
@@ -86,8 +161,9 @@ const StandaloneChatPage = () => {
                         onBack={() => { }}
                         onChatStarted={() => { }}
                         hideBackButton={true}
+                        hideInputUI={hideInputUI} // 새로 추가된 prop
                         existingChatData={undefined}
-                        user_id = {chatId}
+                        user_id={userId || workflow.id}
                     />
                 </div>
             </div>

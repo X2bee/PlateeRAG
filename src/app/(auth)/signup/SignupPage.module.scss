@@ -9,151 +9,175 @@ $box-background-color: #ffffff;
 $box-shadow-color: rgba(0, 0, 0, 0.1);
 
 .signupPage {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  min-height: 100vh;
-  background-color: $background-color;
-  font-family: 'Pretendard', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 100vh;
+    background-color: $background-color;
+    font-family: 'Pretendard', sans-serif;
 }
 
 .signupBox {
-  background: $box-background-color;
-  padding: 2.5rem;
-  border-radius: 12px;
-  box-shadow: 0 8px 25px $box-shadow-color;
-  width: 100%;
-  max-width: 650px;
-  text-align: center;
+    background: $box-background-color;
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px $box-shadow-color;
+    width: 100%;
+    max-width: 650px;
+    text-align: center;
 
-  .title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: $text-color;
-    margin-bottom: 2rem;
-  }
+    .title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: $text-color;
+        margin-bottom: 2rem;
+    }
 }
 
 .signupForm {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
 }
 
 .formRow {
-  display: flex;
-  gap: 1rem;
+    display: flex;
+    gap: 1rem;
 
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 1.25rem;
-  }
+    @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 1.25rem;
+    }
 }
 
 .inputGroup {
-  text-align: left;
-  flex: 1;
+    text-align: left;
+    flex: 1;
 
-  label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: $label-color;
-  }
+    label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: $label-color;
+    }
 
-  input {
-    width: 100%;
-    padding: 0.875rem;
-    border: 1px solid $border-color;
-    border-radius: 8px;
-    font-size: 1rem;
-    box-sizing: border-box;
-  }
+    input,
+    select {
+        width: 100%;
+        padding: 0.875rem;
+        border: 1px solid $border-color;
+        border-radius: 8px;
+        font-size: 1rem;
+        box-sizing: border-box;
+        background-color: white;
+        font-family: inherit;
+
+        &:focus {
+            outline: none;
+            border-color: $primary-color;
+            box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
+        }
+
+        &:disabled {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+    }
+
+    select {
+        cursor: pointer;
+
+        &:disabled {
+            cursor: not-allowed;
+        }
+    }
 }
 
 .error {
-  color: $error-color;
-  font-size: 0.875rem;
-  margin-top: -0.5rem;
-  margin-bottom: 0.5rem;
+    color: $error-color;
+    font-size: 0.875rem;
+    margin-top: -0.5rem;
+    margin-bottom: 0.5rem;
 }
 
 .signupButton {
-  width: 100%;
-  padding: 0.875rem;
-  border: none;
-  border-radius: 8px;
-  background-color: $primary-color;
-  color: white;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  margin-top: 1rem;
+    width: 100%;
+    padding: 0.875rem;
+    border: none;
+    border-radius: 8px;
+    background-color: $primary-color;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 1rem;
 
-  &:hover {
-    background-color: $primary-hover-color;
-  }
+    &:hover {
+        background-color: $primary-hover-color;
+    }
 
-  &:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-  }
+    &:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
 }
 
 .links {
-  margin-top: 1.5rem;
-  font-size: 0.875rem;
+    margin-top: 1.5rem;
+    font-size: 0.875rem;
 
-  a {
-    color: $label-color;
-    text-decoration: none;
-    &:hover {
-      text-decoration: underline;
+    a {
+        color: $label-color;
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
     }
-  }
 }
 
 .successContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 2rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 2rem 0;
 }
 
 .successMessage,
 .errorMessage {
-  font-size: 0.9rem;
-  padding: 0.75rem;
-  border-radius: 8px;
-  width: 100%;
+    font-size: 0.9rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    width: 100%;
 }
 
 .successMessage {
-  color: #155724;
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
+    color: #155724;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
 }
 
 .errorMessage {
-  color: #721c24;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
+    color: #721c24;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
 }
 
 .actionLink {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background-color: #007bff;
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: background-color 0.2s;
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background-color 0.2s;
 
-  &:hover {
-    background-color: #0056b3;
-  }
+    &:hover {
+        background-color: #0056b3;
+    }
 }

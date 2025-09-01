@@ -15,10 +15,11 @@ import {
     FiFileText,
     FiAlertTriangle,
     FiMessageSquare,
+    FiBarChart,
 } from 'react-icons/fi';
 import { AdminSidebarItem } from '@/app/admin/components/types';
 
-export const getUserItems = ['users', 'user-create', 'user-permissions'];
+export const getUserItems = ['users', 'user-create', 'group-permissions'];
 
 export const getUserSidebarItems = (): AdminSidebarItem[] => [
     {
@@ -34,27 +35,43 @@ export const getUserSidebarItems = (): AdminSidebarItem[] => [
         icon: React.createElement(FiUserPlus),
     },
     {
-        id: 'user-permissions',
-        title: '권한 관리',
-        description: '사용자별 권한 설정 및 관리',
+        id: 'group-permissions',
+        title: '조직 및 권한 관리',
+        description: '조직별 권한 설정 및 관리',
         icon: React.createElement(FiShield),
     },
 ];
 
-export const getSystemItems = ['system-config', 'chat-monitoring', 'system-monitor', 'system-health'];
+export const getSettingItems = ['system-config', 'system-settings'];
 
-export const getSystemSidebarItems = (): AdminSidebarItem[] => [
+export const getSettingSidebarItems = (): AdminSidebarItem[] => [
+    {
+        id: 'system-settings',
+        title: '시스템 설정',
+        description: 'LLM, 데이터베이스, 벡터DB 등',
+        icon: React.createElement(FiServer),
+    },
     {
         id: 'system-config',
-        title: '시스템 설정',
+        title: '시스템 세부 설정',
         description: '전역 시스템 설정 및 환경변수',
         icon: React.createElement(FiSettings),
     },
+];
+export const getSystemItems = ['chat-monitoring', 'workflow-monitoring', 'system-monitor', 'system-health'];
+
+export const getSystemSidebarItems = (): AdminSidebarItem[] => [
     {
         id: 'chat-monitoring',
         title: '채팅 모니터링',
         description: '실시간 채팅 활동 및 상태 모니터링',
         icon: React.createElement(FiMessageSquare),
+    },
+    {
+        id: 'workflow-monitoring',
+        title: '워크플로우 모니터링',
+        description: '워크플로우 실행, 성능 분석, 배치 테스트',
+        icon: React.createElement(FiBarChart),
     },
     {
         id: 'system-monitor',

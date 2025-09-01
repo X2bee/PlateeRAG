@@ -7,6 +7,8 @@ import {
     clearAllAuth
 } from '@/app/_common/utils/cookieUtils';
 import { generateSha256Hash } from '@/app/_common/utils/generateSha1Hash';
+import { apiClient } from '@/app/api/helper/apiClient';
+
 
 /**
  * 휴대폰 번호를 정규화하는 함수 (010-1234-5678 형태로 변환)
@@ -393,84 +395,58 @@ export const logoutAndRedirect = async () => {
 };
 
 /**
- * 8자리 랜덤 ID 생성 함수
- * @returns {string} 8자리 랜덤 문자열
+ * 사용자 그룹의 사용 가능한 그룹 목록 조회 API
+ * @param {number} user_id - 사용자 ID
+ * @returns {Promise<Object>} 사용 가능한 그룹 목록
  */
-const generateRandomId = () => {
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < 8; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-};
-
-/**
- * 랜덤 비밀번호 생성 함수
- * @param {number} length - 비밀번호 길이 (기본값: 12)
- * @returns {string} 랜덤 비밀번호
- */
-const generateRandomPassword = (length = 12) => {
-    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-    let password = '';
-    for (let i = 0; i < length; i++) {
-        password += charset.charAt(Math.floor(Math.random() * charset.length));
-    }
-    return password;
-};
-
-/**
- * 게스트 계정 생성 및 자동 로그인 API
- * @returns {Promise<Object>} 로그인 결과 (토큰 포함)
- */
-export const createGuestAccountAndLogin = async () => {
+export const getGroupAvailableGroups = async (user_id) => {
     try {
-        devLog.log('Creating guest account...');
-
-        // 게스트 계정 정보 생성
-        const randomId = generateRandomId();
-        const guestUsername = `guest_${randomId}`;
-        const guestEmail = `guest_${randomId}@guest.com`;
-        const guestPassword = generateRandomPassword();
-
-        devLog.log('Guest account info generated:', {
-            username: guestUsername,
-            email: guestEmail
+        const response = await apiClient(`${API_BASE_URL}/auth/available-group?user_id=${user_id}`, {
+            method: 'GET',
         });
 
-        // 1. 게스트 계정 회원가입
-        const signupData = {
-            username: guestUsername,
-            email: guestEmail,
-            password: guestPassword, // 원본 패스워드를 signup 함수에 전달 (signup 함수에서 해시화됨)
-            full_name: `Guest User ${randomId}`
-        };
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`
+            );
+        }
 
-        const signupResult = await signup(signupData);
-        devLog.log('Guest signup successful:', signupResult);
-
-        // 2. 생성된 계정으로 자동 로그인
-        const loginData = {
-            email: guestEmail,
-            password: guestPassword // 원본 패스워드를 login 함수에 전달 (login 함수에서 해시화됨)
-        };
-
-        const loginResult = await login(loginData);
-        devLog.log('Guest auto-login successful:', loginResult);
-
-        return {
-            ...loginResult,
-            isGuest: true,
-            guestInfo: {
-                username: guestUsername,
-                email: guestEmail
-            }
-        };
-
+        const result = await response.json();
+        devLog.log('Group available groups fetched successfully:', result);
+        return result;
     } catch (error) {
-        devLog.error('Failed to create guest account or login:', error);
-        throw new Error(
-            error.message || '게스트 계정 생성에 실패했습니다. 잠시 후 다시 시도해주세요.'
+        devLog.error('Failed to fetch group available groups:', error);
+        throw error;
+    }
+};
+
+/**
+ * 사용자 그룹의 사용 가능한 섹션 조회 API
+ * @param {number} user_id - 사용자 ID
+ * @returns {Promise<Object>} 사용 가능한 섹션 목록
+ */
+export const getGroupAvailableSections = async (user_id) => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/auth/available-section?user_id=${user_id}`,
+            {
+                method: 'GET',
+            }
         );
+
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        const result = await response.json();
+        devLog.log('Group available sections fetched successfully:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to fetch group available sections:', error);
+        throw error;
     }
 };

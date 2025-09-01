@@ -15,6 +15,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     isOpen,
     onToggle,
     userItems = [],
+    settingItems = [],
     systemItems = [],
     dataItems = [],
     securityItems = [],
@@ -22,6 +23,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     onItemClick,
     className = '',
     initialUserExpanded = false,
+    initialSettingExpanded = false,
     initialSystemExpanded = false,
     initialDataExpanded = false,
     initialSecurityExpanded = false,
@@ -29,6 +31,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     const router = useRouter();
     const pathname = usePathname();
     const [isUserExpanded, setIsUserExpanded] = useState(initialUserExpanded);
+    const [isSettingExpanded, setIsSettingExpanded] = useState(initialSettingExpanded);
     const [isSystemExpanded, setIsSystemExpanded] = useState(initialSystemExpanded);
     const [isDataExpanded, setIsDataExpanded] = useState(initialDataExpanded);
     const [isSecurityExpanded, setIsSecurityExpanded] = useState(initialSecurityExpanded);
@@ -58,22 +61,21 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     };
 
     const toggleUserExpanded = () => setIsUserExpanded(!isUserExpanded);
+    const toggleSettingExpanded = () => setIsSettingExpanded(!isSettingExpanded);
     const toggleSystemExpanded = () => setIsSystemExpanded(!isSystemExpanded);
     const toggleDataExpanded = () => setIsDataExpanded(!isDataExpanded);
     const toggleSecurityExpanded = () => setIsSecurityExpanded(!isSecurityExpanded);
 
     const handleLogoClick = () => {
-        router.push('/');
+        router.push('/main');
     };
 
     return (
         <motion.aside
-            className={`${styles.sidebar} ${className} ${isOpen ? styles.open : styles.closed}`}
+            className={`${styles.sidebar} ${className}`}
             initial={{ x: "-100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "-100%" }}
+            animate={{ x: isOpen ? 0 : "-100%" }}
             transition={{ type: "tween", duration: 0.3 }}
-
         >
             <button onClick={onToggle} className={styles.closeOnlyBtn}>
                 <FiChevronLeft />
@@ -116,6 +118,34 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
                 <nav className={`${styles.sidebarNav} ${isUserExpanded ? styles.expanded : ''}`}>
                     {userItems.map((item: any) => (
+                        <button
+                            key={item.id}
+                            onClick={() => onItemClick(item.id)}
+                            className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                        >
+                            {item.icon}
+                            <div className={styles.navText}>
+                                <div className={styles.navTitle}>{item.title}</div>
+                                <div className={styles.navDescription}>
+                                    {item.description}
+                                </div>
+                            </div>
+                        </button>
+                    ))}
+                </nav>
+
+                <button
+                    className={styles.sidebarToggle}
+                    onClick={toggleSettingExpanded}
+                >
+                    <span>환경 설정</span>
+                    <span className={`${styles.toggleIcon} ${isSettingExpanded ? styles.expanded : ''}`}>
+                        ▼
+                    </span>
+                </button>
+
+                <nav className={`${styles.sidebarNav} ${isSettingExpanded ? styles.expanded : ''}`}>
+                    {settingItems.map((item: any) => (
                         <button
                             key={item.id}
                             onClick={() => onItemClick(item.id)}

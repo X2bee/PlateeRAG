@@ -2,6 +2,7 @@
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
 import { apiClient } from '@/app/api/helper/apiClient';
+import { generateSha256Hash } from '@/app/_common/utils/generateSha1Hash';
 
 /**
  * 슈퍼유저 존재 여부를 확인하는 함수
@@ -47,12 +48,17 @@ export const validateSuperuser = async () => {
  */
 export const createSuperuser = async (signupData) => {
     try {
+        const signupForm = {
+            ...signupData,
+            password: generateSha256Hash(signupData.password)
+        };
+
         const response = await fetch(`${API_BASE_URL}/api/admin/base/create-superuser`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(signupData)
+            body: JSON.stringify(signupForm)
         });
 
         const data = await response.json();

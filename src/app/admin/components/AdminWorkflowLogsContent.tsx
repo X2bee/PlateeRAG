@@ -21,21 +21,68 @@ interface WorkflowLog {
     updated_at: string;
 }
 
+interface PaginationInfo {
+    page: number;
+    page_size: number;
+    offset: number;
+    total_returned: number;
+}
+
 const AdminWorkflowLogsContent: React.FC = () => {
     const [logs, setLogs] = useState<WorkflowLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [userIdSearch, setUserIdSearch] = useState('');
+    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
     const [sortField, setSortField] = useState<keyof WorkflowLog>('created_at');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+    const [hasNextPage, setHasNextPage] = useState(false);
+    const [showProcessedOutput, setShowProcessedOutput] = useState(true); // 기본값: 가공
+
+    const PAGE_SIZE = 250;
+
+    const parseActualOutput = (output: string | null | undefined): string => {
+        if (!output) return '';
+
+        let cleanedOutput = output;
+
+        cleanedOutput = cleanedOutput.replace(/<think>[\s\S]*?<\/think>/gi, '');
+
+        if (cleanedOutput.includes('<TOOLUSELOG>') && cleanedOutput.includes('</TOOLUSELOG>')) {
+            cleanedOutput = cleanedOutput.replace(/<TOOLUSELOG>[\s\S]*?<\/TOOLUSELOG>/g, '');
+        }
+
+        if (cleanedOutput.includes('<TOOLOUTPUTLOG>') && cleanedOutput.includes('</TOOLOUTPUTLOG>')) {
+            cleanedOutput = cleanedOutput.replace(/<TOOLOUTPUTLOG>[\s\S]*?<\/TOOLOUTPUTLOG>/g, '');
+        }
+
+        if (cleanedOutput.includes('[Cite.') && cleanedOutput.includes('}]')) {
+            cleanedOutput = cleanedOutput.replace(/\[Cite\.\s*\{[\s\S]*?\}\]/g, '');
+        }
+
+        return cleanedOutput.trim();
+    };
 
     // 로그 데이터 로드
-    const loadLogs = async () => {
+    const loadLogs = async (page: number = 1, resetLogs: boolean = true, userId: number | null = null) => {
         try {
             setLoading(true);
             setError(null);
-            const logData = await getAllIOLogs();
-            setLogs(logData || []);
+            const response = await getAllIOLogs(page, PAGE_SIZE, userId) as any;
+            const newLogs = response.io_logs || [];
+
+            if (resetLogs) {
+                setLogs(newLogs);
+            } else {
+                setLogs(prevLogs => [...prevLogs, ...newLogs]);
+            }
+
+            setPagination(response.pagination);
+            setHasNextPage(newLogs.length === PAGE_SIZE);
+            setCurrentPage(page);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'IO 로그 목록을 불러오는데 실패했습니다.');
             devLog.error('Failed to load workflow logs:', err);
@@ -44,8 +91,97 @@ const AdminWorkflowLogsContent: React.FC = () => {
         }
     };
 
+    // 다음 페이지 로드
+    const loadNextPage = () => {
+        if (hasNextPage && !loading) {
+            loadLogs(currentPage + 1, false, currentUserId);
+        }
+    };
+
+    // 이전 페이지 로드
+    const loadPrevPage = () => {
+        if (currentPage > 1 && !loading) {
+            // 이전 페이지로 돌아가기 위해 전체를 다시 로드
+            const targetPage = currentPage - 1;
+            loadLogsRange(1, targetPage, currentUserId);
+        }
+    };
+
+    // 특정 범위의 페이지들을 로드하는 함수
+    const loadLogsRange = async (startPage: number, endPage: number, userId: number | null = null) => {
+        try {
+            setLoading(true);
+            setError(null);
+            let allLogs: WorkflowLog[] = [];
+            let lastPagination: any = null;
+
+            for (let page = startPage; page <= endPage; page++) {
+                const response = await getAllIOLogs(page, PAGE_SIZE, userId) as any;
+                const pageLogs = response.io_logs || [];
+                allLogs = [...allLogs, ...pageLogs];
+                lastPagination = response.pagination;
+
+                // 만약 페이지에서 반환된 로그가 PAGE_SIZE보다 적다면 더 이상 페이지가 없음
+                if (pageLogs.length < PAGE_SIZE) {
+                    break;
+                }
+            }
+
+            setLogs(allLogs);
+            setCurrentPage(endPage);
+            setPagination(lastPagination);
+
+            // 다음 페이지 존재 여부 확인
+            if (lastPagination && lastPagination.total_returned === PAGE_SIZE) {
+                // 마지막 페이지가 풀로 로드되었으면 다음 페이지가 있을 가능성
+                setHasNextPage(true);
+            } else {
+                setHasNextPage(false);
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'IO 로그 목록을 불러오는데 실패했습니다.');
+            devLog.error('Failed to load workflow logs range:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 새로고침 핸들러
+    const handleRefresh = () => {
+        setCurrentPage(1);
+        loadLogs(1, true, currentUserId);
+    };
+
+    // ID 검색 핸들러
+    const handleUserIdSearch = () => {
+        const userId = userIdSearch.trim();
+        if (userId === '') {
+            // 빈 값이면 전체 검색으로 리셋
+            setCurrentUserId(null);
+            setCurrentPage(1);
+            loadLogs(1, true, null);
+        } else {
+            const parsedUserId = parseInt(userId);
+            if (isNaN(parsedUserId)) {
+                alert('유효한 사용자 ID를 입력해주세요.');
+                return;
+            }
+            setCurrentUserId(parsedUserId);
+            setCurrentPage(1);
+            loadLogs(1, true, parsedUserId);
+        }
+    };
+
+    // ID 검색 리셋 핸들러
+    const handleResetUserIdSearch = () => {
+        setUserIdSearch('');
+        setCurrentUserId(null);
+        setCurrentPage(1);
+        loadLogs(1, true, null);
+    };
+
     useEffect(() => {
-        loadLogs();
+        loadLogs(1, true, null);
     }, []);
 
     // 검색 필터링
@@ -64,8 +200,8 @@ const AdminWorkflowLogsContent: React.FC = () => {
                userId.includes(searchLower);
     });
 
-    // 정렬
-    const sortedLogs = [...filteredLogs].sort((a, b) => {
+    // 정렬 (검색이 활성화된 경우에만 클라이언트 정렬 적용)
+    const sortedLogs = searchTerm ? [...filteredLogs].sort((a, b) => {
         const aValue = a[sortField];
         const bValue = b[sortField];
 
@@ -79,7 +215,24 @@ const AdminWorkflowLogsContent: React.FC = () => {
 
         const comparison = aValue < bValue ? -1 : 1;
         return sortDirection === 'asc' ? comparison : -comparison;
-    });
+    }) : [...logs].sort((a, b) => {
+        const aValue = a[sortField];
+        const bValue = b[sortField];
+
+        // undefined/null 값 처리
+        if (aValue === undefined || aValue === null) {
+            if (bValue === undefined || bValue === null) return 0;
+            return 1;
+        }
+        if (bValue === undefined || bValue === null) return -1;
+        if (aValue === bValue) return 0;
+
+        const comparison = aValue < bValue ? -1 : 1;
+        return sortDirection === 'asc' ? comparison : -comparison;
+    }); // 검색이 없어도 클라이언트 정렬 적용
+
+    // 표시할 로그 결정
+    const displayLogs = searchTerm ? sortedLogs : sortedLogs;
 
     // 정렬 핸들러
     const handleSort = (field: keyof WorkflowLog) => {
@@ -122,6 +275,14 @@ const AdminWorkflowLogsContent: React.FC = () => {
         return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
     };
 
+    // 출력 데이터 처리 함수
+    const getDisplayOutput = (outputData: string | null) => {
+        if (showProcessedOutput) {
+            return parseActualOutput(outputData);
+        }
+        return outputData;
+    };
+
     if (loading) {
         return (
             <div className={styles.container}>
@@ -139,7 +300,7 @@ const AdminWorkflowLogsContent: React.FC = () => {
                 <div className={styles.error}>
                     <h3>오류 발생</h3>
                     <p>{error}</p>
-                    <button onClick={loadLogs} className={styles.retryButton}>
+                    <button onClick={() => loadLogs(1, true, currentUserId)} className={styles.retryButton}>
                         다시 시도
                     </button>
                 </div>
@@ -154,21 +315,103 @@ const AdminWorkflowLogsContent: React.FC = () => {
                 <div className={styles.searchContainer}>
                     <input
                         type="text"
-                        placeholder="워크플로우 ID, 이름, 상호작용 ID, 사용자 ID로 검색..."
+                        placeholder="결과 필터링..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className={styles.searchInput}
                     />
                 </div>
+
                 <div className={styles.stats}>
-                    <span>총 {logs.length}개의 로그</span>
+                    <span>총 {logs.length}개의 로그 로드됨</span>
+                    {currentUserId && (
+                        <span>(사용자 ID: {currentUserId})</span>
+                    )}
                     {searchTerm && (
-                        <span>({filteredLogs.length}개 검색됨)</span>
+                        <span>({sortedLogs.length}개 검색됨)</span>
+                    )}
+                    {pagination && !searchTerm && (
+                        <>
+                            <span>|</span>
+                            <span>페이지 {pagination.page}</span>
+                            <span>표시: {pagination.total_returned}개</span>
+                            <span>크기: {pagination.page_size}</span>
+                        </>
+                    )}
+                    {searchTerm && (
+                        <>
+                            <span>|</span>
+                            <span>검색 모드: 로드된 모든 로그 검색</span>
+                        </>
                     )}
                 </div>
-                <button onClick={loadLogs} className={styles.refreshButton}>
-                    새로고침
-                </button>
+
+                <div className={styles.actionButtons}>
+                    {!searchTerm && (
+                        <div className={styles.paginationButtons}>
+                            <button
+                                onClick={loadPrevPage}
+                                disabled={loading || currentPage <= 1}
+                                className={styles.paginationButton}
+                            >
+                                이전
+                            </button>
+                            <button
+                                onClick={loadNextPage}
+                                disabled={loading || !hasNextPage}
+                                className={styles.paginationButton}
+                            >
+                                다음
+                            </button>
+                        </div>
+                    )}
+                    <div className={styles.userIdSearchContainer}>
+                        <input
+                            type="text"
+                            placeholder="사용자 ID"
+                            value={currentUserId ? currentUserId.toString() : userIdSearch}
+                            onChange={(e) => setUserIdSearch(e.target.value)}
+                            className={styles.userIdInput}
+                            onKeyPress={(e) => e.key === 'Enter' && !currentUserId && handleUserIdSearch()}
+                            disabled={currentUserId !== null}
+                        />
+                        {currentUserId ? (
+                            <button
+                                onClick={handleResetUserIdSearch}
+                                className={styles.refreshButton}
+                            >
+                                리셋
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleUserIdSearch}
+                                className={styles.refreshButton}
+                            >
+                                검색
+                            </button>
+                        )}
+                    </div>
+
+
+                    <div className={styles.toggleButtons}>
+                        <button
+                            onClick={() => setShowProcessedOutput(false)}
+                            className={`${styles.toggleButton} ${!showProcessedOutput ? styles.active : ''}`}
+                        >
+                            원본
+                        </button>
+                        <button
+                            onClick={() => setShowProcessedOutput(true)}
+                            className={`${styles.toggleButton} ${showProcessedOutput ? styles.active : ''}`}
+                        >
+                            가공
+                        </button>
+                    </div>
+
+                    <button onClick={handleRefresh} className={styles.refreshButton}>
+                        새로고침
+                    </button>
+                </div>
             </div>
 
             {/* 로그 테이블 */}
@@ -269,14 +512,14 @@ const AdminWorkflowLogsContent: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {sortedLogs.length === 0 ? (
+                        {displayLogs.length === 0 ? (
                             <tr>
                                 <td colSpan={10} className={styles.noData}>
                                     {searchTerm ? '검색 결과가 없습니다.' : '등록된 로그가 없습니다.'}
                                 </td>
                             </tr>
                         ) : (
-                            sortedLogs.map((log) => (
+                            displayLogs.map((log) => (
                                 <tr key={log.id} className={styles.tableRow}>
                                     <td className={styles.logId}>{log.id}</td>
                                     <td className={styles.userId}>{log.user_id || '-'}</td>
@@ -289,8 +532,8 @@ const AdminWorkflowLogsContent: React.FC = () => {
                                     <td className={styles.dataCell} title={log.input_data || ''}>
                                         {truncateText(log.input_data)}
                                     </td>
-                                    <td className={styles.dataCell} title={log.output_data || ''}>
-                                        {truncateText(log.output_data)}
+                                    <td className={styles.dataCell} title={getDisplayOutput(log.output_data) || ''}>
+                                        {truncateText(getDisplayOutput(log.output_data))}
                                     </td>
                                     <td className={styles.score}>
                                         {formatScore(log.llm_eval_score)}

@@ -1,0 +1,348 @@
+// AdminGroupAddModal 전용 스타일
+
+// 모달 오버레이
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+// 모달 컨테이너
+.modalContainer {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    width: 1200px;
+    max-height: 90vh;
+}
+
+// 모달 헤더
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+
+    h2 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #111827;
+    }
+}
+
+// 닫기 버튼
+.closeButton {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    color: #6b7280;
+
+    &:hover {
+        background-color: #f3f4f6;
+        color: #111827;
+    }
+}
+
+// 모달 바디
+.modalBody {
+    flex: 1;
+    padding: 1.5rem 2rem;
+    overflow-y: auto;
+}
+
+// 컨트롤 영역
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background-color: #f8fafc;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+.stats {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.875rem;
+    color: #64748b;
+
+    span {
+        font-weight: 500;
+
+        &:first-child {
+            color: #475569;
+        }
+
+        &:last-child {
+            color: #0ea5e9;
+            font-weight: 600;
+        }
+    }
+}
+
+// 로딩 상태
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    text-align: center;
+
+    p {
+        margin-top: 1rem;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+}
+
+.spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid #e2e8f0;
+    border-top: 3px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+// 테이블 컨테이너
+.tableContainer {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+// 테이블 스타일
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+
+    thead {
+        background-color: #f9fafb;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+
+        th {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 1px solid #e5e7eb;
+            white-space: nowrap;
+
+            &.sortable {
+                cursor: pointer;
+                user-select: none;
+                position: relative;
+                transition: background-color 0.15s ease;
+
+                &:hover {
+                    background-color: #f3f4f6;
+                }
+            }
+        }
+    }
+
+    tbody {
+        tr {
+            border-bottom: 1px solid #f3f4f6;
+            transition: background-color 0.15s ease;
+            cursor: pointer;
+
+            &:hover:not(.disabled) {
+                background-color: #f8fafc;
+            }
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            &.selected {
+                background-color: #dbeafe;
+                border-left: 3px solid #3b82f6;
+            }
+
+            &.disabled {
+                background-color: #f9fafb;
+                cursor: not-allowed;
+                opacity: 0.6;
+
+                td {
+                    color: #9ca3af;
+                }
+            }
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            color: #374151;
+            border-right: 1px solid #f3f4f6;
+
+            &:last-child {
+                border-right: none;
+            }
+        }
+    }
+}
+
+//정렬 아이콘
+.sortIcon {
+    margin-left: 0.5rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+// 테이블 셀 스타일
+.fullName {
+    font-weight: 500;
+    color: #111827;
+}
+
+.username {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.8rem;
+    color: #6366f1;
+}
+
+.email {
+    color: #059669;
+    font-size: 0.8rem;
+}
+
+.groupName {
+    color: #7c3aed;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+// 상태 표시 스타일
+.statusBadge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+
+    &.alreadyMember {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    &.available {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+}// 모달 푸터
+.modalFooter {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1.5rem 2rem;
+    border-top: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+}
+
+// 버튼 스타일
+.cancelButton {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d1d5db;
+    background-color: white;
+    color: #374151;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+        background-color: #f9fafb;
+        border-color: #9ca3af;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.saveButton {
+    padding: 0.5rem 1rem;
+    border: none;
+    background-color: #3b82f6;
+    color: white;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+        background-color: #2563eb;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background-color: #9ca3af;
+    }
+}
+
+// 반응형 디자인
+@media (max-width: 1280px) {
+    .modalContainer {
+        width: 95vw;
+        max-width: 1000px;
+    }
+}
+
+@media (max-width: 768px) {
+    .modalContainer {
+        width: 95vw;
+        max-height: 95vh;
+    }
+
+    .modalHeader,
+    .modalBody,
+    .modalFooter {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .controls {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+
+    .stats {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+}

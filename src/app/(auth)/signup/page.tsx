@@ -13,7 +13,6 @@ const SignupPage = () => {
     const [password, setPassword] = useState('');
     const [passwordConfirm, setPasswordConfirm] = useState('');
     const [fullName, setFullName] = useState('');
-    const [groupName, setGroupName] = useState('');
     const [mobilePhoneNumber, setMobilePhoneNumber] = useState('');
 
     const [error, setError] = useState<string | null>(null);
@@ -43,7 +42,6 @@ const SignupPage = () => {
                 email,
                 password,
                 full_name: fullName || undefined,
-                group_name: groupName || undefined,
                 mobile_phone_number: mobilePhoneNumber || undefined
             };
 
@@ -119,17 +117,6 @@ const SignupPage = () => {
                                 onChange={(e) => setFullName(e.target.value)}
                             />
                         </div>
-                        <div className={styles.inputGroup}>
-                            <label htmlFor="groupName">소속 (선택사항)</label>
-                            <input
-                                type="text"
-                                id="groupName"
-                                value={groupName}
-                                onChange={(e) => setGroupName(e.target.value)}
-                            />
-                        </div>
-                    </div>
-                    <div className={styles.formRow}>
                         <div className={styles.inputGroup}>
                             <label htmlFor="mobilePhoneNumber">휴대폰 번호 (선택사항)</label>
                             <input

@@ -36,6 +36,66 @@ export const listCollections = async () => {
 };
 
 /**
+ * 컬렉션 정보를 업데이트하는 함수
+ * @param {string} collectionName - 업데이트할 컬렉션 이름
+ * @param {Object} updateDict - 업데이트할 정보 객체
+ * @param {boolean} updateDict.is_shared - 공유 여부
+ * @param {string|null} updateDict.share_group - 공유 그룹
+ * @returns {Promise<Object>} 업데이트 결과
+ */
+export const updateCollection = async (collectionName, updateDict) => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/update/collections`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    collection_name: collectionName,
+                    ...updateDict
+                }),
+            },
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Collection updated:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to update collection:', error);
+        throw error;
+    }
+};
+
+/**
+ * 사용자 그룹의 공유 컬렉션 목록을 조회하는 함수
+ * @returns {Promise<Object>} 공유 컬렉션 목록
+ */
+export const listSharedCollections = async () => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/group/collections`,
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Shared collections fetched:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch shared collections:', error);
+        throw error;
+    }
+};
+
+/**
  * 새 컬렉션을 생성하는 함수
  * @param {string} collectionMakeName - 컬렉션 이름
  * @param {string} distance - 거리 메트릭 ("Cosine", "Euclidean", "Dot")

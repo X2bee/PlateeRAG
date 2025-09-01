@@ -36,6 +36,40 @@
         display: flex;
         align-items: center;
         gap: 1rem;
+
+        .filterButtons {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.25rem;
+            background: $gray-100;
+            border-radius: 0.5rem;
+            border: 1px solid $gray-200;
+
+            .button {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+                font-weight: 500;
+                border-radius: 0.375rem;
+                transition: all 0.2s ease-in-out;
+                border: none;
+
+                &.active {
+                    background-color: $primary-blue;
+                    color: $white;
+                    box-shadow: 0 2px 4px rgba($primary-blue, 0.3);
+                }
+
+                &.secondary {
+                    background-color: transparent;
+                    color: $gray-600;
+
+                    &:hover:not(.active) {
+                        background-color: $white;
+                        color: $gray-800;
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -150,33 +184,80 @@
     }
 
     .collectionMeta {
-        color: $gray-500;
-        font-size: 0.875rem;
-        font-weight: 500;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px solid $gray-100;
+
+        .shareStatus {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+
+            // Shared status styling
+            &[data-status="shared"] {
+                background: color.adjust($primary-green, $alpha: -0.9);
+                color: $primary-green;
+            }
+
+            // Personal status styling
+            &[data-status="personal"] {
+                background: color.adjust($gray-500, $alpha: -0.9);
+                color: $gray-700;
+            }
+        }
+
+        .ownerStatus {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.25rem 0.5rem;
+            background: color.adjust($primary-blue, $alpha: -0.9);
+            color: $primary-blue;
+            border-radius: 0.25rem;
+            border: 1px solid color.adjust($primary-blue, $alpha: -0.8);
+        }
+
+        .shareGroup {
+            font-size: 0.75rem;
+            color: $gray-500;
+            font-weight: 500;
+            padding: 0.25rem 0.5rem;
+            background: $gray-50;
+            border-radius: 0.25rem;
+            border: 1px solid $gray-200;
+        }
     }
 }
 
 .deleteButton {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
     background: $gray-100;
     border: 1px solid $gray-200;
     border-radius: 0.375rem;
-    padding: 0.375rem;
+    padding: 0.5rem;
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: 1rem;
     transition: all 0.2s ease-in-out;
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0.7;
+    min-width: 2.5rem;
+    height: 2.5rem;
 
     &:hover {
         background: $primary-red;
         border-color: $primary-red;
         opacity: 1;
-        transform: scale(1.05);
+        transform: translateY(-1px);
     }
 }
 
@@ -453,10 +534,6 @@
             margin-bottom: 1rem;
         }
 
-        .searchResults {
-            space-y: 1rem;
-        }
-
         .searchResultItem {
             background: $white;
             border: 1px solid $gray-200;
@@ -533,10 +610,6 @@
                 font-weight: 600;
                 color: $gray-800;
                 margin-bottom: 1rem;
-            }
-
-            .chunksList {
-                space-y: 1rem;
             }
 
             .chunkItem {
@@ -991,4 +1064,40 @@
     border-radius: 0.25rem;
     font-size: 0.75rem;
     font-weight: 500;
+}
+
+// 컬렉션 카드 액션 버튼들
+.cardActions {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.settingsButton {
+    background: $gray-100;
+    border: 1px solid $gray-300;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    opacity: 0.7;
+
+    &:hover {
+        background: $gray-200;
+        border-color: $gray-400;
+        opacity: 1;
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
 }

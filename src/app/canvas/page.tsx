@@ -1113,7 +1113,11 @@ const LoadingFallback = () => (
 
 export default function CanvasPage() {
     return (
-        <AuthGuard fallback={<LoadingFallback />}>
+        <AuthGuard
+            fallback={<LoadingFallback />}
+            requiredSection="canvas"
+            sectionRedirectTo="/chat"
+        >
             <CanvasPageContent />
         </AuthGuard>
     );

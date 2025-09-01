@@ -3,15 +3,21 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
+import { AnimatePresence, motion } from 'framer-motion';
+import { FiChevronRight } from 'react-icons/fi';
 import AdminSidebar from '@/app/admin/components/AdminSidebar';
 import AdminContentArea from '@/app/admin/components/AdminContentArea';
 import AdminIntroduction from '@/app/admin/components/AdminIntroduction';
 import AdminUserContent from '@/app/admin/components/AdminUserContent';
 import AdminRegisterUser from '@/app/admin/components/AdminRegisterUser';
 import AdminConfigViewer from '@/app/admin/components/AdminConfigViewer';
+import AdminSettings from '@/app/admin/components/AdminSettings';
 import AdminWorkflowLogsContent from '@/app/admin/components/AdminWorkflowLogsContent';
+import AdminGroupContent from '@/app/admin/components/AdminGroupContent';
+import AdminPlayground from '@/app/admin/components/playground/AdminPlayground';
 import {
     getUserSidebarItems,
+    getSettingSidebarItems,
     getSystemSidebarItems,
     getDataSidebarItems,
     getSecuritySidebarItems,
@@ -25,6 +31,98 @@ const AdminPageContent: React.FC = () => {
     const [activeSection, setActiveSection] = useState<string>('dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
+    // 워크플로우 모니터링용 탭 상태
+    const [workflowTab, setWorkflowTab] = useState<'executor' | 'monitoring' | 'batchtester' | 'test-logs'>('executor');
+
+    const handleWorkflowTabChange = (tab: 'executor' | 'monitoring' | 'batchtester' | 'test-logs') => {
+        setWorkflowTab(tab);
+        localStorage.setItem('adminWorkflowTab', tab);
+    };
+
+    const renderWorkflowToggleButtons = () => (
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button
+                onClick={() => handleWorkflowTabChange('executor')}
+                style={{
+                    padding: '0.5rem 1rem',
+                    border: '1px solid var(--admin-border)',
+                    borderRadius: '6px',
+                    background: workflowTab === 'executor' ? 'var(--admin-primary)' : 'transparent',
+                    color: workflowTab === 'executor' ? 'white' : 'var(--admin-text-primary)',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    fontWeight: '500',
+                    transition: 'all 0.2s ease',
+                }}
+            >
+                실행기
+            </button>
+            <button
+                onClick={() => handleWorkflowTabChange('monitoring')}
+                style={{
+                    padding: '0.5rem 1rem',
+                    border: '1px solid var(--admin-border)',
+                    borderRadius: '6px',
+                    background: workflowTab === 'monitoring' ? 'var(--admin-primary)' : 'transparent',
+                    color: workflowTab === 'monitoring' ? 'white' : 'var(--admin-text-primary)',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    fontWeight: '500',
+                    transition: 'all 0.2s ease',
+                }}
+            >
+                모니터링
+            </button>
+            <button
+                onClick={() => handleWorkflowTabChange('batchtester')}
+                style={{
+                    padding: '0.5rem 1rem',
+                    border: '1px solid var(--admin-border)',
+                    borderRadius: '6px',
+                    background: workflowTab === 'batchtester' ? 'var(--admin-primary)' : 'transparent',
+                    color: workflowTab === 'batchtester' ? 'white' : 'var(--admin-text-primary)',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    fontWeight: '500',
+                    transition: 'all 0.2s ease',
+                }}
+            >
+                테스트
+            </button>
+            <button
+                onClick={() => handleWorkflowTabChange('test-logs')}
+                style={{
+                    padding: '0.5rem 1rem',
+                    border: '1px solid var(--admin-border)',
+                    borderRadius: '6px',
+                    background: workflowTab === 'test-logs' ? 'var(--admin-primary)' : 'transparent',
+                    color: workflowTab === 'test-logs' ? 'white' : 'var(--admin-text-primary)',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    fontWeight: '500',
+                    transition: 'all 0.2s ease',
+                }}
+            >
+                로그
+            </button>
+        </div>
+    );
+
+    const getWorkflowDescription = () => {
+        switch (workflowTab) {
+            case 'executor':
+                return '워크플로우를 실제 환경에서 실행하고 테스트하세요.';
+            case 'monitoring':
+                return '워크플로우의 실행 성능과 리소스 사용량을 실시간으로 모니터링하세요.';
+            case 'batchtester':
+                return '파일을 업로드하여 워크플로우를 배치로 테스트하세요.';
+            case 'test-logs':
+                return '테스트 실행 로그를 확인하고 관리하세요.';
+            default:
+                return '워크플로우 실행, 성능 모니터링, 배치 테스트 및 로그를 관리하세요.';
+        }
+    };
+
     // 사이드바 토글 함수
     const toggleSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen);
@@ -32,6 +130,7 @@ const AdminPageContent: React.FC = () => {
 
     // 사이드바 아이템들
     const userItems = getUserSidebarItems();
+    const settingItems = getSettingSidebarItems();
     const systemItems = getSystemSidebarItems();
     const dataItems = getDataSidebarItems();
     const securityItems = getSecuritySidebarItems();
@@ -58,8 +157,8 @@ const AdminPageContent: React.FC = () => {
     const isValidSection = (section: string): boolean => {
         const validSections = [
             'dashboard',
-            'users', 'user-create', 'user-permissions',
-            'system-config', 'chat-monitoring', 'system-monitor', 'system-health',
+            'users', 'user-create', 'group-permissions',
+            'system-config', 'system-settings', 'chat-monitoring', 'workflow-monitoring', 'system-monitor', 'system-health',
             'database', 'storage', 'backup',
             'security-settings', 'audit-logs', 'error-logs', 'access-logs'
         ];
@@ -95,13 +194,13 @@ const AdminPageContent: React.FC = () => {
                         <AdminRegisterUser />
                     </AdminContentArea>
                 );
-            case 'user-permissions':
+            case 'group-permissions':
                 return (
                     <AdminContentArea
-                        title="권한 관리"
-                        description="사용자별 권한을 설정하고 관리하세요."
+                        title="조직 권한 관리"
+                        description="조직을 생성하고 사용자를 조직에 할당하여 권한을 관리하세요."
                     >
-                        <div>권한 관리 컴포넌트가 여기에 표시됩니다.</div>
+                        <AdminGroupContent />
                     </AdminContentArea>
                 );
             case 'system-config':
@@ -113,6 +212,15 @@ const AdminPageContent: React.FC = () => {
                         <AdminConfigViewer />
                     </AdminContentArea>
                 );
+            case 'system-settings':
+                return (
+                    <AdminContentArea
+                        title="시스템 세부 설정"
+                        description="LLM, 데이터베이스, 벡터DB 등 시스템 구성 요소들을 상세하게 설정하세요."
+                    >
+                        <AdminSettings />
+                    </AdminContentArea>
+                );
             case 'chat-monitoring':
                 return (
                     <AdminContentArea
@@ -120,6 +228,16 @@ const AdminPageContent: React.FC = () => {
                         description="실시간 채팅 활동 및 상태를 모니터링하세요."
                     >
                         <AdminWorkflowLogsContent />
+                    </AdminContentArea>
+                );
+            case 'workflow-monitoring':
+                return (
+                    <AdminContentArea
+                        title="워크플로우 모니터링"
+                        description={getWorkflowDescription()}
+                        headerButtons={renderWorkflowToggleButtons()}
+                    >
+                        <AdminPlayground activeTab={workflowTab} onTabChange={handleWorkflowTabChange} />
                     </AdminContentArea>
                 );
             case 'system-monitor':
@@ -217,26 +335,36 @@ const AdminPageContent: React.FC = () => {
 
     return (
         <div className={styles.container}>
-            <AdminSidebar
-                isOpen={isSidebarOpen}
-                onToggle={toggleSidebar}
-                userItems={userItems}
-                systemItems={systemItems}
-                dataItems={dataItems}
-                securityItems={securityItems}
-                activeItem={activeSection}
-                onItemClick={(itemId: string) => setActiveSection(itemId)}
-                initialUserExpanded={['users', 'user-create', 'user-permissions'].includes(activeSection)}
-                initialSystemExpanded={['system-config', 'chat-monitoring', 'system-monitor', 'system-health'].includes(activeSection)}
-                initialDataExpanded={['database', 'storage', 'backup'].includes(activeSection)}
-                initialSecurityExpanded={['security-settings', 'audit-logs', 'error-logs', 'access-logs'].includes(activeSection)}
-            />
-
-            {!isSidebarOpen && (
-                <button onClick={toggleSidebar} className={styles.openOnlyBtn}>
-                    ▶
-                </button>
-            )}
+            <AnimatePresence>
+                <AdminSidebar
+                    key="admin-sidebar"
+                    isOpen={isSidebarOpen}
+                    onToggle={toggleSidebar}
+                    userItems={userItems}
+                    settingItems={settingItems}
+                    systemItems={systemItems}
+                    dataItems={dataItems}
+                    securityItems={securityItems}
+                    activeItem={activeSection}
+                    onItemClick={(itemId: string) => setActiveSection(itemId)}
+                    initialUserExpanded={['users', 'user-create', 'group-permissions'].includes(activeSection)}
+                    initialSystemExpanded={['system-config', 'system-settings', 'chat-monitoring', 'workflow-monitoring', 'system-monitor', 'system-health'].includes(activeSection)}
+                    initialDataExpanded={['database', 'storage', 'backup'].includes(activeSection)}
+                    initialSecurityExpanded={['security-settings', 'audit-logs', 'error-logs', 'access-logs'].includes(activeSection)}
+                />
+                {!isSidebarOpen && (
+                    <motion.button
+                        key="admin-sidebar-open-button"
+                        onClick={toggleSidebar}
+                        className={styles.openOnlyBtn}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <FiChevronRight />
+                    </motion.button>
+                )}
+            </AnimatePresence>
 
             <main className={`${styles.mainContent} ${!isSidebarOpen ? styles.mainContentPushed : ''}`}>
                 {renderContent()}

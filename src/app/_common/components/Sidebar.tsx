@@ -1,23 +1,26 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import toast from 'react-hot-toast';
 import Image from 'next/image';
 import { SidebarProps } from '@/app/main/components/types';
-import styles from '@/app/main/assets/MainPage.module.scss';
+import styles from '../assets/Sidebar.module.scss';
 import { logout } from '@/app/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useQuickLogout } from '@/app/_common/utils/logoutUtils';
 import { FiChevronLeft, FiLogOut } from 'react-icons/fi';
 import { motion } from 'framer-motion';
-
-const Sidebar: React.FC<SidebarProps> = ({
+import {
+    getChatSidebarItems,
+    getFilteredWorkflowSidebarItems,
+    getFilteredTrainSidebarItems
+} from '@/app/_common/components/sidebarConfig';
+import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<SidebarProps> = ({
     isOpen,
     onToggle,
-    items,
-    workflowItems = [],
-    chatItems = [],
-    trainItem = [],
+    workflowItems = [], // 이제 사용하지 않음 (권한에 따라 동적 생성)
+    chatItems = [], // 이제 사용하지 않음 (권한에 따라 동적 생성)
+    trainItem = [], // 이제 사용하지 않음 (권한에 따라 동적 생성)
     activeItem,
     onItemClick,
     className = '',
@@ -34,8 +37,36 @@ const Sidebar: React.FC<SidebarProps> = ({
     const [isTrainExpanded, setIsTrainExpanded] = useState(initialTrainExpanded);
 
     // CookieProvider의 useAuth 훅 사용 (AuthGuard에서 이미 인증 검증을 수행하므로 refreshAuth 호출 불필요)
-    const { user, isAuthenticated } = useAuth();
+    const { user, isAuthenticated, hasAccessToSection, isInitialized } = useAuth();
     const { quickLogout } = useQuickLogout();
+
+    // 권한에 따라 필터링된 사이드바 아이템들을 메모이제이션
+    const filteredItems = useMemo(() => {
+        if (!isInitialized || !hasAccessToSection) {
+            devLog.log('Sidebar: Not initialized or no hasAccessToSection function');
+            return {
+                chatItems: [],
+                workflowItems: [],
+                trainItems: []
+            };
+        }
+
+        const chatItems = getChatSidebarItems(); // 채팅은 모든 사용자 접근 가능
+        const workflowItems = getFilteredWorkflowSidebarItems(hasAccessToSection);
+        const trainItems = getFilteredTrainSidebarItems(hasAccessToSection);
+
+        devLog.log('Sidebar: Filtered items:', {
+            chatItems: chatItems.length,
+            workflowItems: workflowItems.length,
+            trainItems: trainItems.length
+        });
+
+        return {
+            chatItems,
+            workflowItems,
+            trainItems
+        };
+    }, [hasAccessToSection, isInitialized]);
 
     const handleLogout = async () => {
         try {
@@ -45,7 +76,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             if (fullUrl && !fullUrl.includes('/login') && !fullUrl.includes('/signup')) {
                 sessionStorage.setItem('logoutFromPage', fullUrl);
             }
-            
+
             // 서버에 로그아웃 요청
             await logout();
             // 통합 로그아웃 처리 (localStorage 정리 포함)
@@ -105,6 +136,18 @@ const Sidebar: React.FC<SidebarProps> = ({
                     )}
                 </div>
 
+                {hasAccessToSection && hasAccessToSection('admin-page') && (
+                    <div className={styles.adminSection}>
+                        <button
+                            onClick={() => router.push('/admin')}
+                            className={`${styles.navItem} ${styles.adminButton}`}
+                        >
+                            <span>🔧 관리자페이지로 이동</span>
+                        </button>
+                        <div className={styles.adminDivider}></div>
+                    </div>
+                )}
+
                 <button
                     className={styles.sidebarToggle}
                     onClick={toggleChatExpanded}
@@ -116,7 +159,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </button>
 
                 <nav className={`${styles.sidebarNav} ${isChatExpanded ? styles.expanded : ''}`}>
-                    {chatItems.map((item) => (
+                    {filteredItems.chatItems.map((item) => (
                         <button
                             key={item.id}
                             onClick={() => onItemClick(item.id)}
@@ -133,89 +176,71 @@ const Sidebar: React.FC<SidebarProps> = ({
                     ))}
                 </nav>
 
-                <button
-                    className={styles.sidebarToggle}
-                    onClick={toggleWorkflowExpanded}
-                >
-                    <span>워크플로우</span>
-                    <span className={`${styles.toggleIcon} ${isWorkflowExpanded ? styles.expanded : ''}`}>
-                        ▼
-                    </span>
-                </button>
-
-                <nav className={`${styles.sidebarNav} ${isWorkflowExpanded ? styles.expanded : ''}`}>
-                    {workflowItems.map((item) => (
+                {/* 워크플로우 섹션 - 접근 가능한 아이템이 있을 때만 표시 */}
+                {filteredItems.workflowItems.length > 0 && (
+                    <>
                         <button
-                            key={item.id}
-                            onClick={() => onItemClick(item.id)}
-                            className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                            className={styles.sidebarToggle}
+                            onClick={toggleWorkflowExpanded}
                         >
-                            {item.icon}
-                            <div className={styles.navText}>
-                                <div className={styles.navTitle}>{item.title}</div>
-                                <div className={styles.navDescription}>
-                                    {item.description}
-                                </div>
-                            </div>
+                            <span>워크플로우</span>
+                            <span className={`${styles.toggleIcon} ${isWorkflowExpanded ? styles.expanded : ''}`}>
+                                ▼
+                            </span>
                         </button>
-                    ))}
-                </nav>
 
-                <button
-                    className={styles.sidebarToggle}
-                    onClick={toggleTrainExpanded}
-                >
-                    <span>모델</span>
-                    <span className={`${styles.toggleIcon} ${isTrainExpanded ? styles.expanded : ''}`}>
-                        ▼
-                    </span>
-                </button>
+                        <nav className={`${styles.sidebarNav} ${isWorkflowExpanded ? styles.expanded : ''}`}>
+                            {filteredItems.workflowItems.map((item) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => onItemClick(item.id)}
+                                    className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                                >
+                                    {item.icon}
+                                    <div className={styles.navText}>
+                                        <div className={styles.navTitle}>{item.title}</div>
+                                        <div className={styles.navDescription}>
+                                            {item.description}
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </nav>
+                    </>
+                )}
 
-                <nav className={`${styles.sidebarNav} ${isTrainExpanded ? styles.expanded : ''}`}>
-                    {trainItem.map((item) => (
+                {/* 모델 섹션 - 접근 가능한 아이템이 있을 때만 표시 */}
+                {filteredItems.trainItems.length > 0 && (
+                    <>
                         <button
-                            key={item.id}
-                            onClick={() => onItemClick(item.id)}
-                            className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                            className={styles.sidebarToggle}
+                            onClick={toggleTrainExpanded}
                         >
-                            {item.icon}
-                            <div className={styles.navText}>
-                                <div className={styles.navTitle}>{item.title}</div>
-                                <div className={styles.navDescription}>
-                                    {item.description}
-                                </div>
-                            </div>
+                            <span>모델</span>
+                            <span className={`${styles.toggleIcon} ${isTrainExpanded ? styles.expanded : ''}`}>
+                                ▼
+                            </span>
                         </button>
-                    ))}
-                </nav>
 
-                <button
-                    className={styles.sidebarToggle}
-                    onClick={toggleExpanded}
-                >
-                    <span>환경 설정</span>
-                    <span className={`${styles.toggleIcon} ${isSettingExpanded ? styles.expanded : ''}`}>
-                        ▼
-                    </span>
-                </button>
-
-                <nav className={`${styles.sidebarNav} ${isSettingExpanded ? styles.expanded : ''}`}>
-                    {items.map((item) => (
-                        <button
-                            key={item.id}
-                            onClick={() => onItemClick(item.id)}
-                            className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
-                        >
-                            {item.icon}
-                            <div className={styles.navText}>
-                                <div className={styles.navTitle}>{item.title}</div>
-                                <div className={styles.navDescription}>
-                                    {item.description}
-                                </div>
-                            </div>
-                        </button>
-                    ))}
-                </nav>
+                        <nav className={`${styles.sidebarNav} ${isTrainExpanded ? styles.expanded : ''}`}>
+                            {filteredItems.trainItems.map((item) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => onItemClick(item.id)}
+                                    className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                                >
+                                    {item.icon}
+                                    <div className={styles.navText}>
+                                        <div className={styles.navTitle}>{item.title}</div>
+                                        <div className={styles.navDescription}>
+                                            {item.description}
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </nav>
+                    </>
+                )}
             </div>
         </motion.aside>
     );

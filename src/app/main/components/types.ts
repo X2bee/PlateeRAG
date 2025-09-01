@@ -10,7 +10,6 @@ export interface SidebarItem {
 export interface SidebarProps {
     isOpen: boolean;
     onToggle: () => void;
-    items: SidebarItem[];
     workflowItems?: SidebarItem[];
     chatItems?: SidebarItem[];
     trainItem?: SidebarItem[];
@@ -58,7 +57,7 @@ export interface EvaluationJob {
     job_id: string;
     error?: string;
   }
-  
+
   export interface LogEntry {
 	timestamp: string;
 	level: string;
