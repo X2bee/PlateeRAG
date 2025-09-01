@@ -1,18 +1,15 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from '../assets/Documents.module.scss';
 import DocumentsGraph from './DocumentsGraph';
 import CollectionEditModal from './CollectionEditModal';
+import DocumentCollectionModal from './DocumentCollectionModal';
 
 import {
-    isValidCollectionName,
     formatFileSize,
     getRelativeTime,
     listCollections,
-    createCollection,
-    uploadDocument,
     searchDocuments,
-    deleteCollection,
     listDocumentsInCollection,
     getDocumentDetails,
     deleteDocumentFromCollection,
@@ -20,10 +17,9 @@ import {
     getDocumentDetailEdges,
     getAllDocumentDetailMeta,
     getAllDocumentDetailEdges,
-    updateCollection
 } from '@/app/api/rag/retrievalAPI';
-import useSidebarManager from '@/app/_common/hooks/useSidebarManager';
 import { useAuth } from '@/app/_common/components/CookieProvider';
+import { useDocumentFileModal } from '@/app/_common/contexts/DocumentFileModalContext';
 
 interface Collection {
     id: number;
@@ -87,13 +83,6 @@ interface SearchResult {
     metadata: any;
 }
 
-interface UploadProgress {
-    fileName: string;
-    status: 'uploading' | 'success' | 'error';
-    progress: number;
-    error?: string;
-}
-
 type CollectionsResponse = Collection[];
 
 interface DocumentsInCollectionResponse {
@@ -115,6 +104,7 @@ type CollectionFilter = 'all' | 'personal' | 'shared';
 
 const Documents: React.FC = () => {
     const { user } = useAuth();
+    const { openModal, setOnUploadComplete } = useDocumentFileModal();
     const [viewMode, setViewMode] = useState<ViewMode>('collections');
     const [collectionFilter, setCollectionFilter] = useState<CollectionFilter>('all');
     const [collections, setCollections] = useState<Collection[]>([]);
@@ -125,12 +115,8 @@ const Documents: React.FC = () => {
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
-    const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
-    const [processType, setProcessType] = useState<string>('default');
 
-    // 청크 설정 상태
-    const [chunkSize, setChunkSize] = useState(4000);
-    const [overlapSize, setOverlapSize] = useState(1000);
+    // 청크 설정 상태 제거됨 (DocumentFileModal로 이동)
 
     // Graph 데이터 상태
     const [documentDetailMeta, setDocumentDetailMeta] = useState<any>(null);
@@ -143,21 +129,13 @@ const Documents: React.FC = () => {
     // 모달 상태
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [showChunkSettingsModal, setShowChunkSettingsModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [isFolderUpload, setIsFolderUpload] = useState(false);
     const [collectionToDelete, setCollectionToDelete] = useState<Collection | null>(null);
     const [collectionToEdit, setCollectionToEdit] = useState<Collection | null>(null);
-
-    // 폼 상태
-    const [newCollectionName, setNewCollectionName] = useState('');
-    const [newCollectionDescription, setNewCollectionDescription] = useState('');
 
     // 로딩 및 에러 상태
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
-    useSidebarManager(showCreateModal || showDeleteModal || showChunkSettingsModal || showEditModal)
 
     // 컬렉션 필터링
     const getFilteredCollections = () => {
@@ -176,6 +154,16 @@ const Documents: React.FC = () => {
     useEffect(() => {
         loadCollections();
     }, []);
+
+    // 모달 재열기 이벤트 리스너
+    useEffect(() => {
+        // 업로드 완료 콜백 설정
+        setOnUploadComplete(() => {
+            if (selectedCollection) {
+                loadDocumentsInCollection(selectedCollection.collection_name);
+            }
+        });
+    }, [selectedCollection]);
 
     const loadCollections = async () => {
         try {
@@ -258,31 +246,9 @@ const Documents: React.FC = () => {
         }
     }, [searchQuery, viewMode, selectedCollection, selectedDocument]);
 
-    // 컬렉션 생성
-    const handleCreateCollection = async () => {
-        if (!isValidCollectionName(newCollectionName)) {
-            setError('컬렉션 이름은 한글, 영문, 숫자, 밑줄(_), 하이픈(-)만 사용할 수 있습니다.');
-            return;
-        }
-
-        try {
-            setLoading(true);
-            setError(null);
-            await createCollection(
-                newCollectionName,
-                "Cosine",
-                newCollectionDescription || undefined
-            );
-            setShowCreateModal(false);
-            setNewCollectionName('');
-            setNewCollectionDescription('');
-            await loadCollections();
-        } catch (err) {
-            setError('컬렉션 생성에 실패했습니다.');
-            console.error('Failed to create collection:', err);
-        } finally {
-            setLoading(false);
-        }
+    // 컬렉션 생성 성공 핸들러
+    const handleCollectionCreated = async () => {
+        await loadCollections();
     };
 
     // 컬렉션 삭제
@@ -291,29 +257,18 @@ const Documents: React.FC = () => {
         setShowDeleteModal(true);
     };
 
-    const handleConfirmDeleteCollection = async () => {
+    const handleCollectionDeleted = async () => {
         if (!collectionToDelete) return;
 
-        try {
-            setLoading(true);
-            setError(null);
-            await deleteCollection(collectionToDelete.collection_name);
-            setShowDeleteModal(false);
-            setCollectionToDelete(null);
-
-            if (selectedCollection?.collection_name === collectionToDelete.collection_name) {
-                setSelectedCollection(null);
-                setDocumentsInCollection([]);
-                setViewMode('collections');
-            }
-
-            await loadCollections();
-        } catch (err) {
-            setError('컬렉션 삭제에 실패했습니다.');
-            console.error('Failed to delete collection:', err);
-        } finally {
-            setLoading(false);
+        if (selectedCollection?.collection_name === collectionToDelete.collection_name) {
+            setSelectedCollection(null);
+            setDocumentsInCollection([]);
+            setViewMode('collections');
         }
+
+        setShowDeleteModal(false);
+        setCollectionToDelete(null);
+        await loadCollections();
     };
 
     // 컬렉션 편집
@@ -410,184 +365,17 @@ const Documents: React.FC = () => {
         }
     };
 
-    // 파일 업로드 처리
-    const handleFileUpload = async (files: FileList, isFolder: boolean = false) => {
-        if (!selectedCollection) {
-            setError('컬렉션을 먼저 선택해주세요.');
-            return;
-        }
-
-        const fileArray = Array.from(files);
-        const initialProgress: UploadProgress[] = fileArray.map(file => ({
-            fileName: file.name,
-            status: 'uploading',
-            progress: 0
-        }));
-        setUploadProgress(initialProgress);
-
-        try {
-            // 폴더 업로드의 경우 순차 처리
-            if (isFolder) {
-                let successful = 0;
-                let failed = 0;
-
-                // 순차적으로 파일 업로드
-                for (let index = 0; index < fileArray.length; index++) {
-                    const file = fileArray[index];
-
-                    try {
-                        // 진행 상태 업데이트 (시작)
-                        setUploadProgress(prev => prev.map((item, idx) =>
-                            idx === index ? { ...item, progress: 10 } : item
-                        ));
-
-                        // 폴더 경로 정보를 메타데이터에 포함
-                        const relativePath = file.webkitRelativePath || file.name;
-                        const folderPath = relativePath.substring(0, relativePath.lastIndexOf('/')) || '';
-
-                        const metadata = {
-                            upload_type: 'folder',
-                            folder_path: folderPath,
-                            relative_path: relativePath,
-                            original_name: file.name,
-                            current_index: index + 1,
-                            total_files: fileArray.length,
-                            process_type: processType
-                        };
-
-                        // 진행 상태 업데이트 (업로드 중)
-                        setUploadProgress(prev => prev.map((item, idx) =>
-                            idx === index ? { ...item, progress: 50 } : item
-                        ));
-
-                        await uploadDocument(
-                            file,
-                            selectedCollection.collection_name,
-                            chunkSize,
-                            overlapSize,
-                            metadata,
-                            processType
-                        );
-
-                        // 성공 시 진행 상태 업데이트
-                        setUploadProgress(prev => prev.map((item, idx) =>
-                            idx === index ? { ...item, status: 'success', progress: 100 } : item
-                        ));
-
-                        successful++;
-
-                        // 파일 업로드 성공 시 즉시 문서 목록 새로고침
-                        if (selectedCollection) {
-                            loadDocumentsInCollection(selectedCollection.collection_name);
-                        }
-
-                    } catch (error) {
-                        // 실패 시 진행 상태 업데이트
-                        setUploadProgress(prev => prev.map((item, idx) =>
-                            idx === index ? {
-                                ...item,
-                                status: 'error',
-                                progress: 0,
-                                error: error instanceof Error ? error.message : '업로드 실패'
-                            } : item
-                        ));
-
-                        console.error(`Failed to upload file ${file.name}:`, error);
-                        failed++;
-                    }
-
-                    // 잠시 대기 (서버 부하 방지)
-                    if (index < fileArray.length - 1) {
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                    }
-                }
-
-                // 결과 통계 표시
-                if (failed > 0) {
-                    setError(`${successful}개 파일 업로드 성공, ${failed}개 파일 실패`);
-                } else {
-                    setError(null);
-                }
-
-            } else {
-                // 단일 파일 업로드
-                const file = fileArray[0];
-                try {
-                    setUploadProgress(prev => prev.map((item, index) =>
-                        index === 0 ? { ...item, progress: 50 } : item
-                    ));
-
-                    await uploadDocument(
-                        file,
-                        selectedCollection.collection_name,
-                        chunkSize,
-                        overlapSize,
-                        {
-                            upload_type: 'single',
-                            process_type: processType
-                        },
-                        processType
-                    );
-
-                    setUploadProgress(prev => prev.map((item, index) =>
-                        index === 0 ? { ...item, status: 'success', progress: 100 } : item
-                    ));
-
-                    // 단일 파일 업로드 성공 시 즉시 문서 목록 새로고침
-                    if (selectedCollection) {
-                        loadDocumentsInCollection(selectedCollection.collection_name);
-                    }
-                } catch (err) {
-                    setUploadProgress(prev => prev.map((item, index) =>
-                        index === 0 ? {
-                            ...item,
-                            status: 'error',
-                            progress: 0,
-                            error: '업로드 실패'
-                        } : item
-                    ));
-                    console.error(`Failed to upload file ${file.name}:`, err);
-                    setError('파일 업로드에 실패했습니다.');
-                }
-            }
-
-        } catch (error) {
-            console.error('Upload process failed:', error);
-            setError('업로드 처리 중 오류가 발생했습니다.');
-        }
-
-        // 업로드 완료 후 진행 상태 정리
-        setTimeout(() => {
-            setUploadProgress([]);
-            setProcessType('default'); // processType 초기화 추가
-        }, 3000); // 3초 후 업로드 진행 상태 숨김
-    };
-
+    // 파일 업로드 처리 (전역 모달 사용)
     const handleSingleFileUpload = () => {
-        setIsFolderUpload(false);
-        setShowChunkSettingsModal(true);
+        if (selectedCollection) {
+            openModal(selectedCollection, false);
+        }
     };
 
     const handleFolderUpload = () => {
-        setIsFolderUpload(true);
-        setShowChunkSettingsModal(true);
-    };
-
-    const handleConfirmChunkSettings = () => {
-        setShowChunkSettingsModal(false);
-        const input = document.createElement('input');
-        input.type = 'file';
-
-        if (isFolderUpload) {
-            input.webkitdirectory = true;
-            input.multiple = true;
+        if (selectedCollection) {
+            openModal(selectedCollection, true);
         }
-
-        input.onchange = (e) => {
-            const files = (e.target as HTMLInputElement).files;
-            if (files) handleFileUpload(files, isFolderUpload);
-        };
-        input.click();
     };
 
     // 문서 메타데이터 조회
@@ -786,6 +574,12 @@ const Documents: React.FC = () => {
                                         <p className={styles.docInfo}>
                                             {collection.description}
                                         </p>
+                                        {collection.vector_size !== undefined && (
+                                            <p className={styles.vectorSize}>
+                                                <span className={styles.vectorLabel}>Embedding Vector Size:</span>
+                                                <span className={styles.vectorValue}>{collection.vector_size}</span>
+                                            </p>
+                                        )}
                                         <div className={styles.collectionMeta}>
                                             {!collection.is_shared ? (
                                                 <span
@@ -848,59 +642,6 @@ const Documents: React.FC = () => {
             {/* 문서 목록 보기 */}
             {viewMode === 'documents' && (
                 <div className={styles.documentViewContainer}>
-                    {uploadProgress.length > 0 && (
-                        <div className={styles.uploadProgressContainer}>
-                            <div className={styles.progressHeader}>
-                                <h4>업로드 진행 상태</h4>
-                                <div className={styles.progressSummary}>
-                                    <span className={styles.totalCount}>
-                                        총 {uploadProgress.length}개 파일
-                                    </span>
-                                    <span className={styles.successCount}>
-                                        성공: {uploadProgress.filter(item => item.status === 'success').length}
-                                    </span>
-                                    <span className={styles.errorCount}>
-                                        실패: {uploadProgress.filter(item => item.status === 'error').length}
-                                    </span>
-                                    <span className={styles.uploadingCount}>
-                                        진행 중: {uploadProgress.filter(item => item.status === 'uploading').length}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className={styles.progressList}>
-                                {uploadProgress.map((item, index) => (
-                                    <div key={index} className={`${styles.progressItem} ${styles[item.status]}`}>
-                                        <div className={styles.fileInfo}>
-                                            <span className={styles.fileName} title={item.fileName}>
-                                                {item.fileName}
-                                            </span>
-                                            {item.status === 'uploading' && (
-                                                <span className={styles.progressPercent}>
-                                                    {item.progress}%
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div className={styles.progressStatus}>
-                                            {item.status === 'uploading' && (
-                                                <div className={styles.progressBar}>
-                                                    <div
-                                                        className={styles.progressFill}
-                                                        style={{ width: `${item.progress}%` }}
-                                                    ></div>
-                                                </div>
-                                            )}
-                                            <span className={`${styles.statusText} ${styles[item.status]}`}>
-                                                {item.status === 'uploading' && '📤 업로드 중...'}
-                                                {item.status === 'success' && '✅ 완료'}
-                                                {item.status === 'error' && `❌ ${item.error || '실패'}`}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
                     <div className={styles.documentListContainer}>
                         {loading ? (
                             <div className={styles.loading}>로딩 중...</div>
@@ -1046,152 +787,25 @@ const Documents: React.FC = () => {
                 />
             )}
 
-            {showChunkSettingsModal && (
-                <div className={styles.modalBackdrop} onClick={() => setShowChunkSettingsModal(false)}>
-                    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-                        <h3>{isFolderUpload ? '폴더 업로드 설정' : '단일 파일 업로드 설정'}</h3>
-
-                        {/* 청크 설정 */}
-                        <div className={styles.formGroup}>
-                            <label>청크 사이즈</label>
-                            <input
-                                type="number"
-                                value={chunkSize}
-                                onChange={(e) => setChunkSize(Number(e.target.value))}
-                                placeholder="4000"
-                                min="100"
-                                max="65000"
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>오버랩 사이즈</label>
-                            <input
-                                type="number"
-                                value={overlapSize}
-                                onChange={(e) => setOverlapSize(Number(e.target.value))}
-                                placeholder="1000"
-                                min="0"
-                                max="65000"
-                            />
-                        </div>
-
-                        {/* 처리 방식 선택 */}
-                        <div className={styles.formGroup}>
-                            <label>문서 처리 방식 (PDF/DOCX 파일에만 적용)</label>
-                            <select
-                                value={processType}
-                                onChange={(e) => setProcessType(e.target.value)}
-                                className={styles.selectInput}
-                            >
-                                <option value="default">자동 선택 (기본값)</option>
-                                <option value="text">텍스트 추출 (PDF/DOCX 공통)</option>
-                                <option value="ocr">OCR 처리 (PDF/DOCX 공통)</option>
-                                <option value="html">HTML 변환 (DOCX 전용)</option>
-                                <option value="html_pdf_ocr">HTML+PDF OCR (DOCX 전용)</option>
-                            </select>
-                            <div className={styles.helpText}>
-                                <small>
-                                    • <strong>자동 선택:</strong> 시스템이 최적의 방식을 자동으로 선택<br/>
-                                    • <strong>텍스트 추출:</strong> OCR 없이 기계적 텍스트 추출만 사용<br/>
-                                    • <strong>OCR 처리:</strong> 이미지 OCR을 강제로 사용<br/>
-                                    • <strong>HTML 변환:</strong> DOCX를 HTML로 변환 후 처리 (DOCX만)<br/>
-                                    • <strong>HTML+PDF OCR:</strong> HTML 참조 + PDF OCR 복합 방식 (DOCX만)
-                                </small>
-                            </div>
-                        </div>
-
-                        <div className={styles.modalActions}>
-                            <button
-                                onClick={() => {
-                                    setShowChunkSettingsModal(false);
-                                    setProcessType('default'); // 모달 닫을 때 초기화
-                                }}
-                                className={`${styles.button} ${styles.secondary}`}
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={handleConfirmChunkSettings}
-                                className={`${styles.button} ${styles.primary}`}
-                            >
-                                설정 완료
-                            </button>
-                        </div>
-                    </div>
-                </div>
-)}
-
             {/* 컬렉션 생성 모달 */}
-            {showCreateModal && (
-                <div className={styles.modalBackdrop} onClick={() => setShowCreateModal(false)}>
-                    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-                        <h3>새 컬렉션 생성</h3>
-                        <div className={styles.formGroup}>
-                            <label>컬렉션 이름 *</label>
-                            <input
-                                type="text"
-                                value={newCollectionName}
-                                onChange={(e) => setNewCollectionName(e.target.value)}
-                                placeholder="예: project_documents"
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>설명 (선택사항)</label>
-                            <textarea
-                                value={newCollectionDescription}
-                                onChange={(e) => setNewCollectionDescription(e.target.value)}
-                                placeholder="컬렉션에 대한 간단한 설명을 입력하세요."
-                            />
-                        </div>
-                        <div className={styles.modalActions}>
-                            <button
-                                onClick={() => setShowCreateModal(false)}
-                                className={`${styles.button} ${styles.secondary}`}
-                                disabled={loading}
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={handleCreateCollection}
-                                className={`${styles.button} ${styles.primary}`}
-                                disabled={loading}
-                            >
-                                {loading ? '생성 중...' : '생성'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <DocumentCollectionModal
+                isOpen={showCreateModal}
+                mode="create"
+                onClose={() => setShowCreateModal(false)}
+                onCollectionCreated={handleCollectionCreated}
+            />
 
             {/* 컬렉션 삭제 모달 */}
-            {showDeleteModal && collectionToDelete && (
-                <div className={styles.modalBackdrop} onClick={() => setShowDeleteModal(false)}>
-                    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-                        <h3>컬렉션 삭제 확인</h3>
-                        <p>
-                            '<strong>{collectionToDelete.collection_make_name}</strong>' 컬렉션을 정말로 삭제하시겠습니까?<br />
-                            이 작업은 되돌릴 수 없으며, 컬렉션에 포함된 모든 문서가 삭제됩니다.
-                        </p>
-                        <div className={styles.modalActions}>
-                            <button
-                                onClick={() => {
-                                    setShowDeleteModal(false);
-                                    setCollectionToDelete(null);
-                                }}
-                                className={`${styles.button} ${styles.secondary}`}
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={handleConfirmDeleteCollection}
-                                className={`${styles.button} ${styles.danger}`}
-                            >
-                                삭제
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <DocumentCollectionModal
+                isOpen={showDeleteModal}
+                mode="delete"
+                collectionToDelete={collectionToDelete}
+                onClose={() => {
+                    setShowDeleteModal(false);
+                    setCollectionToDelete(null);
+                }}
+                onCollectionDeleted={handleCollectionDeleted}
+            />
 
             {/* 컬렉션 편집 모달 */}
             {showEditModal && collectionToEdit && (

@@ -5,6 +5,8 @@ import 'react-pdf/dist/Page/TextLayer.css';
 import ToastProvider from '@/app/_common/components/ToastProvider';
 import CookieProvider from '@/app/_common/components/CookieProvider';
 import { BatchTesterProvider } from '@/app/_common/contexts/BatchTesterContext';
+import { DocumentFileModalProvider } from '@/app/_common/contexts/DocumentFileModalContext';
+import GlobalDocumentFileModal from '@/app/_common/components/GlobalDocumentFileModal';
 
 export const metadata: Metadata = {
     title: 'XGEN',
@@ -35,8 +37,11 @@ export default function RootLayout({
             <body>
                 <CookieProvider>
                     <BatchTesterProvider>
-                        <ToastProvider />
-                        {children}
+                        <DocumentFileModalProvider>
+                            <ToastProvider />
+                            {children}
+                            <GlobalDocumentFileModal />
+                        </DocumentFileModalProvider>
                     </BatchTesterProvider>
                 </CookieProvider>
             </body>
