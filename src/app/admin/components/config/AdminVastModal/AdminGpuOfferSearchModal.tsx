@@ -878,8 +878,8 @@ export const AdminGpuOfferSearchModal = () => {
                                         <input
                                             type="number"
                                             className={styles.input}
-                                            value={vllmConfig.vllm_config.vllm_max_model_len}
-                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_max_model_len', parseInt(e.target.value))}
+                                            value={vllmConfig.vllm_config.vllm_max_model_len || ''}
+                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_max_model_len', parseInt(e.target.value) || 0)}
                                         />
                                     </div>
                                 </div>
@@ -893,8 +893,8 @@ export const AdminGpuOfferSearchModal = () => {
                                             step="0.1"
                                             min="0.1"
                                             max="1.0"
-                                            value={vllmConfig.vllm_config.vllm_gpu_memory_utilization}
-                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_gpu_memory_utilization', parseFloat(e.target.value))}
+                                            value={vllmConfig.vllm_config.vllm_gpu_memory_utilization || ''}
+                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_gpu_memory_utilization', parseFloat(e.target.value) || 0)}
                                         />
                                     </div>
                                     <div className={styles.advancedFormGroup}>
@@ -903,8 +903,8 @@ export const AdminGpuOfferSearchModal = () => {
                                             type="number"
                                             className={styles.input}
                                             min="1"
-                                            value={vllmConfig.vllm_config.vllm_tensor_parallel_size}
-                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_tensor_parallel_size', parseInt(e.target.value))}
+                                            value={vllmConfig.vllm_config.vllm_tensor_parallel_size || ''}
+                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_tensor_parallel_size', parseInt(e.target.value) || 0)}
                                         />
                                     </div>
                                 </div>

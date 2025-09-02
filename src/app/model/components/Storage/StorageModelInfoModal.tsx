@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
     FiX,
     FiPackage,
@@ -132,7 +133,7 @@ const StorageModelInfoModal: React.FC<StorageModelInfoModalProps> = ({
     const displayTags = additional.tags?.slice(0, 10) || [];
     const hasMoreTags = (additional.tags?.length || 0) > 10;
 
-    return (
+    const modalContent = (
         <div className={styles.modalOverlay} onClick={handleOverlayClick}>
             <div
                 className={styles.modalContent}
@@ -366,6 +367,8 @@ const StorageModelInfoModal: React.FC<StorageModelInfoModalProps> = ({
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };
 
 export default StorageModelInfoModal;

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { getAllUsers, addUserGroup } from '@/app/admin/api/users';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/AdminGroupAddModal.module.scss';
@@ -162,7 +163,7 @@ const AdminGroupAddModal: React.FC<AdminGroupAddModalProps> = ({
 
     if (!isOpen) return null;
 
-    return (
+    const modalContent = (
         <div className={styles.modalOverlay} onClick={onClose}>
             <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
                 <div className={styles.modalHeader}>
@@ -297,6 +298,8 @@ const AdminGroupAddModal: React.FC<AdminGroupAddModalProps> = ({
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };
 
 export default AdminGroupAddModal;

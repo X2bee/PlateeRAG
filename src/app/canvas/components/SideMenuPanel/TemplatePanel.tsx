@@ -7,6 +7,7 @@ import { LuArrowLeft, LuLayoutTemplate, LuPlay, LuCopy } from "react-icons/lu";
 import TemplatePreview from '@/app/canvas/components/SideMenuPanel/TemplatePreview';
 import { getWorkflowState } from '@/app/_common/utils/workflowStorage';
 import { devLog } from '@/app/_common/utils/logger';
+import { showWarningConfirmToast } from '@/app/_common/utils/toastUtils';
 
 import generate_marketing_API from '@/app/canvas/constants/workflow/generate_marketing_API.json'
 import openai_test from '@/app/canvas/constants/workflow/openai_test.json'
@@ -60,74 +61,15 @@ const TemplatePanel: React.FC<TemplatePanelProps> = ({ onBack, onLoadWorkflow })
         const hasCurrentWorkflow = currentState && ((currentState.nodes?.length || 0) > 0 || (currentState.edges?.length || 0) > 0);
 
         if (hasCurrentWorkflow) {
-            const confirmToast = toast(
-                (t) => (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <div style={{ fontWeight: '600', color: '#f59e0b', fontSize: '1rem' }}>
-                            Use Template
-                        </div>
-                        <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.4' }}>
-                            You have an existing workflow with unsaved changes.
-                            <br />
-                            Using &quot;<strong>{template.name}</strong>&quot; template will replace your current work.
-                        </div>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
-                            <button
-                                onClick={() => {
-                                    toast.dismiss(t.id);
-                                }}
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: '#ffffff',
-                                    border: '2px solid #6b7280',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem',
-                                    fontWeight: '500',
-                                    color: '#374151',
-                                    transition: 'all 0.2s ease',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={() => {
-                                    toast.dismiss(t.id);
-                                    performUseTemplate(template);
-                                }}
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: '#f59e0b',
-                                    color: 'white',
-                                    border: '2px solid #d97706',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem',
-                                    fontWeight: '500',
-                                    transition: 'all 0.2s ease',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                }}
-                            >
-                                Use Template
-                            </button>
-                        </div>
-                    </div>
-                ),
-                {
-                    duration: Infinity,
-                    style: {
-                        maxWidth: '420px',
-                        padding: '20px',
-                        backgroundColor: '#f9fafb',
-                        border: '2px solid #374151',
-                        borderRadius: '12px',
-                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
-                        color: '#374151',
-                        fontFamily: 'system-ui, -apple-system, sans-serif'
-                    }
-                }
-            );
+            showWarningConfirmToast({
+                title: 'Use Template',
+                message: `You have an existing workflow with unsaved changes.\nUsing "${template.name}" template will replace your current work.`,
+                onConfirm: () => {
+                    performUseTemplate(template);
+                },
+                confirmText: 'Use Template',
+                cancelText: 'Cancel',
+            });
         } else {
             performUseTemplate(template);
         }

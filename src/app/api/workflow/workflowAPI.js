@@ -101,7 +101,7 @@ export const listWorkflowsDetail = async () => {
  * @returns {Promise<Object>} 워크플로우 데이터 객체를 포함하는 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
-export const loadWorkflow = async (workflowId) => {
+export const loadWorkflow = async (workflowId, user_id) => {
     try {
         // .json 확장자가 포함되어 있으면 제거
         const cleanWorkflowId = workflowId.endsWith('.json')
@@ -111,7 +111,7 @@ export const loadWorkflow = async (workflowId) => {
         devLog.log('Loading workflow with cleaned ID:', cleanWorkflowId);
 
         const response = await apiClient(
-            `${API_BASE_URL}/api/workflow/load/${encodeURIComponent(cleanWorkflowId)}`,
+            `${API_BASE_URL}/api/workflow/load/${encodeURIComponent(cleanWorkflowId)}?user_id=${user_id}`,
         );
 
         devLog.log('Workflow load response status:', response.status);
@@ -412,6 +412,7 @@ export const deleteWorkflowIOLogs = async (workflowName, workflowId, interaction
  * @param {string} inputData - 실행에 사용할 입력 데이터 (선택사항)
  * @param {string} interaction_id - 상호작용 ID (기본값: 'default')
  * @param {Array<string>|null} selectedCollections - 선택된 컬렉션 배열 (선택사항)
+ * @param {number|null} user_id - 워크플로우 작성자의 사용자 ID (선택사항)
  * @returns {Promise<Object>} 실행 결과를 포함하는 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
@@ -422,6 +423,7 @@ export const executeWorkflowById = async (
     interaction_id = 'default',
     selectedCollections = null,
     additional_params = null,
+    user_id = null,
 ) => {
     try {
         const requestBody = {
@@ -439,6 +441,11 @@ export const executeWorkflowById = async (
         // additional_params가 있으면 추가
         if (additional_params && typeof additional_params === 'object') {
             requestBody.additional_params = additional_params;
+        }
+
+        // user_id가 있으면 추가
+        if (user_id !== null && user_id !== undefined) {
+            requestBody.user_id = user_id;
         }
 
         const response = await apiClient(`${API_BASE_URL}/api/workflow/execute/based_id`, {
@@ -472,6 +479,7 @@ export const executeWorkflowById = async (
  * @param {string} params.inputData - 사용자 입력 데이터.
  * @param {string} params.interactionId - 상호작용 ID.
  * @param {Array<string>|null} params.selectedCollections - 선택된 컬렉션.
+ * @param {number|null} params.user_id - 워크플로우 작성자의 사용자 ID.
  * @param {function(string): void} params.onData - 데이터 조각(chunk)을 수신할 때마다 호출될 콜백.
  * @param {function(): void} params.onEnd - 스트림이 정상적으로 종료될 때 호출될 콜백.
  * @param {function(Error): void} params.onError - 오류 발생 시 호출될 콜백.
@@ -483,6 +491,7 @@ export const executeWorkflowByIdStream = async ({
     interactionId = 'default',
     selectedCollections = null,
     additional_params = null,
+    user_id = null,
     onData,
     onEnd,
     onError,
@@ -494,6 +503,11 @@ export const executeWorkflowByIdStream = async ({
         interaction_id: interactionId,
         selected_collections: selectedCollections,
     };
+
+    // user_id가 있으면 추가
+    if (user_id !== null && user_id !== undefined) {
+        requestBody.user_id = user_id;
+    }
 
     // additional_params가 있으면 추가
     if (additional_params && typeof additional_params === 'object') {

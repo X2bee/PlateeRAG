@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { getAllGroups, updateGroupPermissions, deleteGroup, createGroup, getGroupUsers } from '@/app/admin/api/group';
 import { removeUserGroup } from '@/app/admin/api/users';
 import { devLog } from '@/app/_common/utils/logger';
@@ -482,7 +483,7 @@ const AdminGroupContent: React.FC = () => {
             </div>
 
             {/* 그룹 생성 모달 */}
-            {showCreateModal && (
+            {showCreateModal && createPortal(
                 <div className={styles.modal}>
                     <div className={styles.modalContent}>
                         <h3>새 조직 생성</h3>
@@ -511,11 +512,12 @@ const AdminGroupContent: React.FC = () => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* 권한 편집 모달 */}
-            {showPermissionModal && editingGroup && (
+            {showPermissionModal && editingGroup && createPortal(
                 <div className={styles.modal}>
                     <div className={styles.modalContent}>
                         <h3>권한 변경 - {editingGroup.group_name}</h3>
@@ -575,7 +577,8 @@ const AdminGroupContent: React.FC = () => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* 조직원 추가 모달 */}

@@ -35,27 +35,27 @@ const StandaloneChatPage = () => {
                 console.warn(`Message from unauthorized origin: ${event.origin}`);
                 return;
             }
-            
+
             if (event.data?.type === 'SEND_QUERY' && event.data?.query) {
                 const query = event.data.query;
                 console.log('Received query from parent:', query);
-                
+
                 setTimeout(() => {
                     const textarea = document.querySelector('textarea');
                     const sendButton = document.querySelector('button[class*="sendButton"]');
-                    
+
                     if (textarea && sendButton) {
                         // React의 내부 상태를 강제로 업데이트
                         const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
                         if (nativeInputValueSetter) {
                             nativeInputValueSetter.call(textarea, query);
                         }
-                        
+
                         // 다양한 이벤트 발생으로 React 상태 동기화
                         textarea.dispatchEvent(new Event('input', { bubbles: true }));
                         textarea.dispatchEvent(new Event('change', { bubbles: true }));
                         textarea.focus();
-                        
+
                         // 상태 업데이트 확인
                         setTimeout(() => {
                             (sendButton as HTMLButtonElement).click();
@@ -64,7 +64,7 @@ const StandaloneChatPage = () => {
                 }, 300);
             }
         };
-    
+
         window.addEventListener('message', handleMessage);
         return () => window.removeEventListener('message', handleMessage);
     }, []);
@@ -98,12 +98,12 @@ const StandaloneChatPage = () => {
                 setLoading(true);
                 const currentUserId = decryptedParams?.userId || userId;
                 const currentWorkflowName = decryptedParams?.workflowName || workflowName;
-                
+
                 if (!currentUserId || !currentWorkflowName) {
                     setError('사용자 ID 또는 워크플로우 이름이 없습니다.');
                     return;
                 }
-                
+
                 const fetchedWorkflow: Workflow | null = {
                     id: currentUserId,
                     name: currentWorkflowName,

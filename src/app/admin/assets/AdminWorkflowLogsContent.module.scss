@@ -1,120 +1,7 @@
 @use "@/app/_common/_variables" as *;
 
-.container {
-    padding: 0;
-    background: $admin-bg-primary;
-    border-radius: $admin-radius-md;
-    box-shadow: $admin-shadow;
-    border: 1px solid $admin-border;
-}
-
-.controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: $admin-spacing-md;
-    border-bottom: 1px solid $admin-border;
-    gap: $admin-spacing-lg;
-    background: $admin-bg-secondary;
-    min-height: 60px;
-
-    @media (max-width: 1200px) {
-        flex-wrap: wrap;
-        gap: $admin-spacing-md;
-    }
-
-    @media (max-width: 768px) {
-        flex-direction: column;
-        align-items: stretch;
-        padding: $admin-spacing-md;
-    }
-}
-
-.searchContainer {
-    flex: 0 0 250px;
-    min-width: 200px;
-}
-
-.searchInput {
-    width: 100%;
-    padding: $admin-spacing-sm $admin-spacing-md;
-    border: 1px solid $admin-border;
-    border-radius: $admin-radius-md;
-    font-size: $admin-font-size-sm;
-    font-family: $admin-font-family;
-    color: $admin-text-primary;
-    background: $admin-bg-primary;
-    transition: $admin-transition;
-
-    &:focus {
-        outline: none;
-        border-color: $admin-primary;
-        box-shadow: 0 0 0 3px $admin-primary-light;
-    }
-
-    &::placeholder {
-        color: $admin-text-muted;
-    }
-}
-
-.stats {
-    flex: 1;
-    display: flex;
-    gap: $admin-spacing-sm;
-    color: $admin-text-secondary;
-    font-size: $admin-font-size-sm;
-    justify-content: center;
-    align-items: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-height: 40px;
-
-    span {
-        white-space: nowrap;
-    }
-
-    @media (max-width: 1200px) {
-        justify-content: flex-start;
-        flex-wrap: wrap;
-        min-height: auto;
-    }
-
-    @media (max-width: 768px) {
-        font-size: $admin-font-size-xs;
-        justify-content: center;
-    }
-}
-
-.actionButtons {
-    flex: 0 0 auto;
-    display: flex;
-    gap: $admin-spacing-sm;
-    align-items: center;
-    justify-content: flex-end;
-
-    @media (max-width: 1200px) {
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    @media (max-width: 768px) {
-        width: 100%;
-        justify-content: center;
-    }
-}
-
-.userIdSearchContainer {
-    display: flex;
-    gap: $admin-spacing-xs;
-    align-items: center;
-    flex-shrink: 0;
-}
-
-.userIdInput {
-    width: 120px;
-    min-width: 120px;
-    padding: $admin-spacing-sm $admin-spacing-sm;
+// 공통 스타일
+%input-base {
     border: 1px solid $admin-border;
     border-radius: $admin-radius-md;
     font-size: $admin-font-size-sm;
@@ -139,36 +26,15 @@
         border-color: $admin-border-light;
         cursor: not-allowed;
     }
-
-    @media (max-width: 768px) {
-        width: 100px;
-        min-width: 100px;
-    }
 }
 
-.paginationButtons {
-    display: flex;
-    gap: $admin-spacing-xs;
-}
-
-.refreshButton, .paginationButton {
-    padding: $admin-spacing-xs $admin-spacing-sm;
-    background: $admin-primary;
-    color: $admin-text-inverse;
+%button-base {
     border: none;
     border-radius: $admin-radius-md;
     cursor: pointer;
-    font-size: $admin-font-size-xs;
     font-weight: 500;
     font-family: $admin-font-family;
     transition: $admin-transition;
-    white-space: nowrap;
-
-    &:hover:not(:disabled) {
-        background: $admin-primary-hover;
-        transform: translateY(-1px);
-        box-shadow: $admin-shadow-sm;
-    }
 
     &:disabled {
         background: $admin-bg-disabled;
@@ -178,9 +44,79 @@
         box-shadow: none;
     }
 
-    &:active {
+    &:active:not(:disabled) {
         transform: translateY(0);
     }
+}
+
+.container {
+    padding: 0;
+    background: $admin-bg-primary;
+    border-radius: $admin-radius-md;
+    box-shadow: $admin-shadow;
+    border: 1px solid $admin-border;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $admin-spacing-md;
+    border-bottom: 1px solid $admin-border;
+    gap: $admin-spacing-lg;
+    background: $admin-bg-secondary;
+    min-height: 60px;
+}
+
+.searchContainer {
+    flex: 0 0 250px;
+    min-width: 200px;
+}
+
+.searchInput {
+    @extend %input-base;
+    width: 100%;
+    padding: $admin-spacing-sm $admin-spacing-md;
+}
+
+.stats {
+    flex: 1;
+    display: flex;
+    gap: $admin-spacing-sm;
+    color: $admin-text-secondary;
+    font-size: $admin-font-size-sm;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 40px;
+
+    span {
+        white-space: nowrap;
+    }
+}
+
+.actionButtons {
+    flex: 0 0 auto;
+    display: flex;
+    gap: $admin-spacing-sm;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.userIdSearchContainer {
+    display: flex;
+    gap: $admin-spacing-xs;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.userIdInput {
+    @extend %input-base;
+    width: 120px;
+    min-width: 120px;
+    padding: $admin-spacing-sm $admin-spacing-sm;
 }
 
 .paginationButtons {
@@ -189,16 +125,12 @@
 }
 
 .paginationButton {
+    @extend %button-base;
     padding: $admin-spacing-sm $admin-spacing-md;
     background: $admin-bg-primary;
     color: $admin-text-primary;
     border: 1px solid $admin-border;
-    border-radius: $admin-radius-md;
-    cursor: pointer;
     font-size: $admin-font-size-sm;
-    font-weight: 500;
-    font-family: $admin-font-family;
-    transition: $admin-transition;
     min-width: 60px;
 
     &:hover:not(:disabled) {
@@ -206,19 +138,6 @@
         border-color: $admin-primary;
         transform: translateY(-1px);
         box-shadow: $admin-shadow-sm;
-    }
-
-    &:disabled {
-        background: $admin-bg-disabled;
-        color: $admin-text-disabled;
-        border-color: $admin-border-light;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-    }
-
-    &:active:not(:disabled) {
-        transform: translateY(0);
     }
 }
 
@@ -230,17 +149,14 @@
 }
 
 .toggleButton {
+    @extend %button-base;
     padding: $admin-spacing-sm $admin-spacing-md;
     background: $admin-bg-primary;
     color: $admin-text-primary;
-    border: none;
     border-right: 1px solid $admin-border;
-    cursor: pointer;
     font-size: $admin-font-size-sm;
-    font-weight: 500;
-    font-family: $admin-font-family;
-    transition: $admin-transition;
     min-width: 50px;
+    border-radius: 0; // 그룹 내에서는 라운드 없음
 
     &:last-child {
         border-right: none;
@@ -257,25 +173,17 @@
 }
 
 .refreshButton {
+    @extend %button-base;
     padding: $admin-spacing-sm $admin-spacing-lg;
     background: $admin-primary;
     color: $admin-text-inverse;
-    border: none;
-    border-radius: $admin-radius-md;
-    cursor: pointer;
     font-size: $admin-font-size-sm;
-    font-weight: 500;
-    font-family: $admin-font-family;
-    transition: $admin-transition;
+    white-space: nowrap;
 
-    &:hover {
+    &:hover:not(:disabled) {
         background: $admin-primary-hover;
         transform: translateY(-1px);
         box-shadow: $admin-shadow-md;
-    }
-
-    &:active {
-        transform: translateY(0);
     }
 }
 
@@ -308,11 +216,11 @@
         &.sortable {
             cursor: pointer;
             user-select: none;
-            transition: $admin-transition;
+            // transition: $admin-transition;
             z-index: 21;
 
             &:hover {
-                background: $admin-bg-hover;
+                background: $admin-bg-primary;
             }
         }
     }
@@ -366,6 +274,12 @@
         background: $admin-success-light;
         color: $admin-success-hover;
         border: 1px solid $admin-success;
+    }
+
+    &.badgeDeploy {
+        background: #e3f2fd;
+        color: #1565c0;
+        border: 1px solid #2196f3;
     }
 }
 
@@ -458,16 +372,11 @@
 }
 
 .retryButton {
+    @extend %button-base;
     padding: $admin-spacing-sm $admin-spacing-xl;
     background: $admin-primary;
     color: $admin-text-inverse;
-    border: none;
-    border-radius: $admin-radius-md;
-    cursor: pointer;
     font-size: $admin-font-size-sm;
-    font-weight: 500;
-    font-family: $admin-font-family;
-    transition: $admin-transition;
 
     &:hover {
         background: $admin-primary-hover;
@@ -490,6 +399,24 @@
 }
 
 // 반응형 처리
+@media (max-width: 1200px) {
+    .controls {
+        flex-wrap: wrap;
+        gap: $admin-spacing-md;
+    }
+
+    .stats {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        min-height: auto;
+    }
+
+    .actionButtons {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+
 @media (max-width: 1024px) {
     .table {
         font-size: $admin-font-size-xs;
@@ -519,7 +446,24 @@
     }
 
     .controls {
+        flex-direction: column;
+        align-items: stretch;
         padding: $admin-spacing-md;
+    }
+
+    .stats {
+        font-size: $admin-font-size-xs;
+        justify-content: center;
+    }
+
+    .actionButtons {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .userIdInput {
+        width: 100px;
+        min-width: 100px;
     }
 
     .table {

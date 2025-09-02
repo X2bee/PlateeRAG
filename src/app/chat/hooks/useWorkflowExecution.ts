@@ -147,7 +147,10 @@ export const useWorkflowExecution = ({
                         user_id: user_id,
                     });
                 } else {
-                    await executeWorkflowByIdStream(streamParams as any);
+                    await executeWorkflowByIdStream({
+                        ...streamParams,
+                        user_id: user_id ? Number(user_id) : null,
+                    });
                 }
             } else {
                 let result: any;
@@ -168,7 +171,8 @@ export const useWorkflowExecution = ({
                         currentMessage,
                         interactionId,
                         selectedCollection,
-                        getValidAdditionalParams() as any
+                        getValidAdditionalParams() as any,
+                        user_id ? Number(user_id) : null
                     );
                 }
 

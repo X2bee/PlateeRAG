@@ -9,6 +9,7 @@ export interface Workflow {
     status: 'active' | 'draft' | 'archived';
     filename?: string;
     error?: string;
+    user_id?: number;
 }
 
 export interface IOLog {

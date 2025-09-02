@@ -29,6 +29,11 @@ import {
 import { devLog } from '@/app/_common/utils/logger';
 import { generateWorkflowHash } from '@/app/_common/utils/generateSha1Hash';
 import { isStreamingWorkflowFromWorkflow } from '../_common/utils/isStreamingWorkflow';
+import {
+    showNewWorkflowConfirm,
+    showWorkflowOverwriteConfirm,
+    showWarningToast
+} from '@/app/_common/utils/toastUtils';
 
 function CanvasPageContent() {
     const searchParams = useSearchParams();
@@ -118,7 +123,7 @@ function CanvasPageContent() {
 
             const loadFromServer = async () => {
                 try {
-                    const workflowData = await loadWorkflow(decodedWorkflowName);
+                    const workflowData = await loadWorkflow(decodedWorkflowName, null);
 
                     if (canvasRef.current && workflowData) {
                         await handleLoadWorkflow(workflowData, decodedWorkflowName);
@@ -270,132 +275,11 @@ function CanvasPageContent() {
                 0);
 
         if (hasCurrentWork) {
-            // 확인 토스트 표시
-            const confirmToast = toast(
-                (t) => (
-                    <div
-                        style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '12px',
-                        }}
-                    >
-                        <div
-                            style={{
-                                fontWeight: '600',
-                                color: '#dc2626',
-                                fontSize: '1rem',
-                            }}
-                        >
-                            Start New Workflow?
-                        </div>
-                        <div
-                            style={{
-                                fontSize: '0.9rem',
-                                color: '#374151',
-                                lineHeight: '1.4',
-                            }}
-                        >
-                            This will clear all current nodes and edges.
-                            <br />
-                            Make sure to save your current work if needed.
-                        </div>
-                        <div
-                            style={{
-                                display: 'flex',
-                                gap: '8px',
-                                justifyContent: 'flex-end',
-                                marginTop: '4px',
-                            }}
-                        >
-                            <button
-                                onClick={() => {
-                                    toast.dismiss(t.id);
-                                }}
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: '#ffffff',
-                                    border: '2px solid #6b7280',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem',
-                                    fontWeight: '500',
-                                    color: '#374151',
-                                    transition: 'all 0.2s ease',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                                }}
-                                onMouseOver={(e) => {
-                                    (
-                                        e.target as HTMLButtonElement
-                                    ).style.backgroundColor = '#f9fafb';
-                                    (
-                                        e.target as HTMLButtonElement
-                                    ).style.borderColor = '#4b5563';
-                                }}
-                                onMouseOut={(e) => {
-                                    (
-                                        e.target as HTMLButtonElement
-                                    ).style.backgroundColor = '#ffffff';
-                                    (
-                                        e.target as HTMLButtonElement
-                                    ).style.borderColor = '#6b7280';
-                                }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={() => {
-                                    toast.dismiss(t.id);
-                                    performNewWorkflow();
-                                }}
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: '#dc2626',
-                                    color: 'white',
-                                    border: '2px solid #b91c1c',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem',
-                                    fontWeight: '500',
-                                    transition: 'all 0.2s ease',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                                }}
-                                onMouseOver={(e) => {
-                                    (
-                                        e.target as HTMLButtonElement
-                                    ).style.backgroundColor = '#b91c1c';
-                                    (
-                                        e.target as HTMLButtonElement
-                                    ).style.borderColor = '#991b1b';
-                                }}
-                                onMouseOut={(e) => {
-                                    (
-                                        e.target as HTMLButtonElement
-                                    ).style.backgroundColor = '#dc2626';
-                                    (
-                                        e.target as HTMLButtonElement
-                                    ).style.borderColor = '#b91c1c';
-                                }}
-                            >
-                                Start New
-                            </button>
-                        </div>
-                    </div>
-                ),
-                {
-                    duration: Infinity,
-                    style: {
-                        maxWidth: '420px',
-                        padding: '20px',
-                        backgroundColor: '#f9fafb',
-                        border: '2px solid #374151',
-                        borderRadius: '12px',
-                        boxShadow:
-                            '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
-                        color: '#374151',
-                        fontFamily: 'system-ui, -apple-system, sans-serif',
-                    },
-                },
+            // 새로운 유틸리티 사용
+            showNewWorkflowConfirm(
+                () => {
+                    performNewWorkflow();
+                }
             );
         } else {
             // 작업이 없으면 바로 시작
@@ -492,136 +376,12 @@ function CanvasPageContent() {
             const isDuplicate = existingWorkflows.includes(targetFilename);
 
             if (isDuplicate) {
-                // 중복 발견 시 사용자에게 확인 요청
-                const confirmToast = toast(
-                    (t) => (
-                        <div
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '12px',
-                            }}
-                        >
-                            <div
-                                style={{
-                                    fontWeight: '600',
-                                    color: '#f59e0b',
-                                    fontSize: '1rem',
-                                }}
-                            >
-                                Workflow Already Exists
-                            </div>
-                            <div
-                                style={{
-                                    fontSize: '0.9rem',
-                                    color: '#374151',
-                                    lineHeight: '1.4',
-                                }}
-                            >
-                                A workflow named &quot;
-                                <strong>{workflowName}</strong>&quot; already exists.
-                                <br />
-                                Do you want to overwrite it?
-                            </div>
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    gap: '8px',
-                                    justifyContent: 'flex-end',
-                                    marginTop: '4px',
-                                }}
-                            >
-                                <button
-                                    onClick={() => {
-                                        toast.dismiss(t.id);
-                                    }}
-                                    style={{
-                                        padding: '8px 16px',
-                                        backgroundColor: '#ffffff',
-                                        border: '2px solid #6b7280',
-                                        borderRadius: '6px',
-                                        cursor: 'pointer',
-                                        fontSize: '0.85rem',
-                                        fontWeight: '500',
-                                        color: '#374151',
-                                        transition: 'all 0.2s ease',
-                                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                                    }}
-                                    onMouseOver={(e) => {
-                                        (
-                                            e.target as HTMLButtonElement
-                                        ).style.backgroundColor = '#f9fafb';
-                                        (
-                                            e.target as HTMLButtonElement
-                                        ).style.borderColor = '#4b5563';
-                                    }}
-                                    onMouseOut={(e) => {
-                                        (
-                                            e.target as HTMLButtonElement
-                                        ).style.backgroundColor = '#ffffff';
-                                        (
-                                            e.target as HTMLButtonElement
-                                        ).style.borderColor = '#6b7280';
-                                    }}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={async () => {
-                                        toast.dismiss(t.id);
-                                        await performSave(
-                                            workflowName,
-                                            canvasState,
-                                        );
-                                    }}
-                                    style={{
-                                        padding: '8px 16px',
-                                        backgroundColor: '#f59e0b',
-                                        color: 'white',
-                                        border: '2px solid #d97706',
-                                        borderRadius: '6px',
-                                        cursor: 'pointer',
-                                        fontSize: '0.85rem',
-                                        fontWeight: '500',
-                                        transition: 'all 0.2s ease',
-                                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                                    }}
-                                    onMouseOver={(e) => {
-                                        (
-                                            e.target as HTMLButtonElement
-                                        ).style.backgroundColor = '#d97706';
-                                        (
-                                            e.target as HTMLButtonElement
-                                        ).style.borderColor = '#b45309';
-                                    }}
-                                    onMouseOut={(e) => {
-                                        (
-                                            e.target as HTMLButtonElement
-                                        ).style.backgroundColor = '#f59e0b';
-                                        (
-                                            e.target as HTMLButtonElement
-                                        ).style.borderColor = '#d97706';
-                                    }}
-                                >
-                                    Overwrite
-                                </button>
-                            </div>
-                        </div>
-                    ),
-                    {
-                        duration: Infinity,
-                        style: {
-                            maxWidth: '420px',
-                            padding: '20px',
-                            backgroundColor: '#f9fafb',
-                            border: '2px solid #374151',
-                            borderRadius: '12px',
-                            boxShadow:
-                                '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
-                            color: '#374151',
-                            fontFamily: 'system-ui, -apple-system, sans-serif',
-                        },
-                    },
+                // 중복 발견 시 사용자에게 확인 요청 (새로운 유틸리티 사용)
+                showWorkflowOverwriteConfirm(
+                    workflowName,
+                    async () => {
+                        await performSave(workflowName, canvasState);
+                    }
                 );
             } else {
                 // 중복이 없으면 바로 저장
@@ -630,9 +390,9 @@ function CanvasPageContent() {
         } catch (error: any) {
             devLog.error('Error checking existing workflows:', error);
             // 중복 확인 실패 시에도 저장 시도 (graceful fallback)
-            toast.error(
-                `Warning: Could not check for duplicates. Proceeding with save...`,
-            );
+            showWarningToast({
+                message: 'Warning: Could not check for duplicates. Proceeding with save...',
+            });
             setTimeout(async () => {
                 await performSave(workflowName, canvasState);
             }, 1000);
@@ -847,6 +607,7 @@ function CanvasPageContent() {
                     inputData: '',
                     interactionId: 'default',
                     selectedCollections: null,
+                    user_id: null,
                     onData: (chunk) => {
                         setExecutionOutput((prev: { stream: any; }) => ({ ...prev, stream: (prev.stream || '') + chunk }));
                     },
@@ -857,7 +618,7 @@ function CanvasPageContent() {
 
             } else {
                 // const result = await executeWorkflow(workflowData);
-                const result = await executeWorkflowById(workflowName, workflowId, '', 'default', null);
+                const result = await executeWorkflowById(workflowName, workflowId, '', 'default', null, null, null);
                 setExecutionOutput(result);
                 toast.success('Workflow executed successfully!', { id: toastId });
             }

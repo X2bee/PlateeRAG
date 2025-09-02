@@ -4,6 +4,20 @@ import { devLog } from "@/app/_common/utils/logger";
 import { excuteWorkflowRequest } from "./types";
 
 /**
+ * 랜덤 8자리 영어+숫자 문자열 생성
+ */
+const generateRandomId = (): string => {
+    try {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        const shuffled = chars.split('').sort(() => Math.random() - 0.5).join('');
+        return `deploy_${shuffled.slice(0, 8)}`;
+    } catch (error) {
+        devLog.error('Failed to generate random ID:', error);
+        return 'deploy';
+    }
+};
+
+/**
  * 백엔드에서 특정 워크플로우를 로드합니다.
  * @param {string} workflowId - 로드할 워크플로우 ID (.json 확장자 포함/제외 모두 가능)
  * @returns {Promise<Object>} 워크플로우 데이터 객체를 포함하는 프로미스
@@ -56,18 +70,18 @@ export const executeWorkflowByIdDeploy = async (
     workflowName: string,
     workflowId: string,
     inputData: string = '',
-    interaction_id: string = 'default',
+    interaction_id: string = '',
     selectedCollections: Array<string> | null = null,
     user_id: number | string | null = null,
     additional_params: Record<string, Record<string, any>> | null = null
 ): Promise<excuteWorkflowRequest> => {
     try {
         const requestBody: excuteWorkflowRequest = {
-            workflow_name: workflowName,
-            workflow_id: workflowId,
-            input_data: inputData || '',
-            interaction_id: interaction_id || 'default',
-        };
+        workflow_name: workflowName,
+        workflow_id: workflowId,
+        input_data: inputData || '',
+        interaction_id: generateRandomId(),
+    };
 
         // selectedCollections가 배열이면 그대로 사용, 아니면 null
         if (selectedCollections && Array.isArray(selectedCollections) && selectedCollections.length > 0) {
@@ -122,7 +136,7 @@ export const executeWorkflowByIdStreamDeploy = async ({
     workflowName,
     workflowId,
     inputData = '',
-    interactionId = 'default',
+    interactionId = '',
     selectedCollections = null,
     user_id,
     additional_params = null,
@@ -142,8 +156,8 @@ export const executeWorkflowByIdStreamDeploy = async ({
     const requestBody: excuteWorkflowRequest = {
         workflow_name: workflowName,
         workflow_id: workflowId,
-        input_data: inputData,
-        interaction_id: interactionId,
+        input_data: inputData || '',
+        interaction_id: generateRandomId(),
     };
 
     try {

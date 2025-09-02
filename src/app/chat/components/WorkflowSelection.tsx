@@ -6,6 +6,7 @@ import {
     FiClock,
     FiRefreshCw,
     FiArrowLeft,
+    FiUsers,
 } from 'react-icons/fi';
 import styles from '@/app/chat/assets/WorkflowSelection.module.scss';
 import { listWorkflowsDetail } from '@/app/api/workflow/workflowAPI';
@@ -22,16 +23,28 @@ interface Workflow {
     status: 'active' | 'draft' | 'archived';
     filename?: string;
     error?: string;
+    is_shared?: boolean;
+    share_group?: string | null;
+    user_id: number;
 }
 
 interface WorkflowDetailResponse {
+    id: number;
     workflow_name: string;
     workflow_id: string;
+    user_name: string;
+    user_id: number;
     node_count: number;
+    edge_count: number;
     updated_at: string;
-    user_name?: string;
+    created_at: string;
     has_startnode: boolean;
     has_endnode: boolean;
+    is_completed: boolean;
+    is_shared: boolean;
+    share_group: string | null;
+    share_permissions: string;
+    metadata: any;
     error?: string;
 }
 
@@ -45,6 +58,7 @@ const WorkflowSelection: React.FC<WorkflowSelectionProps> = ({ onBack, onSelectW
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState<'all' | 'active' | 'draft'>('active');
+    const [workflowFilter, setWorkflowFilter] = useState<'all' | 'personal' | 'shared'>('all');
 
     const fetchWorkflows = async () => {
         try {
@@ -71,6 +85,9 @@ const WorkflowSelection: React.FC<WorkflowSelectionProps> = ({ onBack, onSelectW
                         status: status,
                         workflow_name: detail.workflow_name,
                         error: detail.error,
+                        is_shared: detail.is_shared,
+                        share_group: detail.share_group,
+                        user_id: detail.user_id,
                     };
                 },
             );
@@ -88,9 +105,24 @@ const WorkflowSelection: React.FC<WorkflowSelectionProps> = ({ onBack, onSelectW
         fetchWorkflows();
     }, []);
 
-    const filteredWorkflows = workflows.filter(
-        (workflow) => filter === 'all' || workflow.status === filter,
-    );
+    // 워크플로우 필터링
+    const getFilteredWorkflows = () => {
+        const statusFiltered = workflows.filter(
+            (workflow) => filter === 'all' || workflow.status === filter,
+        );
+
+        switch (workflowFilter) {
+            case 'personal':
+                return statusFiltered.filter(workflow => !workflow.is_shared);
+            case 'shared':
+                return statusFiltered.filter(workflow => workflow.is_shared === true);
+            case 'all':
+            default:
+                return statusFiltered;
+        }
+    };
+
+    const filteredWorkflows = getFilteredWorkflows();
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -143,19 +175,37 @@ const WorkflowSelection: React.FC<WorkflowSelectionProps> = ({ onBack, onSelectW
 
                 <div className={styles.headerActions}>
                     <div className={styles.filters}>
-                        {['all', 'active', 'draft'].map((filterType) => (
-                            <button
-                                key={filterType}
-                                onClick={() => setFilter(filterType as any)}
-                                className={`${styles.filterButton} ${filter === filterType ? styles.active : ''}`}
-                            >
-                                {filterType === 'all'
-                                    ? '전체'
-                                    : filterType === 'active'
-                                      ? '활성'
-                                      : '초안'}
-                            </button>
-                        ))}
+                        <div className={styles.filterGroup}>
+                            {['all', 'active', 'draft'].map((filterType) => (
+                                <button
+                                    key={filterType}
+                                    onClick={() => setFilter(filterType as any)}
+                                    className={`${styles.filterButton} ${filter === filterType ? styles.active : ''}`}
+                                >
+                                    {filterType === 'all'
+                                        ? '전체'
+                                        : filterType === 'active'
+                                          ? '활성'
+                                          : '초안'}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className={styles.filterGroup}>
+                            {['all', 'personal', 'shared'].map((filterType) => (
+                                <button
+                                    key={filterType}
+                                    onClick={() => setWorkflowFilter(filterType as any)}
+                                    className={`${styles.filterButton} ${workflowFilter === filterType ? styles.active : ''}`}
+                                >
+                                    {filterType === 'all'
+                                        ? '전체'
+                                        : filterType === 'personal'
+                                          ? '개인'
+                                          : '공유'}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     <button
@@ -189,7 +239,7 @@ const WorkflowSelection: React.FC<WorkflowSelectionProps> = ({ onBack, onSelectW
                 <div className={styles.workflowsGrid}>
                     {filteredWorkflows.map((workflow) => (
                         <div
-                            key={workflow.name}
+                            key={`${workflow.user_id}-${workflow.id}-${workflow.name}`}
                             className={`${styles.workflowCard} ${workflow.status !== 'active' ? styles.disabled : ''}`}
                             onClick={() => handleSelectWorkflow(workflow)}
                             onKeyDown={(e) => {
@@ -205,8 +255,13 @@ const WorkflowSelection: React.FC<WorkflowSelectionProps> = ({ onBack, onSelectW
                                 <div className={styles.workflowIcon}>
                                     <FiFolder />
                                 </div>
-                                <div className={`${styles.status} ${getStatusColor(workflow.status)}`}>
-                                    {getStatusText(workflow.status)}
+                                <div className={styles.statusContainer}>
+                                    <div className={`${styles.status} ${getStatusColor(workflow.status)}`}>
+                                        {getStatusText(workflow.status)}
+                                    </div>
+                                    <div className={`${styles.shareStatus} ${workflow.is_shared ? styles.statusShared : styles.statusPersonal}`}>
+                                        {workflow.is_shared ? '공유' : '개인'}
+                                    </div>
                                 </div>
                             </div>
 
@@ -230,6 +285,12 @@ const WorkflowSelection: React.FC<WorkflowSelectionProps> = ({ onBack, onSelectW
                                         <FiUser />
                                         <span>{workflow.author}</span>
                                     </div>
+                                    {workflow.share_group && (
+                                        <div className={styles.metaItem}>
+                                            <FiUsers />
+                                            <span>조직: {workflow.share_group}</span>
+                                        </div>
+                                    )}
                                     {workflow.lastModified && (
                                         <div className={styles.metaItem}>
                                             <FiClock />
@@ -241,6 +302,7 @@ const WorkflowSelection: React.FC<WorkflowSelectionProps> = ({ onBack, onSelectW
                                     <div className={styles.metaItem}>
                                         <span>{workflow.nodeCount}개 노드</span>
                                     </div>
+
                                 </div>
                             </div>
                         </div>

@@ -19,6 +19,7 @@ import {
     parseSimpleMarkdown
 } from '@/app/_common/components/chatParser/ChatParserMarkdown';
 import { parseCitation } from '@/app/_common/components/chatParser/ChatParserCite';
+import { convertToString, needsConversion } from '@/app/_common/components/chatParser/ChatParserNonStr';
 
 // Think 블록 표시 여부를 제어하는 상수 (환경변수에서 가져옴)
 const showThinkBlock = APP_CONFIG.SHOW_THINK_BLOCK;
@@ -31,7 +32,7 @@ export interface ParsedContent {
 }
 
 interface MessageRendererProps {
-    content: string;
+    content: any; // string에서 any로 변경하여 다양한 타입 허용
     isUserMessage?: boolean;
     className?: string;
     onViewSource?: (sourceInfo: SourceInfo) => void;
@@ -52,19 +53,32 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
     onHeightChange
 }) => {
 
-    if (!content) {
+    // 가장 먼저 수행: 문자열이 아닌 데이터를 문자열로 변환
+    let processedContent: string = '';
+
+    if (needsConversion(content)) {
+        processedContent = convertToString(content);
+    } else if (typeof content === 'string') {
+        processedContent = content;
+    } else {
+        // null, undefined, 빈 문자열 등의 경우
+        return null;
+    }
+
+    // 변환된 내용이 비어있는 경우
+    if (!processedContent || processedContent.trim() === '') {
         return null;
     }
 
     if (isUserMessage) {
         return (
             <div className={`${styles.markdownContent} ${className}`}>
-                {content}
+                {processedContent}
             </div>
         );
     }
 
-    const parsedElements = parseContentToReactElements(content, onViewSource, onHeightChange, mode);
+    const parsedElements = parseContentToReactElements(processedContent, onViewSource, onHeightChange, mode);
 
     return (
         <div
@@ -83,6 +97,11 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
  * 컨텐츠를 React 엘리먼트로 파싱
  */
 const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo: SourceInfo) => void, onHeightChange?: () => void, mode?: "existing" | "new-workflow" | "new-default" | "deploy"): React.ReactNode[] => {
+    // 이 시점에서 content는 이미 MessageRenderer에서 문자열로 변환되었음
+    if (!content) {
+        return [];
+    }
+
     let processed = content;
 
     // 스트림 모드 감지를 위한 헬퍼 함수

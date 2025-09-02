@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
     FiDatabase,
     FiRefreshCw,
@@ -157,7 +158,7 @@ const DataStorageModal: React.FC<DataStorageModalProps> = ({
 
     if (!isOpen) return null;
 
-    return (
+    const modalContent = (
         <div className={styles.modalOverlay} onClick={onClose}>
             <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                 {/* Modal Header */}
@@ -309,6 +310,8 @@ const DataStorageModal: React.FC<DataStorageModalProps> = ({
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };
 
 export default DataStorageModal;

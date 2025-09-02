@@ -12,7 +12,11 @@ import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/chat/assets/ChatHistory.module.scss';
 import toast from 'react-hot-toast';
 import HistoryModal from './HistoryModal';
-import useSidebarManager from '@/app/_common/hooks/useSidebarManager';
+import {
+    showChatDeleteConfirm,
+    showDeleteSuccessToast,
+    showDeleteErrorToast
+} from '@/app/_common/utils/toastUtils';
 
 interface ExecutionMeta {
     id: string;
@@ -52,8 +56,6 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
     // HistoryModal 상태
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
     const [selectedChatForHistory, setSelectedChatForHistory] = useState<ExecutionMeta | null>(null);
-
-    useSidebarManager(isHistoryModalOpen);
 
     useEffect(() => {
         loadChatHistory();
@@ -176,75 +178,36 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
     };
 
     const handleDeleteChat = async (chat: ExecutionMeta) => {
-        // 삭제 확인
-        const confirmDelete = () => new Promise((resolve) => {
-            toast((t) => (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div>
-                        <strong>"{chat.workflow_name}"</strong> 채팅을 정말 삭제하시겠습니까?
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                        <button
-                            onClick={() => {
-                                toast.dismiss(t.id);
-                                resolve(false);
-                            }}
-                            style={{
-                                padding: '4px 12px',
-                                backgroundColor: '#6b7280',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            취소
-                        </button>
-                        <button
-                            onClick={() => {
-                                toast.dismiss(t.id);
-                                resolve(true);
-                            }}
-                            style={{
-                                padding: '4px 12px',
-                                backgroundColor: '#ef4444',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            삭제
-                        </button>
-                    </div>
-                </div>
-            ), {
-                duration: Infinity,
-                style: {
-                    maxWidth: '400px',
-                },
-            });
-        });
+        showChatDeleteConfirm(
+            chat.workflow_name,
+            async () => {
+                try {
+                    // 삭제 API 호출
+                    await deleteWorkflowIOLogs(
+                        chat.workflow_name,
+                        chat.workflow_id,
+                        chat.interaction_id
+                    );
 
-        try {
-            const shouldDelete = await confirmDelete();
-            if (!shouldDelete) return;
+                    showDeleteSuccessToast({
+                        itemName: chat.workflow_name,
+                        itemType: 'chat',
+                        customMessage: `"${chat.workflow_name}" 채팅이 삭제되었습니다.`,
+                    });
 
-            // 삭제 API 호출
-            await deleteWorkflowIOLogs(
-                chat.workflow_name,
-                chat.workflow_id,
-                chat.interaction_id
-            );
-
-            toast.success(`"${chat.workflow_name}" 채팅이 삭제되었습니다.`);
-
-            // 채팅 목록 새로고침
-            await loadChatHistory();
-        } catch (error) {
-            devLog.error('Failed to delete chat:', error);
-            toast.error('채팅 삭제에 실패했습니다.');
-        }
+                    // 채팅 목록 새로고침
+                    await loadChatHistory();
+                } catch (error) {
+                    devLog.error('Failed to delete chat:', error);
+                    showDeleteErrorToast({
+                        itemName: chat.workflow_name,
+                        itemType: 'chat',
+                        customMessage: '채팅 삭제에 실패했습니다.',
+                        error: error instanceof Error ? error : 'Unknown error',
+                    });
+                }
+            }
+        );
     };
 
     const handleContinueChat = (chat: ExecutionMeta) => {

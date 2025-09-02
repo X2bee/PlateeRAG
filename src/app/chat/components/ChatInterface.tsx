@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
 import { useRouter } from 'next/navigation';
-import { useSidebarManager } from '@/app/_common/hooks/useSidebarManager';
 import { getWorkflowIOLogs, loadWorkflow } from '@/app/api/workflow/workflowAPI';
 import { loadWorkflow as loadWorkflowDeploy } from '@/app/api/workflow/workflowDeployAPI';
 import { MessageRenderer } from '@/app/_common/components/chatParser/ChatParser';
@@ -53,8 +52,6 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
     // Hook 사용
     const collectionManagement = useCollectionManagement(state.ui.showCollectionModal);
     const scrollManagement = useScrollManagement({ messagesRef, executing: false });
-
-    useSidebarManager(state.ui.showDeploymentModal || state.ui.showCollectionModal);
 
     // 메모이제이션된 추가 파라미터 검증 함수
     const getValidAdditionalParams = useMemo(() => {
@@ -310,7 +307,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
                     }
                 } else {
                     try {
-                        const workflowData = await loadWorkflow(workflow.name);
+                        const workflowData = await loadWorkflow(workflow.name, workflow.user_id);
                         actions.setWorkflowDetail(workflowData);
                         localStorage.setItem('workflowContentDetail', JSON.stringify(workflowData));
                         devLog.log('Successfully loaded workflow content detail:', workflowData);

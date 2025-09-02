@@ -17,468 +17,512 @@ $gray-900: #111827;
 $white: #ffffff;
 
 .container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 // Header
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-  flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+    flex-shrink: 0;
 }
 
 .headerInfo {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 
-  h2 {
-    font-size: 1.875rem;
-    font-weight: 700;
-    color: $gray-900;
-    margin: 0 0 0.5rem 0;
-  }
+    h2 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: $gray-900;
+        margin: 0 0 0.5rem 0;
+    }
 
-  p {
-    color: $gray-600;
-    margin: 0;
-    line-height: 1.6;
-  }
+    p {
+        color: $gray-600;
+        margin: 0;
+        line-height: 1.6;
+    }
 }
 
 .backButton {
-  background: none;
-  border: none;
-  color: $gray-600;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    background: none;
+    border: none;
+    color: $gray-600;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  &:hover {
-    background: $gray-100;
-    color: $gray-900;
-  }
+    &:hover {
+        background: $gray-100;
+        color: $gray-900;
+    }
 
-  svg {
-    font-size: 1.25rem;
-  }
+    svg {
+        font-size: 1.25rem;
+    }
 }
 
 .headerActions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
 // Filters
 .filters {
-  display: flex;
-  gap: 0.5rem;
-  background: $gray-100;
-  padding: 0.25rem;
-  border-radius: 0.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.filterGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: $gray-100;
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+
+    span {
+        font-size: 0.875rem;
+        color: $gray-600;
+        font-weight: 500;
+        margin-left: 0.5rem;
+        white-space: nowrap;
+    }
 }
 
 // 새로고침 버튼 스타일
 .refreshButton {
-  background: transparent;
-  border: 1px solid $gray-300;
-  border-radius: 6px;
-  padding: 0.5rem;
-  cursor: pointer;
-  color: $gray-600;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
+    background: transparent;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: $gray-600;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
 
-  &:hover:not(:disabled) {
-    background: $gray-50;
-    border-color: $primary-blue;
-    color: $primary-blue;
-  }
+    &:hover:not(:disabled) {
+        background: $gray-50;
+        border-color: $primary-blue;
+        color: $primary-blue;
+    }
 
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
 
-  svg {
-    width: 16px;
-    height: 16px;
-  }
+    svg {
+        width: 16px;
+        height: 16px;
+    }
 }
 
 // 스피닝 애니메이션
 .spinning {
-  animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
+    0% {
+        transform: rotate(0deg);
+    }
 
-  100% {
-    transform: rotate(360deg);
-  }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .filterButton {
-  padding: 0.5rem 1rem;
-  border: none;
-  background: transparent;
-  color: $gray-700;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    color: $gray-700;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    font-size: 0.875rem;
 
-  &:hover {
-    background: $white;
-    color: $gray-900;
-  }
+    &:hover {
+        background: $white;
+        color: $gray-900;
+    }
 
-  &.active {
-    background: $white;
-    color: $primary-blue;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
+    &.active {
+        background: $white;
+        color: $primary-blue;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
 }
 
 // Workflows Grid
 .workflowsGrid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  padding-top: 1rem;
-  gap: 1rem;
-  overflow-y: auto;
-  max-height: 670px;
-  padding-right: 0.5rem;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding-top: 1rem;
+    gap: 1rem;
+    overflow-y: auto;
+    max-height: 670px;
+    padding-right: 0.5rem;
 
-  /* 스크롤바 스타일링 */
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: $gray-100;
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: $gray-300;
-    border-radius: 3px;
-
-    &:hover {
-      background: $gray-400;
+    /* 스크롤바 스타일링 */
+    &::-webkit-scrollbar {
+        width: 6px;
     }
-  }
+
+    &::-webkit-scrollbar-track {
+        background: $gray-100;
+        border-radius: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: $gray-300;
+        border-radius: 3px;
+
+        &:hover {
+            background: $gray-400;
+        }
+    }
 }
 
 .workflowCard {
-  background: $white;
-  border: 1px solid $gray-200;
-  border-radius: 1rem;
-  padding: 1.25rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  position: relative;
-  min-height: 205px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    background: $white;
+    border: 1px solid $gray-200;
     border-radius: 1rem;
-    background: linear-gradient(135deg, rgba($primary-blue, 0.02), rgba($primary-blue, 0.05));
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-  }
-
-  &:hover:not(.disabled) {
-    transform: translateY(-3px);
-    box-shadow:
-      0 10px 30px rgba(0, 0, 0, 0.1),
-      0 4px 15px rgba($primary-blue, 0.15);
-    border-color: rgba($primary-blue, 0.3);
+    padding: 1.25rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    min-height: 205px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 
     &::before {
-      opacity: 1;
-    }
-  }
-
-  &:active:not(.disabled) {
-    transform: translateY(-1px);
-    box-shadow:
-      0 5px 20px rgba(0, 0, 0, 0.08),
-      0 2px 8px rgba($primary-blue, 0.12);
-  }
-
-  &.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: $gray-50;
-
-    &:hover {
-      transform: none;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      border-color: $gray-200;
-
-      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 1rem;
+        background: linear-gradient(135deg, rgba($primary-blue, 0.02), rgba($primary-blue, 0.05));
         opacity: 0;
-      }
+        transition: opacity 0.3s ease;
+        pointer-events: none;
     }
-  }
+
+    &:hover:not(.disabled) {
+        transform: translateY(-3px);
+        box-shadow:
+            0 10px 30px rgba(0, 0, 0, 0.1),
+            0 4px 15px rgba($primary-blue, 0.15);
+        border-color: rgba($primary-blue, 0.3);
+
+        &::before {
+            opacity: 1;
+        }
+    }
+
+    &:active:not(.disabled) {
+        transform: translateY(-1px);
+        box-shadow:
+            0 5px 20px rgba(0, 0, 0, 0.08),
+            0 2px 8px rgba($primary-blue, 0.12);
+    }
+
+    &.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: $gray-50;
+
+        &:hover {
+            transform: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border-color: $gray-200;
+
+            &::before {
+                opacity: 0;
+            }
+        }
+    }
 }
 
 .cardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.statusContainer {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: flex-end;
 }
 
 .workflowIcon {
-  width: 2.25rem;
-  height: 2.25rem;
-  background: linear-gradient(135deg, rgba($primary-blue, 0.1), rgba($primary-blue, 0.15));
-  border-radius: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba($primary-blue, 0.1);
+    width: 2.25rem;
+    height: 2.25rem;
+    background: linear-gradient(135deg, rgba($primary-blue, 0.1), rgba($primary-blue, 0.15));
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba($primary-blue, 0.1);
 
-  svg {
-    width: 1.125rem;
-    height: 1.125rem;
-    color: $primary-blue;
-  }
+    svg {
+        width: 1.125rem;
+        height: 1.125rem;
+        color: $primary-blue;
+    }
 }
 
 .status {
-  padding: 0.3rem 0.7rem;
-  border-radius: 0.5rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border: 1px solid transparent;
+    padding: 0.3rem 0.7rem;
+    border-radius: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid transparent;
 
-  &.statusActive {
-    background: linear-gradient(135deg, rgba($primary-green, 0.1), rgba($primary-green, 0.15));
-    color: $primary-green;
-    border-color: rgba($primary-green, 0.2);
-  }
+    &.statusActive {
+        background: linear-gradient(135deg, rgba($primary-green, 0.1), rgba($primary-green, 0.15));
+        color: $primary-green;
+        border-color: rgba($primary-green, 0.2);
+    }
 
-  &.statusDraft {
-    background: linear-gradient(135deg, rgba($primary-yellow, 0.1), rgba($primary-yellow, 0.15));
-    color: $primary-yellow;
-    border-color: rgba($primary-yellow, 0.2);
-  }
+    &.statusDraft {
+        background: linear-gradient(135deg, rgba($primary-yellow, 0.1), rgba($primary-yellow, 0.15));
+        color: $primary-yellow;
+        border-color: rgba($primary-yellow, 0.2);
+    }
 
-  &.statusArchived {
-    background: linear-gradient(135deg, rgba($gray-500, 0.1), rgba($gray-500, 0.15));
-    color: $gray-500;
-    border-color: rgba($gray-500, 0.2);
-  }
+    &.statusArchived {
+        background: linear-gradient(135deg, rgba($gray-500, 0.1), rgba($gray-500, 0.15));
+        color: $gray-500;
+        border-color: rgba($gray-500, 0.2);
+    }
+}
+
+.shareStatus {
+    padding: 0.3rem 0.7rem;
+    border-radius: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid transparent;
+
+    &.statusShared {
+        background: linear-gradient(135deg, rgba($primary-blue, 0.1), rgba($primary-blue, 0.15));
+        color: $primary-blue;
+        border-color: rgba($primary-blue, 0.2);
+    }
+
+    &.statusPersonal {
+        background: linear-gradient(135deg, rgba($gray-500, 0.1), rgba($gray-500, 0.15));
+        color: $gray-500;
+        border-color: rgba($gray-500, 0.2);
+    }
 }
 
 // Card Content
 .cardContent {
-  margin-bottom: 0.75rem;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+    margin-bottom: 0.75rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .workflowName {
-  font-size: 1rem;
-  font-weight: 700;
-  color: $gray-900;
-  margin: 0 0 0.5rem 0;
-  line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  letter-spacing: -0.01em;
+    font-size: 1rem;
+    font-weight: 700;
+    color: $gray-900;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    letter-spacing: -0.01em;
 }
 
 .workflowDescription {
-  color: $gray-600;
-  line-height: 1.4;
-  margin: 0 0 0.75rem 0;
-  font-size: 0.8rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+    color: $gray-600;
+    line-height: 1.4;
+    margin: 0 0 0.75rem 0;
+    font-size: 0.8rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .workflowError {
-  color: $primary-red;
-  line-height: 1.4;
-  margin: 0 0 0.75rem 0;
-  font-size: 0.75rem;
-  padding: 0.5rem;
-  background: linear-gradient(135deg, rgba($primary-red, 0.05), rgba($primary-red, 0.1));
-  border-radius: 0.5rem;
-  border-left: 3px solid $primary-red;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  border: 1px solid rgba($primary-red, 0.15);
+    color: $primary-red;
+    line-height: 1.4;
+    margin: 0 0 0.75rem 0;
+    font-size: 0.75rem;
+    padding: 0.5rem;
+    background: linear-gradient(135deg, rgba($primary-red, 0.05), rgba($primary-red, 0.1));
+    border-radius: 0.5rem;
+    border-left: 3px solid $primary-red;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    border: 1px solid rgba($primary-red, 0.15);
 }
 
 .workflowMeta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  margin-top: auto;
-  padding-top: 0.5rem;
-  border-top: 1px solid $gray-100;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: auto;
+    padding-top: 0.5rem;
+    border-top: 1px solid $gray-100;
 }
 
 .metaItem {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: $gray-500;
-  font-size: 0.75rem;
-  font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: $gray-500;
+    font-size: 0.75rem;
+    font-weight: 500;
 
-  svg {
-    width: 0.8rem;
-    height: 0.8rem;
-    color: $gray-400;
-  }
+    svg {
+        width: 0.8rem;
+        height: 0.8rem;
+        color: $gray-400;
+    }
 
-  span {
-    color: $gray-600;
-  }
+    span {
+        color: $gray-600;
+    }
 }
 
 // Loading State
 .loadingState {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: $gray-500;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: $gray-500;
 
-  p {
-    font-size: 1.125rem;
-    margin: 0;
-  }
+    p {
+        font-size: 1.125rem;
+        margin: 0;
+    }
 }
 
 // Error State
 .errorState {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: $primary-red;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: $primary-red;
 
-  p {
-    font-size: 1.125rem;
-    margin: 0 0 1rem 0;
-  }
-
-  button {
-    padding: 0.5rem 1rem;
-    background: $primary-blue;
-    color: $white;
-    border: none;
-    border-radius: 0.375rem;
-    cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.2s ease-in-out;
-
-    &:hover {
-      background: color.scale($primary-blue, $lightness: -10%);
+    p {
+        font-size: 1.125rem;
+        margin: 0 0 1rem 0;
     }
-  }
+
+    button {
+        padding: 0.5rem 1rem;
+        background: $primary-blue;
+        color: $white;
+        border: none;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.2s ease-in-out;
+
+        &:hover {
+            background: color.scale($primary-blue, $lightness: -10%);
+        }
+    }
 }
 
 // Empty State
 .emptyState {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: $gray-500;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: $gray-500;
 
-  .emptyIcon {
-    width: 4rem;
-    height: 4rem;
-    margin: 0 auto 1rem;
-    opacity: 0.5;
-  }
+    .emptyIcon {
+        width: 4rem;
+        height: 4rem;
+        margin: 0 auto 1rem;
+        opacity: 0.5;
+    }
 
-  h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin: 0 0 0.5rem 0;
-    color: $gray-700;
-  }
+    h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+        color: $gray-700;
+    }
 
-  p {
-    margin: 0;
-    line-height: 1.6;
-  }
+    p {
+        margin: 0;
+        line-height: 1.6;
+    }
 }
 
 // Responsive Design
 @media (max-width: 1024px) {
-  .workflowsGrid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+    .workflowsGrid {
+        grid-template-columns: repeat(4, 1fr);
+    }
 }
 
 @media (max-width: 768px) {
-  .header {
-    flex-direction: column;
-    align-items: stretch;
-  }
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+    }
 
-  .filters {
-    justify-content: center;
-  }
+    .filters {
+        justify-content: center;
+    }
 
-  .workflowsGrid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-  }
+    .workflowsGrid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+    }
 
-  .workflowCard {
-    min-height: 140px;
-    max-height: 140px;
-    padding: 0.75rem;
-  }
+    .workflowCard {
+        min-height: 140px;
+        max-height: 140px;
+        padding: 0.75rem;
+    }
 }
 
 @media (max-width: 480px) {
-  .workflowsGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+    .workflowsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
