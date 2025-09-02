@@ -87,7 +87,7 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
     const { hasIO } = hasInputsAndOutputs(inputs, outputs);
 
     // Node container classes and styles
-    const nodeClasses = getNodeContainerClasses(isSelected, isPreview, isPredicted, styles.node);
+    const nodeClasses = getNodeContainerClasses(isSelected, isPreview, isPredicted, styles);
     const nodeStyles = getNodeContainerStyles(position, isPredicted, predictedOpacity);
 
 
