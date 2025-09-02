@@ -103,9 +103,9 @@ export const decodeUrlParams = (encodedData: string): string => {
         const encryptionTime = parseInt(payload.timestamp);
         const timeDiff = currentTime - encryptionTime;
         
-        if (timeDiff > 24 * 60 * 60 * 1000) { // 24시간 초과
-            throw new Error('URL has expired');
-        }
+        // if (timeDiff > 24 * 60 * 60 * 1000) { // 24시간 초과
+        //     throw new Error('URL has expired');
+        // }
         
         return payload.data;
     } catch (error) {
