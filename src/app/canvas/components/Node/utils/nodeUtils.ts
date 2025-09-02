@@ -120,13 +120,13 @@ export const getNodeContainerClasses = (
     isSelected: boolean,
     isPreview: boolean,
     isPredicted: boolean,
-    baseClass: string = 'node'
+    styles: any
 ): string => {
     const classes = [
-        baseClass,
-        isSelected ? 'selected' : '',
-        isPreview ? 'preview' : '',
-        isPredicted ? 'predicted' : ''
+        styles.node,
+        isSelected ? styles.selected : '',
+        isPreview ? styles.preview : '',
+        isPredicted ? styles.predicted : ''
     ].filter(Boolean);
     
     return classes.join(' ');
