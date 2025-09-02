@@ -205,6 +205,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
     }), [mode, workflow, ioLogs, onBack, hideBackButton, actions.toggleDeploymentModal]);
 
     const chatToolsProps = useMemo(() => ({
+        mode: mode,
         workflowContentDetail: state.workflow.contentDetail,
         additionalParams: state.workflow.additionalParams,
         onAdditionalParamsChange: actions.setAdditionalParams,

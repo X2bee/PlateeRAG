@@ -6,6 +6,7 @@ import { AiOutlineApi } from "react-icons/ai";
 import useSidebarManager from '@/app/_common/hooks/useSidebarManager';
 
 interface ChatToolsDisplayProps {
+    mode: 'existing' | 'new-workflow' | 'new-default' | 'deploy';
     workflowContentDetail: {
         nodes?: CanvasNode[];
         edges?: CanvasEdge[];
@@ -28,6 +29,7 @@ interface ToolNode {
 }
 
 const ChatToolsDisplay: React.FC<ChatToolsDisplayProps> = ({
+    mode,
     workflowContentDetail,
     additionalParams = {},
     onAdditionalParamsChange
@@ -139,6 +141,11 @@ const ChatToolsDisplay: React.FC<ChatToolsDisplayProps> = ({
     };
 
     const toolNodes = getToolNodes();
+
+    // deploy 모드일 때는 아무것도 렌더링하지 않음
+    if (mode === 'deploy') {
+        return null;
+    }
 
     // 도구가 없으면 컴포넌트를 렌더링하지 않음
     if (toolNodes.length === 0) {
