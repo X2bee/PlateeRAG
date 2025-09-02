@@ -176,6 +176,8 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                 inputMessage,
                 'default', // interaction_id
                 null, // selectedCollections - Executor에서는 컬렉션을 사용하지 않음
+                null, // additional_params
+                null, // user_id - admin에서는 현재 로그인한 사용자
             );
             setIOLogs((prev) =>
                 prev.map((log) =>

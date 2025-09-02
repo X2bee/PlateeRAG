@@ -194,6 +194,10 @@ export interface Workflow {
     filename?: string;
     error?: string;
     key_value?: number;
+    user_id?: number;
+    is_shared?: boolean;
+    share_group?: string | null;
+    share_permissions?: string;
 }
 
 export interface WorkflowDetailResponse {
@@ -201,9 +205,17 @@ export interface WorkflowDetailResponse {
     workflow_name: string;
     workflow_id: string;
     user_name: string;
+    user_id: number;
     node_count: number;
+    edge_count: number;
     updated_at: string;
+    created_at: string;
     has_startnode: boolean;
     has_endnode: boolean;
+    is_completed: boolean;
+    is_shared: boolean;
+    share_group: string | null;
+    share_permissions: string;
+    metadata: any;
     error?: string;
 }

@@ -76,7 +76,7 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
     const performLoadWorkflow = async (filename: string): Promise<void> => {
         try {
             const workflowId = filename.replace('.json', '');
-            const workflowData: WorkflowData = await loadWorkflow(workflowId);
+            const workflowData: WorkflowData = await loadWorkflow(workflowId, null);
 
             if (onLoadWorkflow) {
                 // Pass workflow data along with workflow name

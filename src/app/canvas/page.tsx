@@ -123,7 +123,7 @@ function CanvasPageContent() {
 
             const loadFromServer = async () => {
                 try {
-                    const workflowData = await loadWorkflow(decodedWorkflowName);
+                    const workflowData = await loadWorkflow(decodedWorkflowName, null);
 
                     if (canvasRef.current && workflowData) {
                         await handleLoadWorkflow(workflowData, decodedWorkflowName);
@@ -607,6 +607,7 @@ function CanvasPageContent() {
                     inputData: '',
                     interactionId: 'default',
                     selectedCollections: null,
+                    user_id: null,
                     onData: (chunk) => {
                         setExecutionOutput((prev: { stream: any; }) => ({ ...prev, stream: (prev.stream || '') + chunk }));
                     },
@@ -617,7 +618,7 @@ function CanvasPageContent() {
 
             } else {
                 // const result = await executeWorkflow(workflowData);
-                const result = await executeWorkflowById(workflowName, workflowId, '', 'default', null);
+                const result = await executeWorkflowById(workflowName, workflowId, '', 'default', null, null, null);
                 setExecutionOutput(result);
                 toast.success('Workflow executed successfully!', { id: toastId });
             }

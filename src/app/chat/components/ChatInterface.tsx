@@ -307,7 +307,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
                     }
                 } else {
                     try {
-                        const workflowData = await loadWorkflow(workflow.name);
+                        const workflowData = await loadWorkflow(workflow.name, workflow.user_id);
                         actions.setWorkflowDetail(workflowData);
                         localStorage.setItem('workflowContentDetail', JSON.stringify(workflowData));
                         devLog.log('Successfully loaded workflow content detail:', workflowData);

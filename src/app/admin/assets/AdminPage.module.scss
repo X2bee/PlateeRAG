@@ -96,6 +96,13 @@
     background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
     color: $white;
 
+    .headerTop {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
     .logoButton {
         background: none;
         border: none;
@@ -108,7 +115,6 @@
         display: flex;
         align-items: center;
         gap: 0.1rem;
-        margin-bottom: 0.5rem;
 
         &:hover {
             opacity: 0.9;
@@ -120,6 +126,35 @@
             margin: 0;
             pointer-events: none;
             transform: translateY(1px) translateX(-2px);
+        }
+    }
+
+    .chatButton {
+        background: rgba($white, 0.1);
+        border: 1px solid rgba($white, 0.2);
+        color: $white;
+        border-radius: 6px;
+        padding: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+            background: rgba($white, 0.2);
+            border-color: rgba($white, 0.3);
+            transform: translateY(-1px);
+
+            svg {
+                animation: pulse 1s ease-in-out infinite;
+            }
+        }
+
+        svg {
+            width: 1rem;
+            height: 1rem;
+            transition: transform 0.2s ease;
         }
     }
 }
@@ -341,6 +376,15 @@
 
     100% {
         transform: rotate(360deg);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
     }
 }
 
