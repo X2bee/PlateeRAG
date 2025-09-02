@@ -37,6 +37,7 @@ const AdminWorkflowLogsContent: React.FC = () => {
     const [currentUserId, setCurrentUserId] = useState<number | null>(null);
     const [sortField, setSortField] = useState<keyof WorkflowLog>('created_at');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+    const [modeSortOrder, setModeSortOrder] = useState<'deploy' | 'production' | 'test'>('deploy'); // 모드 정렬 우선순위
     const [currentPage, setCurrentPage] = useState(1);
     const [pagination, setPagination] = useState<PaginationInfo | null>(null);
     const [hasNextPage, setHasNextPage] = useState(false);
@@ -47,23 +48,83 @@ const AdminWorkflowLogsContent: React.FC = () => {
     const parseActualOutput = (output: string | null | undefined): string => {
         if (!output) return '';
 
-        let cleanedOutput = output;
+        // output을 적절한 형태로 변환
+        let processedOutput = convertOutputToString(output);
 
-        cleanedOutput = cleanedOutput.replace(/<think>[\s\S]*?<\/think>/gi, '');
+        // 이미 문자열로 변환된 결과에서 태그 제거
+        processedOutput = processedOutput.replace(/<think>[\s\S]*?<\/think>/gi, '');
 
-        if (cleanedOutput.includes('<TOOLUSELOG>') && cleanedOutput.includes('</TOOLUSELOG>')) {
-            cleanedOutput = cleanedOutput.replace(/<TOOLUSELOG>[\s\S]*?<\/TOOLUSELOG>/g, '');
+        if (processedOutput.includes('<TOOLUSELOG>') && processedOutput.includes('</TOOLUSELOG>')) {
+            processedOutput = processedOutput.replace(/<TOOLUSELOG>[\s\S]*?<\/TOOLUSELOG>/g, '');
         }
 
-        if (cleanedOutput.includes('<TOOLOUTPUTLOG>') && cleanedOutput.includes('</TOOLOUTPUTLOG>')) {
-            cleanedOutput = cleanedOutput.replace(/<TOOLOUTPUTLOG>[\s\S]*?<\/TOOLOUTPUTLOG>/g, '');
+        if (processedOutput.includes('<TOOLOUTPUTLOG>') && processedOutput.includes('</TOOLOUTPUTLOG>')) {
+            processedOutput = processedOutput.replace(/<TOOLOUTPUTLOG>[\s\S]*?<\/TOOLOUTPUTLOG>/g, '');
         }
 
-        if (cleanedOutput.includes('[Cite.') && cleanedOutput.includes('}]')) {
-            cleanedOutput = cleanedOutput.replace(/\[Cite\.\s*\{[\s\S]*?\}\]/g, '');
+        if (processedOutput.includes('[Cite.') && processedOutput.includes('}]')) {
+            processedOutput = processedOutput.replace(/\[Cite\.\s*\{[\s\S]*?\}\]/g, '');
         }
 
-        return cleanedOutput.trim();
+        return processedOutput.trim();
+    };
+
+    // ChatParserNonStr 로직을 적용한 변환 함수
+    const convertOutputToString = (data: any): string => {
+        // null이나 undefined인 경우
+        if (data === null || data === undefined) {
+            return '';
+        }
+
+        // 이미 문자열인 경우
+        if (typeof data === 'string') {
+            // JSON 문자열인지 확인 (객체나 배열 형태)
+            if (isJsonString(data)) {
+                try {
+                    // JSON 파싱 후 다시 보기 좋게 포맷팅
+                    const parsed = JSON.parse(data);
+                    return JSON.stringify(parsed, null, 2);
+                } catch (error) {
+                    return data;
+                }
+            }
+            return data;
+        }
+
+        // 숫자나 불린값인 경우
+        if (typeof data === 'number' || typeof data === 'boolean') {
+            return String(data);
+        }
+
+        // 배열이나 객체인 경우 JSON 형태로 변환
+        if (Array.isArray(data) || (typeof data === 'object' && data !== null)) {
+            try {
+                return JSON.stringify(data, null, 2);
+            } catch (error) {
+                return String(data);
+            }
+        }
+
+        // 기타 경우 문자열로 변환
+        return String(data);
+    };
+
+    // 문자열이 JSON 형태인지 확인
+    const isJsonString = (str: string): boolean => {
+        try {
+            const trimmed = str.trim();
+            if (!trimmed) return false;
+
+            // JSON 객체나 배열로 시작하는지 확인
+            if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+                (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+                JSON.parse(trimmed);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            return false;
+        }
     };
 
     // 로그 데이터 로드
@@ -200,8 +261,30 @@ const AdminWorkflowLogsContent: React.FC = () => {
                userId.includes(searchLower);
     });
 
+    // 모드 정렬을 위한 우선순위 함수
+    const getModePriority = (log: WorkflowLog): number => {
+        const isDeployMode = log.interaction_id?.toLowerCase().startsWith('deploy');
+        const isTestMode = log.test_mode;
+
+        if (isDeployMode) {
+            return modeSortOrder === 'deploy' ? 0 : modeSortOrder === 'production' ? 2 : 1;
+        } else if (isTestMode) {
+            return modeSortOrder === 'test' ? 0 : modeSortOrder === 'deploy' ? 2 : 1;
+        } else {
+            // 운영 모드
+            return modeSortOrder === 'production' ? 0 : modeSortOrder === 'test' ? 2 : 1;
+        }
+    };
+
     // 정렬 (검색이 활성화된 경우에만 클라이언트 정렬 적용)
     const sortedLogs = searchTerm ? [...filteredLogs].sort((a, b) => {
+        if (sortField === 'test_mode') {
+            // 모드 컬럼의 경우 우선순위 정렬
+            const aPriority = getModePriority(a);
+            const bPriority = getModePriority(b);
+            return aPriority - bPriority;
+        }
+
         const aValue = a[sortField];
         const bValue = b[sortField];
 
@@ -216,6 +299,13 @@ const AdminWorkflowLogsContent: React.FC = () => {
         const comparison = aValue < bValue ? -1 : 1;
         return sortDirection === 'asc' ? comparison : -comparison;
     }) : [...logs].sort((a, b) => {
+        if (sortField === 'test_mode') {
+            // 모드 컬럼의 경우 우선순위 정렬
+            const aPriority = getModePriority(a);
+            const bPriority = getModePriority(b);
+            return aPriority - bPriority;
+        }
+
         const aValue = a[sortField];
         const bValue = b[sortField];
 
@@ -236,11 +326,22 @@ const AdminWorkflowLogsContent: React.FC = () => {
 
     // 정렬 핸들러
     const handleSort = (field: keyof WorkflowLog) => {
-        if (sortField === field) {
-            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-        } else {
+        if (field === 'test_mode') {
+            // 모드 컬럼의 경우 특별한 우선순위 정렬
+            const nextOrder = modeSortOrder === 'deploy' ? 'production' :
+                             modeSortOrder === 'production' ? 'test' : 'deploy';
+            setModeSortOrder(nextOrder);
             setSortField(field);
+            // 방향은 항상 asc로 설정 (우선순위 기반이므로)
             setSortDirection('asc');
+        } else {
+            // 다른 컬럼의 경우 기존 로직
+            if (sortField === field) {
+                setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+            } else {
+                setSortField(field);
+                setSortDirection('asc');
+            }
         }
     };
 
@@ -263,11 +364,22 @@ const AdminWorkflowLogsContent: React.FC = () => {
     };
 
     // 테스트 모드 배지 렌더링
-    const renderTestModeBadge = (testMode: boolean) => (
-        <span className={`${styles.badge} ${testMode ? styles.badgeTest : styles.badgeProduction}`}>
-            {testMode ? '테스트' : '운영'}
-        </span>
-    );
+    const renderTestModeBadge = (testMode: boolean, interactionId: string) => {
+        // 상호작용 ID가 deploy로 시작하는 경우 배포 모드로 표시
+        if (interactionId?.toLowerCase().startsWith('deploy')) {
+            return (
+                <span className={`${styles.badge} ${styles.badgeDeploy}`}>
+                    배포
+                </span>
+            );
+        }
+
+        return (
+            <span className={`${styles.badge} ${testMode ? styles.badgeTest : styles.badgeProduction}`}>
+                {testMode ? '테스트' : '운영'}
+            </span>
+        );
+    };
 
     // 데이터 미리보기 (긴 텍스트 줄이기)
     const truncateText = (text: string | null, maxLength = 50) => {
@@ -280,7 +392,8 @@ const AdminWorkflowLogsContent: React.FC = () => {
         if (showProcessedOutput) {
             return parseActualOutput(outputData);
         }
-        return outputData;
+        // 원본 출력도 같은 변환 로직 적용
+        return convertOutputToString(outputData);
     };
 
     if (loading) {
@@ -492,11 +605,6 @@ const AdminWorkflowLogsContent: React.FC = () => {
                                 onClick={() => handleSort('test_mode')}
                             >
                                 모드
-                                {sortField === 'test_mode' && (
-                                    <span className={styles.sortIcon}>
-                                        {sortDirection === 'asc' ? '↑' : '↓'}
-                                    </span>
-                                )}
                             </th>
                             <th
                                 className={styles.sortable}
@@ -541,7 +649,7 @@ const AdminWorkflowLogsContent: React.FC = () => {
                                     <td className={styles.score}>
                                         {log.user_score}
                                     </td>
-                                    <td>{renderTestModeBadge(log.test_mode)}</td>
+                                    <td>{renderTestModeBadge(log.test_mode, log.interaction_id)}</td>
                                     <td>{formatDate(log.created_at)}</td>
                                 </tr>
                             ))

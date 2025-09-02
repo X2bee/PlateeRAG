@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/AdminUserEditModal.module.scss';
 
@@ -201,7 +202,7 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
         return null;
     }
 
-    return (
+    const modalContent = (
         <div className={styles.modalOverlay} onClick={onClose}>
             <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
                 <div className={styles.modalHeader}>
@@ -395,6 +396,8 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };
 
 export default AdminUserEditModal;
