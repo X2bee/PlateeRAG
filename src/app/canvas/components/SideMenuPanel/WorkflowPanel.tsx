@@ -7,6 +7,12 @@ import { LuArrowLeft, LuFolderOpen, LuDownload, LuRefreshCw, LuCalendar, LuTrash
 import { listWorkflows, loadWorkflow, deleteWorkflow } from '@/app/api/workflow/workflowAPI';
 import { getWorkflowState } from '@/app/_common/utils/workflowStorage';
 import { devLog } from '@/app/_common/utils/logger';
+import {
+    showWorkflowDeleteConfirm,
+    showDeleteSuccessToast,
+    showDeleteErrorToast,
+    showWarningConfirmToast
+} from '@/app/_common/utils/toastUtils';
 import type {
     WorkflowData,
     WorkflowState,
@@ -15,7 +21,7 @@ import type {
 
 const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport, onLoadWorkflow }) => {
     const [workflows, setWorkflows] = useState<string[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(false); // 초기값을 false로 변경
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
@@ -53,74 +59,15 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
         if (hasCurrentWorkflow) {
             const workflowName = getWorkflowDisplayName(filename);
 
-            const confirmToast = toast(
-                (t) => (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <div style={{ fontWeight: '600', color: '#f59e0b', fontSize: '1rem' }}>
-                            Load Workflow
-                        </div>
-                        <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.4' }}>
-                            You have an existing workflow with unsaved changes.
-                            <br />
-                            Loading &quot;<strong>{workflowName}</strong>&quot; will replace your current work.
-                        </div>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
-                            <button
-                                onClick={() => {
-                                    toast.dismiss(t.id);
-                                }}
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: '#ffffff',
-                                    border: '2px solid #6b7280',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem',
-                                    fontWeight: '500',
-                                    color: '#374151',
-                                    transition: 'all 0.2s ease',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={async () => {
-                                    toast.dismiss(t.id);
-                                    await performLoadWorkflow(filename);
-                                }}
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: '#f59e0b',
-                                    color: 'white',
-                                    border: '2px solid #d97706',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem',
-                                    fontWeight: '500',
-                                    transition: 'all 0.2s ease',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                }}
-                            >
-                                Load Anyway
-                            </button>
-                        </div>
-                    </div>
-                ),
-                {
-                    duration: Infinity,
-                    style: {
-                        maxWidth: '420px',
-                        padding: '20px',
-                        backgroundColor: '#f9fafb',
-                        border: '2px solid #374151',
-                        borderRadius: '12px',
-                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
-                        color: '#374151',
-                        fontFamily: 'system-ui, -apple-system, sans-serif'
-                    }
-                }
-            );
+            showWarningConfirmToast({
+                title: 'Load Workflow',
+                message: `You have an existing workflow with unsaved changes.\nLoading "${workflowName}" will replace your current work.`,
+                onConfirm: async () => {
+                    await performLoadWorkflow(filename);
+                },
+                confirmText: 'Load Anyway',
+                cancelText: 'Cancel',
+            });
         } else {
             await performLoadWorkflow(filename);
         }
@@ -145,72 +92,10 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
     const handleDeleteWorkflow = async (filename: string): Promise<void> => {
         const workflowName = getWorkflowDisplayName(filename);
 
-        const confirmToast = toast(
-            (t) => (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div style={{ fontWeight: '600', color: '#dc3545', fontSize: '1rem' }}>
-                        Delete Workflow
-                    </div>
-                    <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.4' }}>
-                        Are you sure you want to delete &quot;<strong>{workflowName}</strong>&quot;?
-                        <br />
-                        This action cannot be undone.
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
-                        <button
-                            onClick={() => {
-                                toast.dismiss(t.id);
-                            }}
-                            style={{
-                                padding: '8px 16px',
-                                backgroundColor: '#ffffff',
-                                border: '2px solid #6b7280',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '0.85rem',
-                                fontWeight: '500',
-                                color: '#374151',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                            }}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={async () => {
-                                toast.dismiss(t.id);
-                                await performDelete(filename, workflowName);
-                            }}
-                            style={{
-                                padding: '8px 16px',
-                                backgroundColor: '#dc3545',
-                                color: 'white',
-                                border: '2px solid #b02a37',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '0.85rem',
-                                fontWeight: '500',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                            }}
-                        >
-                            Delete
-                        </button>
-                    </div>
-                </div>
-            ),
-            {
-                duration: Infinity,
-                style: {
-                    maxWidth: '420px',
-                    padding: '20px',
-                    backgroundColor: '#f9fafb',
-                    border: '2px solid #374151',
-                    borderRadius: '12px',
-                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
-                    color: '#374151',
-                    fontFamily: 'system-ui, -apple-system, sans-serif'
-                }
+        showWorkflowDeleteConfirm(
+            workflowName,
+            async () => {
+                await performDelete(filename, workflowName);
             }
         );
     };
@@ -221,14 +106,23 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
         try {
             const workflowId = filename.replace('.json', '');
             await deleteWorkflow(workflowId);
-
             await fetchWorkflows();
 
-            toast.success(`Workflow "${workflowName}" deleted successfully!`, { id: toastId });
+            toast.dismiss(toastId);
+            showDeleteSuccessToast({
+                itemName: workflowName,
+                itemType: 'workflow',
+            });
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
             devLog.error("Failed to delete workflow:", error);
-            toast.error(`Failed to delete workflow: ${errorMessage}`, { id: toastId });
+
+            toast.dismiss(toastId);
+            showDeleteErrorToast({
+                itemName: workflowName,
+                itemType: 'workflow',
+                error: errorMessage,
+            });
         }
     };
 

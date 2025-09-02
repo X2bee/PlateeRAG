@@ -13,6 +13,11 @@ import {
 } from '@/app/api/workflow/workflowAPI';
 import toast from 'react-hot-toast';
 import styles from '@/app/admin/assets/playground/Executor.module.scss';
+import {
+    showLogDeleteConfirm,
+    showDeleteSuccessToast,
+    showDeleteErrorToast
+} from '@/app/_common/utils/toastUtils';
 
 interface Workflow {
     workflow_name: string;
@@ -102,125 +107,44 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
 
         const workflowName = selectedWorkflow.workflow_name.replace('.json', '');
 
-        const confirmToast = toast(
-            (t) => (
-                <div
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '12px',
-                    }}
-                >
-                    <div
-                        style={{
-                            fontWeight: '600',
-                            color: '#dc2626',
-                            fontSize: '1rem',
-                        }}
-                    >
-                        실행 로그 삭제
-                    </div>
-                    <div
-                        style={{
-                            fontSize: '0.9rem',
-                            color: '#374151',
-                            lineHeight: '1.4',
-                        }}
-                    >
-                        <strong>{workflowName}</strong> 워크플로우의 모든 실행 로그를 삭제하시겠습니까?
-                        <br />
-                        이 작업은 되돌릴 수 없습니다.
-                    </div>
-                    <div
-                        style={{
-                            display: 'flex',
-                            gap: '8px',
-                            justifyContent: 'flex-end',
-                            marginTop: '4px',
-                        }}
-                    >
-                        <button
-                            onClick={() => {
-                                toast.dismiss(t.id);
-                            }}
-                            style={{
-                                padding: '8px 16px',
-                                backgroundColor: '#ffffff',
-                                border: '2px solid #6b7280',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '0.85rem',
-                                fontWeight: '500',
-                                color: '#374151',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                            }}
-                        >
-                            취소
-                        </button>
-                        <button
-                            onClick={async () => {
-                                toast.dismiss(t.id);
-                                try {
-                                    setDeletingLogs(true);
-                                    setError(null);
+        showLogDeleteConfirm(
+            'Execution Logs',
+            workflowName,
+            async () => {
+                try {
+                    setDeletingLogs(true);
+                    setError(null);
 
-                                    const result = await deleteWorkflowIOLogs(
-                                        workflowName,
-                                        selectedWorkflow.workflow_id
-                                    );
+                    const result = await deleteWorkflowIOLogs(
+                        workflowName,
+                        selectedWorkflow.workflow_id
+                    );
 
-                                    // 성공 시 로그 목록 초기화
-                                    setIOLogs([]);
-                                    setPendingLogId(null);
+                    // 성공 시 로그 목록 초기화
+                    setIOLogs([]);
+                    setPendingLogId(null);
 
-                                    // 성공 토스트 메시지
-                                    const deletedCount = (result as any).deleted_count || 0;
-                                    toast.success(
-                                        `"${workflowName}" 워크플로우의 실행 로그가 성공적으로 삭제되었습니다! (${deletedCount}개 로그 제거됨)`,
-                                    );
-                                } catch (error) {
-                                    console.error('Failed to delete logs:', error);
-                                    setError('로그 삭제에 실패했습니다.');
-                                    toast.error(
-                                        `실행 로그 삭제에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-                                    );
-                                } finally {
-                                    setDeletingLogs(false);
-                                }
-                            }}
-                            style={{
-                                padding: '8px 16px',
-                                backgroundColor: '#dc2626',
-                                color: 'white',
-                                border: '2px solid #b91c1c',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '0.85rem',
-                                fontWeight: '500',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                            }}
-                        >
-                            삭제
-                        </button>
-                    </div>
-                </div>
-            ),
-            {
-                duration: Infinity,
-                style: {
-                    maxWidth: '420px',
-                    padding: '20px',
-                    backgroundColor: '#f9fafb',
-                    border: '2px solid #374151',
-                    borderRadius: '12px',
-                    boxShadow:
-                        '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
-                    color: '#374151',
-                    fontFamily: 'system-ui, -apple-system, sans-serif',
-                },
-            },
+                    // 성공 토스트 메시지
+                    const deletedCount = (result as any).deleted_count || 0;
+                    showDeleteSuccessToast({
+                        itemName: workflowName,
+                        itemType: 'execution logs',
+                        count: deletedCount,
+                        customMessage: `"${workflowName}" 워크플로우의 실행 로그가 성공적으로 삭제되었습니다! (${deletedCount}개 로그 제거됨)`,
+                    });
+                } catch (error) {
+                    console.error('Failed to delete logs:', error);
+                    setError('로그 삭제에 실패했습니다.');
+                    showDeleteErrorToast({
+                        itemName: workflowName,
+                        itemType: 'execution logs',
+                        error: error instanceof Error ? error : 'Unknown error',
+                        customMessage: `실행 로그 삭제에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+                    });
+                } finally {
+                    setDeletingLogs(false);
+                }
+            }
         );
     };
 

@@ -106,7 +106,7 @@
     flex-direction: column;
     overflow: hidden;
     height: 100%;
-    
+
     &.collapsed {
         display: none;
     }
@@ -211,7 +211,7 @@
     flex-direction: column;
     gap: 0.75rem;
     transition: height 0.2s ease-out;
-    
+
     /* LaTeX 렌더링 시 높이 변화에 대한 부드러운 전환 */
     .messageContent {
         transition: height 0.15s ease-out, min-height 0.15s ease-out;
@@ -859,6 +859,7 @@
     cursor: pointer;
     font-size: 0.875rem;
     font-weight: 500;
+    margin-left: 1rem;
     transition: all 0.2s ease;
 
     &:hover {

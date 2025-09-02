@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import type { EvaluationJob } from '@/app/model/components/types';
-import { 
-  formatDate, 
-  getStatusBadgeClass, 
-  getStatusText, 
-  calculateDetailScore, 
-  hasBaseModelResult 
+import {
+  formatDate,
+  getStatusBadgeClass,
+  getStatusText,
+  calculateDetailScore,
+  hasBaseModelResult
 } from '@/app/model/components/Eval/utils/eval';
 // import { deleteEvaluationJob } from '@/app/api/evalAPI'; // 가짜로 교체
 import styles from '@/app/model/assets/JobDetailModal.module.scss';
@@ -70,7 +71,7 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({
     }
     // ==================== FAKE DELETE END ====================
 
-    /* 
+    /*
     // ==================== REAL DELETE START ====================
     // TODO: 실제 API 연동 시 이 주석을 해제하고 위의 FAKE 부분 삭제
     try {
@@ -112,7 +113,7 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({
 
   if (!show || !job) return null;
 
-  return (
+  const modalContent = (
     <div className={styles.backdrop} onClick={handleBackdropClick}>
       <div className={styles.modal}>
         <div className={styles.header}>
@@ -133,7 +134,7 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({
             </svg>
           </button>
         </div>
-        
+
         {loading ? (
           <div className={styles.loadingContainer}>
             <div className={styles.loadingSpinner} />
@@ -152,7 +153,7 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({
                   <span className={styles.infoLabel}>평가 타입:</span>
                   <span className={styles.infoValue}>{job.job_info.task}</span>
                 </div>
-                
+
                 {/* Base Model 정보 (있는 경우에만 표시) */}
                 {job.job_info.base_model && (
                   <div className={`${styles.infoItem} ${styles.fullWidth}`}>
@@ -160,7 +161,7 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({
                     <span className={styles.infoValue}>{job.job_info.base_model}</span>
                   </div>
                 )}
-                
+
                 {job.job_info.dataset_name && (
                   <div className={`${styles.infoItem} ${styles.fullWidth}`}>
                     <span className={styles.infoLabel}>
@@ -169,12 +170,12 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({
                     <span className={styles.infoValue}>{job.job_info.dataset_name}</span>
                   </div>
                 )}
-                
+
                 <div className={styles.infoItem}>
                   <span className={styles.infoLabel}>GPU 수:</span>
                   <span className={styles.infoValue}>{job.job_info.gpu_num || 1}</span>
                 </div>
-                
+
                 {job.job_info.top_k !== undefined && (
                   <div className={styles.infoItem}>
                     <span className={styles.infoLabel}>Top K:</span>
@@ -216,7 +217,7 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({
                 </div>
               </div>
             )}
-            
+
             {/* 실행 정보 */}
             <div className={styles.section}>
               <h3 className={styles.sectionTitle}>실행 정보</h3>
@@ -231,12 +232,12 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({
                 </div>
               </div>
             </div>
-            
+
             {/* 평가 결과 */}
             {job.status === 'completed' && job.result && (
               <div className={styles.section}>
                 <h3 className={styles.sectionTitle}>평가 결과</h3>
-                
+
                 {/* Main Model 결과 */}
                 <div className={styles.resultSection}>
                   <h4 className={styles.resultTitle}>Main Model 결과</h4>
@@ -335,7 +336,7 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({
                         )}
               </div>
             )}
-            
+
             {/* 오류 정보 */}
             {job.error && (
               <div className={styles.section}>
@@ -365,9 +366,9 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({
             )}
           </div>
         )}
-        
+
         <div className={styles.footer}>
-          <button 
+          <button
             onClick={handleDelete}
             disabled={deleting}
             className={`${styles.button} ${styles.deleteButton}`}
@@ -381,9 +382,9 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({
             )}
             삭제
           </button>
-          
-          <button 
-            onClick={onClose} 
+
+          <button
+            onClick={onClose}
             className={`${styles.button} ${styles.closeModalButton}`}
           >
             닫기
@@ -392,6 +393,8 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default JobDetailModal;

@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import styles from '@/app/model/assets/Train.module.scss';
 import ModelStorageModal from '@/app/model/components/Train/ModelStorageModal';
-import useSidebarManager from '@/app/_common/hooks/useSidebarManager';
 
 interface ModelConfig {
     model_load_method: string;
@@ -32,8 +31,6 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
 }) => {
     const [isModelModalOpen, setIsModelModalOpen] = useState(false);
     const [isRefModelModalOpen, setIsRefModelModalOpen] = useState(false);
-
-    useSidebarManager(isModelModalOpen||isRefModelModalOpen)
 
     const handleOpenModelModal = () => {
         setIsModelModalOpen(true);

@@ -11,21 +11,65 @@ const ToastProvider = () => {
                     background: '#333',
                     color: '#fff',
                     borderRadius: '10px',
+                    fontFamily: 'system-ui, -apple-system, sans-serif',
                 },
                 success: {
                     duration: 3000,
                     iconTheme: {
-                        primary: '#4caf50',
+                        primary: '#10b981',
                         secondary: '#fff',
+                    },
+                    style: {
+                        background: '#ffffff',
+                        color: '#374151',
+                        border: '2px solid #10b981',
+                        borderRadius: '10px',
+                        fontWeight: '500',
+                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)',
                     },
                 },
                 error: {
-                    duration: 4000,
+                    style: {
+                        background: '#ffffff',
+                        color: '#374151',
+                        border: '2px solid #ef4444',
+                        borderRadius: '10px',
+                        fontWeight: '500',
+                        fontFamily: 'system-ui, -apple-system, sans-serif',
+                        boxShadow: '0 4px 12px rgba(239, 68, 68, 0.15)',
+                    },
                     iconTheme: {
-                        primary: '#f44336',
+                        primary: '#ef4444',
                         secondary: '#fff',
-                    }
-                }
+                    },
+                },
+                loading: {
+                    style: {
+                        background: '#6b7280',
+                        color: '#fff',
+                        fontWeight: '500',
+                    },
+                },
+                // 경고 토스트용 스타일
+                blank: {
+                    style: {
+                        background: '#f59e0b',
+                        color: '#fff',
+                        fontWeight: '500',
+                    },
+                },
+                // 커스텀 삭제 확인 토스트용 스타일
+                custom: {
+                    style: {
+                        background: '#f9fafb',
+                        color: '#374151',
+                        border: '2px solid #374151',
+                        borderRadius: '12px',
+                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
+                        maxWidth: '420px',
+                        padding: '20px',
+                    },
+                },
             }}
         />
     );

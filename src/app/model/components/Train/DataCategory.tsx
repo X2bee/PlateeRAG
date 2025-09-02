@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import styles from '@/app/model/assets/Train.module.scss';
 import DataStorageModal from '@/app/model/components/Train/DataStorageModal';
-import useSidebarManager from '@/app/_common/hooks/useSidebarManager';
 
 interface DataConfig {
     dataset_load_method: string;
@@ -32,8 +31,6 @@ const DataCategory: React.FC<DataCategoryProps> = ({
 }) => {
     const [isTrainDataModalOpen, setIsTrainDataModalOpen] = useState(false);
     const [isTestDataModalOpen, setIsTestDataModalOpen] = useState(false);
-
-    useSidebarManager(isTrainDataModalOpen||isTestDataModalOpen)
 
     const handleOpenTrainDataModal = () => {
         setIsTrainDataModalOpen(true);

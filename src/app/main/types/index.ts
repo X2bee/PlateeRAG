@@ -18,7 +18,6 @@ export interface SidebarProps {
     onItemClick: (itemId: string) => void;
     className?: string;
     initialChatExpanded?: boolean;
-    initialSettingExpanded?: boolean;
     initialWorkflowExpanded?: boolean;
     initialTrainExpanded?: boolean;
 }

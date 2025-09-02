@@ -22,17 +22,14 @@ import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<Side
     onItemClick,
     className = '',
     initialChatExpanded = false,
-    initialSettingExpanded = false,
     initialWorkflowExpanded = false,
     initialTrainExpanded = false,
 }) => {
     const router = useRouter();
-    const [isSettingExpanded, setIsSettingExpanded] = useState(initialSettingExpanded);
     const [isChatExpanded, setIsChatExpanded] = useState(initialChatExpanded);
     const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(initialWorkflowExpanded);
     const [isTrainExpanded, setIsTrainExpanded] = useState(initialTrainExpanded);
 
-    // CookieProvider의 useAuth 훅 사용 (AuthGuard에서 이미 인증 검증을 수행하므로 refreshAuth 호출 불필요)
     const { user, isAuthenticated, hasAccessToSection, isInitialized } = useAuth();
     const { quickLogout } = useQuickLogout();
 
@@ -47,7 +44,7 @@ import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<Side
             };
         }
 
-        const chatItems = getChatSidebarItems(); // 채팅은 모든 사용자 접근 가능
+        const chatItems = getChatSidebarItems();
         const workflowItems = getFilteredWorkflowSidebarItems(hasAccessToSection);
         const trainItems = getFilteredTrainSidebarItems(hasAccessToSection);
 
@@ -84,7 +81,6 @@ import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<Side
         }
     };
 
-    const toggleExpanded = () => setIsSettingExpanded(!isSettingExpanded);
     const toggleChatExpanded = () => setIsChatExpanded(!isChatExpanded);
     const toggleWorkflowExpanded = () => setIsWorkflowExpanded(!isWorkflowExpanded);
     const toggleTrainExpanded = () => setIsTrainExpanded(!isTrainExpanded);

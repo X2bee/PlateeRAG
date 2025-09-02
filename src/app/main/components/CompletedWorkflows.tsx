@@ -12,8 +12,12 @@ import {
 import styles from '@/app/main/assets/CompletedWorkflows.module.scss';
 import { listWorkflowsDetail, deleteWorkflow } from '@/app/api/workflow/workflowAPI';
 import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
 import { Workflow, WorkflowDetailResponse } from '@/app/main/types/index';
+import {
+    showWorkflowDeleteConfirm,
+    showDeleteSuccessToast,
+    showDeleteErrorToast
+} from '@/app/_common/utils/toastUtils';
 
 const CompletedWorkflows: React.FC = () => {
     const router = useRouter();
@@ -116,114 +120,25 @@ const CompletedWorkflows: React.FC = () => {
 
     // Handle workflow deletion with Toast confirmation
     const handleDelete = (workflow: Workflow) => {
-        const confirmToast = toast(
-            (t) => (
-                <div
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '12px',
-                    }}
-                >
-                    <div
-                        style={{
-                            fontWeight: '600',
-                            color: '#dc2626',
-                            fontSize: '1rem',
-                        }}
-                    >
-                        Delete Workflow
-                    </div>
-                    <div
-                        style={{
-                            fontSize: '0.9rem',
-                            color: '#374151',
-                            lineHeight: '1.4',
-                        }}
-                    >
-                        Are you sure you want to delete &quot;
-                        <strong>{workflow.name}</strong>&quot;?
-                        <br />
-                        This action cannot be undone.
-                    </div>
-                    <div
-                        style={{
-                            display: 'flex',
-                            gap: '8px',
-                            justifyContent: 'flex-end',
-                            marginTop: '4px',
-                        }}
-                    >
-                        <button
-                            onClick={() => {
-                                toast.dismiss(t.id);
-                            }}
-                            style={{
-                                padding: '8px 16px',
-                                backgroundColor: '#ffffff',
-                                border: '2px solid #6b7280',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '0.85rem',
-                                fontWeight: '500',
-                                color: '#374151',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                            }}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={async () => {
-                                toast.dismiss(t.id);
-                                try {
-                                    await deleteWorkflow(workflow.name);
-                                    toast.success(
-                                        `Workflow "${workflow.name}" deleted successfully!`,
-                                    );
-                                    fetchWorkflows(); // 목록 새로고침
-                                } catch (error) {
-                                    console.error(
-                                        'Failed to delete workflow:',
-                                        error,
-                                    );
-                                    toast.error(
-                                        `Failed to delete workflow: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                                    );
-                                }
-                            }}
-                            style={{
-                                padding: '8px 16px',
-                                backgroundColor: '#dc2626',
-                                color: 'white',
-                                border: '2px solid #b91c1c',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '0.85rem',
-                                fontWeight: '500',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                            }}
-                        >
-                            Delete
-                        </button>
-                    </div>
-                </div>
-            ),
-            {
-                duration: Infinity,
-                style: {
-                    maxWidth: '420px',
-                    padding: '20px',
-                    backgroundColor: '#f9fafb',
-                    border: '2px solid #374151',
-                    borderRadius: '12px',
-                    boxShadow:
-                        '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
-                    color: '#374151',
-                    fontFamily: 'system-ui, -apple-system, sans-serif',
-                },
-            },
+        showWorkflowDeleteConfirm(
+            workflow.name,
+            async () => {
+                try {
+                    await deleteWorkflow(workflow.name);
+                    showDeleteSuccessToast({
+                        itemName: workflow.name,
+                        itemType: 'workflow',
+                    });
+                    fetchWorkflows(); // 목록 새로고침
+                } catch (error) {
+                    console.error('Failed to delete workflow:', error);
+                    showDeleteErrorToast({
+                        itemName: workflow.name,
+                        itemType: 'workflow',
+                        error: error instanceof Error ? error : 'Unknown error',
+                    });
+                }
+            }
         );
     };
 

@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { FiX, FiMessageSquare } from 'react-icons/fi';
 import { getWorkflowIOLogs } from '@/app/api/workflow/workflowAPI';
 import { MessageRenderer } from '@/app/_common/components/chatParser/ChatParser';
@@ -95,7 +96,7 @@ const HistoryModal: React.FC<HistoryModalProps> = ({
 
     if (!isOpen) return null;
 
-    return (
+    const modalContent = (
         <div className={styles.modalOverlay} onClick={onClose}>
             <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                 <div className={styles.modalHeader}>
@@ -165,6 +166,8 @@ const HistoryModal: React.FC<HistoryModalProps> = ({
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };
 
 export default HistoryModal;

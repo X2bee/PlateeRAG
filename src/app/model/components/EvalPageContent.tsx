@@ -15,7 +15,6 @@ import EvaluationTable from '@/app/model/components/Eval/EvaluationTable';
 import ModelStorageModal from '@/app/model/components/Train/ModelStorageModal'; // 추가
 
 import styles from '@/app/model/assets/Eval.module.scss';
-import useSidebarManager from '@/app/_common/hooks/useSidebarManager';
 
 export const DEFAULT_TASKS = [
     'global_mmlu_ko',
@@ -124,8 +123,6 @@ const Evaluation = () => {
       }, delay);
     }
   }, []);
-
-  useSidebarManager(isModelStorageModalOpen||showTaskSelector||showJobDetails)
 
   // 평가 작업 필터링
   useEffect(() => {

@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState, Children, isValidElement, ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
 import { Prism } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -5,7 +7,6 @@ import { FiCode, FiExternalLink, FiX, FiTerminal, FiCopy, FiShare2 } from 'react
 import { SiPython, SiJavascript } from "react-icons/si";
 import toast from 'react-hot-toast';
 import { Workflow } from './types';
-import { useEffect, useRef, useState, Children, isValidElement, ReactNode } from 'react';
 import { getAuthCookie } from '@/app/_common/utils/cookieUtils';
 import { createEncryptedUrlParams } from '@/app/_common/utils/urlEncryption';
 
@@ -301,7 +302,9 @@ ${formatOutputSchemaForCode(outputSchema, 1)}
         );
     };
 
-    return (
+    if (!isOpen) return null;
+
+    const modalContent = (
         <div
             className={styles.deploymentModalBackdrop}
             role="button"
@@ -481,4 +484,6 @@ ${formatOutputSchemaForCode(outputSchema, 1)}
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };
