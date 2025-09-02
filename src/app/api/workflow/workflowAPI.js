@@ -135,6 +135,48 @@ export const loadWorkflow = async (workflowId, user_id) => {
 };
 
 /**
+ * 백엔드에서 특정 워크플로우를 복제합니다.
+ * @param {string} workflowId - 복제할 워크플로우 ID
+ * @param {string|number} user_id - 원본 워크플로우의 사용자 ID
+ * @returns {Promise<Object>} 복제 결과 객체를 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const duplicateWorkflow = async (workflowId, user_id) => {
+    try {
+        devLog.log('Duplicating workflow with ID:', workflowId);
+        devLog.log('Original user ID:', user_id);
+
+        const response = await apiClient(
+            `${API_BASE_URL}/api/workflow/duplicate/${encodeURIComponent(workflowId)}?user_id=${user_id}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        devLog.log('Workflow duplicate response status:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            devLog.error('Workflow duplicate error data:', errorData);
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
+        }
+
+        const result = await response.json();
+        devLog.log('Successfully duplicated workflow:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to duplicate workflow:', error);
+        devLog.error('Workflow ID that failed:', workflowId);
+        throw error;
+    }
+};
+
+/**
  * 백엔드에서 특정 워크플로우를 삭제합니다.
  * @param {string} workflowId - 삭제할 워크플로우 ID (.json 확장자 제외)
  * @returns {Promise<Object>} 삭제 결과 객체를 포함하는 프로미스

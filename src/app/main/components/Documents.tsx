@@ -26,9 +26,15 @@ import {
     getDocumentDetailEdges,
     getAllDocumentDetailMeta,
     getAllDocumentDetailEdges,
+    deleteCollection,
 } from '@/app/api/rag/retrievalAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useDocumentFileModal } from '@/app/_common/contexts/DocumentFileModalContext';
+import {
+    showDeleteConfirmToastKo,
+    showDeleteSuccessToastKo,
+    showDeleteErrorToastKo
+} from '@/app/_common/utils/toastUtilsKo';
 
 import {
     Collection,
@@ -67,9 +73,7 @@ const Documents: React.FC = () => {
 
     // 모달 상태
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [collectionToDelete, setCollectionToDelete] = useState<Collection | null>(null);
     const [collectionToEdit, setCollectionToEdit] = useState<Collection | null>(null);
 
     // 로딩 및 에러 상태
@@ -192,22 +196,38 @@ const Documents: React.FC = () => {
 
     // 컬렉션 삭제
     const handleDeleteCollectionRequest = (collection: Collection) => {
-        setCollectionToDelete(collection);
-        setShowDeleteModal(true);
-    };
+        showDeleteConfirmToastKo({
+            title: '컬렉션 삭제 확인',
+            message: `'${collection.collection_make_name}' 컬렉션을 정말로 삭제하시겠습니까?\n이 작업은 되돌릴 수 없으며, 컬렉션에 포함된 모든 문서가 삭제됩니다.`,
+            itemName: collection.collection_make_name,
+            onConfirm: async () => {
+                try {
+                    await deleteCollection(collection.collection_name);
 
-    const handleCollectionDeleted = async () => {
-        if (!collectionToDelete) return;
+                    if (selectedCollection?.collection_name === collection.collection_name) {
+                        setSelectedCollection(null);
+                        setDocumentsInCollection([]);
+                        setViewMode('collections');
+                    }
 
-        if (selectedCollection?.collection_name === collectionToDelete.collection_name) {
-            setSelectedCollection(null);
-            setDocumentsInCollection([]);
-            setViewMode('collections');
-        }
+                    showDeleteSuccessToastKo({
+                        itemName: collection.collection_make_name,
+                        itemType: '컬렉션',
+                    });
 
-        setShowDeleteModal(false);
-        setCollectionToDelete(null);
-        await loadCollections();
+                    await loadCollections();
+                } catch (error) {
+                    console.error('Failed to delete collection:', error);
+                    showDeleteErrorToastKo({
+                        itemName: collection.collection_make_name,
+                        itemType: '컬렉션',
+                        error: error instanceof Error ? error : 'Unknown error',
+                    });
+                }
+            },
+            confirmText: '삭제',
+            cancelText: '취소',
+        });
     };
 
     // 컬렉션 편집
@@ -725,21 +745,8 @@ const Documents: React.FC = () => {
             {/* 컬렉션 생성 모달 */}
             <DocumentCollectionModal
                 isOpen={showCreateModal}
-                mode="create"
                 onClose={() => setShowCreateModal(false)}
                 onCollectionCreated={handleCollectionCreated}
-            />
-
-            {/* 컬렉션 삭제 모달 */}
-            <DocumentCollectionModal
-                isOpen={showDeleteModal}
-                mode="delete"
-                collectionToDelete={collectionToDelete}
-                onClose={() => {
-                    setShowDeleteModal(false);
-                    setCollectionToDelete(null);
-                }}
-                onCollectionDeleted={handleCollectionDeleted}
             />
 
             {/* 컬렉션 편집 모달 */}

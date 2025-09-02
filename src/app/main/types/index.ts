@@ -141,9 +141,6 @@ export interface DocumentCollectionModalProps {
     isOpen: boolean;
     onClose: () => void;
     onCollectionCreated?: () => void;
-    mode?: 'create' | 'delete';
-    collectionToDelete?: Collection | null;
-    onCollectionDeleted?: () => void;
 }
 
 // 평가 작업 관련 타입들

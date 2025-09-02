@@ -176,13 +176,16 @@ export const showDeleteSuccessToastKo = ({
     toast.success(message, {
         duration: 3000,
         style: {
-            background: '#10b981',
-            color: '#fff',
+            background: '#ffffff',
+            color: '#374151',
+            border: '2px solid #10b981',
             borderRadius: '10px',
             fontWeight: '500',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)',
         },
         iconTheme: {
-            primary: '#059669',
+            primary: '#10b981',
             secondary: '#fff',
         },
     });
