@@ -25,7 +25,7 @@ export const EXCLUDED_WORDS = [
   
   // 특수문자 및 기타
   'nbsp', 'amp', 'lt', 'gt', 'quot', 'apos', // HTML 엔티티
-  '.', ',', '·', ':', ';',
+  '.', ',', '·', ':', ';', '(', ')', '[', ']', '{', '}', '!', '?', '-', '_', '=', '+', '*', '/', '\\', '|', '<', '>', '@', '#', '$', '%', '^', '&', '~', '`',
   
   // 추가적인 일반적인 단어들
   '입니다', '합니다', '습니다', '됩니다', '있습니다', '없습니다',
@@ -73,7 +73,7 @@ export const filterHighlightWords = (text: string): string[] => {
     .split(/[\s,.\-!?;:()[\]{}""''«»„"‚']+/) // 다양한 구두점과 따옴표 포함
     .filter(word => word.length > 2) // 2글자 이하 제외
     .filter(word => !EXCLUDED_WORDS.includes(word.toLowerCase())) // 불용어 제외
-    .filter(word => !/^\d+$/.test(word)) // 순수 숫자 제외
+    // .filter(word => !/^\d+$/.test(word)) // 순수 숫자 제외
     .filter(word => !/^[^\w\uAC00-\uD7AF\u3130-\u318F]+$/.test(word)); // 특수문자만으로 구성된 단어 제외
 };
 
