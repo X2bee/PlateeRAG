@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import styles from '@/app/main/assets/DocumentCollectionModal.module.scss';
 import { createCollection, isValidCollectionName, deleteCollection } from '@/app/api/rag/retrievalAPI';
 import { DocumentCollectionModalProps } from '@/app/main/types/index';
@@ -69,7 +70,7 @@ const DocumentCollectionModal: React.FC<DocumentCollectionModalProps> = ({
 
     if (!isOpen) return null;
 
-    return (
+    const modalContent = (
         <div className={styles.modalBackdrop} onClick={handleClose}>
             <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                 {mode === 'create' ? (
@@ -139,6 +140,8 @@ const DocumentCollectionModal: React.FC<DocumentCollectionModalProps> = ({
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };
 
 export default DocumentCollectionModal;

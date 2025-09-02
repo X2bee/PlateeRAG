@@ -1,5 +1,14 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import {
+    FiFolder,
+    FiSettings,
+    FiTrash2,
+    FiUser,
+    FiClock,
+    FiBarChart,
+    FiUsers,
+} from 'react-icons/fi';
 import styles from '@/app/main/assets/Documents.module.scss';
 import DocumentsGraph from '@/app/main/components/documents/DocumentsGraph';
 import CollectionEditModal from '@/app/main/components/documents/CollectionEditModal';
@@ -495,71 +504,67 @@ const Documents: React.FC = () => {
                                 <div
                                     key={collection.collection_name}
                                     className={styles.collectionCard}
+                                    onClick={() => handleSelectCollection(collection)}
+                                    style={{ cursor: 'pointer' }}
                                 >
-                                    <div
-                                        className={styles.collectionContent}
-                                        onClick={() => handleSelectCollection(collection)}
-                                    >
-                                        <h4>{collection.collection_make_name}</h4>
-                                        <p className={styles.docInfo}>
-                                            {collection.description}
-                                        </p>
-                                        {collection.vector_size !== undefined && (
-                                            <p className={styles.vectorSize}>
-                                                <span className={styles.vectorLabel}>Embedding Vector Size:</span>
-                                                <span className={styles.vectorValue}>{collection.vector_size}</span>
+                                    <div className={styles.cardHeader}>
+                                        <div className={styles.collectionIcon}>
+                                            <FiFolder />
+                                        </div>
+                                        <div className={`${styles.status} ${collection.is_shared ? styles.statusShared : styles.statusPersonal}`}>
+                                            {collection.is_shared ? '공유' : '개인'}
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.cardContent}>
+                                        <h3 className={styles.collectionName}>{collection.collection_make_name}</h3>
+                                        {collection.description && (
+                                            <p className={styles.collectionDescription}>
+                                                {collection.description}
                                             </p>
                                         )}
                                         <div className={styles.collectionMeta}>
-                                            {!collection.is_shared ? (
-                                                <span
-                                                    className={styles.shareStatus}
-                                                    data-status="personal"
-                                                >
-                                                    👤 개인
-                                                </span>
-                                            ) : (
-                                                <>
-                                                    <span
-                                                        className={styles.shareStatus}
-                                                        data-status="shared"
-                                                    >
-                                                        {collection.user_id === user?.user_id
-                                                            ? '📤 내 컬렉션 공유중'
-                                                            : '📤 조직 컬렉션 공유받음'
-                                                        }
-                                                    </span>
-                                                    {collection.share_group && (
-                                                        <span className={styles.shareGroup}>
-                                                            조직: {collection.share_group}
-                                                        </span>
-                                                    )}
-                                                </>
+                                            {collection.vector_size !== undefined && (
+                                                <div className={styles.metaItem}>
+                                                    <FiBarChart />
+                                                    <span>Vector Size: {collection.vector_size}</span>
+                                                </div>
+                                            )}
+                                            {collection.share_group && (
+                                                <div className={styles.metaItem}>
+                                                    <FiUsers />
+                                                    <span>조직: {collection.share_group}</span>
+                                                </div>
                                             )}
                                         </div>
                                     </div>
-                                    {collection.user_id === user?.user_id && (
+
+                                    {collection.user_id === user?.user_id ? (
                                         <div className={styles.cardActions}>
                                             <button
-                                                className={`${styles.settingsButton}`}
+                                                className={styles.actionButton}
+                                                title="컬렉션 설정"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleEditCollectionRequest(collection);
                                                 }}
-                                                title="컬렉션 설정"
                                             >
-                                                ⚙️
+                                                <FiSettings />
                                             </button>
                                             <button
-                                                className={`${styles.deleteButton}`}
+                                                className={`${styles.actionButton} ${styles.danger}`}
+                                                title="컬렉션 삭제"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleDeleteCollectionRequest(collection);
                                                 }}
-                                                title="컬렉션 삭제"
                                             >
-                                                🗑️
+                                                <FiTrash2 />
                                             </button>
+                                        </div>
+                                    ) : (
+                                        <div className={styles.cardMessage}>
+                                            공유받은 컬렉션은 편집이 불가능합니다.
                                         </div>
                                     )}
                                 </div>
@@ -588,7 +593,7 @@ const Documents: React.FC = () => {
                                             className={styles.documentContent}
                                             onClick={() => handleSelectDocument(doc)}
                                         >
-                                            <h4>{doc.file_name}</h4>
+                                            <h4 className={styles.documentTitle}>{doc.file_name}</h4>
                                             <p className={styles.docInfo}>
                                                 청크: {doc.actual_chunks}개 |
                                                 업로드: {getRelativeTime(doc.processed_at)}
@@ -638,7 +643,7 @@ const Documents: React.FC = () => {
                     {/* 검색 결과 */}
                     {searchQuery && (
                         <div className={styles.searchResultsContainer}>
-                            <h4>검색 결과 ({searchResults.length}개)</h4>
+                            <h4 className={styles.searchResultsTitle}>검색 결과 ({searchResults.length}개)</h4>
                             {searchResults.length === 0 ? (
                                 <div className={styles.emptyState}>검색 결과가 없습니다.</div>
                             ) : (
@@ -666,8 +671,8 @@ const Documents: React.FC = () => {
                     {/* 문서 상세 정보 */}
                     {!searchQuery && documentDetails && (
                         <div className={styles.documentDetailContent}>
-                            <div className={styles.documentMeta}>
-                                <h3>{documentDetails.file_name}</h3>
+                            <div className={styles.documentDetailMeta}>
+                                <h3 className={styles.documentTitle}>{documentDetails.file_name}</h3>
                                 <div className={styles.metaInfo}>
                                     <span>파일 타입: {documentDetails.file_type.toUpperCase()}</span>
                                     <span>전체 청크: {documentDetails.total_chunks}개</span>
@@ -676,7 +681,7 @@ const Documents: React.FC = () => {
                             </div>
 
                             <div className={styles.chunksContainer}>
-                                <h4>문서 내용</h4>
+                                <h4 className={styles.chunksTitle}>문서 내용</h4>
                                 <div className={styles.chunksList}>
                                     {documentDetails.chunks.map((chunk) => (
                                         <div key={chunk.chunk_id} className={styles.chunkItem}>

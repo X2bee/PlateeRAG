@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import styles from '@/app/main/assets/CollectionEditModal.module.scss';
 import { updateCollection } from '@/app/api/rag/retrievalAPI';
 import { getGroupAvailableGroups } from '@/app/api/authAPI';
@@ -79,7 +80,7 @@ const CollectionEditModal: React.FC<CollectionEditModalProps> = ({
 
     if (!isOpen) return null;
 
-    return (
+    const modalContent = (
         <div className={styles.modalBackdrop} onClick={onClose}>
             <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                 <h3>컬렉션 설정 편집</h3>
@@ -158,6 +159,8 @@ const CollectionEditModal: React.FC<CollectionEditModalProps> = ({
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };
 
 export default CollectionEditModal;

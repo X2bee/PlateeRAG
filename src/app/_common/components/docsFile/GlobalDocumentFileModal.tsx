@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import styles from '@/app/_common/assets/DocumentFileModal.module.scss';
 import { uploadDocument } from '@/app/api/rag/retrievalAPI';
 import { getEmbeddingConfigStatus } from '@/app/api/rag/embeddingAPI';
@@ -328,7 +329,7 @@ const GlobalDocumentFileModal: React.FC = () => {
 
     if (!isOpen) return null;
 
-    return (
+    const modalContent = (
         <div className={styles.modalBackdrop} onClick={handleClose}>
             <div className={`${styles.modalContent} ${styles.wideModal}`} onClick={(e) => e.stopPropagation()}>
                 <div className={styles.modalHeader}>
@@ -541,6 +542,8 @@ const GlobalDocumentFileModal: React.FC = () => {
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };
 
 export default GlobalDocumentFileModal;
