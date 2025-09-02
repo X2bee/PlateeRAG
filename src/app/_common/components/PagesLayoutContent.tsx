@@ -89,7 +89,6 @@ export default function PagesLayoutContent({ children }: { children: React.React
                             activeItem={activeItem}
                             onItemClick={handleSidebarItemClick}
                             initialChatExpanded={pathname === '/chat'}
-                            initialSettingExpanded={pathname === '/main'}
                             initialTrainExpanded={pathname === '/train'}
                         />
                     ) : (
