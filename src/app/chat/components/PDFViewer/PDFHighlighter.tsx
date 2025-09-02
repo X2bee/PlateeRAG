@@ -3,7 +3,19 @@
 import React, { useEffect, useCallback } from 'react';
 import { HighlightRange } from '../../types/source';
 import styles from './PDFHighlighter.module.scss';
+import highlightStyles from './HighlightStyles.module.scss';
 import { filterHighlightWords, isTextMatch } from './highlightConstants';
+import { fuzzyTextMatch, defaultFuzzyOptions } from './fuzzyMatcher';
+import { processTextForHighlighting, NamedEntity } from './textProcessor';
+import { 
+  defaultHighlightConfig, 
+  determineHighlightLevel, 
+  getHighlightClassName, 
+  getPriorityClassName,
+  configToFuzzyOptions,
+  HighlightResult,
+  HighlightLevel 
+} from './highlightConfig';
 
 interface PDFHighlighterProps {
   pageNumber: number;
@@ -26,14 +38,37 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
   // 현재 페이지가 하이라이트 대상인지 확인
   const shouldHighlight = pageNumber === highlightRange.pageNumber;
 
-  // 기존 하이라이팅 제거 함수
+  // 향상된 하이라이팅 제거 함수 (모든 하이라이트 레벨 제거)
   const removeExistingHighlights = useCallback(() => {
     const pdfContainer = document.querySelector('.react-pdf__Page__textContent');
     if (!pdfContainer) return;
 
-    const highlightedElements = pdfContainer.querySelectorAll(`.${styles.pdfHighlight}`);
-    highlightedElements.forEach(element => {
+    // 기존 레거시 하이라이트 제거
+    const legacyHighlights = pdfContainer.querySelectorAll(`.${styles.pdfHighlight}`);
+    legacyHighlights.forEach(element => {
       element.classList.remove(styles.pdfHighlight);
+    });
+
+    // 새로운 다층 하이라이트 제거
+    const highlightClasses = [
+      'pdfHighlightExact',
+      'pdfHighlightSimilar', 
+      'pdfHighlightRelated',
+      'pdfHighlightContext',
+      'pdfHighlightEntity',
+      'pdfHighlightPhrase',
+      'highlightPriorityHigh',
+      'highlightPriorityMedium',
+      'highlightPriorityLow'
+    ];
+    
+    highlightClasses.forEach(className => {
+      const elements = pdfContainer.querySelectorAll(`.${highlightStyles[className]}`);
+      elements.forEach(element => {
+        element.classList.remove(highlightStyles[className]);
+        element.removeAttribute('data-confidence');
+        element.removeAttribute('data-matched-by');
+      });
     });
   }, []);
 
@@ -56,7 +91,7 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
     return null;
   }, [pageNumber]);
 
-  // PDF 텍스트 하이라이팅 적용 함수
+  // 향상된 PDF 텍스트 하이라이팅 적용 함수
   const applyPDFHighlighting = useCallback(() => {
     const textLayer = findPDFTextLayer();
     if (!textLayer) {
@@ -83,28 +118,132 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
       return;
     }
 
-    // 텍스트 매칭 기반 하이라이팅만 적용
+    // 텍스트 매칭 기반 하이라이팅 적용
     if (highlightRange.searchText && highlightRange.searchText.trim()) {
-      const searchText = highlightRange.searchText.trim().toLowerCase();
+      const searchText = highlightRange.searchText.trim();
       
-      // 검색 텍스트를 단어 단위로 분리하고 제외할 단어들 필터링
-      const searchWords = filterHighlightWords(searchText);
+      // 향상된 텍스트 처리
+      const processedText = processTextForHighlighting(searchText);
+      const fuzzyOptions = configToFuzzyOptions(defaultHighlightConfig);
       
-      // 유효한 검색 단어가 없으면 하이라이팅 안 함
-      if (searchWords.length === 0) {
-        return;
-      }
+      // 하이라이트 결과 수집
+      const highlightResults: HighlightResult[] = [];
       
       validSpans.forEach(span => {
-        const spanText = span.textContent?.trim().toLowerCase() || '';
+        const spanText = span.textContent?.trim() || '';
+        if (!spanText) return;
         
-        // 스팬의 텍스트가 검색 단어 중 하나라도 포함하면 하이라이팅
-        const hasMatch = searchWords.some(word => isTextMatch(word, spanText));
+        let bestMatch: HighlightResult | null = null;
         
-        if (hasMatch) {
-          span.classList.add(styles.pdfHighlight);
+        // 1. 정확한 매칭 확인
+        if (spanText.toLowerCase().includes(searchText.toLowerCase())) {
+          bestMatch = {
+            text: spanText,
+            level: 'exact',
+            confidence: 1.0,
+            element: span,
+            matchedBy: 'exact'
+          };
+        }
+        
+        // 2. 개체명 매칭 확인
+        if (!bestMatch) {
+          for (const entity of processedText.entities) {
+            if (spanText.toLowerCase().includes(entity.text.toLowerCase()) ||
+                entity.text.toLowerCase().includes(spanText.toLowerCase())) {
+              bestMatch = {
+                text: spanText,
+                level: 'entity',
+                confidence: entity.confidence,
+                element: span,
+                matchedBy: `entity-${entity.type}`
+              };
+              break;
+            }
+          }
+        }
+        
+        // 3. 구문 매칭 확인
+        if (!bestMatch) {
+          for (const phrase of processedText.phrases) {
+            const fuzzyResult = fuzzyTextMatch(phrase, spanText, fuzzyOptions);
+            if (fuzzyResult.isMatch && fuzzyResult.confidence >= 0.7) {
+              bestMatch = {
+                text: spanText,
+                level: 'phrase',
+                confidence: fuzzyResult.confidence,
+                element: span,
+                matchedBy: `phrase-${fuzzyResult.algorithm}`
+              };
+              break;
+            }
+          }
+        }
+        
+        // 4. 키워드 fuzzy 매칭
+        if (!bestMatch) {
+          for (const keyTerm of processedText.keyTerms) {
+            const fuzzyResult = fuzzyTextMatch(keyTerm, spanText, fuzzyOptions);
+            if (fuzzyResult.isMatch) {
+              const level = determineHighlightLevel(fuzzyResult.confidence);
+              bestMatch = {
+                text: spanText,
+                level,
+                confidence: fuzzyResult.confidence,
+                element: span,
+                matchedBy: `fuzzy-${fuzzyResult.algorithm}`
+              };
+              break;
+            }
+          }
+        }
+        
+        // 5. 레거시 매칭 (기존 방식)
+        if (!bestMatch) {
+          const searchWords = filterHighlightWords(searchText);
+          const hasLegacyMatch = searchWords.some(word => isTextMatch(word, spanText.toLowerCase()));
+          
+          if (hasLegacyMatch) {
+            bestMatch = {
+              text: spanText,
+              level: 'related',
+              confidence: 0.6,
+              element: span,
+              matchedBy: 'legacy'
+            };
+          }
+        }
+        
+        if (bestMatch) {
+          highlightResults.push(bestMatch);
         }
       });
+      
+      // 우선순위 기반 정렬 및 최대 개수 제한
+      highlightResults
+        .sort((a, b) => {
+          const priorityA = defaultHighlightConfig.priority[a.level];
+          const priorityB = defaultHighlightConfig.priority[b.level];
+          if (priorityA !== priorityB) return priorityB - priorityA;
+          return b.confidence - a.confidence;
+        })
+        .slice(0, defaultHighlightConfig.visual.maxHighlights)
+        .forEach(result => {
+          if (result.element) {
+            const highlightClass = getHighlightClassName(result.level);
+            const priorityClass = getPriorityClassName(defaultHighlightConfig.priority[result.level]);
+            
+            // CSS 클래스 적용
+            result.element.classList.add(highlightStyles[highlightClass]);
+            result.element.classList.add(highlightStyles[priorityClass]);
+            
+            // 신뢰도 표시 (선택적)
+            if (defaultHighlightConfig.visual.showConfidence) {
+              result.element.setAttribute('data-confidence', result.confidence.toFixed(2));
+              result.element.setAttribute('data-matched-by', result.matchedBy);
+            }
+          }
+        });
     }
   }, [highlightRange, findPDFTextLayer, removeExistingHighlights]);
 
