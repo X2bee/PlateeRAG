@@ -1,7 +1,6 @@
 'use client';
-import React, { useState, useEffect, useMemo } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import toast from 'react-hot-toast';
+import React, { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { SidebarProps } from '@/app/main//types/index';
 import styles from '../assets/Sidebar.module.scss';
@@ -30,7 +29,7 @@ import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<Side
     const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(initialWorkflowExpanded);
     const [isTrainExpanded, setIsTrainExpanded] = useState(initialTrainExpanded);
 
-    const { user, isAuthenticated, hasAccessToSection, isInitialized } = useAuth();
+    const { user, hasAccessToSection, isInitialized } = useAuth();
     const { quickLogout } = useQuickLogout();
 
     // 권한에 따라 필터링된 사이드바 아이템들을 메모이제이션

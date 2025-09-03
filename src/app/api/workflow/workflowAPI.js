@@ -129,7 +129,7 @@ export const loadWorkflow = async (workflow_name, user_id) => {
         return workflowData;
     } catch (error) {
         devLog.error('Failed to load workflow:', error);
-        devLog.error('Workflow ID that failed:', workflowId);
+        devLog.error('Workflow ID that failed:', workflow_name);
         throw error;
     }
 };
@@ -171,7 +171,7 @@ export const duplicateWorkflow = async (workflowName, user_id) => {
         return result;
     } catch (error) {
         devLog.error('Failed to duplicate workflow:', error);
-        devLog.error('Workflow ID that failed:', workflowId);
+        devLog.error('Workflow name that failed:', workflowName);
         throw error;
     }
 };
