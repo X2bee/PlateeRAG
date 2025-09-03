@@ -2,16 +2,18 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import styles from '@/app/main/assets/DocumentCollectionModal.module.scss';
-import { createCollection, isValidCollectionName, deleteCollection } from '@/app/api/rag/retrievalAPI';
-import { DocumentCollectionModalProps } from '@/app/main/types/index';
+import { createCollection, isValidCollectionName } from '@/app/api/rag/retrievalAPI';
+
+interface DocumentCollectionModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onCollectionCreated?: () => void;
+}
 
 const DocumentCollectionModal: React.FC<DocumentCollectionModalProps> = ({
     isOpen,
     onClose,
-    onCollectionCreated,
-    mode = 'create',
-    collectionToDelete,
-    onCollectionDeleted
+    onCollectionCreated
 }) => {
     const [newCollectionName, setNewCollectionName] = useState('');
     const [newCollectionDescription, setNewCollectionDescription] = useState('');
@@ -44,23 +46,6 @@ const DocumentCollectionModal: React.FC<DocumentCollectionModalProps> = ({
         }
     };
 
-    const handleDeleteCollection = async () => {
-        if (!collectionToDelete) return;
-
-        try {
-            setLoading(true);
-            setError(null);
-            await deleteCollection(collectionToDelete.collection_name);
-            onCollectionDeleted?.();
-            onClose();
-        } catch (err) {
-            setError('컬렉션 삭제에 실패했습니다.');
-            console.error('Failed to delete collection:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const handleClose = () => {
         setNewCollectionName('');
         setNewCollectionDescription('');
@@ -73,70 +58,41 @@ const DocumentCollectionModal: React.FC<DocumentCollectionModalProps> = ({
     const modalContent = (
         <div className={styles.modalBackdrop} onClick={handleClose}>
             <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-                {mode === 'create' ? (
-                    <>
-                        <h3>새 컬렉션 생성</h3>
-                        {error && <div className={styles.error}>{error}</div>}
-                        <div className={styles.formGroup}>
-                            <label>컬렉션 이름 *</label>
-                            <input
-                                type="text"
-                                value={newCollectionName}
-                                onChange={(e) => setNewCollectionName(e.target.value)}
-                                placeholder="예: project_documents"
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>설명 (선택사항)</label>
-                            <textarea
-                                value={newCollectionDescription}
-                                onChange={(e) => setNewCollectionDescription(e.target.value)}
-                                placeholder="컬렉션에 대한 간단한 설명을 입력하세요."
-                            />
-                        </div>
-                        <div className={styles.modalActions}>
-                            <button
-                                onClick={handleClose}
-                                className={`${styles.button} ${styles.secondary}`}
-                                disabled={loading}
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={handleCreateCollection}
-                                className={`${styles.button} ${styles.primary}`}
-                                disabled={loading}
-                            >
-                                {loading ? '생성 중...' : '생성'}
-                            </button>
-                        </div>
-                    </>
-                ) : (
-                    <>
-                        <h3>컬렉션 삭제 확인</h3>
-                        {error && <div className={styles.error}>{error}</div>}
-                        <p>
-                            '<strong>{collectionToDelete?.collection_make_name}</strong>' 컬렉션을 정말로 삭제하시겠습니까?<br />
-                            이 작업은 되돌릴 수 없으며, 컬렉션에 포함된 모든 문서가 삭제됩니다.
-                        </p>
-                        <div className={styles.modalActions}>
-                            <button
-                                onClick={handleClose}
-                                className={`${styles.button} ${styles.secondary}`}
-                                disabled={loading}
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={handleDeleteCollection}
-                                className={`${styles.button} ${styles.danger}`}
-                                disabled={loading}
-                            >
-                                {loading ? '삭제 중...' : '삭제'}
-                            </button>
-                        </div>
-                    </>
-                )}
+                <h3>새 컬렉션 생성</h3>
+                {error && <div className={styles.error}>{error}</div>}
+                <div className={styles.formGroup}>
+                    <label>컬렉션 이름 *</label>
+                    <input
+                        type="text"
+                        value={newCollectionName}
+                        onChange={(e) => setNewCollectionName(e.target.value)}
+                        placeholder="예: project_documents"
+                    />
+                </div>
+                <div className={styles.formGroup}>
+                    <label>설명 (선택사항)</label>
+                    <textarea
+                        value={newCollectionDescription}
+                        onChange={(e) => setNewCollectionDescription(e.target.value)}
+                        placeholder="컬렉션에 대한 간단한 설명을 입력하세요."
+                    />
+                </div>
+                <div className={styles.modalActions}>
+                    <button
+                        onClick={handleClose}
+                        className={`${styles.button} ${styles.secondary}`}
+                        disabled={loading}
+                    >
+                        취소
+                    </button>
+                    <button
+                        onClick={handleCreateCollection}
+                        className={`${styles.button} ${styles.primary}`}
+                        disabled={loading}
+                    >
+                        {loading ? '생성 중...' : '생성'}
+                    </button>
+                </div>
             </div>
         </div>
     );

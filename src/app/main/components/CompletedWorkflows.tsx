@@ -9,9 +9,11 @@ import {
     FiClock,
     FiRefreshCw,
     FiUsers,
+    FiSettings,
+    FiCopy,
 } from 'react-icons/fi';
 import styles from '@/app/main/assets/CompletedWorkflows.module.scss';
-import { listWorkflowsDetail, deleteWorkflow } from '@/app/api/workflow/workflowAPI';
+import { listWorkflowsDetail, deleteWorkflow, duplicateWorkflow } from '@/app/api/workflow/workflowAPI';
 import { useRouter } from 'next/navigation';
 import { Workflow, WorkflowDetailResponse } from '@/app/main/types/index';
 import {
@@ -19,7 +21,9 @@ import {
     showDeleteSuccessToast,
     showDeleteErrorToast
 } from '@/app/_common/utils/toastUtils';
+import toast from 'react-hot-toast';
 import { useAuth } from '@/app/_common/components/CookieProvider';
+import WorkflowEditModal from '@/app/main/components/workflows/WorkflowEditModal';
 
 const CompletedWorkflows: React.FC = () => {
     const router = useRouter();
@@ -33,6 +37,8 @@ const CompletedWorkflows: React.FC = () => {
     const [workflowFilter, setWorkflowFilter] = useState<
         'all' | 'personal' | 'shared'
     >('all');
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [workflowToEdit, setWorkflowToEdit] = useState<Workflow | null>(null);
 
     const fetchWorkflows = async () => {
         try {
@@ -128,22 +134,99 @@ const CompletedWorkflows: React.FC = () => {
         }
     };
 
-    // Handle workflow execution
     const handleExecute = (workflow: Workflow) => {
-        // 채팅 페이지로 이동하며 새 채팅 모드와 선택된 워크플로우 정보 전달
         router.push(
             `/chat?mode=new-chat&workflowName=${encodeURIComponent(workflow.name)}&workflowId=${encodeURIComponent(workflow.id)}&user_id=${workflow.user_id}`,
         );
     };
 
-    // Handle workflow editing
     const handleEdit = (workflow: Workflow) => {
         router.push(
             `/canvas?load=${encodeURIComponent(workflow.name)}`,
         );
     };
 
-    // Handle workflow deletion with Toast confirmation
+    const handleEditSettings = (workflow: Workflow) => {
+        setWorkflowToEdit(workflow);
+        setShowEditModal(true);
+    };
+
+    const handleUpdateWorkflow = (updatedWorkflow: Workflow) => {
+        setWorkflows(prevWorkflows =>
+            prevWorkflows.map(workflow =>
+                workflow.key_value === updatedWorkflow.key_value
+                    ? updatedWorkflow
+                    : workflow
+            )
+        );
+    };
+
+    const handleCloseEditModal = () => {
+        setShowEditModal(false);
+        setWorkflowToEdit(null);
+    };
+
+    const handleDuplicate = async (workflow: Workflow) => {
+        if (!workflow.user_id) {
+            toast.error('워크플로우 복사에 실패했습니다: 사용자 정보가 없습니다.', {
+                duration: 4000,
+                style: {
+                    background: '#ffffff',
+                    color: '#374151',
+                    border: '2px solid #ef4444',
+                    borderRadius: '10px',
+                    fontWeight: '500',
+                    fontFamily: 'system-ui, -apple-system, sans-serif',
+                    boxShadow: '0 4px 12px rgba(239, 68, 68, 0.15)',
+                },
+                iconTheme: {
+                    primary: '#ef4444',
+                    secondary: '#fff',
+                },
+            });
+            return;
+        }
+
+        try {
+            const result = await duplicateWorkflow(workflow.name, workflow.user_id);
+            toast.success(`"${workflow.name}" 워크플로우가 성공적으로 복사되었습니다!`, {
+                duration: 3000,
+                style: {
+                    background: '#ffffff',
+                    color: '#374151',
+                    border: '2px solid #10b981',
+                    borderRadius: '10px',
+                    fontWeight: '500',
+                    fontFamily: 'system-ui, -apple-system, sans-serif',
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)',
+                },
+                iconTheme: {
+                    primary: '#10b981',
+                    secondary: '#fff',
+                },
+            });
+            fetchWorkflows();
+        } catch (error) {
+            console.error('Failed to duplicate workflow:', error);
+            toast.error(`워크플로우 복사에 실패했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`, {
+                duration: 4000,
+                style: {
+                    background: '#ffffff',
+                    color: '#374151',
+                    border: '2px solid #ef4444',
+                    borderRadius: '10px',
+                    fontWeight: '500',
+                    fontFamily: 'system-ui, -apple-system, sans-serif',
+                    boxShadow: '0 4px 12px rgba(239, 68, 68, 0.15)',
+                },
+                iconTheme: {
+                    primary: '#ef4444',
+                    secondary: '#fff',
+                },
+            });
+        }
+    };
+
     const handleDelete = (workflow: Workflow) => {
         showWorkflowDeleteConfirm(
             workflow.name,
@@ -281,10 +364,12 @@ const CompletedWorkflows: React.FC = () => {
                                 )}
 
                                 <div className={styles.workflowMeta}>
-                                    <div className={styles.metaItem}>
-                                        <FiUser />
-                                        <span>{workflow.author}</span>
-                                    </div>
+                                    {user && workflow.user_id === user.user_id && (
+                                        <div className={styles.metaItem}>
+                                            <FiUser />
+                                            <span>{workflow.author}</span>
+                                        </div>
+                                    )}
                                     {workflow.lastModified && (
                                         <div className={styles.metaItem}>
                                             <FiClock />
@@ -331,6 +416,16 @@ const CompletedWorkflows: React.FC = () => {
                                             <FiEdit />
                                         </button>
                                         <button
+                                            className={styles.actionButton}
+                                            title="설정"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleEditSettings(workflow);
+                                            }}
+                                        >
+                                            <FiSettings />
+                                        </button>
+                                        <button
                                             className={`${styles.actionButton} ${styles.danger}`}
                                             title="삭제"
                                             onClick={(e) => {
@@ -342,9 +437,21 @@ const CompletedWorkflows: React.FC = () => {
                                         </button>
                                     </>
                                 ) : (
-                                    <div className={styles.sharedMessage}>
-                                        공유받은 워크플로우는 편집이 불가능합니다.
-                                    </div>
+                                    <>
+                                        <button
+                                            className={styles.actionButton}
+                                            title="복사"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDuplicate(workflow);
+                                            }}
+                                        >
+                                            <FiCopy />
+                                        </button>
+                                        <div className={styles.sharedMessage}>
+                                            공유받은 워크플로우는 편집이 불가능합니다.
+                                        </div>
+                                    </>
                                 )}
                             </div>
                         </div>
@@ -361,6 +468,16 @@ const CompletedWorkflows: React.FC = () => {
                         만들어보세요.
                     </p>
                 </div>
+            )}
+
+            {/* 워크플로우 편집 모달 */}
+            {showEditModal && workflowToEdit && (
+                <WorkflowEditModal
+                    workflow={workflowToEdit}
+                    isOpen={showEditModal}
+                    onClose={handleCloseEditModal}
+                    onUpdate={handleUpdateWorkflow}
+                />
             )}
         </div>
     );

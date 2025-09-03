@@ -44,6 +44,7 @@ export interface Collection {
     is_shared?: boolean | null;
     share_group?: string | null;
     share_permissions?: string | null;
+    init_embedding_model?: string | null;
 }
 
 export interface ChunkInfo {
@@ -141,9 +142,6 @@ export interface DocumentCollectionModalProps {
     isOpen: boolean;
     onClose: () => void;
     onCollectionCreated?: () => void;
-    mode?: 'create' | 'delete';
-    collectionToDelete?: Collection | null;
-    onCollectionDeleted?: () => void;
 }
 
 // 평가 작업 관련 타입들

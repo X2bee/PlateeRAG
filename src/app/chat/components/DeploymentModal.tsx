@@ -134,7 +134,8 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
     const [activeApiLang, setActiveApiLang] = useState('python');
     const [curlPayload, setCurlPayload] = useState('');
     const closeButtonRef = useRef<HTMLButtonElement>(null);
-    const user_id = getAuthCookie('user_id') as string;
+    const currentUser_id = getAuthCookie('user_id') as string;
+    const user_id = workflow.user_id ? workflow.user_id.toString() : currentUser_id;
 
     useEffect(() => {
         if (typeof window !== 'undefined') {

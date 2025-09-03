@@ -75,12 +75,12 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
 
     const performLoadWorkflow = async (filename: string): Promise<void> => {
         try {
-            const workflowId = filename.replace('.json', '');
-            const workflowData: WorkflowData = await loadWorkflow(workflowId, null);
+            const workflowName = filename.replace('.json', '');
+            const workflowData: WorkflowData = await loadWorkflow(workflowName, null);
 
             if (onLoadWorkflow) {
                 // Pass workflow data along with workflow name
-                onLoadWorkflow(workflowData, workflowId);
+                onLoadWorkflow(workflowData, workflowName);
             }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
