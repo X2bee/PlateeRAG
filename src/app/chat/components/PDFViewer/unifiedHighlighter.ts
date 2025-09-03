@@ -3,6 +3,8 @@
  * PDF와 DOCX의 하이라이팅 차이를 해결하는 통합 솔루션
  */
 
+import { filterHighlightWords } from './highlightConstants';
+
 export interface TextChunk {
   text: string;
   start: number;
@@ -46,10 +48,7 @@ export const createTextChunks = (
 ): TextChunk[] => {
   if (!searchText.trim()) return [];
 
-  const searchTerms = searchText
-    .toLowerCase()
-    .split(/\s+/)
-    .filter(term => term.length >= config.minChunkLength);
+  const searchTerms = filterHighlightWords(searchText);
   
   const chunks: TextChunk[] = [];
   const fullTextLower = fullText.toLowerCase();
@@ -117,7 +116,7 @@ export const createTextChunks = (
  * 검색어에서 의미있는 구문 추출
  */
 const extractPhrases = (searchText: string, contextWords: number): string[] => {
-  const words = searchText.split(/\s+/).filter(word => word.length > 2);
+  const words = filterHighlightWords(searchText);
   const phrases: string[] = [];
 
   // 2-3 단어 조합으로 구문 생성
