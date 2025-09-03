@@ -7,7 +7,7 @@ import { devLog } from '@/app/_common/utils/logger';
 import { useWorkflowBatchTester } from '@/app/_common/hooks/useWorkflowBatchTester';
 import { TestData } from '@/app/_common/contexts/BatchTesterContext';
 import { SSEMessage } from '@/app/_common/utils/sseManager';
-import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
+import { showSuccessToastKo, showErrorToastKo, showValidationErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 
 // 외부 라이브러리 동적 로드
 declare global {
@@ -165,7 +165,7 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
 
         const maxSizeInBytes = 50 * 1024 * 1024;
         if (file.size > maxSizeInBytes) {
-            alert(`파일 크기가 너무 큽니다. 최대 50MB까지 업로드 가능합니다.\n현재 파일 크기: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+            showValidationErrorToastKo(`파일 크기가 너무 큽니다. 최대 50MB까지 업로드 가능합니다.\n현재 파일 크기: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
             if (event.target) {
                 event.target.value = '';
             }
@@ -210,7 +210,7 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
             };
             reader.readAsArrayBuffer(file);
         } else {
-            alert('지원되지 않는 파일 형식입니다. CSV, Excel, Word 파일만 업로드해주세요.');
+            showValidationErrorToastKo('지원되지 않는 파일 형식입니다. CSV, Excel, Word 파일만 업로드해주세요.');
             // 잘못된 파일 형식일 때도 input 초기화
             if (event.target) {
                 event.target.value = '';
@@ -252,7 +252,7 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
             updateTestData(parsedData);
         } catch (error) {
             devLog.error('CSV 파싱 중 오류:', error);
-            alert('CSV 파일을 파싱하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.');
+            showErrorToastKo('CSV 파일을 파싱하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.');
         }
     };
 
@@ -281,7 +281,7 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
     // Excel, Word 파싱 함수들도 동일하게 유지하되, 마지막에 저장 추가
     const parseExcelContent = (data: ArrayBuffer) => {
         if (!window.XLSX) {
-            alert('Excel 파일 처리 라이브러리가 로드되지 않았습니다. 잠시 후 다시 시도해주세요.');
+            showErrorToastKo('Excel 파일 처리 라이브러리가 로드되지 않았습니다. 잠시 후 다시 시도해주세요.');
             return;
         }
 
@@ -329,13 +329,13 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
             updateTestData(parsedData);
         } catch (error) {
             devLog.error('Excel 파싱 중 오류:', error);
-            alert('Excel 파일을 파싱하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.');
+            showErrorToastKo('Excel 파일을 파싱하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.');
         }
     };
 
     const parseWordContent = async (data: ArrayBuffer) => {
         if (!window.mammoth) {
-            alert('Word 파일 처리 라이브러리가 로드되지 않았습니다. 잠시 후 다시 시도해주세요.');
+            showErrorToastKo('Word 파일 처리 라이브러리가 로드되지 않았습니다. 잠시 후 다시 시도해주세요.');
             return;
         }
 
@@ -365,7 +365,7 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
             }
 
             if (parsedData.length === 0) {
-                alert('Word 파일에서 질문을 찾을 수 없습니다. "Q1.", "Q2." 형식으로 작성해주세요.');
+                showValidationErrorToastKo('Word 파일에서 질문을 찾을 수 없습니다. "Q1.", "Q2." 형식으로 작성해주세요.');
                 return;
             }
 
@@ -374,13 +374,13 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
 
         } catch (error) {
             devLog.error('Word 파싱 중 오류:', error);
-            alert('Word 파일을 파싱하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.');
+            showErrorToastKo('Word 파일을 파싱하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.');
         }
     };
 
     const runTest = async () => {
         if (!workflow || testData.length === 0) {
-            alert('워크플로우를 선택하고 테스트 데이터를 업로드해주세요.');
+            showValidationErrorToastKo('워크플로우를 선택하고 테스트 데이터를 업로드해주세요.');
             return;
         }
 
@@ -666,7 +666,7 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                                        `• 네트워크 연결 상태 확인\n` +
                                        `• 서버 로그 확인`;
 
-            alert(detailedErrorMessage);
+            showErrorToastKo(detailedErrorMessage);
         }
 
         devLog.log('테스터 프로세스 완료');

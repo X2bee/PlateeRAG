@@ -476,7 +476,7 @@ function CanvasPageContent() {
                 }
             } catch (error) {
                 devLog.error('Error parsing JSON file:', error);
-                alert('유효하지 않은 파일 형식입니다.');
+                showErrorToastKo('유효하지 않은 파일 형식입니다.');
             }
         };
         reader.readAsText(file);

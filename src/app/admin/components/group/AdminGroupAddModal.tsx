@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { getAllUsers, addUserGroup } from '@/app/admin/api/users';
 import { devLog } from '@/app/_common/utils/logger';
+import { showErrorToastKo, showValidationErrorToastKo, showSuccessToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/admin/assets/AdminGroupAddModal.module.scss';
 
 interface User {
@@ -50,7 +51,7 @@ const AdminGroupAddModal: React.FC<AdminGroupAddModalProps> = ({
             setUsers((response as any).users || []);
         } catch (error) {
             devLog.error('Failed to load users:', error);
-            alert('사용자 목록을 불러오는데 실패했습니다.');
+            showErrorToastKo('사용자 목록을 불러오는데 실패했습니다.');
         } finally {
             setLoading(false);
         }
@@ -127,7 +128,7 @@ const AdminGroupAddModal: React.FC<AdminGroupAddModalProps> = ({
     // 저장 핸들러
     const handleSave = async () => {
         if (selectedUsers.length === 0) {
-            alert('추가할 사용자를 선택해주세요.');
+            showValidationErrorToastKo('추가할 사용자를 선택해주세요.');
             return;
         }
 
@@ -142,12 +143,12 @@ const AdminGroupAddModal: React.FC<AdminGroupAddModalProps> = ({
                 });
             }
 
-            alert(`${selectedUsers.length}명의 사용자를 조직에 추가했습니다.`);
+            showSuccessToastKo(`${selectedUsers.length}명의 사용자를 조직에 추가했습니다.`);
             onSuccess();
             onClose();
         } catch (error) {
             devLog.error('Failed to add users to group:', error);
-            alert('사용자 추가에 실패했습니다.');
+            showErrorToastKo('사용자 추가에 실패했습니다.');
         } finally {
             setSaving(false);
         }

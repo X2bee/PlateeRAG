@@ -5,7 +5,8 @@ import {
     showInstanceErrorToastKo,
     showVLLMSuccessToastKo,
     showVLLMErrorToastKo,
-    showCopySuccessToastKo
+    showCopySuccessToastKo,
+    showDeleteConfirmToastKo
 } from '@/app/_common/utils/toastUtilsKo';
 import AdminVastAiConfigModal from '@/app/admin/components/config/AdminVastModal/AdminVastAiConfigModal';
 import { listVastInstances, destroyVastInstance, updateVllmConnectionConfig, vllmDown, vllmServe, vllmHealthCheck } from '@/app/api/vastAPI';
@@ -139,30 +140,33 @@ export const AdminInstanceManagementModal = () => {
     };
 
     const handleDestroyInstance = async (instanceId: string) => {
-        const confirmed = window.confirm('정말로 이 인스턴스를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.');
+        showDeleteConfirmToastKo({
+            title: '인스턴스 삭제',
+            message: '정말로 이 인스턴스를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.',
+            itemName: instanceId,
+            onConfirm: async () => {
+                setDestroyLoading(prev => ({ ...prev, [instanceId]: true }));
 
-        if (!confirmed) {
-            return;
-        }
+                try {
+                    devLog.info('Destroying instance:', instanceId);
+                    await destroyVastInstance(instanceId);
 
-        setDestroyLoading(prev => ({ ...prev, [instanceId]: true }));
+                    showInstanceSuccessToastKo('인스턴스가 삭제되었습니다.');
 
-        try {
-            devLog.info('Destroying instance:', instanceId);
-            await destroyVastInstance(instanceId);
-
-            showInstanceSuccessToastKo('인스턴스가 삭제되었습니다.');
-
-            // 인스턴스 목록 새로고침
-            await handleLoadInstances();
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-            showInstanceErrorToastKo(`인스턴스 삭제 실패: ${errorMessage}`);
-            devLog.error('Failed to destroy instance:', error);
-        } finally {
-            // 로딩 상태 해제
-            setDestroyLoading(prev => ({ ...prev, [instanceId]: false }));
-        }
+                    // 인스턴스 목록 새로고침
+                    await handleLoadInstances();
+                } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+                    showInstanceErrorToastKo(`인스턴스 삭제 실패: ${errorMessage}`);
+                    devLog.error('Failed to destroy instance:', error);
+                } finally {
+                    // 로딩 상태 해제
+                    setDestroyLoading(prev => ({ ...prev, [instanceId]: false }));
+                }
+            },
+            confirmText: '삭제',
+            cancelText: '취소'
+        });
     };
 
     const handleSetVllmConfig = async (instance: VastInstanceData) => {

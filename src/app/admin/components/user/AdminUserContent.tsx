@@ -5,6 +5,13 @@ import { getAllUsers, deleteUser, editUser } from '@/app/admin/api/users';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/AdminUserContent.module.scss';
 import AdminUserEditModal from './AdminUserEditModal';
+import {
+    showDeleteConfirmToastKo,
+    showDeleteSuccessToastKo,
+    showDeleteErrorToastKo,
+    showSuccessToastKo,
+    showErrorToastKo
+} from '@/app/_common/utils/toastUtilsKo';
 
 interface User {
     id: number;
@@ -260,35 +267,45 @@ const AdminUserContent: React.FC = () => {
 
     // 사용자 삭제 핸들러
     const handleDeleteUser = async (user: User) => {
-        const confirmed = window.confirm(
-            `정말로 "${user.username}" (${user.email}) 사용자와 관련된 모든 데이터를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`
-        );
+        showDeleteConfirmToastKo({
+            title: '사용자 삭제',
+            message: `정말로 "${user.username}" (${user.email}) 사용자와 관련된 모든 데이터를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`,
+            itemName: user.username,
+            onConfirm: async () => {
+                try {
+                    setDeleteLoading(user.id);
 
-        if (!confirmed) return;
+                    const userData = {
+                        id: user.id,
+                        username: user.username,
+                        email: user.email
+                    };
 
-        try {
-            setDeleteLoading(user.id);
+                    const result = await deleteUser(userData);
+                    devLog.log('User deleted successfully:', result);
 
-            const userData = {
-                id: user.id,
-                username: user.username,
-                email: user.email
-            };
+                    // 삭제 성공 후 사용자 목록 새로고침
+                    await loadUsers();
 
-            const result = await deleteUser(userData);
-            devLog.log('User deleted successfully:', result);
-
-            // 삭제 성공 후 사용자 목록 새로고침
-            await loadUsers();
-
-            alert('사용자와 관련된 모든 데이터가 성공적으로 삭제되었습니다.');
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : '사용자 삭제에 실패했습니다.';
-            devLog.error('Failed to delete user:', err);
-            alert(`삭제 실패: ${errorMessage}`);
-        } finally {
-            setDeleteLoading(null);
-        }
+                    showDeleteSuccessToastKo({
+                        itemName: user.username,
+                        itemType: '사용자',
+                        customMessage: '사용자와 관련된 모든 데이터가 성공적으로 삭제되었습니다.',
+                    });
+                } catch (err) {
+                    const errorMessage = err instanceof Error ? err.message : '사용자 삭제에 실패했습니다.';
+                    devLog.error('Failed to delete user:', err);
+                    showDeleteErrorToastKo({
+                        itemName: user.username,
+                        itemType: '사용자',
+                        error: err instanceof Error ? err : 'Unknown error',
+                        customMessage: `삭제 실패: ${errorMessage}`,
+                    });
+                } finally {
+                    setDeleteLoading(null);
+                }
+            }
+        });
     };
 
     // 사용자 편집 핸들러
@@ -318,11 +335,11 @@ const AdminUserContent: React.FC = () => {
             // 성공 시 사용자 목록 새로고침
             await loadUsers();
 
-            alert('사용자 정보가 성공적으로 업데이트되었습니다.');
+            showSuccessToastKo('사용자 정보가 성공적으로 업데이트되었습니다.');
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '사용자 정보 업데이트에 실패했습니다.';
             devLog.error('Failed to update user:', error);
-            alert(`업데이트 실패: ${errorMessage}`);
+            showErrorToastKo(`업데이트 실패: ${errorMessage}`);
             throw error; // 모달에서 에러 처리를 위해 다시 throw
         }
     };    // 모달 닫기 핸들러
