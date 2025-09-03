@@ -134,29 +134,24 @@ const CompletedWorkflows: React.FC = () => {
         }
     };
 
-    // Handle workflow execution
     const handleExecute = (workflow: Workflow) => {
-        // 채팅 페이지로 이동하며 새 채팅 모드와 선택된 워크플로우 정보 전달
         router.push(
             `/chat?mode=new-chat&workflowName=${encodeURIComponent(workflow.name)}&workflowId=${encodeURIComponent(workflow.id)}&user_id=${workflow.user_id}`,
         );
     };
 
-    // Handle workflow editing
     const handleEdit = (workflow: Workflow) => {
         router.push(
             `/canvas?load=${encodeURIComponent(workflow.name)}`,
         );
     };
 
-    // Handle workflow settings editing
     const handleEditSettings = (workflow: Workflow) => {
         setWorkflowToEdit(workflow);
         setShowEditModal(true);
     };
 
     const handleUpdateWorkflow = (updatedWorkflow: Workflow) => {
-        // 워크플로우 목록에서 해당 워크플로우 업데이트
         setWorkflows(prevWorkflows =>
             prevWorkflows.map(workflow =>
                 workflow.key_value === updatedWorkflow.key_value
@@ -171,7 +166,6 @@ const CompletedWorkflows: React.FC = () => {
         setWorkflowToEdit(null);
     };
 
-    // Handle workflow duplication
     const handleDuplicate = async (workflow: Workflow) => {
         if (!workflow.user_id) {
             toast.error('워크플로우 복사에 실패했습니다: 사용자 정보가 없습니다.', {
@@ -211,7 +205,7 @@ const CompletedWorkflows: React.FC = () => {
                     secondary: '#fff',
                 },
             });
-            fetchWorkflows(); // 목록 새로고침
+            fetchWorkflows();
         } catch (error) {
             console.error('Failed to duplicate workflow:', error);
             toast.error(`워크플로우 복사에 실패했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`, {
@@ -233,7 +227,6 @@ const CompletedWorkflows: React.FC = () => {
         }
     };
 
-    // Handle workflow deletion with Toast confirmation
     const handleDelete = (workflow: Workflow) => {
         showWorkflowDeleteConfirm(
             workflow.name,
