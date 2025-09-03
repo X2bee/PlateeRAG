@@ -2,9 +2,10 @@ export interface SourceInfo {
   file_name: string;
   file_path: string;
   page_number: number;
-  line_start: number;
-  line_end: number;
+  line_start?: number;
+  line_end?: number;
   response_content?: string; // 답변 내용 추가
+  cite_summary?: string; // 답변에 사용한 모든 참조 내용
 }
 
 export interface CitationData {

@@ -416,7 +416,8 @@ export const parseCitation = (citationText: string): SourceInfo | null => {
                 file_path: sourceInfo.file_path || sourceInfo.filepath || sourceInfo.filePath || '',
                 page_number: sourceInfo.page_number || sourceInfo.pagenumber || sourceInfo.pageNumber || 1,
                 line_start: sourceInfo.line_start || sourceInfo.linestart || sourceInfo.lineStart || 1,
-                line_end: sourceInfo.line_end || sourceInfo.lineend || sourceInfo.lineEnd || 1
+                line_end: sourceInfo.line_end || sourceInfo.lineend || sourceInfo.lineEnd || 1,
+                cite_summary: sourceInfo.cite_summary || sourceInfo.citeSummary || '',
             };
 
 
