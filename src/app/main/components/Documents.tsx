@@ -8,6 +8,7 @@ import {
     FiClock,
     FiBarChart,
     FiUsers,
+    FiRefreshCw,
 } from 'react-icons/fi';
 import styles from '@/app/main/assets/Documents.module.scss';
 import DocumentsGraph from '@/app/main/components/documents/DocumentsGraph';
@@ -27,6 +28,7 @@ import {
     getAllDocumentDetailMeta,
     getAllDocumentDetailEdges,
     deleteCollection,
+    remakeCollection,
 } from '@/app/api/rag/retrievalAPI';
 import { getEmbeddingConfigStatus } from '@/app/api/rag/embeddingAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
@@ -285,6 +287,61 @@ const Documents: React.FC = () => {
     const handleCloseEditModal = () => {
         setShowEditModal(false);
         setCollectionToEdit(null);
+    };
+
+    // 컬렉션 리메이크
+    const handleRemakeCollection = async () => {
+        if (!selectedCollection) return;
+
+        showDeleteConfirmToastKo({
+            title: '컬렉션 리메이크 확인',
+            message: `임베딩을 다시 만들겠습니까? 이 작업은 되돌릴 수 없으며 상당한 시간이 소요될 수 있습니다.\n\n컬렉션: ${selectedCollection.collection_make_name}`,
+            itemName: selectedCollection.collection_make_name,
+            onConfirm: async () => {
+                try {
+                    setLoading(true);
+                    setError(null);
+
+                    const remakeResult = await remakeCollection(selectedCollection.collection_name);
+
+                    showDeleteSuccessToastKo({
+                        itemName: selectedCollection.collection_make_name,
+                        itemType: '컬렉션 리메이크',
+                    });
+
+                    // 컬렉션 목록과 임베딩 설정을 다시 로드
+                    await Promise.all([
+                        loadCollections(),
+                        loadEmbeddingConfig()
+                    ]);
+
+                    // 새로운 컬렉션 정보로 현재 선택된 컬렉션 업데이트
+                    if (remakeResult && (remakeResult as any).new_collection_name) {
+                        // 새로운 컬렉션 찾기
+                        const updatedCollections = await listCollections() as CollectionsResponse;
+                        const newCollection = updatedCollections.find(
+                            col => col.collection_name === (remakeResult as any).new_collection_name
+                        );
+
+                        if (newCollection) {
+                            setSelectedCollection(newCollection);
+                            await loadDocumentsInCollection(newCollection.collection_name);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to remake collection:', error);
+                    showDeleteErrorToastKo({
+                        itemName: selectedCollection.collection_make_name,
+                        itemType: '컬렉션 리메이크',
+                        error: error instanceof Error ? error : 'Unknown error',
+                    });
+                } finally {
+                    setLoading(false);
+                }
+            },
+            confirmText: '리메이크',
+            cancelText: '취소',
+        });
     };
 
     // 문서 삭제 (Toast 확인 후 삭제)
@@ -599,21 +656,41 @@ const Documents: React.FC = () => {
                                     </div>
                                     <div className={styles.subheaderItem}>
                                         <span className={styles.subheaderLabel}>Status:</span>
-                                        <span className={`${styles.subheaderValue} ${
-                                            embeddingConfig.client_available &&
-                                            embeddingConfig.provider_info.available &&
-                                            embeddingConfig.provider_info.dimension === selectedCollection.vector_size &&
-                                            embeddingConfig.provider_info.model === selectedCollection.init_embedding_model
-                                                ? styles.subheaderStatusAvailable
-                                                : styles.subheaderStatusUnavailable
-                                        }`}>
-                                            {embeddingConfig.client_available &&
-                                             embeddingConfig.provider_info.available &&
-                                             embeddingConfig.provider_info.dimension === selectedCollection.vector_size &&
-                                             embeddingConfig.provider_info.model === selectedCollection.init_embedding_model
-                                                ? '✅ 정상'
-                                                : '❌ 불일치 존재'}
-                                        </span>
+                                        <div className={styles.subheaderStatusContainer}>
+                                            <span className={`${styles.subheaderValue} ${
+                                                embeddingConfig.client_available &&
+                                                embeddingConfig.provider_info.available &&
+                                                embeddingConfig.provider_info.dimension === selectedCollection.vector_size &&
+                                                (selectedCollection.init_embedding_model === 'N/A' ||
+                                                 !selectedCollection.init_embedding_model ||
+                                                 embeddingConfig.provider_info.model === selectedCollection.init_embedding_model)
+                                                    ? styles.subheaderStatusAvailable
+                                                    : styles.subheaderStatusUnavailable
+                                            }`}>
+                                                {embeddingConfig.client_available &&
+                                                 embeddingConfig.provider_info.available &&
+                                                 embeddingConfig.provider_info.dimension === selectedCollection.vector_size &&
+                                                 (selectedCollection.init_embedding_model === 'N/A' ||
+                                                  !selectedCollection.init_embedding_model ||
+                                                  embeddingConfig.provider_info.model === selectedCollection.init_embedding_model)
+                                                    ? '✅ 정상'
+                                                    : '❌ 불일치'}
+                                            </span>
+                                            {!(embeddingConfig.client_available &&
+                                              embeddingConfig.provider_info.available &&
+                                              embeddingConfig.provider_info.dimension === selectedCollection.vector_size &&
+                                              (selectedCollection.init_embedding_model === 'N/A' ||
+                                               !selectedCollection.init_embedding_model ||
+                                               embeddingConfig.provider_info.model === selectedCollection.init_embedding_model)) && (
+                                                <button
+                                                    onClick={handleRemakeCollection}
+                                                    className={`${styles.button} ${styles.remakeButton}`}
+                                                    title="현재 임베딩 설정으로 컬렉션을 다시 생성합니다"
+                                                >
+                                                    <FiRefreshCw />
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ) : (

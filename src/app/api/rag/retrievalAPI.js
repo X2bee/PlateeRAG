@@ -140,6 +140,43 @@ export const createCollection = async (
 };
 
 /**
+ * 컬렉션을 새로운 임베딩 모델로 리메이크하는 함수
+ * 기존 컬렉션의 모든 문서를 보존하면서 새로운 임베딩 차원/모델로 재생성합니다.
+ * @param {string} collectionName - 리메이크할 컬렉션 이름
+ * @returns {Promise<Object>} 리메이크 결과
+ */
+export const remakeCollection = async (collectionName) => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/collections/remake`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    collection_name: collectionName,
+                }),
+            },
+        );
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
+        }
+
+        const data = await response.json();
+        devLog.info('Collection remade successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to remake collection:', error);
+        throw error;
+    }
+};
+
+/**
  * 컬렉션을 삭제하는 함수
  * @param {string} collectionName - 삭제할 컬렉션 이름
  * @returns {Promise<Object>} 삭제 결과
