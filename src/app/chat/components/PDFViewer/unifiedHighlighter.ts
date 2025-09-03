@@ -10,7 +10,7 @@ export interface TextChunk {
   start: number;
   end: number;
   score: number;
-  type: 'exact' | 'phrase' | 'context' | 'partial';
+  type: 'exact' | 'phrase' | 'context' | 'partial' | 'ngram';
 }
 
 export interface HighlightGroup {
@@ -27,6 +27,8 @@ export interface UnifiedHighlightConfig {
   precisionLevel: 'word' | 'phrase' | 'sentence';
   maxHighlightRatio: number;   // 전체 대비 최대 하이라이트 비율
   groupingThreshold: number;   // 그룹화 임계값
+  ngramSize: number;           // N-gram 크기 (기본: 2-3)
+  ngramThreshold: number;      // N-gram 매칭 임계값 (0-1)
 }
 
 export const defaultUnifiedConfig: UnifiedHighlightConfig = {
@@ -35,7 +37,9 @@ export const defaultUnifiedConfig: UnifiedHighlightConfig = {
   contextWords: 2,
   precisionLevel: 'phrase',
   maxHighlightRatio: 0.3,
-  groupingThreshold: 0.7
+  groupingThreshold: 0.7,
+  ngramSize: 1,
+  ngramThreshold: 0.4
 };
 
 /**
@@ -100,16 +104,114 @@ export const createTextChunks = (
     }
   });
 
-  // 3. 중복 제거 및 병합
+  // 3. N-gram 매칭 추가
+  const ngramChunks = findNgramMatches(fullText, searchText, config);
+  chunks.push(...ngramChunks);
+
+  // 4. 중복 제거 및 병합
   const mergedChunks = mergeOverlappingChunks(chunks);
 
-  // 4. 컨텍스트 확장
+  // 5. 컨텍스트 확장
   const expandedChunks = expandChunksWithContext(mergedChunks, fullText, config);
 
-  // 5. 점수순 정렬 및 개수 제한
+  // 6. 점수순 정렬 및 개수 제한
   return expandedChunks
     .sort((a, b) => b.score - a.score)
     .slice(0, Math.floor(fullText.length * config.maxHighlightRatio / 10));
+};
+
+/**
+ * N-gram 기반 텍스트 매칭
+ */
+const findNgramMatches = (
+  fullText: string, 
+  searchText: string, 
+  config: UnifiedHighlightConfig
+): TextChunk[] => {
+  const chunks: TextChunk[] = [];
+  const searchWords = filterHighlightWords(searchText);
+  const fullTextLower = fullText.toLowerCase();
+  const searchTextLower = searchText.toLowerCase();
+
+  // N-gram 생성 (2-gram, 3-gram)
+  for (let n = 2; n <= Math.max(config.ngramSize, 3); n++) {
+    const searchNgrams = generateNgrams(searchTextLower, n);
+    const fullTextNgrams = generateNgrams(fullTextLower, n);
+
+    searchNgrams.forEach(searchNgram => {
+      const ngramWords = searchNgram.split(' ').filter(word => word.length > 0);
+      if (ngramWords.length !== n) return;
+
+      // 검색 N-gram이 모두 유효한 단어인지 확인
+      const hasValidWords = ngramWords.every(word => 
+        searchWords.some(validWord => validWord.toLowerCase().includes(word) || word.includes(validWord.toLowerCase()))
+      );
+      
+      if (!hasValidWords) return;
+
+      // 전체 텍스트에서 유사한 N-gram 찾기
+      fullTextNgrams.forEach((fullNgram, index) => {
+        const similarity = calculateNgramSimilarity(searchNgram, fullNgram);
+        
+        if (similarity >= config.ngramThreshold) {
+          const startPos = findNgramPosition(fullTextLower, fullNgram, index);
+          if (startPos !== -1) {
+            chunks.push({
+              text: fullText.substring(startPos, startPos + fullNgram.length),
+              start: startPos,
+              end: startPos + fullNgram.length,
+              score: similarity * 0.6, // N-gram 매칭은 정확 매칭보다 낮은 점수
+              type: 'ngram'
+            });
+          }
+        }
+      });
+    });
+  }
+
+  return chunks;
+};
+
+/**
+ * N-gram 생성
+ */
+const generateNgrams = (text: string, n: number): string[] => {
+  const words = text.split(/\s+/).filter(word => word.length > 0);
+  const ngrams: string[] = [];
+
+  for (let i = 0; i <= words.length - n; i++) {
+    const ngram = words.slice(i, i + n).join(' ');
+    ngrams.push(ngram);
+  }
+
+  return ngrams;
+};
+
+/**
+ * N-gram 유사도 계산 (Jaccard 유사도)
+ */
+const calculateNgramSimilarity = (ngram1: string, ngram2: string): number => {
+  const chars1 = new Set(ngram1.split(''));
+  const chars2 = new Set(ngram2.split(''));
+  
+  const intersection = new Set([...chars1].filter(char => chars2.has(char)));
+  const union = new Set([...chars1, ...chars2]);
+  
+  return intersection.size / union.size;
+};
+
+/**
+ * N-gram의 텍스트 내 위치 찾기
+ */
+const findNgramPosition = (text: string, ngram: string, ngramIndex: number): number => {
+  const words = text.split(/\s+/);
+  let currentPos = 0;
+  
+  for (let i = 0; i < ngramIndex && i < words.length; i++) {
+    currentPos += words[i].length + 1; // 단어 길이 + 공백
+  }
+  
+  return currentPos;
 };
 
 /**

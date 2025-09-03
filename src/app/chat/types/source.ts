@@ -5,7 +5,7 @@ export interface SourceInfo {
   line_start?: number;
   line_end?: number;
   response_content?: string; // 답변 내용 추가
-  cite_summary?: string; // 답변에 사용한 모든 참조 내용
+  cite_context?: string; // 답변에 사용한 모든 참조 내용
 }
 
 export interface CitationData {

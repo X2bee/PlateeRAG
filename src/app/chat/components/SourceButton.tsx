@@ -22,7 +22,7 @@ const SourceButton: React.FC<SourceButtonProps> = ({
       file_path: sourceInfo.file_path,
       page_number: sourceInfo.page_number,
       response_content: sourceInfo.response_content,
-      cite_summary: sourceInfo.cite_summary,
+      cite_context: sourceInfo.cite_context,
       line_start: sourceInfo.line_start,
       line_end: sourceInfo.line_end
     });
