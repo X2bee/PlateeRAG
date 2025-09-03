@@ -66,7 +66,7 @@ export default function PagesLayoutContent({ children }: { children: React.React
     };
 
     const workflowSidebarItems = getWorkflowSidebarItems();
-    const chatSidebarItems = getChatSidebarItems();
+    // const chatSidebarItems = getChatSidebarItems();
     const trainItems = getTrainSidebarItems();
 
     const contextValue = {

@@ -14,11 +14,11 @@ interface AuthGuardProps {
     sectionRedirectTo?: string; // 섹션 접근 실패 시 리다이렉트할 URL (기본값: '/chat')
 }
 
-interface User {
-    user_id: number;
-    username: string;
-    access_token: string;
-}
+// interface User {
+//     user_id: number;
+//     username: string;
+//     access_token: string;
+// }
 
 interface TokenValidationResult {
     valid: boolean;
@@ -47,7 +47,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
 
     // CookieProvider의 useAuth 훅 사용
     const { user, clearAuth, refreshAuth, isInitialized, isLoggingOut, hasAccessToSection } = useAuth();
-    const { sessionExpiredLogout } = useSessionExpiredLogout();
+    // const { sessionExpiredLogout } = useSessionExpiredLogout();
 
     // 현재 페이지를 sessionStorage에 저장 (로그인 후 돌아올 수 있도록)
     useEffect(() => {
@@ -60,7 +60,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
         const checkAuthentication = async () => {
             try {
                 devLog.log('AuthGuard: Checking authentication status...');
-                let user_id = null;
+                // let user_id = null;
 
                 // 1. CookieProvider 초기화 대기
                 if (!isInitialized) {
@@ -116,7 +116,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
                     clearAuth(true); // localStorage도 함께 정리
                 } else {
                     devLog.log('AuthGuard: Token validation successful');
-                    user_id = tokenValidation.user_id;
+                    // user_id = tokenValidation.user_id;
                     setIsAuthenticated(true);
 
                     // 특정 섹션 접근 권한이 필요한 경우 확인
@@ -298,7 +298,7 @@ export const useClientAuth = () => {
             try {
                 const validation = await validateToken(user.access_token) as TokenValidationResult;
                 setIsAuthenticated(validation.valid);
-            } catch (error) {
+            } catch {
                 setIsAuthenticated(false);
             } finally {
                 setIsLoading(false);

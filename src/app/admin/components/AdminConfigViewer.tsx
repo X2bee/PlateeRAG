@@ -15,6 +15,7 @@ import {
 } from 'react-icons/fi';
 import { BsDatabaseUp } from 'react-icons/bs';
 import { SiOpenai } from 'react-icons/si';
+import { RiAnthropicFill, RiGeminiFill } from "react-icons/ri";
 import { fetchAllConfigs, updateConfig } from '@/app/api/configAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/AdminConfigViewer.module.scss';
@@ -35,7 +36,9 @@ type CategoryType =
     | 'workflow'
     | 'node'
     | 'vectordb'
-    | 'other';
+    | 'other'
+    | 'gemini'
+    | 'anthropic';
 
 interface AdminConfigViewerProps {
     onNavigateToSettings?: () => void;
@@ -111,6 +114,8 @@ const AdminConfigViewer: React.FC<AdminConfigViewerProps> = ({
         if (path.startsWith('workflow.')) return 'workflow';
         if (path.startsWith('node.')) return 'node';
         if (path.startsWith('vectordb.')) return 'vectordb';
+        if (path.startsWith('gemini.')) return 'gemini';
+        if (path.startsWith('anthropic.')) return 'anthropic';
         return 'other';
     };
 
@@ -128,6 +133,10 @@ const AdminConfigViewer: React.FC<AdminConfigViewerProps> = ({
                 return <FiCpu />;
             case 'vectordb':
                 return <BsDatabaseUp />;
+            case 'gemini':
+                return <RiGeminiFill />;
+            case 'anthropic':
+                return <RiAnthropicFill />;
             default:
                 return <FiSettings />;
         }
@@ -147,6 +156,10 @@ const AdminConfigViewer: React.FC<AdminConfigViewerProps> = ({
                 return '#6366f1';
             case 'vectordb':
                 return '#023196';
+            case 'gemini':
+                return '#6b5b9a';
+            case 'anthropic':
+                return '#a45d7c';
             default:
                 return '#6b7280';
         }
@@ -166,6 +179,10 @@ const AdminConfigViewer: React.FC<AdminConfigViewerProps> = ({
                 return '노드';
             case 'vectordb':
                 return '벡터 데이터베이스';
+            case 'gemini':
+                return 'Gemini';
+            case 'anthropic':
+                return 'Anthropic';
             default:
                 return '기타';
         }
@@ -228,6 +245,8 @@ const AdminConfigViewer: React.FC<AdminConfigViewerProps> = ({
             workflow: 0,
             node: 0,
             vectordb: 0,
+            gemini: 0,
+            anthropic: 0,
             other: 0,
             saved: 0,
             unsaved: 0,
@@ -455,6 +474,8 @@ const AdminConfigViewer: React.FC<AdminConfigViewerProps> = ({
                         'database',
                         'vectordb',
                         'openai',
+                        'gemini',
+                        'anthropic',
                     ] as CategoryType[]
                 ).map(
                     (category) =>
