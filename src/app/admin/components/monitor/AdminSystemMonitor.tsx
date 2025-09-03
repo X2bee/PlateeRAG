@@ -172,7 +172,7 @@ const AdminSystemMonitor: React.FC = () => {
         };
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
-        
+
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
