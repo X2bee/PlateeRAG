@@ -97,21 +97,21 @@ export const listWorkflowsDetail = async () => {
 
 /**
  * 백엔드에서 특정 워크플로우를 로드합니다.
- * @param {string} workflowId - 로드할 워크플로우 ID (.json 확장자 포함/제외 모두 가능)
+ * @param {string} workflow_name - 로드할 워크플로우 ID (.json 확장자 포함/제외 모두 가능)
  * @returns {Promise<Object>} 워크플로우 데이터 객체를 포함하는 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
-export const loadWorkflow = async (workflowId, user_id) => {
+export const loadWorkflow = async (workflow_name, user_id) => {
     try {
         // .json 확장자가 포함되어 있으면 제거
-        const cleanWorkflowId = workflowId.endsWith('.json')
-            ? workflowId.slice(0, -5)
-            : workflowId;
+        const cleanWorkflowName = workflow_name.endsWith('.json')
+            ? workflow_name.slice(0, -5)
+            : workflow_name;
 
-        devLog.log('Loading workflow with cleaned ID:', cleanWorkflowId);
+        devLog.log('Loading workflow with cleaned ID:', cleanWorkflowName);
 
         const response = await apiClient(
-            `${API_BASE_URL}/api/workflow/load/${encodeURIComponent(cleanWorkflowId)}?user_id=${user_id}`,
+            `${API_BASE_URL}/api/workflow/load/${encodeURIComponent(cleanWorkflowName)}?user_id=${user_id}`,
         );
 
         devLog.log('Workflow load response status:', response.status);
@@ -136,18 +136,18 @@ export const loadWorkflow = async (workflowId, user_id) => {
 
 /**
  * 백엔드에서 특정 워크플로우를 복제합니다.
- * @param {string} workflowId - 복제할 워크플로우 ID
+ * @param {string} workflowName - 복제할 워크플로우 ID
  * @param {string|number} user_id - 원본 워크플로우의 사용자 ID
  * @returns {Promise<Object>} 복제 결과 객체를 포함하는 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
-export const duplicateWorkflow = async (workflowId, user_id) => {
+export const duplicateWorkflow = async (workflowName, user_id) => {
     try {
-        devLog.log('Duplicating workflow with ID:', workflowId);
+        devLog.log('Duplicating workflow with ID:', workflowName);
         devLog.log('Original user ID:', user_id);
 
         const response = await apiClient(
-            `${API_BASE_URL}/api/workflow/duplicate/${encodeURIComponent(workflowId)}?user_id=${user_id}`,
+            `${API_BASE_URL}/api/workflow/duplicate/${encodeURIComponent(workflowName)}?user_id=${user_id}`,
             {
                 method: 'GET',
                 headers: {
@@ -172,6 +172,51 @@ export const duplicateWorkflow = async (workflowId, user_id) => {
     } catch (error) {
         devLog.error('Failed to duplicate workflow:', error);
         devLog.error('Workflow ID that failed:', workflowId);
+        throw error;
+    }
+};
+
+/**
+ * 백엔드에서 특정 워크플로우의 공유 설정을 업데이트합니다.
+ * @param {string} workflowName - 업데이트할 워크플로우 이름
+ * @param {Object} updateDict - 업데이트할 설정 딕셔너리
+ * @param {boolean} updateDict.is_shared - 공유 여부
+ * @param {string|null} updateDict.share_group - 공유 그룹
+ * @returns {Promise<Object>} 업데이트 결과 객체를 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const updateWorkflow = async (workflowName, updateDict) => {
+    try {
+        devLog.log('Updating workflow with name:', workflowName);
+        devLog.log('Update data:', updateDict);
+
+        const response = await apiClient(
+            `${API_BASE_URL}/api/workflow/update/${encodeURIComponent(workflowName)}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updateDict),
+            }
+        );
+
+        devLog.log('Workflow update response status:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            devLog.error('Workflow update error data:', errorData);
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
+        }
+
+        const result = await response.json();
+        devLog.log('Successfully updated workflow:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to update workflow:', error);
+        devLog.error('Workflow name that failed:', workflowName);
         throw error;
     }
 };
