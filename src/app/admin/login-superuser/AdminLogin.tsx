@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
+import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/admin/login-superuser/AdminLogin.module.scss';
 import { superuserLogin } from '@/app/admin/api/users';
 import { useAuth } from '@/app/_common/components/CookieProvider';
@@ -43,14 +43,14 @@ const AdminLogin: React.FC = () => {
             }
 
             // 로그인 성공
-            toast.success(`관리자 로그인 성공! 환영합니다, ${result.username}님!`);
+            showSuccessToastKo(`관리자 로그인 성공! 환영합니다, ${result.username}님!`);
 
             // 관리자 페이지로 리다이렉트
             router.replace('/admin');
 
         } catch (err: any) {
             setError(err.message || '관리자 로그인에 실패했습니다.');
-            toast.error(err.message || '관리자 로그인에 실패했습니다.');
+            showErrorToastKo(err.message || '관리자 로그인에 실패했습니다.');
         } finally {
             setIsLoading(false);
         }

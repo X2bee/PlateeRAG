@@ -1,7 +1,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { FiX, FiCopy } from 'react-icons/fi';
-import toast from 'react-hot-toast';
+import { showCopySuccessToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/settings/AdminVastAiConfigModal.module.scss';
 
@@ -43,7 +43,7 @@ const AdminVastAiConfigModal: React.FC<AdminVastAiConfigModalProps> = ({
     const handleCopyUrl = (port: string, mapping: PortMapping) => {
         const url = `http://${mapping.external_ip}:${mapping.external_port}`;
         navigator.clipboard.writeText(url);
-        toast.success(`포트 ${port} URL이 복사되었습니다.`);
+        showCopySuccessToastKo(`포트 ${port} URL이 복사되었습니다.`);
     };
 
     const modalContent = (

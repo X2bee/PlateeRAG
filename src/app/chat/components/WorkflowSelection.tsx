@@ -1,16 +1,20 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import {
-    FiFolder,
-    FiUser,
-    FiClock,
-    FiRefreshCw,
     FiArrowLeft,
+    FiPlay,
+    FiClock,
+    FiCheckCircle,
+    FiRefreshCw,
+    FiSearch,
+    FiFilter,
+    FiUser,
     FiUsers,
+    FiFolder
 } from 'react-icons/fi';
 import styles from '@/app/chat/assets/WorkflowSelection.module.scss';
-import { listWorkflowsDetail } from '@/app/api/workflow/workflowAPI';
-import toast from 'react-hot-toast';
+import { listWorkflows, listWorkflowsDetail } from '@/app/api/workflow/workflowAPI';
+import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 
 interface Workflow {
     id: string;
@@ -153,9 +157,9 @@ const WorkflowSelection: React.FC<WorkflowSelectionProps> = ({ onBack, onSelectW
     const handleSelectWorkflow = (workflow: Workflow) => {
         if (workflow.status === 'active') {
             onSelectWorkflow(workflow);
-            toast.success(`"${workflow.name}" 워크플로우를 선택했습니다!`);
+            showSuccessToastKo(`"${workflow.name}" 워크플로우를 선택했습니다!`);
         } else {
-            toast.error('활성 상태의 워크플로우만 선택할 수 있습니다.');
+            showErrorToastKo('활성 상태의 워크플로우만 선택할 수 있습니다.');
         }
     };
 

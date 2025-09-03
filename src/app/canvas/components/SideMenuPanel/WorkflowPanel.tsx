@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import toast from 'react-hot-toast';
 import styles from '@/app/canvas/assets/WorkflowPanel.module.scss';
 import sideMenuStyles from '@/app/canvas/assets/SideMenu.module.scss';
 import { LuArrowLeft, LuFolderOpen, LuDownload, LuRefreshCw, LuCalendar, LuTrash2 } from "react-icons/lu";
@@ -8,11 +7,15 @@ import { listWorkflows, loadWorkflow, deleteWorkflow } from '@/app/api/workflow/
 import { getWorkflowState } from '@/app/_common/utils/workflowStorage';
 import { devLog } from '@/app/_common/utils/logger';
 import {
-    showWorkflowDeleteConfirm,
-    showDeleteSuccessToast,
-    showDeleteErrorToast,
-    showWarningConfirmToast
-} from '@/app/_common/utils/toastUtils';
+    showWorkflowDeleteConfirmKo,
+    showDeleteSuccessToastKo,
+    showDeleteErrorToastKo,
+    showWarningConfirmToastKo,
+    showSuccessToastKo,
+    showErrorToastKo,
+    showLoadingToastKo,
+    dismissToastKo
+} from '@/app/_common/utils/toastUtilsKo';
 import type {
     WorkflowData,
     WorkflowState,
@@ -49,7 +52,7 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
 
     const handleRefresh = (): void => {
         fetchWorkflows();
-        toast.success('워크플로우 새로고침 완료!');
+        showSuccessToastKo('워크플로우 새로고침 완료!');
     };
 
     const handleLoadWorkflow = async (filename: string): Promise<void> => {
@@ -59,14 +62,14 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
         if (hasCurrentWorkflow) {
             const workflowName = getWorkflowDisplayName(filename);
 
-            showWarningConfirmToast({
-                title: 'Load Workflow',
-                message: `You have an existing workflow with unsaved changes.\nLoading "${workflowName}" will replace your current work.`,
+            showWarningConfirmToastKo({
+                title: '워크플로우 로드',
+                message: `현재 저장되지 않은 변경사항이 있는 워크플로우가 있습니다.\n"${workflowName}" 로드 시 현재 작업이 대체됩니다.`,
                 onConfirm: async () => {
                     await performLoadWorkflow(filename);
                 },
-                confirmText: 'Load Anyway',
-                cancelText: 'Cancel',
+                confirmText: '로드',
+                cancelText: '취소',
             });
         } else {
             await performLoadWorkflow(filename);
@@ -85,14 +88,14 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
             devLog.error("Failed to load workflow:", error);
-            toast.error(`Failed to load workflow: ${errorMessage}`);
+            showErrorToastKo(`워크플로우 로드 실패: ${errorMessage}`);
         }
     };
 
     const handleDeleteWorkflow = async (filename: string): Promise<void> => {
         const workflowName = getWorkflowDisplayName(filename);
 
-        showWorkflowDeleteConfirm(
+        showWorkflowDeleteConfirmKo(
             workflowName,
             async () => {
                 await performDelete(filename, workflowName);
@@ -101,26 +104,26 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ onBack, onLoad, onExport,
     };
 
     const performDelete = async (filename: string, workflowName: string): Promise<void> => {
-        const toastId = toast.loading(`Deleting "${workflowName}"...`);
+        const toastId = showLoadingToastKo(`"${workflowName}" 삭제 중...`);
 
         try {
             const workflowId = filename.replace('.json', '');
             await deleteWorkflow(workflowId);
             await fetchWorkflows();
 
-            toast.dismiss(toastId);
-            showDeleteSuccessToast({
+            dismissToastKo(toastId);
+            showDeleteSuccessToastKo({
                 itemName: workflowName,
-                itemType: 'workflow',
+                itemType: '워크플로우',
             });
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
             devLog.error("Failed to delete workflow:", error);
 
-            toast.dismiss(toastId);
-            showDeleteErrorToast({
+            dismissToastKo(toastId);
+            showDeleteErrorToastKo({
                 itemName: workflowName,
-                itemType: 'workflow',
+                itemType: '워크플로우',
                 error: errorMessage,
             });
         }

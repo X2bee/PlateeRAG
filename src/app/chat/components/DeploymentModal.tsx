@@ -5,7 +5,7 @@ import { Prism } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { FiCode, FiExternalLink, FiX, FiTerminal, FiCopy, FiShare2 } from 'react-icons/fi';
 import { SiPython, SiJavascript } from "react-icons/si";
-import toast from 'react-hot-toast';
+import { showCopySuccessToastKo, showCopyErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { Workflow } from './types';
 import { getAuthCookie } from '@/app/_common/utils/cookieUtils';
 import { createEncryptedUrlParams } from '@/app/_common/utils/urlEncryption';
@@ -284,9 +284,9 @@ ${formatOutputSchemaForCode(outputSchema, 1)}
             };
 
             navigator.clipboard.writeText(codeString).then(() => {
-                toast.success('클립보드에 복사되었습니다!');
+                showCopySuccessToastKo();
             }, (err) => {
-                toast.error('복사에 실패했습니다.');
+                showCopyErrorToastKo();
             });
         };
 

@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { toast } from 'react-hot-toast';
+import { showSuccessToastKo, showErrorToastKo, showValidationErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 
 import { EvaluationAPI } from '@/app/api/trainer/evalAPI';
 
@@ -171,7 +171,7 @@ const Evaluation = () => {
       setTaskGroups(groups);
     } catch (error) {
       console.error('Error loading task groups:', error);
-      toast.error('태스크 목록을 불러오는데 실패했습니다.');
+      showErrorToastKo('태스크 목록을 불러오는데 실패했습니다.');
     }
   }, []);
 
@@ -205,7 +205,7 @@ const Evaluation = () => {
       }));
     } catch (err: any) {
       console.error(`Error loading ${type}s:`, err);
-      toast.error('데이터셋 목록을 불러오는데 실패했습니다.');
+      showErrorToastKo('데이터셋 목록을 불러오는데 실패했습니다.');
       setPopupState(prev => ({
         ...prev,
         [type]: {
@@ -268,14 +268,14 @@ const Evaluation = () => {
     } catch (error) {
       console.error("Error fetching dataset info:", error);
       setDatasetColumns([]);
-      toast.error('데이터셋 정보를 가져오는데 실패했습니다.');
+      showErrorToastKo('데이터셋 정보를 가져오는데 실패했습니다.');
     }
   }, []);
 
   // 컬럼 선택 팝업 열기
   const openColumnSelection = useCallback((mode : string) => {
     if (datasetColumns.length === 0) {
-      toast.error("데이터셋 컬럼 정보가 없습니다. 먼저 데이터셋을 선택하세요.");
+      showErrorToastKo("데이터셋 컬럼 정보가 없습니다. 먼저 데이터셋을 선택하세요.");
       return;
     }
 
@@ -375,7 +375,7 @@ const Evaluation = () => {
 
     } catch (error) {
       console.error('평가 결과 로딩 에러:', error);
-      toast.error('평가 결과를 불러오는데 실패했습니다');
+      showErrorToastKo('평가 결과를 불러오는데 실패했습니다');
     } finally {
       setDebouncedLoading(false);
     }
@@ -384,17 +384,17 @@ const Evaluation = () => {
   // 새 평가 실행
   const runEvaluation = useCallback(async () => {
     if (!selectedModel || !jobName) {
-      toast.error('모델과 작업 이름을 입력해주세요');
+      showValidationErrorToastKo('모델과 작업 이름을 입력해주세요');
       return;
     }
 
     if (isCausalLMTask && selectedBenchmarkTasks.length === 0) {
-      toast.error('최소 하나의 벤치마크 태스크를 선택해주세요');
+      showValidationErrorToastKo('최소 하나의 벤치마크 태스크를 선택해주세요');
       return;
     }
 
     if (!isCausalLMTask && !selectedDataset) {
-      toast.error('데이터셋을 선택해주세요');
+      showValidationErrorToastKo('데이터셋을 선택해주세요');
       return;
     }
 
@@ -465,13 +465,13 @@ const Evaluation = () => {
         [fakeJobId]: fakeJob
       }));
 
-      toast.success(`평가가 시작되었습니다. Job ID: ${fakeJobId}`);
+      showSuccessToastKo(`평가가 시작되었습니다. Job ID: ${fakeJobId}`);
 
       // 완료 상태로 변경하는 코드 제거 - 계속 running 상태로 유지
 
     } catch (error: any) {
       console.error('평가 실행 에러:', error);
-      toast.error('평가 실행에 실패했습니다');
+      showErrorToastKo('평가 실행에 실패했습니다');
     } finally {
       setIsRunningEval(false);
     }
@@ -519,7 +519,7 @@ const Evaluation = () => {
       const data = await EvaluationAPI.runEvaluation(requestBody) as { job_id: string };
 
       if (data.job_id) {
-        toast.success(`평가가 시작되었습니다. Job ID: ${data.job_id}`);
+        showSuccessToastKo(`평가가 시작되었습니다. Job ID: ${data.job_id}`);
         await loadEvalResults();
       } else {
         throw new Error('Job ID를 받지 못했습니다');
@@ -527,7 +527,7 @@ const Evaluation = () => {
 
     } catch (error: any) {
       console.error('평가 실행 에러:', error);
-      toast.error(error.message || '평가 실행에 실패했습니다');
+      showErrorToastKo(error.message || '평가 실행에 실패했습니다');
     } finally {
       setIsRunningEval(false);
     }
@@ -631,7 +631,7 @@ const getEvaluationDetails = useCallback(async (jobId : any) => {
 
   } catch (error) {
     console.error('작업 상세 조회 에러:', error);
-    toast.error('평가 작업 상세 정보를 불러오는데 실패했습니다');
+    showErrorToastKo('평가 작업 상세 정보를 불러오는데 실패했습니다');
   } finally {
     setIsLoadingJobDetails(false);
   }
@@ -646,7 +646,7 @@ const getEvaluationDetails = useCallback(async (jobId : any) => {
     setShowJobDetails(true);
   } catch (error) {
     console.error('평가 작업 상세 조회 에러:', error);
-    toast.error('평가 작업 상세 정보를 불러오는데 실패했습니다');
+    showErrorToastKo('평가 작업 상세 정보를 불러오는데 실패했습니다');
   } finally {
     setIsLoadingJobDetails(false);
   }

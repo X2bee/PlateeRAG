@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiCheck, FiX, FiCopy, FiExternalLink, FiServer, FiSettings, FiTrash2 } from 'react-icons/fi';
-import toast from 'react-hot-toast';
+import {
+    showInstanceSuccessToastKo,
+    showInstanceErrorToastKo,
+    showVLLMSuccessToastKo,
+    showVLLMErrorToastKo,
+    showCopySuccessToastKo
+} from '@/app/_common/utils/toastUtilsKo';
 import AdminVastAiConfigModal from '@/app/admin/components/config/AdminVastModal/AdminVastAiConfigModal';
 import { listVastInstances, destroyVastInstance, updateVllmConnectionConfig, vllmDown, vllmServe, vllmHealthCheck } from '@/app/api/vastAPI';
 import { devLog } from '@/app/_common/utils/logger';
@@ -63,7 +69,7 @@ export const AdminInstanceManagementModal = () => {
             devLog.info('Vast instances loaded:', result);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-            toast.error(`인스턴스 목록 로드 실패: ${errorMessage}`);
+            showInstanceErrorToastKo(`인스턴스 목록 로드 실패: ${errorMessage}`);
             devLog.error('Failed to load instances:', error);
         } finally {
             setIsLoadingInstances(false);
@@ -145,13 +151,13 @@ export const AdminInstanceManagementModal = () => {
             devLog.info('Destroying instance:', instanceId);
             await destroyVastInstance(instanceId);
 
-            toast.success('인스턴스가 삭제되었습니다.');
+            showInstanceSuccessToastKo('인스턴스가 삭제되었습니다.');
 
             // 인스턴스 목록 새로고침
             await handleLoadInstances();
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-            toast.error(`인스턴스 삭제 실패: ${errorMessage}`);
+            showInstanceErrorToastKo(`인스턴스 삭제 실패: ${errorMessage}`);
             devLog.error('Failed to destroy instance:', error);
         } finally {
             // 로딩 상태 해제
@@ -163,7 +169,7 @@ export const AdminInstanceManagementModal = () => {
         const vllmEndpoint = getExternalPortInfo(instance.port_mappings, '12434');
 
         if (!vllmEndpoint) {
-            toast.error('VLLM 엔드포인트가 준비되지 않았습니다.');
+            showVLLMErrorToastKo('VLLM 엔드포인트가 준비되지 않았습니다.');
             return;
         }
 
@@ -177,10 +183,10 @@ export const AdminInstanceManagementModal = () => {
                 model_name: instance.model_name
             });
 
-            toast.success('VLLM 설정이 업데이트되었습니다.');
+            showVLLMSuccessToastKo('VLLM 설정이 업데이트되었습니다.');
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-            toast.error(`VLLM 설정 업데이트 실패: ${errorMessage}`);
+            showVLLMErrorToastKo(`VLLM 설정 업데이트 실패: ${errorMessage}`);
             devLog.error('Failed to set VLLM config:', error);
         }
     };
@@ -191,11 +197,11 @@ export const AdminInstanceManagementModal = () => {
 
             await vllmDown(instance.instance_id);
 
-            toast.success('VLLM 모델이 종료되었습니다.');
+            showVLLMSuccessToastKo('VLLM 모델이 종료되었습니다.');
             handleLoadInstances();
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-            toast.error(`VLLM 모델 종료 실패: ${errorMessage}`);
+            showVLLMErrorToastKo(`VLLM 모델 종료 실패: ${errorMessage}`);
             devLog.error('Failed to stop VLLM model:', error);
         }
     };
@@ -221,12 +227,12 @@ export const AdminInstanceManagementModal = () => {
 
             await vllmServe(instance.instance_id, config);
 
-            toast.success('VLLM 모델이 시작되었습니다.');
+            showVLLMSuccessToastKo('VLLM 모델이 시작되었습니다.');
             setShowVllmConfigFor(null);
             handleLoadInstances();
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-            toast.error(`VLLM 모델 시작 실패: ${errorMessage}`);
+            showVLLMErrorToastKo(`VLLM 모델 시작 실패: ${errorMessage}`);
             devLog.error('Failed to start VLLM model:', error);
         } finally {
             // 로딩 상태 해제
@@ -288,19 +294,19 @@ export const AdminInstanceManagementModal = () => {
             const result = await vllmHealthCheck(healthRequest) as any;
 
             if (result.success) {
-                toast.success(result.message);
+                showVLLMSuccessToastKo(result.message);
                 devLog.info('VLLM health check successful:', result);
                 setVllmHealthStatus(prev => ({ ...prev, [instanceId]: 'success' }));
                 return true;
             } else {
-                toast.error(result.message);
+                showVLLMErrorToastKo(result.message);
                 devLog.error('VLLM health check failed:', result);
                 setVllmHealthStatus(prev => ({ ...prev, [instanceId]: 'failed' }));
                 return false;
             }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-            toast.error(`VLLM 헬스 체크 실패: ${errorMessage}`);
+            showVLLMErrorToastKo(`VLLM 헬스 체크 실패: ${errorMessage}`);
             devLog.error('Failed to check VLLM health:', error);
             setVllmHealthStatus(prev => ({ ...prev, [instanceId]: 'failed' }));
             return false;
@@ -515,7 +521,7 @@ export const AdminInstanceManagementModal = () => {
                                                     className={`${styles.button} ${styles.small} ${styles.secondary}`}
                                                     onClick={() => {
                                                         navigator.clipboard.writeText(instance.instance_id);
-                                                        toast.success('인스턴스 ID가 복사되었습니다.');
+                                                        showCopySuccessToastKo('인스턴스 ID가 복사되었습니다.');
                                                     }}
                                                 >
                                                     <FiCopy className={styles.icon} />
@@ -526,7 +532,7 @@ export const AdminInstanceManagementModal = () => {
                                                         className={`${styles.button} ${styles.small} ${styles.secondary}`}
                                                         onClick={() => {
                                                             navigator.clipboard.writeText(`ssh root@${instance.public_ip} -p ${instance.ssh_port}`);
-                                                            toast.success('SSH 명령어가 복사되었습니다.');
+                                                            showCopySuccessToastKo('SSH 명령어가 복사되었습니다.');
                                                         }}
                                                     >
                                                         <FiExternalLink className={styles.icon} />
@@ -539,7 +545,7 @@ export const AdminInstanceManagementModal = () => {
                                                         onClick={() => {
                                                             const vllmUrl = `http://${vllmEndpoint.ip}:${vllmEndpoint.port}/v1`;
                                                             navigator.clipboard.writeText(vllmUrl);
-                                                            toast.success('VLLM URL이 복사되었습니다.');
+                                                            showCopySuccessToastKo('VLLM URL이 복사되었습니다.');
                                                         }}
                                                     >
                                                         <FiExternalLink className={styles.icon} />

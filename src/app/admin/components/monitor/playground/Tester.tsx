@@ -7,7 +7,7 @@ import { devLog } from '@/app/_common/utils/logger';
 import { useWorkflowBatchTester } from '@/app/_common/hooks/useWorkflowBatchTester';
 import { TestData } from '@/app/_common/contexts/BatchTesterContext';
 import { SSEMessage } from '@/app/_common/utils/sseManager';
-import toast from 'react-hot-toast';
+import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 
 // 외부 라이브러리 동적 로드
 declare global {
@@ -618,11 +618,11 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
                     // 성공률에 따른 토스트 메시지
                     const successRate = finalStats.total_count > 0 ? (finalStats.success_count / finalStats.total_count) * 100 : 0;
                     if (successRate === 100) {
-                        toast.success('모든 테스트가 성공했습니다!');
+                        showSuccessToastKo('모든 테스트가 성공했습니다!');
                     } else if (successRate >= 80) {
-                        toast.success('대부분의 테스트가 성공했습니다!');
+                        showSuccessToastKo('대부분의 테스트가 성공했습니다!');
                     } else if (finalStats.error_count > 0) {
-                        toast.error('일부 테스트가 실패했습니다. 결과를 확인해주세요.');
+                        showErrorToastKo('일부 테스트가 실패했습니다. 결과를 확인해주세요.');
                     }
                 },
                 onError: (error: Error) => {

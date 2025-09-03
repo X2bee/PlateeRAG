@@ -17,11 +17,11 @@ import { listWorkflowsDetail, deleteWorkflow, duplicateWorkflow } from '@/app/ap
 import { useRouter } from 'next/navigation';
 import { Workflow, WorkflowDetailResponse } from '@/app/main/types/index';
 import {
-    showWorkflowDeleteConfirm,
-    showDeleteSuccessToast,
-    showDeleteErrorToast
-} from '@/app/_common/utils/toastUtils';
-import toast from 'react-hot-toast';
+    showWorkflowDeleteConfirmKo,
+    showDeleteSuccessToastKo,
+    showDeleteErrorToastKo
+} from '@/app/_common/utils/toastUtilsKo';
+import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import WorkflowEditModal from '@/app/main/components/workflows/WorkflowEditModal';
 
@@ -168,81 +168,36 @@ const CompletedWorkflows: React.FC = () => {
 
     const handleDuplicate = async (workflow: Workflow) => {
         if (!workflow.user_id) {
-            toast.error('워크플로우 복사에 실패했습니다: 사용자 정보가 없습니다.', {
-                duration: 4000,
-                style: {
-                    background: '#ffffff',
-                    color: '#374151',
-                    border: '2px solid #ef4444',
-                    borderRadius: '10px',
-                    fontWeight: '500',
-                    fontFamily: 'system-ui, -apple-system, sans-serif',
-                    boxShadow: '0 4px 12px rgba(239, 68, 68, 0.15)',
-                },
-                iconTheme: {
-                    primary: '#ef4444',
-                    secondary: '#fff',
-                },
-            });
+            showErrorToastKo('워크플로우 복사에 실패했습니다: 사용자 정보가 없습니다.');
             return;
         }
 
         try {
             const result = await duplicateWorkflow(workflow.name, workflow.user_id);
-            toast.success(`"${workflow.name}" 워크플로우가 성공적으로 복사되었습니다!`, {
-                duration: 3000,
-                style: {
-                    background: '#ffffff',
-                    color: '#374151',
-                    border: '2px solid #10b981',
-                    borderRadius: '10px',
-                    fontWeight: '500',
-                    fontFamily: 'system-ui, -apple-system, sans-serif',
-                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)',
-                },
-                iconTheme: {
-                    primary: '#10b981',
-                    secondary: '#fff',
-                },
-            });
+            showSuccessToastKo(`"${workflow.name}" 워크플로우가 성공적으로 복사되었습니다!`);
             fetchWorkflows();
         } catch (error) {
             console.error('Failed to duplicate workflow:', error);
-            toast.error(`워크플로우 복사에 실패했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`, {
-                duration: 4000,
-                style: {
-                    background: '#ffffff',
-                    color: '#374151',
-                    border: '2px solid #ef4444',
-                    borderRadius: '10px',
-                    fontWeight: '500',
-                    fontFamily: 'system-ui, -apple-system, sans-serif',
-                    boxShadow: '0 4px 12px rgba(239, 68, 68, 0.15)',
-                },
-                iconTheme: {
-                    primary: '#ef4444',
-                    secondary: '#fff',
-                },
-            });
+            showErrorToastKo(`워크플로우 복사에 실패했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
 
     const handleDelete = (workflow: Workflow) => {
-        showWorkflowDeleteConfirm(
+        showWorkflowDeleteConfirmKo(
             workflow.name,
             async () => {
                 try {
                     await deleteWorkflow(workflow.name);
-                    showDeleteSuccessToast({
+                    showDeleteSuccessToastKo({
                         itemName: workflow.name,
-                        itemType: 'workflow',
+                        itemType: '워크플로우',
                     });
                     fetchWorkflows(); // 목록 새로고침
                 } catch (error) {
                     console.error('Failed to delete workflow:', error);
-                    showDeleteErrorToast({
+                    showDeleteErrorToastKo({
                         itemName: workflow.name,
-                        itemType: 'workflow',
+                        itemType: '워크플로우',
                         error: error instanceof Error ? error : 'Unknown error',
                     });
                 }

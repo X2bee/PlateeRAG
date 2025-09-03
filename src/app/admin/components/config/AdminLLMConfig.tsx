@@ -3,7 +3,11 @@ import { FiRefreshCw, FiCheck, FiX, FiAlertCircle, FiPlay, FiServer, FiSettings 
 import { SiOpenai, SiGooglegemini , SiAnthropic } from 'react-icons/si';
 import { BsCpu } from 'react-icons/bs';
 import { TbBrandGolang } from 'react-icons/tb';
-import toast from 'react-hot-toast';
+import {
+    showLLMProviderChangeConfirmKo,
+    showSuccessToastKo,
+    showErrorToastKo
+} from '@/app/_common/utils/toastUtilsKo';
 import AdminBaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/admin/components/config/AdminBaseConfigPanel';
 import AdminLLMOpenAIConfig from '@/app/admin/components/config/AdminLLMOpenAIConfig';
 import AdminLLMvLLMConfig from '@/app/admin/components/config/AdminLLMvLLMConfig';
@@ -186,65 +190,12 @@ const AdminLLMConfig: React.FC<AdminLLMConfigProps> = ({
         const currentProviderDisplayName = LLM_PROVIDERS.find(p => p.name === currentProvider)?.displayName || currentProvider;
         const newProviderDisplayName = LLM_PROVIDERS.find(p => p.name === providerName)?.displayName || providerName;
 
-        toast((t) => (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ fontWeight: '600', color: '#dc2626', fontSize: '1rem' }}>
-                    LLM 제공자 변경
-                </div>
-                <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.4' }}>
-                    현재: <strong>{currentProviderDisplayName}</strong> → 변경: <strong>{newProviderDisplayName}</strong>
-                    <br />
-                    변경 시 백엔드에서 재설정 작업이 수행됩니다.
-                </div>
-                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
-                    <button
-                        onClick={() => toast.dismiss(t.id)}
-                        style={{
-                            padding: '8px 16px',
-                            backgroundColor: '#ffffff',
-                            border: '2px solid #6b7280',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '0.85rem',
-                            fontWeight: '500',
-                            color: '#374151',
-                        }}
-                    >
-                        취소
-                    </button>
-                    <button
-                        onClick={() => {
-                            toast.dismiss(t.id);
-                            confirmProviderSwitch(providerName);
-                        }}
-                        style={{
-                            padding: '8px 16px',
-                            backgroundColor: '#dc2626',
-                            color: 'white',
-                            border: '2px solid #b91c1c',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '0.85rem',
-                            fontWeight: '500',
-                        }}
-                    >
-                        변경
-                    </button>
-                </div>
-            </div>
-        ), {
-            duration: Infinity,
-            style: {
-                maxWidth: '420px',
-                padding: '20px',
-                backgroundColor: '#f9fafb',
-                border: '2px solid #374151',
-                borderRadius: '12px',
-                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
-                color: '#374151',
-                fontFamily: 'system-ui, -apple-system, sans-serif',
-            },
-        });
+        showLLMProviderChangeConfirmKo(
+            currentProviderDisplayName,
+            newProviderDisplayName,
+            () => confirmProviderSwitch(providerName),
+            () => {} // onCancel 콜백 - 필요시 추가 로직
+        );
     };
 
     const confirmProviderSwitch = async (providerName: string) => {
@@ -253,11 +204,11 @@ const AdminLLMConfig: React.FC<AdminLLMConfigProps> = ({
         try {
             const result = await switchLLMProvider(providerName);
             await loadLLMStatus(); // 상태 새로고침
-            toast.success(`LLM 제공자가 ${LLM_PROVIDERS.find(p => p.name === providerName)?.displayName || providerName}로 변경되었습니다.`);
+            showSuccessToastKo(`LLM 제공자가 ${LLM_PROVIDERS.find(p => p.name === providerName)?.displayName || providerName}로 변경되었습니다.`);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : '제공자 변경에 실패했습니다.';
             setError(errorMessage);
-            toast.error(errorMessage);
+            showErrorToastKo(errorMessage);
             console.error('Failed to switch provider:', err);
         } finally {
             setSwitching(false);
@@ -283,7 +234,7 @@ const AdminLLMConfig: React.FC<AdminLLMConfigProps> = ({
                 // Fallback to original onTestConnection
                 if (onTestConnection) {
                     await onTestConnection(providerName);
-                    toast.success(`${LLM_PROVIDERS.find(p => p.name === providerName)?.displayName} 연결 테스트 성공!`);
+                    showSuccessToastKo(`${LLM_PROVIDERS.find(p => p.name === providerName)?.displayName} 연결 테스트 성공!`);
                     return;
                 }
             }
@@ -301,9 +252,9 @@ const AdminLLMConfig: React.FC<AdminLLMConfigProps> = ({
             }));
 
             if (isSuccess) {
-                toast.success(`${LLM_PROVIDERS.find(p => p.name === providerName)?.displayName} 연결 테스트 성공!`);
+                showSuccessToastKo(`${LLM_PROVIDERS.find(p => p.name === providerName)?.displayName} 연결 테스트 성공!`);
             } else {
-                toast.error(`${LLM_PROVIDERS.find(p => p.name === providerName)?.displayName} 연결 테스트 실패`);
+                showErrorToastKo(`${LLM_PROVIDERS.find(p => p.name === providerName)?.displayName} 연결 테스트 실패`);
             }
         } catch (err) {
             // 테스트 실패 결과 업데이트
@@ -318,7 +269,7 @@ const AdminLLMConfig: React.FC<AdminLLMConfigProps> = ({
 
             const errorMessage = err instanceof Error ? err.message : `${providerName} 연결 테스트에 실패했습니다.`;
             setError(errorMessage);
-            toast.error(errorMessage);
+            showErrorToastKo(errorMessage);
             console.error('Failed to test connection:', err);
         } finally {
             setTesting(false);
