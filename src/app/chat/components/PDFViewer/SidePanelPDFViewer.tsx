@@ -66,7 +66,7 @@ interface SidePanelPDFViewerProps {
   onClose: () => void;
 }
 
-const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mode, userId, onClose }) => {
+const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = React.memo(({ sourceInfo, mode, userId, onClose }) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.0);
@@ -78,6 +78,7 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
   const [fileType, setFileType] = useState<'pdf' | 'html' | 'docx' | 'unknown'>('unknown');
   const [docxHtml, setDocxHtml] = useState<string | null>(null);
   const [pdfScrollContainer, setPdfScrollContainer] = useState<HTMLDivElement | null>(null);
+  const [viewerContainer, setViewerContainer] = useState<HTMLDivElement | null>(null);
 
   if (!sourceInfo) return null;
 
@@ -292,8 +293,6 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
           if (pdfScrollContainer) {
             setTimeout(() => {
               // 1.0 스케일에서는 중앙 정렬되므로 스크롤 초기화
-              const containerWidth = pdfScrollContainer.clientWidth;
-              const containerHeight = pdfScrollContainer.clientHeight;
               pdfScrollContainer.scrollLeft = 0;
               pdfScrollContainer.scrollTop = 0;
             }, 100);
@@ -317,14 +316,22 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
       }
     };
 
+    // 키보드 이벤트는 PDF 뷰어가 포커스되었을 때만 작동하도록 document에 등록
     document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('wheel', handleWheel, { passive: false });
+
+    // wheel 이벤트는 뷰어 컨테이너에만 제한 (PDF, HTML, DOCX 모두)
+    const targetContainer = pdfScrollContainer || viewerContainer;
+    if (targetContainer) {
+      targetContainer.addEventListener('wheel', handleWheel, { passive: false });
+    }
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('wheel', handleWheel);
+      if (targetContainer) {
+        targetContainer.removeEventListener('wheel', handleWheel);
+      }
     };
-  }, [handleZoomIn, handleZoomOut, pdfScrollContainer]);
+  }, [handleZoomIn, handleZoomOut, pdfScrollContainer, viewerContainer]);
 
   // sourceInfo가 변경될 때 문서 로딩 및 페이지 설정
   useEffect(() => {
@@ -481,7 +488,11 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
         )}
 
         {!loading && !error && pdfUrl && fileType === 'html' && (
-          <div className={styles.htmlContainer} style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+          <div 
+            ref={setViewerContainer}
+            className={styles.htmlContainer} 
+            style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}
+          >
             <iframe
               src={pdfUrl}
               className={styles.htmlFrame}
@@ -497,7 +508,10 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
         )}
 
         {!loading && !error && docxHtml && fileType === 'docx' && (
-          <div className={styles.docxContainer}>
+          <div 
+            ref={setViewerContainer}
+            className={styles.docxContainer}
+          >
             <div
               className={styles.docxContent}
               style={{
@@ -558,6 +572,8 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
       </div>
     </div>
   );
-};
+});
+
+SidePanelPDFViewer.displayName = 'SidePanelPDFViewer';
 
 export default SidePanelPDFViewer;
