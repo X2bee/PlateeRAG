@@ -47,7 +47,9 @@ const GlobalDocumentFileModal: React.FC = () => {
     const [embeddingConfig, setEmbeddingConfig] = useState<EmbeddingConfig | null>(null);
     const [embeddingLoading, setEmbeddingLoading] = useState(true);
     const [dimensionMismatch, setDimensionMismatch] = useState(false);
+    const [modelMismatch, setModelMismatch] = useState(false);
     const [ignoreDimensionMismatch, setIgnoreDimensionMismatch] = useState(false);
+    const [ignoreModelMismatch, setIgnoreModelMismatch] = useState(false);
 
     // 로컬 스토리지 키
     const STORAGE_KEY = 'global_upload_state';
@@ -90,8 +92,15 @@ const GlobalDocumentFileModal: React.FC = () => {
                 } else {
                     setDimensionMismatch(false);
                 }
+
+                // 모델 불일치 체크
+                if (selectedCollection && selectedCollection.init_embedding_model &&
+                    config.provider_info.model !== selectedCollection.init_embedding_model) {
+                    setModelMismatch(true);
+                } else {
+                    setModelMismatch(false);
+                }
             } catch (error) {
-                console.error('Failed to load embedding config:', error);
                 setError('Embedding 설정을 불러오는데 실패했습니다.');
             } finally {
                 setEmbeddingLoading(false);
@@ -152,6 +161,12 @@ const GlobalDocumentFileModal: React.FC = () => {
         // 차원 불일치 체크
         if (dimensionMismatch && !ignoreDimensionMismatch) {
             setError('벡터 차원이 일치하지 않습니다. 설정을 확인하거나 "차원 불일치 무시" 옵션을 체크해주세요.');
+            return;
+        }
+
+        // 모델 불일치 체크
+        if (modelMismatch && !ignoreModelMismatch) {
+            setError('임베딩 모델이 일치하지 않습니다. 설정을 확인하거나 "모델 불일치 무시" 옵션을 체크해주세요.');
             return;
         }
 
@@ -355,8 +370,8 @@ const GlobalDocumentFileModal: React.FC = () => {
                                         </span>
                                     </div>
                                     <div className={styles.infoRow}>
-                                        <label>Model:</label>
-                                        <span className={styles.modelName}>
+                                        <label>Embedding Model:</label>
+                                        <span className={`${styles.modelName} ${modelMismatch ? styles.mismatch : ''}`}>
                                             {embeddingConfig.provider_info.model}
                                         </span>
                                     </div>
@@ -367,7 +382,13 @@ const GlobalDocumentFileModal: React.FC = () => {
                                         </span>
                                     </div>
                                     <div className={styles.infoRow}>
-                                        <label>컬렉션 Dimension:</label>
+                                        <label>Embedding Model (Collection):</label>
+                                        <span className={`${styles.modelName} ${modelMismatch ? styles.mismatch : ''}`}>
+                                            {selectedCollection?.init_embedding_model || 'N/A'}
+                                        </span>
+                                    </div>
+                                    <div className={styles.infoRow}>
+                                        <label>Dimension (Collection):</label>
                                         <span className={`${styles.dimension} ${dimensionMismatch ? styles.mismatch : ''}`}>
                                             {selectedCollection?.vector_size || 'N/A'}
                                         </span>
@@ -396,6 +417,27 @@ const GlobalDocumentFileModal: React.FC = () => {
                                                     onChange={(e) => setIgnoreDimensionMismatch(e.target.checked)}
                                                 />
                                                 차원 불일치 무시하고 실행
+                                            </label>
+                                        </div>
+                                    )}
+
+                                    {/* 모델 불일치 경고 */}
+                                    {modelMismatch && (
+                                        <div className={styles.warningSection}>
+                                            <div className={styles.warningMessage}>
+                                                임베딩 모델이 일치하지 않습니다!
+                                                <br />
+                                                현재 Model: {embeddingConfig.provider_info.model}
+                                                <br />
+                                                Collection 초기 Model: {selectedCollection?.init_embedding_model}
+                                            </div>
+                                            <label className={styles.checkboxLabel}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={ignoreModelMismatch}
+                                                    onChange={(e) => setIgnoreModelMismatch(e.target.checked)}
+                                                />
+                                                모델 불일치 무시하고 실행
                                             </label>
                                         </div>
                                     )}
@@ -534,7 +576,7 @@ const GlobalDocumentFileModal: React.FC = () => {
                     <button
                         onClick={handleConfirmChunkSettings}
                         className={`${styles.button} ${styles.primary}`}
-                        disabled={loading || (dimensionMismatch && !ignoreDimensionMismatch) || !embeddingConfig?.client_available}
+                        disabled={loading || (dimensionMismatch && !ignoreDimensionMismatch) || (modelMismatch && !ignoreModelMismatch) || !embeddingConfig?.client_available}
                     >
                         {loading ? '업로드 중...' : '설정 완료'}
                     </button>

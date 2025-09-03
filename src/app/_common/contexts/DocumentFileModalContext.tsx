@@ -15,6 +15,7 @@ interface Collection {
     is_shared?: boolean | null;
     share_group?: string | null;
     share_permissions?: string | null;
+    init_embedding_model?: string | null;
 }
 
 interface DocumentFileModalContextType {
