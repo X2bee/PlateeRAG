@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiCheck, FiX, FiAlertCircle, FiPlay, FiServer, FiSettings } from 'react-icons/fi';
-import { SiOpenai } from 'react-icons/si';
+import { SiOpenai, SiGooglegemini , SiAnthropic } from 'react-icons/si';
 import { BsCpu } from 'react-icons/bs';
 import { TbBrandGolang } from 'react-icons/tb';
 import toast from 'react-hot-toast';
 import AdminBaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/admin/components/config/AdminBaseConfigPanel';
+import AdminLLMOpenAIConfig from '@/app/admin/components/config/AdminLLMOpenAIConfig';
+import AdminLLMvLLMConfig from '@/app/admin/components/config/AdminLLMvLLMConfig';
+import AdminLLMSGLangConfig from '@/app/admin/components/config/AdminLLMSGLangConfig';
+import AdminLLMGeminiConfig from '@/app/admin/components/config/AdminLLMGeminiConfig';
+import AdminLLMAnthropicConfig from '@/app/admin/components/config/AdminLLMAnthropicConfig';
 import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
 import {
     getLLMStatus,
@@ -36,298 +41,6 @@ interface LLMStatus {
         };
     };
 }
-
-// OpenAI 관련 설정 필드
-const OPENAI_CONFIG_FIELDS: Record<string, FieldConfig> = {
-    OPENAI_API_KEY: {
-        label: 'API Key',
-        type: 'password',
-        placeholder: 'sk-...',
-        description: 'OpenAI API 키를 입력하세요. API 키는 안전하게 암호화되어 저장됩니다.',
-        required: true,
-    },
-    OPENAI_API_BASE_URL: {
-        label: 'API Base URL',
-        type: 'text',
-        placeholder: 'https://api.openai.com/v1',
-        description: 'OpenAI API의 기본 URL입니다. 프록시나 대체 엔드포인트를 사용하는 경우 변경하세요.',
-        required: false,
-    },
-    OPENAI_MODEL_DEFAULT: {
-        label: '기본 모델',
-        type: 'select',
-        options: [
-            { value: 'gpt-4o-mini-2024-07-18', label: 'gpt-4o-mini-2024-07-18' },
-            { value: 'gpt-4o-2024-11-20', label: 'gpt-4o-2024-11-20' },
-            { value: 'gpt-4.1-mini-2025-04-14', label: 'gpt-4.1-mini-2025-04-14' },
-            { value: 'gpt-4.1-2025-04-14', label: 'gpt-4.1-2025-04-14' },
-        ],
-        description: '워크플로우에서 사용할 기본 OpenAI 모델을 선택하세요.',
-        required: false,
-    },
-    OPENAI_TEMPERATURE_DEFAULT: {
-        label: 'Temperature (창의성)',
-        type: 'number',
-        min: 0,
-        max: 2,
-        step: 0.01,
-        description: '0에 가까울수록 일관된 답변, 2에 가까울수록 창의적인 답변을 생성합니다. (기본값: 0.7)',
-        required: false,
-    },
-    OPENAI_MAX_TOKENS_DEFAULT: {
-        label: '최대 토큰 수',
-        type: 'number',
-        min: 1,
-        max: 32000,
-        description: '응답에서 생성할 최대 토큰 수입니다. (1 토큰 ≈ 4글자, 기본값: 1000)',
-        required: false,
-    },
-    OPENAI_ORGANIZATION_ID: {
-        label: 'Organization ID (선택사항)',
-        type: 'text',
-        placeholder: 'org-...',
-        description: 'OpenAI Organization에 속해 있는 경우 Organization ID를 입력하세요.',
-        required: false,
-    },
-};
-
-// vLLM 관련 설정 필드
-const VLLM_CONFIG_FIELDS: Record<string, FieldConfig> = {
-    VLLM_API_BASE_URL: {
-        label: 'API Base URL',
-        type: 'text',
-        placeholder: 'http://0.0.0.0:12721/v1',
-        description: 'vLLM 서버의 API 엔드포인트 URL을 입력하세요. (예: http://0.0.0.0:12721/v1)',
-        required: true,
-    },
-    VLLM_API_KEY: {
-        label: 'API Key (선택사항)',
-        type: 'password',
-        placeholder: '인증이 필요한 경우 입력',
-        description: 'vLLM 서버에 인증이 필요한 경우 API 키를 입력하세요.',
-        required: false,
-    },
-    VLLM_MODEL_NAME: {
-        label: '모델 이름',
-        type: 'text',
-        placeholder: 'meta-llama/Llama-2-7b-chat-hf',
-        description: 'vLLM에서 로드된 모델의 이름을 입력하세요. (예: meta-llama/Llama-2-7b-chat-hf)',
-        required: true,
-    },
-    VLLM_TEMPERATURE_DEFAULT: {
-        label: 'Temperature (창의성)',
-        type: 'number',
-        min: 0,
-        max: 2,
-        step: 0.01,
-        description: '0에 가까울수록 일관된 답변, 2에 가까울수록 창의적인 답변을 생성합니다. (기본값: 0.7)',
-        required: false,
-    },
-    VLLM_MAX_TOKENS_DEFAULT: {
-        label: '최대 토큰 수',
-        type: 'number',
-        min: 1,
-        max: 8192,
-        description: '응답에서 생성할 최대 토큰 수입니다. (기본값: 512)',
-        required: false,
-    },
-    VLLM_TOP_P: {
-        label: 'Top-p (Nucleus Sampling)',
-        type: 'number',
-        min: 0,
-        max: 1,
-        step: 0.01,
-        description: '누적 확률이 이 값에 도달할 때까지의 토큰들만 고려합니다. (기본값: 0.9)',
-        required: false,
-    },
-    VLLM_TOP_K: {
-        label: 'Top-k',
-        type: 'number',
-        min: 1,
-        max: 100,
-        description: '상위 k개의 토큰만 고려합니다. -1은 비활성화를 의미합니다.',
-        required: false,
-    },
-    VLLM_FREQUENCY_PENALTY: {
-        label: 'Frequency Penalty',
-        type: 'number',
-        min: -2,
-        max: 2,
-        step: 0.01,
-        description: '반복되는 토큰에 대한 페널티를 설정합니다. (기본값: 0)',
-        required: false,
-    },
-    VLLM_PRESENCE_PENALTY: {
-        label: 'Presence Penalty',
-        type: 'number',
-        min: -2,
-        max: 2,
-        step: 0.01,
-        description: '새로운 토큰 생성을 장려하는 페널티를 설정합니다. (기본값: 0)',
-        required: false,
-    },
-    VLLM_REPETITION_PENALTY: {
-        label: 'Repetition Penalty',
-        type: 'number',
-        min: 0.1,
-        max: 2,
-        step: 0.01,
-        description: '반복을 줄이기 위한 페널티를 설정합니다. (기본값: 1.0)',
-        required: false,
-    },
-    VLLM_BEST_OF: {
-        label: 'Best of',
-        type: 'number',
-        min: 1,
-        max: 20,
-        description: '여러 생성 결과 중 최고를 선택합니다. beam search에서 사용됩니다.',
-        required: false,
-    },
-    VLLM_USE_BEAM_SEARCH: {
-        label: 'Beam Search 사용',
-        type: 'boolean',
-        description: 'Beam Search를 사용하여 더 일관성 있는 결과를 생성합니다.',
-        required: false,
-    },
-    VLLM_STOP_SEQUENCES: {
-        label: 'Stop Sequences',
-        type: 'text',
-        placeholder: '["</s>", "Human:", "Assistant:"]',
-        description: '생성을 중단할 문자열 목록을 JSON 배열 형태로 입력하세요.',
-        required: false,
-    },
-    VLLM_SEED: {
-        label: 'Random Seed',
-        type: 'number',
-        description: '재현 가능한 결과를 위한 시드값을 설정합니다. (선택사항)',
-        required: false,
-    },
-    VLLM_TIMEOUT: {
-        label: '요청 타임아웃 (초)',
-        type: 'number',
-        min: 1,
-        max: 300,
-        description: 'API 요청의 최대 대기 시간을 설정합니다. (기본값: 60초)',
-        required: false,
-    },
-    VLLM_STREAM: {
-        label: '스트리밍 응답',
-        type: 'boolean',
-        description: '응답을 스트리밍 방식으로 받을지 설정합니다.',
-        required: false,
-    },
-    VLLM_LOGPROBS: {
-        label: 'Log Probabilities',
-        type: 'number',
-        min: 0,
-        max: 20,
-        description: '각 토큰의 로그 확률을 반환할 상위 토큰 개수입니다.',
-        required: false,
-    },
-    VLLM_ECHO: {
-        label: 'Echo Input',
-        type: 'boolean',
-        description: '입력 프롬프트를 출력에 포함할지 설정합니다.',
-        required: false,
-    },
-};
-
-// SGL 관련 설정 필드
-const SGL_CONFIG_FIELDS: Record<string, FieldConfig> = {
-    SGL_API_BASE_URL: {
-        label: 'API Base URL',
-        type: 'text',
-        placeholder: 'http://localhost:12721/v1',
-        description: 'SGLang 서버의 API 엔드포인트 URL을 입력하세요. (예: http://localhost:12721/v1)',
-        required: true,
-    },
-    SGL_API_KEY: {
-        label: 'API Key (선택사항)',
-        type: 'password',
-        placeholder: '인증이 필요한 경우 입력',
-        description: 'SGLang 서버에 인증이 필요한 경우 API 키를 입력하세요.',
-        required: false,
-    },
-    SGL_MODEL_NAME: {
-        label: '모델 이름',
-        type: 'text',
-        placeholder: 'Qwen/Qwen3-4B',
-        description: 'SGLang에서 로드된 모델의 이름을 입력하세요. (예: Qwen/Qwen3-4B)',
-        required: true,
-    },
-    SGL_TEMPERATURE_DEFAULT: {
-        label: 'Temperature (창의성)',
-        type: 'number',
-        min: 0,
-        max: 2,
-        step: 0.01,
-        description: '0에 가까울수록 일관된 답변, 2에 가까울수록 창의적인 답변을 생성합니다. (기본값: 0.7)',
-        required: false,
-    },
-    SGL_MAX_TOKENS_DEFAULT: {
-        label: '최대 토큰 수',
-        type: 'number',
-        min: 1,
-        max: 8192,
-        description: '응답에서 생성할 최대 토큰 수입니다. (기본값: 512)',
-        required: false,
-    },
-    SGL_TOP_P: {
-        label: 'Top-p (Nucleus Sampling)',
-        type: 'number',
-        min: 0,
-        max: 1,
-        step: 0.01,
-        description: '누적 확률이 이 값에 도달할 때까지의 토큰들만 고려합니다. (기본값: 0.9)',
-        required: false,
-    },
-    SGL_FREQUENCY_PENALTY: {
-        label: 'Frequency Penalty',
-        type: 'number',
-        min: -2,
-        max: 2,
-        step: 0.01,
-        description: '반복되는 토큰에 대한 페널티를 설정합니다. (기본값: 0.0)',
-        required: false,
-    },
-    SGL_PRESENCE_PENALTY: {
-        label: 'Presence Penalty',
-        type: 'number',
-        min: -2,
-        max: 2,
-        step: 0.01,
-        description: '새로운 토큰 생성을 장려하는 페널티를 설정합니다. (기본값: 0.0)',
-        required: false,
-    },
-    SGL_STOP_SEQUENCES: {
-        label: 'Stop Sequences',
-        type: 'text',
-        placeholder: '["</s>", "Human:", "Assistant:"]',
-        description: '생성을 중단할 문자열 목록을 JSON 배열 형태로 입력하세요.',
-        required: false,
-    },
-    SGL_SEED: {
-        label: 'Random Seed',
-        type: 'number',
-        description: '재현 가능한 결과를 위한 시드값을 설정합니다. (-1은 랜덤 시드)',
-        required: false,
-    },
-    SGL_REQUEST_TIMEOUT: {
-        label: '요청 타임아웃 (초)',
-        type: 'number',
-        min: 1,
-        max: 300,
-        description: 'API 요청의 최대 대기 시간을 설정합니다. (기본값: 60초)',
-        required: false,
-    },
-    SGL_STREAM: {
-        label: '스트리밍 응답',
-        type: 'boolean',
-        description: '응답을 스트리밍 방식으로 받을지 설정합니다.',
-        required: false,
-    },
-};
-
 // 기본 LLM 제공자 설정 필드
 const DEFAULT_PROVIDER_CONFIG_FIELDS: Record<string, FieldConfig> = {
     DEFAULT_LLM_PROVIDER: {
@@ -335,6 +48,8 @@ const DEFAULT_PROVIDER_CONFIG_FIELDS: Record<string, FieldConfig> = {
         type: 'select',
         options: [
             { value: 'openai', label: 'OpenAI' },
+            { value: 'gemini', label: 'Gemini' },
+            { value: 'anthropic', label: 'Anthropic' },
             { value: 'vllm', label: 'vLLM' },
             { value: 'sgl', label: 'SGLang' }
         ],
@@ -349,6 +64,18 @@ const LLM_PROVIDERS: LLMProvider[] = [
         displayName: 'OpenAI',
         icon: <SiOpenai />,
         description: 'GPT-4, GPT-3.5 등 OpenAI의 고성능 언어 모델'
+    },
+    {
+        name: 'gemini',
+        displayName: 'Gemini',
+        icon: <SiGooglegemini  />,
+        description: 'Google의 고성능 Gemini 언어 모델'
+    },
+    {
+        name: 'anthropic',
+        displayName: 'Anthropic',
+        icon: <SiAnthropic />,
+        description: 'Claude 등 Anthropic의 고성능 언어 모델'
     },
     {
         name: 'vllm',
@@ -368,7 +95,7 @@ const AdminLLMConfig: React.FC<AdminLLMConfigProps> = ({
     configData = [],
     onTestConnection,
 }) => {
-    const [activeTab, setActiveTab] = useState<'default' | 'openai' | 'vllm' | 'sgl'>('default');
+    const [activeTab, setActiveTab] = useState<'default' | 'openai' | 'gemini' | 'anthropic' | 'vllm' | 'sgl'>('default');
     const [loading, setLoading] = useState(false);
     const [testing, setTesting] = useState(false);
     const [switching, setSwitching] = useState(false);
@@ -427,6 +154,10 @@ const AdminLLMConfig: React.FC<AdminLLMConfigProps> = ({
             // Fallback: configData에서 가져오기
             if (providerName === 'openai') {
                 configured = !!configData.find(item => item.env_name === 'OPENAI_API_KEY')?.current_value;
+            } else if (providerName === 'gemini') {
+                configured = !!configData.find(item => item.env_name === 'GEMINI_API_KEY')?.current_value;
+            } else if (providerName === 'anthropic') {
+                configured = !!configData.find(item => item.env_name === 'ANTHROPIC_API_KEY')?.current_value;
             } else if (providerName === 'vllm') {
                 configured = !!configData.find(item => item.env_name === 'VLLM_API_BASE_URL')?.current_value;
             } else if (providerName === 'sgl') {
@@ -448,12 +179,10 @@ const AdminLLMConfig: React.FC<AdminLLMConfigProps> = ({
     const handleProviderSwitch = async (providerName: string) => {
         const currentProvider = getCurrentDefaultProvider();
 
-        // 현재 provider와 동일한 경우 아무 동작하지 않음
         if (currentProvider === providerName) {
             return;
         }
 
-        // 확인 toast를 통해 사용자에게 변경 의사 확인
         const currentProviderDisplayName = LLM_PROVIDERS.find(p => p.name === currentProvider)?.displayName || currentProvider;
         const newProviderDisplayName = LLM_PROVIDERS.find(p => p.name === providerName)?.displayName || providerName;
 
@@ -542,6 +271,10 @@ const AdminLLMConfig: React.FC<AdminLLMConfigProps> = ({
             let result;
             if (providerName === 'openai') {
                 result = await testConnection('openai');
+            } else if (providerName === 'gemini') {
+                result = await testConnection('gemini');
+            } else if (providerName === 'anthropic') {
+                result = await testConnection('anthropic');
             } else if (providerName === 'vllm') {
                 result = await testConnection('vllm');
             } else if (providerName === 'sgl') {
@@ -828,7 +561,7 @@ const AdminLLMConfig: React.FC<AdminLLMConfigProps> = ({
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        setActiveTab(provider.name as 'openai' | 'vllm' | 'sgl');
+                                                        setActiveTab(provider.name as 'openai' | 'gemini' | 'anthropic' | 'vllm' | 'sgl');
                                                     }}
                                                     className={`${styles.button} ${styles.small} ${styles.secondary}`}
                                                     title="설정으로 이동"
@@ -852,87 +585,39 @@ const AdminLLMConfig: React.FC<AdminLLMConfigProps> = ({
     };
 
     const renderOpenAITab = () => (
-        <div className={styles.openaiConfig}>
-            <div className={styles.sectionHeader}>
-                <h3>OpenAI 설정</h3>
-                <p>OpenAI API 키와 모델 설정을 구성합니다.</p>
-            </div>
+        <AdminLLMOpenAIConfig
+            configData={configData}
+            onTestConnection={handleTestConnection}
+        />
+    );
 
-            <AdminBaseConfigPanel
-                configData={configData}
-                fieldConfigs={OPENAI_CONFIG_FIELDS}
-                filterPrefix="openai"
-                onTestConnection={(_category: string) => handleTestConnection('openai')}
-                testConnectionLabel="OpenAI 연결 테스트"
-                testConnectionCategory="openai"
-            />
-        </div>
+    const renderGeminiTab = () => (
+        <AdminLLMGeminiConfig
+            configData={configData}
+            onTestConnection={handleTestConnection}
+        />
+    );
+
+    const renderAnthropicTab = () => (
+        <AdminLLMAnthropicConfig
+            configData={configData}
+            onTestConnection={handleTestConnection}
+        />
     );
 
     const renderVLLMTab = () => (
-        <div className={styles.vllmConfig}>
-            <div className={styles.sectionHeader}>
-                <h3>vLLM 설정</h3>
-                <p>vLLM 서버 연결 및 모델 설정을 구성합니다.</p>
-            </div>
-
-            <AdminBaseConfigPanel
-                configData={configData}
-                fieldConfigs={VLLM_CONFIG_FIELDS}
-                filterPrefix="vllm"
-                onTestConnection={(_category: string) => handleTestConnection('vllm')}
-                testConnectionLabel="vLLM 연결 테스트"
-                testConnectionCategory="vllm"
-            />
-        </div>
+        <AdminLLMvLLMConfig
+            configData={configData}
+            onTestConnection={handleTestConnection}
+        />
     );
 
-    const renderSGLTab = () => {
-        // 디버깅: SGL 관련 설정이 있는지 확인
-        const sglConfigs = configData.filter(item =>
-            item.env_name.startsWith('SGL_')
-        );
-
-        console.log('All configData:', configData.map(c => c.env_name));
-        console.log('SGL configs found:', sglConfigs.map(c => c.env_name));
-
-        return (
-            <div className={styles.sglConfig}>
-                <div className={styles.sectionHeader}>
-                    <h3>SGLang 설정</h3>
-                    <p>SGLang 서버 연결 및 모델 설정을 구성합니다.</p>
-                </div>
-
-                {/* 디버깅 정보 표시 (개발 시에만) */}
-                {process.env.NODE_ENV === 'development' && (
-                    <div style={{
-                        background: '#f3f4f6',
-                        padding: '10px',
-                        margin: '10px 0',
-                        borderRadius: '4px',
-                        fontSize: '12px'
-                    }}>
-                        <strong>Debug Info:</strong>
-                        <br />
-                        Total configs: {configData.length}
-                        <br />
-                        SGL configs: {sglConfigs.length}
-                        <br />
-                        SGL config names: {sglConfigs.map(c => c.env_name).join(', ')}
-                    </div>
-                )}
-
-                <AdminBaseConfigPanel
-                    configData={configData}
-                    fieldConfigs={SGL_CONFIG_FIELDS}
-                    filterPrefix="SGL_"  // 대문자로 변경하고 언더스코어 포함
-                    onTestConnection={(_category: string) => handleTestConnection('sgl')}
-                    testConnectionLabel="SGLang 연결 테스트"
-                    testConnectionCategory="sgl"
-                />
-            </div>
-        );
-    };
+    const renderSGLTab = () => (
+        <AdminLLMSGLangConfig
+            configData={configData}
+            onTestConnection={handleTestConnection}
+        />
+    );
 
     return (
         <div className={styles.llmContainer}>
@@ -951,6 +636,20 @@ const AdminLLMConfig: React.FC<AdminLLMConfigProps> = ({
                 >
                     <SiOpenai />
                     OpenAI
+                </button>
+                <button
+                    className={`${styles.tabButton} ${activeTab === 'gemini' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('gemini')}
+                >
+                    <SiGooglegemini  />
+                    Gemini
+                </button>
+                <button
+                    className={`${styles.tabButton} ${activeTab === 'anthropic' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('anthropic')}
+                >
+                    <SiAnthropic />
+                    Anthropic
                 </button>
                 <button
                     className={`${styles.tabButton} ${activeTab === 'vllm' ? styles.active : ''}`}
@@ -991,6 +690,8 @@ const AdminLLMConfig: React.FC<AdminLLMConfigProps> = ({
             <div className={styles.tabContent}>
                 {activeTab === 'default' && renderDefaultProviderTab()}
                 {activeTab === 'openai' && renderOpenAITab()}
+                {activeTab === 'gemini' && renderGeminiTab()}
+                {activeTab === 'anthropic' && renderAnthropicTab()}
                 {activeTab === 'vllm' && renderVLLMTab()}
                 {activeTab === 'sgl' && renderSGLTab()}
             </div>
