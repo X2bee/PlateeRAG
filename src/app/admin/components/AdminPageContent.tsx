@@ -6,15 +6,16 @@ import { useSearchParams } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FiChevronRight } from 'react-icons/fi';
 import AdminSidebar from '@/app/admin/components/AdminSidebar';
-import AdminContentArea from '@/app/admin/components/AdminContentArea';
+import AdminContentArea from '@/app/admin/components/helper/AdminContentArea';
 import AdminIntroduction from '@/app/admin/components/AdminIntroduction';
-import AdminUserContent from '@/app/admin/components/AdminUserContent';
-import AdminRegisterUser from '@/app/admin/components/AdminRegisterUser';
-import AdminConfigViewer from '@/app/admin/components/AdminConfigViewer';
-import AdminSettings from '@/app/admin/components/AdminSettings';
-import AdminWorkflowLogsContent from '@/app/admin/components/AdminWorkflowLogsContent';
-import AdminGroupContent from '@/app/admin/components/AdminGroupContent';
-import AdminPlayground from '@/app/admin/components/playground/AdminPlayground';
+import AdminUserContent from '@/app/admin/components/user/AdminUserContent';
+import AdminRegisterUser from '@/app/admin/components/user/AdminRegisterUser';
+import AdminConfigViewer from '@/app/admin/components/config/AdminConfigViewer';
+import AdminSettings from '@/app/admin/components/config/AdminSettings';
+import AdminWorkflowLogsContent from '@/app/admin/components/monitor/AdminWorkflowLogsContent';
+import AdminGroupContent from '@/app/admin/components/group/AdminGroupContent';
+import AdminPlayground from '@/app/admin/components/monitor/playground/AdminPlayground';
+import AdminSystemMonitor from '@/app/admin/components/monitor/AdminSystemMonitor';
 import {
     getUserSidebarItems,
     getSettingSidebarItems,
@@ -246,7 +247,7 @@ const AdminPageContent: React.FC = () => {
                         title="시스템 모니터링"
                         description="실시간 시스템 성능 및 리소스를 모니터링하세요."
                     >
-                        <div>시스템 모니터링 컴포넌트가 여기에 표시됩니다.</div>
+                        <AdminSystemMonitor />
                     </AdminContentArea>
                 );
             case 'system-health':

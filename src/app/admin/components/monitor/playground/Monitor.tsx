@@ -5,7 +5,7 @@ import { getWorkflowPerformance, deleteWorkflowPerformance } from '@/app/api/wor
 import { devLog } from '@/app/_common/utils/logger';
 import toast from 'react-hot-toast';
 import styles from '@/app/admin/assets/playground/Monitor.module.scss';
-import ChartDashboard from '@/app/admin/components/playground/charts/ChartDashboard';
+import ChartDashboard from '@/app/admin/components/monitor/playground/charts/ChartDashboard';
 import { usePagesLayout } from '@/app/_common/components/PagesLayoutContent';
 import {
     showPerformanceDataDeleteConfirm,

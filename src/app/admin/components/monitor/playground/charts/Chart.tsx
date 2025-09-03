@@ -36,10 +36,11 @@ interface ChartProps {
     type: 'line' | 'bar' | 'pie';
     data: any;
     title: string;
+    options?: any;
 }
 
-const ChartComponent: React.FC<ChartProps> = ({ type, data, title }) => {
-    const options = {
+const ChartComponent: React.FC<ChartProps> = ({ type, data, title, options: customOptions }) => {
+    const defaultOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -53,9 +54,14 @@ const ChartComponent: React.FC<ChartProps> = ({ type, data, title }) => {
             },
         },
         scales: type === 'line' ? {
-            x: { type: 'time' as const, time: { unit: 'second' as const } }
+            x: { type: 'category' as const },
+            y: { beginAtZero: true }
+        } : type === 'bar' ? {
+            y: { beginAtZero: true }
         } : {}
     };
+
+    const options = customOptions ? { ...defaultOptions, ...customOptions } : defaultOptions;
 
     const renderChart = () => {
         switch (type) {

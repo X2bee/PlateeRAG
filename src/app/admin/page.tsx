@@ -1,7 +1,7 @@
 'use client';
 import React, { Suspense } from 'react';
 import AdminPageContent from '@/app/admin/components/AdminPageContent';
-import AdminAuthGuard from '@/app/admin/components/AdminAuthGuard';
+import AdminAuthGuard from '@/app/admin/components/helper/AdminAuthGuard';
 import styles from '@/app/admin/assets/AdminPage.module.scss';
 
 const LoadingFallback = () => (
