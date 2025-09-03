@@ -8,6 +8,7 @@ import { fetchDocumentByPath, hasDocumentInCache } from '../../../api/rag/docume
 import CacheStatusIndicator from './CacheStatusIndicator';
 import styles from './SidePanelPDFViewer.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
+import { HighlightingProgress } from './highlightingWorkerManager';
 
 // Dynamic imports to prevent SSR issues
 const Document = dynamic(() => import('react-pdf').then(mod => ({ default: mod.Document })), {
@@ -20,6 +21,10 @@ const Page = dynamic(() => import('react-pdf').then(mod => ({ default: mod.Page 
 });
 
 const PDFHighlighter = dynamic(() => import('./PDFHighlighter'), {
+  ssr: false
+});
+
+const AdvancedPDFHighlighter = dynamic(() => import('./AdvancedPDFHighlighter'), {
   ssr: false
 });
 
@@ -78,6 +83,8 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
   const [fileType, setFileType] = useState<'pdf' | 'html' | 'docx' | 'unknown'>('unknown');
   const [docxHtml, setDocxHtml] = useState<string | null>(null);
   const [pdfScrollContainer, setPdfScrollContainer] = useState<HTMLDivElement | null>(null);
+  const [highlightingProgress, setHighlightingProgress] = useState<HighlightingProgress | null>(null);
+  const [useAdvancedHighlighting, setUseAdvancedHighlighting] = useState<boolean>(true);
 
   if (!sourceInfo) return null;
 
@@ -458,8 +465,64 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
           >
             <FiRotateCcw />
           </button>
+          <button
+            onClick={() => setUseAdvancedHighlighting(!useAdvancedHighlighting)}
+            className={`${styles.controlButton} ${useAdvancedHighlighting ? styles.active : ''}`}
+            title={useAdvancedHighlighting ? "기본 하이라이팅으로 전환" : "고도화 하이라이팅으로 전환"}
+            style={{ 
+              backgroundColor: useAdvancedHighlighting ? '#6366f1' : 'transparent',
+              color: useAdvancedHighlighting ? 'white' : 'inherit',
+              fontSize: '10px',
+              padding: '4px 6px'
+            }}
+          >
+            {useAdvancedHighlighting ? 'AI' : 'AI'}
+          </button>
         </div>
       </div>
+
+      {/* Highlighting Progress Indicator */}
+      {useAdvancedHighlighting && highlightingProgress && highlightingProgress.progress < 100 && (
+        <div style={{ 
+          padding: '12px 16px', 
+          backgroundColor: '#f8fafc', 
+          borderBottom: '1px solid #e2e8f0',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+        }}>
+          <div style={{ 
+            fontSize: '13px', 
+            color: '#4b5563', 
+            marginBottom: '6px',
+            fontWeight: '500'
+          }}>
+            🔍 하이라이팅 분석 중... ({Math.round(highlightingProgress.progress)}%)
+          </div>
+          <div style={{ 
+            backgroundColor: '#e5e7eb', 
+            borderRadius: '6px', 
+            height: '6px', 
+            overflow: 'hidden',
+            marginBottom: '4px'
+          }}>
+            <div 
+              style={{ 
+                backgroundColor: '#6366f1', 
+                height: '100%', 
+                width: `${highlightingProgress.progress}%`,
+                transition: 'width 0.3s ease',
+                boxShadow: '0 0 4px rgba(99, 102, 241, 0.3)'
+              }} 
+            />
+          </div>
+          <div style={{ 
+            fontSize: '11px', 
+            color: '#6b7280', 
+            fontStyle: 'italic'
+          }}>
+            {highlightingProgress.message}
+          </div>
+        </div>
+      )}
 
       {/* Document Content */}
       <div className={styles.content}>
@@ -539,14 +602,27 @@ const SidePanelPDFViewer: React.FC<SidePanelPDFViewerProps> = ({ sourceInfo, mod
                 />
 
                 {/* PDF 하이라이터 */}
-                <PDFHighlighter
-                  pageNumber={pageNumber}
-                  highlightRange={highlightRange}
-                  scale={scale}
-                  pageWidth={pageSize.width}
-                  pageHeight={pageSize.height}
-                  textContent={textContent}
-                />
+                {useAdvancedHighlighting ? (
+                  <AdvancedPDFHighlighter
+                    pageNumber={pageNumber}
+                    highlightRange={highlightRange}
+                    scale={scale}
+                    pageWidth={pageSize.width}
+                    pageHeight={pageSize.height}
+                    textContent={textContent}
+                    onProgressChange={setHighlightingProgress}
+                    enableAsyncProcessing={true}
+                  />
+                ) : (
+                  <PDFHighlighter
+                    pageNumber={pageNumber}
+                    highlightRange={highlightRange}
+                    scale={scale}
+                    pageWidth={pageSize.width}
+                    pageHeight={pageSize.height}
+                    textContent={textContent}
+                  />
+                )}
               </div>
             </Document>
           </div>
