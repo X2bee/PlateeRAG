@@ -309,15 +309,12 @@ const Documents: React.FC = () => {
                         itemType: '컬렉션 리메이크',
                     });
 
-                    // 컬렉션 목록과 임베딩 설정을 다시 로드
                     await Promise.all([
                         loadCollections(),
                         loadEmbeddingConfig()
                     ]);
 
-                    // 새로운 컬렉션 정보로 현재 선택된 컬렉션 업데이트
                     if (remakeResult && (remakeResult as any).new_collection_name) {
-                        // 새로운 컬렉션 찾기
                         const updatedCollections = await listCollections() as CollectionsResponse;
                         const newCollection = updatedCollections.find(
                             col => col.collection_name === (remakeResult as any).new_collection_name
