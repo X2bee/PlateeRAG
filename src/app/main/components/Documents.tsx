@@ -599,8 +599,20 @@ const Documents: React.FC = () => {
                                     </div>
                                     <div className={styles.subheaderItem}>
                                         <span className={styles.subheaderLabel}>Status:</span>
-                                        <span className={`${styles.subheaderValue} ${embeddingConfig.client_available && embeddingConfig.provider_info.available ? styles.subheaderStatusAvailable : styles.subheaderStatusUnavailable}`}>
-                                            {embeddingConfig.client_available && embeddingConfig.provider_info.available ? '✅ 사용 가능' : '❌ 사용 불가'}
+                                        <span className={`${styles.subheaderValue} ${
+                                            embeddingConfig.client_available &&
+                                            embeddingConfig.provider_info.available &&
+                                            embeddingConfig.provider_info.dimension === selectedCollection.vector_size &&
+                                            embeddingConfig.provider_info.model === selectedCollection.init_embedding_model
+                                                ? styles.subheaderStatusAvailable
+                                                : styles.subheaderStatusUnavailable
+                                        }`}>
+                                            {embeddingConfig.client_available &&
+                                             embeddingConfig.provider_info.available &&
+                                             embeddingConfig.provider_info.dimension === selectedCollection.vector_size &&
+                                             embeddingConfig.provider_info.model === selectedCollection.init_embedding_model
+                                                ? '✅ 정상'
+                                                : '❌ 불일치 존재'}
                                         </span>
                                     </div>
                                 </div>
