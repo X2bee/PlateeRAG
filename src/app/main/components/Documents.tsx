@@ -28,6 +28,7 @@ import {
     getAllDocumentDetailEdges,
     deleteCollection,
 } from '@/app/api/rag/retrievalAPI';
+import { getEmbeddingConfigStatus } from '@/app/api/rag/embeddingAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useDocumentFileModal } from '@/app/_common/contexts/DocumentFileModalContext';
 import {
@@ -46,6 +47,18 @@ import {
     ViewMode,
     CollectionFilter,
 } from '@/app/main/types/index';
+
+interface EmbeddingConfig {
+    client_initialized: boolean;
+    client_available: boolean;
+    provider_info: {
+        provider: string;
+        model: string;
+        dimension: number;
+        api_key_configured: boolean;
+        available: boolean;
+    };
+}
 
 const Documents: React.FC = () => {
     const { user } = useAuth();
@@ -79,6 +92,10 @@ const Documents: React.FC = () => {
     // 로딩 및 에러 상태
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Embedding 설정 상태
+    const [embeddingConfig, setEmbeddingConfig] = useState<EmbeddingConfig | null>(null);
+    const [embeddingLoading, setEmbeddingLoading] = useState(false);
 
     // 컬렉션 필터링
     const getFilteredCollections = () => {
@@ -119,6 +136,19 @@ const Documents: React.FC = () => {
             console.error('Failed to load collections:', err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Embedding 설정 로드
+    const loadEmbeddingConfig = async () => {
+        try {
+            setEmbeddingLoading(true);
+            const config = await getEmbeddingConfigStatus() as EmbeddingConfig;
+            setEmbeddingConfig(config);
+        } catch (err) {
+            console.error('Failed to load embedding config:', err);
+        } finally {
+            setEmbeddingLoading(false);
         }
     };
 
@@ -257,28 +287,46 @@ const Documents: React.FC = () => {
         setCollectionToEdit(null);
     };
 
-    // 문서 삭제 (바로 삭제)
+    // 문서 삭제 (Toast 확인 후 삭제)
     const handleDeleteDocument = async (document: DocumentInCollection) => {
         if (!selectedCollection) return;
 
-        try {
-            setLoading(true);
-            setError(null);
-            await deleteDocumentFromCollection(selectedCollection.collection_name, document.document_id);
+        showDeleteConfirmToastKo({
+            title: '문서 삭제 확인',
+            message: `'${document.file_name}' 문서를 정말로 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`,
+            itemName: document.file_name,
+            onConfirm: async () => {
+                try {
+                    setLoading(true);
+                    setError(null);
+                    await deleteDocumentFromCollection(selectedCollection.collection_name, document.document_id);
 
-            if (selectedDocument?.document_id === document.document_id) {
-                setSelectedDocument(null);
-                setDocumentDetails(null);
-                setViewMode('documents');
-            }
+                    if (selectedDocument?.document_id === document.document_id) {
+                        setSelectedDocument(null);
+                        setDocumentDetails(null);
+                        setViewMode('documents');
+                    }
 
-            await loadDocumentsInCollection(selectedCollection.collection_name);
-        } catch (err) {
-            setError('문서 삭제에 실패했습니다.');
-            console.error('Failed to delete document:', err);
-        } finally {
-            setLoading(false);
-        }
+                    showDeleteSuccessToastKo({
+                        itemName: document.file_name,
+                        itemType: '문서',
+                    });
+
+                    await loadDocumentsInCollection(selectedCollection.collection_name);
+                } catch (error) {
+                    console.error('Failed to delete document:', error);
+                    showDeleteErrorToastKo({
+                        itemName: document.file_name,
+                        itemType: '문서',
+                        error: error instanceof Error ? error : 'Unknown error',
+                    });
+                } finally {
+                    setLoading(false);
+                }
+            },
+            confirmText: '삭제',
+            cancelText: '취소',
+        });
     };
 
     // 컬렉션 선택
@@ -289,7 +337,10 @@ const Documents: React.FC = () => {
         setSearchQuery('');
         setSearchResults([]);
         setViewMode('documents');
-        await loadDocumentsInCollection(collection.collection_name);
+        await Promise.all([
+            loadDocumentsInCollection(collection.collection_name),
+            loadEmbeddingConfig()
+        ]);
     };
 
     // 문서 선택
@@ -438,6 +489,7 @@ const Documents: React.FC = () => {
         <div className={styles.container}>
             {/* 헤더 */}
             <div className={styles.header}>
+                {/* 첫 번째 row - 기본 헤더 */}
                 <div className={styles.headerLeft}>
                     {viewMode !== 'collections' && (
                         <button onClick={handleGoBack} className={`${styles.button} ${styles.secondary}`}>
@@ -509,6 +561,55 @@ const Documents: React.FC = () => {
                         </>
                     )}
                 </div>
+
+                {/* documents 모드에서만 표시되는 두 번째 row */}
+                {viewMode === 'documents' && selectedCollection && (
+                    <div className={styles.subheader}>
+                        <div className={styles.subheaderSection}>
+                            <h4 className={styles.subheaderTitle}>컬렉션 정보</h4>
+                            <div className={`${styles.subheaderGrid} ${styles.collectionGrid}`}>
+                                <div className={styles.subheaderItem}>
+                                    <span className={styles.subheaderLabel}>Dimension:</span>
+                                    <span className={styles.subheaderValue}>{selectedCollection.vector_size || 'N/A'}</span>
+                                </div>
+                                <div className={styles.subheaderItem}>
+                                    <span className={styles.subheaderLabel}>Model:</span>
+                                    <span className={styles.subheaderValue}>{selectedCollection.init_embedding_model || 'N/A'}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className={styles.subheaderSection}>
+                            <h4 className={styles.subheaderTitle}>현재 Embedding 설정</h4>
+                            {embeddingLoading ? (
+                                <span className={styles.subheaderLoading}>로딩 중...</span>
+                            ) : embeddingConfig ? (
+                                <div className={`${styles.subheaderGrid} ${styles.embeddingGrid}`}>
+                                    <div className={styles.subheaderItem}>
+                                        <span className={styles.subheaderLabel}>Provider:</span>
+                                        <span className={styles.subheaderValue}>{embeddingConfig.provider_info.provider}</span>
+                                    </div>
+                                    <div className={styles.subheaderItem}>
+                                        <span className={styles.subheaderLabel}>Model:</span>
+                                        <span className={styles.subheaderValue}>{embeddingConfig.provider_info.model}</span>
+                                    </div>
+                                    <div className={styles.subheaderItem}>
+                                        <span className={styles.subheaderLabel}>Dimension:</span>
+                                        <span className={styles.subheaderValue}>{embeddingConfig.provider_info.dimension}</span>
+                                    </div>
+                                    <div className={styles.subheaderItem}>
+                                        <span className={styles.subheaderLabel}>Status:</span>
+                                        <span className={`${styles.subheaderValue} ${embeddingConfig.client_available && embeddingConfig.provider_info.available ? styles.subheaderStatusAvailable : styles.subheaderStatusUnavailable}`}>
+                                            {embeddingConfig.client_available && embeddingConfig.provider_info.available ? '✅ 사용 가능' : '❌ 사용 불가'}
+                                        </span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <span className={styles.subheaderError}>설정을 불러올 수 없습니다.</span>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {error && <div className={styles.error}>{error}</div>}
@@ -608,27 +709,44 @@ const Documents: React.FC = () => {
                                     <div
                                         key={doc.document_id}
                                         className={styles.documentCard}
+                                        onClick={() => handleSelectDocument(doc)}
+                                        style={{ cursor: 'pointer' }}
                                     >
-                                        <div
-                                            className={styles.documentContent}
-                                            onClick={() => handleSelectDocument(doc)}
-                                        >
-                                            <h4 className={styles.documentTitle}>{doc.file_name}</h4>
-                                            <p className={styles.docInfo}>
-                                                청크: {doc.actual_chunks}개 |
-                                                업로드: {getRelativeTime(doc.processed_at)}
-                                            </p>
+                                        <div className={styles.cardHeader}>
+                                            <div className={styles.collectionIcon}>
+                                                <FiUser />
+                                            </div>
+                                            <div className={`${styles.status} ${styles.statusPersonal}`}>
+                                                문서
+                                            </div>
                                         </div>
-                                        <button
-                                            className={`${styles.deleteButton}`}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDeleteDocument(doc);
-                                            }}
-                                            title="문서 삭제"
-                                        >
-                                            🗑️
-                                        </button>
+
+                                        <div className={styles.cardContent}>
+                                            <h3 className={styles.collectionName}>{doc.file_name}</h3>
+                                            <div className={styles.collectionMeta}>
+                                                <div className={styles.metaItem}>
+                                                    <FiBarChart />
+                                                    <span>청크: {doc.actual_chunks}개</span>
+                                                </div>
+                                                <div className={styles.metaItem}>
+                                                    <FiClock />
+                                                    <span>업로드: {getRelativeTime(doc.processed_at)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.cardActions}>
+                                            <button
+                                                className={`${styles.actionButton} ${styles.danger}`}
+                                                title="문서 삭제"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteDocument(doc);
+                                                }}
+                                            >
+                                                <FiTrash2 />
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
