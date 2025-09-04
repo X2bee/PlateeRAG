@@ -1,0 +1,163 @@
+// Multi-level highlighting styles for enhanced PDF highlighting
+
+// Exact match - highest confidence (노란색, 강한 강조)
+.pdfHighlightExact {
+  background: rgba(255, 255, 0, 0.25) !important;
+  border-radius: 3px !important;
+  box-shadow: 0 0 0 1px rgba(255, 193, 7, 0.4) !important;
+  animation: exactMatch 2s ease-in-out infinite !important;
+  transition: all 0.3s ease !important;
+}
+
+// Similar match - high confidence (주황색, 중간 강조)
+.pdfHighlightSimilar {
+  background: rgba(255, 165, 0, 0.2) !important;
+  border-radius: 3px !important;
+  box-shadow: 0 0 0 1px rgba(255, 140, 0, 0.35) !important;
+  animation: similarMatch 2.5s ease-in-out infinite !important;
+  transition: all 0.3s ease !important;
+}
+
+// Related match - medium confidence (하늘색, 약한 강조)
+.pdfHighlightRelated {
+  background: rgba(135, 206, 250, 0.18) !important;
+  border-radius: 2px !important;
+  box-shadow: 0 0 0 1px rgba(135, 206, 250, 0.3) !important;
+  animation: relatedMatch 3s ease-in-out infinite !important;
+  transition: all 0.3s ease !important;
+}
+
+// Context match - low confidence (연두색, 미묘한 강조)
+.pdfHighlightContext {
+  background: rgba(144, 238, 144, 0.15) !important;
+  border-radius: 2px !important;
+  box-shadow: 0 0 0 1px rgba(144, 238, 144, 0.25) !important;
+  animation: contextMatch 3.5s ease-in-out infinite !important;
+  transition: all 0.3s ease !important;
+}
+
+// Entity highlighting (개체명용 - 보라색)
+.pdfHighlightEntity {
+  background: rgba(147, 112, 219, 0.2) !important;
+  border-radius: 3px !important;
+  box-shadow: 0 0 0 1px rgba(147, 112, 219, 0.35) !important;
+  animation: entityMatch 2s ease-in-out infinite !important;
+  transition: all 0.3s ease !important;
+}
+
+// Phrase highlighting (구문용 - 분홍색)
+.pdfHighlightPhrase {
+  background: rgba(255, 182, 193, 0.18) !important;
+  border-radius: 4px !important;
+  box-shadow: 0 0 0 1px rgba(255, 182, 193, 0.3) !important;
+  animation: phraseMatch 2.5s ease-in-out infinite !important;
+  transition: all 0.3s ease !important;
+}
+
+// 애니메이션 정의 (더 연한 색상으로 조정)
+@keyframes exactMatch {
+  0%, 100% {
+    background: rgba(255, 255, 0, 0.25) !important;
+    box-shadow: 0 0 0 1px rgba(255, 193, 7, 0.4) !important;
+  }
+  50% {
+    background: rgba(255, 255, 0, 0.35) !important;
+    box-shadow: 0 0 0 1px rgba(255, 193, 7, 0.5), 0 0 4px rgba(255, 193, 7, 0.2) !important;
+  }
+}
+
+@keyframes similarMatch {
+  0%, 100% {
+    background: rgba(255, 165, 0, 0.2) !important;
+    box-shadow: 0 0 0 1px rgba(255, 140, 0, 0.35) !important;
+  }
+  50% {
+    background: rgba(255, 165, 0, 0.3) !important;
+    box-shadow: 0 0 0 1px rgba(255, 140, 0, 0.45), 0 0 3px rgba(255, 140, 0, 0.2) !important;
+  }
+}
+
+@keyframes relatedMatch {
+  0%, 100% {
+    background: rgba(135, 206, 250, 0.18) !important;
+    box-shadow: 0 0 0 1px rgba(135, 206, 250, 0.3) !important;
+  }
+  50% {
+    background: rgba(135, 206, 250, 0.25) !important;
+    box-shadow: 0 0 0 1px rgba(135, 206, 250, 0.4), 0 0 2px rgba(135, 206, 250, 0.15) !important;
+  }
+}
+
+@keyframes contextMatch {
+  0%, 100% {
+    background: rgba(144, 238, 144, 0.15) !important;
+    box-shadow: 0 0 0 1px rgba(144, 238, 144, 0.25) !important;
+  }
+  50% {
+    background: rgba(144, 238, 144, 0.22) !important;
+    box-shadow: 0 0 0 1px rgba(144, 238, 144, 0.35), 0 0 2px rgba(144, 238, 144, 0.1) !important;
+  }
+}
+
+@keyframes entityMatch {
+  0%, 100% {
+    background: rgba(147, 112, 219, 0.2) !important;
+    box-shadow: 0 0 0 1px rgba(147, 112, 219, 0.35) !important;
+  }
+  50% {
+    background: rgba(147, 112, 219, 0.28) !important;
+    box-shadow: 0 0 0 1px rgba(147, 112, 219, 0.45), 0 0 3px rgba(147, 112, 219, 0.15) !important;
+  }
+}
+
+@keyframes phraseMatch {
+  0%, 100% {
+    background: rgba(255, 182, 193, 0.18) !important;
+    box-shadow: 0 0 0 1px rgba(255, 182, 193, 0.3) !important;
+  }
+  50% {
+    background: rgba(255, 182, 193, 0.25) !important;
+    box-shadow: 0 0 0 1px rgba(255, 182, 193, 0.4), 0 0 2px rgba(255, 182, 193, 0.15) !important;
+  }
+}
+
+// Hover effects for better user interaction
+.pdfHighlightExact:hover,
+.pdfHighlightSimilar:hover,
+.pdfHighlightRelated:hover,
+.pdfHighlightContext:hover,
+.pdfHighlightEntity:hover,
+.pdfHighlightPhrase:hover {
+  transform: scale(1.02) !important;
+  z-index: 10 !important;
+  cursor: pointer !important;
+}
+
+// Confidence indicator (optional overlay)
+.confidenceIndicator {
+  position: absolute;
+  top: -15px;
+  right: -5px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.pdfHighlightExact:hover .confidenceIndicator,
+.pdfHighlightSimilar:hover .confidenceIndicator,
+.pdfHighlightRelated:hover .confidenceIndicator,
+.pdfHighlightContext:hover .confidenceIndicator,
+.pdfHighlightEntity:hover .confidenceIndicator,
+.pdfHighlightPhrase:hover .confidenceIndicator {
+  opacity: 1;
+}
+
+// Priority system for overlapping highlights
+.highlightPriorityHigh { z-index: 100 !important; }
+.highlightPriorityMedium { z-index: 50 !important; }
+.highlightPriorityLow { z-index: 25 !important; }

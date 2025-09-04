@@ -4,6 +4,11 @@ import React, { useEffect, useCallback } from 'react';
 import { HighlightRange } from '../../types/source';
 import './DocxHighlighter.css';
 import { filterHighlightWords, isTextMatch } from './highlightConstants';
+import { 
+  createTextChunks, 
+  preciseDOCXHighlight, 
+  defaultUnifiedConfig
+} from './unifiedHighlighter';
 
 interface DocxHighlighterProps {
   highlightRange: HighlightRange;
@@ -26,7 +31,7 @@ const DocxHighlighter: React.FC<DocxHighlighterProps> = ({
     });
   }, []);
 
-  // DOCX HTML 콘텐츠에서 텍스트 라인을 찾고 하이라이팅 적용 함수
+  // 통합 DOCX 하이라이팅 적용 함수 (정밀 부분 하이라이팅)
   const applyDocxHighlighting = useCallback(() => {
     const docxContainer = document.querySelector('[class*="docxContent"], [class*="docxContainer"], .docx-content, .docx-container');
     if (!docxContainer) {
@@ -54,30 +59,115 @@ const DocxHighlighter: React.FC<DocxHighlighterProps> = ({
       }
     });
 
-    // 텍스트 매칭 기반 하이라이팅만 적용
+    // 텍스트 매칭 기반 하이라이팅 적용
     if (highlightRange.searchText && highlightRange.searchText.trim()) {
-      const searchText = highlightRange.searchText.trim().toLowerCase();
+      const searchText = highlightRange.searchText.trim();
       
-      // 검색 텍스트를 단어 단위로 분리하고 제외할 단어들 필터링
-      const searchWords = filterHighlightWords(searchText);
+      // 전체 문서 텍스트 구성 (공간 정보 보존)
+      const fullDocumentText = textElements.map(el => el.textContent || '').join('\n');
       
-      // 유효한 검색 단어가 없으면 하이라이팅 안 함
-      if (searchWords.length === 0) {
+      // 통합 시스템으로 텍스트 청크 생성
+      const textChunks = createTextChunks(fullDocumentText, searchText, {
+        ...defaultUnifiedConfig,
+        precisionLevel: 'phrase', // DOCX는 구문 단위 정밀도로 설정
+        maxHighlightRatio: 0.25,   // 더 엄격한 하이라이팅 비율
+        minChunkLength: 4          // 최소 청크 길이 증가
+      });
+      
+      if (textChunks.length === 0) {
+        // 레거시 방식으로 폴백하되 더 엄격한 조건 적용
+        const searchWords = filterHighlightWords(searchText);
+        
+        // 유효한 검색 단어가 충분한지 확인 (최소 2개 이상의 의미있는 단어)
+        const meaningfulWords = searchWords.filter(word => word.length >= 4);
+        if (meaningfulWords.length === 0) {
+          return;
+        }
+        
+        textElements.forEach(element => {
+          const elementText = element.textContent?.trim().toLowerCase() || '';
+          
+          // 더 엄격한 매칭: 의미있는 단어들의 일정 비율 이상이 포함되어야 함
+          const matchingWords = meaningfulWords.filter(word => isTextMatch(word, elementText));
+          const matchRatio = matchingWords.length / meaningfulWords.length;
+          
+          if (matchRatio >= 0.5 && matchingWords.length >= 1) { // 50% 이상 매칭 + 최소 1개
+            element.classList.add('docx-highlight');
+            element.setAttribute('data-match-ratio', matchRatio.toFixed(2));
+            element.setAttribute('data-matched-words', matchingWords.join(', '));
+          }
+        });
         return;
       }
-      
+
+      // 정밀 하이라이팅 적용
       textElements.forEach(element => {
-        const elementText = element.textContent?.trim().toLowerCase() || '';
-        
-        // 요소의 텍스트가 검색 단어 중 하나라도 포함하면 하이라이팅
-        const hasMatch = searchWords.some(word => isTextMatch(word, elementText));
-        
-        if (hasMatch) {
-          element.classList.add('docx-highlight');
+        const elementText = element.textContent?.trim() || '';
+        if (!elementText) return;
+
+        // 해당 요소와 관련된 텍스트 청크들 찾기
+        const relevantChunks = textChunks.filter(chunk => {
+          const chunkLower = chunk.text.toLowerCase();
+          const elementLower = elementText.toLowerCase();
+          
+          // 청크와 요소 텍스트 간 관련성 확인
+          return elementLower.includes(chunkLower) || 
+                 chunkLower.includes(elementLower) ||
+                 calculateTextSimilarity(chunkLower, elementLower) > 0.3;
+        });
+
+        if (relevantChunks.length > 0) {
+          // 요소가 너무 짧으면 전체 하이라이팅 (하지만 최소 길이 체크)
+          if (elementText.length <= 30 && relevantChunks[0].score > 0.8) {
+            element.classList.add('docx-highlight');
+            element.setAttribute('data-highlight-type', 'full');
+            element.setAttribute('data-score', relevantChunks[0].score.toFixed(2));
+          } else {
+            // 정밀 부분 하이라이팅 적용
+            try {
+              const originalHTML = element.innerHTML;
+              preciseDOCXHighlight(element, relevantChunks, {
+                ...defaultUnifiedConfig,
+                maxHighlightRatio: 0.4 // 요소별로는 더 관대하게
+              });
+              
+              // 하이라이팅이 실제로 적용되었는지 확인
+              const hasHighlight = element.querySelector('.docx-highlight');
+              if (hasHighlight) {
+                element.setAttribute('data-highlight-type', 'precise');
+                element.setAttribute('data-chunk-count', relevantChunks.length.toString());
+              } else {
+                // 정밀 하이라이팅 실패시 원본 복구 후 전체 하이라이팅
+                element.innerHTML = originalHTML;
+                if (relevantChunks[0].score > 0.6) {
+                  element.classList.add('docx-highlight');
+                  element.setAttribute('data-highlight-type', 'fallback');
+                }
+              }
+            } catch (error) {
+              console.warn('정밀 하이라이팅 적용 중 오류:', error);
+              // 오류 발생시 점수가 높은 경우에만 전체 하이라이팅
+              if (relevantChunks[0].score > 0.7) {
+                element.classList.add('docx-highlight');
+                element.setAttribute('data-highlight-type', 'error-fallback');
+              }
+            }
+          }
         }
       });
     }
   }, [highlightRange, removeExistingHighlights]);
+
+  // 텍스트 유사도 계산 헬퍼 함수
+  const calculateTextSimilarity = (text1: string, text2: string): number => {
+    const words1 = new Set(text1.split(/\s+/));
+    const words2 = new Set(text2.split(/\s+/));
+    
+    const intersection = new Set([...words1].filter(word => words2.has(word)));
+    const union = new Set([...words1, ...words2]);
+    
+    return union.size > 0 ? intersection.size / union.size : 0;
+  };
 
   // DOM 준비 상태 확인
   const waitForDocxDOM = useCallback((maxAttempts: number = 10, interval: number = 200): Promise<boolean> => {
