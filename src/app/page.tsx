@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect } from 'react';
-import toast from 'react-hot-toast';
+import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import {
     FiArrowRight,
     FiPlay,
@@ -32,11 +32,11 @@ export default function HomePage() {
         try {
             await logout();
             clearAuth();
-            toast.success('로그아웃되었습니다.');
+            showSuccessToastKo('로그아웃되었습니다.');
         } catch (error) {
             console.error('Logout failed:', error);
             clearAuth();
-            toast.error('로그아웃 처리 중 오류가 발생했습니다.');
+            showErrorToastKo('로그아웃 처리 중 오류가 발생했습니다.');
         }
     };
 

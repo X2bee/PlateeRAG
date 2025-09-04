@@ -1,14 +1,13 @@
 'use client';
-import React, { useState, useEffect, useMemo } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import toast from 'react-hot-toast';
+import React, { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { SidebarProps } from '@/app/main/components/types';
+import { SidebarProps } from '@/app/main//types/index';
 import styles from '../assets/Sidebar.module.scss';
 import { logout } from '@/app/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useQuickLogout } from '@/app/_common/utils/logoutUtils';
-import { FiChevronLeft, FiLogOut } from 'react-icons/fi';
+import { FiChevronLeft, FiLogOut, FiSettings } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import {
     getChatSidebarItems,
@@ -18,26 +17,19 @@ import {
 import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<SidebarProps> = ({
     isOpen,
     onToggle,
-    workflowItems = [], // 이제 사용하지 않음 (권한에 따라 동적 생성)
-    chatItems = [], // 이제 사용하지 않음 (권한에 따라 동적 생성)
-    trainItem = [], // 이제 사용하지 않음 (권한에 따라 동적 생성)
     activeItem,
     onItemClick,
     className = '',
     initialChatExpanded = false,
-    initialSettingExpanded = false,
     initialWorkflowExpanded = false,
     initialTrainExpanded = false,
 }) => {
     const router = useRouter();
-    const pathname = usePathname();
-    const [isSettingExpanded, setIsSettingExpanded] = useState(initialSettingExpanded);
     const [isChatExpanded, setIsChatExpanded] = useState(initialChatExpanded);
     const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(initialWorkflowExpanded);
     const [isTrainExpanded, setIsTrainExpanded] = useState(initialTrainExpanded);
 
-    // CookieProvider의 useAuth 훅 사용 (AuthGuard에서 이미 인증 검증을 수행하므로 refreshAuth 호출 불필요)
-    const { user, isAuthenticated, hasAccessToSection, isInitialized } = useAuth();
+    const { user, hasAccessToSection, isInitialized } = useAuth();
     const { quickLogout } = useQuickLogout();
 
     // 권한에 따라 필터링된 사이드바 아이템들을 메모이제이션
@@ -51,7 +43,7 @@ import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<Side
             };
         }
 
-        const chatItems = getChatSidebarItems(); // 채팅은 모든 사용자 접근 가능
+        const chatItems = getChatSidebarItems();
         const workflowItems = getFilteredWorkflowSidebarItems(hasAccessToSection);
         const trainItems = getFilteredTrainSidebarItems(hasAccessToSection);
 
@@ -88,7 +80,6 @@ import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<Side
         }
     };
 
-    const toggleExpanded = () => setIsSettingExpanded(!isSettingExpanded);
     const toggleChatExpanded = () => setIsChatExpanded(!isChatExpanded);
     const toggleWorkflowExpanded = () => setIsWorkflowExpanded(!isWorkflowExpanded);
     const toggleTrainExpanded = () => setIsTrainExpanded(!isTrainExpanded);
@@ -112,13 +103,24 @@ import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<Side
             </button>
             <div className={styles.sidebarContent}>
                 <div className={styles.sidebarHeader}>
-                    <button
-                        className={styles.logoButton}
-                        onClick={handleLogoClick}
-                    >
-                        <Image src="/main_simbol.png" alt="XGEN" width={23} height={0}/>
-                        <h2>GEN</h2>
-                    </button>
+                    <div className={styles.headerTop}>
+                        <button
+                            className={styles.logoButton}
+                            onClick={handleLogoClick}
+                        >
+                            <Image src="/main_simbol.png" alt="XGEN" width={23} height={0}/>
+                            <h2>GEN</h2>
+                        </button>
+                        {hasAccessToSection && hasAccessToSection('admin-page') && (
+                            <button
+                                onClick={() => router.push('/admin')}
+                                className={styles.settingsButton}
+                                title="관리자 페이지"
+                            >
+                                <FiSettings />
+                            </button>
+                        )}
+                    </div>
                     {user && (
                         <div className={styles.userInfo}>
                             <div className={styles.welcomeText}>
@@ -135,18 +137,6 @@ import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<Side
                         </div>
                     )}
                 </div>
-
-                {hasAccessToSection && hasAccessToSection('admin-page') && (
-                    <div className={styles.adminSection}>
-                        <button
-                            onClick={() => router.push('/admin')}
-                            className={`${styles.navItem} ${styles.adminButton}`}
-                        >
-                            <span>🔧 관리자페이지로 이동</span>
-                        </button>
-                        <div className={styles.adminDivider}></div>
-                    </div>
-                )}
 
                 <button
                     className={styles.sidebarToggle}

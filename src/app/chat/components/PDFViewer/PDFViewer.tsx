@@ -65,8 +65,6 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ sourceInfo, isOpen, onClose, mode
     setPdfUrl(null);
 
     try {
-      devLog.log('📄 [PDFViewer] Loading document from path:', filePath, isInCache ? '(cached)' : '(from server)');
-
       // 파일 경로 유효성 검사
       if (!filePath.trim()) {
         throw new Error('파일 경로가 비어있습니다.');

@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { FiX, FiFolder, FiFileText, FiChevronRight, FiRefreshCw } from 'react-icons/fi';
 import styles from '@/app/chat/assets/CollectionModal.module.scss';
 import { listCollections, listDocumentsInCollection } from '@/app/api/rag/retrievalAPI';
@@ -165,7 +166,7 @@ const CollectionModal: React.FC<CollectionModalProps> = ({
 
     if (!isOpen) return null;
 
-    return (
+    const modalContent = (
         <div className={styles.modalBackdrop} onClick={handleBackdropClick}>
             <div className={styles.modalContainer}>
                 <div className={styles.modalHeader}>
@@ -326,6 +327,8 @@ const CollectionModal: React.FC<CollectionModalProps> = ({
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };
 
 export default CollectionModal;

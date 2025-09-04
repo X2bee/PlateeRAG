@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import {
     FiFolder,
     FiPlay,
@@ -8,47 +8,39 @@ import {
     FiUser,
     FiClock,
     FiRefreshCw,
+    FiUsers,
+    FiSettings,
+    FiCopy,
 } from 'react-icons/fi';
 import styles from '@/app/main/assets/CompletedWorkflows.module.scss';
-import { listWorkflowsDetail, deleteWorkflow } from '@/app/api/workflow/workflowAPI';
+import { listWorkflowsDetail, deleteWorkflow, duplicateWorkflow } from '@/app/api/workflow/workflowAPI';
+import { getDeployStatus } from '@/app/api/workflow/deploy';
 import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
-
-interface Workflow {
-    id: string;
-    name: string;
-    description?: string;
-    createdAt?: string;
-    lastModified?: string;
-    author: string;
-    nodeCount: number;
-    status: 'active' | 'draft' | 'archived';
-    filename?: string;
-    error?: string;
-    key_value?: number;
-}
-
-interface WorkflowDetailResponse {
-    id: number;
-    workflow_name: string;
-    workflow_id: string;
-    user_name: string;
-    node_count: number;
-    updated_at: string;
-    has_startnode: boolean;
-    has_endnode: boolean;
-    error?: string;
-}
+import { Workflow, WorkflowDetailResponse } from '@/app/main/types/index';
+import {
+    showWorkflowDeleteConfirmKo,
+    showDeleteSuccessToastKo,
+    showDeleteErrorToastKo
+} from '@/app/_common/utils/toastUtilsKo';
+import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
+import { useAuth } from '@/app/_common/components/CookieProvider';
+import WorkflowEditModal from '@/app/main/components/workflows/WorkflowEditModal';
 
 const CompletedWorkflows: React.FC = () => {
     const router = useRouter();
+    const { user } = useAuth();
     const [workflows, setWorkflows] = useState<Workflow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState<
         'all' | 'active' | 'draft' | 'archived'
     >('all');
-
+    const [workflowFilter, setWorkflowFilter] = useState<
+        'all' | 'personal' | 'shared'
+    >('all');
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [workflowToEdit, setWorkflowToEdit] = useState<Workflow | null>(null);
+    
     const fetchWorkflows = async () => {
         try {
             setLoading(true);
@@ -72,11 +64,15 @@ const CompletedWorkflows: React.FC = () => {
                         name:
                             detail.workflow_name,
                         author: detail.user_name,
+                        user_id: detail.user_id,
                         nodeCount: detail.node_count,
                         lastModified: detail.updated_at,
                         status: status,
                         filename: `${detail.workflow_name}.json`,
                         error: detail.error,
+                        is_shared: detail.is_shared,
+                        share_group: detail.share_group,
+                        share_permissions: detail.share_permissions,
                     };
                 },
             );
@@ -94,9 +90,24 @@ const CompletedWorkflows: React.FC = () => {
         fetchWorkflows();
     }, []);
 
-    const filteredWorkflows = workflows.filter(
-        (workflow) => filter === 'all' || workflow.status === filter,
-    );
+    // 워크플로우 필터링
+    const getFilteredWorkflows = () => {
+        const statusFiltered = workflows.filter(
+            (workflow) => filter === 'all' || workflow.status === filter,
+        );
+
+        switch (workflowFilter) {
+            case 'personal':
+                return statusFiltered.filter(workflow => !workflow.is_shared);
+            case 'shared':
+                return statusFiltered.filter(workflow => workflow.is_shared === true);
+            case 'all':
+            default:
+                return statusFiltered;
+        }
+    };
+
+    const filteredWorkflows = getFilteredWorkflows();
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -124,131 +135,74 @@ const CompletedWorkflows: React.FC = () => {
         }
     };
 
-    // Handle workflow execution
     const handleExecute = (workflow: Workflow) => {
-        // 채팅 페이지로 이동하며 새 채팅 모드와 선택된 워크플로우 정보 전달
         router.push(
-            `/chat?mode=new-chat&workflowName=${encodeURIComponent(workflow.name)}&workflowId=${encodeURIComponent(workflow.id)}`,
+            `/chat?mode=new-chat&workflowName=${encodeURIComponent(workflow.name)}&workflowId=${encodeURIComponent(workflow.id)}&user_id=${workflow.user_id}`,
         );
     };
 
-    // Handle workflow editing
     const handleEdit = (workflow: Workflow) => {
         router.push(
             `/canvas?load=${encodeURIComponent(workflow.name)}`,
         );
     };
 
-    // Handle workflow deletion with Toast confirmation
+    const handleEditSettings = (workflow: Workflow) => {
+        setWorkflowToEdit(workflow);
+        setShowEditModal(true);
+    };
+
+    const handleUpdateWorkflow = (updatedWorkflow: Workflow) => {
+        setWorkflows(prevWorkflows =>
+            prevWorkflows.map(workflow =>
+                workflow.key_value === updatedWorkflow.key_value
+                    ? updatedWorkflow
+                    : workflow
+            )
+        );
+    };
+
+    const handleCloseEditModal = () => {
+        setShowEditModal(false);
+        setWorkflowToEdit(null);
+    };
+
+    const handleDuplicate = async (workflow: Workflow) => {
+        if (!workflow.user_id) {
+            showErrorToastKo('워크플로우 복사에 실패했습니다: 사용자 정보가 없습니다.');
+            return;
+        }
+
+        try {
+            const result = await duplicateWorkflow(workflow.name, workflow.user_id);
+            showSuccessToastKo(`"${workflow.name}" 워크플로우가 성공적으로 복사되었습니다!`);
+            fetchWorkflows();
+        } catch (error) {
+            console.error('Failed to duplicate workflow:', error);
+            showErrorToastKo(`워크플로우 복사에 실패했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    };
+
     const handleDelete = (workflow: Workflow) => {
-        const confirmToast = toast(
-            (t) => (
-                <div
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '12px',
-                    }}
-                >
-                    <div
-                        style={{
-                            fontWeight: '600',
-                            color: '#dc2626',
-                            fontSize: '1rem',
-                        }}
-                    >
-                        Delete Workflow
-                    </div>
-                    <div
-                        style={{
-                            fontSize: '0.9rem',
-                            color: '#374151',
-                            lineHeight: '1.4',
-                        }}
-                    >
-                        Are you sure you want to delete &quot;
-                        <strong>{workflow.name}</strong>&quot;?
-                        <br />
-                        This action cannot be undone.
-                    </div>
-                    <div
-                        style={{
-                            display: 'flex',
-                            gap: '8px',
-                            justifyContent: 'flex-end',
-                            marginTop: '4px',
-                        }}
-                    >
-                        <button
-                            onClick={() => {
-                                toast.dismiss(t.id);
-                            }}
-                            style={{
-                                padding: '8px 16px',
-                                backgroundColor: '#ffffff',
-                                border: '2px solid #6b7280',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '0.85rem',
-                                fontWeight: '500',
-                                color: '#374151',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                            }}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={async () => {
-                                toast.dismiss(t.id);
-                                try {
-                                    await deleteWorkflow(workflow.name);
-                                    toast.success(
-                                        `Workflow "${workflow.name}" deleted successfully!`,
-                                    );
-                                    fetchWorkflows(); // 목록 새로고침
-                                } catch (error) {
-                                    console.error(
-                                        'Failed to delete workflow:',
-                                        error,
-                                    );
-                                    toast.error(
-                                        `Failed to delete workflow: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                                    );
-                                }
-                            }}
-                            style={{
-                                padding: '8px 16px',
-                                backgroundColor: '#dc2626',
-                                color: 'white',
-                                border: '2px solid #b91c1c',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '0.85rem',
-                                fontWeight: '500',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                            }}
-                        >
-                            Delete
-                        </button>
-                    </div>
-                </div>
-            ),
-            {
-                duration: Infinity,
-                style: {
-                    maxWidth: '420px',
-                    padding: '20px',
-                    backgroundColor: '#f9fafb',
-                    border: '2px solid #374151',
-                    borderRadius: '12px',
-                    boxShadow:
-                        '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
-                    color: '#374151',
-                    fontFamily: 'system-ui, -apple-system, sans-serif',
-                },
-            },
+        showWorkflowDeleteConfirmKo(
+            workflow.name,
+            async () => {
+                try {
+                    await deleteWorkflow(workflow.name);
+                    showDeleteSuccessToastKo({
+                        itemName: workflow.name,
+                        itemType: '워크플로우',
+                    });
+                    fetchWorkflows(); // 목록 새로고침
+                } catch (error) {
+                    console.error('Failed to delete workflow:', error);
+                    showDeleteErrorToastKo({
+                        itemName: workflow.name,
+                        itemType: '워크플로우',
+                        error: error instanceof Error ? error : 'Unknown error',
+                    });
+                }
+            }
         );
     };
 
@@ -259,23 +213,43 @@ const CompletedWorkflows: React.FC = () => {
 
                 <div className={styles.headerActions}>
                     <div className={styles.filters}>
-                        {['all', 'active', 'draft', 'archived'].map(
-                            (filterType) => (
-                                <button
-                                    key={filterType}
-                                    onClick={() => setFilter(filterType as any)}
-                                    className={`${styles.filterButton} ${filter === filterType ? styles.active : ''}`}
-                                >
-                                    {filterType === 'all'
-                                        ? '전체'
-                                        : filterType === 'active'
-                                          ? '활성'
-                                          : filterType === 'draft'
-                                            ? '초안'
-                                            : '보관됨'}
-                                </button>
-                            ),
-                        )}
+                        <div className={styles.filterGroup}>
+                            {['all', 'active', 'draft', 'archived'].map(
+                                (filterType) => (
+                                    <button
+                                        key={filterType}
+                                        onClick={() => setFilter(filterType as any)}
+                                        className={`${styles.filterButton} ${filter === filterType ? styles.active : ''}`}
+                                    >
+                                        {filterType === 'all'
+                                            ? '전체'
+                                            : filterType === 'active'
+                                              ? '활성'
+                                              : filterType === 'draft'
+                                                ? '초안'
+                                                : '보관됨'}
+                                    </button>
+                                ),
+                            )}
+                        </div>
+
+                        <div className={styles.filterGroup}>
+                            {['all', 'personal', 'shared'].map(
+                                (filterType) => (
+                                    <button
+                                        key={filterType}
+                                        onClick={() => setWorkflowFilter(filterType as any)}
+                                        className={`${styles.filterButton} ${workflowFilter === filterType ? styles.active : ''}`}
+                                    >
+                                        {filterType === 'all'
+                                            ? '전체'
+                                            : filterType === 'personal'
+                                              ? '개인'
+                                              : '공유'}
+                                    </button>
+                                ),
+                            )}
+                        </div>
                     </div>
 
                     <button
@@ -316,10 +290,17 @@ const CompletedWorkflows: React.FC = () => {
                                 <div className={styles.workflowIcon}>
                                     <FiFolder />
                                 </div>
-                                <div
-                                    className={`${styles.status} ${getStatusColor(workflow.status)}`}
-                                >
-                                    {getStatusText(workflow.status)}
+                                <div className={styles.statusContainer}>
+                                    <div
+                                        className={`${styles.status} ${getStatusColor(workflow.status)}`}
+                                    >
+                                        {getStatusText(workflow.status)}
+                                    </div>
+                                    <div
+                                        className={`${styles.shareStatus} ${workflow.is_shared ? styles.statusShared : styles.statusPersonal}`}
+                                    >
+                                        {workflow.is_shared ? '공유' : '개인'}
+                                    </div>
                                 </div>
                             </div>
 
@@ -339,10 +320,12 @@ const CompletedWorkflows: React.FC = () => {
                                 )}
 
                                 <div className={styles.workflowMeta}>
-                                    <div className={styles.metaItem}>
-                                        <FiUser />
-                                        <span>{workflow.author}</span>
-                                    </div>
+                                    {user && workflow.user_id === user.user_id && (
+                                        <div className={styles.metaItem}>
+                                            <FiUser />
+                                            <span>{workflow.author}</span>
+                                        </div>
+                                    )}
                                     {workflow.lastModified && (
                                         <div className={styles.metaItem}>
                                             <FiClock />
@@ -356,6 +339,12 @@ const CompletedWorkflows: React.FC = () => {
                                     <div className={styles.metaItem}>
                                         <span>{workflow.nodeCount}개 노드</span>
                                     </div>
+                                    {workflow.share_group && (
+                                        <div className={styles.metaItem}>
+                                            <FiUsers />
+                                            <span>조직: {workflow.share_group}</span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -370,26 +359,56 @@ const CompletedWorkflows: React.FC = () => {
                                 >
                                     <FiPlay />
                                 </button>
-                                <button
-                                    className={styles.actionButton}
-                                    title="편집"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleEdit(workflow);
-                                    }}
-                                >
-                                    <FiEdit />
-                                </button>
-                                <button
-                                    className={`${styles.actionButton} ${styles.danger}`}
-                                    title="삭제"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDelete(workflow);
-                                    }}
-                                >
-                                    <FiTrash2 />
-                                </button>
+                                {user && workflow.user_id === user.user_id ? (
+                                    <>
+                                        <button
+                                            className={styles.actionButton}
+                                            title="편집"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleEdit(workflow);
+                                            }}
+                                        >
+                                            <FiEdit />
+                                        </button>
+                                        <button
+                                            className={styles.actionButton}
+                                            title="설정"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleEditSettings(workflow);
+                                            }}
+                                        >
+                                            <FiSettings />
+                                        </button>
+                                        <button
+                                            className={`${styles.actionButton} ${styles.danger}`}
+                                            title="삭제"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDelete(workflow);
+                                            }}
+                                        >
+                                            <FiTrash2 />
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <button
+                                            className={styles.actionButton}
+                                            title="복사"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDuplicate(workflow);
+                                            }}
+                                        >
+                                            <FiCopy />
+                                        </button>
+                                        <div className={styles.sharedMessage}>
+                                            공유받은 워크플로우는 편집이 불가능합니다.
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </div>
                     ))}
@@ -405,6 +424,16 @@ const CompletedWorkflows: React.FC = () => {
                         만들어보세요.
                     </p>
                 </div>
+            )}
+
+            {/* 워크플로우 편집 모달 */}
+            {showEditModal && workflowToEdit && (
+                <WorkflowEditModal
+                    workflow={workflowToEdit}
+                    isOpen={showEditModal}
+                    onClose={handleCloseEditModal}
+                    onUpdate={handleUpdateWorkflow}
+                />
             )}
         </div>
     );

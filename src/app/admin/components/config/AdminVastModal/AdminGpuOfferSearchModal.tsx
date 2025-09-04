@@ -1,7 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiCheck, FiX, FiPlay, FiCopy, FiServer, FiSettings, FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import { BsGpuCard } from 'react-icons/bs';
-import toast from 'react-hot-toast';
+import {
+    showGpuSearchSuccessToastKo,
+    showGpuSearchErrorToastKo,
+    showVllmInstanceCreateSuccessToastKo,
+    showVllmInstanceCreateErrorToastKo,
+    showValidationErrorToastKo,
+    showOfferSelectedToastKo,
+    showSuccessToastKo,
+    showLoadingToastKo,
+    dismissToastKo,
+    showInstanceStatusToastKo,
+    showCopySuccessToastKo
+} from '@/app/_common/utils/toastUtilsKo';
 import { searchVastOffers, createVastInstance, subscribeToInstanceStatus } from '@/app/api/vastAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
@@ -177,7 +189,7 @@ export const AdminGpuOfferSearchModal = () => {
 
     const handleSearchOffers = async () => {
         if (!searchParams.gpu_name?.trim()) {
-            toast.error('GPU 이름을 입력해주세요.');
+            showValidationErrorToastKo('GPU 이름을 입력해주세요.');
             return;
         }
 
@@ -200,11 +212,11 @@ export const AdminGpuOfferSearchModal = () => {
             const result = await searchVastOffers(cleanParams) as VastOfferSearchResponse;
             setSearchResults(result);
 
-            toast.success(`${result.filtered_count}개의 오퍼를 찾았습니다.`);
+            showGpuSearchSuccessToastKo(result.filtered_count);
             devLog.info('Search results:', result);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-            toast.error(`검색 실패: ${errorMessage}`);
+            showGpuSearchErrorToastKo(errorMessage);
             devLog.error('Failed to search offers:', error);
         } finally {
             setIsSearching(false);
@@ -260,27 +272,27 @@ export const AdminGpuOfferSearchModal = () => {
         };
 
         setSelectedOfferInfo(offerInfo);
-        toast.success('오퍼가 선택되었습니다. VLLM 설정을 진행해주세요.');
+        showOfferSelectedToastKo();
     };
 
     const handleCreateInstance = async () => {
         if (!selectedOfferId.trim()) {
-            toast.error('먼저 GPU 오퍼를 선택해주세요.');
+            showValidationErrorToastKo('먼저 GPU 오퍼를 선택해주세요.');
             return;
         }
 
         if (!vllmConfig.vllm_config.vllm_serve_model_name.trim()) {
-            toast.error('모델명을 입력해주세요.');
+            showValidationErrorToastKo('모델명을 입력해주세요.');
             return;
         }
 
         if (!vllmConfig.vllm_config.vllm_max_model_len || vllmConfig.vllm_config.vllm_max_model_len <= 0) {
-            toast.error('최대 모델 길이를 입력해주세요.');
+            showValidationErrorToastKo('최대 모델 길이를 입력해주세요.');
             return;
         }
 
         if (!vllmConfig.vllm_config.vllm_gpu_memory_utilization || vllmConfig.vllm_config.vllm_gpu_memory_utilization <= 0 || vllmConfig.vllm_config.vllm_gpu_memory_utilization > 1) {
-            toast.error('GPU 메모리 사용률을 올바르게 입력해주세요 (0.1 ~ 1.0).');
+            showValidationErrorToastKo('GPU 메모리 사용률을 올바르게 입력해주세요 (0.1 ~ 1.0).');
             return;
         }
 
@@ -310,7 +322,7 @@ export const AdminGpuOfferSearchModal = () => {
                 setActiveInstanceId(result.instance_id);
                 setInstanceStatus(result.status || 'creating');
 
-                toast.success(`VLLM 인스턴스 생성 시작! ID: ${result.instance_id}`);
+                showVllmInstanceCreateSuccessToastKo(result.instance_id);
                 devLog.info('VLLM instance creation result:', result);
 
                 // SSE 구독 시작
@@ -322,85 +334,37 @@ export const AdminGpuOfferSearchModal = () => {
                         // 상태별 Toast 알림
                         switch (newStatus) {
                             case 'creating':
-                                toast.loading(
-                                    `⏳ 인스턴스 ${result.instance_id} 생성 중...`,
-                                    {
-                                        id: `instance-${result.instance_id}`,
-                                        duration: Infinity,
-                                        position: 'top-right',
-                                    }
-                                );
+                                showInstanceStatusToastKo.creating(result.instance_id);
                                 break;
 
                             case 'starting':
-                                toast.loading(
-                                    `🚀 인스턴스 ${result.instance_id} 시작 중...`,
-                                    {
-                                        id: `instance-${result.instance_id}`,
-                                        duration: Infinity,
-                                        position: 'top-right',
-                                    }
-                                );
+                                showInstanceStatusToastKo.starting(result.instance_id);
                                 break;
 
                             case 'running':
-                                toast.dismiss(`instance-${result.instance_id}`);
-                                toast.success(
-                                    `✅ 인스턴스 ${result.instance_id} 실행 중, VLLM 설정 대기...`,
-                                    {
-                                        duration: 5000,
-                                        position: 'top-right',
-                                    }
-                                );
+                                showInstanceStatusToastKo.running(result.instance_id);
                                 break;
 
                             case 'running_vllm':
-                                toast.dismiss(`instance-${result.instance_id}`);
-                                toast.success(
-                                    `🤖 인스턴스 ${result.instance_id} VLLM 모델 서빙 중!`,
-                                    {
-                                        duration: 5000,
-                                        position: 'top-right',
-                                    }
-                                );
+                                showInstanceStatusToastKo.vllmRunning(result.instance_id);
                                 // running_vllm 상태가 되면 설정 완료로 간주
                                 setIsSettingUpVLLM(false);
                                 break;
 
                             case 'failed':
-                                toast.dismiss(`instance-${result.instance_id}`);
-                                toast.error(
-                                    `❌ 인스턴스 ${result.instance_id} 생성 실패`,
-                                    {
-                                        duration: 7000,
-                                        position: 'top-right',
-                                    }
-                                );
+                                showInstanceStatusToastKo.error(result.instance_id);
                                 break;
 
                             case 'destroyed':
                             case 'deleted':
-                                toast.dismiss(`instance-${result.instance_id}`);
-                                toast.error(
-                                    `🗑️ 인스턴스 ${result.instance_id} 삭제됨`,
-                                    {
-                                        duration: 5000,
-                                        position: 'top-right',
-                                    }
-                                );
+                                showInstanceStatusToastKo.exited(result.instance_id);
                                 break;
                         }
                     },
 
                     onComplete: (data: any) => {
                         devLog.log('인스턴스 생성 완료:', data);
-                        toast.success(
-                            `🎉 인스턴스 ${result.instance_id}가 완전히 준비되었습니다!`,
-                            {
-                                duration: 5000,
-                                position: 'top-right',
-                            }
-                        );
+                        showSuccessToastKo(`🎉 인스턴스 ${result.instance_id}가 완전히 준비되었습니다!`);
                         setIsSettingUpVLLM(false);
 
                         // SSE 연결 정리
@@ -412,13 +376,7 @@ export const AdminGpuOfferSearchModal = () => {
 
                     onError: (error: Error, data: any) => {
                         devLog.error('인스턴스 생성 실패:', error);
-                        toast.error(
-                            `❌ 인스턴스 ${result.instance_id} 생성 실패: ${error.message}`,
-                            {
-                                duration: 7000,
-                                position: 'top-right',
-                            }
-                        );
+                        showInstanceStatusToastKo.error(result.instance_id, error.message);
                         setIsSettingUpVLLM(false);
                         setInstanceStatus('failed');
 
@@ -443,7 +401,7 @@ export const AdminGpuOfferSearchModal = () => {
 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-            toast.error(`VLLM 인스턴스 생성 실패: ${errorMessage}`);
+            showVllmInstanceCreateErrorToastKo(errorMessage);
             devLog.error('Failed to create VLLM instance:', error);
             setIsSettingUpVLLM(false);
         }
@@ -714,7 +672,7 @@ export const AdminGpuOfferSearchModal = () => {
                                                         className={styles.copyButton}
                                                         onClick={() => {
                                                             navigator.clipboard.writeText(offer.id);
-                                                            toast.success('오퍼 ID가 복사되었습니다.');
+                                                            showCopySuccessToastKo('오퍼 ID가 복사되었습니다.');
                                                         }}
                                                     >
                                                         <FiCopy className={styles.icon} />
@@ -878,8 +836,8 @@ export const AdminGpuOfferSearchModal = () => {
                                         <input
                                             type="number"
                                             className={styles.input}
-                                            value={vllmConfig.vllm_config.vllm_max_model_len}
-                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_max_model_len', parseInt(e.target.value))}
+                                            value={vllmConfig.vllm_config.vllm_max_model_len || ''}
+                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_max_model_len', parseInt(e.target.value) || 0)}
                                         />
                                     </div>
                                 </div>
@@ -893,8 +851,8 @@ export const AdminGpuOfferSearchModal = () => {
                                             step="0.1"
                                             min="0.1"
                                             max="1.0"
-                                            value={vllmConfig.vllm_config.vllm_gpu_memory_utilization}
-                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_gpu_memory_utilization', parseFloat(e.target.value))}
+                                            value={vllmConfig.vllm_config.vllm_gpu_memory_utilization || ''}
+                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_gpu_memory_utilization', parseFloat(e.target.value) || 0)}
                                         />
                                     </div>
                                     <div className={styles.advancedFormGroup}>
@@ -903,8 +861,8 @@ export const AdminGpuOfferSearchModal = () => {
                                             type="number"
                                             className={styles.input}
                                             min="1"
-                                            value={vllmConfig.vllm_config.vllm_tensor_parallel_size}
-                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_tensor_parallel_size', parseInt(e.target.value))}
+                                            value={vllmConfig.vllm_config.vllm_tensor_parallel_size || ''}
+                                            onChange={(e) => handleVLLMVllmConfigChange('vllm_tensor_parallel_size', parseInt(e.target.value) || 0)}
                                         />
                                     </div>
                                 </div>

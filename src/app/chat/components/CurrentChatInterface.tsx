@@ -21,7 +21,7 @@ const CurrentChatInterface: React.FC<CurrentChatInterfaceProps> = ({ onBack }) =
         if (directMessage) {
             return directMessage;
         }
-        
+
         // URL 파라미터에 직접 메시지가 없으면 localStorage에서 찾기
         const messageId = searchParams.get('initial_message_id');
         if (messageId) {
@@ -32,7 +32,7 @@ const CurrentChatInterface: React.FC<CurrentChatInterfaceProps> = ({ onBack }) =
                 return storedMessage;
             }
         }
-        
+
         return null;
     }, [searchParams]);
 
@@ -75,6 +75,11 @@ const CurrentChatInterface: React.FC<CurrentChatInterfaceProps> = ({ onBack }) =
     // Hook들은 항상 같은 순서로 호출되어야 함
     const workflow = useMemo(() => {
         if (!currentChatData) return null;
+
+        // localStorage에서 user_id 읽어오기
+        const storedUserId = localStorage.getItem('currentWorkflowUserId');
+        const userId = storedUserId ? parseInt(storedUserId) : 0;
+
         return {
             id: currentChatData.workflowId,
             name: currentChatData.workflowName,
@@ -82,6 +87,7 @@ const CurrentChatInterface: React.FC<CurrentChatInterfaceProps> = ({ onBack }) =
             author: 'Unknown',
             nodeCount: 0,
             status: 'active' as const,
+            user_id: userId,
         };
     }, [currentChatData]);
 
@@ -135,6 +141,7 @@ const CurrentChatInterface: React.FC<CurrentChatInterfaceProps> = ({ onBack }) =
                     hideBackButton={true}
                     onBack={onBack || (() => { })}
                     initialMessageToExecute={initialMessageToExecute}
+                    user_id={workflow?.user_id}
                 />
             </div>
         </div>

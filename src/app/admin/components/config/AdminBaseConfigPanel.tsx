@@ -3,6 +3,7 @@ import { FiEdit3, FiCheck, FiX } from 'react-icons/fi';
 import { updateConfig } from '@/app/api/configAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
+import { showValidationErrorToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 
 export interface ConfigItem {
     env_name: string;
@@ -181,7 +182,7 @@ const AdminBaseConfigPanel: React.FC<AdminBaseConfigPanelProps> = ({
         const validation = validateValue(editValue, fieldConfig);
 
         if (!validation.isValid) {
-            alert(`유효하지 않은 값입니다: ${validation.error}`);
+            showValidationErrorToastKo(`유효하지 않은 값입니다: ${validation.error}`);
             return;
         }
 
@@ -201,7 +202,7 @@ const AdminBaseConfigPanel: React.FC<AdminBaseConfigPanelProps> = ({
             );
         } catch (error) {
             devLog.error(`Failed to update ${configItem.env_name}:`, error);
-            alert('설정 업데이트에 실패했습니다.');
+            showErrorToastKo('설정 업데이트에 실패했습니다.');
         } finally {
             setUpdating((prev) => ({ ...prev, [configItem.env_name]: false }));
             if (onConfigChange) {

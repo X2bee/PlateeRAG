@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from '@/app/(auth)/signup/SignupPage.module.scss';
 import { signup } from '@/app/api/authAPI';
-import ReverseAuthGuard from '@/app/_common/components/ReverseAuthGuard';
+import { showSuccessToastKo } from '@/app/_common/utils/toastUtilsKo';
+import ReverseAuthGuard from '@/app/_common/components/authGuard/ReverseAuthGuard';
 
 const SignupPage = () => {
     const [username, setUsername] = useState('');
@@ -47,7 +48,7 @@ const SignupPage = () => {
 
             await signup(signupData);
 
-            alert('회원가입 신청이 완료되었습니다. 관리자 승인을 기다려주십시오.');
+            showSuccessToastKo('회원가입 신청이 완료되었습니다. 관리자 승인을 기다려주십시오.');
             router.push('/');
 
         } catch (err: any) {

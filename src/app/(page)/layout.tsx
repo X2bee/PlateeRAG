@@ -1,3 +1,5 @@
+'use client';
+
 import React, { Suspense } from 'react';
 import PagesLayoutContent from '@/app/_common/components/PagesLayoutContent';
 import styles from '@/app/main/assets/MainPage.module.scss';

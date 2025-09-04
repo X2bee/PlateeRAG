@@ -44,6 +44,8 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ mode, workflow, ioLogs, onBack,
                 </div>
             </div>
             <div className={styles.chatCount}>
+                <FiMessageSquare />
+                <span>{chatCountText}</span>
                 { mode === 'deploy' || mode === 'new-default' || workflow.name === 'default_mode' ? (
                     <span></span>
                 ) : (
@@ -52,11 +54,9 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ mode, workflow, ioLogs, onBack,
                         <span>배포</span>
                     </button>
                 )}
-                <FiMessageSquare />
-                <span>{chatCountText}</span>
-                
+
             </div>
-            
+
         </div>
     );
 };

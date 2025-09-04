@@ -10,9 +10,13 @@ import { listInteractions } from '@/app/api/interactionAPI';
 import { deleteWorkflowIOLogs, listWorkflowsDetail } from '@/app/api/workflow/workflowAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/chat/assets/ChatHistory.module.scss';
-import toast from 'react-hot-toast';
+import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import HistoryModal from './HistoryModal';
-import useSidebarManager from '@/app/_common/hooks/useSidebarManager';
+import {
+    showChatDeleteConfirmKo,
+    showDeleteSuccessToastKo,
+    showDeleteErrorToastKo
+} from '@/app/_common/utils/toastUtilsKo';
 
 interface ExecutionMeta {
     id: string;
@@ -52,8 +56,6 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
     // HistoryModal 상태
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
     const [selectedChatForHistory, setSelectedChatForHistory] = useState<ExecutionMeta | null>(null);
-
-    useSidebarManager(isHistoryModalOpen);
 
     useEffect(() => {
         loadChatHistory();
@@ -125,7 +127,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
         } catch (err) {
             setError('채팅 기록을 불러오는데 실패했습니다.');
             devLog.error('Failed to load chat history:', err);
-            toast.error('채팅 기록을 불러오는데 실패했습니다.');
+            showErrorToastKo('채팅 기록을 불러오는데 실패했습니다.');
         } finally {
             setLoading(false);
         }
@@ -172,85 +174,46 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
         localStorage.setItem('currentChatData', JSON.stringify(currentChatData));
 
         onSelectChat(chat);
-        toast.success(`"${chat.workflow_name}" 대화를 현재 채팅으로 설정했습니다!`);
+        showSuccessToastKo(`"${chat.workflow_name}" 대화를 현재 채팅으로 설정했습니다!`);
     };
 
     const handleDeleteChat = async (chat: ExecutionMeta) => {
-        // 삭제 확인
-        const confirmDelete = () => new Promise((resolve) => {
-            toast((t) => (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div>
-                        <strong>"{chat.workflow_name}"</strong> 채팅을 정말 삭제하시겠습니까?
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                        <button
-                            onClick={() => {
-                                toast.dismiss(t.id);
-                                resolve(false);
-                            }}
-                            style={{
-                                padding: '4px 12px',
-                                backgroundColor: '#6b7280',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            취소
-                        </button>
-                        <button
-                            onClick={() => {
-                                toast.dismiss(t.id);
-                                resolve(true);
-                            }}
-                            style={{
-                                padding: '4px 12px',
-                                backgroundColor: '#ef4444',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            삭제
-                        </button>
-                    </div>
-                </div>
-            ), {
-                duration: Infinity,
-                style: {
-                    maxWidth: '400px',
-                },
-            });
-        });
+        showChatDeleteConfirmKo(
+            chat.workflow_name,
+            async () => {
+                try {
+                    // 삭제 API 호출
+                    await deleteWorkflowIOLogs(
+                        chat.workflow_name,
+                        chat.workflow_id,
+                        chat.interaction_id
+                    );
 
-        try {
-            const shouldDelete = await confirmDelete();
-            if (!shouldDelete) return;
+                    showDeleteSuccessToastKo({
+                        itemName: chat.workflow_name,
+                        itemType: '채팅',
+                        customMessage: `"${chat.workflow_name}" 채팅이 삭제되었습니다.`,
+                    });
 
-            // 삭제 API 호출
-            await deleteWorkflowIOLogs(
-                chat.workflow_name,
-                chat.workflow_id,
-                chat.interaction_id
-            );
-
-            toast.success(`"${chat.workflow_name}" 채팅이 삭제되었습니다.`);
-
-            // 채팅 목록 새로고침
-            await loadChatHistory();
-        } catch (error) {
-            devLog.error('Failed to delete chat:', error);
-            toast.error('채팅 삭제에 실패했습니다.');
-        }
+                    // 채팅 목록 새로고침
+                    await loadChatHistory();
+                } catch (error) {
+                    devLog.error('Failed to delete chat:', error);
+                    showDeleteErrorToastKo({
+                        itemName: chat.workflow_name,
+                        itemType: '채팅',
+                        customMessage: '채팅 삭제에 실패했습니다.',
+                        error: error instanceof Error ? error : 'Unknown error',
+                    });
+                }
+            }
+        );
     };
 
     const handleContinueChat = (chat: ExecutionMeta) => {
         // 워크플로우가 삭제된 경우 대화를 계속할 수 없음
         if (chat.isWorkflowDeleted) {
-            toast.error('원본 워크플로우가 삭제되어 대화를 계속할 수 없습니다.');
+            showErrorToastKo('원본 워크플로우가 삭제되어 대화를 계속할 수 없습니다.');
             return;
         }
 
@@ -265,7 +228,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
 
         // onSelectChat을 통해 부모 컴포넌트에서 current-chat 모드로 변경
         onSelectChat(chat);
-        toast.success(`"${chat.workflow_name}" 대화를 현재 채팅으로 설정했습니다!`);
+        showSuccessToastKo(`"${chat.workflow_name}" 대화를 현재 채팅으로 설정했습니다!`);
     };
 
     const handleViewChatHistory = (chat: ExecutionMeta) => {

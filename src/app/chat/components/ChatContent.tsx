@@ -28,6 +28,7 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted}) => {
         // handleExecute에서 전달된 워크플로우 정보 확인
         const executeWorkflowId = searchParams.get('workflowId');
         const executeWorkflowName = searchParams.get('workflowName');
+        const executeUserId = searchParams.get('user_id');
 
         if (mode === 'existing' && interactionId && workflowId && workflowName) {
             const existingWorkflow = {
@@ -37,6 +38,7 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted}) => {
                 author: 'Unknown',
                 nodeCount: 0,
                 status: 'active' as const,
+                user_id: executeUserId ? parseInt(executeUserId) : 0,
             };
 
             setExistingChatData({
@@ -56,6 +58,7 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted}) => {
                 author: 'AI-LAB',
                 nodeCount: 0,
                 status: 'active' as const,
+                user_id: executeUserId ? parseInt(executeUserId) : 0,
             };
 
             setSelectedWorkflow(selectedWorkflowFromExecute);
@@ -82,12 +85,12 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted}) => {
 
     const handleStartNewChat = useCallback((message: string) => {
         if (!selectedWorkflow || !message.trim()) return;
-        
+
         // 중복 호출 방지를 위한 debounce 처리
         const debounceKey = `new-chat-${selectedWorkflow.id}-${Date.now()}`;
         if ((window as any)[debounceKey]) return;
         (window as any)[debounceKey] = true;
-        
+
         // 500ms 후 debounce 키 제거
         setTimeout(() => {
             delete (window as any)[debounceKey];
@@ -95,15 +98,20 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted}) => {
 
         localStorage.removeItem('currentChatData');
 
+        // user_id가 있으면 localStorage에 저장
+        if (selectedWorkflow.user_id) {
+            localStorage.setItem('currentWorkflowUserId', selectedWorkflow.user_id.toString());
+        }
+
         const params = new URLSearchParams();
         params.set('mode', 'current-chat');
         params.set('workflowId', selectedWorkflow.id);
         params.set('workflowName', normalizeWorkflowName(selectedWorkflow.name));
-        
+
         // URL 길이 제한 체크 (일반적으로 2000자 이하 권장)
         const maxUrlLength = 1500; // 안전 마진 포함
         const baseUrl = `/chat?mode=current-chat&workflowId=${selectedWorkflow.id}&workflowName=${normalizeWorkflowName(selectedWorkflow.name)}&initial_message=`;
-        
+
         if (baseUrl.length + encodeURIComponent(message).length > maxUrlLength) {
             // 메시지가 너무 길면 localStorage에 저장하고 ID만 전달
             const messageId = `initial_msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;

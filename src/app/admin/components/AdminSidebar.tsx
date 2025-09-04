@@ -1,14 +1,13 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import toast from 'react-hot-toast';
 import Image from 'next/image';
 import { AdminSidebarProps } from '@/app/admin/components/types';
 import styles from '@/app/admin/assets/AdminPage.module.scss';
 import { logout } from '@/app/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useQuickLogout } from '@/app/_common/utils/logoutUtils';
-import { FiChevronLeft, FiLogOut } from 'react-icons/fi';
+import { FiChevronLeft, FiLogOut, FiMessageCircle } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({
@@ -67,7 +66,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     const toggleSecurityExpanded = () => setIsSecurityExpanded(!isSecurityExpanded);
 
     const handleLogoClick = () => {
-        router.push('/main');
+        onItemClick('dashboard');
     };
 
     return (
@@ -82,13 +81,22 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             </button>
             <div className={styles.sidebarContent}>
                 <div className={styles.sidebarHeader}>
-                    <button
-                        className={styles.logoButton}
-                        onClick={handleLogoClick}
-                    >
-                        <Image src="/main_simbol.png" alt="ADMIN" width={23} height={0} />
-                        <h2>ADMIN</h2>
-                    </button>
+                    <div className={styles.headerTop}>
+                        <button
+                            className={styles.logoButton}
+                            onClick={handleLogoClick}
+                        >
+                            <Image src="/main_simbol.png" alt="ADMIN" width={23} height={0} />
+                            <h2>ADMIN</h2>
+                        </button>
+                        <button
+                            onClick={() => router.push('/chat')}
+                            className={styles.chatButton}
+                            title="채팅으로 돌아가기"
+                        >
+                            <FiMessageCircle />
+                        </button>
+                    </div>
                     {user && (
                         <div className={styles.userInfo}>
                             <div className={styles.welcomeText}>

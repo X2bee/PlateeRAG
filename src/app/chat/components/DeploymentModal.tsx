@@ -1,13 +1,15 @@
+import { useEffect, useRef, useState, Children, isValidElement, ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
 import { Prism } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { FiCode, FiExternalLink, FiX, FiTerminal, FiCopy, FiShare2 } from 'react-icons/fi';
 import { SiPython, SiJavascript } from "react-icons/si";
-import toast from 'react-hot-toast';
+import { showCopySuccessToastKo, showCopyErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { Workflow } from './types';
-import { useEffect, useRef, useState, Children, isValidElement, ReactNode } from 'react';
 import { getAuthCookie } from '@/app/_common/utils/cookieUtils';
 import { createEncryptedUrlParams } from '@/app/_common/utils/urlEncryption';
+import { getDeployStatus, toggleDeployStatus } from '@/app/api/workflow/deploy';
 
 interface DeploymentModalProps {
     isOpen: boolean;
@@ -133,13 +135,30 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
     const [activeApiLang, setActiveApiLang] = useState('python');
     const [curlPayload, setCurlPayload] = useState('');
     const closeButtonRef = useRef<HTMLButtonElement>(null);
-    const user_id = getAuthCookie('user_id') as string;
+    const currentUser_id = getAuthCookie('user_id') as string;
+    const user_id = workflow.user_id ? workflow.user_id.toString() : currentUser_id;
+    const [toggleDeploy, setToggleDeploy] = useState<boolean>(false);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
             setBaseUrl(window.location.origin);
         }
     }, []);
+    useEffect(() => {
+        const fetchDeployStatus = async () => {
+            if (workflow && user_id) {
+                try {
+                    const deployed = await getDeployStatus(workflow.name, user_id);
+                    setToggleDeploy(deployed.is_deployed);
+                } catch (err) {
+                    console.error('Failed to fetch deploy status:', err);
+                }
+            }
+        };
+
+        fetchDeployStatus();
+    }, [workflow, user_id]);
 
     useEffect(() => {
         if (isOpen) {
@@ -282,9 +301,9 @@ ${formatOutputSchemaForCode(outputSchema, 1)}
             };
 
             navigator.clipboard.writeText(codeString).then(() => {
-                toast.success('클립보드에 복사되었습니다!');
+                showCopySuccessToastKo();
             }, (err) => {
-                toast.error('복사에 실패했습니다.');
+                showCopyErrorToastKo();
             });
         };
 
@@ -301,7 +320,9 @@ ${formatOutputSchemaForCode(outputSchema, 1)}
         );
     };
 
-    return (
+    if (!isOpen) return null;
+
+    const modalContent = (
         <div
             className={styles.deploymentModalBackdrop}
             role="button"
@@ -366,7 +387,20 @@ ${formatOutputSchemaForCode(outputSchema, 1)}
                 <div className={styles.deploymentModalContent}>
                     {activeTab === 'website' && (
                         <div className={styles.tabPanel}>
-                            <p>아래 링크를 통해 독립된 웹페이지에서 채팅을 사용할 수 있습니다.</p>
+                            <div className={styles.deployInfo}>
+                                <p>아래 링크를 통해 독립된 웹페이지에서 채팅을 사용할 수 있습니다.</p>
+                                <button
+                                    type="button"
+                                    className={`${styles.toggleButton} ${toggleDeploy ? styles.active : ''}`}
+                                    onClick={async () => {
+                                        setToggleDeploy(!toggleDeploy);
+                                        await toggleDeployStatus(workflow.name, !toggleDeploy);
+                                    }}
+                                    disabled={loading}
+                                >
+                                    {toggleDeploy ? '배포 중' : '비공개'}
+                                </button>
+                            </div>
                             <div className={styles.webPageUrl}>
                                 <a href={baseUrl ? webPageUrl : '#'} target="_blank" rel="noopener noreferrer">
                                     {baseUrl ? webPageUrl : 'URL 생성 중...'}
@@ -481,4 +515,6 @@ ${formatOutputSchemaForCode(outputSchema, 1)}
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { FiTool, FiDatabase, FiFileText, FiX, FiInfo, FiSettings, FiArrowRight, FiArrowLeft, FiEdit3 } from 'react-icons/fi';
 import styles from '@/app/chat/assets/ChatToolsDisplay.module.scss';
 import { WorkflowData, CanvasNode, CanvasEdge, Parameter } from '@/app/canvas/types';
 import { AiOutlineApi } from "react-icons/ai";
-import useSidebarManager from '@/app/_common/hooks/useSidebarManager';
 
 interface ChatToolsDisplayProps {
+    mode: 'existing' | 'new-workflow' | 'new-default' | 'deploy';
     workflowContentDetail: {
         nodes?: CanvasNode[];
         edges?: CanvasEdge[];
@@ -28,6 +29,7 @@ interface ToolNode {
 }
 
 const ChatToolsDisplay: React.FC<ChatToolsDisplayProps> = ({
+    mode,
     workflowContentDetail,
     additionalParams = {},
     onAdditionalParamsChange
@@ -36,8 +38,6 @@ const ChatToolsDisplay: React.FC<ChatToolsDisplayProps> = ({
     const [showModal, setShowModal] = useState(false);
     const [showArgsDropdown, setShowArgsDropdown] = useState<string | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
-
-    useSidebarManager(showModal)
 
     // 외부 클릭 시 드롭다운 닫기
     useEffect(() => {
@@ -139,6 +139,11 @@ const ChatToolsDisplay: React.FC<ChatToolsDisplayProps> = ({
     };
 
     const toolNodes = getToolNodes();
+
+    // deploy 모드일 때는 아무것도 렌더링하지 않음
+    if (mode === 'deploy') {
+        return null;
+    }
 
     // 도구가 없으면 컴포넌트를 렌더링하지 않음
     if (toolNodes.length === 0) {
@@ -467,7 +472,7 @@ const ChatToolsDisplay: React.FC<ChatToolsDisplayProps> = ({
             </div>
 
             {/* Tool Detail Modal */}
-            {showModal && selectedTool && (
+            {showModal && selectedTool && createPortal(
                 <div className={styles.modalBackdrop} onClick={handleCloseModal}>
                     <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
                         <div className={styles.modalHeader}>
@@ -487,7 +492,8 @@ const ChatToolsDisplay: React.FC<ChatToolsDisplayProps> = ({
                             <ToolDetailModal tool={selectedTool} />
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     );

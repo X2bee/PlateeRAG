@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import toast from 'react-hot-toast';
+import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import AdminBaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/admin/components/config/AdminBaseConfigPanel';
 import { testCollectionConnection } from '@/app/api/llmAPI';
 
@@ -116,19 +116,19 @@ const AdminCollectionConfig: React.FC<AdminCollectionConfigProps> = ({
             } else if (category === 'vllm') {
                 result = await testCollectionConnection('vllm');
             } else {
-                toast.error('지원되지 않는 제공자입니다.');
+                showErrorToastKo('지원되지 않는 제공자입니다.');
                 return;
             }
 
             const isSuccess = (result as { status: string })?.status === 'success';
             if (isSuccess) {
-                toast.success(`${category} 연결 테스트 성공!`);
+                showSuccessToastKo(`${category} 연결 테스트 성공!`);
             } else {
-                toast.error(`${category} 연결 테스트 실패`);
+                showErrorToastKo(`${category} 연결 테스트 실패`);
             }
         } catch (err) {
             const msg = err instanceof Error ? err.message : `${category} 연결 테스트에 실패했습니다.`;
-            toast.error(msg);
+            showErrorToastKo(msg);
             console.error(err);
         } finally {
             setTesting(false);

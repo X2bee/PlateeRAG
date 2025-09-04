@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useRef, useEffect, forwardRef, useImperativeHandle, useState } from 'react';
 import {
     FiSend,
     FiPlus,
@@ -9,6 +9,8 @@ import {
 } from 'react-icons/fi';
 import styles from '../../assets/ChatInterface.module.scss';
 import { useInputHandling } from '../../hooks/useInputHandling';
+import SoundInput from '../SoundInput/SoundInputModal';
+import SoundInputHandler from '../SoundInput/SoundInputHandler';
 
 interface ChatInputProps {
     executing: boolean;
@@ -20,6 +22,7 @@ interface ChatInputProps {
     onSendMessage: (message: string) => void;
     onShiftEnter?: () => void;
     initialMessage?: string;
+    onAudioUpload?: (audioBlob: Blob) => void;
 }
 
 interface ChatInputRef {
@@ -39,10 +42,12 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
         onSendMessage,
         onShiftEnter,
         initialMessage,
+        onAudioUpload,
     },
     ref
 ) => {
     const attachmentButtonRef = useRef<HTMLDivElement>(null);
+    const [showSoundInput, setShowSoundInput] = useState(false);
 
     const inputHandling = useInputHandling({
         executing,
@@ -93,6 +98,34 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
         };
     }, [showAttachmentMenu, onAttachmentClick]);
 
+    // 음성 입력 처리 함수
+    const handleAudioReady = (audioBlob: Blob) => {
+        if (onAudioUpload) {
+            onAudioUpload(audioBlob);
+        }
+        // 오디오를 사용하기로 결정했을 때만 모달 닫기
+        setShowSoundInput(false);
+    };
+
+    // 음성 변환 텍스트 처리 함수 (모달용)
+    const handleTranscriptionReady = (transcription: string) => {
+        // 변환된 텍스트를 입력창에 설정
+        inputHandling.setInputMessage(transcription);
+        // 모달 닫기
+        setShowSoundInput(false);
+    };
+
+    // 음성 변환 텍스트 처리 함수 (핸들러용)
+    const handleHandlerTranscriptionReady = (transcription: string) => {
+        // 변환된 텍스트를 입력창에 설정
+        inputHandling.setInputMessage(transcription);
+    };
+
+    // 음성 입력 모달 닫기
+    const handleCloseSoundInput = () => {
+        setShowSoundInput(false);
+    };
+
     return (
         <div className={styles.inputArea} style={{ pointerEvents: loading ? 'none' : 'auto' }}>
             <div className={styles.inputContainer}>
@@ -109,6 +142,11 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
                     rows={1}
                 />
                 <div className={styles.buttonGroup}>
+                    {/* 음성 입력 핸들러 버튼 */}
+                    <SoundInputHandler
+                        onTranscriptionReady={handleHandlerTranscriptionReady}
+                    />
+
                     <div className={styles.attachmentWrapper} ref={attachmentButtonRef}>
                         <button
                             onClick={onAttachmentClick}
@@ -141,15 +179,20 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
                                     <span>사진</span>
                                 </button>
                                 <button
-                                    className={`${styles.attachmentOption} ${styles.disabled}`}
-                                    disabled
+                                    className={styles.attachmentOption}
+                                    onClick={() => {
+                                        setShowSoundInput(true);
+                                        onAttachmentClick(); // 첨부 메뉴 닫기
+                                    }}
                                 >
                                     <FiMic />
-                                    <span>음성</span>
+                                    <span>음성 (상세)</span>
                                 </button>
                             </div>
                         )}
                     </div>
+
+
                     <button
                         onClick={() => {
                             onSendMessage(inputHandling.inputMessage);
@@ -173,6 +216,14 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
                     </p>
                 )
             )}
+
+            {/* 음성 입력 모달 */}
+            <SoundInput
+                isOpen={showSoundInput}
+                onAudioReady={handleAudioReady}
+                onTranscriptionReady={handleTranscriptionReady}
+                onClose={handleCloseSoundInput}
+            />
         </div>
     );
 });

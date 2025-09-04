@@ -91,7 +91,7 @@ const Node: React.FC<NodeProps> = ({
     const displayName = getDisplayNodeName(nodeName);
 
     // Node container classes and styles
-    const nodeClasses = getNodeContainerClasses(isSelected, isPreview, isPredicted, styles.node);
+    const nodeClasses = getNodeContainerClasses(isSelected, isPreview, isPredicted, styles);
     const nodeStyles = getNodeContainerStyles(position, isPredicted, predictedOpacity);
 
     return (

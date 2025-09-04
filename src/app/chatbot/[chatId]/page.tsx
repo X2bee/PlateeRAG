@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { loadWorkflow } from '@/app/api/workflow/workflowAPI';
 import ChatInterface from '@/app/chat/components/ChatInterface';
 import { Workflow } from '@/app/chat/components/types';
 import { decryptUrlParams } from '@/app/_common/utils/urlEncryption';
@@ -35,27 +34,27 @@ const StandaloneChatPage = () => {
                 console.warn(`Message from unauthorized origin: ${event.origin}`);
                 return;
             }
-            
+
             if (event.data?.type === 'SEND_QUERY' && event.data?.query) {
                 const query = event.data.query;
                 console.log('Received query from parent:', query);
-                
+
                 setTimeout(() => {
                     const textarea = document.querySelector('textarea');
                     const sendButton = document.querySelector('button[class*="sendButton"]');
-                    
+
                     if (textarea && sendButton) {
                         // React의 내부 상태를 강제로 업데이트
                         const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
                         if (nativeInputValueSetter) {
                             nativeInputValueSetter.call(textarea, query);
                         }
-                        
+
                         // 다양한 이벤트 발생으로 React 상태 동기화
                         textarea.dispatchEvent(new Event('input', { bubbles: true }));
                         textarea.dispatchEvent(new Event('change', { bubbles: true }));
                         textarea.focus();
-                        
+
                         // 상태 업데이트 확인
                         setTimeout(() => {
                             (sendButton as HTMLButtonElement).click();
@@ -64,67 +63,85 @@ const StandaloneChatPage = () => {
                 }, 300);
             }
         };
-    
+
         window.addEventListener('message', handleMessage);
         return () => window.removeEventListener('message', handleMessage);
     }, []);
 
     useEffect(() => {
-        if (!encryptedParams) {
-            setError('잘못된 접근입니다. 암호화된 파라미터가 필요합니다.');
-            setLoading(false);
-            return;
-        }
-
-        // 암호화된 파라미터 복호화
-        const decryptedParams = decryptUrlParams(encryptedParams);
-        if (!decryptedParams) {
-            // 기존 방식으로 fallback (하위 호환성)
-            if (workflowNameFromUrl) {
-                setUserId(encryptedParams);
-                setWorkflowName(workflowNameFromUrl);
-            } else {
-                setError('URL 파라미터를 복호화할 수 없습니다.');
+        const handleDecryption = async () => {
+            if (!encryptedParams) {
+                setError('잘못된 접근입니다. 암호화된 파라미터가 필요합니다.');
                 setLoading(false);
                 return;
             }
-        } else {
-            setUserId(decryptedParams.userId);
-            setWorkflowName(decryptedParams.workflowName);
-        }
 
-        const fetchWorkflow = async () => {
             try {
-                setLoading(true);
-                const currentUserId = decryptedParams?.userId || userId;
-                const currentWorkflowName = decryptedParams?.workflowName || workflowName;
+                // 암호화된 파라미터 복호화
+                const decryptedParams = await decryptUrlParams(encryptedParams);
                 
-                if (!currentUserId || !currentWorkflowName) {
-                    setError('사용자 ID 또는 워크플로우 이름이 없습니다.');
-                    return;
+                if (!decryptedParams) {
+                    // 기존 방식으로 fallback (하위 호환성)
+                    if (workflowNameFromUrl) {
+                        setUserId(encryptedParams);
+                        setWorkflowName(workflowNameFromUrl);
+                    } else {
+                        setError('URL 파라미터를 복호화할 수 없습니다.');
+                        setLoading(false);
+                        return;
+                    }
+                } else {
+                    if (decryptedParams.message) {
+                        setError(decryptedParams.message === 'This workflow is not deployed.' 
+                            ? '이 워크플로우는 배포되지 않았습니다.' 
+                            : decryptedParams.message);
+                        setLoading(false);
+                        return;
+                    }
+                    setUserId(decryptedParams.userId);
+                    setWorkflowName(decryptedParams.workflowName);
                 }
-                
-                const fetchedWorkflow: Workflow | null = {
-                    id: currentUserId,
-                    name: currentWorkflowName,
-                    filename: currentWorkflowName,
-                    author: 'Unknown',
-                    nodeCount: 0,
-                    status: 'active' as const,
+
+                const fetchWorkflow = async () => {
+                    try {
+                        setLoading(true);
+                        const currentUserId = decryptedParams?.userId || userId;
+                        const currentWorkflowName = decryptedParams?.workflowName || workflowName;
+
+                        if (!currentUserId || !currentWorkflowName) {
+                            setError('사용자 ID 또는 워크플로우 이름이 없습니다.');
+                            return;
+                        }
+
+                        const fetchedWorkflow: Workflow | null = {
+                            id: currentUserId,
+                            name: currentWorkflowName,
+                            filename: currentWorkflowName,
+                            author: 'Unknown',
+                            nodeCount: 0,
+                            status: 'active' as const,
+                        };
+                        setWorkflow(fetchedWorkflow);
+                        setError(null);
+                    } catch (err) {
+                        console.error(err);
+                        setError('워크플로우를 불러오는 데 실패했습니다. 파라미터를 확인해 주세요.');
+                        setWorkflow(null);
+                    } finally {
+                        setLoading(false);
+                    }
                 };
-                setWorkflow(fetchedWorkflow);
-                setError(null);
-            } catch (err) {
-                console.error(err);
-                setError('워크플로우를 불러오는 데 실패했습니다. 파라미터를 확인해 주세요.');
-                setWorkflow(null);
-            } finally {
+
+                fetchWorkflow();
+            } catch (error) {
+                console.error('Decryption error:', error);
+                setError('URL 파라미터 복호화 중 오류가 발생했습니다.');
                 setLoading(false);
             }
         };
 
-        fetchWorkflow();
-    }, [encryptedParams, workflowNameFromUrl, userId, workflowName]);
+        handleDecryption();
+    }, [encryptedParams, userId]);
 
     if (loading) {
         return (

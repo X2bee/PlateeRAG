@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import styles from './ForgotPassword.module.scss';
 // import { requestPasswordReset } from '@/app/api/userAPI'; // API 요청 함수 (아래에서 생성)
-import ReverseAuthGuard from '@/app/_common/components/ReverseAuthGuard';
+import ReverseAuthGuard from '@/app/_common/components/authGuard/ReverseAuthGuard';
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');

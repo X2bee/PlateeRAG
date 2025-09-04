@@ -1,15 +1,14 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import toast from 'react-hot-toast';
+import { showSuccessToastKo, showErrorToastKo, showLoadingToastKo, dismissToastKo } from '@/app/_common/utils/toastUtilsKo';
 import Canvas from '@/app/canvas/components/Canvas';
 import Header from '@/app/canvas/components/Header';
 import SideMenu from '@/app/canvas/components/SideMenu';
 import ExecutionPanel from '@/app/canvas/components/ExecutionPanel';
 import NodeModal from '@/app/canvas/components/NodeModal';
-import AuthGuard from '@/app/_common/components/AuthGuard';
+import AuthGuard from '@/app/_common/components/authGuard/AuthGuard';
 import { DeploymentModal } from '@/app/chat/components/DeploymentModal';
-import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useNodes } from '@/app/_common/utils/nodeHook';
 import styles from '@/app/canvas/assets/PlateeRAG.module.scss';
 import {
@@ -30,6 +29,11 @@ import {
 import { devLog } from '@/app/_common/utils/logger';
 import { generateWorkflowHash } from '@/app/_common/utils/generateSha1Hash';
 import { isStreamingWorkflowFromWorkflow } from '../_common/utils/isStreamingWorkflow';
+import {
+    showNewWorkflowConfirmKo,
+    showWorkflowOverwriteConfirmKo,
+    showWarningToastKo
+} from '@/app/_common/utils/toastUtilsKo';
 
 function CanvasPageContent() {
     const searchParams = useSearchParams();
@@ -119,7 +123,7 @@ function CanvasPageContent() {
 
             const loadFromServer = async () => {
                 try {
-                    const workflowData = await loadWorkflow(decodedWorkflowName);
+                    const workflowData = await loadWorkflow(decodedWorkflowName, null);
 
                     if (canvasRef.current && workflowData) {
                         await handleLoadWorkflow(workflowData, decodedWorkflowName);
@@ -129,7 +133,7 @@ function CanvasPageContent() {
                     }
                 } catch (error) {
                     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                    toast.error(`Failed to load workflow: ${errorMessage}`);
+                    showErrorToastKo(`워크플로우 로드 실패: ${errorMessage}`);
                 }
             };
 
@@ -271,132 +275,11 @@ function CanvasPageContent() {
                 0);
 
         if (hasCurrentWork) {
-            // 확인 토스트 표시
-            const confirmToast = toast(
-                (t) => (
-                    <div
-                        style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '12px',
-                        }}
-                    >
-                        <div
-                            style={{
-                                fontWeight: '600',
-                                color: '#dc2626',
-                                fontSize: '1rem',
-                            }}
-                        >
-                            Start New Workflow?
-                        </div>
-                        <div
-                            style={{
-                                fontSize: '0.9rem',
-                                color: '#374151',
-                                lineHeight: '1.4',
-                            }}
-                        >
-                            This will clear all current nodes and edges.
-                            <br />
-                            Make sure to save your current work if needed.
-                        </div>
-                        <div
-                            style={{
-                                display: 'flex',
-                                gap: '8px',
-                                justifyContent: 'flex-end',
-                                marginTop: '4px',
-                            }}
-                        >
-                            <button
-                                onClick={() => {
-                                    toast.dismiss(t.id);
-                                }}
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: '#ffffff',
-                                    border: '2px solid #6b7280',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem',
-                                    fontWeight: '500',
-                                    color: '#374151',
-                                    transition: 'all 0.2s ease',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                                }}
-                                onMouseOver={(e) => {
-                                    (
-                                        e.target as HTMLButtonElement
-                                    ).style.backgroundColor = '#f9fafb';
-                                    (
-                                        e.target as HTMLButtonElement
-                                    ).style.borderColor = '#4b5563';
-                                }}
-                                onMouseOut={(e) => {
-                                    (
-                                        e.target as HTMLButtonElement
-                                    ).style.backgroundColor = '#ffffff';
-                                    (
-                                        e.target as HTMLButtonElement
-                                    ).style.borderColor = '#6b7280';
-                                }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={() => {
-                                    toast.dismiss(t.id);
-                                    performNewWorkflow();
-                                }}
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: '#dc2626',
-                                    color: 'white',
-                                    border: '2px solid #b91c1c',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem',
-                                    fontWeight: '500',
-                                    transition: 'all 0.2s ease',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                                }}
-                                onMouseOver={(e) => {
-                                    (
-                                        e.target as HTMLButtonElement
-                                    ).style.backgroundColor = '#b91c1c';
-                                    (
-                                        e.target as HTMLButtonElement
-                                    ).style.borderColor = '#991b1b';
-                                }}
-                                onMouseOut={(e) => {
-                                    (
-                                        e.target as HTMLButtonElement
-                                    ).style.backgroundColor = '#dc2626';
-                                    (
-                                        e.target as HTMLButtonElement
-                                    ).style.borderColor = '#b91c1c';
-                                }}
-                            >
-                                Start New
-                            </button>
-                        </div>
-                    </div>
-                ),
-                {
-                    duration: Infinity,
-                    style: {
-                        maxWidth: '420px',
-                        padding: '20px',
-                        backgroundColor: '#f9fafb',
-                        border: '2px solid #374151',
-                        borderRadius: '12px',
-                        boxShadow:
-                            '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
-                        color: '#374151',
-                        fontFamily: 'system-ui, -apple-system, sans-serif',
-                    },
-                },
+            // 새로운 유틸리티 사용
+            showNewWorkflowConfirmKo(
+                () => {
+                    performNewWorkflow();
+                }
             );
         } else {
             // 작업이 없으면 바로 시작
@@ -431,10 +314,10 @@ function CanvasPageContent() {
             setCurrentWorkflowName('Workflow');
 
             devLog.log('New workflow started successfully');
-            toast.success('New workflow started');
+            showSuccessToastKo('새 워크플로우가 시작되었습니다');
         } catch (error: any) {
             devLog.error('Failed to start new workflow:', error);
-            toast.error(`Failed to start new workflow: ${error.message}`);
+            showErrorToastKo(`새 워크플로우 시작 실패: ${error.message}`);
         }
     };
 
@@ -465,7 +348,7 @@ function CanvasPageContent() {
 
     const handleSave = async () => {
         if (!canvasRef.current) {
-            toast.error('Canvas is not ready.');
+            showErrorToastKo('캔버스가 준비되지 않았습니다');
             return;
         }
 
@@ -482,7 +365,7 @@ function CanvasPageContent() {
         devLog.log('Canvas state id field:', canvasState.id);
 
         if (!canvasState.nodes || canvasState.nodes.length === 0) {
-            toast.error('Cannot save an empty workflow. Please add nodes.');
+            showErrorToastKo('빈 워크플로우는 저장할 수 없습니다. 노드를 추가해주세요');
             return;
         }
 
@@ -493,136 +376,12 @@ function CanvasPageContent() {
             const isDuplicate = existingWorkflows.includes(targetFilename);
 
             if (isDuplicate) {
-                // 중복 발견 시 사용자에게 확인 요청
-                const confirmToast = toast(
-                    (t) => (
-                        <div
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '12px',
-                            }}
-                        >
-                            <div
-                                style={{
-                                    fontWeight: '600',
-                                    color: '#f59e0b',
-                                    fontSize: '1rem',
-                                }}
-                            >
-                                Workflow Already Exists
-                            </div>
-                            <div
-                                style={{
-                                    fontSize: '0.9rem',
-                                    color: '#374151',
-                                    lineHeight: '1.4',
-                                }}
-                            >
-                                A workflow named &quot;
-                                <strong>{workflowName}</strong>&quot; already exists.
-                                <br />
-                                Do you want to overwrite it?
-                            </div>
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    gap: '8px',
-                                    justifyContent: 'flex-end',
-                                    marginTop: '4px',
-                                }}
-                            >
-                                <button
-                                    onClick={() => {
-                                        toast.dismiss(t.id);
-                                    }}
-                                    style={{
-                                        padding: '8px 16px',
-                                        backgroundColor: '#ffffff',
-                                        border: '2px solid #6b7280',
-                                        borderRadius: '6px',
-                                        cursor: 'pointer',
-                                        fontSize: '0.85rem',
-                                        fontWeight: '500',
-                                        color: '#374151',
-                                        transition: 'all 0.2s ease',
-                                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                                    }}
-                                    onMouseOver={(e) => {
-                                        (
-                                            e.target as HTMLButtonElement
-                                        ).style.backgroundColor = '#f9fafb';
-                                        (
-                                            e.target as HTMLButtonElement
-                                        ).style.borderColor = '#4b5563';
-                                    }}
-                                    onMouseOut={(e) => {
-                                        (
-                                            e.target as HTMLButtonElement
-                                        ).style.backgroundColor = '#ffffff';
-                                        (
-                                            e.target as HTMLButtonElement
-                                        ).style.borderColor = '#6b7280';
-                                    }}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={async () => {
-                                        toast.dismiss(t.id);
-                                        await performSave(
-                                            workflowName,
-                                            canvasState,
-                                        );
-                                    }}
-                                    style={{
-                                        padding: '8px 16px',
-                                        backgroundColor: '#f59e0b',
-                                        color: 'white',
-                                        border: '2px solid #d97706',
-                                        borderRadius: '6px',
-                                        cursor: 'pointer',
-                                        fontSize: '0.85rem',
-                                        fontWeight: '500',
-                                        transition: 'all 0.2s ease',
-                                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                                    }}
-                                    onMouseOver={(e) => {
-                                        (
-                                            e.target as HTMLButtonElement
-                                        ).style.backgroundColor = '#d97706';
-                                        (
-                                            e.target as HTMLButtonElement
-                                        ).style.borderColor = '#b45309';
-                                    }}
-                                    onMouseOut={(e) => {
-                                        (
-                                            e.target as HTMLButtonElement
-                                        ).style.backgroundColor = '#f59e0b';
-                                        (
-                                            e.target as HTMLButtonElement
-                                        ).style.borderColor = '#d97706';
-                                    }}
-                                >
-                                    Overwrite
-                                </button>
-                            </div>
-                        </div>
-                    ),
-                    {
-                        duration: Infinity,
-                        style: {
-                            maxWidth: '420px',
-                            padding: '20px',
-                            backgroundColor: '#f9fafb',
-                            border: '2px solid #374151',
-                            borderRadius: '12px',
-                            boxShadow:
-                                '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
-                            color: '#374151',
-                            fontFamily: 'system-ui, -apple-system, sans-serif',
-                        },
-                    },
+                // 중복 발견 시 사용자에게 확인 요청 (새로운 유틸리티 사용)
+                showWorkflowOverwriteConfirmKo(
+                    workflowName,
+                    async () => {
+                        await performSave(workflowName, canvasState);
+                    }
                 );
             } else {
                 // 중복이 없으면 바로 저장
@@ -631,9 +390,9 @@ function CanvasPageContent() {
         } catch (error: any) {
             devLog.error('Error checking existing workflows:', error);
             // 중복 확인 실패 시에도 저장 시도 (graceful fallback)
-            toast.error(
-                `Warning: Could not check for duplicates. Proceeding with save...`,
-            );
+            showWarningToastKo({
+                message: '경고: 중복 확인을 할 수 없습니다. 저장을 진행합니다...',
+            });
             setTimeout(async () => {
                 await performSave(workflowName, canvasState);
             }, 1000);
@@ -641,16 +400,16 @@ function CanvasPageContent() {
     };
 
     const performSave = async (workflowName: string, canvasState: any) => {
-        const toastId = toast.loading('Saving workflow...');
+        const toastId = showLoadingToastKo('워크플로우 저장 중...');
 
         try {
             const result = await saveWorkflow(workflowName, canvasState);
-            toast.success(`Workflow '${workflowName}' saved successfully!`, {
-                id: toastId,
-            });
+            showSuccessToastKo(`워크플로우 '${workflowName}'이(가) 성공적으로 저장되었습니다!`);
         } catch (error: any) {
             devLog.error('Save failed:', error);
-            toast.error(`Save failed: ${error.message}`, { id: toastId });
+            showErrorToastKo(`저장 실패: ${error.message}`);
+        } finally {
+            dismissToastKo(toastId);
         }
     };
 
@@ -689,11 +448,11 @@ function CanvasPageContent() {
                     updateWorkflowName(workflowName);
                 }
 
-                toast.success('Workflow loaded successfully!');
+                showSuccessToastKo('워크플로우가 성공적으로 로드되었습니다!');
             }
         } catch (error: any) {
             devLog.error('Error loading workflow:', error);
-            toast.error(`Failed to load workflow: ${error.message}`);
+            showErrorToastKo(`워크플로우 로드 실패: ${error.message}`);
         }
     };
 
@@ -717,7 +476,7 @@ function CanvasPageContent() {
                 }
             } catch (error) {
                 devLog.error('Error parsing JSON file:', error);
-                alert('유효하지 않은 파일 형식입니다.');
+                showErrorToastKo('유효하지 않은 파일 형식입니다.');
             }
         };
         reader.readAsText(file);
@@ -794,7 +553,7 @@ function CanvasPageContent() {
 
     const handleExecute = async () => {
         if (!canvasRef.current) {
-            toast.error('Canvas is not ready.');
+            showErrorToastKo('캔버스가 준비되지 않았습니다');
             return;
         }
 
@@ -802,13 +561,13 @@ function CanvasPageContent() {
             canvasRef.current as any
         ).validateAndPrepareExecution();
         if (validationResult.error) {
-            toast.error(validationResult.error);
+            showErrorToastKo(validationResult.error);
             return;
         }
 
         setIsExecuting(true);
         setExecutionOutput(null);
-        const toastId = toast.loading('Executing workflow...');
+        const toastId = showLoadingToastKo('워크플로우 실행 중...');
 
         try {
             let workflowData = (canvasRef.current as any).getCanvasState();
@@ -827,7 +586,8 @@ function CanvasPageContent() {
             const isStreaming = await isStreamingWorkflowFromWorkflow(workflowData);
 
             if (isStreaming) {
-                toast.loading('Executing streaming workflow...', { id: toastId });
+                dismissToastKo(toastId);
+                const streamToastId = showLoadingToastKo('스트리밍 워크플로우 실행 중...');
                 setExecutionOutput({ stream: '' });
 
                 // await executeWorkflowStream({
@@ -848,19 +608,24 @@ function CanvasPageContent() {
                     inputData: '',
                     interactionId: 'default',
                     selectedCollections: null,
+                    user_id: null,
                     onData: (chunk) => {
                         setExecutionOutput((prev: { stream: any; }) => ({ ...prev, stream: (prev.stream || '') + chunk }));
                     },
-                    onEnd: () => toast.success('Streaming finished!', { id: toastId }),
+                    onEnd: () => {
+                        dismissToastKo(streamToastId);
+                        showSuccessToastKo('스트리밍이 완료되었습니다!');
+                    },
                     onError: (err) => { throw err; },
                 });
 
 
             } else {
                 // const result = await executeWorkflow(workflowData);
-                const result = await executeWorkflowById(workflowName, workflowId, '', 'default', null);
+                const result = await executeWorkflowById(workflowName, workflowId, '', 'default', null, null, null);
                 setExecutionOutput(result);
-                toast.success('Workflow executed successfully!', { id: toastId });
+                dismissToastKo(toastId);
+                showSuccessToastKo('워크플로우가 성공적으로 실행되었습니다!');
             }
             setWorkflow({
                 id: workflowData.workflow_id,
@@ -871,11 +636,11 @@ function CanvasPageContent() {
                 status: 'active' as const,
             });
             setIsDeploy(true)
-            toast.success('Workflow executed successfully!', { id: toastId });
         } catch (error: any) {
             devLog.error('Execution failed:', error);
             setExecutionOutput({ error: error.message });
-            toast.error(`Execution failed: ${error.message}`, { id: toastId });
+            dismissToastKo(toastId);
+            showErrorToastKo(`실행 실패: ${error.message}`);
         } finally {
             setIsExecuting(false);
         }

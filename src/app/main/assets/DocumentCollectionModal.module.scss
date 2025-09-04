@@ -1,0 +1,152 @@
+@use "@/app/_common/_variables" as *;
+
+.modalBackdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modalContent {
+    background: $white;
+    border-radius: 0.875rem;
+    padding: 2rem;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    border: 1px solid $gray-200;
+
+    h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: $gray-900;
+        margin: 0 0 1.5rem 0;
+        text-align: center;
+    }
+}
+
+.error {
+    background: rgba($primary-red, 0.1);
+    color: $primary-red;
+    border: 1px solid rgba($primary-red, 0.3);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.formGroup {
+    margin-bottom: 1.5rem;
+
+    label {
+        display: block;
+        font-weight: 600;
+        color: $gray-700;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    input,
+    textarea {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 1.5px solid $gray-300;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        transition: all 0.2s ease-in-out;
+        font-family: inherit;
+        resize: vertical;
+        min-height: 2.75rem;
+
+        &:focus {
+            outline: none;
+            border-color: $primary-blue;
+            box-shadow: 0 0 0 3px rgba($primary-blue, 0.1);
+        }
+
+        &::placeholder {
+            color: $gray-400;
+        }
+    }
+
+    textarea {
+        min-height: 4rem;
+        max-height: 8rem;
+    }
+}
+
+.modalActions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
+
+.button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 100px;
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    &.secondary {
+        background: $gray-100;
+        color: $gray-700;
+        border: 1px solid $gray-300;
+
+        &:hover:not(:disabled) {
+            background: $gray-200;
+            border-color: $gray-400;
+        }
+    }
+
+    &.primary {
+        background: linear-gradient(135deg, $primary-blue 0%, $primary-purple 100%);
+        color: $white;
+        border: 1px solid transparent;
+
+        &:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba($primary-blue, 0.3);
+        }
+
+        &:active:not(:disabled) {
+            transform: translateY(0);
+        }
+    }
+
+    &.danger {
+        background: $primary-red;
+        color: $white;
+        border: 1px solid transparent;
+
+        &:hover:not(:disabled) {
+            background: rgba($primary-red, 0.9);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba($primary-red, 0.3);
+        }
+
+        &:active:not(:disabled) {
+            transform: translateY(0);
+        }
+    }
+}

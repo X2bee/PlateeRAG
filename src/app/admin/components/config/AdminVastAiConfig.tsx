@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FiServer, FiSettings } from 'react-icons/fi';
-import toast from 'react-hot-toast';
+import { showConnectionSuccessToastKo, showConnectionErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import AdminBaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/admin/components/config/AdminBaseConfigPanel';
 import { AdminGpuOfferSearchModal } from '@/app/admin/components/config/AdminVastModal/AdminGpuOfferSearchModal';
 import { AdminInstanceManagementModal } from '@/app/admin/components/config/AdminVastModal/AdminInstanceManagementModal';
@@ -69,14 +69,14 @@ const AdminVastAiConfig: React.FC<AdminVastAiConfigProps> = ({
             const result = await checkVastHealth() as VastHealthResponse;
 
             if (result && result.status === 'healthy' && result.service === 'vast') {
-                toast.success(`연결 성공: ${result.message || 'VastAI 서비스가 정상적으로 작동 중입니다'}`);
+                showConnectionSuccessToastKo('VastAI', result.message || 'VastAI 서비스가 정상적으로 작동 중입니다');
                 devLog.info('Vast connection test successful:', result);
             } else {
                 throw new Error('Invalid response format or service not healthy');
             }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-            toast.error(`연결 실패: ${errorMessage}`);
+            showConnectionErrorToastKo('VastAI', errorMessage);
             devLog.error('Vast connection test failed:', error);
         }
     };

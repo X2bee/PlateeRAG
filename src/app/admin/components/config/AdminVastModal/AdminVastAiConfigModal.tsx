@@ -1,8 +1,9 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { FiX, FiCopy } from 'react-icons/fi';
-import toast from 'react-hot-toast';
+import { showCopySuccessToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { devLog } from '@/app/_common/utils/logger';
-import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
+import styles from '@/app/admin/assets/settings/AdminVastAiConfigModal.module.scss';
 
 interface PortMapping {
     external_ip: string;
@@ -42,10 +43,10 @@ const AdminVastAiConfigModal: React.FC<AdminVastAiConfigModalProps> = ({
     const handleCopyUrl = (port: string, mapping: PortMapping) => {
         const url = `http://${mapping.external_ip}:${mapping.external_port}`;
         navigator.clipboard.writeText(url);
-        toast.success(`포트 ${port} URL이 복사되었습니다.`);
+        showCopySuccessToastKo(`포트 ${port} URL이 복사되었습니다.`);
     };
 
-    return (
+    const modalContent = (
         <div className={styles.modalOverlay} onClick={onClose}>
             <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                 <div className={styles.modalHeader}>
@@ -95,6 +96,8 @@ const AdminVastAiConfigModal: React.FC<AdminVastAiConfigModalProps> = ({
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };
 
 export default AdminVastAiConfigModal;

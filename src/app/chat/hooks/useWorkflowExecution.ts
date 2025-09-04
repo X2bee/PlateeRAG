@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import toast from 'react-hot-toast';
+import { showLoadingToastKo, showErrorToastKo, dismissToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { executeWorkflowById, executeWorkflowByIdStream } from '@/app/api/workflow/workflowAPI';
 import { executeWorkflowByIdDeploy, executeWorkflowByIdStreamDeploy } from '@/app/api/workflow/workflowDeployAPI';
 import { generateInteractionId } from '@/app/api/interactionAPI';
@@ -54,8 +54,8 @@ export const useWorkflowExecution = ({
         devLog.log(`${isDeploy ? 'executeWorkflowDeploy' : 'executeWorkflow'} called`);
 
         if (executing) {
-            toast.dismiss();
-            toast.loading('이전 작업이 완료될 때까지 잠시만 기다려주세요.');
+            dismissToastKo();
+            showLoadingToastKo('이전 작업이 완료될 때까지 잠시만 기다려주세요.');
             return;
         }
 
@@ -147,7 +147,10 @@ export const useWorkflowExecution = ({
                         user_id: user_id,
                     });
                 } else {
-                    await executeWorkflowByIdStream(streamParams as any);
+                    await executeWorkflowByIdStream({
+                        ...streamParams,
+                        user_id: user_id ? Number(user_id) : null,
+                    });
                 }
             } else {
                 let result: any;
@@ -168,7 +171,8 @@ export const useWorkflowExecution = ({
                         currentMessage,
                         interactionId,
                         selectedCollection,
-                        getValidAdditionalParams() as any
+                        getValidAdditionalParams() as any,
+                        user_id ? Number(user_id) : null
                     );
                 }
 
@@ -195,9 +199,9 @@ export const useWorkflowExecution = ({
                 )
             );
             setPendingLogId(null);
-            toast.error(err.message || '메시지 처리 중 오류가 발생했습니다.');
+            showErrorToastKo(err.message || '메시지 처리 중 오류가 발생했습니다.');
         } finally {
-            toast.dismiss();
+            dismissToastKo();
             setExecuting(false);
             // 실행 완료 후 스크롤은 ChatInterface에서 처리
         }

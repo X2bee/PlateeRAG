@@ -17,6 +17,15 @@ const SourceButton: React.FC<SourceButtonProps> = ({
   className = ''
 }) => {
   const handleClick = () => {
+    console.log('📖 [SourceButton] 출처 버튼 클릭:', {
+      file_name: sourceInfo.file_name,
+      file_path: sourceInfo.file_path,
+      page_number: sourceInfo.page_number,
+      response_content: sourceInfo.response_content,
+      cite_context: sourceInfo.cite_context,
+      line_start: sourceInfo.line_start,
+      line_end: sourceInfo.line_end
+    });
     onViewSource(sourceInfo);
   };
 

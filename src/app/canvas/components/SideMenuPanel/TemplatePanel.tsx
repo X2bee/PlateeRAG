@@ -1,12 +1,16 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import toast from 'react-hot-toast';
 import styles from '@/app/canvas/assets/WorkflowPanel.module.scss';
 import sideMenuStyles from '@/app/canvas/assets/SideMenu.module.scss';
 import { LuArrowLeft, LuLayoutTemplate, LuPlay, LuCopy } from "react-icons/lu";
 import TemplatePreview from '@/app/canvas/components/SideMenuPanel/TemplatePreview';
 import { getWorkflowState } from '@/app/_common/utils/workflowStorage';
 import { devLog } from '@/app/_common/utils/logger';
+import {
+    showWarningConfirmToastKo,
+    showSuccessToastKo,
+    showErrorToastKo
+} from '@/app/_common/utils/toastUtilsKo';
 
 import generate_marketing_API from '@/app/canvas/constants/workflow/generate_marketing_API.json'
 import openai_test from '@/app/canvas/constants/workflow/openai_test.json'
@@ -60,74 +64,15 @@ const TemplatePanel: React.FC<TemplatePanelProps> = ({ onBack, onLoadWorkflow })
         const hasCurrentWorkflow = currentState && ((currentState.nodes?.length || 0) > 0 || (currentState.edges?.length || 0) > 0);
 
         if (hasCurrentWorkflow) {
-            const confirmToast = toast(
-                (t) => (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <div style={{ fontWeight: '600', color: '#f59e0b', fontSize: '1rem' }}>
-                            Use Template
-                        </div>
-                        <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.4' }}>
-                            You have an existing workflow with unsaved changes.
-                            <br />
-                            Using &quot;<strong>{template.name}</strong>&quot; template will replace your current work.
-                        </div>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
-                            <button
-                                onClick={() => {
-                                    toast.dismiss(t.id);
-                                }}
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: '#ffffff',
-                                    border: '2px solid #6b7280',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem',
-                                    fontWeight: '500',
-                                    color: '#374151',
-                                    transition: 'all 0.2s ease',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={() => {
-                                    toast.dismiss(t.id);
-                                    performUseTemplate(template);
-                                }}
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: '#f59e0b',
-                                    color: 'white',
-                                    border: '2px solid #d97706',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem',
-                                    fontWeight: '500',
-                                    transition: 'all 0.2s ease',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                }}
-                            >
-                                Use Template
-                            </button>
-                        </div>
-                    </div>
-                ),
-                {
-                    duration: Infinity,
-                    style: {
-                        maxWidth: '420px',
-                        padding: '20px',
-                        backgroundColor: '#f9fafb',
-                        border: '2px solid #374151',
-                        borderRadius: '12px',
-                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
-                        color: '#374151',
-                        fontFamily: 'system-ui, -apple-system, sans-serif'
-                    }
-                }
-            );
+            showWarningConfirmToastKo({
+                title: '템플릿 사용',
+                message: `현재 저장되지 않은 변경사항이 있는 워크플로우가 있습니다.\n"${template.name}" 템플릿 사용 시 현재 작업이 대체됩니다.`,
+                onConfirm: () => {
+                    performUseTemplate(template);
+                },
+                confirmText: '템플릿 사용',
+                cancelText: '취소',
+            });
         } else {
             performUseTemplate(template);
         }
@@ -143,13 +88,13 @@ const TemplatePanel: React.FC<TemplatePanelProps> = ({ onBack, onLoadWorkflow })
             devLog.log('Calling onLoadWorkflow with:', template.data, template.name);
             onLoadWorkflow(template.data, template.name);
             devLog.log('onLoadWorkflow call completed');
-            toast.success(`Template "${template.name}" loaded successfully!`);
+            showSuccessToastKo(`템플릿 "${template.name}"이(가) 성공적으로 로드되었습니다!`);
         } else {
             devLog.error('Cannot call onLoadWorkflow:', {
                 hasOnLoadWorkflow: !!onLoadWorkflow,
                 hasTemplateData: !!template?.data
             });
-            toast.error('Failed to load template');
+            showErrorToastKo('템플릿 로드에 실패했습니다');
         }
     };
 

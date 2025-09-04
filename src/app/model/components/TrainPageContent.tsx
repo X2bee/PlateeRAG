@@ -2,10 +2,10 @@
 
 import React, { useState } from 'react';
 import { FiPlay, FiSettings, FiDatabase, FiCpu, FiBox } from 'react-icons/fi';
-import toast from 'react-hot-toast';
+import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { startTraining } from '@/app/api/trainer/trainAPI';
 import { devLog } from '@/app/_common/utils/logger';
-import { handleGemma3Training, handleQwen3Training } from './sampleHandler';
+import { handleGemma3Training, handleQwen3Training } from './Train/sampleHandler';
 import BasicCategory from '@/app/model/components/Train/BasicCategory';
 import ModelCategory from '@/app/model/components/Train/ModelCategory';
 import DataCategory from '@/app/model/components/Train/DataCategory';
@@ -316,12 +316,12 @@ const TrainPageContent: React.FC = () => {
 
     const handleStartTraining = async () => {
         if (!modelConfig.model_name_or_path) {
-            toast.error('모델 경로를 입력해주세요.');
+            showErrorToastKo('모델 경로를 입력해주세요.');
             return;
         }
 
         if (!dataConfig.train_data) {
-            toast.error('훈련 데이터를 입력해주세요.');
+            showErrorToastKo('훈련 데이터를 입력해주세요.');
             return;
         }
 
@@ -342,12 +342,12 @@ const TrainPageContent: React.FC = () => {
 
             const result = await startTraining(allParams);
 
-            toast.success('훈련이 시작되었습니다!');
+            showSuccessToastKo('훈련이 시작되었습니다!');
             devLog.info('Training started successfully:', result);
 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-            toast.error(`훈련 시작 실패: ${errorMessage}`);
+            showErrorToastKo(`훈련 시작 실패: ${errorMessage}`);
             devLog.error('Failed to start training:', error);
         } finally {
             setIsTraining(false);

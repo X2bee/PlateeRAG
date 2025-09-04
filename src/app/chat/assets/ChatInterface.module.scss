@@ -1,4 +1,5 @@
 @use '@/app/_common/_variables.scss' as *;
+@use "sass:color";
 
 .container {
     width: 100%;
@@ -106,7 +107,7 @@
     flex-direction: column;
     overflow: hidden;
     height: 100%;
-    
+
     &.collapsed {
         display: none;
     }
@@ -211,7 +212,7 @@
     flex-direction: column;
     gap: 0.75rem;
     transition: height 0.2s ease-out;
-    
+
     /* LaTeX 렌더링 시 높이 변화에 대한 부드러운 전환 */
     .messageContent {
         transition: height 0.15s ease-out, min-height 0.15s ease-out;
@@ -485,7 +486,7 @@
     border-radius: 0.75rem;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     padding: 0.5rem;
-    min-width: 140px;
+    min-width: 180px;
     z-index: 1000;
     animation: slideUpFade 0.2s ease;
 }
@@ -859,6 +860,7 @@
     cursor: pointer;
     font-size: 0.875rem;
     font-weight: 500;
+    margin-left: 1rem;
     transition: all 0.2s ease;
 
     &:hover {
@@ -1052,6 +1054,47 @@
       font-weight: 600;
     }
 }
+.deployInfo {
+    display: flex;
+    align-items: center;           /* <- 추가: 요소들을 수직 중앙으로 정렬 */
+    justify-content: space-between;  /* <- 추가: 요소들을 양쪽 끝으로 분배 */
+    margin-bottom: 1rem;
+    p {
+        margin: 0;
+    }
+}
+.toggleButton {
+    width: 15%;
+    border: 2px solid $gray-300;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    background: $white;
+    color: $gray-700;
+    margin-left: auto;
+
+    &:hover:not(:disabled) {
+        border-color: $primary-blue;
+        background: $gray-50;
+    }
+
+    &.active {
+        border-color: $primary-blue;
+        background: $primary-blue;
+        color: $white;
+
+        &:hover:not(:disabled) {
+            background: color.adjust($primary-blue, $lightness: -7%);
+        }
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+}
 .payloadTextarea {
     width: 100%;
     background: $gray-800;
@@ -1182,4 +1225,34 @@
     .messageInput {
         font-size: 16px; // iOS zoom 방지
     }
+
+    .soundInputModal {
+        margin: 1rem;
+        max-width: calc(100% - 2rem);
+    }
+}
+
+// 음성 입력 모달 스타일
+.soundInputOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.soundInputModal {
+    position: relative;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
