@@ -1,4 +1,5 @@
 @use '@/app/_common/_variables.scss' as *;
+@use "sass:color";
 
 .container {
     width: 100%;
@@ -1051,6 +1052,47 @@
       margin-bottom: 0.5rem;
       font-size: 0.9rem;
       font-weight: 600;
+    }
+}
+.deployInfo {
+    display: flex;
+    align-items: center;           /* <- 추가: 요소들을 수직 중앙으로 정렬 */
+    justify-content: space-between;  /* <- 추가: 요소들을 양쪽 끝으로 분배 */
+    margin-bottom: 1rem;
+    p {
+        margin: 0;
+    }
+}
+.toggleButton {
+    width: 15%;
+    border: 2px solid $gray-300;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    background: $white;
+    color: $gray-700;
+    margin-left: auto;
+
+    &:hover:not(:disabled) {
+        border-color: $primary-blue;
+        background: $gray-50;
+    }
+
+    &.active {
+        border-color: $primary-blue;
+        background: $primary-blue;
+        color: $white;
+
+        &:hover:not(:disabled) {
+            background: color.adjust($primary-blue, $lightness: -7%);
+        }
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
     }
 }
 .payloadTextarea {

@@ -9,6 +9,7 @@ import { showCopySuccessToastKo, showCopyErrorToastKo } from '@/app/_common/util
 import { Workflow } from './types';
 import { getAuthCookie } from '@/app/_common/utils/cookieUtils';
 import { createEncryptedUrlParams } from '@/app/_common/utils/urlEncryption';
+import { getDeployStatus, toggleDeployStatus } from '@/app/api/workflow/deploy';
 
 interface DeploymentModalProps {
     isOpen: boolean;
@@ -136,12 +137,28 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
     const closeButtonRef = useRef<HTMLButtonElement>(null);
     const currentUser_id = getAuthCookie('user_id') as string;
     const user_id = workflow.user_id ? workflow.user_id.toString() : currentUser_id;
+    const [toggleDeploy, setToggleDeploy] = useState<boolean>(false);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
             setBaseUrl(window.location.origin);
         }
     }, []);
+    useEffect(() => {
+        const fetchDeployStatus = async () => {
+            if (workflow && user_id) {
+                try {
+                    const deployed = await getDeployStatus(workflow.name, user_id);
+                    setToggleDeploy(deployed.is_deployed);
+                } catch (err) {
+                    console.error('Failed to fetch deploy status:', err);
+                }
+            }
+        };
+
+        fetchDeployStatus();
+    }, [workflow, user_id]);
 
     useEffect(() => {
         if (isOpen) {
@@ -370,7 +387,20 @@ ${formatOutputSchemaForCode(outputSchema, 1)}
                 <div className={styles.deploymentModalContent}>
                     {activeTab === 'website' && (
                         <div className={styles.tabPanel}>
-                            <p>아래 링크를 통해 독립된 웹페이지에서 채팅을 사용할 수 있습니다.</p>
+                            <div className={styles.deployInfo}>
+                                <p>아래 링크를 통해 독립된 웹페이지에서 채팅을 사용할 수 있습니다.</p>
+                                <button
+                                    type="button"
+                                    className={`${styles.toggleButton} ${toggleDeploy ? styles.active : ''}`}
+                                    onClick={async () => {
+                                        setToggleDeploy(!toggleDeploy);
+                                        await toggleDeployStatus(workflow.name, !toggleDeploy);
+                                    }}
+                                    disabled={loading}
+                                >
+                                    {toggleDeploy ? '배포 중' : '비공개'}
+                                </button>
+                            </div>
                             <div className={styles.webPageUrl}>
                                 <a href={baseUrl ? webPageUrl : '#'} target="_blank" rel="noopener noreferrer">
                                     {baseUrl ? webPageUrl : 'URL 생성 중...'}
