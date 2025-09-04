@@ -1,4 +1,4 @@
-import React, { useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useRef, useImperativeHandle, forwardRef, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import ResizablePanel from '../ResizablePanel';
 import { ChatArea } from '../ChatArea';
@@ -111,6 +111,22 @@ const ChatContainer = forwardRef<ChatContainerRef, ChatContainerProps>((
         },
     }), []);
 
+    // PDF Viewer 메모이제이션 - sourceInfo 변경 시에만 리렌더링
+    const memoizedPDFViewer = useMemo(() => {
+        if (!showPDFViewer || !currentSourceInfo) return null;
+        
+        return (
+            <div className={styles.sidePanel}>
+                <SidePanelPDFViewer
+                    sourceInfo={currentSourceInfo}
+                    mode={mode}
+                    userId={user_id}
+                    onClose={onPDFViewerClose}
+                />
+            </div>
+        );
+    }, [showPDFViewer, currentSourceInfo, mode, user_id, onPDFViewerClose]);
+
     const renderChatContent = () => (
         <div className={styles.chatContent}>
             <ChatArea
@@ -184,15 +200,8 @@ const ChatContainer = forwardRef<ChatContainerRef, ChatContainerProps>((
                 >
                     {renderChatContent()}
 
-                    {/* Side Panel for PDF Viewer */}
-                    <div className={styles.sidePanel}>
-                        <SidePanelPDFViewer
-                            sourceInfo={currentSourceInfo}
-                            mode={mode}
-                            userId={user_id}
-                            onClose={onPDFViewerClose}
-                        />
-                    </div>
+                    {/* Side Panel for PDF Viewer - 메모이제이션된 버전 사용 */}
+                    {memoizedPDFViewer}
                 </ResizablePanel>
             </div>
         );

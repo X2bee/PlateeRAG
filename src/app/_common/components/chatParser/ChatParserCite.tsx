@@ -404,9 +404,6 @@ export const parseCitation = (citationText: string): SourceInfo | null => {
         // 한국어가 포함된 경우를 위한 UTF-8 처리
         try {
             const sourceInfo = JSON.parse(jsonString);
-
-            devLog.log('✅ [parseCitation] JSON parsed successfully:', sourceInfo);
-
             // 필수 필드 확인
             if (!sourceInfo.file_name && !sourceInfo.filename && !sourceInfo.fileName &&
                 !sourceInfo.file_path && !sourceInfo.filepath && !sourceInfo.filePath) {
@@ -419,7 +416,8 @@ export const parseCitation = (citationText: string): SourceInfo | null => {
                 file_path: sourceInfo.file_path || sourceInfo.filepath || sourceInfo.filePath || '',
                 page_number: sourceInfo.page_number || sourceInfo.pagenumber || sourceInfo.pageNumber || 1,
                 line_start: sourceInfo.line_start || sourceInfo.linestart || sourceInfo.lineStart || 1,
-                line_end: sourceInfo.line_end || sourceInfo.lineend || sourceInfo.lineEnd || 1
+                line_end: sourceInfo.line_end || sourceInfo.lineend || sourceInfo.lineEnd || 1,
+                cite_context: sourceInfo.cite_context || sourceInfo.citeSummary || '',
             };
 
 

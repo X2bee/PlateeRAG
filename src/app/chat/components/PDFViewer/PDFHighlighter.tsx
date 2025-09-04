@@ -3,7 +3,15 @@
 import React, { useEffect, useCallback } from 'react';
 import { HighlightRange } from '../../types/source';
 import styles from './PDFHighlighter.module.scss';
+import highlightStyles from './HighlightStyles.module.scss';
 import { filterHighlightWords, isTextMatch } from './highlightConstants';
+import { 
+  createTextChunks, 
+  groupPDFElements, 
+  defaultUnifiedConfig,
+  TextChunk,
+  HighlightGroup 
+} from './unifiedHighlighter';
 
 interface PDFHighlighterProps {
   pageNumber: number;
@@ -26,14 +34,37 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
   // 현재 페이지가 하이라이트 대상인지 확인
   const shouldHighlight = pageNumber === highlightRange.pageNumber;
 
-  // 기존 하이라이팅 제거 함수
+  // 향상된 하이라이팅 제거 함수 (모든 하이라이트 레벨 제거)
   const removeExistingHighlights = useCallback(() => {
     const pdfContainer = document.querySelector('.react-pdf__Page__textContent');
     if (!pdfContainer) return;
 
-    const highlightedElements = pdfContainer.querySelectorAll(`.${styles.pdfHighlight}`);
-    highlightedElements.forEach(element => {
+    // 기존 레거시 하이라이트 제거
+    const legacyHighlights = pdfContainer.querySelectorAll(`.${styles.pdfHighlight}`);
+    legacyHighlights.forEach(element => {
       element.classList.remove(styles.pdfHighlight);
+    });
+
+    // 새로운 다층 하이라이트 제거
+    const highlightClasses = [
+      'pdfHighlightExact',
+      'pdfHighlightSimilar', 
+      'pdfHighlightRelated',
+      'pdfHighlightContext',
+      'pdfHighlightEntity',
+      'pdfHighlightPhrase',
+      'highlightPriorityHigh',
+      'highlightPriorityMedium',
+      'highlightPriorityLow'
+    ];
+    
+    highlightClasses.forEach(className => {
+      const elements = pdfContainer.querySelectorAll(`.${highlightStyles[className]}`);
+      elements.forEach(element => {
+        element.classList.remove(highlightStyles[className]);
+        element.removeAttribute('data-confidence');
+        element.removeAttribute('data-matched-by');
+      });
     });
   }, []);
 
@@ -56,22 +87,17 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
     return null;
   }, [pageNumber]);
 
-  // PDF 텍스트 하이라이팅 적용 함수
+  // 통합 PDF 텍스트 하이라이팅 적용 함수 (연속성 보장)
   const applyPDFHighlighting = useCallback(() => {
     const textLayer = findPDFTextLayer();
-    if (!textLayer) {
-      return;
-    }
+    if (!textLayer) return;
 
     // 기존 하이라이팅 제거
     removeExistingHighlights();
 
     // 텍스트 span 요소들 찾기
     const textSpans = Array.from(textLayer.querySelectorAll('span')) as HTMLSpanElement[];
-    
-    if (textSpans.length === 0) {
-      return;
-    }
+    if (textSpans.length === 0) return;
 
     // 유효한 텍스트를 가진 스팬들만 필터링
     const validSpans = textSpans.filter(span => {
@@ -79,30 +105,110 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
       return text.length > 0;
     });
 
-    if (validSpans.length === 0) {
-      return;
-    }
+    if (validSpans.length === 0) return;
 
-    // 텍스트 매칭 기반 하이라이팅만 적용
+    // 텍스트 매칭 기반 하이라이팅 적용
     if (highlightRange.searchText && highlightRange.searchText.trim()) {
-      const searchText = highlightRange.searchText.trim().toLowerCase();
+      const searchText = highlightRange.searchText.trim();
       
-      // 검색 텍스트를 단어 단위로 분리하고 제외할 단어들 필터링
-      const searchWords = filterHighlightWords(searchText);
+      // 전체 페이지 텍스트 구성
+      const fullPageText = validSpans.map(span => span.textContent || '').join(' ');
       
-      // 유효한 검색 단어가 없으면 하이라이팅 안 함
-      if (searchWords.length === 0) {
+      // 통합 시스템으로 텍스트 청크 생성
+      const textChunks = createTextChunks(fullPageText, searchText, defaultUnifiedConfig);
+      
+      if (textChunks.length === 0) {
+        // 레거시 방식으로 폴백
+        const searchWords = filterHighlightWords(searchText);
+        validSpans.forEach(span => {
+          const spanText = span.textContent?.trim().toLowerCase() || '';
+          const hasMatch = searchWords.some(word => isTextMatch(word, spanText));
+          if (hasMatch) {
+            span.classList.add(styles.pdfHighlight);
+          }
+        });
         return;
       }
+
+      // 매칭되는 span 요소들 찾기
+      const matchingSpans: Array<{span: HTMLElement, chunk: TextChunk, score: number}> = [];
       
       validSpans.forEach(span => {
-        const spanText = span.textContent?.trim().toLowerCase() || '';
-        
-        // 스팬의 텍스트가 검색 단어 중 하나라도 포함하면 하이라이팅
-        const hasMatch = searchWords.some(word => isTextMatch(word, spanText));
-        
-        if (hasMatch) {
-          span.classList.add(styles.pdfHighlight);
+        const spanText = span.textContent?.trim() || '';
+        if (!spanText) return;
+
+        // 각 청크와의 매칭 확인
+        textChunks.forEach(chunk => {
+          const chunkWords = chunk.text.toLowerCase().split(/\s+/);
+          const spanWords = spanText.toLowerCase().split(/\s+/);
+          
+          // 단어 수준 매칭 점수 계산
+          let matchScore = 0;
+          spanWords.forEach(spanWord => {
+            if (chunkWords.some(chunkWord => 
+              chunkWord.includes(spanWord) || spanWord.includes(chunkWord)
+            )) {
+              matchScore += 1;
+            }
+          });
+          
+          const normalizedScore = matchScore / Math.max(spanWords.length, 1);
+          
+          if (normalizedScore > 0.3) { // 30% 이상 매칭시 하이라이트 후보
+            matchingSpans.push({
+              span,
+              chunk,
+              score: normalizedScore * chunk.score
+            });
+          }
+        });
+      });
+
+      // 연속된 span들을 그룹화
+      const spanGroups = groupPDFElements(
+        matchingSpans.map(m => m.span),
+        defaultUnifiedConfig
+      );
+
+      // 그룹별 하이라이팅 적용 (연속성 보장)
+      spanGroups.forEach((group, groupIndex) => {
+        // 그룹의 평균 점수 계산
+        const groupScore = matchingSpans
+          .filter(m => group.elements.includes(m.span))
+          .reduce((sum, m) => sum + m.score, 0) / group.elements.length;
+
+        // 하이라이트 클래스 결정
+        let highlightClass = styles.pdfHighlight;
+        if (groupScore > 0.8) {
+          highlightClass = `${highlightStyles.pdfHighlightExact}`;
+        } else if (groupScore > 0.6) {
+          highlightClass = `${highlightStyles.pdfHighlightSimilar}`;
+        } else {
+          highlightClass = `${highlightStyles.pdfHighlightRelated}`;
+        }
+
+        // 그룹 내 모든 span에 하이라이팅 적용
+        group.elements.forEach((span, spanIndex) => {
+          span.classList.add(highlightClass);
+          span.setAttribute('data-group', groupIndex.toString());
+          span.setAttribute('data-continuity', group.continuity.toFixed(2));
+          span.setAttribute('data-score', groupScore.toFixed(2));
+        });
+
+        // 연속성이 높은 그룹에 시각적 연결 효과 추가
+        if (group.continuity > 0.7 && group.elements.length > 1) {
+          group.elements.forEach((span, spanIndex) => {
+            span.classList.add(`${highlightStyles.highlightPriorityHigh}`);
+            
+            // 첫 번째와 마지막 요소에 특별한 스타일 적용
+            if (spanIndex === 0) {
+              span.style.borderRadius = '3px 0 0 3px';
+            } else if (spanIndex === group.elements.length - 1) {
+              span.style.borderRadius = '0 3px 3px 0';
+            } else {
+              span.style.borderRadius = '0';
+            }
+          });
         }
       });
     }

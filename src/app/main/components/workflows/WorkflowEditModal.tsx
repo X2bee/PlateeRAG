@@ -6,6 +6,7 @@ import { updateWorkflow } from '@/app/api/workflow/workflowAPI';
 import { getGroupAvailableGroups } from '@/app/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { Workflow } from '@/app/main/types/index';
+import { getDeployStatus, toggleDeployStatus } from '@/app/api/workflow/deploy';
 
 interface WorkflowEditModalProps {
     workflow: Workflow;
@@ -22,10 +23,26 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
 }) => {
     const { user } = useAuth();
     const [isShared, setIsShared] = useState<boolean>(false);
+    const [toggleDeploy, setToggleDeploy] = useState<boolean>(false);
     const [shareGroup, setShareGroup] = useState<string>('');
     const [availableGroups, setAvailableGroups] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchDeployStatus = async () => {
+          if (workflow) {
+              try {
+                  const deployed = await getDeployStatus(workflow.name);
+                  setToggleDeploy(deployed.is_deployed);
+              } catch (err) {
+                  console.error('Failed to fetch deploy status:', err);
+              }
+          }
+      };
+
+      fetchDeployStatus();
+    }, [workflow]);
 
     // 워크플로우 정보로 폼 초기화
     useEffect(() => {
@@ -67,6 +84,7 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
             };
 
             await updateWorkflow(workflow.name, updateDict);
+            await toggleDeployStatus(workflow.name, toggleDeploy);
 
             // 업데이트된 워크플로우 정보를 부모 컴포넌트에 전달
             const updatedWorkflow = {
@@ -101,6 +119,18 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
                         className={styles.disabledInput}
                     />
                     <small>워크플로우 이름은 변경할 수 없습니다.</small>
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label>워크플로우 배포</label>
+                    <button
+                        type="button"
+                        className={`${styles.toggleButton} ${toggleDeploy ? styles.active : ''}`}
+                        onClick={() => setToggleDeploy(!toggleDeploy)}
+                        disabled={loading}
+                    >
+                        {toggleDeploy ? '배포 중' : '비공개'}
+                    </button>
                 </div>
 
                 <div className={styles.formGroup}>

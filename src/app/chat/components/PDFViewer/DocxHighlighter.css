@@ -2,16 +2,94 @@
 .docx-highlight {
   background-color: rgba(255, 255, 0, 0.3) !important;
   box-shadow: 0 0 0 2px rgba(255, 255, 0, 0.5) !important;
-  border-radius: 2px !important;
-  transition: background-color 0.2s ease !important;
+  border-radius: 3px !important;
+  transition: all 0.2s ease !important;
+  padding: 1px 2px !important;
+  margin: 0 1px !important;
 }
 
 .docx-highlight:hover {
   background-color: rgba(255, 255, 0, 0.4) !important;
+  transform: scale(1.02) !important;
+}
+
+/* 점수별 차등 하이라이팅 */
+.docx-highlight[data-highlight-type="precise"] {
+  background-color: rgba(0, 255, 0, 0.25) !important;
+  box-shadow: 0 0 0 1px rgba(0, 255, 0, 0.4) !important;
+}
+
+.docx-highlight[data-highlight-type="full"] {
+  background-color: rgba(255, 165, 0, 0.3) !important;
+  box-shadow: 0 0 0 2px rgba(255, 165, 0, 0.5) !important;
+}
+
+.docx-highlight[data-highlight-type="fallback"] {
+  background-color: rgba(135, 206, 250, 0.25) !important;
+  box-shadow: 0 0 0 1px rgba(135, 206, 250, 0.4) !important;
+}
+
+/* 고점수 매칭 특별 스타일 */
+.docx-highlight[data-score^="0.9"], 
+.docx-highlight[data-score^="1.0"] {
+  background: linear-gradient(45deg, rgba(255, 215, 0, 0.4), rgba(255, 255, 0, 0.4)) !important;
+  box-shadow: 0 0 4px rgba(255, 215, 0, 0.6) !important;
+  animation: docx-pulse 2s ease-in-out infinite !important;
+}
+
+/* 매칭 비율 표시 */
+.docx-highlight[data-match-ratio^="0.8"], 
+.docx-highlight[data-match-ratio^="0.9"],
+.docx-highlight[data-match-ratio="1.00"] {
+  border-left: 3px solid rgba(0, 255, 0, 0.7) !important;
+  padding-left: 5px !important;
+}
+
+/* 연속성 애니메이션 */
+@keyframes docx-pulse {
+  0%, 100% { 
+    background-color: rgba(255, 255, 0, 0.3);
+    transform: scale(1);
+  }
+  50% { 
+    background-color: rgba(255, 215, 0, 0.4);
+    transform: scale(1.01);
+  }
+}
+
+/* 정밀 하이라이팅용 내부 스팬 */
+.docx-highlight span.docx-highlight {
+  background-color: rgba(255, 0, 0, 0.2) !important;
+  box-shadow: none !important;
+  border-radius: 2px !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 /* 하이라이팅된 텍스트의 가독성 향상 */
 .docx-highlight * {
   position: relative !important;
   z-index: 1 !important;
+}
+
+/* 반응형 하이라이팅 */
+@media (max-width: 768px) {
+  .docx-highlight {
+    padding: 2px 3px !important;
+    border-radius: 4px !important;
+  }
+}
+
+/* 다크 모드 지원 */
+@media (prefers-color-scheme: dark) {
+  .docx-highlight {
+    background-color: rgba(255, 255, 100, 0.4) !important;
+    box-shadow: 0 0 0 2px rgba(255, 255, 100, 0.6) !important;
+    color: #000 !important;
+  }
+  
+  .docx-highlight[data-highlight-type="precise"] {
+    background-color: rgba(50, 255, 50, 0.35) !important;
+    color: #000 !important;
+  }
 }

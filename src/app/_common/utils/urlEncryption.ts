@@ -2,6 +2,8 @@
  * URL 파라미터 암호화/복호화 유틸리티 (AES 암호화 사용)
  */
 
+import { getDeployStatus } from "@/app/api/workflow/deploy";
+
 // 암호화 키 (실제 환경에서는 환경변수나 더 안전한 방식으로 관리해야 함)
 const ENCRYPTION_KEY = 'PlateerXgenAILab'; // 16바이트 키
 
@@ -135,10 +137,20 @@ export const createEncryptedUrlParams = (userId: string, workflowName: string): 
  * @param encryptedParams - 암호화된 파라미터 문자열
  * @returns 복호화된 파라미터 객체
  */
-export const decryptUrlParams = (encryptedParams: string): { userId: string; workflowName: string } | null => {
+export const decryptUrlParams = async (encryptedParams: string): Promise<{ userId: string; workflowName: string; message?: string; } | null> => {
     try {
         const decryptedString = decodeUrlParams(encryptedParams);
         const params = JSON.parse(decryptedString);
+
+        const valid_deployable = await getDeployStatus(params.workflowName, params.userId);
+        if (!valid_deployable.is_deployed) {
+            return { 
+                userId: params.userId, 
+                workflowName: params.workflowName, 
+                message: 'This workflow is not deployed.' 
+            };
+        }
+        // 배포가 불가능할때 메시지 처리
         
         if (params.userId && params.workflowName) {
             return {
