@@ -167,7 +167,6 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
       // 연속된 span들을 그룹화
       const spanGroups = groupPDFElements(
         matchingSpans.map(m => m.span),
-        textChunks,
         defaultUnifiedConfig
       );
 

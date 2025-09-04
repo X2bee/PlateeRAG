@@ -294,6 +294,7 @@ const SoundInput: React.FC<SoundInputProps> = ({
             {/* 녹음 완료 후 미리듣기 및 액션 */}
             {audioUrl && state === "finished" && (
                 <div className={styles.playback}>
+                    {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                     <audio src={audioUrl} controls className={styles.audioPlayer} />
                     <div className={styles.actions}>
                         <button
