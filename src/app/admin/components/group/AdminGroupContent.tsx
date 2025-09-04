@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { getAllGroups, updateGroupPermissions, deleteGroup, createGroup, getGroupUsers } from '@/app/admin/api/group';
 import { removeUserGroup } from '@/app/admin/api/users';
 import { devLog } from '@/app/_common/utils/logger';
+import { showSuccessToastKo, showErrorToastKo, showValidationErrorToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/admin/assets/AdminGroupContent.module.scss';
 import AdminGroupAddModal from './AdminGroupAddModal';
 
@@ -136,31 +137,33 @@ const AdminGroupContent: React.FC = () => {
             setShowPermissionModal(false);
             setEditingGroup(null);
 
-            alert('조직 권한이 성공적으로 업데이트되었습니다.');
+            showSuccessToastKo('조직 권한이 성공적으로 업데이트되었습니다.');
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : '권한 업데이트에 실패했습니다.';
             devLog.error('Failed to update group permissions:', err);
-            alert(`업데이트 실패: ${errorMessage}`);
+            showErrorToastKo(`업데이트 실패: ${errorMessage}`);
         }
     };
 
     // 그룹 삭제 핸들러
     const handleDeleteGroup = async (groupName: string) => {
-        if (!confirm(`정말로 "${groupName}" 조직을 삭제하시겠습니까?\n이 조직에 속한 사용자들은 'none' 그룹으로 이동됩니다.`)) {
-            return;
-        }
+        showDeleteConfirmToastKo({
+            message: `정말로 "${groupName}" 조직을 삭제하시겠습니까?\n이 조직에 속한 사용자들은 'none' 그룹으로 이동됩니다.`,
+            itemName: groupName,
+            onConfirm: async () => {
+                try {
+                    await deleteGroup(groupName);
 
-        try {
-            await deleteGroup(groupName);
-
-            // 성공 시 목록 새로고침
-            await loadGroups();
-            alert('조직이 성공적으로 삭제되었습니다.');
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : '조직 삭제에 실패했습니다.';
-            devLog.error('Failed to delete group:', err);
-            alert(`삭제 실패: ${errorMessage}`);
-        }
+                    // 성공 시 목록 새로고침
+                    await loadGroups();
+                    showSuccessToastKo('조직이 성공적으로 삭제되었습니다.');
+                } catch (err) {
+                    const errorMessage = err instanceof Error ? err.message : '조직 삭제에 실패했습니다.';
+                    devLog.error('Failed to delete group:', err);
+                    showErrorToastKo(`삭제 실패: ${errorMessage}`);
+                }
+            }
+        });
     };
 
     // 섹션 선택/해제 핸들러
@@ -191,7 +194,7 @@ const AdminGroupContent: React.FC = () => {
     const handleCreateGroup = async () => {
         try {
             if (!newGroup.group_name.trim()) {
-                alert('조직명을 입력해주세요.');
+                showValidationErrorToastKo('조직명을 입력해주세요.');
                 return;
             }
 
@@ -211,11 +214,11 @@ const AdminGroupContent: React.FC = () => {
                 managers: []
             });
 
-            alert('조직이 성공적으로 생성되었습니다.');
+            showSuccessToastKo('조직이 성공적으로 생성되었습니다.');
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : '조직 생성에 실패했습니다.';
             devLog.error('Failed to create group:', err);
-            alert(`생성 실패: ${errorMessage}`);
+            showErrorToastKo(`생성 실패: ${errorMessage}`);
         }
     };
 
@@ -223,24 +226,28 @@ const AdminGroupContent: React.FC = () => {
     const handleRemoveUser = async (user: User) => {
         if (!selectedGroup) return;
 
-        if (!confirm(`정말로 "${user.username}" 사용자를 "${selectedGroup}" 조직에서 제외하시겠습니까?`)) {
-            return;
-        }
+        showDeleteConfirmToastKo({
+            title: '사용자 제외 확인',
+            message: `정말로 "${user.username}" 사용자를 "${selectedGroup}" 조직에서 제외하시겠습니까?`,
+            itemName: user.username,
+            confirmText: '제외',
+            onConfirm: async () => {
+                try {
+                    await removeUserGroup({
+                        id: user.id,
+                        group_name: selectedGroup
+                    });
 
-        try {
-            await removeUserGroup({
-                id: user.id,
-                group_name: selectedGroup
-            });
-
-            // 성공 시 사용자 목록 새로고침
-            await loadGroupUsers(selectedGroup);
-            alert('사용자가 조직에서 제외되었습니다.');
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : '사용자 제외에 실패했습니다.';
-            devLog.error('Failed to remove user from group:', err);
-            alert(`제외 실패: ${errorMessage}`);
-        }
+                    // 성공 시 사용자 목록 새로고침
+                    await loadGroupUsers(selectedGroup);
+                    showSuccessToastKo('사용자가 조직에서 제외되었습니다.');
+                } catch (err) {
+                    const errorMessage = err instanceof Error ? err.message : '사용자 제외에 실패했습니다.';
+                    devLog.error('Failed to remove user from group:', err);
+                    showErrorToastKo(`제외 실패: ${errorMessage}`);
+                }
+            }
+        });
     };
 
     // 상태 배지 렌더링

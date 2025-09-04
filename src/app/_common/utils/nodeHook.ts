@@ -6,7 +6,7 @@ import {
     exportNodes as apiExportNodes,
     refreshNodes as apiRefreshNodes
 } from '@/app/api/nodeAPI';
-import { toast } from 'react-hot-toast';
+import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { devLog } from '@/app/_common/utils/logger';
 
 // Type definitions
@@ -89,7 +89,7 @@ export const useNodes = (): UseNodesReturn => {
         } catch (err: any) {
             const errorMessage = err?.message || '데이터를 불러오는 데 실패했습니다.';
             setError(errorMessage);
-            toast.error(errorMessage);
+            showErrorToastKo(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -111,11 +111,11 @@ export const useNodes = (): UseNodesReturn => {
                 await apiRefreshNodes();
                 const data = await apiGetNodes();
                 setNodes(data as NodeCategory[]);
-                toast.success('노드 목록 새로고침 완료!');
+                showSuccessToastKo('노드 목록 새로고침 완료!');
             } catch (err: any) {
                 const errorMessage = err?.message || '새로고침에 실패했습니다.';
                 setError(errorMessage);
-                toast.error(errorMessage);
+                showErrorToastKo(errorMessage);
             } finally {
                 setIsLoading(false);
             }
@@ -145,7 +145,7 @@ export const useNodes = (): UseNodesReturn => {
         } catch (err: any) {
             const errorMessage = err?.message || '초기화에 실패했습니다.';
             setError(errorMessage);
-            toast.error(errorMessage);
+            showErrorToastKo(errorMessage);
             devLog.error('Node initialization failed:', err);
         } finally {
             setIsLoading(false);

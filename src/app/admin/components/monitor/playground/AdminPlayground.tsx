@@ -3,10 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { FiRefreshCw } from 'react-icons/fi';
 import { listWorkflowsDetail } from '@/app/api/workflow/workflowAPI';
 import styles from '@/app/admin/assets/playground/AdminPlayground.module.scss';
-import Executor from '@/app/admin/components/playground/Executor';
-import Monitor from '@/app/admin/components/playground/Monitor';
-import BatchTester from '@/app/admin/components/playground/Tester';
-import TesterLogs from '@/app/admin/components/playground/TesterLogs';
+import Executor from '@/app/admin/components/monitor/playground/Executor';
+import Monitor from '@/app/admin/components/monitor/playground/Monitor';
+import BatchTester from '@/app/admin/components/monitor/playground/Tester';
+import TesterLogs from '@/app/admin/components/monitor/playground/TesterLogs';
 import { useSearchParams } from 'next/navigation';
 
 interface PlaygroundProps {

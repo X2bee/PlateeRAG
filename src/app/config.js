@@ -1,13 +1,14 @@
 /**
  * Application configuration settings
  */
+import { devLog } from '@/app/_common/utils/logger';
 
 const host_url = process.env.NEXT_PUBLIC_BACKEND_HOST || 'http://localhost';
 const port = process.env.NEXT_PUBLIC_BACKEND_PORT || null;
 const metrics = process.env.NEXT_PUBLIC_METRICS_HOST || '';
 
 // 허용된 origin URL들을 설정
-const allowedOrigins = process.env.NEXT_PUBLIC_ALLOWED_ORIGINS 
+const allowedOrigins = process.env.NEXT_PUBLIC_ALLOWED_ORIGINS
     ? process.env.NEXT_PUBLIC_ALLOWED_ORIGINS.split(',').map(url => url.trim())
     : ['http://localhost:3000','https://code-assistant.x2bee.com']; // 기본값
 
@@ -19,7 +20,7 @@ if (!port) {
     BASE_URL = `${host_url}:${port}`;
 }
 
-console.log(`Backend server running at ${BASE_URL}`);
+devLog.log(`Backend server running at ${BASE_URL}`);
 
 // API Configuration
 export const API_CONFIG = {
@@ -32,6 +33,7 @@ export const API_CONFIG = {
 
 export const APP_CONFIG = {
     DEFAULT_THEME: 'light',
+    LANGUAGE: process.env.NEXT_PUBLIC_LANGUAGE || 'ko',
     DEBUG_MODE: process.env.NODE_ENV === 'development',
     THINK_DISPLAY_MODE: process.env.NEXT_PUBLIC_THINK_DISPLAY_MODE || 'hide',
     SHOW_THINK_BLOCK:

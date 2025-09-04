@@ -1,0 +1,490 @@
+@use "sass:color";
+@use "@/app/_common/_variables" as *;
+
+.container {
+    margin: 0 auto;
+    padding: 1rem;
+
+    @media (max-width: 768px) {
+        padding: 0.5rem;
+    }
+}
+
+// Loading and Error States
+.loader, .error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    text-align: center;
+    color: $gray-600;
+
+    svg {
+        width: 3rem;
+        height: 3rem;
+        margin-bottom: 1rem;
+        color: #e74c3c;
+    }
+
+    span {
+        font-size: 1.125rem;
+        margin-bottom: 1rem;
+    }
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.retryButton {
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(#e74c3c, 0.3);
+    }
+}
+
+.chartLoader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 350px;
+    color: $gray-500;
+    font-size: 0.875rem;
+}
+
+// Header
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid $gray-200;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    h2 {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: $gray-900;
+        margin: 0;
+
+        svg {
+            color: #e74c3c;
+            width: 2rem;
+            height: 2rem;
+        }
+    }
+}.uptime {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: $gray-600;
+    font-size: 0.925rem;
+
+    svg {
+        width: 1rem;
+        height: 1rem;
+        color: #2ecc71;
+    }
+}
+
+.connectionStatus {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: $gray-600;
+    font-size: 0.875rem;
+
+    .statusIndicator {
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+
+        &.connecting {
+            background: #f39c12;
+            animation: pulse 1.5s ease-in-out infinite alternate;
+        }
+
+        &.connected {
+            background: #2ecc71;
+        }
+
+        &.disconnected {
+            background: #e74c3c;
+        }
+    }
+}
+
+@keyframes pulse {
+    from { opacity: 1; }
+    to { opacity: 0.5; }
+}.headerRight {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.realTimeToggle, .refreshButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid $gray-300;
+    border-radius: 0.5rem;
+    background: white;
+    color: $gray-700;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+
+    svg {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    &:hover {
+        border-color: #e74c3c;
+        background: rgba(#e74c3c, 0.05);
+    }
+
+    &.active {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        border-color: #c0392b;
+    }
+}
+
+// Overview Grid
+.overviewGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.overviewCard {
+    background: white;
+    border: 1px solid $gray-200;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        border-color: rgba(#e74c3c, 0.3);
+    }
+}
+
+.cardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+
+    svg {
+        width: 1.5rem;
+        height: 1.5rem;
+        color: #e74c3c;
+    }
+
+    span {
+        font-weight: 600;
+        color: $gray-800;
+        margin-left: 0.5rem;
+        flex: 1;
+    }
+}
+
+.temperature {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: $gray-600;
+    font-size: 0.8rem;
+
+    svg {
+        width: 0.875rem;
+        height: 0.875rem;
+        color: #f39c12;
+    }
+}
+
+.cardContent {
+    .mainValue {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: $gray-900;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+    }
+
+    .subValues {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        span {
+            color: $gray-600;
+            font-size: 0.875rem;
+        }
+    }
+}
+
+// Status Indicators
+.statusLow { color: #2ecc71; }
+.statusMedium { color: #f39c12; }
+.statusHigh { color: #e67e22; }
+.statusCritical { color: #e74c3c; }
+
+// Network specific styles
+.networkList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.networkItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background: $gray-50;
+    border-radius: 0.5rem;
+    border: 1px solid $gray-200;
+
+    .interfaceName {
+        font-weight: 500;
+        color: $gray-800;
+    }
+
+    .networkStats {
+        display: flex;
+        gap: 0.75rem;
+        font-size: 0.8rem;
+        color: $gray-600;
+    }
+}
+
+// Charts Grid
+.chartsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.chartCard {
+    background: white;
+    border: 1px solid $gray-200;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        border-color: rgba(#e74c3c, 0.3);
+    }
+}
+
+// Details Grid
+.detailsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+    gap: 1.5rem;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.detailCard {
+    background: white;
+    border: 1px solid $gray-200;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        border-color: rgba(#e74c3c, 0.3);
+    }
+
+    h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: $gray-900;
+        margin: 0 0 1.5rem 0;
+
+        svg {
+            color: #e74c3c;
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+    }
+}
+
+// Table Styles
+.table {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid $gray-200;
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.tableHeader {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 1fr 2fr;
+    background: $gray-50;
+    border-bottom: 1px solid $gray-200;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    color: $gray-800;
+    font-size: 0.875rem;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr 1fr 1fr;
+        span:nth-child(2),
+        span:nth-child(3) {
+            display: none;
+        }
+    }
+}
+
+.tableRow {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 1fr 2fr;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid $gray-100;
+    font-size: 0.875rem;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background: $gray-50;
+    }
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr 1fr 1fr;
+        span:nth-child(2),
+        span:nth-child(3) {
+            display: none;
+        }
+    }
+}
+
+.device, .gpuName {
+    font-weight: 500;
+    color: $gray-800;
+}
+
+.percent {
+    font-weight: 600;
+
+    &.low { color: #2ecc71; }
+    &.medium { color: #f39c12; }
+    &.high { color: #e67e22; }
+    &.critical { color: #e74c3c; }
+}
+
+// Responsive Design
+@media (max-width: 1200px) {
+    .overviewGrid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+
+    .chartsGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0.5rem;
+    }
+
+    .header {
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .headerLeft {
+        gap: 1rem;
+
+        h2 {
+            font-size: 1.5rem;
+        }
+    }
+
+    .overviewGrid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .overviewCard {
+        padding: 1rem;
+    }
+
+    .cardContent .mainValue {
+        font-size: 2rem;
+    }
+
+    .chartsGrid,
+    .detailsGrid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .chartCard,
+    .detailCard {
+        padding: 1rem;
+    }
+}

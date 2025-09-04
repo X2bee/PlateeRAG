@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import toast from 'react-hot-toast';
+import { showSuccessToastKo, showErrorToastKo, showLoadingToastKo, dismissToastKo } from '@/app/_common/utils/toastUtilsKo';
 import Canvas from '@/app/canvas/components/Canvas';
 import Header from '@/app/canvas/components/Header';
 import SideMenu from '@/app/canvas/components/SideMenu';
@@ -30,10 +30,10 @@ import { devLog } from '@/app/_common/utils/logger';
 import { generateWorkflowHash } from '@/app/_common/utils/generateSha1Hash';
 import { isStreamingWorkflowFromWorkflow } from '../_common/utils/isStreamingWorkflow';
 import {
-    showNewWorkflowConfirm,
-    showWorkflowOverwriteConfirm,
-    showWarningToast
-} from '@/app/_common/utils/toastUtils';
+    showNewWorkflowConfirmKo,
+    showWorkflowOverwriteConfirmKo,
+    showWarningToastKo
+} from '@/app/_common/utils/toastUtilsKo';
 
 function CanvasPageContent() {
     const searchParams = useSearchParams();
@@ -133,7 +133,7 @@ function CanvasPageContent() {
                     }
                 } catch (error) {
                     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                    toast.error(`Failed to load workflow: ${errorMessage}`);
+                    showErrorToastKo(`워크플로우 로드 실패: ${errorMessage}`);
                 }
             };
 
@@ -276,7 +276,7 @@ function CanvasPageContent() {
 
         if (hasCurrentWork) {
             // 새로운 유틸리티 사용
-            showNewWorkflowConfirm(
+            showNewWorkflowConfirmKo(
                 () => {
                     performNewWorkflow();
                 }
@@ -314,10 +314,10 @@ function CanvasPageContent() {
             setCurrentWorkflowName('Workflow');
 
             devLog.log('New workflow started successfully');
-            toast.success('New workflow started');
+            showSuccessToastKo('새 워크플로우가 시작되었습니다');
         } catch (error: any) {
             devLog.error('Failed to start new workflow:', error);
-            toast.error(`Failed to start new workflow: ${error.message}`);
+            showErrorToastKo(`새 워크플로우 시작 실패: ${error.message}`);
         }
     };
 
@@ -348,7 +348,7 @@ function CanvasPageContent() {
 
     const handleSave = async () => {
         if (!canvasRef.current) {
-            toast.error('Canvas is not ready.');
+            showErrorToastKo('캔버스가 준비되지 않았습니다');
             return;
         }
 
@@ -365,7 +365,7 @@ function CanvasPageContent() {
         devLog.log('Canvas state id field:', canvasState.id);
 
         if (!canvasState.nodes || canvasState.nodes.length === 0) {
-            toast.error('Cannot save an empty workflow. Please add nodes.');
+            showErrorToastKo('빈 워크플로우는 저장할 수 없습니다. 노드를 추가해주세요');
             return;
         }
 
@@ -377,7 +377,7 @@ function CanvasPageContent() {
 
             if (isDuplicate) {
                 // 중복 발견 시 사용자에게 확인 요청 (새로운 유틸리티 사용)
-                showWorkflowOverwriteConfirm(
+                showWorkflowOverwriteConfirmKo(
                     workflowName,
                     async () => {
                         await performSave(workflowName, canvasState);
@@ -390,8 +390,8 @@ function CanvasPageContent() {
         } catch (error: any) {
             devLog.error('Error checking existing workflows:', error);
             // 중복 확인 실패 시에도 저장 시도 (graceful fallback)
-            showWarningToast({
-                message: 'Warning: Could not check for duplicates. Proceeding with save...',
+            showWarningToastKo({
+                message: '경고: 중복 확인을 할 수 없습니다. 저장을 진행합니다...',
             });
             setTimeout(async () => {
                 await performSave(workflowName, canvasState);
@@ -400,16 +400,16 @@ function CanvasPageContent() {
     };
 
     const performSave = async (workflowName: string, canvasState: any) => {
-        const toastId = toast.loading('Saving workflow...');
+        const toastId = showLoadingToastKo('워크플로우 저장 중...');
 
         try {
             const result = await saveWorkflow(workflowName, canvasState);
-            toast.success(`Workflow '${workflowName}' saved successfully!`, {
-                id: toastId,
-            });
+            showSuccessToastKo(`워크플로우 '${workflowName}'이(가) 성공적으로 저장되었습니다!`);
         } catch (error: any) {
             devLog.error('Save failed:', error);
-            toast.error(`Save failed: ${error.message}`, { id: toastId });
+            showErrorToastKo(`저장 실패: ${error.message}`);
+        } finally {
+            dismissToastKo(toastId);
         }
     };
 
@@ -448,11 +448,11 @@ function CanvasPageContent() {
                     updateWorkflowName(workflowName);
                 }
 
-                toast.success('Workflow loaded successfully!');
+                showSuccessToastKo('워크플로우가 성공적으로 로드되었습니다!');
             }
         } catch (error: any) {
             devLog.error('Error loading workflow:', error);
-            toast.error(`Failed to load workflow: ${error.message}`);
+            showErrorToastKo(`워크플로우 로드 실패: ${error.message}`);
         }
     };
 
@@ -476,7 +476,7 @@ function CanvasPageContent() {
                 }
             } catch (error) {
                 devLog.error('Error parsing JSON file:', error);
-                alert('유효하지 않은 파일 형식입니다.');
+                showErrorToastKo('유효하지 않은 파일 형식입니다.');
             }
         };
         reader.readAsText(file);
@@ -553,7 +553,7 @@ function CanvasPageContent() {
 
     const handleExecute = async () => {
         if (!canvasRef.current) {
-            toast.error('Canvas is not ready.');
+            showErrorToastKo('캔버스가 준비되지 않았습니다');
             return;
         }
 
@@ -561,13 +561,13 @@ function CanvasPageContent() {
             canvasRef.current as any
         ).validateAndPrepareExecution();
         if (validationResult.error) {
-            toast.error(validationResult.error);
+            showErrorToastKo(validationResult.error);
             return;
         }
 
         setIsExecuting(true);
         setExecutionOutput(null);
-        const toastId = toast.loading('Executing workflow...');
+        const toastId = showLoadingToastKo('워크플로우 실행 중...');
 
         try {
             let workflowData = (canvasRef.current as any).getCanvasState();
@@ -586,7 +586,8 @@ function CanvasPageContent() {
             const isStreaming = await isStreamingWorkflowFromWorkflow(workflowData);
 
             if (isStreaming) {
-                toast.loading('Executing streaming workflow...', { id: toastId });
+                dismissToastKo(toastId);
+                const streamToastId = showLoadingToastKo('스트리밍 워크플로우 실행 중...');
                 setExecutionOutput({ stream: '' });
 
                 // await executeWorkflowStream({
@@ -611,7 +612,10 @@ function CanvasPageContent() {
                     onData: (chunk) => {
                         setExecutionOutput((prev: { stream: any; }) => ({ ...prev, stream: (prev.stream || '') + chunk }));
                     },
-                    onEnd: () => toast.success('Streaming finished!', { id: toastId }),
+                    onEnd: () => {
+                        dismissToastKo(streamToastId);
+                        showSuccessToastKo('스트리밍이 완료되었습니다!');
+                    },
                     onError: (err) => { throw err; },
                 });
 
@@ -620,7 +624,8 @@ function CanvasPageContent() {
                 // const result = await executeWorkflow(workflowData);
                 const result = await executeWorkflowById(workflowName, workflowId, '', 'default', null, null, null);
                 setExecutionOutput(result);
-                toast.success('Workflow executed successfully!', { id: toastId });
+                dismissToastKo(toastId);
+                showSuccessToastKo('워크플로우가 성공적으로 실행되었습니다!');
             }
             setWorkflow({
                 id: workflowData.workflow_id,
@@ -631,11 +636,11 @@ function CanvasPageContent() {
                 status: 'active' as const,
             });
             setIsDeploy(true)
-            toast.success('Workflow executed successfully!', { id: toastId });
         } catch (error: any) {
             devLog.error('Execution failed:', error);
             setExecutionOutput({ error: error.message });
-            toast.error(`Execution failed: ${error.message}`, { id: toastId });
+            dismissToastKo(toastId);
+            showErrorToastKo(`실행 실패: ${error.message}`);
         } finally {
             setIsExecuting(false);
         }

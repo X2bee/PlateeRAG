@@ -3,15 +3,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FiTrash2, FiRefreshCw, FiBarChart } from 'react-icons/fi';
 import { getWorkflowPerformance, deleteWorkflowPerformance } from '@/app/api/workflow/workflowAPI';
 import { devLog } from '@/app/_common/utils/logger';
-import toast from 'react-hot-toast';
 import styles from '@/app/admin/assets/playground/Monitor.module.scss';
-import ChartDashboard from '@/app/admin/components/playground/charts/ChartDashboard';
+import ChartDashboard from '@/app/admin/components/monitor/playground/charts/ChartDashboard';
 import { usePagesLayout } from '@/app/_common/components/PagesLayoutContent';
 import {
-    showPerformanceDataDeleteConfirm,
-    showDeleteSuccessToast,
-    showDeleteErrorToast
-} from '@/app/_common/utils/toastUtils';
+    showPerformanceDataDeleteConfirmKo,
+    showDeleteSuccessToastKo,
+    showDeleteErrorToastKo
+} from '@/app/_common/utils/toastUtilsKo';
 
 interface Workflow {
     workflow_name: string;
@@ -152,7 +151,7 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
 
         const workflowName = selectedWorkflow.workflow_name.replace('.json', '');
 
-        showPerformanceDataDeleteConfirm(
+        showPerformanceDataDeleteConfirmKo(
             workflowName,
             async () => {
                 try {
@@ -170,7 +169,7 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
 
                     // 성공 토스트 메시지
                     const deletedCount = (result as any).deleted_count || 0;
-                    showDeleteSuccessToast({
+                    showDeleteSuccessToastKo({
                         itemName: workflowName,
                         itemType: 'performance data',
                         count: deletedCount,
@@ -179,9 +178,9 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                 } catch (error) {
                     console.error('Failed to delete performance data:', error);
                     setError('성능 데이터 삭제에 실패했습니다.');
-                    showDeleteErrorToast({
+                    showDeleteErrorToastKo({
                         itemName: workflowName,
-                        itemType: 'performance data',
+                        itemType: '성능 데이터',
                         error: error instanceof Error ? error : 'Unknown error',
                         customMessage: `성능 데이터 삭제에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
                     });

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
+import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/(auth)/login/LoginPage.module.scss';
 import { login } from '@/app/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
@@ -45,7 +45,7 @@ const LoginPage = () => {
             }
 
             // 로그인 성공
-            toast.success(`로그인 성공! 환영합니다, ${result.username}님!`);
+            showSuccessToastKo(`로그인 성공! 환영합니다, ${result.username}님!`);
 
             // 이전 페이지로 리다이렉트 (URL 파라미터 확인)
             const urlParams = new URLSearchParams(window.location.search);
@@ -66,7 +66,7 @@ const LoginPage = () => {
 
         } catch (err: any) {
             setError(err.message || '로그인에 실패했습니다.');
-            toast.error(err.message || '로그인에 실패했습니다.');
+            showErrorToastKo(err.message || '로그인에 실패했습니다.');
         } finally {
             setIsLoading(false);
         }

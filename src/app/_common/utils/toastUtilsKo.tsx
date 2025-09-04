@@ -469,3 +469,241 @@ export const showPerformanceDataDeleteConfirmKo = (
         cancelText: '취소',
     });
 };
+
+/**
+ * LLM 제공자 변경 확인 토스트 (한국어)
+ */
+export const showLLMProviderChangeConfirmKo = (
+    currentProvider: string,
+    newProvider: string,
+    onConfirm: () => void | Promise<void>,
+    onCancel?: () => void
+) => {
+    return showWarningConfirmToastKo({
+        title: 'LLM 제공자 변경',
+        message: `현재: ${currentProvider} → 변경: ${newProvider}\n변경 시 백엔드에서 재설정 작업이 수행됩니다.`,
+        onConfirm,
+        onCancel,
+        confirmText: '변경',
+        cancelText: '취소',
+    });
+};
+
+/**
+ * 일반적인 성공 토스트 (한국어)
+ */
+export const showSuccessToastKo = (message: string, duration: number = 3000) => {
+    toast.success(message, {
+        duration,
+        style: {
+            background: '#ffffff',
+            color: '#374151',
+            border: '2px solid #10b981',
+            borderRadius: '10px',
+            fontWeight: '500',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)',
+        },
+        iconTheme: {
+            primary: '#10b981',
+            secondary: '#fff',
+        },
+    });
+};
+
+/**
+ * 일반적인 에러 토스트 (한국어)
+ */
+export const showErrorToastKo = (message: string, duration: number = 4000) => {
+    toast.error(message, {
+        duration,
+        style: {
+            background: '#ef4444',
+            color: '#fff',
+            borderRadius: '10px',
+            fontWeight: '500',
+        },
+        iconTheme: {
+            primary: '#dc2626',
+            secondary: '#fff',
+        },
+    });
+};
+
+/**
+ * 로딩 토스트 (한국어)
+ */
+export const showLoadingToastKo = (message: string, id?: string) => {
+    return toast.loading(message, {
+        id,
+        style: {
+            background: '#ffffff',
+            color: '#374151',
+            border: '1px solid #d1d5db',
+            borderRadius: '10px',
+            fontWeight: '500',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+        },
+    });
+};
+
+/**
+ * 토스트 해제
+ */
+export const dismissToastKo = (id?: string) => {
+    toast.dismiss(id);
+};
+
+/**
+ * 임베딩 제공자 변경 확인 토스트 (한국어)
+ */
+export const showEmbeddingProviderChangeConfirmKo = (
+    currentProvider: string,
+    newProvider: string,
+    onConfirm: () => void | Promise<void>,
+    onCancel?: () => void
+) => {
+    return showWarningConfirmToastKo({
+        title: '임베딩 제공자 변경',
+        message: `현재: ${currentProvider} → 변경: ${newProvider}\n변경 시 백엔드에서 재설정 작업이 수행됩니다.`,
+        onConfirm,
+        onCancel,
+        confirmText: '변경',
+        cancelText: '취소',
+    });
+};
+
+/**
+ * 복사 성공 토스트 (한국어)
+ */
+export const showCopySuccessToastKo = (message: string = '클립보드에 복사되었습니다!') => {
+    showSuccessToastKo(message);
+};
+
+/**
+ * 복사 실패 토스트 (한국어)
+ */
+export const showCopyErrorToastKo = (message: string = '복사에 실패했습니다.') => {
+    showErrorToastKo(message);
+};
+
+/**
+ * 연결 테스트 성공 토스트 (한국어)
+ */
+export const showConnectionSuccessToastKo = (service: string, message?: string) => {
+    const defaultMessage = `${service} 연결 테스트 성공!`;
+    showSuccessToastKo(message || defaultMessage);
+};
+
+/**
+ * 연결 테스트 실패 토스트 (한국어)
+ */
+export const showConnectionErrorToastKo = (service: string, error: string) => {
+    showErrorToastKo(`${service} 연결 실패: ${error}`);
+};
+
+/**
+ * 인스턴스 관리 관련 토스트들
+ */
+export const showInstanceSuccessToastKo = (message: string) => {
+    showSuccessToastKo(message);
+};
+
+export const showInstanceErrorToastKo = (message: string) => {
+    showErrorToastKo(message);
+};
+
+/**
+ * VLLM 관련 토스트들
+ */
+export const showVLLMSuccessToastKo = (message: string) => {
+    showSuccessToastKo(message);
+};
+
+export const showVLLMErrorToastKo = (message: string) => {
+    showErrorToastKo(message);
+};
+
+/**
+ * GPU 검색 관련 토스트들
+ */
+export const showGpuSearchSuccessToastKo = (count: number) => {
+    showSuccessToastKo(`${count}개의 오퍼를 찾았습니다.`);
+};
+
+export const showGpuSearchErrorToastKo = (error: string) => {
+    showErrorToastKo(`검색 실패: ${error}`);
+};
+
+/**
+ * VLLM 인스턴스 생성 관련 토스트들
+ */
+export const showInstanceCreationStartToastKo = (instanceId: string) => {
+    showSuccessToastKo(`VLLM 인스턴스 생성 시작! ID: ${instanceId}`);
+};
+
+export const showInstanceCreationProgressToastKo = (instanceId: string, status: string) => {
+    return showLoadingToastKo(`인스턴스 ${instanceId}: ${status}`);
+};
+
+export const showInstanceCreationSuccessToastKo = (instanceId: string, message: string) => {
+    showSuccessToastKo(`인스턴스 ${instanceId}: ${message}`);
+};
+
+export const showInstanceCreationErrorToastKo = (instanceId: string, error: string) => {
+    showErrorToastKo(`인스턴스 ${instanceId}: ${error}`);
+};
+
+/**
+ * 로그 삭제 확인 토스트 (한국어)
+ */
+export const showLogDeleteConfirmToastKo = (
+    onConfirm: () => void | Promise<void>,
+    onCancel?: () => void
+) => {
+    return showWarningConfirmToastKo({
+        title: '로그 삭제',
+        message: '정말 모든 로그를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.',
+        onConfirm,
+        onCancel,
+        confirmText: '삭제',
+        cancelText: '취소',
+    });
+};
+
+/**
+ * VLLM 인스턴스 생성 관련 토스트들
+ */
+export const showVllmInstanceCreateSuccessToastKo = (instanceId: string) => {
+    showSuccessToastKo(`VLLM 인스턴스 생성 시작! ID: ${instanceId}`);
+};
+
+export const showVllmInstanceCreateErrorToastKo = (error: string) => {
+    showErrorToastKo(`인스턴스 생성 실패: ${error}`);
+};
+
+/**
+ * 입력 유효성 검사 토스트들
+ */
+export const showValidationErrorToastKo = (message: string) => {
+    showErrorToastKo(message);
+};
+
+/**
+ * 오퍼 선택 토스트
+ */
+export const showOfferSelectedToastKo = () => {
+    showSuccessToastKo('오퍼가 선택되었습니다. VLLM 설정을 진행해주세요.');
+};
+
+/**
+ * 인스턴스 상태 관련 토스트들
+ */
+export const showInstanceStatusToastKo = {
+    creating: (instanceId: string) => showLoadingToastKo(`⏳ 인스턴스 ${instanceId} 생성 중...`),
+    starting: (instanceId: string) => showLoadingToastKo(`🚀 인스턴스 ${instanceId} 시작 중...`),
+    running: (instanceId: string) => showSuccessToastKo(`✅ 인스턴스 ${instanceId} 실행 중, VLLM 설정 대기...`),
+    vllmRunning: (instanceId: string) => showSuccessToastKo(`🎉 인스턴스 ${instanceId} VLLM 실행 완료!`),
+    exited: (instanceId: string) => showErrorToastKo(`❌ 인스턴스 ${instanceId} 종료됨`),
+    error: (instanceId: string, error?: string) => showErrorToastKo(`💥 인스턴스 ${instanceId} 오류${error ? `: ${error}` : ''}`)
+};

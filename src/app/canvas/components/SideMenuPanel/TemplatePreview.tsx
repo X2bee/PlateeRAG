@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef, useEffect, MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
-import toast from 'react-hot-toast';
+import { showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/canvas/assets/TemplatePreview.module.scss';
 import MiniCanvas from '@/app/canvas/components/SideMenuPanel/MiniCanvas';
 import { LuX, LuCopy } from "react-icons/lu";
@@ -49,7 +49,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onClose, on
             devLog.log('onClose called successfully');
         } catch (error) {
             devLog.error('Error in Use Template:', error);
-            toast.error('Failed to load template');
+            showErrorToastKo('템플릿 로드에 실패했습니다');
         }
     };
 

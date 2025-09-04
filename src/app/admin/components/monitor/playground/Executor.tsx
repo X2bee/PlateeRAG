@@ -11,13 +11,14 @@ import {
     executeWorkflowById,
     deleteWorkflowIOLogs,
 } from '@/app/api/workflow/workflowAPI';
-import toast from 'react-hot-toast';
 import styles from '@/app/admin/assets/playground/Executor.module.scss';
 import {
-    showLogDeleteConfirm,
-    showDeleteSuccessToast,
-    showDeleteErrorToast
-} from '@/app/_common/utils/toastUtils';
+    showLogDeleteConfirmKo,
+    showDeleteSuccessToastKo,
+    showDeleteErrorToastKo,
+    showSuccessToastKo,
+    showErrorToastKo
+} from '@/app/_common/utils/toastUtilsKo';
 
 interface Workflow {
     workflow_name: string;
@@ -107,8 +108,8 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
 
         const workflowName = selectedWorkflow.workflow_name.replace('.json', '');
 
-        showLogDeleteConfirm(
-            'Execution Logs',
+        showLogDeleteConfirmKo(
+            '실행 로그',
             workflowName,
             async () => {
                 try {
@@ -126,18 +127,18 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
 
                     // 성공 토스트 메시지
                     const deletedCount = (result as any).deleted_count || 0;
-                    showDeleteSuccessToast({
+                    showDeleteSuccessToastKo({
                         itemName: workflowName,
-                        itemType: 'execution logs',
+                        itemType: '실행 로그',
                         count: deletedCount,
                         customMessage: `"${workflowName}" 워크플로우의 실행 로그가 성공적으로 삭제되었습니다! (${deletedCount}개 로그 제거됨)`,
                     });
                 } catch (error) {
                     console.error('Failed to delete logs:', error);
                     setError('로그 삭제에 실패했습니다.');
-                    showDeleteErrorToast({
+                    showDeleteErrorToastKo({
                         itemName: workflowName,
-                        itemType: 'execution logs',
+                        itemType: '실행 로그',
                         error: error instanceof Error ? error : 'Unknown error',
                         customMessage: `실행 로그 삭제에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
                     });

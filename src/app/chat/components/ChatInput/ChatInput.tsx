@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useRef, useEffect, forwardRef, useImperativeHandle, useState } from 'react';
 import {
     FiSend,
     FiPlus,
@@ -9,6 +9,7 @@ import {
 } from 'react-icons/fi';
 import styles from '../../assets/ChatInterface.module.scss';
 import { useInputHandling } from '../../hooks/useInputHandling';
+import SoundInput from '../SoundInput/SoundInput';
 
 interface ChatInputProps {
     executing: boolean;
@@ -20,6 +21,7 @@ interface ChatInputProps {
     onSendMessage: (message: string) => void;
     onShiftEnter?: () => void;
     initialMessage?: string;
+    onAudioUpload?: (audioBlob: Blob) => void;
 }
 
 interface ChatInputRef {
@@ -39,10 +41,12 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
         onSendMessage,
         onShiftEnter,
         initialMessage,
+        onAudioUpload,
     },
     ref
 ) => {
     const attachmentButtonRef = useRef<HTMLDivElement>(null);
+    const [showSoundInput, setShowSoundInput] = useState(false);
 
     const inputHandling = useInputHandling({
         executing,
@@ -93,6 +97,20 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
         };
     }, [showAttachmentMenu, onAttachmentClick]);
 
+    // 음성 입력 처리 함수
+    const handleAudioReady = (audioBlob: Blob) => {
+        if (onAudioUpload) {
+            onAudioUpload(audioBlob);
+        }
+        // 오디오를 사용하기로 결정했을 때만 모달 닫기
+        setShowSoundInput(false);
+    };
+
+    // 음성 입력 모달 닫기
+    const handleCloseSoundInput = () => {
+        setShowSoundInput(false);
+    };
+
     return (
         <div className={styles.inputArea} style={{ pointerEvents: loading ? 'none' : 'auto' }}>
             <div className={styles.inputContainer}>
@@ -141,8 +159,11 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
                                     <span>사진</span>
                                 </button>
                                 <button
-                                    className={`${styles.attachmentOption} ${styles.disabled}`}
-                                    disabled
+                                    className={styles.attachmentOption}
+                                    onClick={() => {
+                                        setShowSoundInput(true);
+                                        onAttachmentClick(); // 첨부 메뉴 닫기
+                                    }}
                                 >
                                     <FiMic />
                                     <span>음성</span>
@@ -172,6 +193,18 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
                         워크플로우를 실행 중입니다...
                     </p>
                 )
+            )}
+
+            {/* 음성 입력 모달 */}
+            {showSoundInput && (
+                <div className={styles.soundInputOverlay}>
+                    <div className={styles.soundInputModal}>
+                        <SoundInput
+                            onAudioReady={handleAudioReady}
+                            onClose={handleCloseSoundInput}
+                        />
+                    </div>
+                </div>
             )}
         </div>
     );

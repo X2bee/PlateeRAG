@@ -4,7 +4,7 @@ import styles from '@/app/admin/assets/playground/TesterLogs.module.scss';
 import { FiRefreshCw, FiDownload, FiTrash2, FiBarChart, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 import { getWorkflowTesterIOLogs, deleteWorkflowTesterIOLogs } from '@/app/api/workflow/workflowAPI';
 import { devLog } from '@/app/_common/utils/logger';
-import toast from 'react-hot-toast';
+import { showSuccessToastKo, showErrorToastKo, showLogDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
 import TesterChartDashboard from './charts/TesterChartDashboard';
 import { usePagesLayout } from '@/app/_common/components/PagesLayoutContent';
 
@@ -202,121 +202,27 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
     const deleteBatchLogs = async (batchGroup: BatchGroup) => {
         if (!workflow) return;
 
-        // Toast를 사용한 확인 메시지
-        const confirmToast = new Promise<boolean>((resolve) => {
-            toast((t) => (
-                <div
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '12px',
-                    }}
-                >
-                    <div
-                        style={{
-                            fontWeight: '600',
-                            color: '#dc2626',
-                            fontSize: '1rem',
-                        }}
-                    >
-                        배치 그룹 삭제
-                    </div>
-                    <div
-                        style={{
-                            fontSize: '0.9rem',
-                            color: '#374151',
-                            lineHeight: '1.4',
-                        }}
-                    >
-                        정말로 &quot;<strong>{batchGroup.interaction_batch_id}</strong>&quot;를 삭제하시겠습니까?
-                        <br />
-                        이 작업은 되돌릴 수 없습니다.
-                    </div>
-                    <div
-                        style={{
-                            display: 'flex',
-                            gap: '8px',
-                            justifyContent: 'flex-end',
-                            marginTop: '4px',
-                        }}
-                    >
-                        <button
-                            onClick={() => {
-                                toast.dismiss(t.id);
-                                resolve(false);
-                            }}
-                            style={{
-                                padding: '8px 16px',
-                                backgroundColor: '#ffffff',
-                                border: '2px solid #6b7280',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '0.85rem',
-                                fontWeight: '500',
-                                color: '#374151',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                            }}
-                        >
-                            취소
-                        </button>
-                        <button
-                            onClick={() => {
-                                toast.dismiss(t.id);
-                                resolve(true);
-                            }}
-                            style={{
-                                padding: '8px 16px',
-                                backgroundColor: '#dc2626',
-                                color: 'white',
-                                border: '2px solid #b91c1c',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '0.85rem',
-                                fontWeight: '500',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                            }}
-                        >
-                            삭제
-                        </button>
-                    </div>
-                </div>
-            ), {
-                duration: Infinity,
-                style: {
-                    maxWidth: '420px',
-                    padding: '20px',
-                    backgroundColor: '#f9fafb',
-                    border: '2px solid #374151',
-                    borderRadius: '12px',
-                    boxShadow:
-                        '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
-                    color: '#374151',
-                    fontFamily: 'system-ui, -apple-system, sans-serif',
-                },
-            });
-        });
+        // 확인 토스트 사용
+        showLogDeleteConfirmToastKo(
+            async () => {
+                try {
+                    const workflowName = workflow.workflow_name.replace('.json', '');
+                    const result = await deleteWorkflowTesterIOLogs(workflowName, batchGroup.interaction_batch_id) as any;
 
-        const confirmed = await confirmToast;
-        if (!confirmed) return;
+                    devLog.log('Batch logs deleted successfully:', result);
 
-        try {
-            const workflowName = workflow.workflow_name.replace('.json', '');
-            const result = await deleteWorkflowTesterIOLogs(workflowName, batchGroup.interaction_batch_id) as any;
+                    // 삭제 후 목록 새로고침
+                    await loadBatchLogs();
 
-            devLog.log('Batch logs deleted successfully:', result);
-
-            // 삭제 후 목록 새로고침
-            await loadBatchLogs();
-
-            // 성공 토스트 메시지
-            toast.success(`${result.deleted_count || 0}개의 로그가 성공적으로 삭제되었습니다.`);
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : '로그 삭제에 실패했습니다.';
-            devLog.error('Failed to delete batch logs:', err);
-            toast.error(`삭제 실패: ${errorMessage}`);
-        }
+                    // 성공 토스트 메시지
+                    showSuccessToastKo(`${result.deleted_count || 0}개의 로그가 성공적으로 삭제되었습니다.`);
+                } catch (err) {
+                    const errorMessage = err instanceof Error ? err.message : '로그 삭제에 실패했습니다.';
+                    devLog.error('Failed to delete batch logs:', err);
+                    showErrorToastKo(`삭제 실패: ${errorMessage}`);
+                }
+            }
+        );
     };
 
     if (!workflow) {

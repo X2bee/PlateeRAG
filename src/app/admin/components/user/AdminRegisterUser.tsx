@@ -4,6 +4,14 @@ import React, { useState, useEffect } from 'react';
 import { getStandbyUsers, approveUser, deleteUser } from '@/app/admin/api/users';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/AdminRegisterUser.module.scss';
+import {
+    showDeleteConfirmToastKo,
+    showDeleteSuccessToastKo,
+    showDeleteErrorToastKo,
+    showSuccessToastKo,
+    showErrorToastKo,
+    showWarningConfirmToastKo
+} from '@/app/_common/utils/toastUtilsKo';
 
 interface StandbyUser {
     id: number;
@@ -97,68 +105,82 @@ const AdminRegisterUser: React.FC = () => {
 
     // 사용자 승인 핸들러
     const handleApproveUser = async (user: StandbyUser) => {
-        const confirmed = window.confirm(
-            `"${user.username}" (${user.email}) 사용자의 등록을 승인하시겠습니까?`
-        );
+        showWarningConfirmToastKo({
+            title: '사용자 승인',
+            message: `"${user.username}" (${user.email}) 사용자의 등록을 승인하시겠습니까?`,
+            onConfirm: async () => {
+                try {
+                    setApproveLoading(user.id);
 
-        if (!confirmed) return;
+                    const userData = {
+                        id: user.id,
+                        username: user.username,
+                        email: user.email
+                    };
 
-        try {
-            setApproveLoading(user.id);
+                    const result = await approveUser(userData);
+                    devLog.log('User approved successfully:', result);
 
-            const userData = {
-                id: user.id,
-                username: user.username,
-                email: user.email
-            };
+                    // 승인 성공 후 대기 사용자 목록 새로고침
+                    await loadStandbyUsers();
 
-            const result = await approveUser(userData);
-            devLog.log('User approved successfully:', result);
-
-            // 승인 성공 후 대기 사용자 목록 새로고침
-            await loadStandbyUsers();
-
-            alert('사용자 등록이 성공적으로 승인되었습니다.');
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : '사용자 승인에 실패했습니다.';
-            devLog.error('Failed to approve user:', err);
-            alert(`승인 실패: ${errorMessage}`);
-        } finally {
-            setApproveLoading(null);
-        }
+                    showSuccessToastKo('사용자 등록이 성공적으로 승인되었습니다.');
+                } catch (err) {
+                    const errorMessage = err instanceof Error ? err.message : '사용자 승인에 실패했습니다.';
+                    devLog.error('Failed to approve user:', err);
+                    showErrorToastKo(`승인 실패: ${errorMessage}`);
+                } finally {
+                    setApproveLoading(null);
+                }
+            },
+            confirmText: '승인',
+            cancelText: '취소'
+        });
     };
 
     // 사용자 거부 (삭제) 핸들러
     const handleRejectUser = async (user: StandbyUser) => {
-        const confirmed = window.confirm(
-            `정말로 "${user.username}" (${user.email}) 사용자의 등록을 거부하시겠습니까?\n\n이 작업은 해당 사용자의 모든 데이터를 삭제하며 되돌릴 수 없습니다.`
-        );
+        showDeleteConfirmToastKo({
+            title: '사용자 등록 거부',
+            message: `정말로 "${user.username}" (${user.email}) 사용자의 등록을 거부하시겠습니까?\n\n이 작업은 해당 사용자의 모든 데이터를 삭제하며 되돌릴 수 없습니다.`,
+            itemName: user.username,
+            onConfirm: async () => {
+                try {
+                    setRejectLoading(user.id);
 
-        if (!confirmed) return;
+                    const userData = {
+                        id: user.id,
+                        username: user.username,
+                        email: user.email
+                    };
 
-        try {
-            setRejectLoading(user.id);
+                    const result = await deleteUser(userData);
+                    devLog.log('User rejected successfully:', result);
 
-            const userData = {
-                id: user.id,
-                username: user.username,
-                email: user.email
-            };
+                    // 거부 성공 후 대기 사용자 목록 새로고침
+                    await loadStandbyUsers();
 
-            const result = await deleteUser(userData);
-            devLog.log('User rejected successfully:', result);
-
-            // 거부 성공 후 대기 사용자 목록 새로고침
-            await loadStandbyUsers();
-
-            alert('사용자 등록이 거부되었으며 관련 데이터가 삭제되었습니다.');
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : '사용자 거부에 실패했습니다.';
-            devLog.error('Failed to reject user:', err);
-            alert(`거부 실패: ${errorMessage}`);
-        } finally {
-            setRejectLoading(null);
-        }
+                    showDeleteSuccessToastKo({
+                        itemName: user.username,
+                        itemType: '사용자',
+                        customMessage: '사용자 등록이 거부되었으며 관련 데이터가 삭제되었습니다.',
+                    });
+                } catch (err) {
+                    const errorMessage = err instanceof Error ? err.message : '사용자 거부에 실패했습니다.';
+                    devLog.error('Failed to reject user:', err);
+                    showDeleteErrorToastKo({
+                        itemName: user.username,
+                        itemType: '사용자',
+                        error: err instanceof Error ? err : 'Unknown error',
+                        customMessage: `거부 실패: ${errorMessage}`,
+                    });
+                } finally {
+                    setRejectLoading(null);
+                }
+            },
+            confirmText: '거부',
+            cancelText: '취소'
+        });
     };
 
     if (loading) {

@@ -18,6 +18,7 @@ import { SiOpenai } from 'react-icons/si';
 import { RiAnthropicFill, RiGeminiFill } from "react-icons/ri";
 import { fetchAllConfigs, updateConfig } from '@/app/api/configAPI';
 import { devLog } from '@/app/_common/utils/logger';
+import { showValidationErrorToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/admin/assets/AdminConfigViewer.module.scss';
 
 interface ConfigItem {
@@ -354,7 +355,7 @@ const AdminConfigViewer: React.FC<AdminConfigViewerProps> = ({
         const validation = validateValue(editValue, config.type);
 
         if (!validation.isValid) {
-            alert(`유효하지 않은 값입니다: ${validation.error}`);
+            showValidationErrorToastKo(`유효하지 않은 값입니다: ${validation.error}`);
             return;
         }
 
@@ -381,7 +382,7 @@ const AdminConfigViewer: React.FC<AdminConfigViewerProps> = ({
             devLog.info(`Config ${config.env_name} updated successfully`);
         } catch (error) {
             devLog.error('Failed to update config:', error);
-            alert('설정 업데이트에 실패했습니다.');
+            showErrorToastKo('설정 업데이트에 실패했습니다.');
         } finally {
             setUpdating(false);
         }

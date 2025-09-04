@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { FiX, FiLoader } from 'react-icons/fi';
 import styles from '@/app/admin/assets/playground/ChartDashboard.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
-import ChartPlaceholder from '@/app/admin/components/playground/charts/ChartPlaceholder';
+import ChartPlaceholder from '@/app/admin/components/monitor/playground/charts/ChartPlaceholder';
 
 const TesterChart = dynamic(() => import('./TesterChart'), {
     ssr: false,

@@ -17,6 +17,7 @@ import {
 } from '@/app/api/configAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
+import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 
 import AdminLLMConfig from '@/app/admin/components/config/AdminLLMConfig';
 import AdminDatabaseConfig from '@/app/admin/components/config/AdminDatabaseConfig';
@@ -202,11 +203,11 @@ const AdminSettings: React.FC = () => {
                 configs[categoryId],
             );
             const result = await testConnection(categoryId);
-            alert(`${categoryId} 연결 테스트 성공: ${JSON.stringify(result)}`);
+            showSuccessToastKo(`${categoryId} 연결 테스트 성공: ${JSON.stringify(result)}`);
         } catch (error) {
             const errorMessage =
                 error instanceof Error ? error.message : '알 수 없는 오류';
-            alert(`${categoryId} 연결 테스트 실패: ${errorMessage}`);
+            showErrorToastKo(`${categoryId} 연결 테스트 실패: ${errorMessage}`);
             devLog.error('Connection test failed:', error);
         }
     };

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { getAllIOLogs } from '@/app/admin/api/workflow';
 import { devLog } from '@/app/_common/utils/logger';
+import { showValidationErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/admin/assets/AdminWorkflowLogsContent.module.scss';
 
 interface WorkflowLog {
@@ -224,7 +225,7 @@ const AdminWorkflowLogsContent: React.FC = () => {
         } else {
             const parsedUserId = parseInt(userId);
             if (isNaN(parsedUserId)) {
-                alert('유효한 사용자 ID를 입력해주세요.');
+                showValidationErrorToastKo('유효한 사용자 ID를 입력해주세요.');
                 return;
             }
             setCurrentUserId(parsedUserId);

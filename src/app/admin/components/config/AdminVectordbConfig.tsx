@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiCheck, FiX, FiAlertCircle, FiPlay, FiSettings, FiServer, FiDatabase } from 'react-icons/fi';
 import { SiOpenai, SiHuggingface } from 'react-icons/si';
 import { BsRobot } from 'react-icons/bs';
-import toast from 'react-hot-toast';
+import {
+    showEmbeddingProviderChangeConfirmKo,
+    showSuccessToastKo,
+    showErrorToastKo
+} from '@/app/_common/utils/toastUtilsKo';
 import AdminBaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/admin/components/config/AdminBaseConfigPanel';
 import {
     getCurrentEmbeddingDimension,
@@ -268,69 +272,16 @@ const AdminVectordbConfig: React.FC<AdminVectordbConfigProps> = ({
             return;
         }
 
-        // 확인 toast를 통해 사용자에게 변경 의사 확인
+        // 확인 토스트를 통해 사용자에게 변경 의사 확인
         const currentProviderDisplayName = EMBEDDING_PROVIDERS.find(p => p.name === currentProvider)?.displayName || currentProvider;
         const newProviderDisplayName = EMBEDDING_PROVIDERS.find(p => p.name === providerName)?.displayName || providerName;
 
-        toast((t) => (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ fontWeight: '600', color: '#dc2626', fontSize: '1rem' }}>
-                    임베딩 제공자 변경
-                </div>
-                <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.4' }}>
-                    현재: <strong>{currentProviderDisplayName}</strong> → 변경: <strong>{newProviderDisplayName}</strong>
-                    <br />
-                    변경 시 백엔드에서 재설정 작업이 수행됩니다.
-                </div>
-                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
-                    <button
-                        onClick={() => toast.dismiss(t.id)}
-                        style={{
-                            padding: '8px 16px',
-                            backgroundColor: '#ffffff',
-                            border: '2px solid #6b7280',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '0.85rem',
-                            fontWeight: '500',
-                            color: '#374151',
-                        }}
-                    >
-                        취소
-                    </button>
-                    <button
-                        onClick={() => {
-                            toast.dismiss(t.id);
-                            confirmProviderSwitch(providerName);
-                        }}
-                        style={{
-                            padding: '8px 16px',
-                            backgroundColor: '#dc2626',
-                            color: 'white',
-                            border: '2px solid #b91c1c',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '0.85rem',
-                            fontWeight: '500',
-                        }}
-                    >
-                        변경
-                    </button>
-                </div>
-            </div>
-        ), {
-            duration: Infinity,
-            style: {
-                maxWidth: '420px',
-                padding: '20px',
-                backgroundColor: '#f9fafb',
-                border: '2px solid #374151',
-                borderRadius: '12px',
-                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
-                color: '#374151',
-                fontFamily: 'system-ui, -apple-system, sans-serif',
-            },
-        });
+        showEmbeddingProviderChangeConfirmKo(
+            currentProviderDisplayName,
+            newProviderDisplayName,
+            () => confirmProviderSwitch(providerName),
+            () => {} // onCancel 콜백 - 필요시 추가 로직
+        );
     };
 
     const confirmProviderSwitch = async (providerName: string) => {
@@ -340,11 +291,11 @@ const AdminVectordbConfig: React.FC<AdminVectordbConfigProps> = ({
             const result = await switchEmbeddingProvider(providerName);
             setCurrentProvider(providerName);
             await loadEmbeddingStatus(); // 상태 새로고침
-            toast.success(`임베딩 제공자가 ${EMBEDDING_PROVIDERS.find(p => p.name === providerName)?.displayName || providerName}로 변경되었습니다.`);
+            showSuccessToastKo(`임베딩 제공자가 ${EMBEDDING_PROVIDERS.find(p => p.name === providerName)?.displayName || providerName}로 변경되었습니다.`);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : '제공자 변경에 실패했습니다.';
             setError(errorMessage);
-            toast.error(errorMessage);
+            showErrorToastKo(errorMessage);
             console.error('Failed to switch provider:', err);
         } finally {
             setSwitching(false);
@@ -362,18 +313,18 @@ const AdminVectordbConfig: React.FC<AdminVectordbConfigProps> = ({
                 // Fallback to original onTestConnection
                 if (onTestConnection) {
                     await onTestConnection(providerName);
-                    toast.success(`연결 테스트 성공!`);
+                    showSuccessToastKo(`연결 테스트 성공!`);
                     return;
                 }
             }
 
             if (result) {
-                toast.success(`임베딩 테스트 성공!\n차원: ${(result as any).embedding_dimension}\n제공자: ${(result as any).provider}`);
+                showSuccessToastKo(`임베딩 테스트 성공!\n차원: ${(result as any).embedding_dimension}\n제공자: ${(result as any).provider}`);
             }
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : `${providerName} 연결 테스트에 실패했습니다.`;
             setError(errorMessage);
-            toast.error(errorMessage);
+            showErrorToastKo(errorMessage);
             console.error('Failed to test connection:', err);
         } finally {
             setTesting(false);
@@ -386,11 +337,11 @@ const AdminVectordbConfig: React.FC<AdminVectordbConfigProps> = ({
         try {
             await refreshRetrievalConfig();
             await loadEmbeddingStatus(); // 상태 새로고침
-            toast.success('Retrieval 설정이 성공적으로 새로고침되었습니다.');
+            showSuccessToastKo('Retrieval 설정이 성공적으로 새로고침되었습니다.');
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Retrieval 설정 새로고침에 실패했습니다.';
             setError(errorMessage);
-            toast.error(errorMessage);
+            showErrorToastKo(errorMessage);
             console.error('Failed to refresh retrieval config:', err);
         } finally {
             setLoading(false);

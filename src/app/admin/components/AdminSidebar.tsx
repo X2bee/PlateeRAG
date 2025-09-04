@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import toast from 'react-hot-toast';
 import Image from 'next/image';
 import { AdminSidebarProps } from '@/app/admin/components/types';
 import styles from '@/app/admin/assets/AdminPage.module.scss';
@@ -67,7 +66,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     const toggleSecurityExpanded = () => setIsSecurityExpanded(!isSecurityExpanded);
 
     const handleLogoClick = () => {
-        router.push('/main');
+        onItemClick('dashboard');
     };
 
     return (

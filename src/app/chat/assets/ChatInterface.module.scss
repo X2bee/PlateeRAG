@@ -1183,4 +1183,34 @@
     .messageInput {
         font-size: 16px; // iOS zoom 방지
     }
+
+    .soundInputModal {
+        margin: 1rem;
+        max-width: calc(100% - 2rem);
+    }
+}
+
+// 음성 입력 모달 스타일
+.soundInputOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.soundInputModal {
+    position: relative;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }

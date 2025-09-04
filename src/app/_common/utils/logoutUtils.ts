@@ -3,7 +3,7 @@ import { clearAllUserData } from '@/app/_common/utils/storageUtils';
 import { devLog } from '@/app/_common/utils/logger';
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
-import toast from 'react-hot-toast';
+import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 
 /**
  * 로그아웃 처리를 위한 커스텀 훅
@@ -41,7 +41,7 @@ export const useLogout = () => {
 
             // 성공 메시지 표시
             if (showToast) {
-                toast.success('성공적으로 로그아웃되었습니다.');
+                showSuccessToastKo('성공적으로 로그아웃되었습니다.');
             }
 
             devLog.log('Logout completed, redirecting to:', redirectTo);
@@ -53,7 +53,7 @@ export const useLogout = () => {
             devLog.error('Error during logout:', error);
 
             if (showToast) {
-                toast.error('로그아웃 처리 중 오류가 발생했습니다.');
+                showErrorToastKo('로그아웃 처리 중 오류가 발생했습니다.');
             }
 
             // 오류가 발생해도 로그인 페이지로 리다이렉트

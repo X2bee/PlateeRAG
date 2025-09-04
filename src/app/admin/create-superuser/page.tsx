@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '@/app/(auth)/signup/SignupPage.module.scss';
 import { createSuperuser } from '@/app/admin/api/admin';
+import { showSuccessToastKo } from '@/app/_common/utils/toastUtilsKo';
 
 const CreateSuperuserPage = () => {
   const [username, setUsername] = useState('');
@@ -42,7 +43,7 @@ const CreateSuperuserPage = () => {
 
       await createSuperuser(signupData);
 
-      alert('슈퍼유저가 성공적으로 생성되었습니다. 관리자 로그인 페이지로 이동합니다.');
+      showSuccessToastKo('슈퍼유저가 성공적으로 생성되었습니다. 관리자 로그인 페이지로 이동합니다.');
       router.push('/admin/login-superuser');
 
     } catch (err: any) {

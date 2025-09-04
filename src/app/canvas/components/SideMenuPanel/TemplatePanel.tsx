@@ -1,13 +1,16 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import toast from 'react-hot-toast';
 import styles from '@/app/canvas/assets/WorkflowPanel.module.scss';
 import sideMenuStyles from '@/app/canvas/assets/SideMenu.module.scss';
 import { LuArrowLeft, LuLayoutTemplate, LuPlay, LuCopy } from "react-icons/lu";
 import TemplatePreview from '@/app/canvas/components/SideMenuPanel/TemplatePreview';
 import { getWorkflowState } from '@/app/_common/utils/workflowStorage';
 import { devLog } from '@/app/_common/utils/logger';
-import { showWarningConfirmToast } from '@/app/_common/utils/toastUtils';
+import {
+    showWarningConfirmToastKo,
+    showSuccessToastKo,
+    showErrorToastKo
+} from '@/app/_common/utils/toastUtilsKo';
 
 import generate_marketing_API from '@/app/canvas/constants/workflow/generate_marketing_API.json'
 import openai_test from '@/app/canvas/constants/workflow/openai_test.json'
@@ -61,14 +64,14 @@ const TemplatePanel: React.FC<TemplatePanelProps> = ({ onBack, onLoadWorkflow })
         const hasCurrentWorkflow = currentState && ((currentState.nodes?.length || 0) > 0 || (currentState.edges?.length || 0) > 0);
 
         if (hasCurrentWorkflow) {
-            showWarningConfirmToast({
-                title: 'Use Template',
-                message: `You have an existing workflow with unsaved changes.\nUsing "${template.name}" template will replace your current work.`,
+            showWarningConfirmToastKo({
+                title: '템플릿 사용',
+                message: `현재 저장되지 않은 변경사항이 있는 워크플로우가 있습니다.\n"${template.name}" 템플릿 사용 시 현재 작업이 대체됩니다.`,
                 onConfirm: () => {
                     performUseTemplate(template);
                 },
-                confirmText: 'Use Template',
-                cancelText: 'Cancel',
+                confirmText: '템플릿 사용',
+                cancelText: '취소',
             });
         } else {
             performUseTemplate(template);
@@ -85,13 +88,13 @@ const TemplatePanel: React.FC<TemplatePanelProps> = ({ onBack, onLoadWorkflow })
             devLog.log('Calling onLoadWorkflow with:', template.data, template.name);
             onLoadWorkflow(template.data, template.name);
             devLog.log('onLoadWorkflow call completed');
-            toast.success(`Template "${template.name}" loaded successfully!`);
+            showSuccessToastKo(`템플릿 "${template.name}"이(가) 성공적으로 로드되었습니다!`);
         } else {
             devLog.error('Cannot call onLoadWorkflow:', {
                 hasOnLoadWorkflow: !!onLoadWorkflow,
                 hasTemplateData: !!template?.data
             });
-            toast.error('Failed to load template');
+            showErrorToastKo('템플릿 로드에 실패했습니다');
         }
     };
 
