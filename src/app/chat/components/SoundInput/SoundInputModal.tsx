@@ -355,6 +355,8 @@ const SoundInput: React.FC<SoundInputProps> = ({
 
                 {audioUrl && state === "finished" && (
                     <div className={styles.playback}>
+                        
+                        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                         <audio src={audioUrl} controls className={styles.audioPlayer} />
                         <div className={styles.actions}>
                             <button
