@@ -12,7 +12,7 @@ interface WorkflowEditModalProps {
     workflow: Workflow;
     isOpen: boolean;
     onClose: () => void;
-    onUpdate: (updatedWorkflow: Workflow) => void;
+    onUpdate: (updatedWorkflow: Workflow, updatedDeploy: {[key: string]: boolean | null}) => void;
 }
 
 const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
@@ -93,7 +93,9 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
                 share_group: isShared ? shareGroup || null : null
             };
 
-            onUpdate(updatedWorkflow);
+            const updatedDeploy = {[workflow.name]: toggleDeploy};
+
+            onUpdate(updatedWorkflow,updatedDeploy);
             onClose();
         } catch (err) {
             setError('워크플로우 업데이트에 실패했습니다.');
