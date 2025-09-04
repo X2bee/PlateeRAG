@@ -160,7 +160,7 @@ const SoundInputHandler: React.FC<SoundInputHandlerProps> = ({
         const elapsedTime = (currentTime - recordingStartTimeRef.current) / 1000;
         // devLog.log(`⏰ Elapsed time: ${elapsedTime.toFixed(2)}s`);
 
-        if (elapsedTime >= 1.5) {
+        if (elapsedTime >= 1) {
             const levels = audioLevelsRef.current;
             const currentLevel = levels.length > 0 ? levels[levels.length - 1] : 0;
             // devLog.log(`📊 Current level: ${currentLevel.toFixed(3)}, History length: ${levels.length}`);
