@@ -1,9 +1,25 @@
 /**
  * 통합 하이라이팅 시스템
- * PDF와 DOCX의 하이라이팅 차이를 해결하는 통합 솔루션
+ * PDF와 DOCX의 하이라이팅 차이를 해결하는 범용 솔루션
+ * 
+ * 주요 특징:
+ * - 문서 유형에 관계없이 동작하는 범용 시스템
+ * - 사용자 정의 중요 키워드 관리 가능
+ * - 유연한 매칭 로직 (정확 매칭, 구문 매칭)
+ * - 과도한 하이라이팅 방지
+ * 
+ * 사용법:
+ * ```typescript
+ * // 기본 사용
+ * const chunks = createTextChunks(documentText, searchText);
+ * 
+ * // 사용자 정의 키워드와 함께 사용
+ * const customConfig = addCustomKeywords(['특별키워드', '중요용어']);
+ * const chunks = createTextChunks(documentText, searchText, defaultConfig, customConfig);
+ * ```
  */
 
-import { filterHighlightWords } from './highlightConstants';
+import { filterHighlightWords, isImportantKeyword, ImportantKeywordConfig } from './highlightConstants';
 
 export interface TextChunk {
   text: string;
@@ -32,14 +48,14 @@ export interface UnifiedHighlightConfig {
 }
 
 export const defaultUnifiedConfig: UnifiedHighlightConfig = {
-  minChunkLength: 3,
-  maxDistance: 50,
-  contextWords: 2,
-  precisionLevel: 'phrase',
-  maxHighlightRatio: 0.3,
-  groupingThreshold: 0.7,
+  minChunkLength: 2,        // 최소 길이를 2로 완화 (AAA, AA+ 등을 위해)
+  maxDistance: 30,          // 연속 거리 단축
+  contextWords: 1,          // 컨텍스트 단어 수 감소
+  precisionLevel: 'word',   // 단어 단위로 정밀도 향상
+  maxHighlightRatio: 0.25,  // 최대 하이라이트 비율을 25%로 상향 조정
+  groupingThreshold: 0.8,   // 그룹화 임계값 상향
   ngramSize: 1,
-  ngramThreshold: 0.4
+  ngramThreshold: 0.7       // N-gram 임계값 상향 조정
 };
 
 /**
@@ -48,33 +64,83 @@ export const defaultUnifiedConfig: UnifiedHighlightConfig = {
 export const createTextChunks = (
   fullText: string,
   searchText: string,
-  config: UnifiedHighlightConfig = defaultUnifiedConfig
+  config: UnifiedHighlightConfig = defaultUnifiedConfig,
+  keywordConfig?: ImportantKeywordConfig
 ): TextChunk[] => {
   if (!searchText.trim()) return [];
 
-  const searchTerms = filterHighlightWords(searchText);
+  const searchTerms = filterHighlightWords(searchText, keywordConfig);
   
+  // 검색어 품질 검증 - 의미 있는 키워드만 필터링
+  const qualityTerms = searchTerms.filter(term => {
+    // 순수 숫자나 단순 기호만으로 구성된 경우만 제외
+    if (/^[\d\-|~\s.,]+$/.test(term) && !/억|만|원/.test(term)) return false;
+    
+    // 너무 일반적인 단어들 제외
+    const commonWords = ['이하', '초과', '미만', '이상', '관련', '해당'];
+    if (commonWords.includes(term.toLowerCase())) return false;
+    
+    // 중요한 키워드들은 길이에 관계없이 유지
+    if (isImportantKeyword(term, keywordConfig)) return true;
+    
+    // 일반적인 최소 길이 검증 (3글자)
+    return term.length >= 3;
+  });
+
+  if (qualityTerms.length === 0) return [];
+
   const chunks: TextChunk[] = [];
   const fullTextLower = fullText.toLowerCase();
 
-  // 1. 정확한 매칭 찾기
-  searchTerms.forEach(term => {
+  // 1. 정확한 매칭 찾기 (가장 높은 우선순위)
+  qualityTerms.forEach(term => {
+    const termLower = term.toLowerCase();
     let startIndex = 0;
     while (true) {
-      const index = fullTextLower.indexOf(term, startIndex);
+      const index = fullTextLower.indexOf(termLower, startIndex);
       if (index === -1) break;
 
-      // 단어 경계 확인 (완전한 단어만 매칭)
-      const isWordBoundary = (
-        (index === 0 || !/\w/.test(fullTextLower[index - 1])) &&
-        (index + term.length === fullTextLower.length || !/\w/.test(fullTextLower[index + term.length]))
-      );
+      // 더 유연한 단어 경계 확인
+      const beforeChar = index > 0 ? fullTextLower[index - 1] : ' ';
+      const afterChar = index + termLower.length < fullTextLower.length ? 
+        fullTextLower[index + termLower.length] : ' ';
+      
+      // 중요한 키워드들은 단어 경계 검사를 완화
+      const isImportantTerm = isImportantKeyword(termLower, keywordConfig);
+      
+      let isValidBoundary = false;
+      
+      if (isImportantTerm) {
+        // 중요 키워드는 더 관대한 경계 검사
+        isValidBoundary = (
+          /[\s.,\-|()[\]{}~]/.test(beforeChar) ||
+          /[\s.,\-|()[\]{}~]/.test(afterChar) ||
+          index === 0 ||
+          index + termLower.length === fullTextLower.length
+        );
+      } else {
+        // 일반 키워드는 기존 로직 유지
+        const isKoreanWordBoundary = (
+          !/[\uAC00-\uD7AF\u3130-\u318F]/.test(beforeChar) &&
+          !/[\uAC00-\uD7AF\u3130-\u318F]/.test(afterChar)
+        ) || (
+          /[\s.,\-|()[\]{}]/.test(beforeChar) &&
+          /[\s.,\-|()[\]{}]/.test(afterChar)
+        );
 
-      if (isWordBoundary) {
+        const isEnglishWordBoundary = (
+          !/[a-zA-Z]/.test(beforeChar) &&
+          !/[a-zA-Z]/.test(afterChar)
+        );
+        
+        isValidBoundary = isKoreanWordBoundary || isEnglishWordBoundary;
+      }
+
+      if (isValidBoundary) {
         chunks.push({
-          text: fullText.substring(index, index + term.length),
+          text: fullText.substring(index, index + termLower.length),
           start: index,
-          end: index + term.length,
+          end: index + termLower.length,
           score: 1.0,
           type: 'exact'
         });
@@ -84,148 +150,76 @@ export const createTextChunks = (
     }
   });
 
-  // 2. 구문 단위 매칭 (여러 단어 조합)
-  const phrases = extractPhrases(searchText, config.contextWords);
-  phrases.forEach(phrase => {
-    let startIndex = 0;
-    while (true) {
-      const index = fullTextLower.indexOf(phrase.toLowerCase(), startIndex);
-      if (index === -1) break;
+  // 2. 구문 매칭 - 더 엄격한 조건으로만 수행
+  if (qualityTerms.length >= 2) {
+    const phrases = extractPhrases(qualityTerms.join(' '), 1, keywordConfig); // contextWords를 1로 고정
+    phrases.forEach(phrase => {
+      if (phrase.length < 6) return; // 너무 짧은 구문 제외
+      
+      let startIndex = 0;
+      const phraseLower = phrase.toLowerCase();
+      while (true) {
+        const index = fullTextLower.indexOf(phraseLower, startIndex);
+        if (index === -1) break;
 
-      chunks.push({
-        text: fullText.substring(index, index + phrase.length),
-        start: index,
-        end: index + phrase.length,
-        score: 0.8,
-        type: 'phrase'
-      });
+        // 구문이 정확히 매칭되는지 확인
+        const beforeChar = index > 0 ? fullTextLower[index - 1] : ' ';
+        const afterChar = index + phraseLower.length < fullTextLower.length ? 
+          fullTextLower[index + phraseLower.length] : ' ';
+        
+        if (/[\s.,\-|()[\]{}]/.test(beforeChar) && /[\s.,\-|()[\]{}]/.test(afterChar)) {
+          chunks.push({
+            text: fullText.substring(index, index + phrase.length),
+            start: index,
+            end: index + phrase.length,
+            score: 0.9,
+            type: 'phrase'
+          });
+        }
 
-      startIndex = index + phrase.length;
-    }
-  });
+        startIndex = index + phrase.length;
+      }
+    });
+  }
 
-  // 3. N-gram 매칭 추가
-  const ngramChunks = findNgramMatches(fullText, searchText, config);
-  chunks.push(...ngramChunks);
+  // N-gram 매칭은 비활성화 (너무 많은 false positive 생성)
 
   // 4. 중복 제거 및 병합
   const mergedChunks = mergeOverlappingChunks(chunks);
 
-  // 5. 컨텍스트 확장
-  const expandedChunks = expandChunksWithContext(mergedChunks, fullText, config);
+  // 5. 컨텍스트 확장 생략 (정확성 우선)
 
-  // 6. 점수순 정렬 및 개수 제한
-  return expandedChunks
+  // 6. 점수순 정렬 및 개수 제한 - 더 엄격한 제한
+  const maxChunks = Math.max(3, Math.floor(qualityTerms.length * 1.5));
+  return mergedChunks
     .sort((a, b) => b.score - a.score)
-    .slice(0, Math.floor(fullText.length * config.maxHighlightRatio / 10));
+    .slice(0, maxChunks);
 };
 
-/**
- * N-gram 기반 텍스트 매칭
- */
-const findNgramMatches = (
-  fullText: string, 
-  searchText: string, 
-  config: UnifiedHighlightConfig
-): TextChunk[] => {
-  const chunks: TextChunk[] = [];
-  const searchWords = filterHighlightWords(searchText);
-  const fullTextLower = fullText.toLowerCase();
-  const searchTextLower = searchText.toLowerCase();
-
-  // N-gram 생성 (2-gram, 3-gram)
-  for (let n = 2; n <= Math.max(config.ngramSize, 3); n++) {
-    const searchNgrams = generateNgrams(searchTextLower, n);
-    const fullTextNgrams = generateNgrams(fullTextLower, n);
-
-    searchNgrams.forEach(searchNgram => {
-      const ngramWords = searchNgram.split(' ').filter(word => word.length > 0);
-      if (ngramWords.length !== n) return;
-
-      // 검색 N-gram이 모두 유효한 단어인지 확인
-      const hasValidWords = ngramWords.every(word => 
-        searchWords.some(validWord => validWord.toLowerCase().includes(word) || word.includes(validWord.toLowerCase()))
-      );
-      
-      if (!hasValidWords) return;
-
-      // 전체 텍스트에서 유사한 N-gram 찾기
-      fullTextNgrams.forEach((fullNgram, index) => {
-        const similarity = calculateNgramSimilarity(searchNgram, fullNgram);
-        
-        if (similarity >= config.ngramThreshold) {
-          const startPos = findNgramPosition(fullTextLower, fullNgram, index);
-          if (startPos !== -1) {
-            chunks.push({
-              text: fullText.substring(startPos, startPos + fullNgram.length),
-              start: startPos,
-              end: startPos + fullNgram.length,
-              score: similarity * 0.6, // N-gram 매칭은 정확 매칭보다 낮은 점수
-              type: 'ngram'
-            });
-          }
-        }
-      });
-    });
-  }
-
-  return chunks;
-};
-
-/**
- * N-gram 생성
- */
-const generateNgrams = (text: string, n: number): string[] => {
-  const words = text.split(/\s+/).filter(word => word.length > 0);
-  const ngrams: string[] = [];
-
-  for (let i = 0; i <= words.length - n; i++) {
-    const ngram = words.slice(i, i + n).join(' ');
-    ngrams.push(ngram);
-  }
-
-  return ngrams;
-};
-
-/**
- * N-gram 유사도 계산 (Jaccard 유사도)
- */
-const calculateNgramSimilarity = (ngram1: string, ngram2: string): number => {
-  const chars1 = new Set(ngram1.split(''));
-  const chars2 = new Set(ngram2.split(''));
-  
-  const intersection = new Set([...chars1].filter(char => chars2.has(char)));
-  const union = new Set([...chars1, ...chars2]);
-  
-  return intersection.size / union.size;
-};
-
-/**
- * N-gram의 텍스트 내 위치 찾기
- */
-const findNgramPosition = (text: string, ngram: string, ngramIndex: number): number => {
-  const words = text.split(/\s+/);
-  let currentPos = 0;
-  
-  for (let i = 0; i < ngramIndex && i < words.length; i++) {
-    currentPos += words[i].length + 1; // 단어 길이 + 공백
-  }
-  
-  return currentPos;
-};
+// N-gram 관련 함수들은 현재 비활성화됨 (과도한 매칭 방지)
 
 /**
  * 검색어에서 의미있는 구문 추출
  */
-const extractPhrases = (searchText: string, contextWords: number): string[] => {
-  const words = filterHighlightWords(searchText);
+const extractPhrases = (
+  searchText: string, 
+  contextWords: number,
+  keywordConfig?: ImportantKeywordConfig
+): string[] => {
+  const words = filterHighlightWords(searchText, keywordConfig);
   const phrases: string[] = [];
 
   // 2-3 단어 조합으로 구문 생성
   for (let i = 0; i < words.length; i++) {
     for (let j = 2; j <= Math.min(contextWords + 1, words.length - i); j++) {
       const phrase = words.slice(i, i + j).join(' ');
-      if (phrase.length >= 6) { // 최소 구문 길이
+      
+      // 구문이 중요한 키워드를 포함하거나 충분한 길이인 경우만 포함
+      const containsImportantKeyword = words.slice(i, i + j).some(word => 
+        isImportantKeyword(word, keywordConfig)
+      );
+      
+      if (containsImportantKeyword || phrase.length >= 6) {
         phrases.push(phrase);
       }
     }
@@ -266,67 +260,13 @@ const mergeOverlappingChunks = (chunks: TextChunk[]): TextChunk[] => {
   return merged;
 };
 
-/**
- * 청크를 컨텍스트와 함께 확장
- */
-const expandChunksWithContext = (
-  chunks: TextChunk[],
-  fullText: string,
-  config: UnifiedHighlightConfig
-): TextChunk[] => {
-  return chunks.map(chunk => {
-    const words = fullText.split(/\s+/);
-    const chunkText = fullText.substring(chunk.start, chunk.end);
-    const chunkStart = fullText.indexOf(chunkText);
-    
-    // 단어 경계 찾기
-    let wordStart = 0;
-    let wordEnd = words.length - 1;
-    
-    let currentPos = 0;
-    for (let i = 0; i < words.length; i++) {
-      const wordEnd = currentPos + words[i].length;
-      if (currentPos <= chunkStart && wordEnd >= chunkStart) {
-        wordStart = Math.max(0, i - config.contextWords);
-        break;
-      }
-      currentPos = wordEnd + 1; // 공백 포함
-    }
-
-    currentPos = 0;
-    for (let i = 0; i < words.length; i++) {
-      const wordStartPos = currentPos;
-      const wordEndPos = currentPos + words[i].length;
-      if (wordStartPos <= chunk.end && wordEndPos >= chunk.end) {
-        wordEnd = Math.min(words.length - 1, i + config.contextWords);
-        break;
-      }
-      currentPos = wordEndPos + 1; // 공백 포함
-    }
-
-    // 컨텍스트 포함 텍스트 생성
-    const contextWords = words.slice(wordStart, wordEnd + 1);
-    const contextText = contextWords.join(' ');
-    
-    const newStart = fullText.indexOf(contextWords[0]);
-    const newEnd = newStart + contextText.length;
-
-    return {
-      ...chunk,
-      text: contextText,
-      start: newStart,
-      end: newEnd,
-      type: chunk.type === 'exact' ? 'exact' : 'context' as TextChunk['type']
-    };
-  });
-};
+// 컨텍스트 확장은 현재 비활성화됨 (정확성 우선)
 
 /**
  * PDF용: 연속된 span 요소들을 그룹화
  */
 export const groupPDFElements = (
   elements: HTMLElement[],
-  textChunks: TextChunk[],
   config: UnifiedHighlightConfig = defaultUnifiedConfig
 ): HighlightGroup[] => {
   const groups: HighlightGroup[] = [];
@@ -461,4 +401,48 @@ export const preciseDOCXHighlight = (
       element.appendChild(textNode);
     }
   });
+};
+
+/**
+ * 테스트용 함수 - 하이라이팅 품질 검증
+ */
+export const testHighlighting = () => {
+  const testDocument1 = `
+  AAA ~ AA+ 신용대출 - - 3 이하 10 이하 25 이하 25억 초과 ① 제1,2,3,4,5호 여신제외② 특수이해관계인 할인어음 포함
+  담보대출(신용대출 금액 포함) - - 20 이하 40이하 60 이하 60억 초과
+  BB~BB- 신용대출 0.2 이하 2 이하 7 이하 7억 초과
+  `;
+
+  const testDocument2 = `
+  가계CSS대출 비적용 대상 및 재심사(신용대출) - - 0.2 이하 1 이하 1 초과 - -
+  `;
+
+  const testQuery1 = `"AAA ~ AA+ | 신용대출 | - | - | 3 이하 | 10 이하 | 25 이하 | 25억 초과 | ① 제1,2,3,4,5호 여신제외② 특수이해관계인 할인어음 포함 | 담보대출(신용대출 금액 포함) | - | - | 20 이하 | 40이하 | 60 이하 | 60억 초과"`;
+  const testQuery2 = `"가계CSS대출 | 비적용 대상 및 재심사(신용대출) | - | - | 0.2 이하 | 1 이하 | 1 초과 | - | -"`;
+  
+  console.log('=== 개선된 범용 하이라이팅 테스트 결과 ===');
+  
+  // 첫 번째 테스트
+  console.log('\n1. 금융 신용등급 테스트:');
+  console.log('검색어:', testQuery1);
+  const chunks1 = createTextChunks(testDocument1, testQuery1);
+  console.log('매칭된 청크들:', chunks1.map(chunk => ({
+    text: chunk.text,
+    type: chunk.type,
+    score: chunk.score
+  })));
+  console.log('예상 매칭: AAA, AA+, 신용대출, 25억, 담보대출, 60억');
+  
+  // 두 번째 테스트
+  console.log('\n2. CSS대출 비적용 테스트:');
+  console.log('검색어:', testQuery2);
+  const chunks2 = createTextChunks(testDocument2, testQuery2);
+  console.log('매칭된 청크들:', chunks2.map(chunk => ({
+    text: chunk.text,
+    type: chunk.type,
+    score: chunk.score
+  })));
+  console.log('예상 매칭: 가계CSS대출, 비적용, 재심사, 신용대출');
+  
+  return { test1: chunks1, test2: chunks2 };
 };
