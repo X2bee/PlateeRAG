@@ -2,20 +2,16 @@
 
 import React, { useEffect, useCallback } from 'react';
 import { HighlightRange } from '../../types/source';
-import styles from './PDFHighlighter.module.scss';
-import highlightStyles from './HighlightStyles.module.scss';
-import { filterHighlightWords, isTextMatch } from './highlightConstants';
 import { 
-  createTextChunks, 
-  groupPDFElements, 
-  defaultUnifiedConfig,
-  TextChunk,
-  HighlightGroup 
-} from './unifiedHighlighter';
+  smartTokenize, 
+  findCombinationMatches, 
+  testSmartTokenizer,
+  CombinationMatch
+} from './smartTokenizer';
 
 interface PDFHighlighterProps {
   pageNumber: number;
-  highlightRange: HighlightRange;
+  highlightRange: HighlightRange & { searchText?: string };
   scale: number;
   pageWidth: number;
   pageHeight: number;
@@ -34,37 +30,32 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
   // 현재 페이지가 하이라이트 대상인지 확인
   const shouldHighlight = pageNumber === highlightRange.pageNumber;
 
-  // 향상된 하이라이팅 제거 함수 (모든 하이라이트 레벨 제거)
+  // 스마트 하이라이팅 제거 함수
   const removeExistingHighlights = useCallback(() => {
     const pdfContainer = document.querySelector('.react-pdf__Page__textContent');
     if (!pdfContainer) return;
 
-    // 기존 레거시 하이라이트 제거
-    const legacyHighlights = pdfContainer.querySelectorAll(`.${styles.pdfHighlight}`);
-    legacyHighlights.forEach(element => {
-      element.classList.remove(styles.pdfHighlight);
-    });
-
-    // 새로운 다층 하이라이트 제거
-    const highlightClasses = [
-      'pdfHighlightExact',
-      'pdfHighlightSimilar', 
-      'pdfHighlightRelated',
-      'pdfHighlightContext',
-      'pdfHighlightEntity',
-      'pdfHighlightPhrase',
-      'highlightPriorityHigh',
-      'highlightPriorityMedium',
-      'highlightPriorityLow'
-    ];
+    // 기존 하이라이팅된 span들 찾기
+    const highlightedSpans = pdfContainer.querySelectorAll('[data-smart-score]');
     
-    highlightClasses.forEach(className => {
-      const elements = pdfContainer.querySelectorAll(`.${highlightStyles[className]}`);
-      elements.forEach(element => {
-        element.classList.remove(highlightStyles[className]);
-        element.removeAttribute('data-confidence');
-        element.removeAttribute('data-matched-by');
-      });
+    highlightedSpans.forEach(span => {
+      // 인라인 스타일 제거
+      const element = span as HTMLElement;
+      element.style.backgroundColor = '';
+      element.style.background = '';
+      element.style.boxShadow = '';
+      element.style.borderLeft = '';
+      element.style.borderRadius = '';
+      element.style.padding = '';
+      element.style.margin = '';
+      element.style.transition = '';
+      element.style.display = '';
+      element.style.lineHeight = '';
+      
+      // 데이터 속성 제거
+      element.removeAttribute('data-smart-score');
+      element.removeAttribute('data-matched-tokens');
+      element.removeAttribute('data-matched-text');
     });
   }, []);
 
@@ -87,7 +78,124 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
     return null;
   }, [pageNumber]);
 
-  // 통합 PDF 텍스트 하이라이팅 적용 함수 (연속성 보장)
+  // 🎯 PDF 스마트 하이라이팅 적용 함수
+  const applySmartHighlighting = useCallback((
+    textSpans: HTMLElement[], 
+    combinationMatches: CombinationMatch[]
+  ) => {
+    textSpans.forEach(span => {
+      const spanText = span.textContent?.trim() || '';
+      if (!spanText) return;
+
+      // 해당 span과 겹치는 매칭들 찾기
+      const spanMatches = combinationMatches.filter(match => {
+        const spanLower = spanText.toLowerCase();
+        const matchedLower = match.matchedText.toLowerCase();
+        return spanLower.includes(matchedLower) || matchedLower.includes(spanLower);
+      });
+
+      if (spanMatches.length > 0) {
+        // 가장 높은 점수 선택
+        const bestMatch = spanMatches.reduce((best, current) => 
+          current.score > best.score ? current : best
+        );
+
+        // 점수별 인라인 스타일 직접 적용
+        const styles = getScoreStyles(bestMatch.score);
+        Object.assign(span.style, styles);
+        span.setAttribute('data-smart-score', bestMatch.score.toString());
+        span.setAttribute('data-matched-tokens', bestMatch.tokens.map(t => t.text).join(' + '));
+        span.setAttribute('data-matched-text', bestMatch.matchedText);
+      }
+    });
+  }, []);
+
+  // 개별 토큰 하이라이팅 적용 함수
+  const applyTokenHighlighting = useCallback((
+    textSpans: HTMLElement[], 
+    smartTokens: ReturnType<typeof smartTokenize>
+  ) => {
+    textSpans.forEach(span => {
+      const spanText = span.textContent?.trim() || '';
+      if (!spanText) return;
+
+      const spanLower = spanText.toLowerCase();
+      const matchedTokens: string[] = [];
+
+      // 개별 토큰 매칭 확인
+      smartTokens.forEach(token => {
+        if (spanLower.includes(token.text.toLowerCase())) {
+          matchedTokens.push(token.text);
+        }
+      });
+
+      if (matchedTokens.length > 0) {
+        // 개별 토큰은 1점으로 처리 - 인라인 스타일 적용
+        const styles = getScoreStyles(1);
+        Object.assign(span.style, styles);
+        span.setAttribute('data-smart-score', '1');
+        span.setAttribute('data-matched-tokens', matchedTokens.join(' + '));
+      }
+    });
+  }, []);
+
+  // 점수별 인라인 스타일 반환
+  const getScoreStyles = (score: number): React.CSSProperties => {
+    const baseStyles: React.CSSProperties = {
+      borderRadius: '1px',
+      padding: '0px 1px',
+      margin: '0',
+      transition: 'all 0.2s ease',
+      display: 'inline',
+      lineHeight: 'normal'
+    };
+
+    if (score >= 6) {
+      return {
+        ...baseStyles,
+        background: 'linear-gradient(45deg, rgba(255, 0, 255, 0.4), rgba(255, 215, 0, 0.4))',
+        boxShadow: '0 0 2px rgba(255, 0, 255, 0.6)',
+        borderLeft: '4px solid rgba(255, 0, 255, 0.8)'
+      };
+    } else if (score >= 5) {
+      return {
+        ...baseStyles,
+        backgroundColor: 'rgba(255, 20, 147, 0.4)',
+        boxShadow: '0 0 0 2px rgba(255, 20, 147, 0.5)',
+        borderLeft: '3px solid rgba(255, 20, 147, 0.7)'
+      };
+    } else if (score >= 4) {
+      return {
+        ...baseStyles,
+        backgroundColor: 'rgba(0, 191, 255, 0.4)',
+        boxShadow: '0 0 0 2px rgba(0, 191, 255, 0.5)',
+        borderLeft: '3px solid rgba(0, 191, 255, 0.7)'
+      };
+    } else if (score >= 3) {
+      return {
+        ...baseStyles,
+        backgroundColor: 'rgba(0, 255, 127, 0.4)',
+        boxShadow: '0 0 0 1px rgba(0, 255, 127, 0.5)',
+        borderLeft: '3px solid rgba(0, 255, 127, 0.7)'
+      };
+    } else if (score >= 2) {
+      return {
+        ...baseStyles,
+        backgroundColor: 'rgba(255, 165, 0, 0.4)',
+        boxShadow: '0 0 0 1px rgba(255, 165, 0, 0.5)',
+        borderLeft: '2px solid rgba(255, 165, 0, 0.7)'
+      };
+    } else {
+      return {
+        ...baseStyles,
+        backgroundColor: 'rgba(255, 255, 0, 0.3)',
+        boxShadow: '0 0 0 1px rgba(255, 255, 0, 0.4)',
+        borderLeft: '2px solid rgba(255, 255, 0, 0.6)'
+      };
+    }
+  };
+
+  // 통합 PDF 텍스트 하이라이팅 적용 함수 (스마트 토큰화)
   const applyPDFHighlighting = useCallback(() => {
     const textLayer = findPDFTextLayer();
     if (!textLayer) return;
@@ -107,112 +215,39 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
 
     if (validSpans.length === 0) return;
 
-    // 텍스트 매칭 기반 하이라이팅 적용
+    // 스마트 토큰화 기반 하이라이팅 적용
     if (highlightRange.searchText && highlightRange.searchText.trim()) {
       const searchText = highlightRange.searchText.trim();
       
-      // 전체 페이지 텍스트 구성
+      // 전체 페이지 텍스트 구성 (공간 정보 보존)
       const fullPageText = validSpans.map(span => span.textContent || '').join(' ');
       
-      // 통합 시스템으로 텍스트 청크 생성
-      const textChunks = createTextChunks(fullPageText, searchText, defaultUnifiedConfig);
+      // 🎯 새로운 스마트 토큰화 시스템 사용
+      const smartTokens = smartTokenize(searchText);
+      const combinationMatches = findCombinationMatches(fullPageText, smartTokens);
       
-      if (textChunks.length === 0) {
-        // 레거시 방식으로 폴백
-        const searchWords = filterHighlightWords(searchText);
-        validSpans.forEach(span => {
-          const spanText = span.textContent?.trim().toLowerCase() || '';
-          const hasMatch = searchWords.some(word => isTextMatch(word, spanText));
-          if (hasMatch) {
-            span.classList.add(styles.pdfHighlight);
-          }
-        });
+      // 디버깅용 테스트 (첫 실행시만)
+      if (window.location.search.includes('debug=smart')) {
+        console.log('=== PDF 스마트 토큰화 디버깅 ===');
+        console.log('검색 텍스트:', searchText);
+        console.log('스마트 토큰들:', smartTokens);
+        console.log('조합 매칭 결과:', combinationMatches);
+        testSmartTokenizer();
+      }
+      
+      // 🎯 스마트 토큰 조합 매칭 기반 하이라이팅
+      if (combinationMatches.length > 0) {
+        applySmartHighlighting(validSpans, combinationMatches);
         return;
       }
-
-      // 매칭되는 span 요소들 찾기
-      const matchingSpans: Array<{span: HTMLElement, chunk: TextChunk, score: number}> = [];
       
-      validSpans.forEach(span => {
-        const spanText = span.textContent?.trim() || '';
-        if (!spanText) return;
-
-        // 각 청크와의 매칭 확인
-        textChunks.forEach(chunk => {
-          const chunkWords = chunk.text.toLowerCase().split(/\s+/);
-          const spanWords = spanText.toLowerCase().split(/\s+/);
-          
-          // 단어 수준 매칭 점수 계산
-          let matchScore = 0;
-          spanWords.forEach(spanWord => {
-            if (chunkWords.some(chunkWord => 
-              chunkWord.includes(spanWord) || spanWord.includes(chunkWord)
-            )) {
-              matchScore += 1;
-            }
-          });
-          
-          const normalizedScore = matchScore / Math.max(spanWords.length, 1);
-          
-          if (normalizedScore > 0.3) { // 30% 이상 매칭시 하이라이트 후보
-            matchingSpans.push({
-              span,
-              chunk,
-              score: normalizedScore * chunk.score
-            });
-          }
-        });
-      });
-
-      // 연속된 span들을 그룹화
-      const spanGroups = groupPDFElements(
-        matchingSpans.map(m => m.span),
-        defaultUnifiedConfig
-      );
-
-      // 그룹별 하이라이팅 적용 (연속성 보장)
-      spanGroups.forEach((group, groupIndex) => {
-        // 그룹의 평균 점수 계산
-        const groupScore = matchingSpans
-          .filter(m => group.elements.includes(m.span))
-          .reduce((sum, m) => sum + m.score, 0) / group.elements.length;
-
-        // 하이라이트 클래스 결정
-        let highlightClass = styles.pdfHighlight;
-        if (groupScore > 0.8) {
-          highlightClass = `${highlightStyles.pdfHighlightExact}`;
-        } else if (groupScore > 0.6) {
-          highlightClass = `${highlightStyles.pdfHighlightSimilar}`;
-        } else {
-          highlightClass = `${highlightStyles.pdfHighlightRelated}`;
-        }
-
-        // 그룹 내 모든 span에 하이라이팅 적용
-        group.elements.forEach((span, spanIndex) => {
-          span.classList.add(highlightClass);
-          span.setAttribute('data-group', groupIndex.toString());
-          span.setAttribute('data-continuity', group.continuity.toFixed(2));
-          span.setAttribute('data-score', groupScore.toFixed(2));
-        });
-
-        // 연속성이 높은 그룹에 시각적 연결 효과 추가
-        if (group.continuity > 0.7 && group.elements.length > 1) {
-          group.elements.forEach((span, spanIndex) => {
-            span.classList.add(`${highlightStyles.highlightPriorityHigh}`);
-            
-            // 첫 번째와 마지막 요소에 특별한 스타일 적용
-            if (spanIndex === 0) {
-              span.style.borderRadius = '3px 0 0 3px';
-            } else if (spanIndex === group.elements.length - 1) {
-              span.style.borderRadius = '0 3px 3px 0';
-            } else {
-              span.style.borderRadius = '0';
-            }
-          });
-        }
-      });
+      // 폴백: 개별 스마트 토큰 매칭
+      if (smartTokens.length > 0) {
+        applyTokenHighlighting(validSpans, smartTokens);
+        return;
+      }
     }
-  }, [highlightRange, findPDFTextLayer, removeExistingHighlights]);
+  }, [highlightRange, findPDFTextLayer, removeExistingHighlights, applySmartHighlighting, applyTokenHighlighting]);
 
   // DOM 준비 상태 확인
   const waitForPDFDOM = useCallback((maxAttempts: number = 10, interval: number = 200): Promise<boolean> => {

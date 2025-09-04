@@ -3,15 +3,15 @@
 import React, { useEffect, useCallback } from 'react';
 import { HighlightRange } from '../../types/source';
 import './DocxHighlighter.css';
-import { filterHighlightWords, isTextMatch } from './highlightConstants';
 import { 
-  createTextChunks, 
-  preciseDOCXHighlight, 
-  defaultUnifiedConfig
-} from './unifiedHighlighter';
+  smartTokenize, 
+  findCombinationMatches, 
+  testSmartTokenizer,
+  CombinationMatch
+} from './smartTokenizer';
 
 interface DocxHighlighterProps {
-  highlightRange: HighlightRange;
+  highlightRange: HighlightRange & { searchText?: string };
   scale: number;
 }
 
@@ -31,12 +31,71 @@ const DocxHighlighter: React.FC<DocxHighlighterProps> = ({
     });
   }, []);
 
+  // 🎯 스마트 하이라이팅 적용 함수
+  const applySmartHighlighting = useCallback((
+    textElements: HTMLElement[], 
+    combinationMatches: CombinationMatch[]
+  ) => {
+    // 각 텍스트 요소에 대해 매칭 확인
+    textElements.forEach(element => {
+      const elementText = element.textContent?.trim() || '';
+      if (!elementText) return;
+
+      // 해당 요소와 겹치는 매칭들 찾기
+      const elementMatches = combinationMatches.filter(match => {
+        const elementLower = elementText.toLowerCase();
+        const matchedLower = match.matchedText.toLowerCase();
+        return elementLower.includes(matchedLower) || matchedLower.includes(elementLower);
+      });
+
+      if (elementMatches.length > 0) {
+        // 가장 높은 점수 선택
+        const bestMatch = elementMatches.reduce((best, current) => 
+          current.score > best.score ? current : best
+        );
+
+        // 점수별 CSS 클래스 적용
+        const scoreClass = getScoreClass(bestMatch.score);
+        element.classList.add(scoreClass);
+        element.setAttribute('data-smart-score', bestMatch.score.toString());
+        element.setAttribute('data-matched-tokens', bestMatch.tokens.map(t => t.text).join(' + '));
+        element.setAttribute('data-matched-text', bestMatch.matchedText);
+      }
+    });
+  }, []);
+
+  // 개별 토큰 하이라이팅 적용 함수  
+  const applyTokenHighlighting = useCallback((
+    textElements: HTMLElement[], 
+    smartTokens: ReturnType<typeof smartTokenize>
+  ) => {
+    textElements.forEach(element => {
+      const elementText = element.textContent?.trim() || '';
+      if (!elementText) return;
+
+      const elementLower = elementText.toLowerCase();
+      const matchedTokens: string[] = [];
+
+      // 개별 토큰 매칭 확인
+      smartTokens.forEach(token => {
+        if (elementLower.includes(token.text.toLowerCase())) {
+          matchedTokens.push(token.text);
+        }
+      });
+
+      if (matchedTokens.length > 0) {
+        // 개별 토큰은 1점으로 처리
+        element.classList.add('docx-highlight-score-1');
+        element.setAttribute('data-smart-score', '1');
+        element.setAttribute('data-matched-tokens', matchedTokens.join(' + '));
+      }
+    });
+  }, []);
+
   // 통합 DOCX 하이라이팅 적용 함수 (정밀 부분 하이라이팅)
   const applyDocxHighlighting = useCallback(() => {
     const docxContainer = document.querySelector('[class*="docxContent"], [class*="docxContainer"], .docx-content, .docx-container');
-    if (!docxContainer) {
-      return;
-    }
+    if (!docxContainer) return;
 
     // 기존 하이라이팅 제거
     removeExistingHighlights();
@@ -59,104 +118,49 @@ const DocxHighlighter: React.FC<DocxHighlighterProps> = ({
       }
     });
 
-    // 텍스트 매칭 기반 하이라이팅 적용
+    // 스마트 토큰화 기반 하이라이팅 적용
     if (highlightRange.searchText && highlightRange.searchText.trim()) {
       const searchText = highlightRange.searchText.trim();
       
       // 전체 문서 텍스트 구성 (공간 정보 보존)
       const fullDocumentText = textElements.map(el => el.textContent || '').join('\n');
       
-      // 통합 시스템으로 텍스트 청크 생성
-      const textChunks = createTextChunks(fullDocumentText, searchText, {
-        ...defaultUnifiedConfig,
-        precisionLevel: 'phrase', // DOCX는 구문 단위 정밀도로 설정
-        maxHighlightRatio: 0.25,   // 더 엄격한 하이라이팅 비율
-        minChunkLength: 4          // 최소 청크 길이 증가
-      });
+      // 🎯 새로운 스마트 토큰화 시스템 사용
+      const smartTokens = smartTokenize(searchText);
+      const combinationMatches = findCombinationMatches(fullDocumentText, smartTokens);
       
-      if (textChunks.length === 0) {
-        // 레거시 방식으로 폴백하되 더 엄격한 조건 적용
-        const searchWords = filterHighlightWords(searchText);
-        
-        // 유효한 검색 단어가 충분한지 확인 (최소 2개 이상의 의미있는 단어)
-        const meaningfulWords = searchWords.filter(word => word.length >= 4);
-        if (meaningfulWords.length === 0) {
-          return;
-        }
-        
-        textElements.forEach(element => {
-          const elementText = element.textContent?.trim().toLowerCase() || '';
-          
-          // 더 엄격한 매칭: 의미있는 단어들의 일정 비율 이상이 포함되어야 함
-          const matchingWords = meaningfulWords.filter(word => isTextMatch(word, elementText));
-          const matchRatio = matchingWords.length / meaningfulWords.length;
-          
-          if (matchRatio >= 0.5 && matchingWords.length >= 1) { // 50% 이상 매칭 + 최소 1개
-            element.classList.add('docx-highlight');
-            element.setAttribute('data-match-ratio', matchRatio.toFixed(2));
-            element.setAttribute('data-matched-words', matchingWords.join(', '));
-          }
-        });
+      // 디버깅용 테스트 (첫 실행시만)
+      if (window.location.search.includes('debug=smart')) {
+        console.log('=== 스마트 토큰화 디버깅 ===');
+        console.log('검색 텍스트:', searchText);
+        console.log('스마트 토큰들:', smartTokens);
+        console.log('조합 매칭 결과:', combinationMatches);
+        testSmartTokenizer();
+      }
+      
+      // 🎯 스마트 토큰 조합 매칭 기반 하이라이팅
+      if (combinationMatches.length > 0) {
+        applySmartHighlighting(textElements, combinationMatches);
         return;
       }
-
-      // 정밀 하이라이팅 적용
-      textElements.forEach(element => {
-        const elementText = element.textContent?.trim() || '';
-        if (!elementText) return;
-
-        // 해당 요소와 관련된 텍스트 청크들 찾기
-        const relevantChunks = textChunks.filter(chunk => {
-          const chunkLower = chunk.text.toLowerCase();
-          const elementLower = elementText.toLowerCase();
-          
-          // 청크와 요소 텍스트 간 관련성 확인
-          return elementLower.includes(chunkLower) || 
-                 chunkLower.includes(elementLower) ||
-                 calculateTextSimilarity(chunkLower, elementLower) > 0.3;
-        });
-
-        if (relevantChunks.length > 0) {
-          // 요소가 너무 짧으면 전체 하이라이팅 (하지만 최소 길이 체크)
-          if (elementText.length <= 30 && relevantChunks[0].score > 0.8) {
-            element.classList.add('docx-highlight');
-            element.setAttribute('data-highlight-type', 'full');
-            element.setAttribute('data-score', relevantChunks[0].score.toFixed(2));
-          } else {
-            // 정밀 부분 하이라이팅 적용
-            try {
-              const originalHTML = element.innerHTML;
-              preciseDOCXHighlight(element, relevantChunks, {
-                ...defaultUnifiedConfig,
-                maxHighlightRatio: 0.4 // 요소별로는 더 관대하게
-              });
-              
-              // 하이라이팅이 실제로 적용되었는지 확인
-              const hasHighlight = element.querySelector('.docx-highlight');
-              if (hasHighlight) {
-                element.setAttribute('data-highlight-type', 'precise');
-                element.setAttribute('data-chunk-count', relevantChunks.length.toString());
-              } else {
-                // 정밀 하이라이팅 실패시 원본 복구 후 전체 하이라이팅
-                element.innerHTML = originalHTML;
-                if (relevantChunks[0].score > 0.6) {
-                  element.classList.add('docx-highlight');
-                  element.setAttribute('data-highlight-type', 'fallback');
-                }
-              }
-            } catch (error) {
-              console.warn('정밀 하이라이팅 적용 중 오류:', error);
-              // 오류 발생시 점수가 높은 경우에만 전체 하이라이팅
-              if (relevantChunks[0].score > 0.7) {
-                element.classList.add('docx-highlight');
-                element.setAttribute('data-highlight-type', 'error-fallback');
-              }
-            }
-          }
-        }
-      });
+      
+      // 폴백: 개별 스마트 토큰 매칭
+      if (smartTokens.length > 0) {
+        applyTokenHighlighting(textElements, smartTokens);
+        return;
+      }
     }
-  }, [highlightRange, removeExistingHighlights]);
+  }, [highlightRange, removeExistingHighlights, applySmartHighlighting, applyTokenHighlighting]);
+
+  // 점수별 CSS 클래스 반환
+  const getScoreClass = (score: number): string => {
+    if (score >= 6) return 'docx-highlight-score-6-plus';
+    if (score >= 5) return 'docx-highlight-score-5';
+    if (score >= 4) return 'docx-highlight-score-4';
+    if (score >= 3) return 'docx-highlight-score-3';
+    if (score >= 2) return 'docx-highlight-score-2';
+    return 'docx-highlight-score-1';
+  };
 
   // 텍스트 유사도 계산 헬퍼 함수
   const calculateTextSimilarity = (text1: string, text2: string): number => {

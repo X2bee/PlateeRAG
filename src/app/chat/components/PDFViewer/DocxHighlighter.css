@@ -1,4 +1,4 @@
-/* DOCX 하이라이팅 스타일 */
+/* DOCX 하이라이팅 스타일 - 기본 (1점) */
 .docx-highlight {
   background-color: rgba(255, 255, 0, 0.3) !important;
   box-shadow: 0 0 0 2px rgba(255, 255, 0, 0.5) !important;
@@ -8,9 +8,77 @@
   margin: 0 1px !important;
 }
 
+/* 스마트 토큰 조합 점수별 하이라이팅 */
+.docx-highlight-score-1 {
+  background-color: rgba(255, 255, 0, 0.3) !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 0, 0.4) !important;
+  border-left: 2px solid rgba(255, 255, 0, 0.8) !important;
+  padding: 1px 2px !important;
+  margin: 0 1px !important;
+  border-radius: 2px !important;
+  display: inline !important;
+  line-height: normal !important;
+}
+
+.docx-highlight-score-2 {
+  background-color: rgba(255, 165, 0, 0.4) !important;
+  box-shadow: 0 0 0 2px rgba(255, 165, 0, 0.6) !important;
+  border-left: 3px solid rgba(255, 165, 0, 0.8) !important;
+  padding: 1px 2px !important;
+  margin: 0 1px !important;
+  border-radius: 2px !important;
+  display: inline !important;
+  line-height: normal !important;
+}
+
+.docx-highlight-score-3 {
+  background-color: rgba(0, 255, 127, 0.4) !important;
+  box-shadow: 0 0 0 2px rgba(0, 255, 127, 0.6) !important;
+  border-left: 4px solid rgba(0, 255, 127, 0.8) !important;
+  padding: 1px 2px !important;
+  margin: 0 1px !important;
+  border-radius: 2px !important;
+  display: inline !important;
+  line-height: normal !important;
+}
+
+.docx-highlight-score-4 {
+  background-color: rgba(0, 191, 255, 0.4) !important;
+  box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.6) !important;
+  border-left: 5px solid rgba(0, 191, 255, 0.8) !important;
+  padding: 1px 2px !important;
+  margin: 0 1px !important;
+  border-radius: 2px !important;
+  display: inline !important;
+  line-height: normal !important;
+}
+
+.docx-highlight-score-5 {
+  background-color: rgba(255, 20, 147, 0.4) !important;
+  box-shadow: 0 0 0 3px rgba(255, 20, 147, 0.6) !important;
+  border-left: 6px solid rgba(255, 20, 147, 0.8) !important;
+  padding: 1px 2px !important;
+  margin: 0 1px !important;
+  border-radius: 2px !important;
+  display: inline !important;
+  line-height: normal !important;
+}
+
+.docx-highlight-score-6-plus {
+  background: linear-gradient(45deg, rgba(255, 0, 255, 0.4), rgba(255, 215, 0, 0.4)) !important;
+  box-shadow: 0 0 4px rgba(255, 0, 255, 0.7) !important;
+  border-left: 7px solid rgba(255, 0, 255, 0.9) !important;
+  animation: rainbow-pulse 2s ease-in-out infinite !important;
+  padding: 1px 2px !important;
+  margin: 0 1px !important;
+  border-radius: 2px !important;
+  display: inline !important;
+  line-height: normal !important;
+}
+
 .docx-highlight:hover {
   background-color: rgba(255, 255, 0, 0.4) !important;
-  transform: scale(1.02) !important;
+  opacity: 0.8 !important;
 }
 
 /* 점수별 차등 하이라이팅 */
@@ -49,11 +117,27 @@
 @keyframes docx-pulse {
   0%, 100% { 
     background-color: rgba(255, 255, 0, 0.3);
-    transform: scale(1);
+    opacity: 1;
   }
   50% { 
     background-color: rgba(255, 215, 0, 0.4);
-    transform: scale(1.01);
+    opacity: 0.8;
+  }
+}
+
+/* 고점수 레인보우 애니메이션 */
+@keyframes rainbow-pulse {
+  0%, 100% { 
+    background: linear-gradient(45deg, rgba(255, 0, 255, 0.4), rgba(255, 215, 0, 0.4));
+    opacity: 1;
+  }
+  33% { 
+    background: linear-gradient(45deg, rgba(255, 215, 0, 0.4), rgba(0, 255, 127, 0.4));
+    opacity: 0.9;
+  }
+  66% { 
+    background: linear-gradient(45deg, rgba(0, 255, 127, 0.4), rgba(0, 191, 255, 0.4));
+    opacity: 0.8;
   }
 }
 
