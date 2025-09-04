@@ -1,7 +1,7 @@
 // STT API 호출 함수들을 관리하는 파일
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config';
-import { apiClient } from '@/app/api/helper/apiClient';
+import { apiClient, apiClientV2 } from '@/app/api/helper/apiClient';
 
 /**
  * 오디오 파일을 텍스트로 변환하는 함수
@@ -18,10 +18,10 @@ export const transcribeAudio = async (audioFile, audioFormat = null) => {
             formData.append('audio_format', audioFormat);
         }
 
-        const response = await apiClient(`${API_BASE_URL}/api/stt/transcribe`, {
+        const response = await apiClientV2(`${API_BASE_URL}/api/stt/transcribe`, {
             method: 'POST',
             body: formData,
-        }, false);
+        });
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
