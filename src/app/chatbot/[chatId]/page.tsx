@@ -141,7 +141,7 @@ const StandaloneChatPage = () => {
         };
 
         handleDecryption();
-    }, [encryptedParams, userId, workflowName, workflowNameFromUrl]);
+    }, [encryptedParams, userId]);
 
     if (loading) {
         return (
