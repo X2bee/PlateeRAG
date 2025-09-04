@@ -26,6 +26,15 @@ const SoundInputHandler: React.FC<SoundInputHandlerProps> = ({
     const animationRef = useRef<number | null>(null);
     const [mimeType, setMimeType] = useState<string>('');
 
+    // 오디오 레벨 로깅을 위한 ref들
+    const recordingStartTimeRef = useRef<number | null>(null);
+    const audioLevelsRef = useRef<number[]>([]);
+    const loggingIntervalRef = useRef<number | null>(null);
+
+    // 자동 정지를 위한 ref들
+    const lowLevelStartTimeRef = useRef<number | null>(null);
+    const autoStopTimeoutRef = useRef<number | null>(null);
+
     const playStartSound = useCallback(() => {
         const audioContext = new AudioContext();
         const oscillator = audioContext.createOscillator();
@@ -66,11 +75,23 @@ const SoundInputHandler: React.FC<SoundInputHandlerProps> = ({
     // 녹음 정지
     const stopRecording = useCallback(() => {
         devLog.log('⏹️ Stopping recording...');
+        devLog.log(`📊 Current state: ${state}, MediaRecorder exists: ${!!mediaRecorderRef.current}`);
+
         if (mediaRecorderRef.current && state === "recording") {
             mediaRecorderRef.current.stop();
-            // 녹음 종료 소리 재생
             playEndSound();
             devLog.log('🔴 Recording stopped, end sound played');
+        } else {
+            devLog.log('⚠️ Recording not stopped - conditions not met');
+            if (!mediaRecorderRef.current) devLog.log('❌ MediaRecorder is null');
+            if (state !== "recording") devLog.log(`❌ State is not recording: ${state}`);
+
+            // 자동 정지의 경우에도 소리를 재생하도록 수정
+            if (mediaRecorderRef.current) {
+                mediaRecorderRef.current.stop();
+                playEndSound();
+                devLog.log('🔴 MediaRecorder stopped, end sound played (auto-stop)');
+            }
         }
 
         if (streamRef.current) {
@@ -89,6 +110,23 @@ const SoundInputHandler: React.FC<SoundInputHandlerProps> = ({
             animationRef.current = null;
         }
 
+        // 로깅 인터벌 정리
+        if (loggingIntervalRef.current) {
+            clearInterval(loggingIntervalRef.current);
+            loggingIntervalRef.current = null;
+        }
+
+        // 자동 정지 타이머 정리
+        if (autoStopTimeoutRef.current) {
+            clearTimeout(autoStopTimeoutRef.current);
+            autoStopTimeoutRef.current = null;
+        }
+
+        // 녹음 관련 데이터 초기화
+        recordingStartTimeRef.current = null;
+        audioLevelsRef.current = [];
+        lowLevelStartTimeRef.current = null;
+
         setAudioLevel(0);
     }, [state, playEndSound]);
 
@@ -104,9 +142,79 @@ const SoundInputHandler: React.FC<SoundInputHandlerProps> = ({
         const normalizedLevel = average / 255;
         setAudioLevel(normalizedLevel);
 
+        // 오디오 레벨 히스토리에 추가
+        audioLevelsRef.current.push(normalizedLevel);
+
         // 다음 프레임을 예약
         animationRef.current = requestAnimationFrame(measureAudioLevel);
     }, []); // state와 silenceTimer 제거
+
+    // 실시간 오디오 레벨 로깅 함수
+    const logAudioLevels = useCallback(() => {
+        if (!recordingStartTimeRef.current) {
+            // devLog.log('❌ recordingStartTimeRef is null');
+            return;
+        }
+
+        const currentTime = Date.now();
+        const elapsedTime = (currentTime - recordingStartTimeRef.current) / 1000;
+        // devLog.log(`⏰ Elapsed time: ${elapsedTime.toFixed(2)}s`);
+
+        if (elapsedTime >= 1.5) {
+            const levels = audioLevelsRef.current;
+            const currentLevel = levels.length > 0 ? levels[levels.length - 1] : 0;
+            // devLog.log(`📊 Current level: ${currentLevel.toFixed(3)}, History length: ${levels.length}`);
+
+            if (levels.length > 0) {
+                const averageLevel = levels.reduce((sum, level) => sum + level, 0) / levels.length;
+                const levelRatio = averageLevel > 0 ? (currentLevel / averageLevel) : 0;
+
+                // devLog.log(`🎵 Audio Level - Current: ${currentLevel.toFixed(3)}, Average: ${averageLevel.toFixed(3)}, Ratio: ${levelRatio.toFixed(3)}x (${(levelRatio * 100).toFixed(1)}%)`);
+
+                // 자동 정지 로직
+                checkAutoStop(levelRatio);
+            } else {
+                devLog.log('No audio levels in history');
+            }
+        } else {
+            devLog.log(`⏳ Waiting... ${(1.5 - elapsedTime).toFixed(2)}s remaining`);
+        }
+    }, []); // audioLevel 의존성 제거
+
+    // 자동 정지 체크 함수
+    const checkAutoStop = useCallback((levelRatio: number) => {
+        const currentTime = Date.now();
+
+        if (levelRatio <= 0.9) {
+            if (lowLevelStartTimeRef.current === null) {
+                // 처음으로 70% 이하가 된 시점 기록
+                lowLevelStartTimeRef.current = currentTime;
+                // devLog.log(`🔻 Audio level dropped below 70% (${(levelRatio * 100).toFixed(1)}%), starting 2s timer...`);
+
+                // 2초 후 자동 정지 타이머 설정
+                autoStopTimeoutRef.current = window.setTimeout(() => {
+                    // devLog.log('⏰ 2 seconds of low audio level detected, auto-stopping recording...');
+                    stopRecording();
+                }, 1500);
+            } else {
+                // 이미 70% 이하 상태가 지속 중
+                const lowLevelDuration = (currentTime - lowLevelStartTimeRef.current) / 1000;
+                // devLog.log(`🔻 Low level continues for ${lowLevelDuration.toFixed(1)}s (${(levelRatio * 100).toFixed(1)}%)`);
+            }
+        } else {
+            // 레벨이 70% 이상으로 회복된 경우
+            if (lowLevelStartTimeRef.current !== null) {
+                // devLog.log(`🔺 Audio level recovered above 70% (${(levelRatio * 100).toFixed(1)}%), resetting timer`);
+
+                // 타이머 리셋
+                lowLevelStartTimeRef.current = null;
+                if (autoStopTimeoutRef.current) {
+                    clearTimeout(autoStopTimeoutRef.current);
+                    autoStopTimeoutRef.current = null;
+                }
+            }
+        }
+    }, [stopRecording]);
 
 
     const startRecording = useCallback(async () => {
@@ -159,6 +267,22 @@ const SoundInputHandler: React.FC<SoundInputHandlerProps> = ({
             mediaRecorderRef.current.start();
             devLog.log('🔴 Recording started');
 
+            // 녹음 시작 시간 기록
+            recordingStartTimeRef.current = Date.now();
+            audioLevelsRef.current = []; // 오디오 레벨 히스토리 초기화
+            lowLevelStartTimeRef.current = null; // 자동 정지 관련 초기화
+
+            devLog.log('🕐 Recording start time set, starting logging in 1.5s...');
+
+            // 1.5초 후부터 100ms마다 오디오 레벨 로깅 시작
+            setTimeout(() => {
+                devLog.log('⏰ 1.5s elapsed, starting audio level logging...');
+                loggingIntervalRef.current = window.setInterval(() => {
+                    devLog.log('🔄 Logging interval triggered');
+                    logAudioLevels();
+                }, 100);
+            }, 1500);
+
             playStartSound();
             measureAudioLevel();
 
@@ -166,7 +290,7 @@ const SoundInputHandler: React.FC<SoundInputHandlerProps> = ({
             devLog.error('❌ 녹음 시작 실패:', err);
             setState("idle");
         }
-    }, [playStartSound, measureAudioLevel]);
+    }, [playStartSound, measureAudioLevel, logAudioLevels, checkAutoStop, state]);
     // 녹음 완료 처리
 
     const handleRecordingComplete = useCallback(async () => {
@@ -211,6 +335,12 @@ const SoundInputHandler: React.FC<SoundInputHandlerProps> = ({
             }
             if (animationRef.current) {
                 cancelAnimationFrame(animationRef.current);
+            }
+            if (loggingIntervalRef.current) {
+                clearInterval(loggingIntervalRef.current);
+            }
+            if (autoStopTimeoutRef.current) {
+                clearTimeout(autoStopTimeoutRef.current);
             }
         };
     }, []);
