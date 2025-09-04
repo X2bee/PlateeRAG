@@ -1,11 +1,15 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { FiMic, FiPause, FiPlay, FiSquare, FiUpload, FiDownload } from 'react-icons/fi';
+import { createPortal } from 'react-dom';
+import { FiMic, FiPause, FiPlay, FiSquare, FiUpload, FiDownload, FiLoader } from 'react-icons/fi';
 import styles from './SoundInput.module.scss';
+import { transcribeAudio } from '@/app/api/sttAPI';
 
 interface SoundInputProps {
+    isOpen?: boolean; // Portal을 위한 isOpen prop 추가
     onAudioReady?: (audioBlob: Blob) => void;
+    onTranscriptionReady?: (transcription: string) => void; // 변환된 텍스트를 받을 콜백 추가
     onClose?: () => void;
     className?: string;
 }
@@ -13,7 +17,9 @@ interface SoundInputProps {
 type RecordingState = "idle" | "recording" | "paused" | "finished";
 
 const SoundInput: React.FC<SoundInputProps> = ({
+    isOpen = true, // 기본값은 true로 설정
     onAudioReady,
+    onTranscriptionReady,
     onClose,
     className = ''
 }) => {
@@ -24,6 +30,7 @@ const SoundInput: React.FC<SoundInputProps> = ({
     const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [mimeType, setMimeType] = useState<string>('');
+    const [isTranscribing, setIsTranscribing] = useState<boolean>(false); // STT 처리 중 상태 추가
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
@@ -197,12 +204,65 @@ const SoundInput: React.FC<SoundInputProps> = ({
         setAudioLevel(0);
     }, []);
 
-    // 오디오 사용하기 함수
-    const handleUseAudio = useCallback(() => {
-        if (audioBlob && onAudioReady) {
-            onAudioReady(audioBlob);
+    // 오디오 사용하기 함수 - STT API 호출 추가
+    const handleUseAudio = useCallback(async () => {
+        if (!audioBlob) return;
+
+        try {
+            setIsTranscribing(true);
+            setError(null);
+
+            // 오디오 형식 결정
+            const audioFormat = mimeType.includes('webm') ? 'webm' :
+                               mimeType.includes('mp4') ? 'mp4' : 'webm';
+
+            // File 객체 생성
+            const audioFile = new File([audioBlob], `recording.${audioFormat}`, {
+                type: mimeType
+            });
+
+            console.log('Audio file created:', {
+                name: audioFile.name,
+                size: audioFile.size,
+                type: audioFile.type,
+                lastModified: audioFile.lastModified
+            });
+
+            // STT API 호출
+            const response = await transcribeAudio(audioFile, audioFormat);
+
+            if (response && (response as any).transcription) {
+                // 변환된 텍스트를 상위 컴포넌트로 전달
+                if (onTranscriptionReady) {
+                    onTranscriptionReady((response as any).transcription);
+                }
+
+                // 기존 콜백도 유지 (호환성을 위해)
+                if (onAudioReady) {
+                    onAudioReady(audioBlob);
+                }
+
+                // 모달 닫기
+                if (onClose) {
+                    onClose();
+                }
+            } else {
+                setError('음성 변환에 실패했습니다.');
+            }
+        } catch (err) {
+            console.error('STT 변환 실패:', err);
+            setError('음성 변환 중 오류가 발생했습니다.');
+        } finally {
+            setIsTranscribing(false);
         }
-    }, [audioBlob, onAudioReady]);
+    }, [audioBlob, mimeType, onAudioReady, onTranscriptionReady, onClose]);
+
+    // 배경 클릭으로 모달 닫기
+    const handleBackdropClick = (e: React.MouseEvent) => {
+        if (e.target === e.currentTarget && onClose) {
+            onClose();
+        }
+    };
     useEffect(() => {
         return () => {
             if (timerRef.current) {
@@ -223,108 +283,124 @@ const SoundInput: React.FC<SoundInputProps> = ({
         };
     }, [audioUrl]);
 
-    return (
-        <div className={`${styles.soundInputContainer} ${className}`}>
-            <div className={styles.header}>
-                <h3 className={styles.title}>
-                    {state === "finished" ? "녹음 완료" : "음성 녹음"}
-                </h3>
-                <span className={styles.format}>{mimeType || "(기본 포맷)"}</span>
-            </div>
+    if (!isOpen) return null;
 
-            {/* 오디오 레벨 미터 */}
-            <div className={styles.levelMeter}>
-                <div
-                    className={styles.levelBar}
-                    style={{ width: `${Math.min(100, Math.round(audioLevel * 150))}%` }}
-                />
-            </div>
+    const modalContent = (
+        <div className={styles.modalBackdrop} onClick={handleBackdropClick}>
+            <div className={`${styles.soundInputContainer} ${className}`}>
+                <div className={styles.header}>
+                    <h3 className={styles.title}>
+                        {state === "finished" ? "녹음 완료" : "음성 녹음"}
+                    </h3>
+                    <span className={styles.format}>{mimeType || "(기본 포맷)"}</span>
+                </div>
 
-            {/* 녹음 시간 */}
-            <div className={styles.timer}>
-                {formatTime(recordingTime)}
-            </div>
+                {/* 오디오 레벨 미터 */}
+                <div className={styles.levelMeter}>
+                    <div
+                        className={styles.levelBar}
+                        style={{ width: `${Math.min(100, Math.round(audioLevel * 150))}%` }}
+                    />
+                </div>
 
-            {/* 컨트롤 버튼들 */}
-            <div className={styles.controls}>
-                {state === "idle" ? (
-                    <button
-                        onClick={startRecording}
-                        className={styles.recordButton}
-                        aria-label="녹음 시작"
-                    >
-                        <FiMic />
-                    </button>
-                ) : state === "finished" ? (
-                    <button
-                        onClick={startRecording}
-                        className={`${styles.recordButton} ${styles.restart}`}
-                        aria-label="다시 녹음"
-                    >
-                        <FiMic />
-                    </button>
-                ) : (
-                    <div className={styles.recordingControls}>
-                        {state === "paused" ? (
-                            <button onClick={resumeRecording} className={styles.controlButton}>
-                                <FiPlay />
-                                <span>재개</span>
-                            </button>
-                        ) : (
-                            <button onClick={pauseRecording} className={styles.controlButton}>
-                                <FiPause />
-                                <span>일시정지</span>
-                            </button>
-                        )}
-                        <button onClick={stopRecording} className={`${styles.controlButton} ${styles.stopButton}`}>
-                            <FiSquare />
-                            <span>정지</span>
+                {/* 녹음 시간 */}
+                <div className={styles.timer}>
+                    {formatTime(recordingTime)}
+                </div>
+
+                {/* 컨트롤 버튼들 */}
+                <div className={styles.controls}>
+                    {state === "idle" ? (
+                        <button
+                            onClick={startRecording}
+                            className={styles.recordButton}
+                            aria-label="녹음 시작"
+                        >
+                            <FiMic />
                         </button>
+                    ) : state === "finished" ? (
+                        <button
+                            onClick={startRecording}
+                            className={`${styles.recordButton} ${styles.restart}`}
+                            aria-label="다시 녹음"
+                        >
+                            <FiMic />
+                        </button>
+                    ) : (
+                        <div className={styles.recordingControls}>
+                            {state === "paused" ? (
+                                <button onClick={resumeRecording} className={styles.controlButton}>
+                                    <FiPlay />
+                                    <span>재개</span>
+                                </button>
+                            ) : (
+                                <button onClick={pauseRecording} className={styles.controlButton}>
+                                    <FiPause />
+                                    <span>일시정지</span>
+                                </button>
+                            )}
+                            <button onClick={stopRecording} className={`${styles.controlButton} ${styles.stopButton}`}>
+                                <FiSquare />
+                                <span>정지</span>
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* 에러 메시지 */}
+                {error && (
+                    <div className={styles.error}>
+                        오류: {error}
                     </div>
                 )}
-            </div>
 
-            {/* 에러 메시지 */}
-            {error && (
-                <div className={styles.error}>
-                    오류: {error}
-                </div>
-            )}
-
-            {/* 녹음 완료 후 미리듣기 및 액션 */}
-            {audioUrl && state === "finished" && (
-                <div className={styles.playback}>
-                    <audio src={audioUrl} controls className={styles.audioPlayer} />
-                    <div className={styles.actions}>
-                        <button
-                            onClick={handleUseAudio}
-                            className={`${styles.actionButton} ${styles.uploadButton}`}
-                        >
-                            <FiUpload />
-                            <span>사용하기</span>
-                        </button>
-                        {audioUrl && (
-                            <a
-                                href={audioUrl}
-                                download={`recording.${mimeType.split('/')[1]}`}
-                                className={`${styles.actionButton} ${styles.downloadButton}`}
+                {/* 녹음 완료 후 미리듣기 및 액션 */}
+                {audioUrl && state === "finished" && (
+                    <div className={styles.playback}>
+                        <audio src={audioUrl} controls className={styles.audioPlayer} />
+                        <div className={styles.actions}>
+                            <button
+                                onClick={handleUseAudio}
+                                className={`${styles.actionButton} ${styles.uploadButton}`}
+                                disabled={isTranscribing}
                             >
-                                <FiDownload />
-                                <span>다운로드</span>
-                            </a>
-                        )}
+                                {isTranscribing ? (
+                                    <>
+                                        <FiLoader className={styles.spinner} />
+                                        <span>변환 중...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <FiUpload />
+                                        <span>사용하기</span>
+                                    </>
+                                )}
+                            </button>
+                            {audioUrl && (
+                                <a
+                                    href={audioUrl}
+                                    download={`recording.${mimeType.split('/')[1]}`}
+                                    className={`${styles.actionButton} ${styles.downloadButton}`}
+                                >
+                                    <FiDownload />
+                                    <span>다운로드</span>
+                                </a>
+                            )}
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {/* 닫기 버튼 */}
-            {onClose && (
-                <button onClick={onClose} className={styles.closeButton}>
-                    ✕
-                </button>
-            )}
+                {/* 닫기 버튼 */}
+                {onClose && (
+                    <button onClick={onClose} className={styles.closeButton}>
+                        ✕
+                    </button>
+                )}
+            </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };
 
 export default SoundInput;

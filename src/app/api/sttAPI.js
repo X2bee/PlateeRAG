@@ -21,7 +21,7 @@ export const transcribeAudio = async (audioFile, audioFormat = null) => {
         const response = await apiClient(`${API_BASE_URL}/api/stt/transcribe`, {
             method: 'POST',
             body: formData,
-        });
+        }, false);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
