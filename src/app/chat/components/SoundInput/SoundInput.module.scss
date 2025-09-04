@@ -1,13 +1,26 @@
 @use '@/app/_common/_variables.scss' as *;
-
+.modalBackdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
 .soundInputContainer {
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 1.5rem;
+    width: 100%;
+    max-width: 500px; // 400px에서 500px로 증가
+    margin: 0;
+    padding: 2rem; // 1.5rem에서 2rem으로 증가
     border-radius: 1rem;
     border: 1px solid $gray-200;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); // 그림자 강화
+    background: white; // 투명도 제거하여 더 선명하게
     backdrop-filter: blur(10px);
     position: relative;
 }
@@ -49,25 +62,25 @@
 
 .timer {
     text-align: center;
-    font-size: 2rem;
+    font-size: 2.5rem; // 2rem에서 2.5rem으로 증가
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     font-weight: 600;
     color: $gray-800;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem; // 1.5rem에서 2rem으로 증가
 }
 
 .controls {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
+    gap: 1rem; // 0.75rem에서 1rem으로 증가
+    margin-bottom: 1.5rem; // 1rem에서 1.5rem으로 증가
 }
 
 .recordButton {
     position: relative;
-    width: 3.5rem;
-    height: 3.5rem;
+    width: 4rem; // 3.5rem에서 4rem으로 증가
+    height: 4rem; // 3.5rem에서 4rem으로 증가
     border-radius: 50%;
     background-color: #ef4444;
     color: white;
@@ -77,7 +90,7 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); // 그림자 강화
 
     &:hover {
         opacity: 0.9;
@@ -94,8 +107,8 @@
     }
 
     svg {
-        width: 1.75rem;
-        height: 1.75rem;
+        width: 2rem; // 1.75rem에서 2rem으로 증가
+        height: 2rem; // 1.75rem에서 2rem으로 증가
     }
 }
 
@@ -180,9 +193,14 @@
     flex: 1;
     justify-content: center;
 
-    &:hover {
+    &:hover:not(:disabled) {
         background-color: $gray-50;
         border-color: $gray-400;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
     }
 
     &.uploadButton {
@@ -190,9 +208,14 @@
         color: white;
         border-color: #10b981;
 
-        &:hover {
+        &:hover:not(:disabled) {
             background-color: #059669;
             border-color: #059669;
+        }
+
+        &:disabled {
+            background-color: #6b7280;
+            border-color: #6b7280;
         }
     }
 
@@ -200,7 +223,7 @@
         background-color: $gray-100;
         color: $gray-700;
 
-        &:hover {
+        &:hover:not(:disabled) {
             background-color: $gray-200;
         }
     }
@@ -208,6 +231,20 @@
     svg {
         width: 1rem;
         height: 1rem;
+    }
+}
+
+// 스피너 애니메이션
+.spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
     }
 }
 
@@ -236,35 +273,40 @@
 
 // 반응형 디자인
 @media (max-width: 480px) {
+    .modalBackdrop {
+        padding: 0.5rem; // 모바일에서 패딩 줄임
+    }
+
     .soundInputContainer {
+        width: 100%;
         max-width: 100%;
         margin: 0;
         border-radius: 0.5rem;
-        padding: 1rem;
+        padding: 1.5rem; // 1rem에서 1.5rem으로 증가
     }
 
     .timer {
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
+        font-size: 2rem; // 1.5rem에서 2rem으로 증가
+        margin-bottom: 1.5rem; // 1rem에서 1.5rem으로 증가
     }
 
     .recordButton {
-        width: 3rem;
-        height: 3rem;
+        width: 3.5rem; // 3rem에서 3.5rem으로 증가
+        height: 3.5rem; // 3rem에서 3.5rem으로 증가
 
         svg {
-            width: 1.5rem;
-            height: 1.5rem;
+            width: 1.75rem; // 1.5rem에서 1.75rem으로 증가
+            height: 1.75rem; // 1.5rem에서 1.75rem으로 증가
         }
     }
 
     .controlButton {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.75rem;
+        padding: 0.5rem 1rem; // 패딩 증가
+        font-size: 0.875rem; // 0.75rem에서 0.875rem으로 증가
 
         svg {
-            width: 0.875rem;
-            height: 0.875rem;
+            width: 1rem; // 0.875rem에서 1rem으로 증가
+            height: 1rem; // 0.875rem에서 1rem으로 증가
         }
     }
 
