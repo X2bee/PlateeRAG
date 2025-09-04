@@ -347,14 +347,12 @@ const SoundInput: React.FC<SoundInputProps> = ({
                     )}
                 </div>
 
-                {/* 에러 메시지 */}
                 {error && (
                     <div className={styles.error}>
                         오류: {error}
                     </div>
                 )}
 
-                {/* 녹음 완료 후 미리듣기 및 액션 */}
                 {audioUrl && state === "finished" && (
                     <div className={styles.playback}>
                         <audio src={audioUrl} controls className={styles.audioPlayer} />
