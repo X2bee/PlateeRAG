@@ -147,9 +147,9 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
     }, []);
     useEffect(() => {
         const fetchDeployStatus = async () => {
-            if (workflow) {
+            if (workflow && user_id) {
                 try {
-                    const deployed = await getDeployStatus(workflow.name);
+                    const deployed = await getDeployStatus(workflow.name, user_id);
                     setToggleDeploy(deployed.is_deployed);
                 } catch (err) {
                     console.error('Failed to fetch deploy status:', err);
@@ -158,7 +158,7 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
         };
 
         fetchDeployStatus();
-    }, [workflow]);
+    }, [workflow, user_id]);
 
     useEffect(() => {
         if (isOpen) {

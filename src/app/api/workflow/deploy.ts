@@ -37,14 +37,23 @@ export interface DeployKeyResponse {
 export const getDeployStatus = async (workflowName: string, user_id?: number | string): Promise<DeployStatus> => {
     try {
         devLog.log(`Getting deploy status for workflow: ${workflowName}`);
+        devLog.log(`User ID: ${user_id}`);
 
-        const response = await apiClient(`${API_BASE_URL}/api/workflow/deploy/status/${encodeURIComponent(workflowName)}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ user_id: user_id || "" })
-        });
+        const response = user_id 
+            ? await fetch(`${API_BASE_URL}/api/workflow/deploy/status/${encodeURIComponent(workflowName)}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ user_id })
+            })
+            : await apiClient(`${API_BASE_URL}/api/workflow/deploy/status/${encodeURIComponent(workflowName)}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ user_id: "" })
+            });
 
         if (!response.ok) {
             const errorData = await response.json();
