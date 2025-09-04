@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import {
     FiFolder,
     FiPlay,
@@ -14,6 +14,7 @@ import {
 } from 'react-icons/fi';
 import styles from '@/app/main/assets/CompletedWorkflows.module.scss';
 import { listWorkflowsDetail, deleteWorkflow, duplicateWorkflow } from '@/app/api/workflow/workflowAPI';
+import { getDeployStatus } from '@/app/api/workflow/deploy';
 import { useRouter } from 'next/navigation';
 import { Workflow, WorkflowDetailResponse } from '@/app/main/types/index';
 import {
@@ -39,7 +40,7 @@ const CompletedWorkflows: React.FC = () => {
     >('all');
     const [showEditModal, setShowEditModal] = useState(false);
     const [workflowToEdit, setWorkflowToEdit] = useState<Workflow | null>(null);
-
+    
     const fetchWorkflows = async () => {
         try {
             setLoading(true);
