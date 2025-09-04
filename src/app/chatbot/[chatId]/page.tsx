@@ -91,6 +91,13 @@ const StandaloneChatPage = () => {
                         return;
                     }
                 } else {
+                    if (decryptedParams.message) {
+                        setError(decryptedParams.message === 'This workflow is not deployed.' 
+                            ? '이 워크플로우는 배포되지 않았습니다.' 
+                            : decryptedParams.message);
+                        setLoading(false);
+                        return;
+                    }
                     setUserId(decryptedParams.userId);
                     setWorkflowName(decryptedParams.workflowName);
                 }
@@ -134,7 +141,7 @@ const StandaloneChatPage = () => {
         };
 
         handleDecryption();
-    }, [encryptedParams, workflowNameFromUrl]);
+    }, [encryptedParams, userId, workflowName, workflowNameFromUrl]);
 
     if (loading) {
         return (
