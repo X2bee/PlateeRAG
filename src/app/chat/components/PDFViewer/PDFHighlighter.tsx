@@ -36,13 +36,10 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
   // 현재 페이지가 하이라이트 대상인지 확인
   const shouldHighlight = pageNumber === highlightRange.pageNumber;
 
-  // 스마트 하이라이팅 제거 함수
+  // 스마트 하이라이팅 제거 함수 (전체 문서)
   const removeExistingHighlights = useCallback(() => {
-    const pdfContainer = document.querySelector('.react-pdf__Page__textContent');
-    if (!pdfContainer) return;
-
-    // 기존 하이라이팅된 span들 찾기
-    const highlightedSpans = pdfContainer.querySelectorAll('[data-smart-score]');
+    // 전체 문서에서 하이라이팅된 모든 span들 찾기
+    const highlightedSpans = document.querySelectorAll('[data-smart-score]');
     
     highlightedSpans.forEach(span => {
       // 인라인 스타일 제거
@@ -62,6 +59,7 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
       element.removeAttribute('data-smart-score');
       element.removeAttribute('data-matched-tokens');
       element.removeAttribute('data-matched-text');
+      element.removeAttribute('data-partial-match');
     });
   }, []);
 
@@ -84,53 +82,70 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
     return null;
   }, [pageNumber]);
 
-  // 🎯 PDF 스마트 하이라이팅 적용 함수
+  // 🎯 PDF 스마트 하이라이팅 적용 함수 (span 그룹화 기반)
   const applySmartHighlighting = useCallback((
     textSpans: HTMLElement[], 
     combinationMatches: CombinationMatch[]
   ) => {
-    textSpans.forEach(span => {
-      const spanText = span.textContent?.trim() || '';
-      if (!spanText) return;
-
-      // 해당 span과 겹치는 매칭들 찾기 (부분 매칭 포함)
-      const spanMatches = combinationMatches.filter(match => {
-        const spanLower = spanText.toLowerCase();
-        const matchedLower = match.matchedText.toLowerCase();
+    const processedSpans = new Set<HTMLElement>();
+    const actualMatches: { spanText: string; matchedText: string; score: number }[] = [];
+    
+    // 각 조합 매칭에 대해 연속된 span 그룹 찾기
+    combinationMatches.forEach(match => {
+      const matchedText = match.matchedText.toLowerCase().replace(/\s+/g, '');
+      
+      // 슬라이딩 윈도우로 연속된 span들 검사
+      for (let i = 0; i < textSpans.length; i++) {
+        if (processedSpans.has(textSpans[i])) continue;
         
-        // 1. 정확한 매칭
-        if (spanLower.includes(matchedLower) || matchedLower.includes(spanLower)) {
-          return true;
+        let combinedText = '';
+        const spanGroup: HTMLElement[] = [];
+        
+        // 연속된 span들을 합쳐서 매칭 텍스트와 비교
+        for (let j = i; j < Math.min(i + 10, textSpans.length); j++) {
+          const span = textSpans[j];
+          const spanText = span.textContent?.trim() || '';
+          
+          if (!spanText) continue;
+          
+          combinedText += spanText.toLowerCase().replace(/\s+/g, '');
+          spanGroup.push(span);
+          
+          // 정확한 매칭 찾기
+          if (combinedText === matchedText) {
+            // 그룹 전체를 하이라이팅
+            spanGroup.forEach(groupSpan => {
+              if (!processedSpans.has(groupSpan)) {
+                const styles = getScoreStyles(match.score);
+                Object.assign(groupSpan.style, styles);
+                groupSpan.setAttribute('data-smart-score', match.score.toString());
+                groupSpan.setAttribute('data-matched-tokens', match.tokens.map(t => t.text).join(' + '));
+                groupSpan.setAttribute('data-matched-text', match.matchedText);
+                processedSpans.add(groupSpan);
+                
+                actualMatches.push({
+                  spanText: groupSpan.textContent?.trim() || '',
+                  matchedText: match.matchedText,
+                  score: match.score
+                });
+              }
+            });
+            break;
+          }
+          
+          // 매칭 텍스트보다 길어지면 중단
+          if (combinedText.length > matchedText.length) {
+            break;
+          }
         }
-        
-        // 2. 토큰별 부분 매칭 (PDF 텍스트 분할 대응)
-        return match.tokens.some(token => {
-          const tokenLower = token.text.toLowerCase();
-          return spanLower.includes(tokenLower) || tokenLower.includes(spanLower);
-        });
-      });
-
-      if (spanMatches.length > 0) {
-        // 가장 높은 점수 선택
-        const bestMatch = spanMatches.reduce((best, current) => 
-          current.score > best.score ? current : best
-        );
-
-        // 부분 매칭인 경우 점수 조정
-        const spanLower = spanText.toLowerCase();
-        const matchedLower = bestMatch.matchedText.toLowerCase();
-        const isPartialMatch = !spanLower.includes(matchedLower) && !matchedLower.includes(spanLower);
-        const finalScore = isPartialMatch ? Math.max(bestMatch.score * 0.7, 1) : bestMatch.score;
-
-        // 점수별 인라인 스타일 직접 적용
-        const styles = getScoreStyles(finalScore);
-        Object.assign(span.style, styles);
-        span.setAttribute('data-smart-score', finalScore.toString());
-        span.setAttribute('data-matched-tokens', bestMatch.tokens.map(t => t.text).join(' + '));
-        span.setAttribute('data-matched-text', bestMatch.matchedText);
-        span.setAttribute('data-partial-match', isPartialMatch.toString());
       }
     });
+    
+    // 디버깅용 로그
+    if (window.location.search.includes('debug=smart') && actualMatches.length > 0) {
+      console.log('실제 하이라이팅된 span들:', actualMatches);
+      console.log('처리된 span 수:', processedSpans.size);
+    }
   }, []);
 
   // 개별 토큰 하이라이팅 적용 함수
@@ -273,6 +288,7 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
         console.log('복원된 페이지 텍스트:', fullPageText);
         console.log('스마트 토큰들:', smartTokens);
         console.log('조합 매칭 결과:', combinationMatches);
+        console.log('페이지 span 개수:', validSpans.length);
         console.log('하이라이팅 설정:', highlightConfig);
         
         // 테스트 함수는 별도 호출시에만 실행
@@ -284,13 +300,9 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
       // 🎯 스마트 토큰 조합 매칭 기반 하이라이팅
       if (combinationMatches.length > 0) {
         applySmartHighlighting(validSpans, combinationMatches);
-        return;
-      }
-      
-      // 폴백: 개별 스마트 토큰 매칭
-      if (smartTokens.length > 0) {
+      } else if (smartTokens.length > 0) {
+        // 폴백: 개별 스마트 토큰 매칭 (조합 매칭이 실패했을 때만)
         applyTokenHighlighting(validSpans, smartTokens);
-        return;
       }
     }
   }, [highlightRange, findPDFTextLayer, removeExistingHighlights, applySmartHighlighting, applyTokenHighlighting, highlightConfig]);
