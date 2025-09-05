@@ -148,11 +148,18 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
     useEffect(() => {
         const fetchDeployStatus = async () => {
             if (workflow && user_id) {
+                // default_mode는 배포 기능이 없으므로 배포 상태 체크를 건너뛰기
+                if (workflow.name === 'default_mode') {
+                    setToggleDeploy(false);
+                    return;
+                }
+
                 try {
                     const deployed = await getDeployStatus(workflow.name, user_id);
                     setToggleDeploy(deployed.is_deployed);
                 } catch (err) {
                     console.error('Failed to fetch deploy status:', err);
+                    setToggleDeploy(false);
                 }
             }
         };
@@ -389,17 +396,23 @@ ${formatOutputSchemaForCode(outputSchema, 1)}
                         <div className={styles.tabPanel}>
                             <div className={styles.deployInfo}>
                                 <p>아래 링크를 통해 독립된 웹페이지에서 채팅을 사용할 수 있습니다.</p>
-                                <button
-                                    type="button"
-                                    className={`${styles.toggleButton} ${toggleDeploy ? styles.active : ''}`}
-                                    onClick={async () => {
-                                        setToggleDeploy(!toggleDeploy);
-                                        await toggleDeployStatus(workflow.name, !toggleDeploy);
-                                    }}
-                                    disabled={loading}
-                                >
-                                    {toggleDeploy ? '배포 중' : '비공개'}
-                                </button>
+                                {workflow.name !== 'default_mode' ? (
+                                    <button
+                                        type="button"
+                                        className={`${styles.toggleButton} ${toggleDeploy ? styles.active : ''}`}
+                                        onClick={async () => {
+                                            setToggleDeploy(!toggleDeploy);
+                                            await toggleDeployStatus(workflow.name, !toggleDeploy);
+                                        }}
+                                        disabled={loading}
+                                    >
+                                        {toggleDeploy ? '배포 중' : '비공개'}
+                                    </button>
+                                ) : (
+                                    <div className={styles.defaultModeInfo}>
+                                        <p>기본 모드는 배포할 수 없습니다.</p>
+                                    </div>
+                                )}
                             </div>
                             <div className={styles.webPageUrl}>
                                 <a href={baseUrl ? webPageUrl : '#'} target="_blank" rel="noopener noreferrer">
