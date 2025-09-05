@@ -7,23 +7,44 @@ import { apiClient } from '@/app/api/helper/apiClient';
  * 텍스트를 음성으로 변환하는 함수
  * @param {Object} ttsRequest - TTS 요청 데이터
  * @param {string} ttsRequest.text - 변환할 텍스트
- * @param {string} ttsRequest.speaker - 화자 (선택사항)
- * @param {string} ttsRequest.output_format - 출력 형식 (기본값: "wav")
- * @param {number} ttsRequest.happiness - 기쁨 감정 값 (기본값: 0.3077)
- * @param {number} ttsRequest.sadness - 슬픔 감정 값 (기본값: 0.0256)
- * @param {number} ttsRequest.disgust - 혐오 감정 값 (기본값: 0.0256)
- * @param {number} ttsRequest.fear - 두려움 감정 값 (기본값: 0.0256)
- * @param {number} ttsRequest.surprise - 놀람 감정 값 (기본값: 0.0256)
- * @param {number} ttsRequest.anger - 분노 감정 값 (기본값: 0.0256)
- * @param {number} ttsRequest.other - 기타 감정 값 (기본값: 0.2564)
- * @param {number} ttsRequest.neutral - 중립 감정 값 (기본값: 0.3077)
+ * @param {string|null} [ttsRequest.speaker] - 화자 (선택사항)
+ * @param {string} [ttsRequest.output_format] - 출력 형식 (기본값: "wav")
+ * @param {number} [ttsRequest.happiness] - 기쁨 감정 값 (기본값: 0.3077)
+ * @param {number} [ttsRequest.sadness] - 슬픔 감정 값 (기본값: 0.0256)
+ * @param {number} [ttsRequest.disgust] - 혐오 감정 값 (기본값: 0.0256)
+ * @param {number} [ttsRequest.fear] - 두려움 감정 값 (기본값: 0.0256)
+ * @param {number} [ttsRequest.surprise] - 놀람 감정 값 (기본값: 0.0256)
+ * @param {number} [ttsRequest.anger] - 분노 감정 값 (기본값: 0.0256)
+ * @param {number} [ttsRequest.other] - 기타 감정 값 (기본값: 0.2564)
+ * @param {number} [ttsRequest.neutral] - 중립 감정 값 (기본값: 0.3077)
  * @returns {Promise<Blob>} 생성된 오디오 데이터
  */
 export const generateSpeech = async (ttsRequest) => {
     try {
+        // 입력 검증 및 정제
+        if (!ttsRequest.text || typeof ttsRequest.text !== 'string') {
+            throw new Error('유효하지 않은 텍스트입니다.');
+        }
+
+        const text = ttsRequest.text.trim();
+        if (text.length === 0) {
+            throw new Error('텍스트가 비어있습니다.');
+        }
+
+        // 텍스트 길이 제한 (백엔드 에러 방지)
+        if (text.length > 2000) {
+            throw new Error('텍스트가 너무 깁니다. (최대 2000자)');
+        }
+
+        // 줄 수 제한 (백엔드 conditioning 에러 방지)
+        const lines = text.split('\n').filter(line => line.trim().length > 0);
+        if (lines.length > 30) {
+            throw new Error('텍스트의 줄 수가 너무 많습니다. (최대 30줄)');
+        }
+
         // 기본값 설정
         const requestData = {
-            text: ttsRequest.text,
+            text: text,
             speaker: ttsRequest.speaker || null,
             output_format: ttsRequest.output_format || "wav",
             happiness: ttsRequest.happiness ?? 0.3077,
@@ -36,7 +57,12 @@ export const generateSpeech = async (ttsRequest) => {
             neutral: ttsRequest.neutral ?? 0.3077
         };
 
-        devLog.log('TTS request data:', requestData);
+        devLog.log('TTS request data:', {
+            ...requestData,
+            text: requestData.text.substring(0, 100) + '...',
+            textLength: requestData.text.length,
+            lineCount: lines.length
+        });
 
         const response = await apiClient(`${API_BASE_URL}/api/tts/generate`, {
             method: 'POST',
@@ -47,16 +73,47 @@ export const generateSpeech = async (ttsRequest) => {
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            devLog.error('TTS generation error:', errorData);
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            let errorMessage = `HTTP error! status: ${response.status}`;
+
+            try {
+                const errorData = await response.json();
+                devLog.error('TTS generation error:', errorData);
+
+                // 특정 에러 유형에 따른 사용자 친화적 메시지
+                if (errorData.detail && typeof errorData.detail === 'string') {
+                    if (errorData.detail.includes('conditioning')) {
+                        errorMessage = '텍스트 형식이 음성 변환에 적합하지 않습니다.';
+                    } else if (errorData.detail.includes('tensor')) {
+                        errorMessage = '텍스트가 음성 변환 모델과 호환되지 않습니다.';
+                    } else if (errorData.detail.includes('lines')) {
+                        errorMessage = '텍스트의 구조가 복잡합니다. 더 간단한 텍스트로 시도해보세요.';
+                    } else {
+                        errorMessage = errorData.detail;
+                    }
+                }
+            } catch (parseError) {
+                devLog.error('Failed to parse error response:', parseError);
+            }
+
+            throw new Error(errorMessage);
         }
 
         const audioBlob = await response.blob();
+
+        if (audioBlob.size === 0) {
+            throw new Error('생성된 오디오 파일이 비어있습니다.');
+        }
+
         devLog.info('TTS generation completed, audio size:', audioBlob.size);
         return audioBlob;
     } catch (error) {
         devLog.error('Failed to generate speech:', error);
+
+        // 네트워크 에러 처리
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            throw new Error('네트워크 연결을 확인해주세요.');
+        }
+
         throw error;
     }
 };

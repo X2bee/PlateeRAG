@@ -6,6 +6,7 @@ import { getWorkflowIOLogs, loadWorkflow } from '@/app/api/workflow/workflowAPI'
 import { loadWorkflow as loadWorkflowDeploy } from '@/app/api/workflow/workflowDeployAPI';
 import { MessageRenderer } from '@/app/_common/components/chatParser/ChatParser';
 import CollectionModal from '@/app/chat/components/CollectionModal';
+import AIChatEditDropdown from '@/app/chat/components/AIChatEditModal/AIChatEditModal';
 import { IOLog, ChatInterfaceProps } from './types';
 import ChatHeader from './ChatHeader';
 import { DeploymentModal } from './DeploymentModal';
@@ -18,6 +19,8 @@ import { useWorkflowExecution } from '../hooks/useWorkflowExecution';
 import { useCollectionManagement } from '../hooks/useCollectionManagement';
 import { useScrollManagement } from '../hooks/useScrollManagement';
 import { useChatState } from '../hooks/useChatState';
+import { speakText, extractPlainText, sanitizeTextForTTS } from '@/app/_common/utils/ttsUtils';
+import { showCopySuccessToastKo, showSuccessToastKo, showWarningToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 
 interface NewChatInterfaceProps extends ChatInterfaceProps {
     onStartNewChat?: (message: string) => void;
@@ -45,6 +48,12 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
 
     // 로컬 상태 (최소화됨)
     const [ioLogs, setIOLogs] = useState<IOLog[]>([]);
+
+    // AI 채팅 편집 드롭다운 상태
+    const [showEditDropdown, setShowEditDropdown] = useState(false);
+    const [selectedMessage, setSelectedMessage] = useState<{content: string, id?: string} | null>(null);
+    const [dropdownPosition, setDropdownPosition] = useState<{top: number, right: number}>({top: 0, right: 0});
+    const [isReading, setIsReading] = useState(false);
 
     // 통합 상태 관리
     const { state, actions } = useChatState();
@@ -151,8 +160,110 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
         }
     }, [actions]);
 
+    // AI 채팅 편집 관련 함수들
+    const handleEditClick = useCallback((messageContent: string, messageId?: string, position?: { top: number; right: number }) => {
+        setSelectedMessage({ content: messageContent, id: messageId });
+        if (position) {
+            setDropdownPosition(position);
+        }
+        setShowEditDropdown(true);
+    }, []);
+
+    const handleDebugClick = useCallback(() => {
+        if (!selectedMessage) return;
+
+        // 현재 메시지에 해당하는 IOLog 찾기
+        const messageLog = ioLogs.find(log => log.output_data === selectedMessage.content);
+
+        const debugInfo = {
+            message_id: selectedMessage.id,
+            user_input: messageLog?.input_data || 'Not found',
+            ai_output: selectedMessage.content,
+            log_id: messageLog?.log_id || 'Not available',
+            workflow_id: messageLog?.workflow_id || workflow?.id || 'Not available',
+            workflow_name: messageLog?.workflow_name || workflow?.name || 'Not available',
+            updated_at: messageLog?.updated_at || 'Not available',
+            log_data: messageLog || 'Log not found'
+        };
+
+        console.log('=== 디버그 정보 ===');
+        console.log('메시지 ID:', debugInfo.message_id);
+        console.log('사용자 입력:', debugInfo.user_input);
+        console.log('AI 출력:', debugInfo.ai_output);
+        console.log('Log ID:', debugInfo.log_id);
+        console.log('Workflow ID:', debugInfo.workflow_id);
+        console.log('Workflow Name:', debugInfo.workflow_name);
+        console.log('업데이트 시간:', debugInfo.updated_at);
+        console.log('전체 로그 데이터:', debugInfo.log_data);
+        console.log('==================');
+
+        // 알림으로도 표시
+        alert(`디버그 정보가 콘솔에 출력되었습니다.\n\n` +
+              `메시지 ID: ${debugInfo.message_id}\n` +
+              `Log ID: ${debugInfo.log_id}\n` +
+              `Workflow: ${debugInfo.workflow_name} (${debugInfo.workflow_id})\n\n` +
+              `자세한 정보는 개발자 도구 콘솔을 확인하세요.`);
+
+        handleCloseEditDropdown();
+    }, [selectedMessage, ioLogs, workflow, workflowExecution]);
+
+    const handleCloseEditDropdown = useCallback(() => {
+        setShowEditDropdown(false);
+        setSelectedMessage(null);
+    }, []);
+
+    const handleReadAloud = useCallback(async () => {
+        if (!selectedMessage || isReading) return;
+
+        setIsReading(true);
+
+        try {
+            devLog.log('Starting TTS for message:', selectedMessage.id);
+
+            // 텍스트 전처리
+            const plainText = extractPlainText(selectedMessage.content);
+            const sanitizedText = sanitizeTextForTTS(plainText);
+
+            if (!sanitizedText || sanitizedText.length < 10) {
+                devLog.warn('Text is too short or empty after sanitization');
+                showWarningToastKo({ message: '읽을 수 있는 텍스트가 충분하지 않습니다.' });
+                return;
+            }
+
+            devLog.log('Sanitized text for TTS:', sanitizedText.substring(0, 100));
+
+            // TTS 실행
+            await speakText(sanitizedText);
+
+            devLog.info('TTS completed successfully');
+
+            // 드롭다운 닫기
+            handleCloseEditDropdown();
+
+        } catch (error) {
+            devLog.error('TTS failed:', error);
+            showErrorToastKo(error instanceof Error ? error.message : '음성 변환에 실패했습니다.');
+        } finally {
+            setIsReading(false);
+        }
+    }, [selectedMessage, isReading, handleCloseEditDropdown]);
+
+    const handleCopyText = useCallback(() => {
+        if (!selectedMessage) return;
+
+        const plainText = extractPlainText(selectedMessage.content);
+        navigator.clipboard.writeText(plainText).then(() => {
+            devLog.info('Text copied to clipboard');
+            showCopySuccessToastKo();
+            handleCloseEditDropdown();
+        }).catch((error) => {
+            devLog.error('Copy failed:', error);
+            showErrorToastKo('텍스트 복사에 실패했습니다.');
+        });
+    }, [selectedMessage, handleCloseEditDropdown]);
+
     // 메모이제이션된 렌더 함수들
-    const renderMessageContent = useCallback((content: string, isUserMessage: boolean = false, onHeightChange?: () => void) => {
+    const renderMessageContent = useCallback((content: string, isUserMessage: boolean = false, onHeightChange?: () => void, messageId?: string) => {
         if (!content) return null;
 
         const handleViewSourceWithContext = (sourceInfo: SourceInfo) => {
@@ -171,6 +282,19 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
             }
         };
 
+        // messageId가 없으면 content 기반의 간단한 해시 생성
+        const generateSafeId = (text: string): string => {
+            let hash = 0;
+            for (let i = 0; i < text.length; i++) {
+                const char = text.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash).toString(36);
+        };
+
+        const finalMessageId = messageId || `msg-${generateSafeId(content)}-${Date.now()}`;
+
         return (
             <MessageRenderer
                 mode={mode}
@@ -178,9 +302,13 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
                 isUserMessage={isUserMessage}
                 onViewSource={handleViewSourceWithContext}
                 onHeightChange={handleHeightChangeInternal}
+                messageId={finalMessageId}
+                timestamp={Date.now()}
+                showEditButton={!isUserMessage} // AI 메시지에만 편집 버튼 표시
+                onEditClick={handleEditClick}
             />
         );
-    }, [handleViewSource, scrollManagement]);
+    }, [handleViewSource, scrollManagement, mode, handleEditClick]);
 
     const formatDate = useCallback((dateString: string) => {
         return new Date(dateString).toLocaleString('ko-KR', {
@@ -376,6 +504,17 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
             <ChatContainer ref={chatContainerRef} {...chatContainerProps} />
             <DeploymentModal {...deploymentModalProps} />
             <CollectionModal {...collectionModalProps} />
+
+            <AIChatEditDropdown
+                isOpen={showEditDropdown}
+                onClose={handleCloseEditDropdown}
+                messageContent={selectedMessage?.content || ''}
+                onReadAloud={handleReadAloud}
+                onCopy={handleCopyText}
+                position={dropdownPosition}
+                isReading={isReading}
+                onDebug={handleDebugClick}
+            />
         </div>
     );
 });
