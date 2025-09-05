@@ -98,6 +98,27 @@ const DocxHighlighter: React.FC<DocxHighlighterProps> = ({
     });
   }, []);
 
+  // 중복 요소 제거 함수 (부모-자식 관계에서 자식 요소 우선)
+  const removeDuplicateElements = useCallback((elements: HTMLElement[]): HTMLElement[] => {
+    return elements.filter((element, index) => {
+      // 다른 요소들 중에서 현재 요소를 포함하는 부모 요소가 있는지 확인
+      for (let i = 0; i < elements.length; i++) {
+        if (i !== index) {
+          const otherElement = elements[i];
+          // otherElement가 element의 부모인 경우, element를 우선 선택
+          if (otherElement.contains(element) && otherElement !== element) {
+            return true; // 자식 요소이므로 포함
+          }
+          // element가 otherElement의 부모인 경우, otherElement를 우선 선택
+          if (element.contains(otherElement) && element !== otherElement) {
+            return false; // 부모 요소이므로 제외
+          }
+        }
+      }
+      return true; // 중복되지 않는 요소
+    });
+  }, []);
+
   // 통합 DOCX 하이라이팅 적용 함수 (정밀 부분 하이라이팅)
   const applyDocxHighlighting = useCallback(() => {
     const docxContainer = document.querySelector('[class*="docxContent"], [class*="docxContainer"], .docx-content, .docx-container');
@@ -106,30 +127,38 @@ const DocxHighlighter: React.FC<DocxHighlighterProps> = ({
     // 기존 하이라이팅 제거
     removeExistingHighlights();
 
-    // 텍스트가 있는 모든 요소 찾기 (p, span, div, h1-h6 등)
+    // 텍스트가 있는 모든 요소 찾기 (중첩 요소 포함)
     const textElements: HTMLElement[] = [];
-    const potentialTextElements = docxContainer.querySelectorAll('p, span, div, h1, h2, h3, h4, h5, h6, li, td, th');
+    
+    // 1단계: 모든 텍스트를 포함한 요소들 찾기 (p, span, div, h1-h6, strong, em, b, i 등)
+    const potentialTextElements = docxContainer.querySelectorAll('p, span, div, h1, h2, h3, h4, h5, h6, li, td, th, strong, em, b, i, u, mark');
     
     potentialTextElements.forEach(element => {
       const htmlElement = element as HTMLElement;
       if (htmlElement.textContent && htmlElement.textContent.trim().length > 0) {
-        // 자식 요소가 없거나, 직접적인 텍스트 내용이 있는 요소만 선택
+        // 직접 텍스트가 있는 요소 또는 리프 노드(자식이 없는 요소)
         const hasDirectText = Array.from(htmlElement.childNodes).some(
           child => child.nodeType === Node.TEXT_NODE && child.textContent?.trim()
         );
         
-        if (hasDirectText || htmlElement.children.length === 0) {
+        const isLeafNode = htmlElement.children.length === 0;
+        
+        // 직접 텍스트가 있거나 리프 노드인 경우 포함
+        if (hasDirectText || isLeafNode) {
           textElements.push(htmlElement);
         }
       }
     });
+    
+    // 2단계: 중복 제거 (부모-자식 관계에서 자식 요소 우선)
+    const finalTextElements = removeDuplicateElements(textElements);
 
     // 스마트 토큰화 기반 하이라이팅 적용
     if (highlightRange.searchText && highlightRange.searchText.trim()) {
       const searchText = highlightRange.searchText.trim();
       
       // 전체 문서 텍스트 구성 (공간 정보 보존)
-      const fullDocumentText = textElements.map(el => el.textContent || '').join('\n');
+      const fullDocumentText = finalTextElements.map(el => el.textContent || '').join('\n');
       
       // 🎯 새로운 스마트 토큰화 시스템 사용 (설정 기반)
       const smartTokens = smartTokenize(searchText);
@@ -149,22 +178,27 @@ const DocxHighlighter: React.FC<DocxHighlighterProps> = ({
         console.log('스마트 토큰들:', smartTokens);
         console.log('조합 매칭 결과:', combinationMatches);
         console.log('하이라이팅 설정:', highlightConfig);
-        testSmartTokenizer();
+        console.log('최종 텍스트 요소들:', finalTextElements);
+        
+        // 테스트 함수는 별도 호출시에만 실행
+        if (window.location.search.includes('debug=test')) {
+          testSmartTokenizer();
+        }
       }
       
       // 🎯 스마트 토큰 조합 매칭 기반 하이라이팅
       if (combinationMatches.length > 0) {
-        applySmartHighlighting(textElements, combinationMatches);
+        applySmartHighlighting(finalTextElements, combinationMatches);
         return;
       }
       
       // 폴백: 개별 스마트 토큰 매칭
       if (smartTokens.length > 0) {
-        applyTokenHighlighting(textElements, smartTokens);
+        applyTokenHighlighting(finalTextElements, smartTokens);
         return;
       }
     }
-  }, [highlightRange, removeExistingHighlights, applySmartHighlighting, applyTokenHighlighting, highlightConfig]);
+  }, [highlightRange, removeExistingHighlights, applySmartHighlighting, applyTokenHighlighting, highlightConfig, removeDuplicateElements]);
 
   // 점수별 CSS 클래스 반환
   const getScoreClass = (score: number): string => {

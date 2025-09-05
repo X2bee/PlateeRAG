@@ -240,7 +240,11 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
         console.log('스마트 토큰들:', smartTokens);
         console.log('조합 매칭 결과:', combinationMatches);
         console.log('하이라이팅 설정:', highlightConfig);
-        testSmartTokenizer();
+        
+        // 테스트 함수는 별도 호출시에만 실행
+        if (window.location.search.includes('debug=test')) {
+          testSmartTokenizer();
+        }
       }
       
       // 🎯 스마트 토큰 조합 매칭 기반 하이라이팅

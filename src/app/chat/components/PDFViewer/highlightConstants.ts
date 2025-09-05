@@ -20,9 +20,6 @@ export const EXCLUDED_WORDS = [
   'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very',
   'one', 'two', 'first', 'second',
   
-  // 숫자
-  // '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20',
-  
   // 특수문자 및 기타
   'nbsp', 'amp', 'lt', 'gt', 'quot', 'apos', // HTML 엔티티
   '·', ':', ';', '(', ')', '[', ']', '{', '}', '<', '>', '@', '#', '$', '%', '^', '&', '`', '-',

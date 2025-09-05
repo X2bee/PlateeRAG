@@ -38,9 +38,9 @@ const KOREAN_STOPWORDS = [
 ];
 
 /**
- * 특수문자 패턴 (제거할 문자들)
+ * 특수문자 패턴 (제거할 문자들) - 숫자 콤마는 보존
  */
-const SPECIAL_CHARS = /[\|\-\(\)\[\]{}.,;:!?'"~`@#$%^&*+=<>\/\\]/g;
+const SPECIAL_CHARS = /[\|\-\(\)\[\]{};:!?'"~`@#$%^&*+=<>\/\\]/g;
 
 /**
  * 언어 경계 기반 스마트 토큰화
@@ -82,22 +82,24 @@ const splitByLanguageBoundary = (word: string): SmartToken[] => {
   const tokens: SmartToken[] = [];
   let currentToken = '';
   let currentType: SmartToken['type'] | null = null;
+  let tokenProcessed = false; // 토큰이 이미 처리되었는지 확인
   
   for (let i = 0; i < word.length; i++) {
     const char = word[i];
     const charType = getCharacterType(char);
     
-    // 특수 케이스: 숫자 + 한글 단위 (예: "0.2억", "1만") - 분리하지 않음
+    // 특수 케이스: 숫자 + 한글 단위 (예: "1,000만원", "0.2억") - 분리하지 않음
     if (currentType === 'number' && charType === 'korean') {
       const remainingText = word.slice(i);
-      if (/^[억만천원]+$/.test(remainingText)) {
-        // 숫자+단위 조합은 하나로 유지
+      if (/^[억만천원위]+$/.test(remainingText)) {
+        // 숫자+단위 조합은 하나로 유지 (콤마 포함된 숫자도 지원)
         currentToken += remainingText;
         tokens.push({
           text: currentToken,
           type: 'mixed',
           original: currentToken
         });
+        tokenProcessed = true; // 토큰 처리 완료 표시
         break;
       }
     }
@@ -120,8 +122,8 @@ const splitByLanguageBoundary = (word: string): SmartToken[] => {
     }
   }
   
-  // 마지막 토큰 처리
-  if (currentToken.trim()) {
+  // 마지막 토큰 처리 (이미 처리된 경우 제외)
+  if (!tokenProcessed && currentToken.trim()) {
     tokens.push({
       text: currentToken.trim(),
       type: currentType || 'mixed',
@@ -133,12 +135,12 @@ const splitByLanguageBoundary = (word: string): SmartToken[] => {
 };
 
 /**
- * 문자 타입 판별
+ * 문자 타입 판별 (콤마 포함 숫자 지원)
  */
 const getCharacterType = (char: string): SmartToken['type'] => {
   if (/[가-힣ㄱ-ㅎㅏ-ㅣ]/.test(char)) return 'korean';
   if (/[a-zA-Z]/.test(char)) return 'english';
-  if (/[0-9.]/.test(char)) return 'number';
+  if (/[0-9.,]/.test(char)) return 'number'; // 콤마와 점을 숫자 타입에 포함
   return 'symbol';
 };
 
@@ -421,7 +423,7 @@ const removeDuplicateMatches = (matches: CombinationMatch[]): CombinationMatch[]
  * 테스트 함수
  */
 export const testSmartTokenizer = () => {
-  const testText = "가계CSS대출 | 비적용 대상 및 재심사(신용대출) | - | - | 0.2 이하 | 1억 이하 | 1 초과 | - | -";
+  const testText = "가계CSS대출 | 비적용 대상 및 재심사(신용대출) | - | - | 1,000만원 이하 | 3,000만원 이하 | 0.2억 초과 | - | -";
   
   console.log('=== 스마트 토큰화 테스트 ===');
   console.log('입력:', testText);
@@ -432,8 +434,15 @@ export const testSmartTokenizer = () => {
     console.log(`  ${i + 1}. "${token.text}" (${token.type})`);
   });
   
-  const docText = "가계 대출 CSS대출 적용 자동승인 가계 CSS 대출 비적용 대상 및 재심사 신용대출 0.2 이하 1 이하 1 초과";
-  const matches = findCombinationMatches(docText, tokens);
+  const docText = "가계 대출 CSS대출 적용 자동승인 가계 CSS 대출 비적용 대상 및 재심사 신용대출 1,000만원 이하 3,000만원 이하 0.2억 초과 기타지역";
+  const matches = findCombinationMatches(docText, tokens, {
+    singleTokenScore: 1,
+    combinationBonus: 1,
+    continuityBonus: 1,
+    proximityBonus: 0.5,
+    minScore: 1,
+    maxScore: 10
+  });
   
   console.log('\n매칭 결과:');
   matches.forEach((match, i) => {
