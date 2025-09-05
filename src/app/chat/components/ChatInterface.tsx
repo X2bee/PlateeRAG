@@ -169,45 +169,104 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
         setShowEditDropdown(true);
     }, []);
 
-    const handleDebugClick = useCallback(() => {
+    const handleDebugClick = useCallback(async () => {
         if (!selectedMessage) return;
 
-        // 현재 메시지에 해당하는 IOLog 찾기
-        const messageLog = ioLogs.find(log => log.output_data === selectedMessage.content);
+        console.log('=== 디버그 정보 수집 시작 ===');
 
-        const debugInfo = {
-            message_id: selectedMessage.id,
-            user_input: messageLog?.input_data || 'Not found',
-            ai_output: selectedMessage.content,
-            log_id: messageLog?.log_id || 'Not available',
-            workflow_id: messageLog?.workflow_id || workflow?.id || 'Not available',
-            workflow_name: messageLog?.workflow_name || workflow?.name || 'Not available',
-            updated_at: messageLog?.updated_at || 'Not available',
-            log_data: messageLog || 'Log not found'
-        };
+        try {
+            // 현재 메시지에 해당하는 IOLog 찾기
+            const messageLog = ioLogs.find(log => log.output_data === selectedMessage.content);
 
-        console.log('=== 디버그 정보 ===');
-        console.log('메시지 ID:', debugInfo.message_id);
-        console.log('사용자 입력:', debugInfo.user_input);
-        console.log('AI 출력:', debugInfo.ai_output);
-        console.log('Log ID:', debugInfo.log_id);
-        console.log('Workflow ID:', debugInfo.workflow_id);
-        console.log('Workflow Name:', debugInfo.workflow_name);
-        console.log('업데이트 시간:', debugInfo.updated_at);
-        console.log('전체 로그 데이터:', debugInfo.log_data);
+            let debugInfo = {
+                message_id: selectedMessage.id,
+                user_input: messageLog?.input_data || 'Not found',
+                ai_output: selectedMessage.content,
+                log_id: messageLog?.log_id || 'Not available',
+                io_id: (messageLog as any)?.io_id || 'Not available',
+                workflow_id: messageLog?.workflow_id || workflow?.id || 'Not available',
+                workflow_name: messageLog?.workflow_name || workflow?.name || 'Not available',
+                updated_at: messageLog?.updated_at || 'Not available',
+                log_data: messageLog || 'Log not found'
+            };
+
+            // io_id가 없거나 실시간 메시지인 경우 API에서 최신 로그 가져오기
+            if (debugInfo.io_id === 'Not available' && workflow) {
+                try {
+                    console.log('API에서 최신 io_logs 가져오는 중...');
+
+                    // interaction_id 결정 (기존 채팅이면 해당 ID, 아니면 현재 실행 중인 워크플로우의 ID)
+                    let interactionId = existingChatData?.interactionId;
+                    if (!interactionId) {
+                        // 현재 실행 중인 워크플로우에서 interaction_id 추정
+                        // 최근 로그의 workflow_name과 workflow_id로 추정
+                        const recentLog = ioLogs[ioLogs.length - 1];
+                        if (recentLog) {
+                            interactionId = `${recentLog.workflow_name}_${Date.now()}`;
+                        }
+                    }
+
+                    if (interactionId) {
+                        const latestLogs = await getWorkflowIOLogs(
+                            workflow.name,
+                            workflow.id,
+                            interactionId
+                        );
+
+                        if (latestLogs && (latestLogs as any).in_out_logs) {
+                            console.log('최신 로그 데이터:', latestLogs);
+
+                            // 출력 내용으로 매칭되는 로그 찾기
+                            const matchingLog = (latestLogs as any).in_out_logs.find(
+                                (log: any) => log.output_data === selectedMessage.content
+                            );
+
+                            if (matchingLog) {
+                                debugInfo.io_id = matchingLog.io_id || 'Not found in API';
+                                debugInfo.log_data = matchingLog;
+                                console.log('매칭된 로그에서 io_id 찾음:', matchingLog.io_id);
+                            } else {
+                                console.log('매칭되는 로그를 찾을 수 없음');
+                            }
+                        }
+                    }
+                } catch (apiError) {
+                    console.error('API 호출 실패:', apiError);
+                    debugInfo.io_id = 'API 호출 실패';
+                }
+            }
+
+            console.log('=== 디버그 정보 ===');
+            console.log('메시지 ID:', debugInfo.message_id);
+            console.log('사용자 입력:', debugInfo.user_input);
+            console.log('AI 출력:', debugInfo.ai_output);
+            console.log('Log ID:', debugInfo.log_id);
+            console.log('IO ID:', debugInfo.io_id);
+            console.log('Workflow ID:', debugInfo.workflow_id);
+            console.log('Workflow Name:', debugInfo.workflow_name);
+            console.log('업데이트 시간:', debugInfo.updated_at);
+            console.log('전체 로그 데이터:', debugInfo.log_data);
+            console.log('==================');
+
+        } catch (error) {
+            console.error('디버그 정보 수집 중 오류:', error);
+        }
+
+        // 드롭다운을 닫지 않음 - 별점 평가를 위해 열어둠
+    }, [selectedMessage, ioLogs, workflow, existingChatData]);
+
+    const handleRatingClick = useCallback((rating: number) => {
+        console.log('=== 별점 평가 ===');
+        console.log('평가 점수:', rating);
+        console.log('메시지 ID:', selectedMessage?.id);
+        console.log('메시지 내용:', selectedMessage?.content);
         console.log('==================');
 
-        // 알림으로도 표시
-        alert(`디버그 정보가 콘솔에 출력되었습니다.\n\n` +
-              `메시지 ID: ${debugInfo.message_id}\n` +
-              `Log ID: ${debugInfo.log_id}\n` +
-              `Workflow: ${debugInfo.workflow_name} (${debugInfo.workflow_id})\n\n` +
-              `자세한 정보는 개발자 도구 콘솔을 확인하세요.`);
+        // TODO: 여기서 실제 별점 저장 API 호출
+        // 예: await saveUserRating(messageId, rating);
 
         handleCloseEditDropdown();
-    }, [selectedMessage, ioLogs, workflow, workflowExecution]);
-
-    const handleCloseEditDropdown = useCallback(() => {
+    }, [selectedMessage]);    const handleCloseEditDropdown = useCallback(() => {
         setShowEditDropdown(false);
         setSelectedMessage(null);
     }, []);
@@ -514,6 +573,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
                 position={dropdownPosition}
                 isReading={isReading}
                 onDebug={handleDebugClick}
+                onRating={handleRatingClick}
             />
         </div>
     );
