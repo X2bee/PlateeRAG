@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
 import { useRouter } from 'next/navigation';
-import { getWorkflowIOLogs, loadWorkflow } from '@/app/api/workflow/workflowAPI';
+import { getWorkflowIOLogs, loadWorkflow, rateWorkflowIOLog } from '@/app/api/workflow/workflowAPI';
 import { loadWorkflow as loadWorkflowDeploy } from '@/app/api/workflow/workflowDeployAPI';
 import { MessageRenderer } from '@/app/_common/components/chatParser/ChatParser';
 import CollectionModal from '@/app/chat/components/CollectionModal';
@@ -169,104 +169,96 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
         setShowEditDropdown(true);
     }, []);
 
-    const handleDebugClick = useCallback(async () => {
-        if (!selectedMessage) return;
+    const handleRatingButtonClick = useCallback(() => {
+        // 별점 평가 UI만 표시 - 디버그 정보는 제거
+    }, []);
 
-        console.log('=== 디버그 정보 수집 시작 ===');
-
-        try {
-            // 현재 메시지에 해당하는 IOLog 찾기
-            const messageLog = ioLogs.find(log => log.output_data === selectedMessage.content);
-
-            let debugInfo = {
-                message_id: selectedMessage.id,
-                user_input: messageLog?.input_data || 'Not found',
-                ai_output: selectedMessage.content,
-                log_id: messageLog?.log_id || 'Not available',
-                io_id: (messageLog as any)?.io_id || 'Not available',
-                workflow_id: messageLog?.workflow_id || workflow?.id || 'Not available',
-                workflow_name: messageLog?.workflow_name || workflow?.name || 'Not available',
-                updated_at: messageLog?.updated_at || 'Not available',
-                log_data: messageLog || 'Log not found'
-            };
-
-            // io_id가 없거나 실시간 메시지인 경우 API에서 최신 로그 가져오기
-            if (debugInfo.io_id === 'Not available' && workflow) {
-                try {
-                    console.log('API에서 최신 io_logs 가져오는 중...');
-
-                    // interaction_id 결정 (기존 채팅이면 해당 ID, 아니면 현재 실행 중인 워크플로우의 ID)
-                    let interactionId = existingChatData?.interactionId;
-                    if (!interactionId) {
-                        // 현재 실행 중인 워크플로우에서 interaction_id 추정
-                        // 최근 로그의 workflow_name과 workflow_id로 추정
-                        const recentLog = ioLogs[ioLogs.length - 1];
-                        if (recentLog) {
-                            interactionId = `${recentLog.workflow_name}_${Date.now()}`;
-                        }
-                    }
-
-                    if (interactionId) {
-                        const latestLogs = await getWorkflowIOLogs(
-                            workflow.name,
-                            workflow.id,
-                            interactionId
-                        );
-
-                        if (latestLogs && (latestLogs as any).in_out_logs) {
-                            console.log('최신 로그 데이터:', latestLogs);
-
-                            // 출력 내용으로 매칭되는 로그 찾기
-                            const matchingLog = (latestLogs as any).in_out_logs.find(
-                                (log: any) => log.output_data === selectedMessage.content
-                            );
-
-                            if (matchingLog) {
-                                debugInfo.io_id = matchingLog.io_id || 'Not found in API';
-                                debugInfo.log_data = matchingLog;
-                                console.log('매칭된 로그에서 io_id 찾음:', matchingLog.io_id);
-                            } else {
-                                console.log('매칭되는 로그를 찾을 수 없음');
-                            }
-                        }
-                    }
-                } catch (apiError) {
-                    console.error('API 호출 실패:', apiError);
-                    debugInfo.io_id = 'API 호출 실패';
-                }
-            }
-
-            console.log('=== 디버그 정보 ===');
-            console.log('메시지 ID:', debugInfo.message_id);
-            console.log('사용자 입력:', debugInfo.user_input);
-            console.log('AI 출력:', debugInfo.ai_output);
-            console.log('Log ID:', debugInfo.log_id);
-            console.log('IO ID:', debugInfo.io_id);
-            console.log('Workflow ID:', debugInfo.workflow_id);
-            console.log('Workflow Name:', debugInfo.workflow_name);
-            console.log('업데이트 시간:', debugInfo.updated_at);
-            console.log('전체 로그 데이터:', debugInfo.log_data);
-            console.log('==================');
-
-        } catch (error) {
-            console.error('디버그 정보 수집 중 오류:', error);
-        }
-
-        // 드롭다운을 닫지 않음 - 별점 평가를 위해 열어둠
-    }, [selectedMessage, ioLogs, workflow, existingChatData]);
-
-    const handleRatingClick = useCallback((rating: number) => {
-        console.log('=== 별점 평가 ===');
+    const handleRatingClick = useCallback(async (rating: number) => {
+        console.log('=== 별점 평가 시작 ===');
         console.log('평가 점수:', rating);
         console.log('메시지 ID:', selectedMessage?.id);
         console.log('메시지 내용:', selectedMessage?.content);
+
+        try {
+            // 현재 메시지에 해당하는 IOLog 찾기
+            const messageLog = ioLogs.find(log => log.output_data === selectedMessage?.content);
+
+            if (messageLog && workflow) {
+                let ioId = (messageLog as any)?.io_id;
+
+                // io_id가 없으면 API에서 최신 정보를 가져와서 찾기
+                if (!ioId) {
+                    try {
+                        console.log('io_id가 없어서 API에서 최신 정보 가져오는 중...');
+
+                        let interactionId = existingChatData?.interactionId;
+                        if (!interactionId) {
+                            const recentLog = ioLogs[ioLogs.length - 1];
+                            if (recentLog) {
+                                interactionId = `${recentLog.workflow_name}_${Date.now()}`;
+                            }
+                        }
+
+                        if (interactionId) {
+                            const latestLogs = await getWorkflowIOLogs(
+                                workflow.name,
+                                workflow.id,
+                                interactionId
+                            );
+
+                            if (latestLogs && (latestLogs as any).in_out_logs) {
+                                const matchingLog = (latestLogs as any).in_out_logs.find(
+                                    (log: any) => log.output_data === selectedMessage?.content
+                                );
+
+                                if (matchingLog) {
+                                    ioId = matchingLog.io_id;
+                                    console.log('API에서 io_id 찾음:', ioId);
+                                }
+                            }
+                        }
+                    } catch (fetchError) {
+                        console.error('최신 로그 가져오기 실패:', fetchError);
+                    }
+                }
+
+                if (ioId) {
+                    // 별점 평가 API 호출
+                    console.log('별점 평가 API 호출 중...');
+                    console.log('Parameters:', {
+                        IOID: ioId,
+                        workflowName: workflow.name,
+                        workflowId: workflow.id,
+                        interactionId: existingChatData?.interactionId || 'default',
+                        rating: rating
+                    });
+
+                    const result = await rateWorkflowIOLog(
+                        ioId,
+                        workflow.name,
+                        workflow.id,
+                        existingChatData?.interactionId || 'default',
+                        rating
+                    );
+
+                    console.log('별점 평가 성공:', result);
+                    showSuccessToastKo(`${rating}점으로 평가가 완료되었습니다.`);
+                } else {
+                    console.error('io_id를 찾을 수 없습니다.');
+                    showErrorToastKo('평가 처리 중 오류가 발생했습니다. (io_id 없음)');
+                }
+            } else {
+                console.error('메시지 로그 또는 워크플로우 정보가 없습니다.');
+                showErrorToastKo('평가 처리 중 오류가 발생했습니다. (로그 정보 없음)');
+            }
+        } catch (error) {
+            console.error('별점 평가 중 오류:', error);
+            showErrorToastKo('평가 처리 중 오류가 발생했습니다.');
+        }
+
         console.log('==================');
-
-        // TODO: 여기서 실제 별점 저장 API 호출
-        // 예: await saveUserRating(messageId, rating);
-
         handleCloseEditDropdown();
-    }, [selectedMessage]);    const handleCloseEditDropdown = useCallback(() => {
+    }, [selectedMessage, ioLogs, workflow, existingChatData]);    const handleCloseEditDropdown = useCallback(() => {
         setShowEditDropdown(false);
         setSelectedMessage(null);
     }, []);
@@ -572,7 +564,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
                 onCopy={handleCopyText}
                 position={dropdownPosition}
                 isReading={isReading}
-                onDebug={handleDebugClick}
+                onDebug={handleRatingButtonClick}
                 onRating={handleRatingClick}
             />
         </div>

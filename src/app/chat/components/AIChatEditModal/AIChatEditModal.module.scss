@@ -133,9 +133,9 @@
         transform: scale(1.1);
     }
 
-    &:hover .starIcon {
-        color: #f59e0b;
-        fill: #f59e0b;
+    &.starActive {
+        background-color: #fef3c7;
+        transform: scale(1.1);
     }
 }
 
@@ -143,4 +143,9 @@
     font-size: 18px;
     color: #d1d5db;
     transition: all 0.15s ease;
+
+    &.starIconActive {
+        color: #f59e0b;
+        fill: #f59e0b;
+    }
 }

@@ -27,11 +27,9 @@ const AIChatEditDropdown: React.FC<AIChatEditDropdownProps> = ({
 }) => {
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [showRating, setShowRating] = useState(false);
+    const [hoveredRating, setHoveredRating] = useState<number | null>(null);
 
-    const handleDebugClick = () => {
-        if (onDebug) {
-            onDebug(); // 콘솔에 디버그 정보 출력
-        }
+    const handleRatingButtonClick = () => {
         setShowRating(true); // 별점 평가 UI 표시
     };
 
@@ -47,6 +45,7 @@ const AIChatEditDropdown: React.FC<AIChatEditDropdownProps> = ({
     useEffect(() => {
         if (!isOpen) {
             setShowRating(false);
+            setHoveredRating(null);
         }
     }, [isOpen]);
 
@@ -94,9 +93,9 @@ const AIChatEditDropdown: React.FC<AIChatEditDropdownProps> = ({
                 </button>
 
                 {onDebug && (
-                    <button className={styles.optionButton} onClick={handleDebugClick}>
+                    <button className={styles.optionButton} onClick={handleRatingButtonClick}>
                         <FiInfo className={styles.icon} />
-                        <span>디버그 정보</span>
+                        <span>평가</span>
                     </button>
                 )}
             </div>
@@ -105,15 +104,25 @@ const AIChatEditDropdown: React.FC<AIChatEditDropdownProps> = ({
             {showRating && (
                 <div className={styles.ratingContainer}>
                     <div className={styles.ratingTitle}>이 답변을 평가해주세요</div>
-                    <div className={styles.stars}>
+                    <div
+                        className={styles.stars}
+                        onMouseLeave={() => setHoveredRating(null)}
+                    >
                         {[1, 2, 3, 4, 5].map((rating) => (
                             <button
                                 key={rating}
-                                className={styles.starButton}
+                                className={`${styles.starButton} ${
+                                    (hoveredRating && rating <= hoveredRating) ? styles.starActive : ''
+                                }`}
                                 onClick={() => handleRatingClick(rating)}
+                                onMouseEnter={() => setHoveredRating(rating)}
                                 title={`${rating}점`}
                             >
-                                <FiStar className={styles.starIcon} />
+                                <FiStar
+                                    className={`${styles.starIcon} ${
+                                        (hoveredRating && rating <= hoveredRating) ? styles.starIconActive : ''
+                                    }`}
+                                />
                             </button>
                         ))}
                     </div>
