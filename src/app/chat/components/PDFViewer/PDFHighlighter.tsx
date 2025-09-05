@@ -8,6 +8,10 @@ import {
   testSmartTokenizer,
   CombinationMatch
 } from './smartTokenizer';
+import { 
+  defaultHighlightConfig, 
+  HighlightConfig 
+} from './highlightConfig';
 
 interface PDFHighlighterProps {
   pageNumber: number;
@@ -16,6 +20,7 @@ interface PDFHighlighterProps {
   pageWidth: number;
   pageHeight: number;
   textContent?: any; // PDF.js TextContent
+  highlightConfig?: HighlightConfig; // 하이라이팅 설정
 }
 
 const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
@@ -24,7 +29,8 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
   scale,
   pageWidth,
   pageHeight,
-  textContent
+  textContent,
+  highlightConfig = defaultHighlightConfig
 }) => {
   
   // 현재 페이지가 하이라이트 대상인지 확인
@@ -153,44 +159,38 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
     if (score >= 6) {
       return {
         ...baseStyles,
-        background: 'linear-gradient(45deg, rgba(255, 0, 255, 0.4), rgba(255, 215, 0, 0.4))',
+        background: 'linear-gradient(45deg, rgba(255, 0, 255, 0.2), rgba(255, 215, 0, 0.2))',
         boxShadow: '0 0 2px rgba(255, 0, 255, 0.6)',
-        borderLeft: '4px solid rgba(255, 0, 255, 0.8)'
       };
     } else if (score >= 5) {
       return {
         ...baseStyles,
-        backgroundColor: 'rgba(255, 20, 147, 0.4)',
+        backgroundColor: 'rgba(255, 20, 147, 0.2)',
         boxShadow: '0 0 0 2px rgba(255, 20, 147, 0.5)',
-        borderLeft: '3px solid rgba(255, 20, 147, 0.7)'
       };
     } else if (score >= 4) {
       return {
         ...baseStyles,
-        backgroundColor: 'rgba(0, 191, 255, 0.4)',
+        backgroundColor: 'rgba(0, 191, 255, 0.2)',
         boxShadow: '0 0 0 2px rgba(0, 191, 255, 0.5)',
-        borderLeft: '3px solid rgba(0, 191, 255, 0.7)'
       };
     } else if (score >= 3) {
       return {
         ...baseStyles,
-        backgroundColor: 'rgba(0, 255, 127, 0.4)',
+        backgroundColor: 'rgba(0, 255, 127, 0.2)',
         boxShadow: '0 0 0 1px rgba(0, 255, 127, 0.5)',
-        borderLeft: '3px solid rgba(0, 255, 127, 0.7)'
       };
     } else if (score >= 2) {
       return {
         ...baseStyles,
-        backgroundColor: 'rgba(255, 165, 0, 0.4)',
+        backgroundColor: 'rgba(255, 165, 0, 0.2)',
         boxShadow: '0 0 0 1px rgba(255, 165, 0, 0.5)',
-        borderLeft: '2px solid rgba(255, 165, 0, 0.7)'
       };
     } else {
       return {
         ...baseStyles,
-        backgroundColor: 'rgba(255, 255, 0, 0.3)',
+        backgroundColor: 'rgba(255, 255, 0, 0.2)',
         boxShadow: '0 0 0 1px rgba(255, 255, 0, 0.4)',
-        borderLeft: '2px solid rgba(255, 255, 0, 0.6)'
       };
     }
   };
@@ -222,16 +222,24 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
       // 전체 페이지 텍스트 구성 (공간 정보 보존)
       const fullPageText = validSpans.map(span => span.textContent || '').join(' ');
       
-      // 🎯 새로운 스마트 토큰화 시스템 사용
+      // 🎯 새로운 스마트 토큰화 시스템 사용 (설정 기반)
       const smartTokens = smartTokenize(searchText);
-      const combinationMatches = findCombinationMatches(fullPageText, smartTokens);
+      const combinationMatches = findCombinationMatches(fullPageText, smartTokens, {
+        singleTokenScore: highlightConfig.scoring.singleTokenScore,
+        combinationBonus: highlightConfig.scoring.combinationBonus,
+        continuityBonus: highlightConfig.scoring.continuityBonus,
+        proximityBonus: highlightConfig.scoring.proximityBonus,
+        minScore: highlightConfig.thresholds.minScore,
+        maxScore: highlightConfig.thresholds.maxScore
+      });
       
-      // 디버깅용 테스트 (첫 실행시만)
-      if (window.location.search.includes('debug=smart')) {
+      // 디버깅용 테스트 (설정에 따라)
+      if (window.location.search.includes('debug=smart') || highlightConfig.visual.showScoreInfo) {
         console.log('=== PDF 스마트 토큰화 디버깅 ===');
         console.log('검색 텍스트:', searchText);
         console.log('스마트 토큰들:', smartTokens);
         console.log('조합 매칭 결과:', combinationMatches);
+        console.log('하이라이팅 설정:', highlightConfig);
         testSmartTokenizer();
       }
       
@@ -247,7 +255,7 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
         return;
       }
     }
-  }, [highlightRange, findPDFTextLayer, removeExistingHighlights, applySmartHighlighting, applyTokenHighlighting]);
+  }, [highlightRange, findPDFTextLayer, removeExistingHighlights, applySmartHighlighting, applyTokenHighlighting, highlightConfig]);
 
   // DOM 준비 상태 확인
   const waitForPDFDOM = useCallback((maxAttempts: number = 10, interval: number = 200): Promise<boolean> => {

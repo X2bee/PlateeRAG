@@ -9,15 +9,21 @@ import {
   testSmartTokenizer,
   CombinationMatch
 } from './smartTokenizer';
+import { 
+  defaultHighlightConfig, 
+  HighlightConfig 
+} from './highlightConfig';
 
 interface DocxHighlighterProps {
   highlightRange: HighlightRange & { searchText?: string };
   scale: number;
+  highlightConfig?: HighlightConfig; // 하이라이팅 설정
 }
 
 const DocxHighlighter: React.FC<DocxHighlighterProps> = ({
   highlightRange,
-  scale
+  scale,
+  highlightConfig = defaultHighlightConfig
 }) => {
 
   // 기존 하이라이팅 제거 함수
@@ -125,16 +131,24 @@ const DocxHighlighter: React.FC<DocxHighlighterProps> = ({
       // 전체 문서 텍스트 구성 (공간 정보 보존)
       const fullDocumentText = textElements.map(el => el.textContent || '').join('\n');
       
-      // 🎯 새로운 스마트 토큰화 시스템 사용
+      // 🎯 새로운 스마트 토큰화 시스템 사용 (설정 기반)
       const smartTokens = smartTokenize(searchText);
-      const combinationMatches = findCombinationMatches(fullDocumentText, smartTokens);
+      const combinationMatches = findCombinationMatches(fullDocumentText, smartTokens, {
+        singleTokenScore: highlightConfig.scoring.singleTokenScore,
+        combinationBonus: highlightConfig.scoring.combinationBonus,
+        continuityBonus: highlightConfig.scoring.continuityBonus,
+        proximityBonus: highlightConfig.scoring.proximityBonus,
+        minScore: highlightConfig.thresholds.minScore,
+        maxScore: highlightConfig.thresholds.maxScore
+      });
       
-      // 디버깅용 테스트 (첫 실행시만)
-      if (window.location.search.includes('debug=smart')) {
-        console.log('=== 스마트 토큰화 디버깅 ===');
+      // 디버깅용 테스트 (설정에 따라)
+      if (window.location.search.includes('debug=smart') || highlightConfig.visual.showScoreInfo) {
+        console.log('=== DOCX 스마트 토큰화 디버깅 ===');
         console.log('검색 텍스트:', searchText);
         console.log('스마트 토큰들:', smartTokens);
         console.log('조합 매칭 결과:', combinationMatches);
+        console.log('하이라이팅 설정:', highlightConfig);
         testSmartTokenizer();
       }
       
@@ -150,7 +164,7 @@ const DocxHighlighter: React.FC<DocxHighlighterProps> = ({
         return;
       }
     }
-  }, [highlightRange, removeExistingHighlights, applySmartHighlighting, applyTokenHighlighting]);
+  }, [highlightRange, removeExistingHighlights, applySmartHighlighting, applyTokenHighlighting, highlightConfig]);
 
   // 점수별 CSS 클래스 반환
   const getScoreClass = (score: number): string => {
@@ -162,16 +176,6 @@ const DocxHighlighter: React.FC<DocxHighlighterProps> = ({
     return 'docx-highlight-score-1';
   };
 
-  // 텍스트 유사도 계산 헬퍼 함수
-  const calculateTextSimilarity = (text1: string, text2: string): number => {
-    const words1 = new Set(text1.split(/\s+/));
-    const words2 = new Set(text2.split(/\s+/));
-    
-    const intersection = new Set([...words1].filter(word => words2.has(word)));
-    const union = new Set([...words1, ...words2]);
-    
-    return union.size > 0 ? intersection.size / union.size : 0;
-  };
 
   // DOM 준비 상태 확인
   const waitForDocxDOM = useCallback((maxAttempts: number = 10, interval: number = 200): Promise<boolean> => {
