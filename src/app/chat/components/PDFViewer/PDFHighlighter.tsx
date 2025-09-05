@@ -93,11 +93,21 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
       const spanText = span.textContent?.trim() || '';
       if (!spanText) return;
 
-      // 해당 span과 겹치는 매칭들 찾기
+      // 해당 span과 겹치는 매칭들 찾기 (부분 매칭 포함)
       const spanMatches = combinationMatches.filter(match => {
         const spanLower = spanText.toLowerCase();
         const matchedLower = match.matchedText.toLowerCase();
-        return spanLower.includes(matchedLower) || matchedLower.includes(spanLower);
+        
+        // 1. 정확한 매칭
+        if (spanLower.includes(matchedLower) || matchedLower.includes(spanLower)) {
+          return true;
+        }
+        
+        // 2. 토큰별 부분 매칭 (PDF 텍스트 분할 대응)
+        return match.tokens.some(token => {
+          const tokenLower = token.text.toLowerCase();
+          return spanLower.includes(tokenLower) || tokenLower.includes(spanLower);
+        });
       });
 
       if (spanMatches.length > 0) {
@@ -106,12 +116,19 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
           current.score > best.score ? current : best
         );
 
+        // 부분 매칭인 경우 점수 조정
+        const spanLower = spanText.toLowerCase();
+        const matchedLower = bestMatch.matchedText.toLowerCase();
+        const isPartialMatch = !spanLower.includes(matchedLower) && !matchedLower.includes(spanLower);
+        const finalScore = isPartialMatch ? Math.max(bestMatch.score * 0.7, 1) : bestMatch.score;
+
         // 점수별 인라인 스타일 직접 적용
-        const styles = getScoreStyles(bestMatch.score);
+        const styles = getScoreStyles(finalScore);
         Object.assign(span.style, styles);
-        span.setAttribute('data-smart-score', bestMatch.score.toString());
+        span.setAttribute('data-smart-score', finalScore.toString());
         span.setAttribute('data-matched-tokens', bestMatch.tokens.map(t => t.text).join(' + '));
         span.setAttribute('data-matched-text', bestMatch.matchedText);
+        span.setAttribute('data-partial-match', isPartialMatch.toString());
       }
     });
   }, []);
@@ -219,8 +236,24 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
     if (highlightRange.searchText && highlightRange.searchText.trim()) {
       const searchText = highlightRange.searchText.trim();
       
-      // 전체 페이지 텍스트 구성 (공간 정보 보존)
-      const fullPageText = validSpans.map(span => span.textContent || '').join(' ');
+      // 전체 페이지 텍스트 구성 (연속된 텍스트 복원)
+      let fullPageText = '';
+      validSpans.forEach((span) => {
+        const text = span.textContent || '';
+        if (text.trim()) {
+          // 숫자나 특수 문자로 끝나는 경우 공백 없이 연결
+          const prevText = fullPageText.trim();
+          const currentText = text.trim();
+          
+          if (prevText && 
+              (/[0-9,.]$/.test(prevText) || /^[0-9,.]/.test(currentText)) &&
+              !(/\s$/.test(span.textContent || ''))) {
+            fullPageText += currentText; // 공백 없이 연결
+          } else {
+            fullPageText += (fullPageText ? ' ' : '') + currentText;
+          }
+        }
+      });
       
       // 🎯 새로운 스마트 토큰화 시스템 사용 (설정 기반)
       const smartTokens = smartTokenize(searchText);
@@ -237,6 +270,7 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
       if (window.location.search.includes('debug=smart') || highlightConfig.visual.showScoreInfo) {
         console.log('=== PDF 스마트 토큰화 디버깅 ===');
         console.log('검색 텍스트:', searchText);
+        console.log('복원된 페이지 텍스트:', fullPageText);
         console.log('스마트 토큰들:', smartTokens);
         console.log('조합 매칭 결과:', combinationMatches);
         console.log('하이라이팅 설정:', highlightConfig);

@@ -33,7 +33,7 @@ export interface HighlightConfig {
 // 기본 설정
 export const defaultHighlightConfig: HighlightConfig = {
   thresholds: {
-    minScore: 1,      // 1점 이상만 하이라이팅
+    minScore: 1,      // 1점 이상만 하이라이팅 (조합 전용 단어는 0.5점이므로 단독 제외)
     maxScore: 10,     // 최대 10점
   },
   
@@ -86,3 +86,35 @@ export const highlightPresets = {
 } as const;
 
 export type HighlightPreset = keyof typeof highlightPresets;
+
+/**
+ * 단독으로는 하이라이팅되지 않지만 조합에서는 허용되는 단어들
+ * 예: "이하", "초과", "대상", "적용" 등
+ */
+export const COMBINATION_ONLY_WORDS = [
+  // 범위/조건 관련
+  '이하', '초과', '미만', '이상', '이내', '범위',
+  
+  // 상태/분류 관련  
+  '대상', '적용', '비적용', '해당', '포함', '제외', '구분',
+  
+  // 일반적인 동사/형용사
+  '가능', '불가능', '필요', '불필요', '완료', '미완료',
+  '승인', '거부', '통과', '실패', '성공',
+  
+  // 기본 단위/개념
+  '건', '개', '명', '원', '점', '회', '차', '등급', '단계', '수준',
+  
+  // 시간 관련
+  '전', '후', '중', '간', '시', '일', '월', '년',
+  
+  // 공통 접두사/접미사  
+  '신', '구', '재', '최', '고', '저', '상', '하', '좌', '우'
+];
+
+/**
+ * 단어가 조합에서만 허용되는 단어인지 확인
+ */
+export const isCombinationOnlyWord = (word: string): boolean => {
+  return COMBINATION_ONLY_WORDS.includes(word.toLowerCase().trim());
+};

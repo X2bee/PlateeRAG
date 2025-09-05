@@ -3,6 +3,8 @@
  * 언어 경계를 인식하여 텍스트를 분할하고, 조합별 점수를 부여
  */
 
+import { isCombinationOnlyWord } from './highlightConfig';
+
 export interface SmartToken {
   text: string;
   type: 'korean' | 'english' | 'number' | 'symbol' | 'mixed';
@@ -195,8 +197,10 @@ const calculateDocumentContinuity = (
     }
   }
   
-  // 인접성 보너스 (같은 문장 내에서 가까이 있는 경우)
+  // 인접성 보너스 (같은 문장 내에서 가까이 있는 경우) - 최대 제한
   const sentences = documentText.split(/[.!?]+/);
+  let maxSentenceBonus = 0;
+  
   for (const sentence of sentences) {
     const sentenceWords = sentence.toLowerCase().split(/\s+/);
     let foundTokens = 0;
@@ -210,9 +214,12 @@ const calculateDocumentContinuity = (
     }
     
     if (foundTokens >= 2) {
-      proximityScore += foundTokens * 0.3; // 인접성 보너스
+      const sentenceBonus = foundTokens * 0.3; // 인접성 보너스
+      maxSentenceBonus = Math.max(maxSentenceBonus, sentenceBonus);
     }
   }
+  
+  proximityScore = Math.min(proximityScore + maxSentenceBonus, searchTokenTexts.length * 2); // 최대값 제한
   
   return {
     hasDocumentContinuity,
@@ -251,7 +258,7 @@ export const findCombinationMatches = (
   const matches: CombinationMatch[] = [];
   const docLower = documentText.toLowerCase();
   
-  // 개별 토큰 매칭 (연속성 점수 포함)
+  // 개별 토큰 매칭 (연속성 점수 포함 + 조합 전용 단어 필터링)
   searchTokens.forEach(token => {
     const tokenLower = token.text.toLowerCase();
     let startIndex = 0;
@@ -270,7 +277,13 @@ export const findCombinationMatches = (
         const baseScore = singleTokenScore;
         const bonusScore = (continuity.hasDocumentContinuity ? continuityBonus : 0) + 
                           (continuity.proximityScore * proximityBonus);
-        const finalScore = Math.min(baseScore + bonusScore, maxScore);
+        let finalScore = Math.min(baseScore + bonusScore, maxScore);
+        
+        // 🎯 조합 전용 단어 필터링: 단독으로는 높은 점수를 받을 수 없음
+        if (isCombinationOnlyWord(token.text)) {
+          // 조합 전용 단어는 단독으로는 매우 낮은 점수만 부여
+          finalScore = Math.min(finalScore, 0.5);
+        }
         
         // 최소 점수 이상인 경우만 추가
         if (finalScore >= minScore) {
@@ -354,7 +367,18 @@ const findCombinationMatchesOfSize = (
           const baseScore = combSize * singleTokenScore + (combSize - 1) * combinationBonus;
           const bonusScore = (continuity.hasDocumentContinuity ? continuityBonus : 0) + 
                             (continuity.proximityScore * proximityBonus);
-          const finalScore = Math.min(baseScore + bonusScore, maxScore);
+          let finalScore = Math.min(baseScore + bonusScore, maxScore);
+          
+          // 🎯 조합에서는 조합 전용 단어들이 정상적인 점수를 받음
+          // 조합 전용 단어가 포함되어 있으면 조합 보너스 추가 적용
+          const hasCombinationOnlyWords = tokenCombination.some(token => 
+            isCombinationOnlyWord(token.text)
+          );
+          
+          if (hasCombinationOnlyWords && combSize >= 2) {
+            // 조합 전용 단어가 포함된 조합에는 추가 보너스
+            finalScore = Math.min(finalScore + combinationBonus * 0.5, maxScore);
+          }
           
           // 최소 점수 이상인 경우만 추가
           if (finalScore >= minScore) {
@@ -431,7 +455,8 @@ export const testSmartTokenizer = () => {
   const tokens = smartTokenize(testText);
   console.log('토큰화 결과:');
   tokens.forEach((token, i) => {
-    console.log(`  ${i + 1}. "${token.text}" (${token.type})`);
+    const isCombOnly = isCombinationOnlyWord(token.text) ? ' [조합전용]' : '';
+    console.log(`  ${i + 1}. "${token.text}" (${token.type})${isCombOnly}`);
   });
   
   const docText = "가계 대출 CSS대출 적용 자동승인 가계 CSS 대출 비적용 대상 및 재심사 신용대출 1,000만원 이하 3,000만원 이하 0.2억 초과 기타지역";
@@ -444,9 +469,11 @@ export const testSmartTokenizer = () => {
     maxScore: 10
   });
   
-  console.log('\n매칭 결과:');
+  console.log('\n매칭 결과 (조합 전용 단어 필터링 적용):');
   matches.forEach((match, i) => {
-    console.log(`  ${i + 1}. "${match.matchedText}" (${match.score}점) - 토큰: [${match.tokens.map(t => t.text).join(', ')}]`);
+    const combOnlyTokens = match.tokens.filter(t => isCombinationOnlyWord(t.text));
+    const hasCombOnly = combOnlyTokens.length > 0 ? ` [조합전용: ${combOnlyTokens.map(t => t.text).join(', ')}]` : '';
+    console.log(`  ${i + 1}. "${match.matchedText}" (${match.score}점) - 토큰: [${match.tokens.map(t => t.text).join(', ')}]${hasCombOnly}`);
   });
   
   return { tokens, matches };
