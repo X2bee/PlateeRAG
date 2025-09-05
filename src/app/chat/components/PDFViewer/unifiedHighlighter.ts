@@ -51,7 +51,7 @@ export const defaultUnifiedConfig: UnifiedHighlightConfig = {
   minChunkLength: 2,        // 최소 길이를 2로 완화 (AAA, AA+ 등을 위해)
   maxDistance: 30,          // 연속 거리 단축
   contextWords: 1,          // 컨텍스트 단어 수 감소
-  precisionLevel: 'word',   // 단어 단위로 정밀도 향상
+  precisionLevel: 'phrase',   // 단어 단위로 정밀도 향상
   maxHighlightRatio: 0.25,  // 최대 하이라이트 비율을 25%로 상향 조정
   groupingThreshold: 0.8,   // 그룹화 임계값 상향
   ngramSize: 1,
@@ -71,26 +71,59 @@ export const createTextChunks = (
 
   const searchTerms = filterHighlightWords(searchText, keywordConfig);
   
-  // 검색어 품질 검증 - 의미 있는 키워드만 필터링
+  // 검색어 품질 검증 - 더 관대한 필터링으로 수정
   const qualityTerms = searchTerms.filter(term => {
-    // 순수 숫자나 단순 기호만으로 구성된 경우만 제외
-    if (/^[\d\-|~\s.,]+$/.test(term) && !/억|만|원/.test(term)) return false;
+    // 빈 문자열이나 순수 기호만 제외
+    if (!term || term.trim().length === 0) return false;
+    if (/^[\-|~\s.,]+$/.test(term)) return false; // 순수 기호만
     
-    // 너무 일반적인 단어들 제외
-    const commonWords = ['이하', '초과', '미만', '이상', '관련', '해당'];
-    if (commonWords.includes(term.toLowerCase())) return false;
+    // 범위 표현 단어들은 매우 중요하므로 무조건 포함
+    const rangeWords = ['이하', '초과', '미만', '이상'];
+    if (rangeWords.includes(term.toLowerCase())) return true;
     
-    // 중요한 키워드들은 길이에 관계없이 유지
+    // 숫자 패턴 포함 ("0.2", "1", "2" 등)
+    if (/^\d+(\.\d+)?$/.test(term)) return true;
+    
+    // 중요한 키워드들은 길이에 관계없이 포함
     if (isImportantKeyword(term, keywordConfig)) return true;
     
-    // 일반적인 최소 길이 검증 (3글자)
-    return term.length >= 3;
+    // 영문 약어는 길이 관계없이 포함 (CSS 등)
+    if (/^[A-Z]{2,}$/.test(term)) return true;
+    
+    // 한글 단어는 1글자부터 포함 (가계의 "가" 등)
+    if (/^[가-힣]+$/.test(term)) return true;
+    
+    // 너무 일반적인 단어만 제외 (범위 표현은 이미 위에서 포함됨)
+    const commonWords = ['관련', '해당', '포함', '제외', '기타'];
+    if (commonWords.includes(term.toLowerCase())) return false;
+    
+    // 기본적으로 1글자 이상이면 포함
+    return term.length >= 1;
   });
 
   if (qualityTerms.length === 0) return [];
 
   const chunks: TextChunk[] = [];
   const fullTextLower = fullText.toLowerCase();
+
+  // 0. 연속된 키워드 조합 찾기 (예: "0.2 이하", "가계 CSS 대출" 등)
+  for (let i = 0; i < qualityTerms.length - 1; i++) {
+    for (let j = i + 1; j < Math.min(i + 4, qualityTerms.length); j++) { // 최대 4개까지 조합
+      const combinedTerm = qualityTerms.slice(i, j + 1).join(' ');
+      const combinedTermLower = combinedTerm.toLowerCase();
+      
+      if (fullTextLower.includes(combinedTermLower)) {
+        const index = fullTextLower.indexOf(combinedTermLower);
+        chunks.push({
+          text: fullText.substring(index, index + combinedTerm.length),
+          start: index,
+          end: index + combinedTerm.length,
+          score: 1.2, // 조합 매칭은 더 높은 점수
+          type: 'exact'
+        });
+      }
+    }
+  }
 
   // 1. 정확한 매칭 찾기 (가장 높은 우선순위)
   qualityTerms.forEach(term => {

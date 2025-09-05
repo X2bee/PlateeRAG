@@ -20,19 +20,16 @@ export const EXCLUDED_WORDS = [
   'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very',
   'one', 'two', 'first', 'second',
   
-  // 숫자
-  // '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20',
-  
   // 특수문자 및 기타
   'nbsp', 'amp', 'lt', 'gt', 'quot', 'apos', // HTML 엔티티
-  '.', ',', '·', ':', ';', '(', ')', '[', ']', '{', '}', '<', '>', '@', '#', '$', '%', '^', '&', '`', '-',
+  '·', ':', ';', '(', ')', '[', ']', '{', '}', '<', '>', '@', '#', '$', '%', '^', '&', '`', '-',
   
   // 추가적인 일반적인 단어들
   '입니다', '합니다', '습니다', '됩니다', '있습니다', '없습니다',
   '수', '개', '번', '차', '회', '건', '명', '분', '초', '시간', '일', '월', '년',
   '관련', '해당', '다음', '이전', '현재', '기존', '새로운', '추가', '변경', '삭제',
-  '사용', '이용', '활용', '적용', '실시', '진행', '완료', '시작', '종료', '이상', '이하', '초과', '미만',
-  // 금융 문서에서 자주 나오는 일반적인 단어들
+  '사용', '이용', '활용', '적용', '실시', '진행', '완료', '시작', '종료',
+  // 금융 문서에서 자주 나오는 일반적인 단어들 ('이상', '이하', '초과', '미만'은 중요하므로 제거)
   '포함', '제외', '기준', '등급', '비고', '구분', '분류',
 ];
 
@@ -57,8 +54,8 @@ export const defaultImportantKeywords: ImportantKeywordConfig = {
   // 신용등급: AAA, AA+, BB-, CCC 등
   creditRatings: /^(AAA|AA\+|AA-?|A\+|A-?|BBB\+|BBB-?|BB\+|BB-?|CCC\+?|CC\+?|C|D)$/i,
   
-  // 금액: 25억, 100만원, 50만 등
-  amounts: /^(\d+(?:,\d{3})*(?:억|만|천)?원?)$/i,
+  // 금액: 25억, 100만원, 50만, 2,400만원, 7,500만원 등 (쉼표 포함/미포함 모두 지원)
+  amounts: /^(\d{1,3}(?:[,.]?\d{3})*(?:억|만|천)?원?)$/i,
   
   // 대출 유형: 신용대출, 담보대출, 주택담보대출 등
   loanTypes: /^(신용대출|담보대출|주택담보대출|전세자금대출|가계대출|기업대출|CSS대출)$/i,
@@ -143,7 +140,7 @@ export const filterHighlightWords = (
   // 먼저 태그와 내용을 제거
   const cleanedText = removeTagsAndContent(text);
   
-  return cleanedText
+  const words = cleanedText
     .split(/[\s,.\-!?;:()[\]{}""''«»„"‚'|~]+/) // 다양한 구두점과 따옴표 포함
     .filter(word => {
       // 빈 문자열 제외
@@ -159,13 +156,15 @@ export const filterHighlightWords = (
       if (EXCLUDED_WORDS.includes(word.toLowerCase())) return false;
       
       // 순수 숫자만으로 구성된 경우 제외 (단, 금액 단위가 있으면 포함)
-      if (/^\d+$/.test(word) && !/억|만|원/.test(text)) return false;
+      if (/^\d+$/.test(word) && !/억|만|원/.test(word)) return false;
       
       // 특수문자만으로 구성된 단어 제외
       if (/^[^\w\uAC00-\uD7AF\u3130-\u318F]+$/.test(word)) return false;
       
       return true;
     });
+    
+  return words;
 };
 
 /**
