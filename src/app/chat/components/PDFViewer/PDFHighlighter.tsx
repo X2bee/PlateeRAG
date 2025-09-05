@@ -160,37 +160,37 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
       return {
         ...baseStyles,
         background: 'linear-gradient(45deg, rgba(255, 0, 255, 0.2), rgba(255, 215, 0, 0.2))',
-        boxShadow: '0 0 2px rgba(255, 0, 255, 0.6)',
+        boxShadow: '0 0 2px rgba(255, 0, 255, 0.2)',
       };
     } else if (score >= 5) {
       return {
         ...baseStyles,
         backgroundColor: 'rgba(255, 20, 147, 0.2)',
-        boxShadow: '0 0 0 2px rgba(255, 20, 147, 0.5)',
+        boxShadow: '0 0 0 2px rgba(255, 20, 147, 0.2)',
       };
     } else if (score >= 4) {
       return {
         ...baseStyles,
         backgroundColor: 'rgba(0, 191, 255, 0.2)',
-        boxShadow: '0 0 0 2px rgba(0, 191, 255, 0.5)',
+        boxShadow: '0 0 0 2px rgba(0, 191, 255, 0.2)',
       };
     } else if (score >= 3) {
       return {
         ...baseStyles,
         backgroundColor: 'rgba(0, 255, 127, 0.2)',
-        boxShadow: '0 0 0 1px rgba(0, 255, 127, 0.5)',
+        boxShadow: '0 0 0 1px rgba(0, 255, 127, 0.2)',
       };
     } else if (score >= 2) {
       return {
         ...baseStyles,
         backgroundColor: 'rgba(255, 165, 0, 0.2)',
-        boxShadow: '0 0 0 1px rgba(255, 165, 0, 0.5)',
+        boxShadow: '0 0 0 1px rgba(255, 165, 0, 0.2)',
       };
     } else {
       return {
         ...baseStyles,
         backgroundColor: 'rgba(255, 255, 0, 0.2)',
-        boxShadow: '0 0 0 1px rgba(255, 255, 0, 0.4)',
+        boxShadow: '0 0 0 1px rgba(255, 255, 0, 0.2)',
       };
     }
   };
