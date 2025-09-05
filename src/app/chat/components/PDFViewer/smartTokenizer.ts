@@ -167,7 +167,7 @@ const calculateDocumentContinuity = (
     
     // 정확한 순서 매칭 체크
     let sequentialMatch = 0;
-    let matchedInOrder: string[] = [];
+    const matchedInOrder: string[] = [];
     
     for (let j = 0; j < searchTokenTexts.length; j++) {
       const searchToken = searchTokenTexts[j];
