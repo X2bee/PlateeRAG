@@ -16,6 +16,7 @@ import AdminWorkflowLogsContent from '@/app/admin/components/monitor/AdminWorkfl
 import AdminGroupContent from '@/app/admin/components/group/AdminGroupContent';
 import AdminPlayground from '@/app/admin/components/monitor/playground/AdminPlayground';
 import AdminSystemMonitor from '@/app/admin/components/monitor/AdminSystemMonitor';
+import AdminDatabase from '@/app/admin/components/database/AdminDatabase';
 import {
     getUserSidebarItems,
     getSettingSidebarItems,
@@ -265,7 +266,7 @@ const AdminPageContent: React.FC = () => {
                         title="데이터베이스 관리"
                         description="데이터베이스 상태를 확인하고 최적화하세요."
                     >
-                        <div>데이터베이스 관리 컴포넌트가 여기에 표시됩니다.</div>
+                        <AdminDatabase />
                     </AdminContentArea>
                 );
             case 'storage':
