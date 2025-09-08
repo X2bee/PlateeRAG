@@ -165,6 +165,36 @@ export const getAvailableTTSProviders = async () => {
 };
 
 /**
+ * TTS 새로고침하는 함수
+ * @returns {Promise<Object>} 새로고침 결과
+ */
+export const refreshTTS = async () => {
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/api/tts/refresh`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('TTS Factory refreshed:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to refresh TTS Factory:', error);
+        throw error;
+    }
+};
+
+
+/**
  * 오디오 파일을 다운로드하는 유틸리티 함수
  * @param {Blob} audioBlob - 오디오 데이터
  * @param {string} filename - 파일명 (기본값: "generated_speech.wav")

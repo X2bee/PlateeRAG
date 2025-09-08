@@ -6,6 +6,7 @@ import {
     FiX,
     FiArrowLeft,
     FiDatabase,
+    FiMic,
 } from 'react-icons/fi';
 import { IoDocumentLock } from "react-icons/io5";
 import { BsDatabaseUp } from 'react-icons/bs';
@@ -25,6 +26,7 @@ import AdminVectordbConfig from '@/app/admin/components/config/AdminVectordbConf
 import AdminCollectionConfig from '@/app/admin/components/config/AdminCollectionConfig';
 import AdminVastAiConfig from '@/app/admin/components/config/AdminVastAiConfig';
 import AdminTrainVastConfig from '@/app/admin/components/config/AdminTrainVastConfig';
+import AdminAudioModelConfig from '@/app/admin/components/config/AdminAudioModelConfig';
 
 interface ConfigItem {
     env_name: string;
@@ -145,6 +147,14 @@ const AdminSettings: React.FC = () => {
             status: configs.openai?.apiKey || configs.vllm?.baseUrl ? 'connected' : 'disconnected',
         },
         {
+            id: 'audiomodel',
+            name: '오디오 모델',
+            description: 'STT(Speech-to-Text) 및 TTS(Text-to-Speech) 설정',
+            icon: <FiMic />,
+            color: '#f59e0b',
+            status: 'connected',
+        },
+        {
             id: 'vastai',
             name: 'Vast.ai GPU',
             description: 'Vast.ai GPU 인스턴스 및 vLLM 서버 설정',
@@ -253,6 +263,15 @@ const AdminSettings: React.FC = () => {
         )
     }
 
+    const renderAudioModelConfig = () => {
+        return (
+            <AdminAudioModelConfig
+                configData={configData}
+                onTestConnection={handleTestConnection}
+            />
+        );
+    };
+
     const renderVastAiConfig = () => {
         return (
             <AdminVastAiConfig
@@ -273,6 +292,8 @@ const AdminSettings: React.FC = () => {
         switch (categoryId) {
             case 'llm':
                 return renderLLMconfig();
+            case 'audiomodel':
+                return renderAudioModelConfig();
             case 'vastai':
                 return renderVastAiConfig();
             case 'collection':

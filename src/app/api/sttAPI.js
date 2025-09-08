@@ -56,3 +56,32 @@ export const getSTTStatus = async () => {
         throw error;
     }
 };
+
+/**
+ * STT 새로고침하는 함수
+ * @returns {Promise<Object>} 새로고침 결과
+ */
+export const refreshSTT = async () => {
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/api/stt/refresh`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('STT Factory refreshed:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to refresh STT Factory:', error);
+        throw error;
+    }
+};
