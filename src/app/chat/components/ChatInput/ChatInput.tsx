@@ -11,6 +11,15 @@ import styles from '../../assets/ChatInterface.module.scss';
 import { useInputHandling } from '../../hooks/useInputHandling';
 import SoundInput from '../SoundInput/SoundInputModal';
 import SoundInputHandler from '../SoundInput/SoundInputHandler';
+import { getSTTSimpleStatus } from '@/app/api/sttAPI';
+
+interface STTSimpleStatusResponse {
+    available: boolean;
+    provider: string | null;
+    model: string | null;
+    api_key_configured?: boolean;
+    error?: string;
+}
 
 interface ChatInputProps {
     executing: boolean;
@@ -48,6 +57,8 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
 ) => {
     const attachmentButtonRef = useRef<HTMLDivElement>(null);
     const [showSoundInput, setShowSoundInput] = useState(false);
+    const [sttAvailable, setSttAvailable] = useState(true);
+    const [useStt, setUseStt] = useState(false);
 
     const inputHandling = useInputHandling({
         executing,
@@ -70,6 +81,47 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
             inputHandling.setInputMessage('');
         },
     }), [inputHandling]);
+
+    // STT 상태 확인
+    useEffect(() => {
+        const checkSttStatus = async () => {
+            try {
+                const data = await getSTTSimpleStatus() as STTSimpleStatusResponse;
+                setSttAvailable(data.available);
+            } catch (error) {
+                setSttAvailable(false);
+            }
+        };
+
+        checkSttStatus();
+    }, []);
+
+    // Workflow 정보 가져오기
+    useEffect(() => {
+        const loadWorkflowData = () => {
+            try {
+                const workflowContentDetail = localStorage.getItem('workflowContentDetail');
+                if (workflowContentDetail) {
+                    const parsedWorkflowData = JSON.parse(workflowContentDetail);
+                    const inputStringNode = parsedWorkflowData.nodes?.find((node: any) =>
+                        node.data?.id === 'input_string'
+                    );
+                    if (inputStringNode) {
+                        const useSttParam = inputStringNode.data?.parameters?.find((param: any) =>
+                            param.id === 'use_stt'
+                        );
+                        if (useSttParam) {
+                            setUseStt(useSttParam.value);
+                        }
+                    }
+                }
+            } catch (error) {
+                setUseStt(false);
+            }
+        };
+
+        loadWorkflowData();
+    }, []);
 
     // 초기 메시지 설정
     useEffect(() => {
@@ -145,6 +197,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
                     {/* 음성 입력 핸들러 버튼 */}
                     <SoundInputHandler
                         onTranscriptionReady={handleHandlerTranscriptionReady}
+                        disabled={!(sttAvailable && useStt)}
                     />
 
                     <div className={styles.attachmentWrapper} ref={attachmentButtonRef}>
@@ -179,11 +232,12 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
                                     <span>사진</span>
                                 </button>
                                 <button
-                                    className={styles.attachmentOption}
+                                    className={`${styles.attachmentOption} ${!(sttAvailable && useStt) ? styles.disabled : ''}`}
                                     onClick={() => {
                                         setShowSoundInput(true);
                                         onAttachmentClick(); // 첨부 메뉴 닫기
                                     }}
+                                    disabled={!(sttAvailable && useStt)}
                                 >
                                     <FiMic />
                                     <span>음성 (상세)</span>

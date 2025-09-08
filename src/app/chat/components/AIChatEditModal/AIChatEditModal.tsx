@@ -12,6 +12,7 @@ interface AIChatEditDropdownProps {
     isReading?: boolean; // 읽어주기 진행 상태
     onDebug?: () => void; // 디버그 버튼 핸들러
     onRating?: (rating: number) => void; // 별점 평가 핸들러
+    ttsAvailable?: boolean; // TTS 사용 가능 여부
 }
 
 const AIChatEditDropdown: React.FC<AIChatEditDropdownProps> = ({
@@ -23,7 +24,8 @@ const AIChatEditDropdown: React.FC<AIChatEditDropdownProps> = ({
     position = { top: 0, right: 0 },
     isReading = false,
     onDebug,
-    onRating
+    onRating,
+    ttsAvailable = true
 }) => {
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [showRating, setShowRating] = useState(false);
@@ -79,9 +81,9 @@ const AIChatEditDropdown: React.FC<AIChatEditDropdownProps> = ({
         >
             <div className={styles.options}>
                 <button
-                    className={`${styles.optionButton} ${isReading ? styles.reading : ''}`}
+                    className={`${styles.optionButton} ${isReading ? styles.reading : ''} ${!ttsAvailable ? styles.disabled : ''}`}
                     onClick={onReadAloud}
-                    disabled={isReading}
+                    disabled={isReading || !ttsAvailable}
                 >
                     <FiVolume2 className={styles.icon} />
                     <span>{isReading ? '읽는 중...' : '읽어주기'}</span>

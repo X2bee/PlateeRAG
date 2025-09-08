@@ -193,6 +193,26 @@ export const refreshTTS = async () => {
     }
 };
 
+/**
+ * STT 서비스의 간단한 상태 정보를 가져오는 함수
+ * @returns {Promise<Object>} STT 서비스의 간단한 상태 정보
+ */
+export const getTTSSimpleStatus = async () => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/tts/simple-status`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('TTS simple status fetched:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch TTS simple status:', error);
+        throw error;
+    }
+};
 
 /**
  * 오디오 파일을 다운로드하는 유틸리티 함수

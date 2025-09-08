@@ -63,7 +63,7 @@ export const getSTTStatus = async () => {
  */
 export const refreshSTT = async () => {
     try {
-        const response = await fetch(
+        const response = await apiClient(
             `${API_BASE_URL}/api/stt/refresh`,
             {
                 method: 'POST',
@@ -82,6 +82,27 @@ export const refreshSTT = async () => {
         return data;
     } catch (error) {
         devLog.error('Failed to refresh STT Factory:', error);
+        throw error;
+    }
+};
+
+/**
+ * STT 서비스의 간단한 상태 정보를 가져오는 함수
+ * @returns {Promise<Object>} STT 서비스의 간단한 상태 정보
+ */
+export const getSTTSimpleStatus = async () => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/stt/simple-status`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('STT simple status fetched:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch STT simple status:', error);
         throw error;
     }
 };
