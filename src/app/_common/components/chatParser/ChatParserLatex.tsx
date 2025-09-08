@@ -44,6 +44,98 @@ const escapeLatexSpecialChars = (text: string): string => {
  * 텍스트에서 LaTeX 수식 블록을 찾는 함수
  */
 export const findLatexBlocks = (text: string): LatexBlockInfo[] => {
+    // Citation 영역을 찾아서 제외하기 위한 함수
+    const findCitationRanges = (inputText: string): Array<{ start: number, end: number }> => {
+        const citationRanges: Array<{ start: number, end: number }> = [];
+        let i = 0;
+
+        while (i < inputText.length) {
+            const citeStart = inputText.indexOf('[Cite.', i);
+            if (citeStart === -1) break;
+
+            // { 찾기
+            let braceStart = -1;
+            for (let j = citeStart + 6; j < inputText.length; j++) {
+                if (inputText[j] === '{') {
+                    braceStart = j;
+                    break;
+                } else if (inputText[j] !== ' ' && inputText[j] !== '\t') {
+                    break;
+                }
+            }
+
+            if (braceStart === -1) {
+                i = citeStart + 6;
+                continue;
+            }
+
+            // 균형잡힌 괄호 찾기
+            let braceCount = 1;
+            let braceEnd = -1;
+            let inString = false;
+            let escaped = false;
+
+            for (let j = braceStart + 1; j < inputText.length; j++) {
+                const char = inputText[j];
+
+                if (escaped) {
+                    escaped = false;
+                    continue;
+                }
+
+                if (char === '\\') {
+                    escaped = true;
+                    continue;
+                }
+
+                if (char === '"' && !escaped) {
+                    inString = !inString;
+                    continue;
+                }
+
+                if (!inString) {
+                    if (char === '{') {
+                        braceCount++;
+                    } else if (char === '}') {
+                        braceCount--;
+                        if (braceCount === 0) {
+                            braceEnd = j;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (braceEnd !== -1) {
+                // 닫는 ] 찾기
+                let finalEnd = braceEnd + 1;
+                while (finalEnd < inputText.length &&
+                    (inputText[finalEnd] === ' ' || inputText[finalEnd] === '\t' ||
+                        inputText[finalEnd] === ']' || inputText[finalEnd] === '.' ||
+                        inputText[finalEnd] === '\\')) {
+                    if (inputText[finalEnd] === ']') {
+                        finalEnd++;
+                        break;
+                    }
+                    finalEnd++;
+                }
+
+                citationRanges.push({
+                    start: citeStart,
+                    end: finalEnd
+                });
+
+                i = finalEnd;
+            } else {
+                i = citeStart + 6;
+            }
+        }
+
+        return citationRanges;
+    };
+
+    // Citation 영역 찾기
+    const citationRanges = findCitationRanges(text);
 
     // 정규식을 사용한 더 정확한 LaTeX 블록 찾기
     const blockRegex = /\$\$([\s\S]*?)\$\$/g;
@@ -52,19 +144,35 @@ export const findLatexBlocks = (text: string): LatexBlockInfo[] => {
     let match;
     const allMatches: Array<{ start: number, end: number, content: string, isBlock: boolean }> = [];
 
+    // Citation 영역과 겹치는지 확인하는 함수
+    const isInCitation = (start: number, end: number): boolean => {
+        return citationRanges.some(range =>
+            (start >= range.start && start < range.end) ||
+            (end > range.start && end <= range.end) ||
+            (start <= range.start && end >= range.end)
+        );
+    };
+
     // 블록 수식 찾기
     while ((match = blockRegex.exec(text)) !== null) {
-        allMatches.push({
-            start: match.index,
-            end: match.index + match[0].length,
-            content: match[1],
-            isBlock: true
-        });
+        if (!isInCitation(match.index, match.index + match[0].length)) {
+            allMatches.push({
+                start: match.index,
+                end: match.index + match[0].length,
+                content: match[1],
+                isBlock: true
+            });
+        }
     }
 
     // 인라인 수식 찾기 (블록 수식과 겹치지 않는 것만)
     blockRegex.lastIndex = 0; // reset
     while ((match = inlineRegex.exec(text)) !== null) {
+        // Citation 영역과 겹치는지 확인
+        if (isInCitation(match.index, match.index + match[0].length)) {
+            continue;
+        }
+
         // 블록 수식과 겹치는지 확인
         const isOverlapping = allMatches.some(block =>
             block.isBlock && match!.index >= block.start && match!.index < block.end
