@@ -82,7 +82,10 @@ const AdminBaseConfigPanel: React.FC<AdminBaseConfigPanelProps> = ({
 
     const handleEditStart = (configItem: ConfigItem) => {
         setEditingConfig(configItem.env_name);
-        setEditValue(String(configItem.current_value || ''));
+        const currentValue = localConfig[configItem.env_name] !== undefined
+            ? localConfig[configItem.env_name]
+            : configItem.current_value;
+        setEditValue(String(currentValue || ''));
     };
 
     const handleEditCancel = () => {
