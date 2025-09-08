@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { FiMoreHorizontal } from 'react-icons/fi';
 import styles from '@/app/chat/assets/chatParser.module.scss';
 import { APP_CONFIG } from '@/app/config';
 import { SourceInfo } from '@/app/chat/types/source';
@@ -38,6 +39,10 @@ interface MessageRendererProps {
     onViewSource?: (sourceInfo: SourceInfo) => void;
     onHeightChange?: () => void;
     mode?: "existing" | "new-workflow" | "new-default" | "deploy";
+    messageId?: string; // 메시지 고유 식별자 추가
+    timestamp?: number; // 메시지 생성 시간 추가
+    showEditButton?: boolean; // 편집 버튼 표시 여부
+    onEditClick?: (messageContent: string, messageId?: string, position?: { top: number; right: number }) => void; // 편집 버튼 클릭 핸들러
 }
 
 /**
@@ -50,7 +55,11 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
     isUserMessage = false,
     className = '',
     onViewSource,
-    onHeightChange
+    onHeightChange,
+    messageId,
+    timestamp,
+    showEditButton = false,
+    onEditClick
 }) => {
 
     // 가장 먼저 수행: 문자열이 아닌 데이터를 문자열로 변환
@@ -80,15 +89,39 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
 
     const parsedElements = parseContentToReactElements(processedContent, onViewSource, onHeightChange, mode);
 
+    const handleEditClick = (event: React.MouseEvent) => {
+        if (onEditClick) {
+            const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+            onEditClick(processedContent, messageId, {
+                top: rect.bottom + 5,
+                right: window.innerWidth - rect.right
+            });
+        }
+    };
+
     return (
-        <div
-            className={`${styles.markdownContent} ${className}`}
-            style={{
-                wordBreak: 'break-word',
-                overflowWrap: 'break-word',
-            }}
-        >
-            {parsedElements}
+        <div className={styles.messageWrapper}>
+            <div
+                className={`${styles.markdownContent} ${className}`}
+                style={{
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
+                }}
+            >
+                {parsedElements}
+            </div>
+
+            {showEditButton && !isUserMessage && (
+                <div className={styles.editButtonWrapper}>
+                    <button
+                        className={styles.editButton}
+                        onClick={handleEditClick}
+                        title="메시지 옵션"
+                    >
+                        <FiMoreHorizontal />
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

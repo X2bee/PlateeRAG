@@ -451,6 +451,52 @@ export const getWorkflowIOLogs = async (workflowName, workflowId, interactionId 
 };
 
 /**
+ * 특정 워크플로우의 실행 기록 데이터를 가져옵니다.
+ * @param {string} IOID - 평가할 IO 로그 ID
+ * @param {string} workflowName - 워크플로우 이름 (.json 확장자 제외)
+ * @param {string} workflowId - 워크플로우 ID
+ * @param {string} interactionId - 상호작용 ID (선택사항, 기본값: "default")
+ * @param {number} rating - 평가 점수 (1~5)
+ * @returns {Promise<Object>} 실행 기록 데이터를 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const rateWorkflowIOLog = async (IOID, workflowName, workflowId, interactionId = 'default', rating = 3) => {
+    try {
+        const params = new URLSearchParams({
+            io_id: IOID,
+            workflow_name: workflowName,
+            workflow_id: workflowId,
+            interaction_id: interactionId,
+            rating: rating,
+        });
+
+        const response = await apiClient(
+            `${API_BASE_URL}/api/workflow/io_log/rating?${params}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
+        }
+
+        const result = await response.json();
+        devLog.log('Workflow IO logs retrieved successfully:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to get workflow IO logs:', error);
+        throw error;
+    }
+};
+
+/**
  * 특정 워크플로우의 실행 기록 데이터를 삭제합니다.
  * @param {string} workflowName - 워크플로우 이름 (.json 확장자 제외)
  * @param {string} workflowId - 워크플로우 ID

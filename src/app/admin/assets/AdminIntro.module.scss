@@ -11,15 +11,15 @@
   text-align: center;
   margin-bottom: 3rem;
   padding: 2rem;
-  background: linear-gradient(135deg, rgba(#e74c3c, 0.05) 0%, rgba(#c0392b, 0.05) 100%);
+  background: #F6F4F8;
   border-radius: 1rem;
-  border: 1px solid rgba(#e74c3c, 0.1);
+  border: 1px solid #DDDDDD;
 }
 
 .heroIcon {
   width: 4rem;
   height: 4rem;
-  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  background: linear-gradient(135deg, #5E00BA 0%, #4041B2 100%);
   border-radius: 1rem;
   display: flex;
   align-items: center;
@@ -55,17 +55,17 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.875rem 2rem;
-  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  background: linear-gradient(135deg, #5E00BA 0%, #4041B2 100%);
   color: $white;
   text-decoration: none;
   border-radius: 0.75rem;
   font-weight: 600;
   transition: all 0.2s ease-in-out;
-  box-shadow: 0 4px 12px rgba(#e74c3c, 0.3);
+  box-shadow: 0 4px 12px rgba(#4041B2, 0.3);
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(#e74c3c, 0.4);
+    box-shadow: 0 8px 20px rgba(#4041B2, 0.4);
   }
 
   svg {
@@ -83,16 +83,16 @@
 }
 
 .featureCard {
-  background: $white;
+  background: #F6F4F8;
   padding: 1.5rem;
   border-radius: 0.75rem;
-  border: 1px solid $gray-200;
+  border: 1px solid #DDDDDD;
   transition: all 0.2s ease-in-out;
 
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    border-color: rgba(#e74c3c, 0.3);
+    border-color: rgba(#4041B2, 0.3);
   }
 
   h3 {
@@ -112,7 +112,7 @@
 .featureIcon {
   width: 3rem;
   height: 3rem;
-  background: rgba(#e74c3c, 0.1);
+  background: rgba(#4041B2, 0.1);
   border-radius: 0.75rem;
   display: flex;
   align-items: center;
@@ -121,7 +121,7 @@
   svg {
     width: 1.5rem;
     height: 1.5rem;
-    color: #e74c3c;
+    color: #4041B2;
   }
 }
 
@@ -168,7 +168,7 @@
 .stepNumber {
   width: 2.5rem;
   height: 2.5rem;
-  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  background: linear-gradient(135deg, #5E00BA 0%, #4041B2 100%);
   color: $white;
   border-radius: 50%;
   display: flex;
@@ -259,7 +259,7 @@
     color: $gray-900;
     margin: 0 0 1rem 0;
     padding-bottom: 0.5rem;
-    border-bottom: 2px solid #e74c3c;
+    border-bottom: 2px solid #4041B2;
   }
 
   ul {
@@ -276,7 +276,7 @@
 
       &:before {
         content: "•";
-        color: #e74c3c;
+        color: #4041B2;
         position: absolute;
         left: 0;
         font-weight: bold;
@@ -292,10 +292,10 @@
 }
 
 .tip {
-  background: linear-gradient(135deg, rgba(#e74c3c, 0.05) 0%, rgba(#c0392b, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(#4041B2, 0.05) 0%, rgba(#5E00BA, 0.05) 100%);
   padding: 1.5rem;
   border-radius: 0.75rem;
-  border: 1px solid rgba(#e74c3c, 0.1);
+  border: 1px solid rgba(#4041B2, 0.1);
 
   h4 {
     font-size: 1rem;

@@ -40,6 +40,7 @@ const CompletedWorkflows: React.FC = () => {
     >('all');
     const [showEditModal, setShowEditModal] = useState(false);
     const [workflowToEdit, setWorkflowToEdit] = useState<Workflow | null>(null);
+    const [deployed_list, setDeployed_list] = useState<{[key: string]: boolean | null}>({});
     
     const fetchWorkflows = async () => {
         try {
@@ -57,6 +58,10 @@ const CompletedWorkflows: React.FC = () => {
                     ) {
                         status = 'draft';
                     }
+
+                    fetchDeployStatus(detail.workflow_name, detail.user_id).then(status => {
+                        setDeployed_list(prev => ({...prev, [detail.workflow_name]: status}));
+                    });
 
                     return {
                         key_value: detail.id,
@@ -84,6 +89,16 @@ const CompletedWorkflows: React.FC = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const fetchDeployStatus = async (workflowName: string, user_id?: number | string) => {
+        try {
+            const status = await getDeployStatus(workflowName, String(user_id));
+            return status.is_deployed;
+        } catch (error) {
+            showErrorToastKo('워크플로우 배포 상태를 불러오는데 실패했습니다.');
+            return null;
+        } 
     };
 
     useEffect(() => {
@@ -152,7 +167,7 @@ const CompletedWorkflows: React.FC = () => {
         setShowEditModal(true);
     };
 
-    const handleUpdateWorkflow = (updatedWorkflow: Workflow) => {
+    const handleUpdateWorkflow = (updatedWorkflow: Workflow, updatedDeploy: {[key: string]: boolean | null}) => {
         setWorkflows(prevWorkflows =>
             prevWorkflows.map(workflow =>
                 workflow.key_value === updatedWorkflow.key_value
@@ -160,6 +175,10 @@ const CompletedWorkflows: React.FC = () => {
                     : workflow
             )
         );
+        setDeployed_list(prev => ({
+            ...prev,
+            ...updatedDeploy
+        }));
     };
 
     const handleCloseEditModal = () => {
@@ -300,6 +319,11 @@ const CompletedWorkflows: React.FC = () => {
                                         className={`${styles.shareStatus} ${workflow.is_shared ? styles.statusShared : styles.statusPersonal}`}
                                     >
                                         {workflow.is_shared ? '공유' : '개인'}
+                                    </div>
+                                    <div
+                                        className={`${styles.deployStatus} ${deployed_list[workflow.name] ? styles.statusDeployed : styles.statusNotDeployed}`}
+                                    >
+                                        {deployed_list[workflow.name] === null ? '배포 상태 오류' : deployed_list[workflow.name] ? '배포됨' : '미배포'}
                                     </div>
                                 </div>
                             </div>

@@ -55,3 +55,92 @@
     box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.8), 0 0 12px rgba(34, 197, 94, 0.4) !important;
   }
 }
+
+// 🎯 스마트 토큰 조합 점수별 PDF 하이라이팅 스타일
+.pdfHighlightScore1 {
+  background-color: rgba(255, 255, 0, 0.3) !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 0, 0.4) !important;
+  border-left: 2px solid rgba(255, 255, 0, 0.8) !important;
+  border-radius: 2px !important;
+  transition: all 0.2s ease !important;
+}
+
+.pdfHighlightScore2 {
+  background-color: rgba(255, 165, 0, 0.4) !important;
+  box-shadow: 0 0 0 2px rgba(255, 165, 0, 0.6) !important;
+  border-left: 3px solid rgba(255, 165, 0, 0.8) !important;
+  border-radius: 2px !important;
+  transition: all 0.2s ease !important;
+}
+
+.pdfHighlightScore3 {
+  background-color: rgba(0, 255, 127, 0.4) !important;
+  box-shadow: 0 0 0 2px rgba(0, 255, 127, 0.6) !important;
+  border-left: 4px solid rgba(0, 255, 127, 0.8) !important;
+  border-radius: 2px !important;
+  transition: all 0.2s ease !important;
+}
+
+.pdfHighlightScore4 {
+  background-color: rgba(0, 191, 255, 0.4) !important;
+  box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.6) !important;
+  border-left: 5px solid rgba(0, 191, 255, 0.8) !important;
+  border-radius: 2px !important;
+  transition: all 0.2s ease !important;
+}
+
+.pdfHighlightScore5 {
+  background-color: rgba(255, 20, 147, 0.4) !important;
+  box-shadow: 0 0 0 3px rgba(255, 20, 147, 0.6) !important;
+  border-left: 6px solid rgba(255, 20, 147, 0.8) !important;
+  border-radius: 2px !important;
+  transition: all 0.2s ease !important;
+}
+
+.pdfHighlightScore6Plus {
+  background: linear-gradient(45deg, rgba(255, 0, 255, 0.4), rgba(255, 215, 0, 0.4)) !important;
+  box-shadow: 0 0 4px rgba(255, 0, 255, 0.7) !important;
+  border-left: 7px solid rgba(255, 0, 255, 0.9) !important;
+  border-radius: 2px !important;
+  animation: pdfRainbowPulse 2s ease-in-out infinite !important;
+  transition: all 0.2s ease !important;
+}
+
+// PDF 고점수 레인보우 애니메이션
+@keyframes pdfRainbowPulse {
+  0%, 100% { 
+    background: linear-gradient(45deg, rgba(255, 0, 255, 0.4), rgba(255, 215, 0, 0.4));
+    opacity: 1;
+  }
+  33% { 
+    background: linear-gradient(45deg, rgba(255, 215, 0, 0.4), rgba(0, 255, 127, 0.4));
+    opacity: 0.9;
+  }
+  66% { 
+    background: linear-gradient(45deg, rgba(0, 255, 127, 0.4), rgba(0, 191, 255, 0.4));
+    opacity: 0.8;
+  }
+}
+
+// 호버 효과
+.pdfHighlightScore1:hover,
+.pdfHighlightScore2:hover,
+.pdfHighlightScore3:hover,
+.pdfHighlightScore4:hover,
+.pdfHighlightScore5:hover,
+.pdfHighlightScore6Plus:hover {
+  opacity: 0.8 !important;
+  z-index: 10 !important;
+}
+
+// 다크 모드 지원
+@media (prefers-color-scheme: dark) {
+  .pdfHighlightScore1,
+  .pdfHighlightScore2,
+  .pdfHighlightScore3,
+  .pdfHighlightScore4,
+  .pdfHighlightScore5,
+  .pdfHighlightScore6Plus {
+    color: #000 !important;
+  }
+}

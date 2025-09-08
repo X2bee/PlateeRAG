@@ -2,10 +2,11 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import styles from '@/app/chat/assets/ChatInterface.module.scss';
 import { useRouter } from 'next/navigation';
-import { getWorkflowIOLogs, loadWorkflow } from '@/app/api/workflow/workflowAPI';
+import { getWorkflowIOLogs, loadWorkflow, rateWorkflowIOLog } from '@/app/api/workflow/workflowAPI';
 import { loadWorkflow as loadWorkflowDeploy } from '@/app/api/workflow/workflowDeployAPI';
 import { MessageRenderer } from '@/app/_common/components/chatParser/ChatParser';
 import CollectionModal from '@/app/chat/components/CollectionModal';
+import AIChatEditDropdown from '@/app/chat/components/AIChatEditModal/AIChatEditModal';
 import { IOLog, ChatInterfaceProps } from './types';
 import ChatHeader from './ChatHeader';
 import { DeploymentModal } from './DeploymentModal';
@@ -18,6 +19,8 @@ import { useWorkflowExecution } from '../hooks/useWorkflowExecution';
 import { useCollectionManagement } from '../hooks/useCollectionManagement';
 import { useScrollManagement } from '../hooks/useScrollManagement';
 import { useChatState } from '../hooks/useChatState';
+import { speakText, extractPlainText, sanitizeTextForTTS } from '@/app/_common/utils/ttsUtils';
+import { showCopySuccessToastKo, showSuccessToastKo, showWarningToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 
 interface NewChatInterfaceProps extends ChatInterfaceProps {
     onStartNewChat?: (message: string) => void;
@@ -45,6 +48,12 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
 
     // 로컬 상태 (최소화됨)
     const [ioLogs, setIOLogs] = useState<IOLog[]>([]);
+
+    // AI 채팅 편집 드롭다운 상태
+    const [showEditDropdown, setShowEditDropdown] = useState(false);
+    const [selectedMessage, setSelectedMessage] = useState<{content: string, id?: string} | null>(null);
+    const [dropdownPosition, setDropdownPosition] = useState<{top: number, right: number}>({top: 0, right: 0});
+    const [isReading, setIsReading] = useState(false);
 
     // 통합 상태 관리
     const { state, actions } = useChatState();
@@ -151,8 +160,161 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
         }
     }, [actions]);
 
+    // AI 채팅 편집 관련 함수들
+    const handleEditClick = useCallback((messageContent: string, messageId?: string, position?: { top: number; right: number }) => {
+        setSelectedMessage({ content: messageContent, id: messageId });
+        if (position) {
+            setDropdownPosition(position);
+        }
+        setShowEditDropdown(true);
+    }, []);
+
+    const handleRatingButtonClick = useCallback(() => {
+        // 별점 평가 UI만 표시 - 디버그 정보는 제거
+    }, []);
+
+    const handleRatingClick = useCallback(async (rating: number) => {
+        console.log('=== 별점 평가 시작 ===');
+        console.log('평가 점수:', rating);
+        console.log('메시지 ID:', selectedMessage?.id);
+        console.log('메시지 내용:', selectedMessage?.content);
+
+        try {
+            // 현재 메시지에 해당하는 IOLog 찾기
+            const messageLog = ioLogs.find(log => log.output_data === selectedMessage?.content);
+
+            if (messageLog && workflow) {
+                let ioId = (messageLog as any)?.io_id;
+
+                // io_id가 없으면 API에서 최신 정보를 가져와서 찾기
+                if (!ioId) {
+                    try {
+                        console.log('io_id가 없어서 API에서 최신 정보 가져오는 중...');
+
+                        let interactionId = existingChatData?.interactionId;
+                        if (!interactionId) {
+                            const recentLog = ioLogs[ioLogs.length - 1];
+                            if (recentLog) {
+                                interactionId = `${recentLog.workflow_name}_${Date.now()}`;
+                            }
+                        }
+
+                        if (interactionId) {
+                            const latestLogs = await getWorkflowIOLogs(
+                                workflow.name,
+                                workflow.id,
+                                interactionId
+                            );
+
+                            if (latestLogs && (latestLogs as any).in_out_logs) {
+                                const matchingLog = (latestLogs as any).in_out_logs.find(
+                                    (log: any) => log.output_data === selectedMessage?.content
+                                );
+
+                                if (matchingLog) {
+                                    ioId = matchingLog.io_id;
+                                    console.log('API에서 io_id 찾음:', ioId);
+                                }
+                            }
+                        }
+                    } catch (fetchError) {
+                        console.error('최신 로그 가져오기 실패:', fetchError);
+                    }
+                }
+
+                if (ioId) {
+                    // 별점 평가 API 호출
+                    console.log('별점 평가 API 호출 중...');
+                    console.log('Parameters:', {
+                        IOID: ioId,
+                        workflowName: workflow.name,
+                        workflowId: workflow.id,
+                        interactionId: existingChatData?.interactionId || 'default',
+                        rating: rating
+                    });
+
+                    const result = await rateWorkflowIOLog(
+                        ioId,
+                        workflow.name,
+                        workflow.id,
+                        existingChatData?.interactionId || 'default',
+                        rating
+                    );
+
+                    console.log('별점 평가 성공:', result);
+                    showSuccessToastKo(`${rating}점으로 평가가 완료되었습니다.`);
+                } else {
+                    console.error('io_id를 찾을 수 없습니다.');
+                    showErrorToastKo('평가 처리 중 오류가 발생했습니다. (io_id 없음)');
+                }
+            } else {
+                console.error('메시지 로그 또는 워크플로우 정보가 없습니다.');
+                showErrorToastKo('평가 처리 중 오류가 발생했습니다. (로그 정보 없음)');
+            }
+        } catch (error) {
+            console.error('별점 평가 중 오류:', error);
+            showErrorToastKo('평가 처리 중 오류가 발생했습니다.');
+        }
+
+        console.log('==================');
+        handleCloseEditDropdown();
+    }, [selectedMessage, ioLogs, workflow, existingChatData]);    const handleCloseEditDropdown = useCallback(() => {
+        setShowEditDropdown(false);
+        setSelectedMessage(null);
+    }, []);
+
+    const handleReadAloud = useCallback(async () => {
+        if (!selectedMessage || isReading) return;
+
+        setIsReading(true);
+
+        try {
+            devLog.log('Starting TTS for message:', selectedMessage.id);
+
+            // 텍스트 전처리
+            const plainText = extractPlainText(selectedMessage.content);
+            const sanitizedText = sanitizeTextForTTS(plainText);
+
+            if (!sanitizedText || sanitizedText.length < 10) {
+                devLog.warn('Text is too short or empty after sanitization');
+                showWarningToastKo({ message: '읽을 수 있는 텍스트가 충분하지 않습니다.' });
+                return;
+            }
+
+            devLog.log('Sanitized text for TTS:', sanitizedText.substring(0, 100));
+
+            // TTS 실행
+            await speakText(sanitizedText);
+
+            devLog.info('TTS completed successfully');
+
+            // 드롭다운 닫기
+            handleCloseEditDropdown();
+
+        } catch (error) {
+            devLog.error('TTS failed:', error);
+            showErrorToastKo(error instanceof Error ? error.message : '음성 변환에 실패했습니다.');
+        } finally {
+            setIsReading(false);
+        }
+    }, [selectedMessage, isReading, handleCloseEditDropdown]);
+
+    const handleCopyText = useCallback(() => {
+        if (!selectedMessage) return;
+
+        const plainText = extractPlainText(selectedMessage.content);
+        navigator.clipboard.writeText(plainText).then(() => {
+            devLog.info('Text copied to clipboard');
+            showCopySuccessToastKo();
+            handleCloseEditDropdown();
+        }).catch((error) => {
+            devLog.error('Copy failed:', error);
+            showErrorToastKo('텍스트 복사에 실패했습니다.');
+        });
+    }, [selectedMessage, handleCloseEditDropdown]);
+
     // 메모이제이션된 렌더 함수들
-    const renderMessageContent = useCallback((content: string, isUserMessage: boolean = false, onHeightChange?: () => void) => {
+    const renderMessageContent = useCallback((content: string, isUserMessage: boolean = false, onHeightChange?: () => void, messageId?: string) => {
         if (!content) return null;
 
         const handleViewSourceWithContext = (sourceInfo: SourceInfo) => {
@@ -171,6 +333,19 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
             }
         };
 
+        // messageId가 없으면 content 기반의 간단한 해시 생성
+        const generateSafeId = (text: string): string => {
+            let hash = 0;
+            for (let i = 0; i < text.length; i++) {
+                const char = text.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash).toString(36);
+        };
+
+        const finalMessageId = messageId || `msg-${generateSafeId(content)}-${Date.now()}`;
+
         return (
             <MessageRenderer
                 mode={mode}
@@ -178,9 +353,13 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
                 isUserMessage={isUserMessage}
                 onViewSource={handleViewSourceWithContext}
                 onHeightChange={handleHeightChangeInternal}
+                messageId={finalMessageId}
+                timestamp={Date.now()}
+                showEditButton={!isUserMessage} // AI 메시지에만 편집 버튼 표시
+                onEditClick={handleEditClick}
             />
         );
-    }, [handleViewSource, scrollManagement]);
+    }, [handleViewSource, scrollManagement, mode, handleEditClick]);
 
     const formatDate = useCallback((dateString: string) => {
         return new Date(dateString).toLocaleString('ko-KR', {
@@ -376,6 +555,18 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
             <ChatContainer ref={chatContainerRef} {...chatContainerProps} />
             <DeploymentModal {...deploymentModalProps} />
             <CollectionModal {...collectionModalProps} />
+
+            <AIChatEditDropdown
+                isOpen={showEditDropdown}
+                onClose={handleCloseEditDropdown}
+                messageContent={selectedMessage?.content || ''}
+                onReadAloud={handleReadAloud}
+                onCopy={handleCopyText}
+                position={dropdownPosition}
+                isReading={isReading}
+                onDebug={handleRatingButtonClick}
+                onRating={handleRatingClick}
+            />
         </div>
     );
 });

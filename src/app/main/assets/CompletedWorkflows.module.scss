@@ -228,6 +228,44 @@
     }
 }
 
+.shareStatus {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    &.statusShared {
+        background: rgba($primary-blue, 0.1);
+        color: $primary-blue;
+    }
+
+    &.statusPersonal {
+        background: rgba($gray-500, 0.1);
+        color: $gray-500;
+    }
+}
+
+.deployStatus {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    &.statusDeployed {
+        background: rgba($primary-purple, 0.1);
+        color: $primary-purple;
+    }
+
+    &.statusNotDeployed {
+        background: rgba($primary-red, 0.1);
+        color: $primary-red;
+    }
+}
+
 // Card Content
 .cardContent {
     margin-bottom: 1rem;

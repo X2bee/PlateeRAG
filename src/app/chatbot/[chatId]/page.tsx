@@ -5,7 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import ChatInterface from '@/app/chat/components/ChatInterface';
 import { Workflow } from '@/app/chat/components/types';
 import { decryptUrlParams } from '@/app/_common/utils/urlEncryption';
-import { ALLOWED_ORIGINS } from '@/app/config';
+//import { ALLOWED_ORIGINS } from '@/app/config';
 import styles from './StandaloneChat.module.scss';
 
 const StandaloneChatPage = () => {
@@ -22,51 +22,52 @@ const StandaloneChatPage = () => {
     const [userId, setUserId] = useState<string>('');
     const [workflowName, setWorkflowName] = useState<string>('');
 
-    // origin 검증 함수
-    const isAllowedOrigin = (origin: string): boolean => {
-        return ALLOWED_ORIGINS.includes(origin);
-    };
+    // origin 검증 함수 (iframe 관련 - 주석 처리)
+    // const isAllowedOrigin = (origin: string): boolean => {
+    //     return ALLOWED_ORIGINS.includes(origin);
+    // };
 
-    useEffect(() => {
-        const handleMessage = (event: MessageEvent) => {
-            // 여러 origin 검증
-            if (!isAllowedOrigin(event.origin)) {
-                console.warn(`Message from unauthorized origin: ${event.origin}`);
-                return;
-            }
+    // iframe postMessage 처리 부분 - 주석 처리
+    // useEffect(() => {
+    //     const handleMessage = (event: MessageEvent) => {
+    //         // 여러 origin 검증
+    //         if (!isAllowedOrigin(event.origin)) {
+    //             console.warn(`Message from unauthorized origin: ${event.origin}`);
+    //             return;
+    //         }
 
-            if (event.data?.type === 'SEND_QUERY' && event.data?.query) {
-                const query = event.data.query;
-                console.log('Received query from parent:', query);
+    //         if (event.data?.type === 'SEND_QUERY' && event.data?.query) {
+    //             const query = event.data.query;
+    //             console.log('Received query from parent:', query);
 
-                setTimeout(() => {
-                    const textarea = document.querySelector('textarea');
-                    const sendButton = document.querySelector('button[class*="sendButton"]');
+    //             setTimeout(() => {
+    //                 const textarea = document.querySelector('textarea');
+    //                 const sendButton = document.querySelector('button[class*="sendButton"]');
 
-                    if (textarea && sendButton) {
-                        // React의 내부 상태를 강제로 업데이트
-                        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
-                        if (nativeInputValueSetter) {
-                            nativeInputValueSetter.call(textarea, query);
-                        }
+    //                 if (textarea && sendButton) {
+    //                     // React의 내부 상태를 강제로 업데이트
+    //                     const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+    //                     if (nativeInputValueSetter) {
+    //                         nativeInputValueSetter.call(textarea, query);
+    //                     }
 
-                        // 다양한 이벤트 발생으로 React 상태 동기화
-                        textarea.dispatchEvent(new Event('input', { bubbles: true }));
-                        textarea.dispatchEvent(new Event('change', { bubbles: true }));
-                        textarea.focus();
+    //                     // 다양한 이벤트 발생으로 React 상태 동기화
+    //                     textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    //                     textarea.dispatchEvent(new Event('change', { bubbles: true }));
+    //                     textarea.focus();
 
-                        // 상태 업데이트 확인
-                        setTimeout(() => {
-                            (sendButton as HTMLButtonElement).click();
-                        }, 200);
-                    }
-                }, 300);
-            }
-        };
+    //                     // 상태 업데이트 확인
+    //                     setTimeout(() => {
+    //                         (sendButton as HTMLButtonElement).click();
+    //                     }, 200);
+    //                 }
+    //             }, 300);
+    //         }
+    //     };
 
-        window.addEventListener('message', handleMessage);
-        return () => window.removeEventListener('message', handleMessage);
-    }, []);
+    //     window.addEventListener('message', handleMessage);
+    //     return () => window.removeEventListener('message', handleMessage);
+    // }, []);
 
     useEffect(() => {
         const handleDecryption = async () => {
