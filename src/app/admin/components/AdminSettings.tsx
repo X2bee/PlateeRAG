@@ -11,6 +11,7 @@ import { IoDocumentLock } from "react-icons/io5";
 import { BsDatabaseUp } from 'react-icons/bs';
 import { SiOpenai } from 'react-icons/si';
 import { BsGear, BsGpuCard } from 'react-icons/bs';
+import { FiCpu } from 'react-icons/fi'; // Gaudi 아이콘 추가
 import {
     testConnection,
     fetchAllConfigs,
@@ -24,6 +25,7 @@ import AdminVectordbConfig from '@/app/admin/components/config/AdminVectordbConf
 import AdminCollectionConfig from '@/app/admin/components/config/AdminCollectionConfig';
 import AdminVastAiConfig from '@/app/admin/components/config/AdminVastAiConfig';
 import AdminTrainVastConfig from '@/app/admin/components/config/AdminTrainVastConfig';
+import AdminGaudiConfig from '@/app/admin/components/config/AdminGaudiConfig';
 
 interface ConfigItem {
     env_name: string;
@@ -151,6 +153,15 @@ const AdminSettings: React.FC = () => {
             color: '#7c3aed',
             status: configs.vastai?.apiKey ? 'connected' : 'disconnected',
         },
+        // Gaudi 카테고리 추가
+        {
+            id: 'gaudi',
+            name: 'Gaudi HPU',
+            description: 'Gaudi HPU 인스턴스 및 vLLM 서버 설정',
+            icon: <FiCpu />,
+            color: '#0083B0', // Gaudi를 나타내는 적절한 색상
+            status: 'disconnected', // 초기 상태는 필요에 따라 설정
+        },
         {
             id: 'collection',
             name: '컬렉션 관리',
@@ -260,6 +271,13 @@ const AdminSettings: React.FC = () => {
         );
     };
 
+    const renderGaudiConfig = () => {
+        return (
+            <AdminGaudiConfig
+                configData={configData}
+            />
+        );
+    }
     const renderTrainVastConfig = () => {
         return (
             <AdminTrainVastConfig
@@ -282,6 +300,8 @@ const AdminSettings: React.FC = () => {
                 return renderVectorDBConfig();
             case 'train-vast':
                 return renderTrainVastConfig();
+            case 'gaudi':
+                return renderGaudiConfig();
             default:
                 return <p>설정 폼을 준비 중입니다.</p>;
         }
