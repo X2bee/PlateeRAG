@@ -144,8 +144,8 @@ $white: #ffffff;
 }
 
 .statCard {
-    background: $white;
-    border: 1px solid $gray-200;
+    background: #F6F4F8;
+    border: 1px solid #DDDDDD;
     border-radius: 0.75rem;
     padding: 1.5rem;
     text-align: center;
@@ -153,14 +153,14 @@ $white: #ffffff;
 
     &:hover {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        border-color: rgba($primary-blue, 0.3);
+        border-color: rgba(#4041B2, 0.3);
     }
 }
 
 .statValue {
     font-size: 2rem;
     font-weight: 700;
-    color: $primary-blue;
+    color: #4041B2;
     margin-bottom: 0.5rem;
 }
 
@@ -224,15 +224,15 @@ $white: #ffffff;
 }
 
 .configItem {
-    background: $white;
-    border: 1px solid $gray-200;
+    background: #F6F4F8;
+    border: 1px solid #DDDDDD;
     border-radius: 0.75rem;
     overflow: hidden;
     transition: all 0.2s ease-in-out;
 
     &:hover {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        border-color: rgba($primary-blue, 0.3);
+        border-color: rgba(#4041B2, 0.3);
     }
 }
 
