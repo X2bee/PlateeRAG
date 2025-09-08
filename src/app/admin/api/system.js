@@ -235,8 +235,9 @@ export const streamSystemStatus = async (onData, onError) => {
 
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
+                            let jsonData;
                             try {
-                                const jsonData = line.slice(6); // "data: " 제거
+                                jsonData = line.slice(6); // "data: " 제거
                                 if (jsonData.trim() === '') continue;
 
                                 // JSON 유효성 검사
