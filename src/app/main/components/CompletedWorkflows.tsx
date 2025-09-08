@@ -25,6 +25,7 @@ import {
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import WorkflowEditModal from '@/app/main/components/workflows/WorkflowEditModal';
+import { devLog } from '@/app/_common/utils/logger';
 
 const CompletedWorkflows: React.FC = () => {
     const router = useRouter();
@@ -41,7 +42,7 @@ const CompletedWorkflows: React.FC = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [workflowToEdit, setWorkflowToEdit] = useState<Workflow | null>(null);
     const [deployed_list, setDeployed_list] = useState<{[key: string]: boolean | null}>({});
-    
+
     const fetchWorkflows = async () => {
         try {
             setLoading(true);
@@ -59,9 +60,13 @@ const CompletedWorkflows: React.FC = () => {
                         status = 'draft';
                     }
 
-                    fetchDeployStatus(detail.workflow_name, detail.user_id).then(status => {
-                        setDeployed_list(prev => ({...prev, [detail.workflow_name]: status}));
-                    });
+                    if (user && detail.user_id === user.user_id) {
+                        devLog.log('Fetching deploy status for', detail.workflow_name, detail.user_id, user.user_id);
+                        fetchDeployStatus(detail.workflow_name, detail.user_id).then(status => {
+                            setDeployed_list(prev => ({...prev, [detail.workflow_name]: status}));
+                        });
+                    }
+
 
                     return {
                         key_value: detail.id,
@@ -98,7 +103,7 @@ const CompletedWorkflows: React.FC = () => {
         } catch (error) {
             showErrorToastKo('워크플로우 배포 상태를 불러오는데 실패했습니다.');
             return null;
-        } 
+        }
     };
 
     useEffect(() => {
@@ -320,11 +325,13 @@ const CompletedWorkflows: React.FC = () => {
                                     >
                                         {workflow.is_shared ? '공유' : '개인'}
                                     </div>
-                                    <div
-                                        className={`${styles.deployStatus} ${deployed_list[workflow.name] ? styles.statusDeployed : styles.statusNotDeployed}`}
-                                    >
-                                        {deployed_list[workflow.name] === null ? '배포 상태 오류' : deployed_list[workflow.name] ? '배포됨' : '미배포'}
-                                    </div>
+                                    {user && workflow.user_id === user.user_id && (
+                                        <div
+                                            className={`${styles.deployStatus} ${deployed_list[workflow.name] ? styles.statusDeployed : styles.statusNotDeployed}`}
+                                        >
+                                            {deployed_list[workflow.name] === null ? '배포 상태 오류' : deployed_list[workflow.name] ? '배포됨' : '미배포'}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
