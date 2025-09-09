@@ -294,11 +294,15 @@ const GlobalDocumentFileModal: React.FC = () => {
                 if (allCompleted) {
                     setIsCompleted(true);
 
-                    // 3초 후 자동 닫기
+                    // 업로드 완료 후 콜백 호출 (문서 목록 갱신) - 다음 이벤트 루프에서 실행
                     setTimeout(() => {
                         if (onUploadComplete) {
                             onUploadComplete();
                         }
+                    }, 0);
+
+                    // 3초 후 자동 닫기
+                    setTimeout(() => {
                         resetModal();
                         closeModal();
                     }, 3000);

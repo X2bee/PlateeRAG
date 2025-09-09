@@ -7,6 +7,7 @@
     border-radius: 0.5rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    max-height: 63vh;
 }
 
 .graphTabHeader {
@@ -302,4 +303,90 @@
     padding: 3rem;
     color: $gray-500;
     font-size: 1.125rem;
+}
+
+// Modal Styles
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.modalContainer {
+    width: 90vw;
+    height: 90vh;
+    background-color: $white;
+    border-radius: 8px;
+    padding: 20px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid $gray-200;
+    padding-bottom: 10px;
+
+    h3 {
+        margin: 0;
+        color: $gray-800;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+}
+
+.modalCloseButton {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $gray-500;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: $gray-100;
+        color: $gray-700;
+    }
+
+    &:active {
+        background: $gray-200;
+    }
+}
+
+.modalContent {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.modalSvg {
+    width: 100%;
+    height: 100%;
+    border: 1px solid $gray-300;
+    border-radius: 4px;
+    background: $white;
+    cursor: grab;
+
+    &:active {
+        cursor: grabbing;
+    }
 }

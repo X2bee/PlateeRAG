@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import * as d3 from 'd3';
 import styles from '@/app/main/assets/DocumentsGraph.module.scss';
 import { DocumentsGraphProps, Node, Link, GraphData, GraphViewMode } from '@/app/main/types/index';
@@ -11,8 +12,11 @@ const DocumentsGraph: React.FC<DocumentsGraphProps> = ({
 }) => {
     const [viewMode, setViewMode] = useState<GraphViewMode>('graph');
     const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+    const [isMaximized, setIsMaximized] = useState(false);
     const svgRef = useRef<SVGSVGElement>(null);
+    const modalSvgRef = useRef<SVGSVGElement>(null);
     const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+    const modalZoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
 
     // 데이터 처리 함수
     const processGraphData = (): GraphData => {
@@ -71,9 +75,10 @@ const DocumentsGraph: React.FC<DocumentsGraphProps> = ({
         return { nodes, links };
     };
 
-    // D3 그래프 렌더링
-    useEffect(() => {
-        if (viewMode !== 'graph' || !svgRef.current || loading) return;
+    // D3 그래프 렌더링 공통 함수
+    const renderGraph = (svgElement: SVGSVGElement, zoomBehavior: React.MutableRefObject<d3.ZoomBehavior<SVGSVGElement, unknown> | null>, isModal = false) => {
+        const width = isModal ? window.innerWidth * 0.8 - 40 : 800;
+        const height = isModal ? window.innerHeight * 0.8 - 120 : 600;
 
         // 컬렉션과 파일별 색상 생성 함수
         const getNodeColor = (node: Node): string => {
@@ -125,14 +130,11 @@ const DocumentsGraph: React.FC<DocumentsGraphProps> = ({
             return collectionColorScheme[Math.abs(fileHash) % collectionColorScheme.length];
         };
 
-        const svg = d3.select(svgRef.current);
+        const svg = d3.select(svgElement);
         svg.selectAll("*").remove(); // 기존 요소 제거
 
         const graphData = processGraphData();
         if (graphData.nodes.length === 0) return;
-
-        const width = 800;
-        const height = 600;
 
         svg.attr("width", width).attr("height", height);
 
@@ -147,7 +149,7 @@ const DocumentsGraph: React.FC<DocumentsGraphProps> = ({
             });
 
         // 줌 인스턴스를 ref에 저장
-        zoomRef.current = zoom;
+        zoomBehavior.current = zoom;
 
         // SVG에 줌 동작 적용
         svg.call(zoom);
@@ -259,8 +261,19 @@ const DocumentsGraph: React.FC<DocumentsGraphProps> = ({
         return () => {
             simulation.stop();
         };
+    };
 
+    // 일반 그래프 렌더링
+    useEffect(() => {
+        if (viewMode !== 'graph' || !svgRef.current || loading) return;
+        return renderGraph(svgRef.current, zoomRef, false);
     }, [viewMode, documentDetailMeta, documentDetailEdges, loading]);
+
+    // 모달 그래프 렌더링
+    useEffect(() => {
+        if (!isMaximized || !modalSvgRef.current || loading) return;
+        return renderGraph(modalSvgRef.current, modalZoomRef, true);
+    }, [isMaximized, documentDetailMeta, documentDetailEdges, loading]);
 
     return (
         <div className={styles.documentGraphContainer}>
@@ -291,6 +304,13 @@ const DocumentsGraph: React.FC<DocumentsGraphProps> = ({
 
                                 {/* 줌 컨트롤 버튼 */}
                                 <div className={styles.zoomControls}>
+                                    <button
+                                        className={styles.zoomButton}
+                                        onClick={() => setIsMaximized(true)}
+                                        title="최대화"
+                                    >
+                                        ⛶
+                                    </button>
                                     <button
                                         className={styles.zoomButton}
                                         onClick={() => {
@@ -416,6 +436,79 @@ const DocumentsGraph: React.FC<DocumentsGraphProps> = ({
                         </div>
                     )}
                 </div>
+            )}
+
+            {/* 모달 렌더링 */}
+            {isMaximized && createPortal(
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modalContainer}>
+                        {/* 모달 헤더 */}
+                        <div className={styles.modalHeader}>
+                            <h3>문서 그래프</h3>
+                            <button
+                                onClick={() => setIsMaximized(false)}
+                                className={styles.modalCloseButton}
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        {/* 모달 그래프 영역 */}
+                        <div className={styles.modalContent}>
+                            <svg ref={modalSvgRef} className={styles.modalSvg}></svg>
+
+                            {/* 모달 줌 컨트롤 */}
+                            <div className={styles.zoomControls}>
+                                <button
+                                    className={styles.zoomButton}
+                                    onClick={() => {
+                                        if (modalSvgRef.current && modalZoomRef.current) {
+                                            const svg = d3.select(modalSvgRef.current);
+                                            svg.transition().duration(300).call(
+                                                modalZoomRef.current.scaleBy,
+                                                1.5
+                                            );
+                                        }
+                                    }}
+                                    title="확대"
+                                >
+                                    +
+                                </button>
+                                <button
+                                    className={styles.zoomButton}
+                                    onClick={() => {
+                                        if (modalSvgRef.current && modalZoomRef.current) {
+                                            const svg = d3.select(modalSvgRef.current);
+                                            svg.transition().duration(300).call(
+                                                modalZoomRef.current.scaleBy,
+                                                1 / 1.5
+                                            );
+                                        }
+                                    }}
+                                    title="축소"
+                                >
+                                    -
+                                </button>
+                                <button
+                                    className={styles.zoomButton}
+                                    onClick={() => {
+                                        if (modalSvgRef.current && modalZoomRef.current) {
+                                            const svg = d3.select(modalSvgRef.current);
+                                            svg.transition().duration(500).call(
+                                                modalZoomRef.current.transform,
+                                                d3.zoomIdentity
+                                            );
+                                        }
+                                    }}
+                                    title="원래 크기로 되돌리기"
+                                >
+                                    ⌂
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>,
+                document.body
             )}
         </div>
     );
