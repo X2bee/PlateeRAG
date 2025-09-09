@@ -10,6 +10,8 @@ interface DocumentsDirectoryTreeProps {
     folders: Folder[];
     documents: DocumentInCollection[];
     onFileSelect?: (document: DocumentInCollection) => void;
+    expandedNodes?: Set<string>;
+    onToggleNode?: (updater: (prev: Set<string>) => Set<string>) => void;
 }
 
 interface TreeNode {
@@ -27,10 +29,11 @@ const DocumentsDirectoryTree: React.FC<DocumentsDirectoryTreeProps> = ({
     selectedCollection,
     folders,
     documents,
-    onFileSelect
+    onFileSelect,
+    expandedNodes = new Set<string>(),
+    onToggleNode
 }) => {
     const [treeData, setTreeData] = useState<TreeNode[]>([]);
-    const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
     // 트리 데이터 구성
     useEffect(() => {
@@ -143,15 +146,17 @@ const DocumentsDirectoryTree: React.FC<DocumentsDirectoryTreeProps> = ({
     }, [selectedCollection, folders, documents, expandedNodes]);
 
     const toggleNode = (nodeId: string) => {
-        setExpandedNodes(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(nodeId)) {
-                newSet.delete(nodeId);
-            } else {
-                newSet.add(nodeId);
-            }
-            return newSet;
-        });
+        if (onToggleNode) {
+            onToggleNode(prev => {
+                const newSet = new Set(prev);
+                if (newSet.has(nodeId)) {
+                    newSet.delete(nodeId);
+                } else {
+                    newSet.add(nodeId);
+                }
+                return newSet;
+            });
+        }
     };
 
     const handleFileClick = (node: TreeNode) => {

@@ -74,6 +74,7 @@ const Documents: React.FC = () => {
     const { user } = useAuth();
     const { openModal, setOnUploadComplete } = useDocumentFileModal();
     const [viewMode, setViewMode] = useState<ViewMode>('collections');
+    const [previousViewMode, setPreviousViewMode] = useState<ViewMode>('documents');
     const [collectionFilter, setCollectionFilter] = useState<CollectionFilter>('all');
     const [collections, setCollections] = useState<Collection[]>([]);
     const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
@@ -104,6 +105,9 @@ const Documents: React.FC = () => {
     const [currentFolder, setCurrentFolder] = useState<Folder | null>(null);
     const [folderPath, setFolderPath] = useState<Folder[]>([]);
     const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
+
+    // 디렉토리 트리 펼침 상태
+    const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
     // 로딩 및 에러 상태
     const [loading, setLoading] = useState(false);
@@ -495,6 +499,8 @@ const Documents: React.FC = () => {
         setCurrentFolder(null);
         setFolderPath([]);
         setFolders([]);
+        // 디렉토리 트리 펼침 상태 초기화
+        setExpandedNodes(new Set());
         setViewMode('documents');
         await Promise.all([
             loadDocumentsInCollection(collection.collection_name),
@@ -506,6 +512,8 @@ const Documents: React.FC = () => {
     const handleSelectDocument = async (document: DocumentInCollection) => {
         if (!selectedCollection) return;
 
+        // 현재 뷰 모드를 이전 뷰 모드로 저장
+        setPreviousViewMode(viewMode);
         setSelectedDocument(document);
         setSearchQuery('');
         setSearchResults([]);
@@ -516,7 +524,8 @@ const Documents: React.FC = () => {
     // 뒤로 가기
     const handleGoBack = () => {
         if (viewMode === 'document-detail') {
-            setViewMode('documents');
+            // 이전 뷰 모드로 돌아가기 (디렉토리 트리 상태 유지)
+            setViewMode(previousViewMode);
             setSelectedDocument(null);
             setDocumentDetails(null);
             setSearchQuery('');
@@ -535,6 +544,8 @@ const Documents: React.FC = () => {
             setCurrentFolder(null);
             setFolderPath([]);
             setFolders([]);
+            // 디렉토리 트리 펼침 상태 초기화
+            setExpandedNodes(new Set());
         } else if (viewMode === 'all-documents-graph') {
             setViewMode('collections');
         }
@@ -725,16 +736,16 @@ const Documents: React.FC = () => {
                     )}
                     {viewMode === 'documents-graph' && (
                         <>
-                            <button onClick={() => setViewMode('documents')} className={`${styles.button} ${styles.secondary}`}>
+                            {/* <button onClick={() => setViewMode('documents')} className={`${styles.button} ${styles.secondary}`}>
                                 목록 보기
-                            </button>
+                            </button> */}
                         </>
                     )}
                     {viewMode === 'documents-directory' && (
                         <>
-                            <button onClick={() => setViewMode('documents')} className={`${styles.button} ${styles.secondary}`}>
+                            {/* <button onClick={() => setViewMode('documents')} className={`${styles.button} ${styles.secondary}`}>
                                 목록 보기
-                            </button>
+                            </button> */}
                         </>
                     )}
                 </div>
@@ -1159,6 +1170,8 @@ const Documents: React.FC = () => {
                     folders={folders}
                     documents={documentsInCollection}
                     onFileSelect={handleSelectDocument}
+                    expandedNodes={expandedNodes}
+                    onToggleNode={setExpandedNodes}
                 />
             )}
 
