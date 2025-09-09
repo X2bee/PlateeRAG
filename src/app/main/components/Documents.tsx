@@ -13,6 +13,7 @@ import {
 } from 'react-icons/fi';
 import styles from '@/app/main/assets/Documents.module.scss';
 import DocumentsGraph from '@/app/main/components/documents/DocumentsGraph';
+import DocumentsDirectoryTree from '@/app/main/components/documents/DocumentsDirectoryTree';
 import CollectionEditModal from '@/app/main/components/documents/CollectionEditModal';
 import DocumentCollectionModal from '@/app/main/components/documents/DocumentCollectionModal';
 import DocumentDirectoryModal from '@/app/main/components/documents/DocumentDirectoryModal';
@@ -524,6 +525,8 @@ const Documents: React.FC = () => {
             setViewMode('documents');
             setDocumentDetailMeta(null);
             setDocumentDetailEdges(null);
+        } else if (viewMode === 'documents-directory') {
+            setViewMode('documents');
         } else if (viewMode === 'documents') {
             setViewMode('collections');
             setSelectedCollection(null);
@@ -647,6 +650,10 @@ const Documents: React.FC = () => {
         ]);
     };
 
+    const handleSwitchToDirectoryView = () => {
+        setViewMode('documents-directory');
+    };
+
     return (
         <div className={styles.container}>
             {/* 헤더 */}
@@ -662,6 +669,7 @@ const Documents: React.FC = () => {
                         {viewMode === 'collections' && '컬렉션 관리'}
                         {viewMode === 'documents' && `${selectedCollection?.collection_make_name} - 문서 목록`}
                         {viewMode === 'documents-graph' && `${selectedCollection?.collection_make_name} - 문서 그래프`}
+                        {viewMode === 'documents-directory' && `${selectedCollection?.collection_make_name} - 디렉토리 구조`}
                         {viewMode === 'document-detail' && `${selectedDocument?.file_name} - 문서 상세`}
                     </h2>
                 </div>
@@ -701,6 +709,9 @@ const Documents: React.FC = () => {
                             <button onClick={handleSwitchToGraphView} className={`${styles.button} ${styles.secondary}`}>
                                 그래프 보기
                             </button>
+                            <button onClick={handleSwitchToDirectoryView} className={`${styles.button} ${styles.secondary}`}>
+                                디렉토리 보기
+                            </button>
                             <button onClick={() => setShowCreateFolderModal(true)} className={`${styles.button} ${styles.secondary}`}>
                                 <FiPlus /> 폴더 생성
                             </button>
@@ -717,14 +728,12 @@ const Documents: React.FC = () => {
                             <button onClick={() => setViewMode('documents')} className={`${styles.button} ${styles.secondary}`}>
                                 목록 보기
                             </button>
-                            <button onClick={() => setShowCreateFolderModal(true)} className={`${styles.button} ${styles.secondary}`}>
-                                <FiPlus /> 폴더 생성
-                            </button>
-                            <button onClick={handleSingleFileUpload} className={`${styles.button} ${styles.primary}`}>
-                                단일 문서 업로드
-                            </button>
-                            <button onClick={handleFolderUpload} className={`${styles.button} ${styles.primary}`}>
-                                폴더 업로드
+                        </>
+                    )}
+                    {viewMode === 'documents-directory' && (
+                        <>
+                            <button onClick={() => setViewMode('documents')} className={`${styles.button} ${styles.secondary}`}>
+                                목록 보기
                             </button>
                         </>
                     )}
@@ -1139,6 +1148,17 @@ const Documents: React.FC = () => {
                     loading={loading}
                     documentDetailMeta={documentDetailMeta}
                     documentDetailEdges={documentDetailEdges}
+                />
+            )}
+
+            {/* 디렉토리 구조 보기 */}
+            {viewMode === 'documents-directory' && (
+                <DocumentsDirectoryTree
+                    loading={loading}
+                    selectedCollection={selectedCollection}
+                    folders={folders}
+                    documents={documentsInCollection}
+                    onFileSelect={handleSelectDocument}
                 />
             )}
 
