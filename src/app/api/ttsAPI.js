@@ -170,7 +170,7 @@ export const getAvailableTTSProviders = async () => {
  */
 export const refreshTTS = async () => {
     try {
-        const response = await fetch(
+        const response = await apiClient(
             `${API_BASE_URL}/api/tts/refresh`,
             {
                 method: 'POST',

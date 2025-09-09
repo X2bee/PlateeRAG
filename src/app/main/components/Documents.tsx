@@ -9,6 +9,7 @@ import {
     FiBarChart,
     FiUsers,
     FiRefreshCw,
+    FiPlus,
 } from 'react-icons/fi';
 import styles from '@/app/main/assets/Documents.module.scss';
 import DocumentsGraph from '@/app/main/components/documents/DocumentsGraph';
@@ -31,6 +32,7 @@ import {
     remakeCollection,
 } from '@/app/api/rag/retrievalAPI';
 import { getEmbeddingConfigStatus } from '@/app/api/rag/embeddingAPI';
+import { createFolder } from '@/app/api/rag/folderAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useDocumentFileModal } from '@/app/_common/contexts/DocumentFileModalContext';
 import {
@@ -48,6 +50,7 @@ import {
     SearchResponse,
     ViewMode,
     CollectionFilter,
+    Folder,
 } from '@/app/main/types/index';
 
 interface EmbeddingConfig {
@@ -61,6 +64,8 @@ interface EmbeddingConfig {
         available: boolean;
     };
 }
+
+
 
 const Documents: React.FC = () => {
     const { user } = useAuth();
@@ -90,6 +95,13 @@ const Documents: React.FC = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [collectionToEdit, setCollectionToEdit] = useState<Collection | null>(null);
+
+    // 폴더 관련 상태
+    const [folders, setFolders] = useState<Folder[]>([]);
+    const [currentFolder, setCurrentFolder] = useState<Folder | null>(null);
+    const [folderPath, setFolderPath] = useState<Folder[]>([]);
+    const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
+    const [newFolderName, setNewFolderName] = useState('');
 
     // 로딩 및 에러 상태
     const [loading, setLoading] = useState(false);
@@ -161,10 +173,18 @@ const Documents: React.FC = () => {
             setError(null);
             const response = await listDocumentsInCollection(collectionName) as DocumentsInCollectionResponse;
             setDocumentsInCollection(response.documents || []);
+
+            // directory_info에서 폴더 정보 추출
+            if (response.directory_info) {
+                setFolders(response.directory_info);
+            } else {
+                setFolders([]);
+            }
         } catch (err) {
             setError('문서 목록을 불러오는데 실패했습니다.');
             console.error('Failed to load documents in collection:', err);
             setDocumentsInCollection([]);
+            setFolders([]);
         } finally {
             setLoading(false);
         }
@@ -289,7 +309,110 @@ const Documents: React.FC = () => {
         setCollectionToEdit(null);
     };
 
-    // 컬렉션 리메이크
+    // 폴더 생성 함수
+    const handleCreateFolder = async () => {
+        if (!selectedCollection || !newFolderName.trim()) return;
+
+        try {
+            setLoading(true);
+            setError(null);
+
+            await createFolder(
+                newFolderName.trim(),
+                selectedCollection.id,
+                currentFolder?.id || null,
+                currentFolder?.folder_name || null
+            );
+
+            setNewFolderName('');
+            setShowCreateFolderModal(false);
+
+            // 폴더 목록 새로고침
+            if (selectedCollection) {
+                await loadDocumentsInCollection(selectedCollection.collection_name);
+            }
+
+        } catch (error) {
+            console.error('Failed to create folder:', error);
+            setError('폴더 생성에 실패했습니다.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 폴더로 이동
+    const handleNavigateToFolder = (folder: Folder) => {
+        setCurrentFolder(folder);
+        // 현재 폴더까지의 경로 업데이트
+        // full_path를 파싱하여 정확한 경로 생성
+        if (selectedCollection) {
+            const pathParts = folder.full_path
+                .replace(`/${selectedCollection.collection_make_name}`, '')
+                .split('/')
+                .filter(part => part.length > 0);
+
+            // 전체 경로에서 폴더들을 찾아서 folderPath 구성
+            const newPath: Folder[] = [];
+            let currentPath = `/${selectedCollection.collection_make_name}`;
+
+            for (const part of pathParts) {
+                currentPath += `/${part}`;
+                const pathFolder = folders.find(f => f.full_path === currentPath);
+                if (pathFolder) {
+                    newPath.push(pathFolder);
+                }
+            }
+
+            setFolderPath(newPath);
+        }
+    };
+
+    // 상위 폴더로 이동
+    const handleNavigateUp = () => {
+        if (folderPath.length === 0) {
+            // 컬렉션 루트로 이동
+            setCurrentFolder(null);
+            setFolderPath([]);
+        } else {
+            // 이전 폴더로 이동
+            const newPath = folderPath.slice(0, -1);
+            setFolderPath(newPath);
+            setCurrentFolder(newPath.length > 0 ? newPath[newPath.length - 1] : null);
+        }
+    };
+
+    // 현재 폴더에 속한 하위 폴더들을 필터링
+    const getCurrentFolders = () => {
+        if (!selectedCollection) return [];
+
+        return folders.filter(folder => {
+            if (currentFolder) {
+                // 현재 폴더의 직계 자식 폴더들만 표시
+                return folder.parent_folder_id === currentFolder.id;
+            } else {
+                // 루트 폴더들만 표시 (is_root가 true인 것들)
+                return folder.is_root === true;
+            }
+        });
+    };
+
+    // 현재 폴더에 속한 문서들을 필터링
+    const getCurrentDocuments = () => {
+        if (!selectedCollection) return [];
+
+        return documentsInCollection.filter(doc => {
+            if (currentFolder) {
+                // 현재 폴더의 full_path와 문서의 directory_full_path 비교
+                const currentFolderFullPath = currentFolder.full_path;
+                const docDirectoryFullPath = doc.metadata?.directory_full_path || '';
+                return docDirectoryFullPath === currentFolderFullPath;
+            } else {
+                // 루트에 있는 문서들만 표시 (directory_full_path가 없거나 빈 문자열)
+                const docDirectoryFullPath = doc.metadata?.directory_full_path || '';
+                return docDirectoryFullPath === '' || !doc.metadata?.directory_full_path;
+            }
+        });
+    };    // 컬렉션 리메이크
     const handleRemakeCollection = async () => {
         if (!selectedCollection) return;
 
@@ -390,6 +513,10 @@ const Documents: React.FC = () => {
         setDocumentDetails(null);
         setSearchQuery('');
         setSearchResults([]);
+        // 폴더 상태 초기화
+        setCurrentFolder(null);
+        setFolderPath([]);
+        setFolders([]);
         setViewMode('documents');
         await Promise.all([
             loadDocumentsInCollection(collection.collection_name),
@@ -424,6 +551,10 @@ const Documents: React.FC = () => {
             setViewMode('collections');
             setSelectedCollection(null);
             setDocumentsInCollection([]);
+            // 폴더 상태 초기화
+            setCurrentFolder(null);
+            setFolderPath([]);
+            setFolders([]);
         } else if (viewMode === 'all-documents-graph') {
             setViewMode('collections');
         }
@@ -432,13 +563,13 @@ const Documents: React.FC = () => {
     // 파일 업로드 처리 (전역 모달 사용)
     const handleSingleFileUpload = () => {
         if (selectedCollection) {
-            openModal(selectedCollection, false);
+            openModal(selectedCollection, false, currentFolder);
         }
     };
 
     const handleFolderUpload = () => {
         if (selectedCollection) {
-            openModal(selectedCollection, true);
+            openModal(selectedCollection, true, currentFolder);
         }
     };
 
@@ -593,6 +724,9 @@ const Documents: React.FC = () => {
                             <button onClick={handleSwitchToGraphView} className={`${styles.button} ${styles.secondary}`}>
                                 그래프 보기
                             </button>
+                            <button onClick={() => setShowCreateFolderModal(true)} className={`${styles.button} ${styles.secondary}`}>
+                                <FiPlus /> 폴더 생성
+                            </button>
                             <button onClick={handleSingleFileUpload} className={`${styles.button} ${styles.primary}`}>
                                 단일 문서 업로드
                             </button>
@@ -605,6 +739,9 @@ const Documents: React.FC = () => {
                         <>
                             <button onClick={() => setViewMode('documents')} className={`${styles.button} ${styles.secondary}`}>
                                 목록 보기
+                            </button>
+                            <button onClick={() => setShowCreateFolderModal(true)} className={`${styles.button} ${styles.secondary}`}>
+                                <FiPlus /> 폴더 생성
                             </button>
                             <button onClick={handleSingleFileUpload} className={`${styles.button} ${styles.primary}`}>
                                 단일 문서 업로드
@@ -784,14 +921,85 @@ const Documents: React.FC = () => {
             {/* 문서 목록 보기 */}
             {viewMode === 'documents' && (
                 <div className={styles.documentViewContainer}>
+                    {/* 폴더 경로 (Breadcrumb) */}
+                    <div className={styles.breadcrumbContainer}>
+                        <div className={styles.breadcrumb}>
+                            <button
+                                onClick={() => {
+                                    setCurrentFolder(null);
+                                    setFolderPath([]);
+                                }}
+                                className={`${styles.breadcrumbItem} ${!currentFolder ? styles.active : ''}`}
+                            >
+                                <FiFolder /> {selectedCollection?.collection_make_name}
+                            </button>
+                            {folderPath.map((folder, index) => (
+                                <React.Fragment key={folder.id}>
+                                    <span className={styles.breadcrumbSeparator}>/</span>
+                                    <button
+                                        onClick={() => {
+                                            const newPath = folderPath.slice(0, index + 1);
+                                            setFolderPath(newPath);
+                                            setCurrentFolder(folder);
+                                        }}
+                                        className={`${styles.breadcrumbItem} ${index === folderPath.length - 1 ? styles.active : ''}`}
+                                    >
+                                        <FiFolder /> {folder.folder_name}
+                                    </button>
+                                </React.Fragment>
+                            ))}
+                        </div>
+                        {currentFolder && (
+                            <button onClick={handleNavigateUp} className={`${styles.button} ${styles.secondary} ${styles.small}`}>
+                                ← 상위 폴더
+                            </button>
+                        )}
+                    </div>
+
                     <div className={styles.documentListContainer}>
                         {loading ? (
                             <div className={styles.loading}>로딩 중...</div>
-                        ) : documentsInCollection.length === 0 ? (
-                            <div className={styles.emptyState}>이 컬렉션에는 문서가 없습니다.</div>
+                        ) : getCurrentDocuments().length === 0 && getCurrentFolders().length === 0 ? (
+                            <div className={styles.emptyState}>
+                                {currentFolder ? '이 폴더에는 문서가 없습니다.' : '이 컬렉션에는 문서가 없습니다.'}
+                            </div>
                         ) : (
                             <div className={styles.documentGrid}>
-                                {documentsInCollection.map((doc) => (
+                                {/* 현재 폴더의 하위 폴더들 먼저 표시 */}
+                                {getCurrentFolders().map((folder) => (
+                                    <div
+                                        key={`folder-${folder.id}`}
+                                        className={styles.documentCard}
+                                        onClick={() => handleNavigateToFolder(folder)}
+                                        style={{ cursor: 'pointer' }}
+                                    >
+                                        <div className={styles.cardHeader}>
+                                            <div className={styles.collectionIcon}>
+                                                <FiFolder />
+                                            </div>
+                                            <div className={`${styles.status} ${styles.statusFolder}`}>
+                                                폴더
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.cardContent}>
+                                            <h3 className={styles.collectionName}>{folder.folder_name}</h3>
+                                            <div className={styles.collectionMeta}>
+                                                <div className={styles.metaItem}>
+                                                    <FiFolder />
+                                                    <span>경로: {folder.full_path}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.cardActions}>
+                                            {/* TODO: 폴더 삭제, 이름 변경 등 추가 기능 */}
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* 현재 폴더의 문서들 표시 */}
+                                {getCurrentDocuments().map((doc) => (
                                     <div
                                         key={doc.document_id}
                                         className={styles.documentCard}
@@ -963,6 +1171,71 @@ const Documents: React.FC = () => {
                 />
             )}
 
+            {/* 폴더 생성 모달 */}
+            {showCreateFolderModal && (
+                <div className={styles.modalOverlay} onClick={() => setShowCreateFolderModal(false)}>
+                    <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+                        <div className={styles.modalHeader}>
+                            <h3>새 폴더 생성</h3>
+                            <button
+                                onClick={() => setShowCreateFolderModal(false)}
+                                className={styles.modalCloseButton}
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <div className={styles.modalContent}>
+                            <div className={styles.modalField}>
+                                <label>폴더 이름</label>
+                                <input
+                                    type="text"
+                                    value={newFolderName}
+                                    onChange={(e) => setNewFolderName(e.target.value)}
+                                    placeholder="폴더 이름을 입력하세요"
+                                    className={styles.modalInput}
+                                    onKeyPress={(e) => {
+                                        if (e.key === 'Enter' && newFolderName.trim()) {
+                                            handleCreateFolder();
+                                        }
+                                    }}
+                                />
+                            </div>
+
+                            {currentFolder && (
+                                <div className={styles.modalField}>
+                                    <label>생성 위치</label>
+                                    <div className={styles.modalInfo}>
+                                        {folderPath.map((folder, index) => (
+                                            <span key={folder.id}>
+                                                {index > 0 && ' / '}
+                                                {folder.folder_name}
+                                            </span>
+                                        ))}
+                                        {folderPath.length === 0 && selectedCollection?.collection_make_name}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className={styles.modalActions}>
+                            <button
+                                onClick={() => setShowCreateFolderModal(false)}
+                                className={`${styles.button} ${styles.secondary}`}
+                            >
+                                취소
+                            </button>
+                            <button
+                                onClick={handleCreateFolder}
+                                disabled={!newFolderName.trim() || loading}
+                                className={`${styles.button} ${styles.primary}`}
+                            >
+                                {loading ? '생성 중...' : '생성'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div>
     );
