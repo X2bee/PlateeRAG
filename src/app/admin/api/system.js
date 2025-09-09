@@ -235,9 +235,15 @@ export const streamSystemStatus = async (onData, onError) => {
 
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
+                            let jsonData;
                             try {
-                                const jsonData = line.slice(6); // "data: " 제거
+                                jsonData = line.slice(6); // "data: " 제거
                                 if (jsonData.trim() === '') continue;
+
+                                // JSON 유효성 검사
+                                if (!jsonData.trim().startsWith('{') || !jsonData.trim().endsWith('}')) {
+                                    continue;
+                                }
 
                                 const data = JSON.parse(jsonData);
                                 devLog.log('Parsed stream data:', data);
@@ -250,6 +256,9 @@ export const streamSystemStatus = async (onData, onError) => {
                                 }
                             } catch (parseError) {
                                 devLog.error('Failed to parse stream data:', parseError);
+                                devLog.error('Raw line data:', line);
+                                devLog.error('JSON data:', jsonData);
+                                // JSON 파싱 에러는 일반적으로 스트림에서 발생할 수 있으므로 계속 진행
                             }
                         }
                     }

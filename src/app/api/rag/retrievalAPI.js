@@ -764,48 +764,6 @@ export const getCurrentEmbeddingDimension = async (provider, model) => {
     }
 };
 
-
-
-
-// /**
-//  * 현재 설정된 임베딩 제공자와 모델에 따른 벡터 차원을 조회하는 함수
-//  * @returns {Promise<Object>} 벡터 차원 정보
-//  */
-// export const getCurrentEmbeddingDimension = async () => {
-//     try {
-//         const status = await getEmbeddingStatus();
-
-//         if (status && status.provider_info) {
-//             const provider = status.provider_info.provider || 'openai';
-//             const model = status.provider_info.model || 'text-embedding-3-small';
-//             const dimension = getEmbeddingDimension(provider, model);
-
-//             return {
-//                 provider,
-//                 model,
-//                 dimension,
-//                 auto_detected: true
-//             };
-//         }
-
-//         return {
-//             provider: 'openai',
-//             model: 'text-embedding-3-small',
-//             dimension: 1536,
-//             auto_detected: false
-//         };
-//     } catch (error) {
-//         devLog.error('Failed to get current embedding dimension:', error);
-//         return {
-//             provider: 'openai',
-//             model: 'text-embedding-3-small',
-//             dimension: 1536,
-//             auto_detected: false,
-//             error: error.message
-//         };
-//     }
-// };
-
 /**
  * Retrieval 설정을 새로고침하는 함수
  * @returns {Promise<Object>} 새로고침 결과

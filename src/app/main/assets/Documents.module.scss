@@ -420,6 +420,67 @@
     }
 }
 
+// Breadcrumb Container
+.breadcrumbContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 0.5rem;
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+
+        .breadcrumbItem {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            background: transparent;
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: $gray-600;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+
+            &:hover {
+                background: $gray-100;
+                color: $gray-900;
+            }
+
+            &.active {
+                background: rgba($primary-blue, 0.1);
+                color: $primary-blue;
+                font-weight: 600;
+            }
+
+            svg {
+                width: 1rem;
+                height: 1rem;
+            }
+        }
+
+        .breadcrumbSeparator {
+            color: $gray-400;
+            font-weight: 500;
+            margin: 0 0.25rem;
+        }
+    }
+
+    .small {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+}
+
 // Document List Container
 .documentListContainer {
     .documentListTitle {
@@ -491,6 +552,11 @@
             &.statusPersonal {
                 background: rgba($gray-500, 0.1);
                 color: $gray-500;
+            }
+
+            &.statusFolder {
+                background: rgba($primary-yellow, 0.1);
+                color: $primary-yellow;
             }
         }
     }
@@ -761,6 +827,117 @@
     }
 }
 
+// Modal Styles
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modal {
+    background: $white;
+    border-radius: 0.75rem;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+
+    .modalHeader {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem 1.5rem 0 1.5rem;
+        border-bottom: 1px solid $gray-200;
+        margin-bottom: 1.5rem;
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: $gray-900;
+            margin: 0;
+        }
+
+        .modalCloseButton {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: $gray-500;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s ease-in-out;
+
+            &:hover {
+                background: $gray-100;
+                color: $gray-700;
+            }
+        }
+    }
+
+    .modalContent {
+        padding: 0 1.5rem;
+
+        .modalField {
+            margin-bottom: 1.5rem;
+
+            label {
+                display: block;
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: $gray-700;
+                margin-bottom: 0.5rem;
+            }
+
+            .modalInput {
+                width: 100%;
+                padding: 0.75rem 1rem;
+                border: 1px solid $gray-300;
+                border-radius: 0.5rem;
+                font-size: 1rem;
+                transition: border-color 0.2s ease-in-out;
+
+                &:focus {
+                    outline: none;
+                    border-color: $primary-blue;
+                    box-shadow: 0 0 0 3px rgba($primary-blue, 0.1);
+                }
+
+                &::placeholder {
+                    color: $gray-400;
+                }
+            }
+
+            .modalInfo {
+                padding: 0.75rem 1rem;
+                background: $gray-50;
+                border: 1px solid $gray-200;
+                border-radius: 0.5rem;
+                font-size: 0.875rem;
+                color: $gray-600;
+                font-family: monospace;
+            }
+        }
+    }
+
+    .modalActions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding: 1.5rem;
+        border-top: 1px solid $gray-200;
+        margin-top: 1.5rem;
+    }
+}
+
 // Responsive Design
 @media (max-width: 768px) {
     .header {
@@ -810,6 +987,21 @@
     .collectionGrid,
     .documentGrid {
         grid-template-columns: 1fr;
+    }
+
+    .breadcrumbContainer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+
+        .breadcrumb {
+            flex-wrap: wrap;
+
+            .breadcrumbItem {
+                padding: 0.375rem 0.5rem;
+                font-size: 0.8rem;
+            }
+        }
     }
 
     .documentDetailContainer {

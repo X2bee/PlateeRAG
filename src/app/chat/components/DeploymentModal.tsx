@@ -153,6 +153,10 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
                     setToggleDeploy(false);
                     return;
                 }
+                if (!isOpen) {
+                    setToggleDeploy(false);
+                    return;
+                }
 
                 try {
                     const deployed = await getDeployStatus(workflow.name, user_id);

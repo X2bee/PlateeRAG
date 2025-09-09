@@ -29,6 +29,7 @@ const GlobalDocumentFileModal: React.FC = () => {
     const {
         isOpen,
         selectedCollection,
+        currentFolder,
         isFolderUpload,
         closeModal,
         onUploadComplete
@@ -199,6 +200,7 @@ const GlobalDocumentFileModal: React.FC = () => {
                         const metadata = {
                             upload_type: 'folder',
                             folder_path: folderPath,
+                            directory_full_path: currentFolder?.full_path || `/${selectedCollection.collection_make_name}`,
                             relative_path: relativePath,
                             original_name: file.name,
                             current_index: index + 1,
@@ -252,7 +254,11 @@ const GlobalDocumentFileModal: React.FC = () => {
                         selectedCollection.collection_name,
                         chunkSize,
                         overlapSize,
-                        { upload_type: 'single', process_type: processType },
+                        {
+                            upload_type: 'single',
+                            directory_full_path: currentFolder?.full_path || `/${selectedCollection.collection_make_name}`,
+                            process_type: processType
+                        },
                         processType
                     );
 
@@ -351,6 +357,7 @@ const GlobalDocumentFileModal: React.FC = () => {
                     <h3>{isFolderUpload ? '폴더 업로드 설정' : '단일 파일 업로드 설정'}</h3>
                     <div className={styles.collectionInfo}>
                         <span>컬렉션: {selectedCollection?.collection_make_name}</span>
+                        <span>폴더 경로: {currentFolder?.full_path || `/${selectedCollection?.collection_make_name}`}</span>
                     </div>
                 </div>
 

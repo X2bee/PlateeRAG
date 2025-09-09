@@ -21,6 +21,16 @@ import { useScrollManagement } from '../hooks/useScrollManagement';
 import { useChatState } from '../hooks/useChatState';
 import { speakText, extractPlainText, sanitizeTextForTTS } from '@/app/_common/utils/ttsUtils';
 import { showCopySuccessToastKo, showSuccessToastKo, showWarningToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
+import { getTTSSimpleStatus } from '@/app/api/ttsAPI';
+import { defaultConfig } from 'next/dist/server/config-shared';
+
+interface TTSSimpleStatusResponse {
+    available: boolean;
+    provider: string | null;
+    model: string | null;
+    api_key_configured?: boolean;
+    error?: string;
+}
 
 interface NewChatInterfaceProps extends ChatInterfaceProps {
     onStartNewChat?: (message: string) => void;
@@ -54,6 +64,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
     const [selectedMessage, setSelectedMessage] = useState<{content: string, id?: string} | null>(null);
     const [dropdownPosition, setDropdownPosition] = useState<{top: number, right: number}>({top: 0, right: 0});
     const [isReading, setIsReading] = useState(false);
+    const [ttsAvailable, setTtsAvailable] = useState(true); // TTS 사용 가능 여부
 
     // 통합 상태 관리
     const { state, actions } = useChatState();
@@ -475,7 +486,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
     useEffect(() => {
         if (workflow && workflow.id && workflow.id !== "default_mode") {
             const loadWorkflowContent = async () => {
-                if (user_id) {
+                if (mode === 'deploy' && user_id) {
                     try {
                         const workflowData = await loadWorkflowDeploy(workflow.name, user_id);
                         actions.setWorkflowDetail(workflowData);
@@ -501,6 +512,21 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
             actions.setLoading(false);
         }
     }, [workflow, user_id]);
+
+    // TTS 상태 확인
+    useEffect(() => {
+        const checkTtsStatus = async () => {
+            try {
+                const data = await getTTSSimpleStatus() as TTSSimpleStatusResponse;
+                setTtsAvailable(data.available);
+            } catch (error) {
+                // 네트워크 에러 시 비활성화
+                setTtsAvailable(false);
+            }
+        };
+
+        checkTtsStatus();
+    }, []);
 
     useEffect(() => {
         if (mode === 'existing' && existingChatData?.interactionId && !initialMessageToExecute && !hasLoadedExistingChat.current) {
@@ -566,6 +592,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
                 isReading={isReading}
                 onDebug={handleRatingButtonClick}
                 onRating={handleRatingClick}
+                ttsAvailable={ttsAvailable}
             />
         </div>
     );

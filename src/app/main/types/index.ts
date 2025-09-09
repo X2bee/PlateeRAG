@@ -62,7 +62,19 @@ export interface DocumentInCollection {
     processed_at: string;
     total_chunks: number;
     actual_chunks?: number;
-    metadata?: any;
+    metadata?: {
+        folder_path?: string;
+        directory_full_path?: string;
+        relative_path?: string;
+        original_file_name?: string;
+        upload_type?: string;
+        process_type?: string;
+        upload_timestamp?: string;
+        file_size?: number;
+        user_id?: number;
+        collection_name?: string;
+        [key: string]: any;
+    };
     chunks: ChunkInfo[];
 }
 
@@ -85,6 +97,23 @@ export interface DocumentsInCollectionResponse {
     total_documents: number;
     total_chunks: number;
     documents: DocumentInCollection[];
+    directory_info?: Folder[];
+}
+
+export interface Folder {
+    id: number;
+    created_at: string;
+    updated_at: string;
+    user_id: number;
+    collection_make_name: string;
+    collection_name: string;
+    folder_name: string;
+    parent_folder_name: string | null;
+    parent_folder_id: number | null;
+    is_root: boolean;
+    full_path: string;
+    order_index: number;
+    collection_id: number;
 }
 
 export interface SearchResponse {

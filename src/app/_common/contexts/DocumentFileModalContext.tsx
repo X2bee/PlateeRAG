@@ -18,11 +18,28 @@ interface Collection {
     init_embedding_model?: string | null;
 }
 
+interface Folder {
+    id: number;
+    created_at: string;
+    updated_at: string;
+    user_id: number;
+    collection_make_name: string;
+    collection_name: string;
+    folder_name: string;
+    parent_folder_name: string | null;
+    parent_folder_id: number | null;
+    is_root: boolean;
+    full_path: string;
+    order_index: number;
+    collection_id: number;
+}
+
 interface DocumentFileModalContextType {
     isOpen: boolean;
     selectedCollection: Collection | null;
+    currentFolder: Folder | null;
     isFolderUpload: boolean;
-    openModal: (collection: Collection, isFolderUpload: boolean) => void;
+    openModal: (collection: Collection, isFolderUpload: boolean, currentFolder?: Folder | null) => void;
     closeModal: () => void;
     onUploadComplete?: () => void;
     setOnUploadComplete: (callback: () => void) => void;
@@ -33,11 +50,13 @@ const DocumentFileModalContext = createContext<DocumentFileModalContextType | un
 export const DocumentFileModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
+    const [currentFolder, setCurrentFolder] = useState<Folder | null>(null);
     const [isFolderUpload, setIsFolderUpload] = useState(false);
     const [onUploadComplete, setOnUploadComplete] = useState<(() => void) | undefined>(undefined);
 
-    const openModal = useCallback((collection: Collection, isFolderUpload: boolean) => {
+    const openModal = useCallback((collection: Collection, isFolderUpload: boolean, currentFolder?: Folder | null) => {
         setSelectedCollection(collection);
+        setCurrentFolder(currentFolder || null);
         setIsFolderUpload(isFolderUpload);
         setIsOpen(true);
     }, []);
@@ -45,6 +64,7 @@ export const DocumentFileModalProvider: React.FC<{ children: ReactNode }> = ({ c
     const closeModal = useCallback(() => {
         setIsOpen(false);
         setSelectedCollection(null);
+        setCurrentFolder(null);
         setIsFolderUpload(false);
         setOnUploadComplete(undefined);
     }, []);
@@ -58,6 +78,7 @@ export const DocumentFileModalProvider: React.FC<{ children: ReactNode }> = ({ c
             value={{
                 isOpen,
                 selectedCollection,
+                currentFolder,
                 isFolderUpload,
                 openModal,
                 closeModal,

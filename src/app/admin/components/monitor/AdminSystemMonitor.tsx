@@ -499,14 +499,14 @@ const AdminSystemMonitor: React.FC = () => {
                             GPU 상세 정보
                         </h3>
                         <div className={styles.table}>
-                            <div className={styles.tableHeader}>
+                            <div className={styles.gpuTableHeader}>
                                 <span>GPU</span>
                                 <span>사용률</span>
-                                <span>메모리 사용률</span>
+                                <span>VRAM</span>
                                 <span>온도</span>
                             </div>
                             {systemData.gpu.map((gpu, index) => (
-                                <div key={index} className={styles.tableRow}>
+                                <div key={index} className={styles.gpuTableRow}>
                                     <span className={styles.gpuName}>{gpu.name}</span>
                                     <span>{gpu.utilization.toFixed(1)}%</span>
                                     <span>{gpu.memory_percent.toFixed(1)}%</span>

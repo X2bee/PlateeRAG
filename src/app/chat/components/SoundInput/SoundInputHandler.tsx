@@ -7,13 +7,15 @@ import { transcribeAudio } from '@/app/api/sttAPI';
 interface SoundInputHandlerProps {
     onTranscriptionReady?: (transcription: string) => void;
     className?: string;
+    disabled?: boolean;
 }
 
 type RecordingState = "idle" | "recording" | "processing";
 
 const SoundInputHandler: React.FC<SoundInputHandlerProps> = ({
     onTranscriptionReady,
-    className = ''
+    className = '',
+    disabled = false
 }) => {
     const [state, setState] = useState<RecordingState>("idle");
     const [audioLevel, setAudioLevel] = useState<number>(0);
@@ -346,6 +348,8 @@ const SoundInputHandler: React.FC<SoundInputHandlerProps> = ({
     }, []);
 
     const handleClick = () => {
+        if (disabled) return;
+
         if (state === "idle") {
             startRecording();
         } else if (state === "recording") {
@@ -356,28 +360,28 @@ const SoundInputHandler: React.FC<SoundInputHandlerProps> = ({
     return (
         <button
             onClick={handleClick}
-            disabled={state === "processing"}
+            disabled={state === "processing" || disabled}
             className={className}
             style={{
                 position: 'relative',
-                background: state === "recording" ? '#ef4444' : '#f3f4f6',
-                color: state === "recording" ? 'white' : '#6b7280',
+                background: disabled ? '#f9fafb' : (state === "recording" ? '#ef4444' : '#f3f4f6'),
+                color: disabled ? '#d1d5db' : (state === "recording" ? 'white' : '#6b7280'),
                 border: '2px solid',
-                borderColor: state === "recording" ? '#ef4444' : '#e5e7eb',
+                borderColor: disabled ? '#e5e7eb' : (state === "recording" ? '#ef4444' : '#e5e7eb'),
                 borderRadius: '1rem',
                 padding: '0.75rem',
-                cursor: state === "processing" ? 'not-allowed' : 'pointer',
+                cursor: (state === "processing" || disabled) ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s ease',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 width: '48px',
                 height: '48px',
-                opacity: state === "processing" ? 0.6 : 1,
-                transform: state === "processing" ? 'none' : undefined
+                opacity: (state === "processing" || disabled) ? 0.6 : 1,
+                transform: (state === "processing" || disabled) ? 'none' : undefined
             }}
             onMouseEnter={(e) => {
-                if (state !== "processing" && state !== "recording") {
+                if (!disabled && state !== "processing" && state !== "recording") {
                     e.currentTarget.style.background = '#e5e7eb';
                     e.currentTarget.style.color = '#374151';
                     e.currentTarget.style.transform = 'translateY(-1px)';
@@ -385,7 +389,7 @@ const SoundInputHandler: React.FC<SoundInputHandlerProps> = ({
                 }
             }}
             onMouseLeave={(e) => {
-                if (state !== "processing" && state !== "recording") {
+                if (!disabled && state !== "processing" && state !== "recording") {
                     e.currentTarget.style.background = '#f3f4f6';
                     e.currentTarget.style.color = '#6b7280';
                     e.currentTarget.style.transform = 'translateY(0)';
@@ -393,7 +397,7 @@ const SoundInputHandler: React.FC<SoundInputHandlerProps> = ({
                 }
             }}
             onMouseDown={(e) => {
-                if (state !== "processing") {
+                if (!disabled && state !== "processing") {
                     e.currentTarget.style.transform = 'translateY(0)';
                 }
             }}
