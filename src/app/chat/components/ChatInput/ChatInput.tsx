@@ -12,6 +12,7 @@ import { useInputHandling } from '../../hooks/useInputHandling';
 import SoundInput from '../SoundInput/SoundInputModal';
 import SoundInputHandler from '../SoundInput/SoundInputHandler';
 import { getSTTSimpleStatus } from '@/app/api/sttAPI';
+import { devLog } from '@/app/_common/utils/logger';
 
 interface STTSimpleStatusResponse {
     available: boolean;
@@ -96,13 +97,20 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
         checkSttStatus();
     }, []);
 
-    // Workflow 정보 가져오기
     useEffect(() => {
         const loadWorkflowData = () => {
             try {
                 const workflowContentDetail = localStorage.getItem('workflowContentDetail');
                 if (workflowContentDetail) {
                     const parsedWorkflowData = JSON.parse(workflowContentDetail);
+                    devLog.log('Parsed workflow data:', parsedWorkflowData);
+
+                    if (parsedWorkflowData.interaction_id === 'default') {
+                        devLog.log('Default mode detected, enabling STT');
+                        setUseStt(true);
+                        return;
+                    }
+
                     const inputStringNode = parsedWorkflowData.nodes?.find((node: any) =>
                         node.data?.id === 'input_string'
                     );
@@ -197,7 +205,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
                     {/* 음성 입력 핸들러 버튼 */}
                     <SoundInputHandler
                         onTranscriptionReady={handleHandlerTranscriptionReady}
-                        disabled={!(sttAvailable && useStt)}
+                        disabled={mode === 'new-default' ? !sttAvailable : !(sttAvailable && useStt)}
                     />
 
                     <div className={styles.attachmentWrapper} ref={attachmentButtonRef}>
@@ -232,12 +240,12 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
                                     <span>사진</span>
                                 </button>
                                 <button
-                                    className={`${styles.attachmentOption} ${!(sttAvailable && useStt) ? styles.disabled : ''}`}
+                                    className={`${styles.attachmentOption} ${(mode === 'new-default' ? !sttAvailable : !(sttAvailable && useStt)) ? styles.disabled : ''}`}
                                     onClick={() => {
                                         setShowSoundInput(true);
                                         onAttachmentClick(); // 첨부 메뉴 닫기
                                     }}
-                                    disabled={!(sttAvailable && useStt)}
+                                    disabled={mode === 'new-default' ? !sttAvailable : !(sttAvailable && useStt)}
                                 >
                                     <FiMic />
                                     <span>음성 (상세)</span>
@@ -245,7 +253,6 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
                             </div>
                         )}
                     </div>
-
 
                     <button
                         onClick={() => {
