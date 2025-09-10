@@ -42,68 +42,28 @@ const AdminPageContent: React.FC = () => {
     };
 
     const renderWorkflowToggleButtons = () => (
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div className={styles.tabButtonGroup}>
             <button
                 onClick={() => handleWorkflowTabChange('executor')}
-                style={{
-                    padding: '0.5rem 1rem',
-                    border: '1px solid var(--admin-border)',
-                    borderRadius: '6px',
-                    background: workflowTab === 'executor' ? 'var(--admin-primary)' : 'transparent',
-                    color: workflowTab === 'executor' ? 'white' : 'var(--admin-text-primary)',
-                    cursor: 'pointer',
-                    fontSize: '0.85rem',
-                    fontWeight: '500',
-                    transition: 'all 0.2s ease',
-                }}
+                className={`${styles.tabButton} ${workflowTab === 'executor' ? styles.active : ''}`}
             >
                 실행기
             </button>
             <button
                 onClick={() => handleWorkflowTabChange('monitoring')}
-                style={{
-                    padding: '0.5rem 1rem',
-                    border: '1px solid var(--admin-border)',
-                    borderRadius: '6px',
-                    background: workflowTab === 'monitoring' ? 'var(--admin-primary)' : 'transparent',
-                    color: workflowTab === 'monitoring' ? 'white' : 'var(--admin-text-primary)',
-                    cursor: 'pointer',
-                    fontSize: '0.85rem',
-                    fontWeight: '500',
-                    transition: 'all 0.2s ease',
-                }}
+                className={`${styles.tabButton} ${workflowTab === 'monitoring' ? styles.active : ''}`}
             >
                 모니터링
             </button>
             <button
                 onClick={() => handleWorkflowTabChange('batchtester')}
-                style={{
-                    padding: '0.5rem 1rem',
-                    border: '1px solid var(--admin-border)',
-                    borderRadius: '6px',
-                    background: workflowTab === 'batchtester' ? 'var(--admin-primary)' : 'transparent',
-                    color: workflowTab === 'batchtester' ? 'white' : 'var(--admin-text-primary)',
-                    cursor: 'pointer',
-                    fontSize: '0.85rem',
-                    fontWeight: '500',
-                    transition: 'all 0.2s ease',
-                }}
+                className={`${styles.tabButton} ${workflowTab === 'batchtester' ? styles.active : ''}`}
             >
                 테스트
             </button>
             <button
                 onClick={() => handleWorkflowTabChange('test-logs')}
-                style={{
-                    padding: '0.5rem 1rem',
-                    border: '1px solid var(--admin-border)',
-                    borderRadius: '6px',
-                    background: workflowTab === 'test-logs' ? 'var(--admin-primary)' : 'transparent',
-                    color: workflowTab === 'test-logs' ? 'white' : 'var(--admin-text-primary)',
-                    cursor: 'pointer',
-                    fontSize: '0.85rem',
-                    fontWeight: '500',
-                    transition: 'all 0.2s ease',
-                }}
+                className={`${styles.tabButton} ${workflowTab === 'test-logs' ? styles.active : ''}`}
             >
                 로그
             </button>
