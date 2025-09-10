@@ -20,6 +20,7 @@ interface DocumentDocumentsSectionProps {
     folderPath: Folder[];
     loading: boolean;
     expandedNodes: Set<string>;
+    showDirectorySidebar: boolean;
     onSelectDocument: (document: DocumentInCollection) => void;
     onNavigateToFolder: (folder: Folder) => void;
     onNavigateUp: () => void;
@@ -38,6 +39,7 @@ const DocumentDocumentsSection: React.FC<DocumentDocumentsSectionProps> = ({
     folderPath,
     loading,
     expandedNodes,
+    showDirectorySidebar,
     onSelectDocument,
     onNavigateToFolder,
     onNavigateUp,
@@ -88,6 +90,30 @@ const DocumentDocumentsSection: React.FC<DocumentDocumentsSectionProps> = ({
     return (
         <div className={styles.documentViewContainer}>
             <div className={styles.documentMainContent}>
+                {showDirectorySidebar && (
+                    <div className={styles.documentSidePanel}>
+                        <DocumentsDirectoryTree
+                            loading={loading}
+                            selectedCollection={selectedCollection}
+                            folders={folders}
+                            documents={documents}
+                            onFileSelect={onSelectDocument}
+                            expandedNodes={expandedNodes}
+                            onToggleNode={onToggleNode}
+                            currentFolder={currentFolder}
+                            onNavigateToFolder={(folder) => {
+                                if (folder && (folder as any).id === 'root' && (folder as any).isRoot) {
+                                    // 루트로 이동
+                                    onSetCurrentFolder(null);
+                                    onSetFolderPath([]);
+                                } else {
+                                    // 일반 폴더로 이동
+                                    onNavigateToFolder(folder);
+                                }
+                            }}
+                        />
+                    </div>
+                )}
                 <div className={styles.documentListContainer}>
                     {loading ? (
                         <div className={styles.loading}>로딩 중...</div>
@@ -186,19 +212,6 @@ const DocumentDocumentsSection: React.FC<DocumentDocumentsSectionProps> = ({
                             ))}
                         </div>
                     )}
-                </div>
-
-                <div className={styles.documentSidePanel}>
-                    <DocumentsDirectoryTree
-                        loading={loading}
-                        selectedCollection={selectedCollection}
-                        folders={folders}
-                        documents={documents}
-                        onFileSelect={onSelectDocument}
-                        expandedNodes={expandedNodes}
-                        onToggleNode={onToggleNode}
-                        currentFolder={currentFolder}
-                    />
                 </div>
             </div>
         </div>

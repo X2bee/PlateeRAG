@@ -234,6 +234,23 @@
             background-color: color.adjust($primary-yellow, $lightness: -7%);
         }
     }
+
+    &.iconOnly {
+        padding: 0.625rem;
+        min-width: 2.5rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background-color: $white;
+        color: $gray-700;
+        border-color: $gray-300;
+
+        &:hover:not(:disabled) {
+            background-color: $gray-50;
+        }
+    }
 }
 
 .error {
@@ -498,7 +515,7 @@
 // Document List Container (2/3 width)
 .documentListContainer {
     flex: 3;
-    min-width: 0; // flexbox에서 overflow 방지
+    min-width: 0;
 
     .documentListTitle {
         font-size: 1.25rem;

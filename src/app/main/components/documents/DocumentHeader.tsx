@@ -3,6 +3,7 @@ import React from 'react';
 import {
     FiRefreshCw,
     FiPlus,
+    FiSidebar,
 } from 'react-icons/fi';
 import styles from '@/app/main/assets/Documents.module.scss';
 import { Collection, DocumentInCollection, ViewMode, CollectionFilter } from '@/app/main/types/index';
@@ -33,7 +34,8 @@ interface DocumentHeaderProps {
     onSwitchToAllGraphView: () => void;
     onShowCreateModal: () => void;
     onSwitchToGraphView: () => void;
-    onSwitchToDirectoryView: () => void;
+    onToggleDirectorySidebar: () => void;
+    showDirectorySidebar: boolean;
     onShowCreateFolderModal: () => void;
     onSingleFileUpload: () => void;
     onFolderUpload: () => void;
@@ -54,7 +56,8 @@ const DocumentHeader: React.FC<DocumentHeaderProps> = ({
     onSwitchToAllGraphView,
     onShowCreateModal,
     onSwitchToGraphView,
-    onSwitchToDirectoryView,
+    onToggleDirectorySidebar,
+    showDirectorySidebar,
     onShowCreateFolderModal,
     onSingleFileUpload,
     onFolderUpload,
@@ -73,7 +76,6 @@ const DocumentHeader: React.FC<DocumentHeaderProps> = ({
                     {viewMode === 'collections' && '컬렉션 관리'}
                     {viewMode === 'documents' && `${selectedCollection?.collection_make_name} - 문서 목록`}
                     {viewMode === 'documents-graph' && `${selectedCollection?.collection_make_name} - 문서 그래프`}
-                    {viewMode === 'documents-directory' && `${selectedCollection?.collection_make_name} - 디렉토리 구조`}
                     {viewMode === 'document-detail' && `${selectedDocument?.file_name} - 문서 상세`}
                 </h2>
             </div>
@@ -100,27 +102,21 @@ const DocumentHeader: React.FC<DocumentHeaderProps> = ({
                                 공유
                             </button>
                         </div>
-                        <button onClick={onRefresh} className={`${styles.button} ${styles.secondary}`} disabled={loading}>
-                            <FiRefreshCw /> 새로고침
-                        </button>
                         <button onClick={onSwitchToAllGraphView} className={`${styles.button} ${styles.secondary}`}>
                             모든 그래프 보기
                         </button>
                         <button onClick={onShowCreateModal} className={`${styles.button} ${styles.primary}`}>
                             새 컬렉션 생성
                         </button>
+                        <button onClick={onRefresh} className={`${styles.button} ${styles.iconOnly}`} disabled={loading} title="새로고침">
+                            <FiRefreshCw />
+                        </button>
                     </>
                 )}
                 {viewMode === 'documents' && (
                     <>
-                        <button onClick={onRefresh} className={`${styles.button} ${styles.secondary}`} disabled={loading}>
-                            <FiRefreshCw /> 새로고침
-                        </button>
                         <button onClick={onSwitchToGraphView} className={`${styles.button} ${styles.secondary}`}>
                             그래프 보기
-                        </button>
-                        <button onClick={onSwitchToDirectoryView} className={`${styles.button} ${styles.secondary}`}>
-                            디렉토리 보기
                         </button>
                         <button onClick={onShowCreateFolderModal} className={`${styles.button} ${styles.secondary}`}>
                             <FiPlus /> 폴더 생성
@@ -131,22 +127,22 @@ const DocumentHeader: React.FC<DocumentHeaderProps> = ({
                         <button onClick={onFolderUpload} className={`${styles.button} ${styles.primary}`}>
                             폴더 업로드
                         </button>
+                        <button onClick={onToggleDirectorySidebar} className={`${styles.button} ${styles.iconOnly}`} title={showDirectorySidebar ? '디렉토리 숨기기' : '디렉토리 보이기'}>
+                            <FiSidebar />
+                        </button>
+                        <button onClick={onRefresh} className={`${styles.button} ${styles.iconOnly}`} disabled={loading} title="새로고침">
+                            <FiRefreshCw />
+                        </button>
                     </>
                 )}
                 {viewMode === 'documents-graph' && (
                     <>
-                        <button onClick={onRefresh} className={`${styles.button} ${styles.secondary}`} disabled={loading}>
-                            <FiRefreshCw /> 새로고침
+                        <button onClick={onRefresh} className={`${styles.button} ${styles.iconOnly}`} disabled={loading} title="새로고침">
+                            <FiRefreshCw />
                         </button>
                     </>
                 )}
-                {viewMode === 'documents-directory' && (
-                    <>
-                        <button onClick={onRefresh} className={`${styles.button} ${styles.secondary}`} disabled={loading}>
-                            <FiRefreshCw /> 새로고침
-                        </button>
-                    </>
-                )}
+
             </div>
 
             {viewMode === 'documents' && selectedCollection && embeddingConfig &&

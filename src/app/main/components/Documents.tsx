@@ -92,6 +92,9 @@ const Documents: React.FC = () => {
     // 디렉토리 트리 펼침 상태
     const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
+    // 디렉토리 사이드바 표시 상태
+    const [showDirectorySidebar, setShowDirectorySidebar] = useState<boolean>(true);
+
     // 로딩 및 에러 상태
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -485,8 +488,6 @@ const Documents: React.FC = () => {
             setViewMode('documents');
             setDocumentDetailMeta(null);
             setDocumentDetailEdges(null);
-        } else if (viewMode === 'documents-directory') {
-            setViewMode('documents');
         } else if (viewMode === 'documents') {
             setViewMode('collections');
             setSelectedCollection(null);
@@ -612,15 +613,15 @@ const Documents: React.FC = () => {
         ]);
     };
 
-    const handleSwitchToDirectoryView = () => {
-        setViewMode('documents-directory');
+    const handleToggleDirectorySidebar = () => {
+        setShowDirectorySidebar(prev => !prev);
     };
 
     // 새로고침 함수
     const handleRefresh = async () => {
         if (viewMode === 'collections') {
             await loadCollections();
-        } else if (selectedCollection && (viewMode === 'documents' || viewMode === 'documents-graph' || viewMode === 'documents-directory')) {
+        } else if (selectedCollection && (viewMode === 'documents' || viewMode === 'documents-graph')) {
             await loadDocumentsInCollection(selectedCollection.collection_name);
         } else if (viewMode === 'document-detail' && selectedCollection && selectedDocument) {
             await loadDocumentDetails(selectedCollection.collection_name, selectedDocument.document_id);
@@ -644,7 +645,8 @@ const Documents: React.FC = () => {
                 onSwitchToAllGraphView={handleSwitchToAllGraphView}
                 onShowCreateModal={() => setShowCreateModal(true)}
                 onSwitchToGraphView={handleSwitchToGraphView}
-                onSwitchToDirectoryView={handleSwitchToDirectoryView}
+                onToggleDirectorySidebar={handleToggleDirectorySidebar}
+                showDirectorySidebar={showDirectorySidebar}
                 onShowCreateFolderModal={() => setShowCreateFolderModal(true)}
                 onSingleFileUpload={handleSingleFileUpload}
                 onFolderUpload={handleFolderUpload}
@@ -676,6 +678,7 @@ const Documents: React.FC = () => {
                     folderPath={folderPath}
                     loading={loading}
                     expandedNodes={expandedNodes}
+                    showDirectorySidebar={showDirectorySidebar}
                     onSelectDocument={handleSelectDocument}
                     onNavigateToFolder={handleNavigateToFolder}
                     onNavigateUp={handleNavigateUp}
@@ -709,18 +712,7 @@ const Documents: React.FC = () => {
                 />
             )}
 
-            {/* 디렉토리 구조 보기 */}
-            {viewMode === 'documents-directory' && (
-                <DocumentsDirectoryTree
-                    loading={loading}
-                    selectedCollection={selectedCollection}
-                    folders={folders}
-                    documents={documentsInCollection}
-                    onFileSelect={handleSelectDocument}
-                    expandedNodes={expandedNodes}
-                    onToggleNode={setExpandedNodes}
-                />
-            )}
+
 
             {viewMode === 'all-documents-graph' && (
                 <DocumentsGraph
