@@ -231,7 +231,7 @@ export interface WorkflowDetailResponse {
     id: number;
     workflow_name: string;
     workflow_id: string;
-    user_name: string;
+    username: string;
     user_id: number;
     node_count: number;
     edge_count: number;
