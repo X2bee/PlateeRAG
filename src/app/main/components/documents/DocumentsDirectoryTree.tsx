@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { FiFolder, FiFile, FiChevronRight, FiChevronDown } from 'react-icons/fi';
+import { FiFolder, FiFile, FiChevronRight, FiChevronDown, FiDatabase } from 'react-icons/fi';
 import styles from '@/app/main/assets/DocumentsDirectoryTree.module.scss';
 import { Collection, DocumentInCollection, Folder } from '@/app/main/types/index';
 
@@ -12,6 +12,7 @@ interface DocumentsDirectoryTreeProps {
     onFileSelect?: (document: DocumentInCollection) => void;
     expandedNodes?: Set<string>;
     onToggleNode?: (updater: (prev: Set<string>) => Set<string>) => void;
+    currentFolder?: Folder | null;
 }
 
 interface TreeNode {
@@ -31,7 +32,8 @@ const DocumentsDirectoryTree: React.FC<DocumentsDirectoryTreeProps> = ({
     documents,
     onFileSelect,
     expandedNodes = new Set<string>(),
-    onToggleNode
+    onToggleNode,
+    currentFolder
 }) => {
     const [treeData, setTreeData] = useState<TreeNode[]>([]);
 
@@ -169,10 +171,15 @@ const DocumentsDirectoryTree: React.FC<DocumentsDirectoryTreeProps> = ({
         const hasChildren = node.children.length > 0;
         const isExpanded = node.expanded || expandedNodes.has(node.id);
 
+        // 현재 폴더인지 확인
+        const isCurrentFolder = currentFolder
+            ? (node.type === 'folder' && node.data && (node.data as Folder).id === currentFolder.id)
+            : (node.id === 'root' && !currentFolder);
+
         return (
             <div key={node.id} className={styles.treeNode}>
                 <div
-                    className={`${styles.nodeContent} ${node.type === 'file' ? styles.fileNode : styles.folderNode}`}
+                    className={`${styles.nodeContent} ${node.type === 'file' ? styles.fileNode : styles.folderNode} ${isCurrentFolder ? styles.currentFolder : ''}`}
                     style={{ paddingLeft: `${level * 20 + 8}px` }}
                     onClick={() => {
                         if (node.type === 'folder') {
@@ -189,7 +196,11 @@ const DocumentsDirectoryTree: React.FC<DocumentsDirectoryTreeProps> = ({
                             </span>
                         )}
                         {node.type === 'folder' ? (
-                            <FiFolder className={styles.folderIcon} />
+                            node.id === 'root' ? (
+                                <FiDatabase className={styles.folderIcon} />
+                            ) : (
+                                <FiFolder className={styles.folderIcon} />
+                            )
                         ) : (
                             <FiFile className={styles.fileIcon} />
                         )}

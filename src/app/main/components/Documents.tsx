@@ -1,26 +1,17 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import {
-    FiFolder,
-    FiSettings,
-    FiTrash2,
-    FiUser,
-    FiClock,
-    FiBarChart,
-    FiUsers,
-    FiRefreshCw,
-    FiPlus,
-} from 'react-icons/fi';
 import styles from '@/app/main/assets/Documents.module.scss';
 import DocumentsGraph from '@/app/main/components/documents/DocumentsGraph';
 import DocumentsDirectoryTree from '@/app/main/components/documents/DocumentsDirectoryTree';
 import CollectionEditModal from '@/app/main/components/documents/CollectionEditModal';
 import DocumentCollectionModal from '@/app/main/components/documents/DocumentCollectionModal';
 import DocumentDirectoryModal from '@/app/main/components/documents/DocumentDirectoryModal';
+import DocumentCollectionsSection from '@/app/main/components/documents/DocumentCollectionsSection';
+import DocumentDocumentsSection from '@/app/main/components/documents/DocumentDocumentsSection';
+import DocumentDetailSection from '@/app/main/components/documents/DocumentDetailSection';
+import DocumentHeader from '@/app/main/components/documents/DocumentHeader';
 
 import {
-    formatFileSize,
-    getRelativeTime,
     listCollections,
     searchDocuments,
     listDocumentsInCollection,
@@ -34,7 +25,6 @@ import {
     remakeCollection,
 } from '@/app/api/rag/retrievalAPI';
 import { getEmbeddingConfigStatus } from '@/app/api/rag/embeddingAPI';
-import { createFolder } from '@/app/api/rag/folderAPI';
 import { handleDeleteFolderRequest } from '@/app/main/components/documents/DocumentDirectory';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useDocumentFileModal } from '@/app/_common/contexts/DocumentFileModalContext';
@@ -67,9 +57,6 @@ interface EmbeddingConfig {
         available: boolean;
     };
 }
-
-
-
 const Documents: React.FC = () => {
     const { user } = useAuth();
     const { openModal, setOnUploadComplete } = useDocumentFileModal();
@@ -84,10 +71,6 @@ const Documents: React.FC = () => {
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
-
-    // 청크 설정 상태 제거됨 (DocumentFileModal로 이동)
-
-    // Graph 데이터 상태
     const [documentDetailMeta, setDocumentDetailMeta] = useState<any>(null);
     const [documentDetailEdges, setDocumentDetailEdges] = useState<any>(null);
 
@@ -117,18 +100,7 @@ const Documents: React.FC = () => {
     const [embeddingConfig, setEmbeddingConfig] = useState<EmbeddingConfig | null>(null);
     const [embeddingLoading, setEmbeddingLoading] = useState(false);
 
-    // 컬렉션 필터링
-    const getFilteredCollections = () => {
-        switch (collectionFilter) {
-            case 'personal':
-                return collections.filter(collection => !collection.is_shared || collection.is_shared === null);
-            case 'shared':
-                return collections.filter(collection => collection.is_shared === true);
-            case 'all':
-            default:
-                return collections;
-        }
-    };
+
 
     // 컬렉션 목록 로드
     useEffect(() => {
@@ -294,6 +266,21 @@ const Documents: React.FC = () => {
         setShowEditModal(true);
     };
 
+    // 폴더 삭제 래퍼 함수
+    const handleDeleteFolder = (folder: Folder) => {
+        handleDeleteFolderRequest(
+            folder,
+            selectedCollection!,
+            documentsInCollection,
+            () => {
+                // 삭제 성공 후 컬렉션 데이터 새로고침
+                if (selectedCollection) {
+                    loadDocumentsInCollection(selectedCollection.collection_name);
+                }
+            }
+        );
+    };
+
     const handleUpdateCollection = (updatedCollection: Collection) => {
         // 컬렉션 목록에서 해당 컬렉션 업데이트
         setCollections(prevCollections =>
@@ -358,43 +345,7 @@ const Documents: React.FC = () => {
         }
     };
 
-    // 현재 폴더에 속한 하위 폴더들을 필터링
-    const getCurrentFolders = () => {
-        if (!selectedCollection) return [];
-
-        return folders.filter(folder => {
-            if (currentFolder) {
-                // 현재 폴더의 직계 자식 폴더들만 표시
-                return folder.parent_folder_id === currentFolder.id;
-            } else {
-                // 루트 폴더들만 표시 (is_root가 true인 것들)
-                return folder.is_root === true;
-            }
-        });
-    };
-
-    // 현재 폴더에 속한 문서들을 필터링
-    const getCurrentDocuments = () => {
-        if (!selectedCollection) return [];
-
-        return documentsInCollection.filter(doc => {
-            if (currentFolder) {
-                // 현재 폴더의 full_path와 문서의 directory_full_path 비교
-                const currentFolderFullPath = currentFolder.full_path;
-                const docDirectoryFullPath = doc.metadata?.directory_full_path || '';
-                return docDirectoryFullPath === currentFolderFullPath;
-            } else {
-                // 루트에 있는 문서들만 표시
-                const docDirectoryFullPath = doc.metadata?.directory_full_path || '';
-                const collectionRootPath = `/${selectedCollection.collection_make_name}`;
-
-                // directory_full_path가 없거나, 빈 문자열이거나, 컬렉션 루트 경로인 경우 루트로 간주
-                return docDirectoryFullPath === '' ||
-                       !doc.metadata?.directory_full_path ||
-                       docDirectoryFullPath === collectionRootPath;
-            }
-        });
-    };    // 컬렉션 리메이크
+    // 컬렉션 리메이크
     const handleRemakeCollection = async () => {
         if (!selectedCollection) return;
 
@@ -665,492 +616,88 @@ const Documents: React.FC = () => {
         setViewMode('documents-directory');
     };
 
+    // 새로고침 함수
+    const handleRefresh = async () => {
+        if (viewMode === 'collections') {
+            await loadCollections();
+        } else if (selectedCollection && (viewMode === 'documents' || viewMode === 'documents-graph' || viewMode === 'documents-directory')) {
+            await loadDocumentsInCollection(selectedCollection.collection_name);
+        } else if (viewMode === 'document-detail' && selectedCollection && selectedDocument) {
+            await loadDocumentDetails(selectedCollection.collection_name, selectedDocument.document_id);
+        }
+    };
+
     return (
         <div className={styles.container}>
             {/* 헤더 */}
-            <div className={styles.header}>
-                {/* 첫 번째 row - 기본 헤더 */}
-                <div className={styles.headerLeft}>
-                    {viewMode !== 'collections' && (
-                        <button onClick={handleGoBack} className={`${styles.button} ${styles.secondary}`}>
-                            ← 뒤로
-                        </button>
-                    )}
-                    <h2>
-                        {viewMode === 'collections' && '컬렉션 관리'}
-                        {viewMode === 'documents' && `${selectedCollection?.collection_make_name} - 문서 목록`}
-                        {viewMode === 'documents-graph' && `${selectedCollection?.collection_make_name} - 문서 그래프`}
-                        {viewMode === 'documents-directory' && `${selectedCollection?.collection_make_name} - 디렉토리 구조`}
-                        {viewMode === 'document-detail' && `${selectedDocument?.file_name} - 문서 상세`}
-                    </h2>
-                </div>
-                <div className={styles.headerRight}>
-                    {viewMode === 'collections' && (
-                        <>
-                            <div className={styles.filterButtons}>
-                                <button
-                                    onClick={() => setCollectionFilter('all')}
-                                    className={`${styles.button} ${collectionFilter === 'all' ? styles.active : styles.secondary}`}
-                                >
-                                    모두
-                                </button>
-                                <button
-                                    onClick={() => setCollectionFilter('personal')}
-                                    className={`${styles.button} ${collectionFilter === 'personal' ? styles.active : styles.secondary}`}
-                                >
-                                    개인
-                                </button>
-                                <button
-                                    onClick={() => setCollectionFilter('shared')}
-                                    className={`${styles.button} ${collectionFilter === 'shared' ? styles.active : styles.secondary}`}
-                                >
-                                    공유
-                                </button>
-                            </div>
-                            <button onClick={handleSwitchToAllGraphView} className={`${styles.button} ${styles.secondary}`}>
-                                모든 그래프 보기
-                            </button>
-                            <button onClick={() => setShowCreateModal(true)} className={`${styles.button} ${styles.primary}`}>
-                                새 컬렉션 생성
-                            </button>
-                        </>
-                    )}
-                    {viewMode === 'documents' && (
-                        <>
-                            <button onClick={handleSwitchToGraphView} className={`${styles.button} ${styles.secondary}`}>
-                                그래프 보기
-                            </button>
-                            <button onClick={handleSwitchToDirectoryView} className={`${styles.button} ${styles.secondary}`}>
-                                디렉토리 보기
-                            </button>
-                            <button onClick={() => setShowCreateFolderModal(true)} className={`${styles.button} ${styles.secondary}`}>
-                                <FiPlus /> 폴더 생성
-                            </button>
-                            <button onClick={handleSingleFileUpload} className={`${styles.button} ${styles.primary}`}>
-                                단일 문서 업로드
-                            </button>
-                            <button onClick={handleFolderUpload} className={`${styles.button} ${styles.primary}`}>
-                                폴더 업로드
-                            </button>
-                        </>
-                    )}
-                    {viewMode === 'documents-graph' && (
-                        <>
-                            {/* <button onClick={() => setViewMode('documents')} className={`${styles.button} ${styles.secondary}`}>
-                                목록 보기
-                            </button> */}
-                        </>
-                    )}
-                    {viewMode === 'documents-directory' && (
-                        <>
-                            {/* <button onClick={() => setViewMode('documents')} className={`${styles.button} ${styles.secondary}`}>
-                                목록 보기
-                            </button> */}
-                        </>
-                    )}
-                </div>
-
-                {/* documents 모드에서만 표시되는 두 번째 row */}
-                {viewMode === 'documents' && selectedCollection && (
-                    <div className={styles.subheader}>
-                        <div className={styles.subheaderSection}>
-                            <h4 className={styles.subheaderTitle}>컬렉션 정보</h4>
-                            <div className={`${styles.subheaderGrid} ${styles.collectionGrid}`}>
-                                <div className={styles.subheaderItem}>
-                                    <span className={styles.subheaderLabel}>Dimension:</span>
-                                    <span className={styles.subheaderValue}>{selectedCollection.vector_size || 'N/A'}</span>
-                                </div>
-                                <div className={styles.subheaderItem}>
-                                    <span className={styles.subheaderLabel}>Model:</span>
-                                    <span className={styles.subheaderValue}>{selectedCollection.init_embedding_model || 'N/A'}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className={styles.subheaderSection}>
-                            <h4 className={styles.subheaderTitle}>현재 Embedding 설정</h4>
-                            {embeddingLoading ? (
-                                <span className={styles.subheaderLoading}>로딩 중...</span>
-                            ) : embeddingConfig ? (
-                                <div className={`${styles.subheaderGrid} ${styles.embeddingGrid}`}>
-                                    <div className={styles.subheaderItem}>
-                                        <span className={styles.subheaderLabel}>Provider:</span>
-                                        <span className={styles.subheaderValue}>{embeddingConfig.provider_info.provider}</span>
-                                    </div>
-                                    <div className={styles.subheaderItem}>
-                                        <span className={styles.subheaderLabel}>Model:</span>
-                                        <span className={styles.subheaderValue}>{embeddingConfig.provider_info.model}</span>
-                                    </div>
-                                    <div className={styles.subheaderItem}>
-                                        <span className={styles.subheaderLabel}>Dimension:</span>
-                                        <span className={styles.subheaderValue}>{embeddingConfig.provider_info.dimension}</span>
-                                    </div>
-                                    <div className={styles.subheaderItem}>
-                                        <span className={styles.subheaderLabel}>Status:</span>
-                                        <div className={styles.subheaderStatusContainer}>
-                                            <span className={`${styles.subheaderValue} ${
-                                                embeddingConfig.client_available &&
-                                                embeddingConfig.provider_info.available &&
-                                                embeddingConfig.provider_info.dimension === selectedCollection.vector_size &&
-                                                (selectedCollection.init_embedding_model === 'N/A' ||
-                                                 !selectedCollection.init_embedding_model ||
-                                                 embeddingConfig.provider_info.model === selectedCollection.init_embedding_model)
-                                                    ? styles.subheaderStatusAvailable
-                                                    : styles.subheaderStatusUnavailable
-                                            }`}>
-                                                {embeddingConfig.client_available &&
-                                                 embeddingConfig.provider_info.available &&
-                                                 embeddingConfig.provider_info.dimension === selectedCollection.vector_size &&
-                                                 (selectedCollection.init_embedding_model === 'N/A' ||
-                                                  !selectedCollection.init_embedding_model ||
-                                                  embeddingConfig.provider_info.model === selectedCollection.init_embedding_model)
-                                                    ? '✅ 정상'
-                                                    : '❌ 불일치'}
-                                            </span>
-                                            {!(embeddingConfig.client_available &&
-                                              embeddingConfig.provider_info.available &&
-                                              embeddingConfig.provider_info.dimension === selectedCollection.vector_size &&
-                                              (selectedCollection.init_embedding_model === 'N/A' ||
-                                               !selectedCollection.init_embedding_model ||
-                                               embeddingConfig.provider_info.model === selectedCollection.init_embedding_model)) && (
-                                                <button
-                                                    onClick={handleRemakeCollection}
-                                                    className={`${styles.button} ${styles.remakeButton}`}
-                                                    title="현재 임베딩 설정으로 컬렉션을 다시 생성합니다"
-                                                >
-                                                    <FiRefreshCw />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <span className={styles.subheaderError}>설정을 불러올 수 없습니다.</span>
-                            )}
-                        </div>
-                    </div>
-                )}
-            </div>
+            <DocumentHeader
+                viewMode={viewMode}
+                collectionFilter={collectionFilter}
+                selectedCollection={selectedCollection}
+                selectedDocument={selectedDocument}
+                loading={loading}
+                embeddingLoading={embeddingLoading}
+                embeddingConfig={embeddingConfig}
+                onGoBack={handleGoBack}
+                onSetCollectionFilter={setCollectionFilter}
+                onRefresh={handleRefresh}
+                onSwitchToAllGraphView={handleSwitchToAllGraphView}
+                onShowCreateModal={() => setShowCreateModal(true)}
+                onSwitchToGraphView={handleSwitchToGraphView}
+                onSwitchToDirectoryView={handleSwitchToDirectoryView}
+                onShowCreateFolderModal={() => setShowCreateFolderModal(true)}
+                onSingleFileUpload={handleSingleFileUpload}
+                onFolderUpload={handleFolderUpload}
+                onRemakeCollection={handleRemakeCollection}
+            />
 
             {error && <div className={styles.error}>{error}</div>}
 
             {/* 컬렉션 목록 보기 */}
             {viewMode === 'collections' && (
-                <div className={styles.collectionListContainer}>
-                    {loading ? (
-                        <div className={styles.loading}>로딩 중...</div>
-                    ) : (
-                        <div className={styles.collectionGrid}>
-                            {getFilteredCollections().map((collection) => (
-                                <div
-                                    key={collection.collection_name}
-                                    className={styles.collectionCard}
-                                    onClick={() => handleSelectCollection(collection)}
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    <div className={styles.cardHeader}>
-                                        <div className={styles.collectionIcon}>
-                                            <FiFolder />
-                                        </div>
-                                        <div className={`${styles.status} ${collection.is_shared ? styles.statusShared : styles.statusPersonal}`}>
-                                            {collection.is_shared ? '공유' : '개인'}
-                                        </div>
-                                    </div>
-
-                                    <div className={styles.cardContent}>
-                                        <h3 className={styles.collectionName}>{collection.collection_make_name}</h3>
-                                        {collection.description && (
-                                            <p className={styles.collectionDescription}>
-                                                {collection.description}
-                                            </p>
-                                        )}
-                                        <div className={styles.collectionMeta}>
-                                            {collection.vector_size !== undefined && (
-                                                <div className={styles.metaItem}>
-                                                    <FiBarChart />
-                                                    <span>Vector Size: {collection.vector_size}</span>
-                                                </div>
-                                            )}
-                                            {collection.share_group && (
-                                                <div className={styles.metaItem}>
-                                                    <FiUsers />
-                                                    <span>조직: {collection.share_group}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {collection.user_id === user?.user_id ? (
-                                        <div className={styles.cardActions}>
-                                            <button
-                                                className={styles.actionButton}
-                                                title="컬렉션 설정"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleEditCollectionRequest(collection);
-                                                }}
-                                            >
-                                                <FiSettings />
-                                            </button>
-                                            <button
-                                                className={`${styles.actionButton} ${styles.danger}`}
-                                                title="컬렉션 삭제"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDeleteCollectionRequest(collection);
-                                                }}
-                                            >
-                                                <FiTrash2 />
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <div className={styles.cardMessage}>
-                                            공유받은 컬렉션은 편집이 불가능합니다.
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                <DocumentCollectionsSection
+                    collections={collections}
+                    collectionFilter={collectionFilter}
+                    loading={loading}
+                    userId={user?.user_id}
+                    onSelectCollection={handleSelectCollection}
+                    onEditCollection={handleEditCollectionRequest}
+                    onDeleteCollection={handleDeleteCollectionRequest}
+                />
             )}
 
             {/* 문서 목록 보기 */}
             {viewMode === 'documents' && (
-                <div className={styles.documentViewContainer}>
-                    {/* 폴더 경로 (Breadcrumb) */}
-                    <div className={styles.breadcrumbContainer}>
-                        <div className={styles.breadcrumb}>
-                            <button
-                                onClick={() => {
-                                    setCurrentFolder(null);
-                                    setFolderPath([]);
-                                }}
-                                className={`${styles.breadcrumbItem} ${!currentFolder ? styles.active : ''}`}
-                            >
-                                <FiFolder /> {selectedCollection?.collection_make_name}
-                            </button>
-                            {folderPath.map((folder, index) => (
-                                <React.Fragment key={folder.id}>
-                                    <span className={styles.breadcrumbSeparator}>/</span>
-                                    <button
-                                        onClick={() => {
-                                            const newPath = folderPath.slice(0, index + 1);
-                                            setFolderPath(newPath);
-                                            setCurrentFolder(folder);
-                                        }}
-                                        className={`${styles.breadcrumbItem} ${index === folderPath.length - 1 ? styles.active : ''}`}
-                                    >
-                                        <FiFolder /> {folder.folder_name}
-                                    </button>
-                                </React.Fragment>
-                            ))}
-                        </div>
-                        {currentFolder && (
-                            <button onClick={handleNavigateUp} className={`${styles.button} ${styles.secondary} ${styles.small}`}>
-                                ← 상위 폴더
-                            </button>
-                        )}
-                    </div>
-
-                    <div className={styles.documentListContainer}>
-                        {loading ? (
-                            <div className={styles.loading}>로딩 중...</div>
-                        ) : getCurrentDocuments().length === 0 && getCurrentFolders().length === 0 ? (
-                            <div className={styles.emptyState}>
-                                {currentFolder ? '이 폴더에는 문서가 없습니다.' : '이 컬렉션에는 문서가 없습니다.'}
-                            </div>
-                        ) : (
-                            <div className={styles.documentGrid}>
-                                {/* 현재 폴더의 하위 폴더들 먼저 표시 */}
-                                {getCurrentFolders().map((folder) => (
-                                    <div
-                                        key={`folder-${folder.id}`}
-                                        className={styles.documentCard}
-                                        onClick={() => handleNavigateToFolder(folder)}
-                                        style={{ cursor: 'pointer' }}
-                                    >
-                                        <div className={styles.cardHeader}>
-                                            <div className={styles.collectionIcon}>
-                                                <FiFolder />
-                                            </div>
-                                            <div className={`${styles.status} ${styles.statusFolder}`}>
-                                                폴더
-                                            </div>
-                                        </div>
-
-                                        <div className={styles.cardContent}>
-                                            <h3 className={styles.collectionName}>{folder.folder_name}</h3>
-                                            <div className={styles.collectionMeta}>
-                                                <div className={styles.metaItem}>
-                                                    <FiFolder />
-                                                    <span>경로: {folder.full_path}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className={styles.cardActions}>
-                                            <button
-                                                className={`${styles.actionButton} ${styles.danger}`}
-                                                title="폴더 삭제"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDeleteFolderRequest(
-                                                        folder,
-                                                        selectedCollection!,
-                                                        documentsInCollection,
-                                                        () => {
-                                                            // 삭제 성공 후 컬렉션 데이터 새로고침
-                                                            if (selectedCollection) {
-                                                                loadDocumentsInCollection(selectedCollection.collection_name);
-                                                            }
-                                                        }
-                                                    );
-                                                }}
-                                            >
-                                                <FiTrash2 />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-
-                                {/* 현재 폴더의 문서들 표시 */}
-                                {getCurrentDocuments().map((doc) => (
-                                    <div
-                                        key={doc.document_id}
-                                        className={styles.documentCard}
-                                        onClick={() => handleSelectDocument(doc)}
-                                        style={{ cursor: 'pointer' }}
-                                    >
-                                        <div className={styles.cardHeader}>
-                                            <div className={styles.collectionIcon}>
-                                                <FiUser />
-                                            </div>
-                                            <div className={`${styles.status} ${styles.statusPersonal}`}>
-                                                문서
-                                            </div>
-                                        </div>
-
-                                        <div className={styles.cardContent}>
-                                            <h3 className={styles.collectionName}>{doc.file_name}</h3>
-                                            <div className={styles.collectionMeta}>
-                                                <div className={styles.metaItem}>
-                                                    <FiBarChart />
-                                                    <span>청크: {doc.actual_chunks}개</span>
-                                                </div>
-                                                <div className={styles.metaItem}>
-                                                    <FiClock />
-                                                    <span>업로드: {getRelativeTime(doc.processed_at)}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className={styles.cardActions}>
-                                            <button
-                                                className={`${styles.actionButton} ${styles.danger}`}
-                                                title="문서 삭제"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDeleteDocument(doc);
-                                                }}
-                                            >
-                                                <FiTrash2 />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
+                <DocumentDocumentsSection
+                    selectedCollection={selectedCollection}
+                    folders={folders}
+                    documents={documentsInCollection}
+                    currentFolder={currentFolder}
+                    folderPath={folderPath}
+                    loading={loading}
+                    expandedNodes={expandedNodes}
+                    onSelectDocument={handleSelectDocument}
+                    onNavigateToFolder={handleNavigateToFolder}
+                    onNavigateUp={handleNavigateUp}
+                    onDeleteDocument={handleDeleteDocument}
+                    onDeleteFolder={handleDeleteFolder}
+                    onSetCurrentFolder={setCurrentFolder}
+                    onSetFolderPath={setFolderPath}
+                    onToggleNode={setExpandedNodes}
+                />
             )}
 
             {/* 문서 상세 보기 */}
             {viewMode === 'document-detail' && (
-                <div className={styles.documentDetailContainer}>
-                    {/* 검색 영역 */}
-                    <div className={styles.searchContainer}>
-                        <div className={styles.searchBox}>
-                            <input
-                                type="text"
-                                placeholder="문서 내용을 검색하세요..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className={styles.searchInput}
-                            />
-                            <button
-                                onClick={handleDocumentSearch}
-                                disabled={isSearching || !searchQuery.trim()}
-                                className={`${styles.button} ${styles.primary}`}
-                            >
-                                {isSearching ? '검색 중...' : '검색'}
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* 검색 결과 */}
-                    {searchQuery && (
-                        <div className={styles.searchResultsContainer}>
-                            <h4 className={styles.searchResultsTitle}>검색 결과 ({searchResults.length}개)</h4>
-                            {searchResults.length === 0 ? (
-                                <div className={styles.emptyState}>검색 결과가 없습니다.</div>
-                            ) : (
-                                <div className={styles.searchResults}>
-                                    {searchResults.map((result) => (
-                                        <div key={result.id} className={styles.searchResultItem}>
-                                            <div className={styles.resultHeader}>
-                                                <span className={styles.resultScore}>
-                                                    유사도: {(result.score * 100).toFixed(1)}%
-                                                </span>
-                                                <span className={styles.resultChunk}>
-                                                    청크 #{result.chunk_index + 1}
-                                                </span>
-                                            </div>
-                                            <p className={styles.resultText}>
-                                                {result.chunk_text}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* 문서 상세 정보 */}
-                    {!searchQuery && documentDetails && (
-                        <div className={styles.documentDetailContent}>
-                            <div className={styles.documentDetailMeta}>
-                                <h3 className={styles.documentTitle}>{documentDetails.file_name}</h3>
-                                <div className={styles.metaInfo}>
-                                    <span>파일 타입: {documentDetails.file_type.toUpperCase()}</span>
-                                    <span>전체 청크: {documentDetails.total_chunks}개</span>
-                                    <span>업로드 시간: {getRelativeTime(documentDetails.processed_at)}</span>
-                                </div>
-                            </div>
-
-                            <div className={styles.chunksContainer}>
-                                <h4 className={styles.chunksTitle}>문서 내용</h4>
-                                <div className={styles.chunksList}>
-                                    {documentDetails.chunks.map((chunk) => (
-                                        <div key={chunk.chunk_id} className={styles.chunkItem}>
-                                            <div className={styles.chunkHeader}>
-                                                <span className={styles.chunkIndex}>청크 #{chunk.chunk_index + 1}</span>
-                                                <span className={styles.chunkSize}>
-                                                    {formatFileSize(chunk.chunk_size)}
-                                                </span>
-                                            </div>
-                                            <div className={styles.chunkText}>
-                                                {chunk.chunk_text}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {loading && <div className={styles.loading}>로딩 중...</div>}
-                </div>
+                <DocumentDetailSection
+                    searchQuery={searchQuery}
+                    searchResults={searchResults}
+                    isSearching={isSearching}
+                    documentDetails={documentDetails}
+                    loading={loading}
+                    onSearchQueryChange={setSearchQuery}
+                    onSearch={handleDocumentSearch}
+                />
             )}
 
             {/* 문서 그래프 보기 */}
