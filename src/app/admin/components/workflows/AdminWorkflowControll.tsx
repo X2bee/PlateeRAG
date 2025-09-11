@@ -9,10 +9,10 @@ import {
     FiUsers,
     FiSearch,
     FiX,
+    FiSettings,
 } from 'react-icons/fi';
 import styles from '@/app/admin/assets/workflows/AdminWorkflowControll.module.scss';
-import { getAllWorkflowMeta } from '@/app/admin/api/workflow';
-import { deleteWorkflow } from '@/app/api/workflow/workflowAPI';
+import { getAllWorkflowMeta, deleteWorkflowAdmin } from '@/app/admin/api/workflow';
 import { getDeployStatus } from '@/app/api/workflow/deploy';
 
 import { devLog } from '@/app/_common/utils/logger';
@@ -21,6 +21,7 @@ import {
     showDeleteSuccessToastKo,
     showDeleteErrorToastKo,
 } from '@/app/_common/utils/toastUtilsKo';
+import AdminWorkflowEditModal from './AdminWorkflowEditModal';
 
 interface AdminWorkflow {
     key_value: number;
@@ -46,6 +47,8 @@ const AdminWorkflowControll: React.FC = () => {
     const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [deployed_list, setDeployed_list] = useState<{[key: string]: boolean | null}>({});
+    const [editingWorkflow, setEditingWorkflow] = useState<AdminWorkflow | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     const fetchWorkflows = async () => {
         try {
@@ -161,12 +164,31 @@ const AdminWorkflowControll: React.FC = () => {
 
 
 
+    const handleEdit = (workflow: AdminWorkflow) => {
+        setEditingWorkflow(workflow);
+        setIsEditModalOpen(true);
+    };
+
+    const handleEditModalClose = () => {
+        setIsEditModalOpen(false);
+        setEditingWorkflow(null);
+    };
+
+    const handleEditModalUpdate = (updatedWorkflow: AdminWorkflow, updatedDeploy: {[key: string]: boolean | null}) => {
+        setWorkflows(prevWorkflows =>
+            prevWorkflows.map(w =>
+                w.key_value === updatedWorkflow.key_value ? updatedWorkflow : w
+            )
+        );
+        setDeployed_list(prev => ({...prev, ...updatedDeploy}));
+    };
+
     const handleDelete = (workflow: AdminWorkflow) => {
         showWorkflowDeleteConfirmKo(
             workflow.name,
             async () => {
                 try {
-                    await deleteWorkflow(workflow.name);
+                    await deleteWorkflowAdmin(workflow.user_id, workflow.name);
                     showDeleteSuccessToastKo({
                         itemName: workflow.name,
                         itemType: '워크플로우',
@@ -337,6 +359,16 @@ const AdminWorkflowControll: React.FC = () => {
 
                             <div className={styles.cardActions}>
                                 <button
+                                    className={styles.actionButton}
+                                    title="설정"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEdit(workflow);
+                                    }}
+                                >
+                                    <FiSettings />
+                                </button>
+                                <button
                                     className={`${styles.actionButton} ${styles.danger}`}
                                     title="삭제"
                                     onClick={(e) => {
@@ -363,6 +395,15 @@ const AdminWorkflowControll: React.FC = () => {
                         }
                     </p>
                 </div>
+            )}
+
+            {editingWorkflow && (
+                <AdminWorkflowEditModal
+                    workflow={editingWorkflow}
+                    isOpen={isEditModalOpen}
+                    onClose={handleEditModalClose}
+                    onUpdate={handleEditModalUpdate}
+                />
             )}
         </div>
     );

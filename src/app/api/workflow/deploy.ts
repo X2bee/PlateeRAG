@@ -39,7 +39,7 @@ export const getDeployStatus = async (workflowName: string, user_id?: number | s
         devLog.log(`Getting deploy status for workflow: ${workflowName}`);
         devLog.log(`User ID: ${user_id}`);
 
-        const response = user_id 
+        const response = user_id
             ? await fetch(`${API_BASE_URL}/api/workflow/deploy/status/${encodeURIComponent(workflowName)}`, {
                 method: 'POST',
                 headers: {
@@ -70,38 +70,38 @@ export const getDeployStatus = async (workflowName: string, user_id?: number | s
     }
 };
 
-/**
- * 워크플로우의 배포 상태를 활성화/비활성화합니다.
- * @param {string} workflowName - 워크플로우 이름
- * @param {boolean} enable - 배포 활성화 여부 (true: 활성화, false: 비활성화)
- * @returns {Promise<DeployToggleResponse>} 업데이트된 배포 상태 정보
- */
-export const toggleDeployStatus = async (workflowName: string, enable: boolean): Promise<DeployToggleResponse> => {
-    try {
-        devLog.log(`Toggling deploy status for workflow: ${workflowName}, enable: ${enable}`);
+// /**
+//  * 워크플로우의 배포 상태를 활성화/비활성화합니다.
+//  * @param {string} workflowName - 워크플로우 이름
+//  * @param {boolean} enable - 배포 활성화 여부 (true: 활성화, false: 비활성화)
+//  * @returns {Promise<DeployToggleResponse>} 업데이트된 배포 상태 정보
+//  */
+// export const toggleDeployStatus = async (workflowName: string, enable: boolean): Promise<DeployToggleResponse> => {
+//     try {
+//         devLog.log(`Toggling deploy status for workflow: ${workflowName}, enable: ${enable}`);
 
-        const response = await apiClient(`${API_BASE_URL}/api/workflow/deploy/toggle/${encodeURIComponent(workflowName)}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ enable }),
-        });
+//         const response = await apiClient(`${API_BASE_URL}/api/workflow/deploy/toggle/${encodeURIComponent(workflowName)}`, {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify({ enable }),
+//         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            devLog.error('Deploy toggle error:', errorData);
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-        }
+//         if (!response.ok) {
+//             const errorData = await response.json();
+//             devLog.error('Deploy toggle error:', errorData);
+//             throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+//         }
 
-        const result = await response.json();
-        devLog.log('Deploy status toggled successfully:', result);
-        return result;
-    } catch (error) {
-        devLog.error('Failed to toggle deploy status:', error);
-        throw error;
-    }
-};
+//         const result = await response.json();
+//         devLog.log('Deploy status toggled successfully:', result);
+//         return result;
+//     } catch (error) {
+//         devLog.error('Failed to toggle deploy status:', error);
+//         throw error;
+//     }
+// };
 
 /**
  * 특정 워크플로우의 배포 키값을 조회합니다.
