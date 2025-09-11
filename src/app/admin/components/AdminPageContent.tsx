@@ -12,10 +12,10 @@ import AdminUserContent from '@/app/admin/components/user/AdminUserContent';
 import AdminRegisterUser from '@/app/admin/components/user/AdminRegisterUser';
 import AdminConfigViewer from '@/app/admin/components/config/AdminConfigViewer';
 import AdminSettings from '@/app/admin/components/config/AdminSettings';
-import AdminWorkflowLogsContent from '@/app/admin/components/monitor/AdminWorkflowLogsContent';
+import AdminWorkflowLogsContent from '@/app/admin/components/workflows/AdminWorkflowLogsContent';
 import AdminGroupContent from '@/app/admin/components/group/AdminGroupContent';
-import AdminPlayground from '@/app/admin/components/monitor/playground/AdminPlayground';
-import AdminSystemMonitor from '@/app/admin/components/monitor/AdminSystemMonitor';
+import AdminPlayground from '@/app/admin/components/workflows/playground/AdminPlayground';
+import AdminSystemMonitor from '@/app/admin/components/sysmonitor/AdminSystemMonitor';
 import AdminDatabase from '@/app/admin/components/database/AdminDatabase';
 import {
     getUserSidebarItems,

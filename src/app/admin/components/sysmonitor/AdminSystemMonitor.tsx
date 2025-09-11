@@ -14,7 +14,7 @@ import {
 import styles from '@/app/admin/assets/AdminSystemMonitor.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
 
-const Chart = dynamic(() => import('./playground/charts/Chart'), {
+const Chart = dynamic(() => import('../workflows/playground/charts/Chart'), {
     ssr: false,
     loading: () => <div className={styles.chartLoader}>차트 로딩 중...</div>
 });

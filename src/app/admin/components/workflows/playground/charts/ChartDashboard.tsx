@@ -13,7 +13,7 @@ import {
 } from '@/app/api/workflow/workflowAPI';
 import styles from '@/app/admin/assets/playground/ChartDashboard.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
-import ChartPlaceholder from '@/app/admin/components/monitor/playground/charts/ChartPlaceholder';
+import ChartPlaceholder from '@/app/admin/components/workflows/playground/charts/ChartPlaceholder';
 
 interface NodeCount {
     node_name: string;
