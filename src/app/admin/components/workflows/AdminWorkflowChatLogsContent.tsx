@@ -29,7 +29,7 @@ interface PaginationInfo {
     total_returned: number;
 }
 
-const AdminWorkflowLogsContent: React.FC = () => {
+const AdminWorkflowChatLogsContent: React.FC = () => {
     const [logs, setLogs] = useState<WorkflowLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -662,4 +662,4 @@ const AdminWorkflowLogsContent: React.FC = () => {
     );
 };
 
-export default AdminWorkflowLogsContent;
+export default AdminWorkflowChatLogsContent;

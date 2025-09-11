@@ -12,11 +12,12 @@ import AdminUserContent from '@/app/admin/components/user/AdminUserContent';
 import AdminRegisterUser from '@/app/admin/components/user/AdminRegisterUser';
 import AdminConfigViewer from '@/app/admin/components/config/AdminConfigViewer';
 import AdminSettings from '@/app/admin/components/config/AdminSettings';
-import AdminWorkflowLogsContent from '@/app/admin/components/workflows/AdminWorkflowLogsContent';
+import AdminWorkflowChatLogsContent from '@/app/admin/components/workflows/AdminWorkflowChatLogsContent';
 import AdminGroupContent from '@/app/admin/components/group/AdminGroupContent';
 import AdminPlayground from '@/app/admin/components/workflows/playground/AdminPlayground';
 import AdminSystemMonitor from '@/app/admin/components/sysmonitor/AdminSystemMonitor';
 import AdminDatabase from '@/app/admin/components/database/AdminDatabase';
+import AdminWorkflowControll from '@/app/admin/components/workflows/AdminWorkflowControll';
 import {
     getUserSidebarItems,
     getWorkflowSidebarItems,
@@ -122,7 +123,7 @@ const AdminPageContent: React.FC = () => {
         const validSections = [
             'dashboard',
             'users', 'user-create', 'group-permissions',
-            'system-config', 'system-settings', 'chat-monitoring', 'workflow-monitoring', 'system-monitor', 'system-health',
+            'workflow-management', 'system-config', 'system-settings', 'chat-monitoring', 'workflow-monitoring', 'system-monitor', 'system-health',
             'database', 'storage', 'backup',
             'security-settings', 'audit-logs', 'error-logs', 'access-logs'
         ];
@@ -167,6 +168,15 @@ const AdminPageContent: React.FC = () => {
                         <AdminGroupContent />
                     </AdminContentArea>
                 );
+            case 'workflow-management':
+                return (
+                    <AdminContentArea
+                        title="워크플로우 관리"
+                        description="전체 시스템의 워크플로우를 관리하고 모니터링합니다."
+                    >
+                        <AdminWorkflowControll />
+                    </AdminContentArea>
+                );
             case 'system-config':
                 return (
                     <AdminContentArea
@@ -191,7 +201,7 @@ const AdminPageContent: React.FC = () => {
                         title="채팅 모니터링"
                         description="실시간 채팅 활동 및 상태를 모니터링하세요."
                     >
-                        <AdminWorkflowLogsContent />
+                        <AdminWorkflowChatLogsContent />
                     </AdminContentArea>
                 );
             case 'workflow-monitoring':
