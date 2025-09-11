@@ -13,7 +13,6 @@ import {
 } from 'react-icons/fi';
 import styles from '@/app/admin/assets/workflows/AdminWorkflowControll.module.scss';
 import { getAllWorkflowMeta, deleteWorkflowAdmin } from '@/app/admin/api/workflow';
-import { getDeployStatus } from '@/app/api/workflow/deploy';
 
 import { devLog } from '@/app/_common/utils/logger';
 import {
@@ -69,10 +68,8 @@ const AdminWorkflowControll: React.FC = () => {
                     status = 'inactive';
                 }
 
-                // 배포 상태 가져오기
-                fetchDeployStatus(detail.workflow_name, detail.user_id).then(deployStatus => {
-                    setDeployed_list(prev => ({...prev, [detail.workflow_name]: deployStatus}));
-                });
+                // getAllWorkflowMeta에서 이미 배포 정보를 가져옴
+                setDeployed_list(prev => ({...prev, [detail.workflow_name]: detail.is_deployed}));
 
                 return {
                     key_value: detail.id,
@@ -101,15 +98,7 @@ const AdminWorkflowControll: React.FC = () => {
         }
     };
 
-    const fetchDeployStatus = async (workflowName: string, user_id: number | string) => {
-        try {
-            const status = await getDeployStatus(workflowName, String(user_id));
-            return status.is_deployed;
-        } catch (error) {
-            devLog.error('Failed to fetch deploy status:', error);
-            return null;
-        }
-    };
+
 
     useEffect(() => {
         fetchWorkflows();
