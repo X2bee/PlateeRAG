@@ -2,21 +2,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
     FiMessageSquare,
-    FiSend,
     FiClock,
-    FiTrash2,
 } from 'react-icons/fi';
-import {
-    executeWorkflowById,
-    deleteWorkflowIOLogs,
-} from '@/app/api/workflow/workflowAPI';
 import { getIOLogsAdmin } from '@/app/admin/api/workflow';
 import styles from '@/app/admin/assets/playground/Executor.module.scss';
-import {
-    showLogDeleteConfirmKo,
-    showDeleteSuccessToastKo,
-    showDeleteErrorToastKo,
-} from '@/app/_common/utils/toastUtilsKo';
 
 interface Workflow {
     workflow_name: string;
@@ -46,28 +35,11 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
     );
     const [ioLogs, setIOLogs] = useState<IOLog[]>([]);
     const [executorLoading, setExecutorLoading] = useState(false);
-    const [executing, setExecuting] = useState(false);
-    const [deletingLogs, setDeletingLogs] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [inputMessage, setInputMessage] = useState<string>('');
-    const [pendingLogId, setPendingLogId] = useState<string | null>(null);
-
-    const executorMessagesRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         loadExecutorLogs(workflow);
     }, [workflow]);
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [ioLogs]);
-
-    const scrollToBottom = () => {
-        if (executorMessagesRef.current) {
-            executorMessagesRef.current.scrollTop =
-                executorMessagesRef.current.scrollHeight;
-        }
-    };
 
     const loadExecutorLogs = async (workflow: Workflow | null) => {
         if (workflow) {
@@ -82,7 +54,6 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                 );
                 setIOLogs((logs as any).in_out_logs || []);
                 setSelectedWorkflow(workflow);
-                setPendingLogId(null); // 기존 임시 메시지 제거
             } catch (err) {
                 setError('실행 로그를 불러오는데 실패했습니다.');
                 setIOLogs([]);
@@ -99,125 +70,9 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
         return new Date(dateString).toLocaleString('ko-KR');
     };
 
-    // Handle log deletion with Toast confirmation (exactly like CompletedWorkflows)
-    const clearWorkflowLogs = async () => {
-        if (!selectedWorkflow) {
-            return;
-        }
 
-        const workflowName = selectedWorkflow.workflow_name.replace('.json', '');
 
-        showLogDeleteConfirmKo(
-            '실행 로그',
-            workflowName,
-            async () => {
-                try {
-                    setDeletingLogs(true);
-                    setError(null);
 
-                    const result = await deleteWorkflowIOLogs(
-                        workflowName,
-                        selectedWorkflow.workflow_id
-                    );
-
-                    // 성공 시 로그 목록 초기화
-                    setIOLogs([]);
-                    setPendingLogId(null);
-
-                    // 성공 토스트 메시지
-                    const deletedCount = (result as any).deleted_count || 0;
-                    showDeleteSuccessToastKo({
-                        itemName: workflowName,
-                        itemType: '실행 로그',
-                        count: deletedCount,
-                        customMessage: `"${workflowName}" 워크플로우의 실행 로그가 성공적으로 삭제되었습니다! (${deletedCount}개 로그 제거됨)`,
-                    });
-                } catch (error) {
-                    console.error('Failed to delete logs:', error);
-                    setError('로그 삭제에 실패했습니다.');
-                    showDeleteErrorToastKo({
-                        itemName: workflowName,
-                        itemType: '실행 로그',
-                        error: error instanceof Error ? error : 'Unknown error',
-                        customMessage: `실행 로그 삭제에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-                    });
-                } finally {
-                    setDeletingLogs(false);
-                }
-            }
-        );
-    };
-
-    const executeWorkflow = async () => {
-        if (!selectedWorkflow || !inputMessage.trim()) {
-            return;
-        }
-        setError(null);
-        setExecuting(true);
-        const tempId = `pending-${Date.now()}`;
-        setPendingLogId(tempId);
-        setIOLogs((prev) => [
-            ...prev,
-            {
-                log_id: tempId,
-                workflow_name: selectedWorkflow.workflow_name.replace('.json', ''),
-                workflow_id: selectedWorkflow.workflow_id,
-                input_data: inputMessage,
-                output_data: '',
-                updated_at: new Date().toISOString(),
-            },
-        ]);
-        setInputMessage('');
-        try {
-            const workflowName = selectedWorkflow.workflow_name.replace('.json', '');
-            const result: any = await executeWorkflowById(
-                workflowName,
-                selectedWorkflow.workflow_id,
-                inputMessage,
-                'default', // interaction_id
-                null, // selectedCollections - Executor에서는 컬렉션을 사용하지 않음
-                null, // additional_params
-                null, // user_id - admin에서는 현재 로그인한 사용자
-            );
-            setIOLogs((prev) =>
-                prev.map((log) =>
-                    String(log.log_id) === tempId
-                        ? {
-                              ...log,
-                              output_data: result.outputs
-                                  ? JSON.stringify(result.outputs)
-                                  : result.message || '성공',
-                              updated_at: new Date().toISOString(),
-                          }
-                        : log,
-                ),
-            );
-            setPendingLogId(null);
-        } catch (err) {
-            setIOLogs((prev) =>
-                prev.map((log) =>
-                    String(log.log_id) === tempId
-                        ? {
-                              ...log,
-                              output_data:
-                                  err instanceof Error ? err.message : '실패',
-                              updated_at: new Date().toISOString(),
-                          }
-                        : log,
-                ),
-            );
-            setPendingLogId(null);
-        } finally {
-            setExecuting(false);
-        }
-    };
-
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey && !executing) {
-            e.preventDefault();
-            executeWorkflow();
-        }
-    };
 
     return (
         <>
@@ -236,127 +91,61 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                         <span>실행 로그를 불러오는 중...</span>
                     </div>
                 ) : (
-                    <div className={styles.executorData}>
-                        <div className={styles.executorHeader}>
+                    <div className={styles.logTableData}>
+                        <div className={styles.logTableHeader}>
                             <h3>
                                 {selectedWorkflow.workflow_name.replace('.json', '')}{' '}
-                                - 테스트 로그
+                                - 실행 로그
                             </h3>
                             <div className={styles.headerActions}>
                                 <div className={styles.logCount}>
                                     <FiMessageSquare />
                                     <span>{ioLogs.length}개의 로그</span>
                                 </div>
-                                {ioLogs.length > 0 && (
-                                    <button
-                                        className={styles.clearLogsBtn}
-                                        onClick={clearWorkflowLogs}
-                                        disabled={deletingLogs}
-                                        title="로그 초기화"
-                                    >
-                                        <FiTrash2 />
-                                        {deletingLogs ? '삭제 중...' : '로그 초기화'}
-                                    </button>
-                                )}
                             </div>
                         </div>
 
-                        <div className={styles.executorContainer}>
-                            <div
-                                ref={executorMessagesRef}
-                                className={styles.executorMessages}
-                            >
-                                {ioLogs.length === 0 ? (
-                                    <div className={styles.emptyexecutorState}>
-                                        <FiClock className={styles.emptyIcon} />
-                                        <p>테스트를 실행한 기록이 없습니다.</p>
-                                        <p>아래 채팅에서 테스트를 진행해 보세요.</p>
+                        <div className={styles.logTableContainer}>
+                            {ioLogs.length === 0 ? (
+                                <div className={styles.emptyLogState}>
+                                    <FiClock className={styles.emptyIcon} />
+                                    <p>실행 로그가 없습니다.</p>
+                                    <p>워크플로우 실행 기록이 여기에 표시됩니다.</p>
+                                </div>
+                            ) : (
+                                <div className={styles.logTable}>
+                                    <div className={styles.logTableHead}>
+                                        <div className={styles.logTableRow}>
+                                            <div className={styles.logTableCell}>번호</div>
+                                            <div className={styles.logTableCell}>실행 시간</div>
+                                            <div className={styles.logTableCell}>입력 데이터</div>
+                                            <div className={styles.logTableCell}>출력 데이터</div>
+                                        </div>
                                     </div>
-                                ) : (
-                                    ioLogs.map((log) => (
-                                        <div
-                                            key={log.log_id}
-                                            className={styles.executorExchange}
-                                        >
-                                            <div className={styles.userMessage}>
-                                                <div
-                                                    className={
-                                                        styles.messageContent
-                                                    }
-                                                >
-                                                    {log.input_data}
+                                    <div className={styles.logTableBody}>
+                                        {ioLogs.map((log, index) => (
+                                            <div key={log.log_id} className={styles.logTableRow}>
+                                                <div className={styles.logTableCell}>
+                                                    {index + 1}
                                                 </div>
-                                                <div
-                                                    className={
-                                                        styles.messageTime
-                                                    }
-                                                >
+                                                <div className={styles.logTableCell}>
                                                     {formatDate(log.updated_at)}
                                                 </div>
-                                            </div>
-                                            <div className={styles.botMessage}>
-                                                <div
-                                                    className={
-                                                        styles.messageContent
-                                                    }
-                                                >
-                                                    {String(log.log_id) ===
-                                                        pendingLogId &&
-                                                    executing &&
-                                                    !log.output_data ? (
-                                                        <div className={styles.typingIndicator}>
-                                                            <span></span>
-                                                            <span></span>
-                                                            <span></span>
-                                                        </div>
-                                                    ) : (
-                                                        log.output_data
-                                                    )}
+                                                <div className={styles.logTableCell}>
+                                                    <div className={styles.logDataContent}>
+                                                        {log.input_data}
+                                                    </div>
+                                                </div>
+                                                <div className={styles.logTableCell}>
+                                                    <div className={styles.logDataContent}>
+                                                        {log.output_data}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-
-                            <div className={styles.executorInputArea}>
-                                <div className={styles.inputContainer}>
-                                    <input
-                                        type="text"
-                                        placeholder="메시지를 입력하세요..."
-                                        value={inputMessage}
-                                        onChange={(e) =>
-                                            setInputMessage(e.target.value)
-                                        }
-                                        onKeyPress={handleKeyPress}
-                                        disabled={executing}
-                                        className={styles.executorInput}
-                                    />
-                                    <button
-                                        onClick={executeWorkflow}
-                                        disabled={
-                                            executing || !inputMessage.trim()
-                                        }
-                                        className={`${styles.sendButton} ${executing || !inputMessage.trim() ? styles.disabled : styles.active}`}
-                                    >
-                                        {executing ? (
-                                            <div
-                                                className={styles.loadingSpinner}
-                                            ></div>
-                                        ) : (
-                                            <FiSend />
-                                        )}
-                                    </button>
+                                        ))}
+                                    </div>
                                 </div>
-                                {executing && (
-                                    <p className={styles.executingNote}>
-                                        워크플로우를 실행 중입니다...
-                                    </p>
-                                )}
-                                {error && (
-                                    <p className={styles.errorNote}>{error}</p>
-                                )}
-                            </div>
+                            )}
                         </div>
                     </div>
                 )}

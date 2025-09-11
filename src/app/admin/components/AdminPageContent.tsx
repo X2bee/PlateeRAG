@@ -19,6 +19,7 @@ import AdminSystemMonitor from '@/app/admin/components/monitor/AdminSystemMonito
 import AdminDatabase from '@/app/admin/components/database/AdminDatabase';
 import {
     getUserSidebarItems,
+    getWorkflowSidebarItems,
     getSettingSidebarItems,
     getSystemSidebarItems,
     getDataSidebarItems,
@@ -92,6 +93,7 @@ const AdminPageContent: React.FC = () => {
 
     // 사이드바 아이템들
     const userItems = getUserSidebarItems();
+    const workflowItems = getWorkflowSidebarItems();
     const settingItems = getSettingSidebarItems();
     const systemItems = getSystemSidebarItems();
     const dataItems = getDataSidebarItems();
@@ -303,6 +305,7 @@ const AdminPageContent: React.FC = () => {
                     isOpen={isSidebarOpen}
                     onToggle={toggleSidebar}
                     userItems={userItems}
+                    workflowItems={workflowItems}
                     settingItems={settingItems}
                     systemItems={systemItems}
                     dataItems={dataItems}
@@ -310,7 +313,9 @@ const AdminPageContent: React.FC = () => {
                     activeItem={activeSection}
                     onItemClick={(itemId: string) => setActiveSection(itemId)}
                     initialUserExpanded={['users', 'user-create', 'group-permissions'].includes(activeSection)}
-                    initialSystemExpanded={['system-config', 'system-settings', 'chat-monitoring', 'workflow-monitoring', 'system-monitor', 'system-health'].includes(activeSection)}
+                    initialWorkflowExpanded={['workflow-management', 'workflow-monitoring', 'chat-monitoring'].includes(activeSection)}
+                    initialSettingExpanded={['system-config', 'system-settings'].includes(activeSection)}
+                    initialSystemExpanded={['system-monitor', 'system-health'].includes(activeSection)}
                     initialDataExpanded={['database', 'storage', 'backup'].includes(activeSection)}
                     initialSecurityExpanded={['security-settings', 'audit-logs', 'error-logs', 'access-logs'].includes(activeSection)}
                 />

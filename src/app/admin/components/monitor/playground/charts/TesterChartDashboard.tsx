@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
+import { createPortal } from 'react-dom';
 import { FiX, FiLoader } from 'react-icons/fi';
 import styles from '@/app/admin/assets/playground/ChartDashboard.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
@@ -178,7 +179,7 @@ const TesterChartDashboard: React.FC<TesterChartDashboardProps> = ({
 
     const isDataAvailable = chartData && chartData.datasets && chartData.datasets[0].data.length > 0;
 
-    return (
+    const modalContent = (
         <div className={styles.overlay}>
             <div className={styles.dashboardContainer}>
                 <div className={styles.header}>
@@ -221,6 +222,8 @@ const TesterChartDashboard: React.FC<TesterChartDashboardProps> = ({
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };
 
 export default TesterChartDashboard;
