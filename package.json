@@ -14,7 +14,7 @@
     ],
     "author": "Plateer AI-LAB, CocoRoF, haesookimDev",
     "scripts": {
-        "dev": "next dev --turbopack",
+        "dev": "next dev --turbopack --port 3010",
         "build": "next build",
         "start": "next start",
         "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
