@@ -78,6 +78,24 @@
     &.fileNode:hover {
         background-color: #fff3e0;
     }
+
+    &.currentFolder {
+        background-color: #e8f5e8;
+        border-left: 3px solid #4caf50;
+        font-weight: 600;
+
+        &:hover {
+            background-color: #d4edda;
+        }
+
+        .nodeName {
+            color: #2e7d32;
+        }
+
+        .folderIcon {
+            color: #4caf50;
+        }
+    }
 }
 
 .nodeIcon {

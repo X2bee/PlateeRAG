@@ -7,17 +7,15 @@ import {
     FiTrash2,
 } from 'react-icons/fi';
 import {
-    getWorkflowIOLogs,
     executeWorkflowById,
     deleteWorkflowIOLogs,
 } from '@/app/api/workflow/workflowAPI';
+import { getIOLogsAdmin } from '@/app/admin/api/workflow';
 import styles from '@/app/admin/assets/playground/Executor.module.scss';
 import {
     showLogDeleteConfirmKo,
     showDeleteSuccessToastKo,
     showDeleteErrorToastKo,
-    showSuccessToastKo,
-    showErrorToastKo
 } from '@/app/_common/utils/toastUtilsKo';
 
 interface Workflow {
@@ -77,7 +75,8 @@ const Executor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                 setExecutorLoading(true);
                 setError(null);
                 const workflowName = workflow.workflow_name.replace('.json', '');
-                const logs = await getWorkflowIOLogs(
+                const logs = await getIOLogsAdmin(
+                    null, // userId - null이면 모든 사용자
                     workflowName,
                     workflow.workflow_id,
                 );

@@ -124,7 +124,7 @@ export interface SearchResponse {
 }
 
 // 뷰 모드 관련 타입들
-export type ViewMode = 'collections' | 'documents' | 'documents-graph' | 'documents-directory' | 'document-detail' | 'all-documents-graph';
+export type ViewMode = 'collections' | 'documents' | 'documents-graph' | 'document-detail' | 'all-documents-graph';
 export type CollectionFilter = 'all' | 'personal' | 'shared';
 
 // 그래프 관련 타입들
@@ -231,7 +231,7 @@ export interface WorkflowDetailResponse {
     id: number;
     workflow_name: string;
     workflow_id: string;
-    user_name: string;
+    username: string;
     user_id: number;
     node_count: number;
     edge_count: number;

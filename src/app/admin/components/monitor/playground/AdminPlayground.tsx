@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { FiRefreshCw } from 'react-icons/fi';
 import { listWorkflowsDetail } from '@/app/api/workflow/workflowAPI';
+import { getAllWorkflowMeta } from '@/app/admin/api/workflow';
+
 import styles from '@/app/admin/assets/playground/AdminPlayground.module.scss';
 import Executor from '@/app/admin/components/monitor/playground/Executor';
 import Monitor from '@/app/admin/components/monitor/playground/Monitor';
@@ -21,6 +23,20 @@ interface Workflow {
     updated_at: string;
     has_startnode: boolean;
     has_endnode: boolean;
+    username: string;
+    full_name: string;
+}
+
+interface Pagination {
+    page: number;
+    page_size: number;
+    offset: number;
+    total_returned: number;
+}
+
+interface WorkflowListResponse {
+    workflows: Workflow[];
+    pagination: Pagination;
 }
 
 const AdminPlayground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) => {
@@ -62,8 +78,8 @@ const AdminPlayground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) 
         try {
             setWorkflowListLoading(true);
             setError(null);
-            const workflowList = await listWorkflowsDetail();
-            setWorkflows(workflowList as Workflow[]);
+            const workflowListResponse = await getAllWorkflowMeta() as WorkflowListResponse;
+            setWorkflows(workflowListResponse.workflows);
             setSelectedWorkflow(null);
         } catch (err) {
             setError('워크플로우 목록을 불러오는데 실패했습니다.');
@@ -147,7 +163,7 @@ const AdminPlayground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) 
                                     </div>
                                     <div className={styles.workflowInfo}>
                                         <span>
-                                            {workflow.node_count}개 노드
+                                            {workflow.username}({workflow.full_name})
                                         </span>
                                         <span>
                                             {formatDate(workflow.updated_at)}

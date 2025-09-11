@@ -73,7 +73,7 @@ const CompletedWorkflows: React.FC = () => {
                         id: detail.workflow_id,
                         name:
                             detail.workflow_name,
-                        author: detail.user_name,
+                        author: detail.username,
                         user_id: detail.user_id,
                         nodeCount: detail.node_count,
                         lastModified: detail.updated_at,
