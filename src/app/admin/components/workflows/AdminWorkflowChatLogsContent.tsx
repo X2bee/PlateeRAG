@@ -9,6 +9,7 @@ import styles from '@/app/admin/assets/AdminWorkflowLogsContent.module.scss';
 interface WorkflowLog {
     id: number;
     user_id: number | null;
+    username: string | null;
     interaction_id: string;
     workflow_id: string;
     workflow_name: string;
@@ -382,6 +383,15 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
         );
     };
 
+    // 사용자 정보 포맷팅 함수
+    const formatUserInfo = (username: string | null, userId: number | null) => {
+        if (!username && !userId) return '-';
+        if (username && userId) return `${username}(${userId})`;
+        if (username) return username;
+        if (userId) return userId.toString();
+        return '-';
+    };
+
     // 데이터 미리보기 (긴 텍스트 줄이기)
     const truncateText = (text: string | null, maxLength = 50) => {
         if (!text) return '-';
@@ -631,7 +641,7 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
                             displayLogs.map((log) => (
                                 <tr key={log.id} className={styles.tableRow}>
                                     <td className={styles.logId}>{log.id}</td>
-                                    <td className={styles.userId}>{log.user_id || '-'}</td>
+                                    <td className={styles.userId}>{formatUserInfo(log.username, log.user_id)}</td>
                                     <td className={styles.workflowName} title={log.workflow_name}>
                                         {truncateText(log.workflow_name, 30)}
                                     </td>

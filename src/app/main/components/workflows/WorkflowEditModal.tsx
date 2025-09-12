@@ -79,13 +79,10 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
 
             await updateWorkflow(workflow.name, updateDict);
 
-            // 업데이트된 워크플로우 정보를 부모 컴포넌트에 전달
             const updatedWorkflow = {
                 ...workflow,
                 is_shared: isShared,
                 share_group: isShared ? shareGroup || null : null,
-                inquire_deploy: toggleDeploy,  // 일반 사용자의 경우 배포 요청 상태
-                is_deployed: false  // 즉시 배포되지는 않음
             };
 
             // 배포 상태: toggleDeploy가 true이면 'pending' (일반 사용자) 또는 true (관리자)

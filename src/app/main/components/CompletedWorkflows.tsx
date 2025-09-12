@@ -83,6 +83,7 @@ const CompletedWorkflows: React.FC = () => {
                         share_permissions: detail.share_permissions,
                         inquire_deploy: (detail as any).inquire_deploy,
                         is_accepted: (detail as any).is_accepted,
+                        is_deployed: (detail as any).is_deployed,
                     };
                 },
             );
