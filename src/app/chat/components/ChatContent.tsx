@@ -193,12 +193,12 @@ return (
                         <p>자유롭게 대화하기</p>
                     </button>
                     <button
-                        className={`${styles.chatOption} ${styles.sessionChat}`}
-                        onClick={() => router.push('/session-chat?session=test-session-1')}
+                        className={`${styles.chatButton} ${styles.sessionChat}`}
+                        onClick={() => router.push(`/session-chat?session=session-${Date.now()}`)}
                     >
                         <IoChatbubblesOutline />
-                        <h3>세션 채팅 테스트</h3>
-                        <p>세션 기반 채팅 테스트</p>
+                        <h3>세션 채팅</h3>
+                        <p>대화 기록 관리 및 워크플로우 전환</p>
                     </button>
                 </div>
             </div>

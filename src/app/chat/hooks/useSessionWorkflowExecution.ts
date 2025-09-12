@@ -7,6 +7,7 @@ import { isStreamingWorkflowFromWorkflow } from '@/app/_common/utils/isStreaming
 import { WorkflowData } from '@/app/canvas/types';
 import { IOLog } from '../components/types';
 import { devLog } from '@/app/_common/utils/logger';
+import { SessionManager } from '../utils/sessionManager';
 
 interface SessionData {
     sessionId: string;
@@ -146,7 +147,7 @@ export const useSessionWorkflowExecution = ({
                                     interactionId,
                                 };
                                 setSessionData(updatedSessionData);
-                                saveSessionToStorage(updatedSessionData);
+                                SessionManager.saveSessionData(updatedSessionData);
                             }
                             return currentLogs;
                         });
@@ -194,7 +195,7 @@ export const useSessionWorkflowExecution = ({
                 };
                 
                 setSessionData(updatedSessionData);
-                saveSessionToStorage(updatedSessionData);
+                SessionManager.saveSessionData(updatedSessionData);
                 setPendingLogId(null);
             }
 

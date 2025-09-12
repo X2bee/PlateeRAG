@@ -14,6 +14,7 @@ import {
     FiX
 } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
+import { createPortal } from 'react-dom';
 import { SessionManager as SM, SessionListItem } from '../utils/sessionManager';
 import { showSuccessToastKo, showErrorToastKo, showWarningToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '../assets/SessionManager.module.scss';
@@ -194,8 +195,8 @@ const SessionManager: React.FC<SessionManagerProps> = ({
 
     if (!isOpen) return null;
 
-    return (
-        <div className={styles.overlay}>
+    const modalContent = (
+       <div className={styles.overlay}>
             <div className={styles.modal}>
                 <div className={styles.header}>
                     <h2>세션 관리</h2>
@@ -337,6 +338,11 @@ const SessionManager: React.FC<SessionManagerProps> = ({
                 </div>
             </div>
         </div>
+    );
+
+    return createPortal(
+        modalContent,
+        document.body
     );
 };
 

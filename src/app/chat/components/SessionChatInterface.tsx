@@ -13,9 +13,10 @@ import { ChatContainer, ChatContainerRef } from './ChatContainer';
 import { useChatState } from '../hooks/useChatState';
 import { useSessionWorkflowExecution } from '../hooks/useSessionWorkflowExecution';
 import { SessionManager } from '../utils/sessionManager';
+import { MemoryMonitor, SessionDataOptimizer, useDebounce, PerformanceMetrics } from '../utils/performanceOptimizer';
+import { ChatNavigationManager } from '../utils/chatNavigation';
 import SessionManagerModal from './SessionManager';
-import { speakText, extractPlainText, sanitizeTextForTTS } from '@/app/_common/utils/ttsUtils';
-import { showCopySuccessToastKo, showSuccessToastKo, showWarningToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
+import SessionWorkflowSelector from './SessionWorkflowSelector';
 
 interface SessionChatInterfaceProps {
     sessionId: string;
@@ -25,6 +26,7 @@ interface SessionChatInterfaceProps {
 // 세션 데이터 타입 정의
 interface SessionData {
     sessionId: string;
+    sessionName?: string;
     messages: IOLog[];
     workflow?: any;
     createdAt: string;
@@ -61,9 +63,18 @@ const SessionChatInterface: React.FC<SessionChatInterfaceProps> = ({
 
     // 로컬 상태
     const [ioLogs, setIOLogs] = useState<IOLog[]>([]);
+    const [showSessionManager, setShowSessionManager] = useState(false);
 
     // 통합 상태 관리
     const { state, actions } = useChatState();
+
+    // 성능 최적화를 위한 디바운싱된 저장 함수
+    const debouncedSaveSession = useDebounce((data: SessionData) => {
+        const stopTimer = PerformanceMetrics.startTimer('session-save');
+        const optimizedData = SessionDataOptimizer.cleanupSessionData(data);
+        SessionManager.saveSessionData(optimizedData);
+        stopTimer();
+    }, 1000);
 
     // 스크롤 관리
     const scrollToBottom = useCallback(() => {
@@ -79,26 +90,12 @@ const SessionChatInterface: React.FC<SessionChatInterfaceProps> = ({
         setSessionData,
         setIOLogs,
         scrollToBottom,
-        saveSessionToStorage: (data: SessionData) => {
-            try {
-                localStorage.setItem(`session-${sessionId}`, JSON.stringify(data));
-            } catch (error) {
-                devLog.error('Failed to save session data:', error);
-            }
-        }
+        saveSessionToStorage: debouncedSaveSession
     });
 
     // 세션 데이터 로드
     const loadSessionFromStorage = useCallback((): SessionData | null => {
-        try {
-            const data = localStorage.getItem(`session-${sessionId}`);
-            if (data) {
-                return JSON.parse(data);
-            }
-        } catch (error) {
-            devLog.error('Failed to load session data:', error);
-        }
-        return null;
+        return SessionManager.getSessionData(sessionId);
     }, [sessionId]);
 
 
@@ -124,6 +121,33 @@ const SessionChatInterface: React.FC<SessionChatInterfaceProps> = ({
     const handlePDFViewerClose = useCallback(() => {
         actions.hidePDFViewer();
     }, [actions]);
+
+    // 세션 관리자 열기/닫기
+    const handleOpenSessionManager = useCallback(() => {
+        setShowSessionManager(true);
+    }, []);
+
+    const handleCloseSessionManager = useCallback(() => {
+        setShowSessionManager(false);
+    }, []);
+
+    // 일반 채팅으로 전환
+    const handleSwitchToRegularChat = useCallback(() => {
+        ChatNavigationManager.navigateToRegularChat(router);
+    }, [router]);
+
+    // 워크플로우 변경 핸들러
+    const handleWorkflowChange = useCallback((workflow: any) => {
+        const updatedSessionData: SessionData = {
+            ...sessionData,
+            workflow: workflow || DEFAULT_WORKFLOW,
+            lastActiveAt: new Date().toISOString(),
+        };
+        
+        setSessionData(updatedSessionData);
+        debouncedSaveSession(updatedSessionData);
+        devLog.log('Workflow changed in session:', sessionId, workflow?.name);
+    }, [sessionData, sessionId, debouncedSaveSession]);
 
     // 메시지 렌더링
     const renderMessageContent = useCallback((content: string, isUserMessage: boolean = false, onHeightChange?: () => void, messageId?: string) => {
@@ -172,15 +196,51 @@ const SessionChatInterface: React.FC<SessionChatInterfaceProps> = ({
 
     // 세션 데이터 초기화
     useEffect(() => {
+        const stopTimer = PerformanceMetrics.startTimer('session-load');
+        
         const savedSession = loadSessionFromStorage();
         if (savedSession) {
-            setSessionData(savedSession);
-            setIOLogs(savedSession.messages);
-            devLog.log('Loaded session data:', savedSession);
+            // 데이터 최적화 적용
+            const optimizedSession = SessionDataOptimizer.cleanupSessionData(savedSession);
+            setSessionData(optimizedSession);
+            setIOLogs(optimizedSession.messages);
+            devLog.log('Loaded session data:', optimizedSession);
         } else {
             devLog.log('No existing session data, using defaults');
         }
+        
+        stopTimer();
     }, [loadSessionFromStorage]);
+
+    // 메모리 모니터링
+    useEffect(() => {
+        const interval = setInterval(() => {
+            MemoryMonitor.trackMemoryUsage();
+            
+            // 성능 메트릭 로깅 (5분마다)
+            const now = Date.now();
+            if (now % (5 * 60 * 1000) < 10000) { // 대략 5분마다
+                const metrics = PerformanceMetrics.getAllMetrics();
+                const memoryStats = MemoryMonitor.getMemoryStats();
+                
+                devLog.log('Performance metrics:', metrics);
+                devLog.log('Memory stats:', memoryStats);
+            }
+        }, 10000); // 10초마다 메모리 체크
+
+        return () => clearInterval(interval);
+    }, []);
+
+    // 컴포넌트 언마운트 시 최종 저장
+    useEffect(() => {
+        return () => {
+            if (sessionData.messages.length > 0) {
+                const optimizedData = SessionDataOptimizer.cleanupSessionData(sessionData);
+                SessionManager.saveSessionData(optimizedData);
+                devLog.log('Session data saved on unmount');
+            }
+        };
+    }, [sessionData]);
 
     // ChatHeader props
     const chatHeaderProps = useMemo(() => ({
@@ -254,13 +314,45 @@ const SessionChatInterface: React.FC<SessionChatInterfaceProps> = ({
         <div className={styles.container}>
             <ChatHeader {...chatHeaderProps} />
             <div className={styles.sessionInfo}>
-                <span>세션 ID: {sessionId}</span>
-                <span>메시지 수: {ioLogs.length}</span>
-                {sessionData.lastActiveAt && (
-                    <span>마지막 활동: {formatDate(sessionData.lastActiveAt)}</span>
-                )}
+                <div className={styles.sessionDetails}>
+                    <span>세션: {sessionData.sessionName || sessionId}</span>
+                    <span>메시지 수: {ioLogs.length}</span>
+                    {sessionData.lastActiveAt && (
+                        <span>마지막 활동: {formatDate(sessionData.lastActiveAt)}</span>
+                    )}
+                </div>
+                <div className={styles.sessionActions}>
+                    <button 
+                        className={styles.sessionManagerButton}
+                        onClick={handleOpenSessionManager}
+                        title="세션 관리"
+                    >
+                        세션 관리
+                    </button>
+                    <button 
+                        className={`${styles.sessionManagerButton} ${styles.switchButton}`}
+                        onClick={handleSwitchToRegularChat}
+                        title="일반 채팅으로 전환"
+                    >
+                        일반 채팅
+                    </button>
+                </div>
+            </div>
+            
+            <div className={styles.workflowSelector}>
+                <SessionWorkflowSelector
+                    currentWorkflow={sessionData.workflow || DEFAULT_WORKFLOW}
+                    onWorkflowChange={handleWorkflowChange}
+                    sessionId={sessionId}
+                />
             </div>
             <ChatContainer ref={chatContainerRef} {...chatContainerProps} />
+            
+            <SessionManagerModal
+                isOpen={showSessionManager}
+                onClose={handleCloseSessionManager}
+                currentSessionId={sessionId}
+            />
         </div>
     );
 };
