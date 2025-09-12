@@ -12,13 +12,16 @@ import AdminUserContent from '@/app/admin/components/user/AdminUserContent';
 import AdminRegisterUser from '@/app/admin/components/user/AdminRegisterUser';
 import AdminConfigViewer from '@/app/admin/components/config/AdminConfigViewer';
 import AdminSettings from '@/app/admin/components/config/AdminSettings';
-import AdminWorkflowLogsContent from '@/app/admin/components/monitor/AdminWorkflowLogsContent';
+import AdminWorkflowChatLogsContent from '@/app/admin/components/workflows/AdminWorkflowChatLogsContent';
 import AdminGroupContent from '@/app/admin/components/group/AdminGroupContent';
-import AdminPlayground from '@/app/admin/components/monitor/playground/AdminPlayground';
-import AdminSystemMonitor from '@/app/admin/components/monitor/AdminSystemMonitor';
+import AdminPlayground from '@/app/admin/components/workflows/playground/AdminPlayground';
+import AdminSystemMonitor from '@/app/admin/components/sysmonitor/AdminSystemMonitor';
 import AdminDatabase from '@/app/admin/components/database/AdminDatabase';
+import AdminWorkflowControll from '@/app/admin/components/workflows/AdminWorkflowControll';
+import AdminBackendLogs from '@/app/admin/components/sysmonitor/AdminBackendLogs';
 import {
     getUserSidebarItems,
+    getWorkflowSidebarItems,
     getSettingSidebarItems,
     getSystemSidebarItems,
     getDataSidebarItems,
@@ -92,6 +95,7 @@ const AdminPageContent: React.FC = () => {
 
     // 사이드바 아이템들
     const userItems = getUserSidebarItems();
+    const workflowItems = getWorkflowSidebarItems();
     const settingItems = getSettingSidebarItems();
     const systemItems = getSystemSidebarItems();
     const dataItems = getDataSidebarItems();
@@ -120,9 +124,11 @@ const AdminPageContent: React.FC = () => {
         const validSections = [
             'dashboard',
             'users', 'user-create', 'group-permissions',
-            'system-config', 'system-settings', 'chat-monitoring', 'workflow-monitoring', 'system-monitor', 'system-health',
+            'workflow-management',  'chat-monitoring', 'workflow-monitoring',
+            'system-config', 'system-settings',
+            'system-monitor', 'system-health', 'backend-logs',
             'database', 'storage', 'backup',
-            'security-settings', 'audit-logs', 'error-logs', 'access-logs'
+            'security-settings', 'audit-logs', 'error-logs',
         ];
         return validSections.includes(section);
     };
@@ -165,6 +171,15 @@ const AdminPageContent: React.FC = () => {
                         <AdminGroupContent />
                     </AdminContentArea>
                 );
+            case 'workflow-management':
+                return (
+                    <AdminContentArea
+                        title="워크플로우 관리"
+                        description="전체 시스템의 워크플로우를 관리하고 모니터링합니다."
+                    >
+                        <AdminWorkflowControll />
+                    </AdminContentArea>
+                );
             case 'system-config':
                 return (
                     <AdminContentArea
@@ -189,7 +204,7 @@ const AdminPageContent: React.FC = () => {
                         title="채팅 모니터링"
                         description="실시간 채팅 활동 및 상태를 모니터링하세요."
                     >
-                        <AdminWorkflowLogsContent />
+                        <AdminWorkflowChatLogsContent />
                     </AdminContentArea>
                 );
             case 'workflow-monitoring':
@@ -218,6 +233,15 @@ const AdminPageContent: React.FC = () => {
                         description="서버 상태 및 서비스 건강성을 체크하세요."
                     >
                         <div>시스템 상태 컴포넌트가 여기에 표시됩니다.</div>
+                    </AdminContentArea>
+                );
+            case 'backend-logs':
+                return (
+                    <AdminContentArea
+                        title="백엔드 로그"
+                        description="백엔드 시스템의 로그를 확인하고 모니터링하세요."
+                    >
+                        <AdminBackendLogs />
                     </AdminContentArea>
                 );
             case 'database':
@@ -274,15 +298,6 @@ const AdminPageContent: React.FC = () => {
                         <div>에러 로그 컴포넌트가 여기에 표시됩니다.</div>
                     </AdminContentArea>
                 );
-            case 'access-logs':
-                return (
-                    <AdminContentArea
-                        title="접근 로그"
-                        description="API 및 웹 접근 로그를 확인하세요."
-                    >
-                        <div>접근 로그 컴포넌트가 여기에 표시됩니다.</div>
-                    </AdminContentArea>
-                );
             default:
                 return (
                     <AdminContentArea
@@ -303,6 +318,7 @@ const AdminPageContent: React.FC = () => {
                     isOpen={isSidebarOpen}
                     onToggle={toggleSidebar}
                     userItems={userItems}
+                    workflowItems={workflowItems}
                     settingItems={settingItems}
                     systemItems={systemItems}
                     dataItems={dataItems}
@@ -310,7 +326,9 @@ const AdminPageContent: React.FC = () => {
                     activeItem={activeSection}
                     onItemClick={(itemId: string) => setActiveSection(itemId)}
                     initialUserExpanded={['users', 'user-create', 'group-permissions'].includes(activeSection)}
-                    initialSystemExpanded={['system-config', 'system-settings', 'chat-monitoring', 'workflow-monitoring', 'system-monitor', 'system-health'].includes(activeSection)}
+                    initialWorkflowExpanded={['workflow-management', 'workflow-monitoring', 'chat-monitoring'].includes(activeSection)}
+                    initialSettingExpanded={['system-config', 'system-settings'].includes(activeSection)}
+                    initialSystemExpanded={['system-monitor', 'system-health'].includes(activeSection)}
                     initialDataExpanded={['database', 'storage', 'backup'].includes(activeSection)}
                     initialSecurityExpanded={['security-settings', 'audit-logs', 'error-logs', 'access-logs'].includes(activeSection)}
                 />

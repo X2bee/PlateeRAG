@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
+import { createPortal } from 'react-dom';
 import { FiX, FiLoader } from 'react-icons/fi';
 import {
     getWorkflowNodeCounts,
@@ -12,21 +13,21 @@ import {
 } from '@/app/api/workflow/workflowAPI';
 import styles from '@/app/admin/assets/playground/ChartDashboard.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
-import ChartPlaceholder from '@/app/admin/components/monitor/playground/charts/ChartPlaceholder';
+import ChartPlaceholder from '@/app/admin/components/workflows/playground/charts/ChartPlaceholder';
 
 interface NodeCount {
-  node_name: string;
-  count: number;
+    node_name: string;
+    count: number;
 }
 interface NodeCountsData {
-  workflow_name: string;
-  workflow_id: string;
-  node_counts: NodeCount[];
-  message?: string;
+    workflow_name: string;
+    workflow_id: string;
+    node_counts: NodeCount[];
+    message?: string;
 }
 interface NodeCountsResponse {
-  success: boolean;
-  data: NodeCountsData;
+    success: boolean;
+    data: NodeCountsData;
 }
 
 interface ChartDataSet {
@@ -78,7 +79,7 @@ interface ChartDashboardProps {
 }
 
 const isDataAvailable = (data: any): boolean => {
-  return !!(data?.datasets && data.datasets.some((ds: any) => ds.data && ds.data.length > 0));
+    return !!(data?.datasets && data.datasets.some((ds: any) => ds.data && ds.data.length > 0));
 };
 
 
@@ -184,7 +185,7 @@ const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workfl
         return { labels: data.labels, datasets };
     };
 
-    return (
+    const modalContent = (
         <div className={styles.overlay}>
             <div className={styles.dashboardContainer}>
                 <div className={styles.header}>
@@ -254,6 +255,8 @@ const ChartDashboard: React.FC<ChartDashboardProps> = ({ isOpen, onClose, workfl
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };
 
 export default ChartDashboard;

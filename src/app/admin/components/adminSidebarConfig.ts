@@ -42,6 +42,29 @@ export const getUserSidebarItems = (): AdminSidebarItem[] => [
     },
 ];
 
+export const getWorkflowItems = ['workflow-management', 'workflow-monitoring', 'chat-monitoring'];
+
+export const getWorkflowSidebarItems = (): AdminSidebarItem[] => [
+    {
+        id: 'workflow-management',
+        title: '워크플로우 관리',
+        description: '워크플로우 생성, 편집, 삭제 및 관리',
+        icon: React.createElement(FiSettings),
+    },
+    {
+        id: 'workflow-monitoring',
+        title: '워크플로우 모니터링',
+        description: '워크플로우 실행, 성능 분석, 배치 테스트',
+        icon: React.createElement(FiBarChart),
+    },
+    {
+        id: 'chat-monitoring',
+        title: '채팅 모니터링',
+        description: '실시간 채팅 활동 및 상태 모니터링',
+        icon: React.createElement(FiMessageSquare),
+    },
+];
+
 export const getSettingItems = ['system-config', 'system-settings'];
 
 export const getSettingSidebarItems = (): AdminSidebarItem[] => [
@@ -58,21 +81,10 @@ export const getSettingSidebarItems = (): AdminSidebarItem[] => [
         icon: React.createElement(FiSettings),
     },
 ];
-export const getSystemItems = ['chat-monitoring', 'workflow-monitoring', 'system-monitor', 'system-health'];
+
+export const getSystemItems = ['system-monitor', 'system-health', 'backend-logs'];
 
 export const getSystemSidebarItems = (): AdminSidebarItem[] => [
-    {
-        id: 'chat-monitoring',
-        title: '채팅 모니터링',
-        description: '실시간 채팅 활동 및 상태 모니터링',
-        icon: React.createElement(FiMessageSquare),
-    },
-    {
-        id: 'workflow-monitoring',
-        title: '워크플로우 모니터링',
-        description: '워크플로우 실행, 성능 분석, 배치 테스트',
-        icon: React.createElement(FiBarChart),
-    },
     {
         id: 'system-monitor',
         title: '시스템 모니터링',
@@ -84,6 +96,12 @@ export const getSystemSidebarItems = (): AdminSidebarItem[] => [
         title: '시스템 상태',
         description: '서버 상태 및 서비스 건강성 체크',
         icon: React.createElement(FiServer),
+    },
+    {
+        id: 'backend-logs',
+        title: '접근 로그',
+        description: 'API 및 웹 접근 로그',
+        icon: React.createElement(FiFileText),
     },
 ];
 
@@ -110,7 +128,7 @@ export const getDataSidebarItems = (): AdminSidebarItem[] => [
     },
 ];
 
-export const getSecurityItems = ['security-settings', 'audit-logs', 'error-logs', 'access-logs'];
+export const getSecurityItems = ['security-settings', 'audit-logs', 'error-logs'];
 
 export const getSecuritySidebarItems = (): AdminSidebarItem[] => [
     {
@@ -130,12 +148,6 @@ export const getSecuritySidebarItems = (): AdminSidebarItem[] => [
         title: '에러 로그',
         description: '시스템 오류 및 예외 로그',
         icon: React.createElement(FiAlertTriangle),
-    },
-    {
-        id: 'access-logs',
-        title: '접근 로그',
-        description: 'API 및 웹 접근 로그',
-        icon: React.createElement(FiFileText),
     },
 ];
 

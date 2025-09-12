@@ -333,6 +333,25 @@
         z-index: 10;
         white-space: nowrap;
         font-size: $admin-font-size-sm;
+
+        &.sortable {
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            position: relative;
+            transition: background-color 0.2s ease;
+
+            &:hover {
+                background: $admin-bg-hover;
+            }
+
+            &:active {
+                background: $admin-primary-light;
+                transform: scale(0.98);
+            }
+        }
     }
 
     td {
@@ -350,6 +369,41 @@
 
     tr:hover {
         background: $admin-bg-hover;
+    }
+}
+
+.sortIcon {
+    display: inline-block;
+    margin-left: $admin-spacing-xs;
+    font-size: $admin-font-size-sm;
+    color: $admin-primary;
+    font-weight: bold;
+    vertical-align: middle;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+// 정렬 가능한 컬럼에 대한 추가 시각적 피드백
+.resultTable th.sortable {
+    &::after {
+        content: " ⇅";
+        opacity: 0.3;
+        font-size: $admin-font-size-xs;
+        margin-left: $admin-spacing-xs;
+        pointer-events: none;
+        user-select: none;
+        transition: opacity 0.2s ease;
+    }
+
+    &:hover::after {
+        opacity: 0.6;
+    }
+
+    // 정렬 활성화 시 기본 화살표 숨김
+    &:has(.sortIcon)::after {
+        display: none;
     }
 }
 

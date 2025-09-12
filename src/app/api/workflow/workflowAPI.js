@@ -180,8 +180,9 @@ export const duplicateWorkflow = async (workflowName, user_id) => {
  * 백엔드에서 특정 워크플로우의 공유 설정을 업데이트합니다.
  * @param {string} workflowName - 업데이트할 워크플로우 이름
  * @param {Object} updateDict - 업데이트할 설정 딕셔너리
- * @param {boolean} updateDict.is_shared - 공유 여부
+ * @param {boolean|null} updateDict.is_shared - 공유 여부
  * @param {string|null} updateDict.share_group - 공유 그룹
+ * @param {boolean} updateDict.enable_deploy - 배포 활성화 여부
  * @returns {Promise<Object>} 업데이트 결과 객체를 포함하는 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */

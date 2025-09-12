@@ -14,6 +14,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     isOpen,
     onToggle,
     userItems = [],
+    workflowItems = [],
     settingItems = [],
     systemItems = [],
     dataItems = [],
@@ -22,6 +23,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     onItemClick,
     className = '',
     initialUserExpanded = false,
+    initialWorkflowExpanded = false,
     initialSettingExpanded = false,
     initialSystemExpanded = false,
     initialDataExpanded = false,
@@ -30,6 +32,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     const router = useRouter();
     const pathname = usePathname();
     const [isUserExpanded, setIsUserExpanded] = useState(initialUserExpanded);
+    const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(initialWorkflowExpanded);
     const [isSettingExpanded, setIsSettingExpanded] = useState(initialSettingExpanded);
     const [isSystemExpanded, setIsSystemExpanded] = useState(initialSystemExpanded);
     const [isDataExpanded, setIsDataExpanded] = useState(initialDataExpanded);
@@ -60,6 +63,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     };
 
     const toggleUserExpanded = () => setIsUserExpanded(!isUserExpanded);
+    const toggleWorkflowExpanded = () => setIsWorkflowExpanded(!isWorkflowExpanded);
     const toggleSettingExpanded = () => setIsSettingExpanded(!isSettingExpanded);
     const toggleSystemExpanded = () => setIsSystemExpanded(!isSystemExpanded);
     const toggleDataExpanded = () => setIsDataExpanded(!isDataExpanded);
@@ -144,6 +148,34 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
                 <button
                     className={styles.sidebarToggle}
+                    onClick={toggleWorkflowExpanded}
+                >
+                    <span>워크플로우 관리</span>
+                    <span className={`${styles.toggleIcon} ${isWorkflowExpanded ? styles.expanded : ''}`}>
+                        ▼
+                    </span>
+                </button>
+
+                <nav className={`${styles.sidebarNav} ${isWorkflowExpanded ? styles.expanded : ''}`}>
+                    {workflowItems.map((item: any) => (
+                        <button
+                            key={item.id}
+                            onClick={() => onItemClick(item.id)}
+                            className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                        >
+                            {item.icon}
+                            <div className={styles.navText}>
+                                <div className={styles.navTitle}>{item.title}</div>
+                                <div className={styles.navDescription}>
+                                    {item.description}
+                                </div>
+                            </div>
+                        </button>
+                    ))}
+                </nav>
+
+                <button
+                    className={styles.sidebarToggle}
                     onClick={toggleSettingExpanded}
                 >
                     <span>환경 설정</span>
@@ -174,7 +206,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     className={styles.sidebarToggle}
                     onClick={toggleSystemExpanded}
                 >
-                    <span>시스템 관리</span>
+                    <span>시스템 모니터링</span>
                     <span className={`${styles.toggleIcon} ${isSystemExpanded ? styles.expanded : ''}`}>
                         ▼
                     </span>
@@ -230,7 +262,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     className={styles.sidebarToggle}
                     onClick={toggleSecurityExpanded}
                 >
-                    <span>보안 및 로그</span>
+                    <span>보안 관리</span>
                     <span className={`${styles.toggleIcon} ${isSecurityExpanded ? styles.expanded : ''}`}>
                         ▼
                     </span>

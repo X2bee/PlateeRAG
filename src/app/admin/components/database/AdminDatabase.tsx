@@ -47,6 +47,8 @@ const AdminDatabase: React.FC = () => {
     const [isConnected, setIsConnected] = useState(false);
     const [modalContent, setModalContent] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [sortField, setSortField] = useState<string>('');
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
     // 데이터베이스 정보 및 테이블 목록 로드
     const loadDatabaseData = async () => {
@@ -217,6 +219,16 @@ const AdminDatabase: React.FC = () => {
         );
     };
 
+    // 정렬 핸들러
+    const handleSort = (field: string) => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection('asc');
+        }
+    };
+
     useEffect(() => {
         loadDatabaseData();
     }, []);
@@ -244,6 +256,23 @@ const AdminDatabase: React.FC = () => {
 
         const columns = Object.keys(queryResult.data[0]);
 
+        // 정렬된 데이터 생성
+        const sortedData = sortField ? [...queryResult.data].sort((a, b) => {
+            const aValue = a[sortField];
+            const bValue = b[sortField];
+
+            // undefined/null 값 처리
+            if (aValue === undefined || aValue === null) {
+                if (bValue === undefined || bValue === null) return 0;
+                return 1;
+            }
+            if (bValue === undefined || bValue === null) return -1;
+            if (aValue === bValue) return 0;
+
+            const comparison = aValue < bValue ? -1 : 1;
+            return sortDirection === 'asc' ? comparison : -comparison;
+        }) : queryResult.data;
+
         return (
             <div className={styles.resultContainer}>
                 {/* <div className={styles.resultHeader}>
@@ -257,12 +286,23 @@ const AdminDatabase: React.FC = () => {
                         <thead>
                             <tr>
                                 {columns.map((column) => (
-                                    <th key={column}>{column}</th>
+                                    <th
+                                        key={column}
+                                        className={styles.sortable}
+                                        onClick={() => handleSort(column)}
+                                    >
+                                        {column}
+                                        {sortField === column && (
+                                            <span className={styles.sortIcon}>
+                                                {sortDirection === 'asc' ? '↑' : '↓'}
+                                            </span>
+                                        )}
+                                    </th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody>
-                            {queryResult.data.map((row, index) => (
+                            {sortedData.map((row, index) => (
                                 <tr key={index}>
                                     {columns.map((column) => (
                                         <td key={column}>

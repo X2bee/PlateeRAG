@@ -9,7 +9,9 @@ import { showCopySuccessToastKo, showCopyErrorToastKo } from '@/app/_common/util
 import { Workflow } from './types';
 import { getAuthCookie } from '@/app/_common/utils/cookieUtils';
 import { createEncryptedUrlParams } from '@/app/_common/utils/urlEncryption';
-import { getDeployStatus, toggleDeployStatus } from '@/app/api/workflow/deploy';
+import { getDeployStatus } from '@/app/api/workflow/deploy';
+import { updateWorkflow } from '@/app/api/workflow/workflowAPI';
+import { devLog } from '@/app/_common/utils/logger';
 
 interface DeploymentModalProps {
     isOpen: boolean;
@@ -148,7 +150,6 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
     useEffect(() => {
         const fetchDeployStatus = async () => {
             if (workflow && user_id) {
-                // default_mode는 배포 기능이 없으므로 배포 상태 체크를 건너뛰기
                 if (workflow.name === 'default_mode') {
                     setToggleDeploy(false);
                     return;
@@ -162,14 +163,14 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
                     const deployed = await getDeployStatus(workflow.name, user_id);
                     setToggleDeploy(deployed.is_deployed);
                 } catch (err) {
-                    console.error('Failed to fetch deploy status:', err);
+                    devLog.error('Failed to fetch deploy status:', err);
                     setToggleDeploy(false);
                 }
             }
         };
 
         fetchDeployStatus();
-    }, [workflow, user_id]);
+    }, [workflow, user_id, isOpen]);
 
     useEffect(() => {
         if (isOpen) {
@@ -406,7 +407,11 @@ ${formatOutputSchemaForCode(outputSchema, 1)}
                                         className={`${styles.toggleButton} ${toggleDeploy ? styles.active : ''}`}
                                         onClick={async () => {
                                             setToggleDeploy(!toggleDeploy);
-                                            await toggleDeployStatus(workflow.name, !toggleDeploy);
+                                            await updateWorkflow(workflow.name, {
+                                                is_shared: null,
+                                                share_group: null,
+                                                enable_deploy: !toggleDeploy
+                                            });
                                         }}
                                         disabled={loading}
                                     >

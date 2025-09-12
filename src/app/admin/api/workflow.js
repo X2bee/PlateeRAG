@@ -107,3 +107,80 @@ export const getIOLogsAdmin = async (userId = null, workflowName = null, workflo
         throw error;
     }
 };
+
+/**
+ * 관리자용 워크플로우 삭제 함수 (슈퍼유저 권한 필요)
+ * @param {string|number} userId - 사용자 ID
+ * @param {string} workflowName - 삭제할 워크플로우 이름
+ * @returns {Promise<Object>} 삭제 결과 객체
+ */
+export const deleteWorkflowAdmin = async (userId, workflowName) => {
+    try {
+        const url = `${API_BASE_URL}/api/admin/workflow/delete/${encodeURIComponent(workflowName)}?user_id=${userId}`;
+
+        const response = await apiClient(url, {
+            method: 'DELETE',
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+            devLog.error('Failed to delete workflow:', data);
+            throw new Error(data.detail || 'Failed to delete workflow');
+        }
+
+        devLog.log('Delete workflow result:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to delete workflow:', error);
+        throw error;
+    }
+};
+
+/**
+ * 백엔드에서 특정 워크플로우의 공유 설정을 업데이트합니다.
+ * @param {string} workflowName - 업데이트할 워크플로우 이름
+ * @param {Object} updateDict - 업데이트할 설정 딕셔너리
+ * @param {boolean|null} updateDict.is_shared - 공유 여부
+ * @param {string|null} updateDict.share_group - 공유 그룹
+ * @param {boolean} updateDict.enable_deploy - 배포 활성화 여부
+ * @param {int} updateDict.user_id - 워크플로우 소유자 ID
+ * @param {boolean|null} updateDict.inquire_deploy - 배포 요청 상태
+ * @param {boolean|null} updateDict.is_accepted - 워크플로우 사용 승인 상태
+ * @returns {Promise<Object>} 업데이트 결과 객체를 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const updateWorkflow = async (workflowName, updateDict) => {
+    try {
+        devLog.log('Updating workflow with name:', workflowName);
+        devLog.log('Update data:', updateDict);
+
+        const response = await apiClient(
+            `${API_BASE_URL}/api/admin/workflow/update/${encodeURIComponent(workflowName)}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updateDict),
+            }
+        );
+
+        devLog.log('Workflow update response status:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            devLog.error('Workflow update error data:', errorData);
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
+        }
+
+        const result = await response.json();
+        devLog.log('Successfully updated workflow:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to update workflow:', error);
+        devLog.error('Workflow name that failed:', workflowName);
+        throw error;
+    }
+};

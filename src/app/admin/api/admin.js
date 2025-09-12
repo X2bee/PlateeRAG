@@ -75,3 +75,32 @@ export const createSuperuser = async (signupData) => {
         throw error;
     }
 };
+
+/**
+ * 백엔드 로그 목록을 가져오는 함수 (슈퍼유저 권한 필요)
+ * @param {number} page - 페이지 번호 (1부터 시작, 기본값: 1)
+ * @param {number} pageSize - 페이지당 항목 수 (1-1000, 기본값: 250)
+ * @returns {Promise<Object>} 로그 목록과 페이지네이션 정보가 포함된 객체
+ */
+export const getBackendLogs = async (page = 1, pageSize = 250) => {
+    try {
+        // 파라미터 검증
+        if (page < 1) page = 1;
+        if (pageSize < 1 || pageSize > 1000) pageSize = 250;
+
+        const url = `${API_BASE_URL}/api/admin/base/backend/logs?page=${page}&page_size=${pageSize}`;
+        const response = await apiClient(url);
+        const data = await response.json();
+        devLog.log('Get backend logs result:', data);
+
+        if (!response.ok) {
+            devLog.error('Failed to get backend logs:', data);
+            throw new Error(data.detail || 'Failed to get backend logs');
+        }
+
+        return data;
+    } catch (error) {
+        devLog.error('Failed to get backend logs:', error);
+        throw error;
+    }
+};
