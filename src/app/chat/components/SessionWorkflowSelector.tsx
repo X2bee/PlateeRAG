@@ -47,17 +47,53 @@ const SessionWorkflowSelector: React.FC<SessionWorkflowSelectorProps> = ({
         setLoading(true);
         try {
             const workflowList = await listWorkflows();
-            const formattedWorkflows: Workflow[] = workflowList.map((wf: any) => ({
-                id: wf.id,
-                name: wf.name,
-                description: wf.description || '',
-                author: wf.author || 'Unknown',
-                nodeCount: wf.nodeCount || 0,
-                status: wf.status || 'active'
-            }));
+            devLog.log('Raw workflow list:', workflowList);
+            
+            // 워크플로우 목록이 배열인지 확인
+            const safeWorkflowList = Array.isArray(workflowList) ? workflowList : [];
+            
+            const formattedWorkflows: Workflow[] = safeWorkflowList
+                .map((wf: any, index: number) => {
+                    // 문자열인 경우와 객체인 경우 모두 처리
+                    if (typeof wf === 'string') {
+                        // 파일명에서 .json 제거하여 이름 생성
+                        let name = wf.replace('.json', '');
+                        
+                        // 언더스코어를 공백으로 변경
+                        name = name.replace(/_/g, ' ');
+                        
+                        // 첫 글자 대문자로 변환
+                        name = name.charAt(0).toUpperCase() + name.slice(1);
+                        
+                        const formatted = {
+                            id: wf, // 파일명을 ID로 사용
+                            name: name || `워크플로우 ${index + 1}`,
+                            description: `워크플로우 파일`,
+                            author: 'System',
+                            nodeCount: 0,
+                            status: 'active' as const
+                        };
+                        devLog.log('Formatted workflow from string:', formatted);
+                        return formatted;
+                    } else if (wf && typeof wf === 'object') {
+                        const formatted = {
+                            id: String(wf.id || wf.name || `workflow-${index}`),
+                            name: wf.name || wf.filename || `Workflow ${wf.id || index}`,
+                            description: wf.description || '',
+                            author: wf.author || wf.user_name || 'Unknown',
+                            nodeCount: wf.nodeCount || wf.node_count || 0,
+                            status: (wf.status || 'active') as const
+                        };
+                        devLog.log('Formatted workflow from object:', formatted);
+                        return formatted;
+                    }
+                    return null;
+                })
+                .filter((wf): wf is Workflow => wf !== null); // null 제거
             
             // 기본 워크플로우를 맨 앞에 추가
             setWorkflows([DEFAULT_WORKFLOW, ...formattedWorkflows]);
+            devLog.log('Final workflows:', [DEFAULT_WORKFLOW, ...formattedWorkflows]);
         } catch (error) {
             devLog.error('Failed to load workflows:', error);
             showErrorToastKo('워크플로우 목록을 불러오는데 실패했습니다.');
@@ -76,9 +112,9 @@ const SessionWorkflowSelector: React.FC<SessionWorkflowSelectorProps> = ({
 
     // 검색 필터링
     const filteredWorkflows = workflows.filter(workflow =>
-        workflow.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        workflow.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        workflow.author?.toLowerCase().includes(searchTerm.toLowerCase())
+        (workflow.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (workflow.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (workflow.author || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     // 워크플로우 선택
@@ -172,13 +208,17 @@ const SessionWorkflowSelector: React.FC<SessionWorkflowSelectorProps> = ({
                                 검색 결과가 없습니다.
                             </div>
                         ) : (
-                            filteredWorkflows.map((workflow) => {
+                            filteredWorkflows.map((workflow, index) => {
                                 const isSelected = workflow.id === displayWorkflow.id;
                                 return (
                                     <button
-                                        key={workflow.id}
+                                        key={`${workflow.id}-${index}`}
                                         className={`${styles.workflowOption} ${isSelected ? styles.selected : ''}`}
-                                        onClick={() => handleSelectWorkflow(workflow)}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            handleSelectWorkflow(workflow);
+                                        }}
                                         type="button"
                                     >
                                         <div className={styles.optionIcon}>
