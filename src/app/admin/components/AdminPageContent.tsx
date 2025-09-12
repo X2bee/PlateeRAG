@@ -18,6 +18,7 @@ import AdminPlayground from '@/app/admin/components/workflows/playground/AdminPl
 import AdminSystemMonitor from '@/app/admin/components/sysmonitor/AdminSystemMonitor';
 import AdminDatabase from '@/app/admin/components/database/AdminDatabase';
 import AdminWorkflowControll from '@/app/admin/components/workflows/AdminWorkflowControll';
+import AdminBackendLogs from '@/app/admin/components/sysmonitor/AdminBackendLogs';
 import {
     getUserSidebarItems,
     getWorkflowSidebarItems,
@@ -123,9 +124,11 @@ const AdminPageContent: React.FC = () => {
         const validSections = [
             'dashboard',
             'users', 'user-create', 'group-permissions',
-            'workflow-management', 'system-config', 'system-settings', 'chat-monitoring', 'workflow-monitoring', 'system-monitor', 'system-health',
+            'workflow-management',  'chat-monitoring', 'workflow-monitoring',
+            'system-config', 'system-settings',
+            'system-monitor', 'system-health', 'backend-logs',
             'database', 'storage', 'backup',
-            'security-settings', 'audit-logs', 'error-logs', 'access-logs'
+            'security-settings', 'audit-logs', 'error-logs',
         ];
         return validSections.includes(section);
     };
@@ -232,6 +235,15 @@ const AdminPageContent: React.FC = () => {
                         <div>시스템 상태 컴포넌트가 여기에 표시됩니다.</div>
                     </AdminContentArea>
                 );
+            case 'backend-logs':
+                return (
+                    <AdminContentArea
+                        title="백엔드 로그"
+                        description="백엔드 시스템의 로그를 확인하고 모니터링하세요."
+                    >
+                        <AdminBackendLogs />
+                    </AdminContentArea>
+                );
             case 'database':
                 return (
                     <AdminContentArea
@@ -284,15 +296,6 @@ const AdminPageContent: React.FC = () => {
                         description="시스템 오류 및 예외 로그를 확인하세요."
                     >
                         <div>에러 로그 컴포넌트가 여기에 표시됩니다.</div>
-                    </AdminContentArea>
-                );
-            case 'access-logs':
-                return (
-                    <AdminContentArea
-                        title="접근 로그"
-                        description="API 및 웹 접근 로그를 확인하세요."
-                    >
-                        <div>접근 로그 컴포넌트가 여기에 표시됩니다.</div>
                     </AdminContentArea>
                 );
             default:

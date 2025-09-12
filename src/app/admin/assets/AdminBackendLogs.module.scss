@@ -1,0 +1,668 @@
+@use "@/app/_common/_variables" as *;
+
+// 공통 스타일
+%input-base {
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    font-size: $admin-font-size-sm;
+    font-family: $admin-font-family;
+    color: $admin-text-primary;
+    background: $admin-bg-primary;
+    transition: $admin-transition;
+
+    &:focus {
+        outline: none;
+        border-color: $admin-primary;
+        box-shadow: 0 0 0 3px $admin-primary-light;
+    }
+
+    &::placeholder {
+        color: $admin-text-muted;
+    }
+
+    &:disabled {
+        background: $admin-bg-disabled;
+        color: $admin-text-secondary;
+        border-color: $admin-border-light;
+        cursor: not-allowed;
+    }
+}
+
+%button-base {
+    border: none;
+    border-radius: $admin-radius-md;
+    cursor: pointer;
+    font-weight: 500;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+
+    &:disabled {
+        background: $admin-bg-disabled;
+        color: $admin-text-disabled;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    &:active:not(:disabled) {
+        transform: translateY(0);
+    }
+}
+
+.container {
+    padding: 0;
+    background: $admin-bg-primary;
+    border-radius: $admin-radius-md;
+    box-shadow: $admin-shadow;
+    border: 1px solid $admin-border;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $admin-spacing-md;
+    border-bottom: 1px solid $admin-border;
+    gap: $admin-spacing-lg;
+    background: $admin-bg-secondary;
+    min-height: 60px;
+}
+
+.searchContainer {
+    flex: 0 0 250px;
+    min-width: 200px;
+}
+
+.searchInput {
+    @extend %input-base;
+    width: 100%;
+    padding: $admin-spacing-sm $admin-spacing-md;
+}
+
+.stats {
+    flex: 1;
+    display: flex;
+    gap: $admin-spacing-sm;
+    color: $admin-text-secondary;
+    font-size: $admin-font-size-sm;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 40px;
+
+    span {
+        white-space: nowrap;
+    }
+}
+
+.actionButtons {
+    flex: 0 0 auto;
+    display: flex;
+    gap: $admin-spacing-sm;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.userIdSearchContainer {
+    display: flex;
+    gap: $admin-spacing-xs;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.userIdInput {
+    @extend %input-base;
+    width: 120px;
+    min-width: 120px;
+    padding: $admin-spacing-sm $admin-spacing-sm;
+}
+
+.paginationButtons {
+    display: flex;
+    gap: $admin-spacing-sm;
+}
+
+.paginationButton {
+    @extend %button-base;
+    padding: $admin-spacing-sm $admin-spacing-md;
+    background: $admin-bg-primary;
+    color: $admin-text-primary;
+    border: 1px solid $admin-border;
+    font-size: $admin-font-size-sm;
+    min-width: 60px;
+
+    &:hover:not(:disabled) {
+        background: $admin-bg-hover;
+        border-color: $admin-primary;
+        transform: translateY(-1px);
+        box-shadow: $admin-shadow-sm;
+    }
+}
+
+.refreshButton {
+    @extend %button-base;
+    padding: $admin-spacing-sm $admin-spacing-lg;
+    background: $admin-primary;
+    color: $admin-text-inverse;
+    font-size: $admin-font-size-sm;
+    white-space: nowrap;
+
+    &:hover:not(:disabled) {
+        background: $admin-primary-hover;
+        transform: translateY(-1px);
+        box-shadow: $admin-shadow-md;
+    }
+}
+
+.tableContainer {
+    overflow-x: auto;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: $admin-bg-primary;
+    min-width: 1000px; // 백엔드 로그에 맞게 조정
+    font-family: $admin-font-family;
+
+    th {
+        background: $admin-bg-secondary;
+        padding: $admin-spacing-sm;
+        text-align: left;
+        font-weight: 600;
+        color: $admin-text-primary;
+        border-bottom: 2px solid $admin-border;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        white-space: nowrap;
+        font-size: $admin-font-size-xs;
+
+        &.sortable {
+            cursor: pointer;
+            user-select: none;
+            z-index: 21;
+
+            &:hover {
+                background: $admin-bg-primary;
+            }
+        }
+    }
+
+    td {
+        padding: $admin-spacing-sm;
+        border-bottom: 1px solid $admin-border-light;
+        vertical-align: middle;
+        font-size: $admin-font-size-xs;
+        color: $admin-text-primary;
+        position: relative;
+        z-index: 1;
+    }
+
+    tr:hover {
+        background: $admin-bg-hover;
+        z-index: 5;
+
+        td {
+            z-index: 5;
+        }
+    }
+}
+
+.tableRow {
+    transition: background 0.2s ease;
+}
+
+.sortIcon {
+    margin-left: $admin-spacing-xs;
+    font-size: $admin-font-size-xs;
+    color: $admin-primary;
+}
+
+.badge {
+    padding: $admin-spacing-xs $admin-spacing-sm;
+    border-radius: $admin-radius-full;
+    font-size: $admin-font-size-xs;
+    font-weight: 500;
+    text-align: center;
+    min-width: 40px;
+    display: inline-block;
+
+    &.badgeInfo {
+        background: #e3f2fd;
+        color: #1565c0;
+        border: 1px solid #2196f3;
+    }
+
+    &.badgeWarning {
+        background: $admin-warning-light;
+        color: $admin-warning-hover;
+        border: 1px solid $admin-warning;
+    }
+
+    &.badgeError {
+        background: $admin-danger-light;
+        color: $admin-danger-hover;
+        border: 1px solid $admin-danger;
+    }
+
+    &.badgeDebug {
+        background: #f3e5f5;
+        color: #7b1fa2;
+        border: 1px solid #9c27b0;
+    }
+
+    &.badgeSuccess {
+        background: $admin-success-light;
+        color: $admin-success-hover;
+        border: 1px solid $admin-success;
+    }
+
+    &.badgeDefault {
+        background: #f5f5f5;
+        color: #757575;
+        border: 1px solid #bdbdbd;
+    }
+}
+
+.logId {
+    font-weight: 600;
+    color: $admin-text-secondary;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: $admin-font-size-xs;
+    min-width: 100px;
+    word-break: break-all;
+    position: relative;
+
+    &:hover .expandButton {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+.userId {
+    font-weight: 500;
+    color: $admin-text-secondary;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: $admin-font-size-xs;
+    min-width: 80px;
+    position: relative;
+
+    &:hover .expandButton {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+.functionName {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    color: $admin-text-primary;
+    font-size: $admin-font-size-xs;
+    max-width: 120px;
+    word-break: break-word;
+    position: relative;
+
+    &:hover .expandButton {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+.apiEndpoint {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    color: $admin-text-secondary;
+    font-size: $admin-font-size-xs;
+    max-width: 150px;
+    word-break: break-all;
+    position: relative;
+
+    &:hover .expandButton {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+.messageCell {
+    max-width: 200px;
+    word-break: break-word;
+    color: $admin-text-primary;
+    font-size: $admin-font-size-xs;
+    line-height: 1.4;
+    position: relative;
+
+    &:hover .expandButton {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+.metadataCell {
+    max-width: 150px;
+    word-break: break-word;
+    color: $admin-text-secondary;
+    font-size: $admin-font-size-xs;
+    line-height: 1.4;
+    position: relative;
+
+    &:hover .expandButton {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+.cellContent {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: $admin-spacing-xs;
+
+    &:hover .expandButton {
+        opacity: 1;
+        visibility: visible;
+    }
+}.expandButton {
+    position: absolute;
+    right: $admin-spacing-xs;
+    top: 50%;
+    transform: translateY(-50%);
+    background: $admin-primary;
+    color: $admin-text-inverse;
+    border: none;
+    border-radius: $admin-radius-sm;
+    padding: 0;
+    font-size: 10px !important;
+    font-family: $admin-font-family;
+    cursor: pointer;
+    transition: $admin-transition;
+    flex-shrink: 0;
+    opacity: 0;
+    visibility: hidden;
+    width: 24px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+
+    &:hover {
+        background: $admin-primary-hover;
+    }
+}
+
+.logLevel {
+    text-align: center;
+    font-weight: 500;
+    min-width: 70px;
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: $admin-spacing-2xl $admin-spacing-lg;
+    color: $admin-text-secondary;
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid $admin-border-light;
+        border-top: 3px solid $admin-primary;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: $admin-spacing-lg;
+    }
+
+    p {
+        margin: 0;
+        font-size: $admin-font-size-base;
+        font-family: $admin-font-family;
+    }
+}
+
+.error {
+    text-align: center;
+    padding: $admin-spacing-2xl $admin-spacing-lg;
+    color: $admin-danger;
+
+    h3 {
+        color: $admin-danger;
+        margin-bottom: $admin-spacing-sm;
+    }
+
+    p {
+        margin-bottom: $admin-spacing-lg;
+        color: $admin-text-secondary;
+    }
+}
+
+.retryButton {
+    @extend %button-base;
+    padding: $admin-spacing-sm $admin-spacing-xl;
+    background: $admin-primary;
+    color: $admin-text-inverse;
+    font-size: $admin-font-size-sm;
+
+    &:hover {
+        background: $admin-primary-hover;
+        transform: translateY(-1px);
+        box-shadow: $admin-shadow-md;
+    }
+}
+
+.noData {
+    text-align: center;
+    padding: $admin-spacing-xl $admin-spacing-lg;
+    color: $admin-text-muted;
+    font-style: italic;
+    font-family: $admin-font-family;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+// 반응형 처리
+@media (max-width: 1200px) {
+    .controls {
+        flex-wrap: wrap;
+        gap: $admin-spacing-md;
+    }
+
+    .stats {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        min-height: auto;
+    }
+
+    .actionButtons {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 1024px) {
+    .table {
+        font-size: $admin-font-size-xs;
+
+        th, td {
+            padding: $admin-spacing-xs $admin-spacing-sm;
+        }
+    }
+
+    .messageCell {
+        max-width: 120px;
+    }
+
+    .metadataCell {
+        max-width: 100px;
+    }
+
+    .apiEndpoint {
+        max-width: 100px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        margin: 0 calc(-1 * $admin-spacing-sm);
+        border-radius: 0;
+    }
+
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+        padding: $admin-spacing-md;
+    }
+
+    .stats {
+        font-size: $admin-font-size-xs;
+        justify-content: center;
+    }
+
+    .actionButtons {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .userIdInput {
+        width: 100px;
+        min-width: 100px;
+    }
+
+    .table {
+        font-size: $admin-font-size-xs;
+
+        th, td {
+            padding: $admin-spacing-xs;
+        }
+    }
+
+    .messageCell, .metadataCell, .functionName, .apiEndpoint {
+        max-width: 80px;
+    }
+}
+
+// Modal styles - 동일한 스타일을 AdminDatabase에서 복사
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: $admin-bg-primary;
+    border-radius: $admin-radius-md;
+    box-shadow: $admin-shadow-xl;
+    min-width: 30vw;
+    max-width: 60vw;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid $admin-border;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $admin-spacing-lg;
+    border-bottom: 1px solid $admin-border;
+    background: $admin-bg-secondary;
+    border-radius: $admin-radius-md $admin-radius-md 0 0;
+
+    h4 {
+        margin: 0;
+        font-size: $admin-font-size-lg;
+        font-weight: 600;
+        color: $admin-text-primary;
+    }
+}
+
+.modalFooter {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: $admin-spacing-sm $admin-spacing-lg;
+    border-top: 1px solid $admin-border;
+    background: $admin-bg-secondary;
+    border-radius: 0 0 $admin-radius-md $admin-radius-md;
+}
+
+.copyButton {
+    padding: $admin-spacing-xs $admin-spacing-md;
+    background: $admin-primary;
+    color: $admin-text-inverse;
+    border: none;
+    border-radius: $admin-radius-md;
+    cursor: pointer;
+    font-size: $admin-font-size-sm;
+    font-weight: 500;
+    font-family: $admin-font-family;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: $admin-spacing-xs;
+    min-width: 80px;
+    justify-content: center;
+
+    &:hover {
+        background: $admin-primary-hover;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    &:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.modalCloseButton {
+    background: none;
+    border: none;
+    font-size: $admin-font-size-2xl;
+    cursor: pointer;
+    color: $admin-text-secondary;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $admin-radius-sm;
+    transition: $admin-transition;
+
+    &:hover {
+        background: $admin-bg-hover;
+        color: $admin-text-primary;
+    }
+}
+
+.modalBody {
+    padding: $admin-spacing-md;
+    overflow: auto;
+    flex: 1;
+}
+
+.modalText {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: $admin-font-size-sm;
+    line-height: 1.5;
+    color: $admin-text-primary;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+}
