@@ -28,11 +28,11 @@ const xorEncrypt = (data: string, key: string): string => {
     const dataBytes = stringToBytes(data);
     const keyBytes = stringToBytes(key);
     const encrypted = new Uint8Array(dataBytes.length);
-    
+
     for (let i = 0; i < dataBytes.length; i++) {
         encrypted[i] = dataBytes[i] ^ keyBytes[i % keyBytes.length];
     }
-    
+
     // Base64 인코딩
     const binaryString = Array.from(encrypted, byte => String.fromCharCode(byte)).join('');
     return btoa(binaryString)
@@ -51,20 +51,20 @@ const xorDecrypt = (encryptedData: string, key: string): string => {
         while (base64.length % 4) {
             base64 += '=';
         }
-        
+
         const binaryString = atob(base64);
         const encrypted = new Uint8Array(binaryString.length);
         for (let i = 0; i < binaryString.length; i++) {
             encrypted[i] = binaryString.charCodeAt(i);
         }
-        
+
         const keyBytes = stringToBytes(key);
         const decrypted = new Uint8Array(encrypted.length);
-        
+
         for (let i = 0; i < encrypted.length; i++) {
             decrypted[i] = encrypted[i] ^ keyBytes[i % keyBytes.length];
         }
-        
+
         return bytesToString(decrypted);
     } catch (error) {
         console.error('Failed to decrypt data:', error);
@@ -84,7 +84,7 @@ export const encodeUrlParams = (data: string): string => {
             timestamp,
             random: randomValue
         });
-        
+
         return xorEncrypt(payload, ENCRYPTION_KEY);
     } catch (error) {
         console.error('Failed to encode URL params:', error);
@@ -99,16 +99,16 @@ export const decodeUrlParams = (encodedData: string): string => {
     try {
         const decrypted = xorDecrypt(encodedData, ENCRYPTION_KEY);
         const payload = JSON.parse(decrypted);
-        
+
         // 타임스탬프 검증 (24시간 유효)
         const currentTime = Date.now();
         const encryptionTime = parseInt(payload.timestamp);
         const timeDiff = currentTime - encryptionTime;
-        
+
         // if (timeDiff > 24 * 60 * 60 * 1000) { // 24시간 초과
         //     throw new Error('URL has expired');
         // }
-        
+
         return payload.data;
     } catch (error) {
         console.error('Failed to decode URL params:', error);
@@ -127,7 +127,7 @@ export const createEncryptedUrlParams = (userId: string, workflowName: string): 
         userId,
         workflowName
     };
-    
+
     const paramsString = JSON.stringify(params);
     return encodeUrlParams(paramsString);
 };
@@ -144,21 +144,21 @@ export const decryptUrlParams = async (encryptedParams: string): Promise<{ userI
 
         const valid_deployable = await getDeployStatus(params.workflowName, params.userId);
         if (!valid_deployable.is_deployed) {
-            return { 
-                userId: params.userId, 
-                workflowName: params.workflowName, 
-                message: 'This workflow is not deployed.' 
+            return {
+                userId: params.userId,
+                workflowName: params.workflowName,
+                message: 'This workflow is not deployed.'
             };
         }
         // 배포가 불가능할때 메시지 처리
-        
+
         if (params.userId && params.workflowName) {
             return {
                 userId: params.userId,
                 workflowName: params.workflowName
             };
         }
-        
+
         return null;
     } catch (error) {
         console.error('Failed to decrypt URL params:', error);
@@ -174,7 +174,7 @@ export const getEncryptionKey = (): string => {
         // 클라이언트 사이드에서는 기본 키 사용 (보안상 제한적)
         return ENCRYPTION_KEY;
     }
-    
+
     // 서버 사이드에서는 환경변수 사용
     return process.env.URL_ENCRYPTION_KEY || ENCRYPTION_KEY;
 };

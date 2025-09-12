@@ -264,6 +264,11 @@
         background: rgba($primary-red, 0.1);
         color: $primary-red;
     }
+
+    &.statusPending {
+        background: rgba($primary-orange, 0.1);
+        color: $primary-orange;
+    }
 }
 
 // Card Content

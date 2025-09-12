@@ -6,13 +6,12 @@ import { updateWorkflow } from '@/app/api/workflow/workflowAPI';
 import { getGroupAvailableGroups } from '@/app/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { Workflow } from '@/app/main/types/index';
-import { getDeployStatus } from '@/app/api/workflow/deploy';
 
 interface WorkflowEditModalProps {
     workflow: Workflow;
     isOpen: boolean;
     onClose: () => void;
-    onUpdate: (updatedWorkflow: Workflow, updatedDeploy: {[key: string]: boolean | null}) => void;
+    onUpdate: (updatedWorkflow: Workflow, updatedDeploy: {[key: string]: boolean | 'pending' | null}) => void;
 }
 
 const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
@@ -29,26 +28,20 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchDeployStatus = async () => {
-          if (workflow) {
-              try {
-                  const deployed = await getDeployStatus(workflow.name);
-                  setToggleDeploy(deployed.is_deployed);
-              } catch (err) {
-                  console.error('Failed to fetch deploy status:', err);
-              }
-          }
-      };
-
-      fetchDeployStatus();
-    }, [workflow]);
-
     // 워크플로우 정보로 폼 초기화
     useEffect(() => {
         if (workflow) {
             setIsShared(workflow.is_shared === true);
             setShareGroup(workflow.share_group || '');
+
+            const workflowDetail = workflow as any;
+            if (workflowDetail.inquire_deploy) {
+                setToggleDeploy(true);
+            } else if (workflowDetail.is_deployed !== undefined) {
+                setToggleDeploy(workflowDetail.is_deployed);
+            } else {
+                setToggleDeploy(false);
+            }
         }
     }, [workflow]);
 
@@ -81,22 +74,26 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
             const updateDict = {
                 is_shared: isShared,
                 share_group: isShared ? shareGroup || null : null,
-                enable_deploy: toggleDeploy
+                enable_deploy: toggleDeploy  // 백엔드에서 관리자 권한에 따라 처리
             };
 
             await updateWorkflow(workflow.name, updateDict);
-            // await toggleDeployStatus(workflow.name, toggleDeploy);
 
+            // 업데이트된 워크플로우 정보를 부모 컴포넌트에 전달
             const updatedWorkflow = {
                 ...workflow,
                 is_shared: isShared,
                 share_group: isShared ? shareGroup || null : null,
-                enable_deploy: toggleDeploy
+                inquire_deploy: toggleDeploy,  // 일반 사용자의 경우 배포 요청 상태
+                is_deployed: false  // 즉시 배포되지는 않음
             };
 
-            const updatedDeploy = {[workflow.name]: toggleDeploy};
+            // 배포 상태: toggleDeploy가 true이면 'pending' (일반 사용자) 또는 true (관리자)
+            const updatedDeploy: {[key: string]: boolean | 'pending' | null} = {
+                [workflow.name]: toggleDeploy ? 'pending' : false
+            };
 
-            onUpdate(updatedWorkflow,updatedDeploy);
+            onUpdate(updatedWorkflow as any, updatedDeploy);
             onClose();
         } catch (err) {
             setError('워크플로우 업데이트에 실패했습니다.');
@@ -132,8 +129,11 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
                         onClick={() => setToggleDeploy(!toggleDeploy)}
                         disabled={loading}
                     >
-                        {toggleDeploy ? '배포 중' : '비공개'}
+                        {toggleDeploy ? '배포 활성화' : '배포 비활성화'}
                     </button>
+                    <small>
+                        관리자인 경우 즉시 배포, 일반 사용자인 경우 관리자 승인 후 배포됩니다.
+                    </small>
                 </div>
 
                 <div className={styles.formGroup}>

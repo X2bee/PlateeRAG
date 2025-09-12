@@ -13,8 +13,6 @@ import {
 } from 'react-icons/fi';
 import styles from '@/app/admin/assets/workflows/AdminWorkflowControll.module.scss';
 import { getAllWorkflowMeta, deleteWorkflowAdmin } from '@/app/admin/api/workflow';
-
-import { devLog } from '@/app/_common/utils/logger';
 import {
     showWorkflowDeleteConfirmKo,
     showDeleteSuccessToastKo,

@@ -14,7 +14,6 @@ import {
 } from 'react-icons/fi';
 import styles from '@/app/main/assets/CompletedWorkflows.module.scss';
 import { listWorkflowsDetail, deleteWorkflow, duplicateWorkflow } from '@/app/api/workflow/workflowAPI';
-import { getDeployStatus } from '@/app/api/workflow/deploy';
 import { useRouter } from 'next/navigation';
 import { Workflow, WorkflowDetailResponse } from '@/app/main/types/index';
 import {
@@ -41,7 +40,7 @@ const CompletedWorkflows: React.FC = () => {
     >('all');
     const [showEditModal, setShowEditModal] = useState(false);
     const [workflowToEdit, setWorkflowToEdit] = useState<Workflow | null>(null);
-    const [deployed_list, setDeployed_list] = useState<{[key: string]: boolean | null}>({});
+    const [deployed_list, setDeployed_list] = useState<{[key: string]: boolean | 'pending' | null}>({});
 
     const fetchWorkflows = async () => {
         try {
@@ -61,12 +60,9 @@ const CompletedWorkflows: React.FC = () => {
                     }
 
                     if (user && detail.user_id === user.user_id) {
-                        devLog.log('Fetching deploy status for', detail.workflow_name, detail.user_id, user.user_id);
-                        fetchDeployStatus(detail.workflow_name, detail.user_id).then(status => {
-                            setDeployed_list(prev => ({...prev, [detail.workflow_name]: status}));
-                        });
+                        const deployStatus = (detail as any).inquire_deploy ? 'pending' : (detail as any).is_deployed;
+                        setDeployed_list(prev => ({...prev, [detail.workflow_name]: deployStatus}));
                     }
-
 
                     return {
                         key_value: detail.id,
@@ -83,6 +79,8 @@ const CompletedWorkflows: React.FC = () => {
                         is_shared: detail.is_shared,
                         share_group: detail.share_group,
                         share_permissions: detail.share_permissions,
+                        inquire_deploy: (detail as any).inquire_deploy,
+                        is_accepted: (detail as any).is_accepted,
                     };
                 },
             );
@@ -96,15 +94,7 @@ const CompletedWorkflows: React.FC = () => {
         }
     };
 
-    const fetchDeployStatus = async (workflowName: string, user_id?: number | string) => {
-        try {
-            const status = await getDeployStatus(workflowName, String(user_id));
-            return status.is_deployed;
-        } catch (error) {
-            showErrorToastKo('워크플로우 배포 상태를 불러오는데 실패했습니다.');
-            return null;
-        }
-    };
+
 
     useEffect(() => {
         fetchWorkflows();
@@ -112,7 +102,13 @@ const CompletedWorkflows: React.FC = () => {
 
     // 워크플로우 필터링
     const getFilteredWorkflows = () => {
-        const statusFiltered = workflows.filter(
+        // is_accepted가 false인 워크플로우는 완전히 제외
+        const acceptedWorkflows = workflows.filter(workflow => {
+            const workflowDetail = workflow as any;
+            return workflowDetail.is_accepted !== false;
+        });
+
+        const statusFiltered = acceptedWorkflows.filter(
             (workflow) => filter === 'all' || workflow.status === filter,
         );
 
@@ -172,7 +168,8 @@ const CompletedWorkflows: React.FC = () => {
         setShowEditModal(true);
     };
 
-    const handleUpdateWorkflow = (updatedWorkflow: Workflow, updatedDeploy: {[key: string]: boolean | null}) => {
+    const handleUpdateWorkflow = async (updatedWorkflow: Workflow, updatedDeploy: {[key: string]: boolean | 'pending' | null}) => {
+        // 즉시 UI 업데이트
         setWorkflows(prevWorkflows =>
             prevWorkflows.map(workflow =>
                 workflow.key_value === updatedWorkflow.key_value
@@ -184,6 +181,9 @@ const CompletedWorkflows: React.FC = () => {
             ...prev,
             ...updatedDeploy
         }));
+
+        // 서버에서 최신 데이터 다시 가져오기
+        await fetchWorkflows();
     };
 
     const handleCloseEditModal = () => {
@@ -327,9 +327,22 @@ const CompletedWorkflows: React.FC = () => {
                                     </div>
                                     {user && workflow.user_id === user.user_id && (
                                         <div
-                                            className={`${styles.deployStatus} ${deployed_list[workflow.name] ? styles.statusDeployed : styles.statusNotDeployed}`}
+                                            className={`${styles.deployStatus} ${
+                                                deployed_list[workflow.name] === 'pending'
+                                                    ? styles.statusPending
+                                                    : deployed_list[workflow.name]
+                                                        ? styles.statusDeployed
+                                                        : styles.statusNotDeployed
+                                            }`}
                                         >
-                                            {deployed_list[workflow.name] === null ? '배포 상태 오류' : deployed_list[workflow.name] ? '배포됨' : '미배포'}
+                                            {deployed_list[workflow.name] === null
+                                                ? '배포 상태 오류'
+                                                : deployed_list[workflow.name] === 'pending'
+                                                    ? '배포 대기중'
+                                                    : deployed_list[workflow.name]
+                                                        ? '배포됨'
+                                                        : '미배포'
+                                            }
                                         </div>
                                     )}
                                 </div>
