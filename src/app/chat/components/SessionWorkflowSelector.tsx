@@ -53,7 +53,7 @@ const SessionWorkflowSelector: React.FC<SessionWorkflowSelectorProps> = ({
             const safeWorkflowList = Array.isArray(workflowList) ? workflowList : [];
             
             const formattedWorkflows: Workflow[] = safeWorkflowList
-                .map((wf: any, index: number) => {
+                .map((wf: any, index: number): Workflow | null => {
                     // 문자열인 경우와 객체인 경우 모두 처리
                     if (typeof wf === 'string') {
                         // 파일명에서 .json 제거하여 이름 생성
@@ -65,24 +65,24 @@ const SessionWorkflowSelector: React.FC<SessionWorkflowSelectorProps> = ({
                         // 첫 글자 대문자로 변환
                         name = name.charAt(0).toUpperCase() + name.slice(1);
                         
-                        const formatted = {
+                        const formatted: Workflow = {
                             id: wf, // 파일명을 ID로 사용
                             name: name || `워크플로우 ${index + 1}`,
                             description: `워크플로우 파일`,
                             author: 'System',
                             nodeCount: 0,
-                            status: 'active' as const
+                            status: 'active'
                         };
                         devLog.log('Formatted workflow from string:', formatted);
                         return formatted;
                     } else if (wf && typeof wf === 'object') {
-                        const formatted = {
+                        const formatted: Workflow = {
                             id: String(wf.id || wf.name || `workflow-${index}`),
                             name: wf.name || wf.filename || `Workflow ${wf.id || index}`,
                             description: wf.description || '',
                             author: wf.author || wf.user_name || 'Unknown',
                             nodeCount: wf.nodeCount || wf.node_count || 0,
-                            status: (wf.status || 'active') as const
+                            status: wf.status || 'active'
                         };
                         devLog.log('Formatted workflow from object:', formatted);
                         return formatted;
