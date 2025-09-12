@@ -13,7 +13,7 @@ import {
     FiFolder
 } from 'react-icons/fi';
 import styles from '@/app/chat/assets/WorkflowSelection.module.scss';
-import { listWorkflows, listWorkflowsDetail } from '@/app/api/workflow/workflowAPI';
+import { listWorkflowsDetail } from '@/app/api/workflow/workflowAPI';
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 
 interface Workflow {
@@ -69,8 +69,12 @@ const WorkflowSelection: React.FC<WorkflowSelectionProps> = ({ onBack, onSelectW
             setLoading(true);
             setError(null);
             const workflowDetails = (await listWorkflowsDetail()) as WorkflowDetailResponse[];
-            const transformedWorkflows: Workflow[] = workflowDetails.map(
-                (detail: WorkflowDetailResponse) => {
+            const transformedWorkflows: Workflow[] = workflowDetails
+                .filter((detail: WorkflowDetailResponse) => {
+                    // is_accepted가 false인 워크플로우는 완전히 제외
+                    return (detail as any).is_accepted !== false;
+                })
+                .map((detail: WorkflowDetailResponse) => {
                     let status: 'active' | 'draft' | 'archived' = 'active';
                     if (
                         !detail.has_startnode ||
@@ -93,8 +97,7 @@ const WorkflowSelection: React.FC<WorkflowSelectionProps> = ({ onBack, onSelectW
                         share_group: detail.share_group,
                         user_id: detail.user_id,
                     };
-                },
-            );
+                });
 
             setWorkflows(transformedWorkflows);
         } catch (error) {

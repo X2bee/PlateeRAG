@@ -10,14 +10,17 @@ import {
     FiSearch,
     FiX,
     FiSettings,
+    FiCheck,
+    FiXCircle,
 } from 'react-icons/fi';
 import styles from '@/app/admin/assets/workflows/AdminWorkflowControll.module.scss';
-import { getAllWorkflowMeta, deleteWorkflowAdmin } from '@/app/admin/api/workflow';
+import { getAllWorkflowMeta, deleteWorkflowAdmin, updateWorkflow } from '@/app/admin/api/workflow';
 import {
     showWorkflowDeleteConfirmKo,
     showDeleteSuccessToastKo,
     showDeleteErrorToastKo,
 } from '@/app/_common/utils/toastUtilsKo';
+import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import AdminWorkflowEditModal from './AdminWorkflowEditModal';
 
 interface AdminWorkflow {
@@ -35,6 +38,9 @@ interface AdminWorkflow {
     share_group?: string;
     share_permissions?: string;
     description?: string;
+    inquire_deploy?: boolean;
+    is_accepted?: boolean;
+    is_deployed?: boolean;
 }
 
 const AdminWorkflowControll: React.FC = () => {
@@ -43,7 +49,7 @@ const AdminWorkflowControll: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
     const [searchQuery, setSearchQuery] = useState<string>('');
-    const [deployed_list, setDeployed_list] = useState<{[key: string]: boolean | null}>({});
+    const [deployed_list, setDeployed_list] = useState<{[key: string]: boolean | 'pending' | null}>({});
     const [editingWorkflow, setEditingWorkflow] = useState<AdminWorkflow | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
@@ -61,13 +67,15 @@ const AdminWorkflowControll: React.FC = () => {
                 if (
                     !detail.has_startnode ||
                     !detail.has_endnode ||
-                    detail.node_count < 3
+                    detail.node_count < 3 ||
+                    detail.is_accepted === false
                 ) {
                     status = 'inactive';
                 }
 
                 // getAllWorkflowMeta에서 이미 배포 정보를 가져옴
-                setDeployed_list(prev => ({...prev, [detail.workflow_name]: detail.is_deployed}));
+                const deployStatus = detail.inquire_deploy ? 'pending' : detail.is_deployed;
+                setDeployed_list(prev => ({...prev, [detail.workflow_name]: deployStatus}));
 
                 return {
                     key_value: detail.id,
@@ -84,6 +92,9 @@ const AdminWorkflowControll: React.FC = () => {
                     share_group: detail.share_group,
                     share_permissions: detail.share_permissions,
                     description: detail.description,
+                    inquire_deploy: detail.inquire_deploy,
+                    is_accepted: detail.is_accepted,
+                    is_deployed: detail.is_deployed,
                 };
             });
 
@@ -95,8 +106,6 @@ const AdminWorkflowControll: React.FC = () => {
             setLoading(false);
         }
     };
-
-
 
     useEffect(() => {
         fetchWorkflows();
@@ -110,9 +119,6 @@ const AdminWorkflowControll: React.FC = () => {
         if (filter !== 'all') {
             filtered = filtered.filter(workflow => workflow.status === filter);
         }
-
-
-
         // 검색 필터링 (워크플로우 이름, 작성자명으로 검색)
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
@@ -161,13 +167,63 @@ const AdminWorkflowControll: React.FC = () => {
         setEditingWorkflow(null);
     };
 
-    const handleEditModalUpdate = (updatedWorkflow: AdminWorkflow, updatedDeploy: {[key: string]: boolean | null}) => {
+    const handleEditModalUpdate = (updatedWorkflow: AdminWorkflow, updatedDeploy: {[key: string]: boolean | 'pending' | null}) => {
+        // 상태를 즉시 업데이트하고 전체 목록을 새로고침하여 최신 상태 반영
         setWorkflows(prevWorkflows =>
             prevWorkflows.map(w =>
                 w.key_value === updatedWorkflow.key_value ? updatedWorkflow : w
             )
         );
         setDeployed_list(prev => ({...prev, ...updatedDeploy}));
+
+        // 전체 목록 새로고침
+        fetchWorkflows();
+    };
+
+    const handleDeployApprove = async (workflow: AdminWorkflow) => {
+        try {
+            const updateDict = {
+                enable_deploy: true,
+                inquire_deploy: false,
+                is_accepted: null,
+                is_shared: null,
+                share_group: null,
+                user_id: workflow.user_id
+            };
+
+            await updateWorkflow(workflow.name, updateDict);
+
+            showSuccessToastKo(`"${workflow.name}" 워크플로우 배포가 승인되었습니다.`);
+
+            // 목록 새로고침
+            fetchWorkflows();
+        } catch (error) {
+            console.error('Failed to approve deployment:', error);
+            showErrorToastKo(`배포 승인에 실패했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    };
+
+    const handleDeployReject = async (workflow: AdminWorkflow) => {
+        try {
+            const updateDict = {
+                enable_deploy: false,
+                inquire_deploy: false,
+                is_accepted: null,
+                is_shared: null,
+                share_group: null,
+                user_id: workflow.user_id
+            };
+
+            await updateWorkflow(workflow.name, updateDict);
+
+            showSuccessToastKo(`"${workflow.name}" 워크플로우 배포가 거부되었습니다.`);
+
+            // 목록 새로고침
+            fetchWorkflows();
+        } catch (error) {
+            console.error('Failed to reject deployment:', error);
+            showErrorToastKo(`배포 거부에 실패했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
     };
 
     const handleDelete = (workflow: AdminWorkflow) => {
@@ -295,9 +351,14 @@ const AdminWorkflowControll: React.FC = () => {
                                         {workflow.is_shared ? '공유' : '개인'}
                                     </div>
                                     <div
-                                        className={`${styles.deployStatus} ${deployed_list[workflow.name] ? styles.statusDeployed : styles.statusNotDeployed}`}
+                                        className={`${styles.deployStatus} ${
+                                            workflow.inquire_deploy ? styles.statusPending :
+                                            deployed_list[workflow.name] ? styles.statusDeployed : styles.statusNotDeployed
+                                        }`}
                                     >
-                                        {deployed_list[workflow.name] === null ? '배포 상태 오류' : deployed_list[workflow.name] ? '배포됨' : '미배포'}
+                                        {workflow.inquire_deploy ? '배포 승인 대기' :
+                                         deployed_list[workflow.name] === null ? '배포 상태 오류' :
+                                         deployed_list[workflow.name] ? '배포됨' : '미배포'}
                                     </div>
                                 </div>
                             </div>
@@ -365,6 +426,30 @@ const AdminWorkflowControll: React.FC = () => {
                                 >
                                     <FiTrash2 />
                                 </button>
+                                {workflow.inquire_deploy && (
+                                    <div className={styles.approvalButtons}>
+                                        <button
+                                            className={styles.approveButton}
+                                            title="배포 승인"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeployApprove(workflow);
+                                            }}
+                                        >
+                                            승인
+                                        </button>
+                                        <button
+                                            className={styles.rejectButton}
+                                            title="배포 거부"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeployReject(workflow);
+                                            }}
+                                        >
+                                            거절
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}

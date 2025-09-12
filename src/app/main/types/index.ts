@@ -217,7 +217,7 @@ export interface Workflow {
     lastModified?: string;
     author: string;
     nodeCount: number;
-    status: 'active' | 'draft' | 'archived';
+    status: 'active' | 'draft' | 'archived' | 'unactive';
     filename?: string;
     error?: string;
     key_value?: number;

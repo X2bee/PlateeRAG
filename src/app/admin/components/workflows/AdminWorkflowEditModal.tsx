@@ -4,8 +4,6 @@ import { createPortal } from 'react-dom';
 import styles from '@/app/admin/assets/workflows/AdminWorkflowEditModal.module.scss';
 import { updateWorkflow } from '@/app/admin/api/workflow';
 import { getGroupAvailableGroups } from '@/app/api/authAPI';
-import { Workflow } from '@/app/main/types/index';
-import { getDeployStatus } from '@/app/api/workflow/deploy';
 
 interface AdminWorkflow {
     key_value: number;
@@ -22,13 +20,16 @@ interface AdminWorkflow {
     share_group?: string;
     share_permissions?: string;
     description?: string;
+    inquire_deploy?: boolean;
+    is_accepted?: boolean;
+    is_deployed?: boolean;
 }
 
 interface AdminWorkflowEditModalProps {
     workflow: AdminWorkflow;
     isOpen: boolean;
     onClose: () => void;
-    onUpdate: (updatedWorkflow: AdminWorkflow, updatedDeploy: {[key: string]: boolean | null}) => void;
+    onUpdate: (updatedWorkflow: AdminWorkflow, updatedDeploy: {[key: string]: boolean | 'pending' | null}) => void;
 }
 
 const AdminWorkflowEditModal: React.FC<AdminWorkflowEditModalProps> = ({
@@ -39,30 +40,18 @@ const AdminWorkflowEditModal: React.FC<AdminWorkflowEditModalProps> = ({
 }) => {
     const [isShared, setIsShared] = useState<boolean>(false);
     const [toggleDeploy, setToggleDeploy] = useState<boolean>(false);
+    const [isAccepted, setIsAccepted] = useState<boolean>(true);
     const [shareGroup, setShareGroup] = useState<string>('');
     const [availableGroups, setAvailableGroups] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchDeployStatus = async () => {
-            if (workflow) {
-                try {
-                    const deployed = await getDeployStatus(workflow.name, String(workflow.user_id));
-                    setToggleDeploy(deployed.is_deployed);
-                } catch (err) {
-                    console.error('Failed to fetch deploy status:', err);
-                }
-            }
-        };
-
-        fetchDeployStatus();
-    }, [workflow]);
-
     // 워크플로우 정보로 폼 초기화
     useEffect(() => {
         if (workflow) {
             setIsShared(workflow.is_shared === true);
+            setToggleDeploy(workflow.is_deployed === true);
+            setIsAccepted(workflow.is_accepted !== false); // undefined인 경우 true로 처리
             setShareGroup(workflow.share_group || '');
         }
     }, [workflow]);
@@ -97,6 +86,8 @@ const AdminWorkflowEditModal: React.FC<AdminWorkflowEditModalProps> = ({
                 is_shared: isShared,
                 share_group: isShared ? shareGroup || null : null,
                 enable_deploy: toggleDeploy,
+                inquire_deploy: null,
+                is_accepted: isAccepted,
                 user_id: workflow.user_id
             };
 
@@ -107,7 +98,8 @@ const AdminWorkflowEditModal: React.FC<AdminWorkflowEditModalProps> = ({
                 ...workflow,
                 is_shared: isShared,
                 share_group: isShared ? shareGroup || undefined : undefined,
-                enable_deploy: toggleDeploy
+                is_deployed: toggleDeploy,
+                is_accepted: isAccepted
             };
 
             const updatedDeploy = {[workflow.name]: toggleDeploy};
@@ -150,6 +142,19 @@ const AdminWorkflowEditModal: React.FC<AdminWorkflowEditModalProps> = ({
                     >
                         {toggleDeploy ? '배포 중' : '비공개'}
                     </button>
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label>워크플로우 승인 상태</label>
+                    <button
+                        type="button"
+                        className={`${styles.toggleButton} ${isAccepted ? styles.active : ''}`}
+                        onClick={() => setIsAccepted(!isAccepted)}
+                        disabled={false}
+                    >
+                        {isAccepted ? '승인됨' : '비활성화'}
+                    </button>
+                    <small>비활성화된 워크플로우는 사용할 수 없습니다.</small>
                 </div>
 
                 <div className={styles.formGroup}>

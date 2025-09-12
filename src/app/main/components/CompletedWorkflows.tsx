@@ -33,7 +33,7 @@ const CompletedWorkflows: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState<
-        'all' | 'active' | 'draft' | 'archived'
+        'all' | 'active' | 'draft' | 'archived' | 'unactive'
     >('all');
     const [workflowFilter, setWorkflowFilter] = useState<
         'all' | 'personal' | 'shared'
@@ -50,8 +50,10 @@ const CompletedWorkflows: React.FC = () => {
                 (await listWorkflowsDetail()) as WorkflowDetailResponse[];
             const transformedWorkflows: Workflow[] = workflowDetails.map(
                 (detail: WorkflowDetailResponse) => {
-                    let status: 'active' | 'draft' | 'archived' = 'active';
-                    if (
+                    let status: 'active' | 'draft' | 'archived' | 'unactive' = 'active';
+                    if ((detail as any).is_accepted === false) {
+                        status = 'unactive';
+                    } else if (
                         !detail.has_startnode ||
                         !detail.has_endnode ||
                         detail.node_count < 3
@@ -102,15 +104,15 @@ const CompletedWorkflows: React.FC = () => {
 
     // 워크플로우 필터링
     const getFilteredWorkflows = () => {
-        // is_accepted가 false인 워크플로우는 완전히 제외
-        const acceptedWorkflows = workflows.filter(workflow => {
-            const workflowDetail = workflow as any;
-            return workflowDetail.is_accepted !== false;
-        });
+        let statusFiltered;
 
-        const statusFiltered = acceptedWorkflows.filter(
-            (workflow) => filter === 'all' || workflow.status === filter,
-        );
+        if (filter === 'all') {
+            // 전체 탭에서는 unactive 제외
+            statusFiltered = workflows.filter(workflow => workflow.status !== 'unactive');
+        } else {
+            // 특정 탭 선택시 해당 상태만 표시
+            statusFiltered = workflows.filter(workflow => workflow.status === filter);
+        }
 
         switch (workflowFilter) {
             case 'personal':
@@ -133,6 +135,8 @@ const CompletedWorkflows: React.FC = () => {
                 return styles.statusDraft;
             case 'archived':
                 return styles.statusArchived;
+            case 'unactive':
+                return styles.statusUnactive;
             default:
                 return styles.statusActive;
         }
@@ -146,6 +150,8 @@ const CompletedWorkflows: React.FC = () => {
                 return '초안';
             case 'archived':
                 return '보관됨';
+            case 'unactive':
+                return '관리자 비활성';
             default:
                 return '활성';
         }
@@ -238,7 +244,7 @@ const CompletedWorkflows: React.FC = () => {
                 <div className={styles.headerActions}>
                     <div className={styles.filters}>
                         <div className={styles.filterGroup}>
-                            {['all', 'active', 'draft', 'archived'].map(
+                            {['all', 'active', 'draft', 'archived', 'unactive'].map(
                                 (filterType) => (
                                     <button
                                         key={filterType}
@@ -251,7 +257,9 @@ const CompletedWorkflows: React.FC = () => {
                                               ? '활성'
                                               : filterType === 'draft'
                                                 ? '초안'
-                                                : '보관됨'}
+                                                : filterType === 'archived'
+                                                  ? '보관됨'
+                                                  : '관리자 비활성'}
                                     </button>
                                 ),
                             )}
@@ -393,64 +401,72 @@ const CompletedWorkflows: React.FC = () => {
                             </div>
 
                             <div className={styles.cardActions}>
-                                <button
-                                    className={styles.actionButton}
-                                    title="실행"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleExecute(workflow);
-                                    }}
-                                >
-                                    <FiPlay />
-                                </button>
-                                {user && workflow.user_id === user.user_id ? (
-                                    <>
-                                        <button
-                                            className={styles.actionButton}
-                                            title="편집"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleEdit(workflow);
-                                            }}
-                                        >
-                                            <FiEdit />
-                                        </button>
-                                        <button
-                                            className={styles.actionButton}
-                                            title="설정"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleEditSettings(workflow);
-                                            }}
-                                        >
-                                            <FiSettings />
-                                        </button>
-                                        <button
-                                            className={`${styles.actionButton} ${styles.danger}`}
-                                            title="삭제"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDelete(workflow);
-                                            }}
-                                        >
-                                            <FiTrash2 />
-                                        </button>
-                                    </>
+                                {workflow.status === 'unactive' ? (
+                                    <div className={styles.unactiveMessage}>
+                                        관리자가 비활성화한 워크플로우입니다. 사용할 수 없습니다.
+                                    </div>
                                 ) : (
                                     <>
                                         <button
                                             className={styles.actionButton}
-                                            title="복사"
+                                            title="실행"
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleDuplicate(workflow);
+                                                handleExecute(workflow);
                                             }}
                                         >
-                                            <FiCopy />
+                                            <FiPlay />
                                         </button>
-                                        <div className={styles.sharedMessage}>
-                                            공유받은 워크플로우는 편집이 불가능합니다.
-                                        </div>
+                                        {user && workflow.user_id === user.user_id ? (
+                                            <>
+                                                <button
+                                                    className={styles.actionButton}
+                                                    title="편집"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEdit(workflow);
+                                                    }}
+                                                >
+                                                    <FiEdit />
+                                                </button>
+                                                <button
+                                                    className={styles.actionButton}
+                                                    title="설정"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEditSettings(workflow);
+                                                    }}
+                                                >
+                                                    <FiSettings />
+                                                </button>
+                                                <button
+                                                    className={`${styles.actionButton} ${styles.danger}`}
+                                                    title="삭제"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDelete(workflow);
+                                                    }}
+                                                >
+                                                    <FiTrash2 />
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <button
+                                                    className={styles.actionButton}
+                                                    title="복사"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDuplicate(workflow);
+                                                    }}
+                                                >
+                                                    <FiCopy />
+                                                </button>
+                                                <div className={styles.sharedMessage}>
+                                                    공유받은 워크플로우는 편집이 불가능합니다.
+                                                </div>
+                                            </>
+                                        )}
                                     </>
                                 )}
                             </div>

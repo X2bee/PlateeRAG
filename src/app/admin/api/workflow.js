@@ -144,6 +144,8 @@ export const deleteWorkflowAdmin = async (userId, workflowName) => {
  * @param {string|null} updateDict.share_group - 공유 그룹
  * @param {boolean} updateDict.enable_deploy - 배포 활성화 여부
  * @param {int} updateDict.user_id - 워크플로우 소유자 ID
+ * @param {boolean|null} updateDict.inquire_deploy - 배포 요청 상태
+ * @param {boolean|null} updateDict.is_accepted - 워크플로우 사용 승인 상태
  * @returns {Promise<Object>} 업데이트 결과 객체를 포함하는 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
