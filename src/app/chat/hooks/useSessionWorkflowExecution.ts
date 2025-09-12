@@ -173,9 +173,24 @@ export const useSessionWorkflowExecution = ({
                     null // user_id
                 );
 
-                const finalOutput = result.outputs
-                    ? JSON.stringify(result.outputs[0], null, 2)
-                    : result.message || '처리 완료';
+                let finalOutput = '처리 완료';
+                
+                if (result && typeof result === 'object') {
+                    const resultObj = result as any;
+                    if (resultObj.outputs && Array.isArray(resultObj.outputs) && resultObj.outputs.length > 0) {
+                        try {
+                            finalOutput = JSON.stringify(resultObj.outputs[0], null, 2);
+                        } catch (error) {
+                            finalOutput = String(resultObj.outputs[0]) || '출력 데이터';
+                        }
+                    } else if (resultObj.message) {
+                        finalOutput = String(resultObj.message);
+                    } else if (resultObj.result) {
+                        finalOutput = String(resultObj.result);
+                    }
+                } else if (typeof result === 'string') {
+                    finalOutput = result;
+                }
 
                 setIOLogs((prev) =>
                     prev.map((log) =>
