@@ -1,13 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { getAllGroups, updateGroupPermissions, deleteGroup, createGroup, getGroupUsers } from '@/app/admin/api/group';
-import { removeUserGroup } from '@/app/admin/api/users';
+import { getAllGroups, getGroupUsers, deleteGroup } from '@/app/manager/api/group';
+import { removeUserGroup } from '@/app/manager/api/users';
 import { devLog } from '@/app/_common/utils/logger';
-import { showSuccessToastKo, showErrorToastKo, showValidationErrorToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
-import styles from '@/app/admin/assets/AdminGroupContent.module.scss';
-import AdminGroupAddModal from '@/app/admin/components/group/AdminGroupAddModal';
+import { showSuccessToastKo, showErrorToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
+import styles from '@/app/manager/assets/ManagerGroupContent.module.scss';
 
 interface Group {
     group_name: string;
@@ -31,42 +29,17 @@ interface User {
     preferences?: any;
 }
 
-const AdminGroupContent: React.FC = () => {
+const ManagerGroupContent: React.FC = () => {
     const [groups, setGroups] = useState<Group[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [showPermissionModal, setShowPermissionModal] = useState(false);
-    const [editingGroup, setEditingGroup] = useState<Group | null>(null);
 
     // 탭 상태 관리
     const [activeTab, setActiveTab] = useState<'groups' | 'users'>('groups');
     const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
     const [groupUsers, setGroupUsers] = useState<User[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
-
-    // 조직원 추가 모달 상태
-    const [showAddUserModal, setShowAddUserModal] = useState(false);
-
-    // 새 그룹 생성 폼 상태
-    const [newGroup, setNewGroup] = useState({
-        group_name: '',
-        available: true,
-        available_sections: [] as string[],
-        managers: [] as number[]
-    });
-
-    // 사용 가능한 섹션 목록
-    const availableSectionOptions = [
-        'canvas',
-        'workflows',
-        'documents',
-        'train',
-        'train-monitor',
-        'eval',
-        'storage'
-    ];
 
     // 그룹 데이터 로드
     const loadGroups = async () => {
@@ -115,36 +88,6 @@ const AdminGroupContent: React.FC = () => {
         setGroupUsers([]);
     };
 
-    // 권한 편집 모달 열기
-    const handleEditPermissions = (group: Group) => {
-        setEditingGroup({ ...group });
-        setShowPermissionModal(true);
-    };
-
-    // 권한 업데이트 핸들러
-    const handleUpdatePermissions = async () => {
-        if (!editingGroup) return;
-
-        try {
-            await updateGroupPermissions({
-                group_name: editingGroup.group_name,
-                available: editingGroup.available,
-                available_sections: editingGroup.available_sections,
-            });
-
-            // 성공 시 목록 새로고침 및 모달 닫기
-            await loadGroups();
-            setShowPermissionModal(false);
-            setEditingGroup(null);
-
-            showSuccessToastKo('조직 권한이 성공적으로 업데이트되었습니다.');
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : '권한 업데이트에 실패했습니다.';
-            devLog.error('Failed to update group permissions:', err);
-            showErrorToastKo(`업데이트 실패: ${errorMessage}`);
-        }
-    };
-
     // 그룹 삭제 핸들러
     const handleDeleteGroup = async (groupName: string) => {
         showDeleteConfirmToastKo({
@@ -166,21 +109,6 @@ const AdminGroupContent: React.FC = () => {
         });
     };
 
-    // 섹션 선택/해제 핸들러
-    const handleSectionToggle = (section: string) => {
-        if (!editingGroup) return;
-
-        const currentSections = editingGroup.available_sections || [];
-        const newSections = currentSections.includes(section)
-            ? currentSections.filter(s => s !== section)
-            : [...currentSections, section];
-
-        setEditingGroup({
-            ...editingGroup,
-            available_sections: newSections
-        });
-    };
-
     // 검색 필터링
     const filteredGroups = groups.filter(group => {
         const searchLower = searchTerm.toLowerCase().trim();
@@ -189,38 +117,6 @@ const AdminGroupContent: React.FC = () => {
         const groupName = group.group_name?.toLowerCase() || '';
         return groupName.includes(searchLower);
     });
-
-    // 새 그룹 생성 핸들러
-    const handleCreateGroup = async () => {
-        try {
-            if (!newGroup.group_name.trim()) {
-                showValidationErrorToastKo('조직명을 입력해주세요.');
-                return;
-            }
-
-            await createGroup({
-                group_name: newGroup.group_name.trim(),
-                available: true, // 항상 true로 설정
-                available_sections: newGroup.available_sections,
-            });
-
-            // 성공 시 목록 새로고침 및 모달 닫기
-            await loadGroups();
-            setShowCreateModal(false);
-            setNewGroup({
-                group_name: '',
-                available: true, // 기본값 true 유지
-                available_sections: [],
-                managers: []
-            });
-
-            showSuccessToastKo('조직이 성공적으로 생성되었습니다.');
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : '조직 생성에 실패했습니다.';
-            devLog.error('Failed to create group:', err);
-            showErrorToastKo(`생성 실패: ${errorMessage}`);
-        }
-    };
 
     // 사용자 제외 핸들러
     const handleRemoveUser = async (user: User) => {
@@ -310,19 +206,13 @@ const AdminGroupContent: React.FC = () => {
                     </div>
 
                     <div className={styles.stats}>
-                        <span>총 {groups.length}개의 조직</span>
+                        <span>총 {groups.length}개의 조직 (관리 권한)</span>
                         {searchTerm && (
                             <span>({filteredGroups.length}개 검색됨)</span>
                         )}
                     </div>
 
                     <div className={styles.actionButtons}>
-                        <button
-                            onClick={() => setShowCreateModal(true)}
-                            className={styles.refreshButton}
-                        >
-                            새 조직 생성
-                        </button>
                         <button onClick={loadGroups} className={styles.refreshButton}>
                             새로고침
                         </button>
@@ -347,12 +237,6 @@ const AdminGroupContent: React.FC = () => {
                     </div>
 
                     <div className={styles.actionButtons}>
-                        <button
-                            onClick={() => setShowAddUserModal(true)}
-                            className={styles.refreshButton}
-                        >
-                            조직원 추가
-                        </button>
                         <button
                             onClick={() => selectedGroup && loadGroupUsers(selectedGroup)}
                             className={styles.refreshButton}
@@ -379,7 +263,7 @@ const AdminGroupContent: React.FC = () => {
                             {filteredGroups.length === 0 ? (
                                 <tr>
                                     <td colSpan={4} className={styles.noData}>
-                                        {loading ? '조직 목록을 불러오는 중...' : searchTerm ? '검색 결과가 없습니다.' : '등록된 조직이 없습니다.'}
+                                        {loading ? '조직 목록을 불러오는 중...' : searchTerm ? '검색 결과가 없습니다.' : '관리 권한이 있는 조직이 없습니다.'}
                                     </td>
                                 </tr>
                             ) : (
@@ -399,12 +283,6 @@ const AdminGroupContent: React.FC = () => {
                                                 onClick={() => handleGroupSelect(group.group_name)}
                                             >
                                                 사용자 보기
-                                            </button>
-                                            <button
-                                                className={styles.actionButton}
-                                                onClick={() => handleEditPermissions(group)}
-                                            >
-                                                권한 편집
                                             </button>
                                             <button
                                                 className={`${styles.actionButton} ${styles.dangerButton}`}
@@ -488,120 +366,8 @@ const AdminGroupContent: React.FC = () => {
                     </table>
                 )}
             </div>
-
-            {/* 그룹 생성 모달 */}
-            {showCreateModal && createPortal(
-                <div className={styles.modal}>
-                    <div className={styles.modalContent}>
-                        <h3>새 조직 생성</h3>
-                        <div className={styles.formGroup}>
-                            <label>조직명 *</label>
-                            <input
-                                type="text"
-                                value={newGroup.group_name}
-                                onChange={(e) => setNewGroup({...newGroup, group_name: e.target.value})}
-                                placeholder="조직명을 입력하세요"
-                                className={styles.formInput}
-                            />
-                        </div>
-                        <div className={styles.modalActions}>
-                            <button
-                                onClick={() => setShowCreateModal(false)}
-                                className={styles.cancelButton}
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={handleCreateGroup}
-                                className={styles.createButton}
-                            >
-                                생성
-                            </button>
-                        </div>
-                    </div>
-                </div>,
-                document.body
-            )}
-
-            {/* 권한 편집 모달 */}
-            {showPermissionModal && editingGroup && createPortal(
-                <div className={styles.modal}>
-                    <div className={styles.modalContent}>
-                        <h3>권한 변경 - {editingGroup.group_name}</h3>
-
-                        <div className={styles.formGroup}>
-                            <button
-                                type="button"
-                                className={`${styles.statusToggleButton} ${
-                                    editingGroup.available
-                                        ? styles.statusToggleActive
-                                        : styles.statusToggleInactive
-                                }`}
-                                onClick={() => setEditingGroup({
-                                    ...editingGroup,
-                                    available: !editingGroup.available
-                                })}
-                            >
-                                {editingGroup.available ? '활성화 상태입니다.' : '비활성화 상태입니다.'}
-                            </button>
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label>사용 가능한 섹션</label>
-                            <div className={styles.sectionGrid}>
-                                {availableSectionOptions.map((section) => (
-                                    <button
-                                        key={section}
-                                        type="button"
-                                        className={`${styles.sectionButton} ${
-                                            editingGroup.available_sections?.includes(section)
-                                                ? styles.sectionButtonActive
-                                                : styles.sectionButtonInactive
-                                        }`}
-                                        onClick={() => handleSectionToggle(section)}
-                                    >
-                                        {section}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className={styles.modalActions}>
-                            <button
-                                onClick={() => {
-                                    setShowPermissionModal(false);
-                                    setEditingGroup(null);
-                                }}
-                                className={styles.cancelButton}
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={handleUpdatePermissions}
-                                className={styles.createButton}
-                            >
-                                권한 업데이트
-                            </button>
-                        </div>
-                    </div>
-                </div>,
-                document.body
-            )}
-
-            {/* 조직원 추가 모달 */}
-            {showAddUserModal && selectedGroup && (
-                <AdminGroupAddModal
-                    isOpen={showAddUserModal}
-                    onClose={() => setShowAddUserModal(false)}
-                    groupName={selectedGroup}
-                    onSuccess={() => {
-                        // 사용자 목록 새로고침
-                        loadGroupUsers(selectedGroup);
-                    }}
-                />
-            )}
         </div>
     );
 };
 
-export default AdminGroupContent;
+export default ManagerGroupContent;

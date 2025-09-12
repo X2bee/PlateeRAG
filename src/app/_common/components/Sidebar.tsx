@@ -120,6 +120,15 @@ import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<Side
                                 <FiSettings />
                             </button>
                         )}
+                        {hasAccessToSection && hasAccessToSection('manager-page') && (
+                            <button
+                                onClick={() => router.push('/manager')}
+                                className={styles.settingsButton}
+                                title="매니저 페이지"
+                            >
+                                <FiSettings />
+                            </button>
+                        )}
                     </div>
                     {user && (
                         <div className={styles.userInfo}>
