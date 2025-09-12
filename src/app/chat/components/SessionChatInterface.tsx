@@ -12,6 +12,8 @@ import { SourceInfo } from '../types/source';
 import { ChatContainer, ChatContainerRef } from './ChatContainer';
 import { useChatState } from '../hooks/useChatState';
 import { useSessionWorkflowExecution } from '../hooks/useSessionWorkflowExecution';
+import { SessionManager } from '../utils/sessionManager';
+import SessionManagerModal from './SessionManager';
 import { speakText, extractPlainText, sanitizeTextForTTS } from '@/app/_common/utils/ttsUtils';
 import { showCopySuccessToastKo, showSuccessToastKo, showWarningToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 
