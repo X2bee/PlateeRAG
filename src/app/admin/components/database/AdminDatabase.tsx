@@ -275,12 +275,6 @@ const AdminDatabase: React.FC = () => {
 
         return (
             <div className={styles.resultContainer}>
-                {/* <div className={styles.resultHeader}>
-                    <h4>쿼리 결과</h4>
-                    <span className={styles.resultCount}>
-                        {queryResult.row_count}행 반환됨
-                    </span>
-                </div> */}
                 <div className={styles.tableContainer}>
                     <table className={styles.resultTable}>
                         <thead>

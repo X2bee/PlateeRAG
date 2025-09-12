@@ -162,12 +162,12 @@ const AdminPlayground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) 
                                         {workflow.workflow_name.replace('.json', '')}
                                     </div>
                                     <div className={styles.workflowInfo}>
-                                        <span>
+                                        <div>
                                             {workflow.username}({workflow.full_name})
-                                        </span>
-                                        <span>
+                                        </div>
+                                        <div>
                                             {formatDate(workflow.updated_at)}
-                                        </span>
+                                        </div>
                                     </div>
                                 </div>
                             ))}

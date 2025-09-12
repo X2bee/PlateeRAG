@@ -225,6 +225,9 @@ export interface Workflow {
     is_shared?: boolean;
     share_group?: string | null;
     share_permissions?: string;
+    inquire_deploy?: boolean;
+    is_accepted?: boolean;
+    is_deployed?: boolean;
 }
 
 export interface WorkflowDetailResponse {
