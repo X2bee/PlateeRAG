@@ -86,15 +86,6 @@ const SessionChatInterface: React.FC<SessionChatInterfaceProps> = ({
         }
     });
 
-    // 세션 데이터 저장
-    const saveSessionToStorage = useCallback((data: SessionData) => {
-        try {
-            localStorage.setItem(`session-${sessionId}`, JSON.stringify(data));
-        } catch (error) {
-            devLog.error('Failed to save session data:', error);
-        }
-    }, [sessionId]);
-
     // 세션 데이터 로드
     const loadSessionFromStorage = useCallback((): SessionData | null => {
         try {
@@ -108,84 +99,19 @@ const SessionChatInterface: React.FC<SessionChatInterfaceProps> = ({
         return null;
     }, [sessionId]);
 
-    // 메시지 전송 시뮬레이션 (실제로는 API 연동)
-    const simulateMessageExecution = useCallback(async (message: string) => {
-        setExecuting(true);
-        setError(null);
-
-        const logId = generateInteractionId();
-        setPendingLogId(logId);
-
-        // 사용자 메시지 생성
-        const userLog: IOLog = {
-            log_id: logId,
-            workflow_name: sessionData.workflow?.name || 'session-chat',
-            workflow_id: sessionData.workflow?.id || 'default_mode',
-            input_data: message,
-            output_data: '', // 초기에는 빈 값
-            updated_at: new Date().toISOString(),
-        };
-
-        // 즉시 사용자 메시지를 로그에 추가
-        setIOLogs(prev => [...prev, userLog]);
-
-        try {
-            // 실제 AI 응답 시뮬레이션 (3초 후 응답)
-            await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 2000));
-            
-            // AI 응답 생성 (실제로는 API 호출)
-            const aiResponse = `안녕하세요! "${message}"에 대한 응답입니다. 
-
-이것은 세션 ${sessionId}의 테스트 응답이며, 현재 시간은 ${new Date().toLocaleTimeString()}입니다.
-
-실제 구현에서는 여기서 워크플로우 API를 호출하거나 기존 ChatInterface의 실행 로직을 재사용하게 됩니다.`;
-
-            // 완료된 로그로 업데이트
-            const completedLog: IOLog = {
-                ...userLog,
-                output_data: aiResponse,
-            };
-
-            setIOLogs(prev => 
-                prev.map(log => 
-                    log.log_id === logId ? completedLog : log
-                )
-            );
-
-            // 세션 데이터 업데이트 및 저장
-            const updatedSessionData: SessionData = {
-                ...sessionData,
-                messages: [...sessionData.messages, completedLog],
-                lastActiveAt: new Date().toISOString(),
-            };
-            
-            setSessionData(updatedSessionData);
-            saveSessionToStorage(updatedSessionData);
-
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
-            setError(errorMessage);
-            devLog.error('Message execution failed:', err);
-        } finally {
-            setExecuting(false);
-            setPendingLogId(null);
-        }
-    }, [sessionData, sessionId, saveSessionToStorage]);
 
     // 메시지 전송 핸들러
     const handleSendMessage = useCallback((message: string) => {
-        if (!message.trim() || executing) return;
+        if (!message.trim() || workflowExecution.executing) return;
         
         devLog.log('Sending message in session:', sessionId, message);
-        simulateMessageExecution(message);
+        workflowExecution.executeWorkflow(message);
         
         // 스크롤을 아래로
         setTimeout(() => {
-            if (messagesRef.current) {
-                messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
-            }
+            scrollToBottom();
         }, 100);
-    }, [sessionId, executing, simulateMessageExecution]);
+    }, [sessionId, workflowExecution, scrollToBottom]);
 
     // 소스 뷰 핸들러 (기존과 동일)
     const handleViewSource = useCallback((sourceInfo: SourceInfo, messageContent?: string) => {
@@ -273,12 +199,12 @@ const SessionChatInterface: React.FC<SessionChatInterfaceProps> = ({
         loading: state.ui.loading,
         ioLogs,
         workflow: sessionData.workflow || DEFAULT_WORKFLOW,
-        executing,
+        executing: workflowExecution.executing,
         setInputMessage: (message: string) => {
             chatContainerRef.current?.setInputMessage(message);
         },
         messagesRef,
-        pendingLogId,
+        pendingLogId: workflowExecution.pendingLogId,
         renderMessageContent,
         formatDate,
         selectedCollections: [],
@@ -294,16 +220,14 @@ const SessionChatInterface: React.FC<SessionChatInterfaceProps> = ({
         },
         onSendMessage: handleSendMessage,
         onShiftEnter: () => {
-            if (messagesRef.current) {
-                messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
-            }
+            scrollToBottom();
         },
         initialMessage: undefined,
         currentSourceInfo: state.pdfViewer.currentSourceInfo,
         user_id: undefined,
         onPDFViewerClose: handlePDFViewerClose,
         hideInputUI: false,
-        error,
+        error: workflowExecution.error,
     }), [
         state.ui.showPDFViewer,
         state.ui.loading,
@@ -313,14 +237,15 @@ const SessionChatInterface: React.FC<SessionChatInterfaceProps> = ({
         actions,
         ioLogs,
         sessionData.workflow,
-        executing,
+        workflowExecution.executing,
+        workflowExecution.pendingLogId,
+        workflowExecution.error,
         messagesRef,
-        pendingLogId,
         renderMessageContent,
         formatDate,
         handleSendMessage,
         handlePDFViewerClose,
-        error,
+        scrollToBottom,
     ]);
 
     return (
