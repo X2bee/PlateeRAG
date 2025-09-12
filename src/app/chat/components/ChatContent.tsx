@@ -192,6 +192,14 @@ return (
                         <h3>일반 채팅 시작</h3>
                         <p>자유롭게 대화하기</p>
                     </button>
+                    <button
+                        className={`${styles.chatOption} ${styles.sessionChat}`}
+                        onClick={() => router.push('/session-chat?session=test-session-1')}
+                    >
+                        <IoChatbubblesOutline />
+                        <h3>세션 채팅 테스트</h3>
+                        <p>세션 기반 채팅 테스트</p>
+                    </button>
                 </div>
             </div>
         </div>

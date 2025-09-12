@@ -72,7 +72,8 @@
 }
 
 .workflowButton,
-.chatButton {
+.chatButton,
+.sessionChat {
   background: $white;
   border: 2px solid $gray-200;
   border-radius: 1rem;
@@ -148,10 +149,37 @@
   }
 
   .workflowButton,
-  .chatButton {
+  .chatButton,
+  .sessionChat {
     width: 100%;
     max-width: 280px;
     height: 160px;
     padding: 1.5rem;
+  }
+}
+
+// Session Chat 특별 스타일
+.sessionChat {
+  border-color: #e74c3c !important;
+  
+  &:hover {
+    border-color: #c0392b !important;
+    background: rgba(231, 76, 60, 0.05) !important;
+    
+    svg {
+      color: #e74c3c !important;
+    }
+  }
+  
+  svg {
+    color: #e74c3c !important;
+  }
+  
+  h3 {
+    color: #2c3e50 !important;
+  }
+  
+  p {
+    color: #7f8c8d !important;
   }
 }

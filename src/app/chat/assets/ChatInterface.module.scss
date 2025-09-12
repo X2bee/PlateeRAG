@@ -40,6 +40,31 @@
     }
 }
 
+// Session Info
+.sessionInfo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 1.5rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 0.85rem;
+    color: #6c757d;
+    flex-shrink: 0;
+
+    span {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        
+        &:not(:last-child)::after {
+            content: '•';
+            margin-left: 1rem;
+            opacity: 0.5;
+        }
+    }
+}
+
 .backButton {
     background: $white;
     border: 2px solid $gray-200;
