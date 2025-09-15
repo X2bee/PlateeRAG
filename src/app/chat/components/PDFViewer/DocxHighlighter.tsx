@@ -11,7 +11,8 @@ import {
 } from './smartTokenizer';
 import { 
   defaultHighlightConfig, 
-  HighlightConfig 
+  HighlightConfig, 
+  highlightPresets
 } from './highlightConfig';
 
 interface DocxHighlighterProps {
@@ -23,7 +24,7 @@ interface DocxHighlighterProps {
 const DocxHighlighter: React.FC<DocxHighlighterProps> = ({
   highlightRange,
   scale,
-  highlightConfig = defaultHighlightConfig
+  highlightConfig = highlightPresets.strict || defaultHighlightConfig
 }) => {
 
   // 기존 하이라이팅 제거 함수
