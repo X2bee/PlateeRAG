@@ -74,6 +74,26 @@
             }
         }
 
+        &.pending {
+            border-color: #f59e0b;
+            background: #f59e0b;
+            color: $white;
+
+            &:hover:not(:disabled) {
+                background: color.adjust(#f59e0b, $lightness: -7%);
+            }
+        }
+
+        &.pendingOff {
+            border-color: #f59e0b;
+            background: $white;
+            color: #f59e0b;
+
+            &:hover:not(:disabled) {
+                background: #fef3c7;
+            }
+        }
+
         &:disabled {
             cursor: not-allowed;
             opacity: 0.6;
