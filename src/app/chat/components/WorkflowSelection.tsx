@@ -36,8 +36,9 @@ interface WorkflowDetailResponse {
     id: number;
     workflow_name: string;
     workflow_id: string;
-    user_name: string;
+    username: string;
     user_id: number;
+    full_name?: string;
     node_count: number;
     edge_count: number;
     updated_at: string;
@@ -87,7 +88,7 @@ const WorkflowSelection: React.FC<WorkflowSelectionProps> = ({ onBack, onSelectW
                     return {
                         id: detail.workflow_id,
                         name: detail.workflow_name.replace('.json', '') || detail.workflow_id,
-                        author: detail.user_name || 'Unknown',
+                        author: detail.username || detail.full_name || 'Unknown',
                         nodeCount: detail.node_count,
                         lastModified: detail.updated_at,
                         status: status,

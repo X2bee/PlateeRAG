@@ -69,9 +69,8 @@ const CompletedWorkflows: React.FC = () => {
                     return {
                         key_value: detail.id,
                         id: detail.workflow_id,
-                        name:
-                            detail.workflow_name,
-                        author: detail.username,
+                        name: detail.workflow_name,
+                        author: detail.username || detail.full_name || 'Unknown',
                         user_id: detail.user_id,
                         nodeCount: detail.node_count,
                         lastModified: detail.updated_at,
@@ -373,7 +372,7 @@ const CompletedWorkflows: React.FC = () => {
                                 )}
 
                                 <div className={styles.workflowMeta}>
-                                    {user && workflow.user_id === user.user_id && (
+                                    {user && (
                                         <div className={styles.metaItem}>
                                             <FiUser />
                                             <span>{workflow.author}</span>
