@@ -1,5 +1,8 @@
 import toast from 'react-hot-toast';
 
+// 전역 키보드 핸들러 관리
+let currentKeyHandler: ((e: KeyboardEvent) => void) | null = null;
+
 interface DeleteConfirmOptions {
     title?: string;
     message: string;
@@ -52,89 +55,146 @@ export const showDeleteConfirmToastKo = ({
     confirmText = '삭제',
     cancelText = '취소',
     duration = Infinity,
-}: DeleteConfirmOptions) => {
+    enableEnterKey = false,
+}: DeleteConfirmOptions & { enableEnterKey?: boolean }) => {
+    // 기존 핸들러가 있으면 제거
+    if (currentKeyHandler) {
+        document.removeEventListener('keydown', currentKeyHandler);
+        currentKeyHandler = null;
+    }
+
+    if (enableEnterKey) {
+        currentKeyHandler = (e: KeyboardEvent) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                // 핸들러 정리
+                if (currentKeyHandler) {
+                    document.removeEventListener('keydown', currentKeyHandler);
+                    currentKeyHandler = null;
+                }
+                toast.dismiss();
+                onConfirm();
+            }
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                // 핸들러 정리
+                if (currentKeyHandler) {
+                    document.removeEventListener('keydown', currentKeyHandler);
+                    currentKeyHandler = null;
+                }
+                toast.dismiss();
+                onCancel?.();
+            }
+        };
+        document.addEventListener('keydown', currentKeyHandler);
+    }
+
     const confirmToast = toast(
-        (t) => (
-            <div
-                style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px',
-                }}
-            >
-                <div
-                    style={{
-                        fontWeight: '600',
-                        color: '#dc2626',
-                        fontSize: '1rem',
-                    }}
-                >
-                    {title}
-                </div>
-                <div
-                    style={{
-                        fontSize: '0.9rem',
-                        color: '#374151',
-                        lineHeight: '1.4',
-                    }}
-                >
-                    {message}
-                </div>
+        (t) => {
+
+            return (
                 <div
                     style={{
                         display: 'flex',
-                        gap: '8px',
-                        justifyContent: 'flex-end',
-                        marginTop: '4px',
+                        flexDirection: 'column',
+                        gap: '12px',
                     }}
                 >
-                    <button
-                        onClick={() => {
-                            toast.dismiss(t.id);
-                            onCancel?.();
-                        }}
+                    <div
                         style={{
-                            padding: '8px 16px',
-                            backgroundColor: '#ffffff',
-                            border: '2px solid #6b7280',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '0.85rem',
-                            fontWeight: '500',
+                            fontWeight: '600',
+                            color: '#dc2626',
+                            fontSize: '1rem',
+                        }}
+                    >
+                        {title}
+                    </div>
+                    <div
+                        style={{
+                            fontSize: '0.9rem',
                             color: '#374151',
-                            transition: 'all 0.2s ease',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                            lineHeight: '1.4',
                         }}
                     >
-                        {cancelText}
-                    </button>
-                    <button
-                        onClick={async () => {
-                            toast.dismiss(t.id);
-                            try {
-                                await onConfirm();
-                            } catch (error) {
-                                console.error('Delete confirmation error:', error);
-                            }
-                        }}
+                        {message}
+                    </div>
+                    {enableEnterKey && (
+                        <div
+                            style={{
+                                fontSize: '0.8rem',
+                                color: '#6b7280',
+                                fontStyle: 'italic',
+                            }}
+                        >
+                            💡 Enter키를 누르면 삭제됩니다 | ESC로 취소
+                        </div>
+                    )}
+                    <div
                         style={{
-                            padding: '8px 16px',
-                            backgroundColor: '#dc2626',
-                            color: 'white',
-                            border: '2px solid #b91c1c',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '0.85rem',
-                            fontWeight: '500',
-                            transition: 'all 0.2s ease',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                            display: 'flex',
+                            gap: '8px',
+                            justifyContent: 'flex-end',
+                            marginTop: '4px',
                         }}
                     >
-                        {confirmText}
-                    </button>
+                        <button
+                            onClick={() => {
+                                toast.dismiss(t.id);
+                                if (currentKeyHandler) {
+                                    document.removeEventListener('keydown', currentKeyHandler);
+                                    currentKeyHandler = null;
+                                }
+                                onCancel?.();
+                            }}
+                            style={{
+                                padding: '8px 16px',
+                                backgroundColor: '#ffffff',
+                                border: '2px solid #6b7280',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem',
+                                fontWeight: '500',
+                                color: '#374151',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                            }}
+                        >
+                            {cancelText}
+                        </button>
+                        <button
+                            onClick={async () => {
+                                toast.dismiss(t.id);
+                                if (currentKeyHandler) {
+                                    document.removeEventListener('keydown', currentKeyHandler);
+                                    currentKeyHandler = null;
+                                }
+                                try {
+                                    await onConfirm();
+                                } catch (error) {
+                                    console.error('Delete confirmation error:', error);
+                                }
+                            }}
+                            style={{
+                                padding: '8px 16px',
+                                backgroundColor: '#dc2626',
+                                color: 'white',
+                                border: '2px solid #b91c1c',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem',
+                                fontWeight: '500',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                            }}
+                        >
+                            {confirmText}
+                        </button>
+                    </div>
                 </div>
-            </div>
-        ),
+            );
+        },
         {
             duration,
             style: {
@@ -448,6 +508,7 @@ export const showChatDeleteConfirmKo = (
         onCancel,
         confirmText: '삭제',
         cancelText: '취소',
+        enableEnterKey: true,
     });
 };
 
