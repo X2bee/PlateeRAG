@@ -2,7 +2,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 24px;
+    padding-left: 12px;
+    padding-right: 24px;
     height: 60px; // 헤더 높이
     background-color: #ffffff; // 헤더 배경색
     border-bottom: 1px solid #e0e0e0; // 구분선
@@ -17,7 +18,24 @@
 .leftSection {
     display: flex;
     align-items: center;
-    gap: 24px;
+    gap: 12px;
+
+    button {
+        background: none;
+        border: none;
+        padding: 10px;
+        margin: 0;
+        transition: all 1s ease;
+        cursor: pointer;
+
+        &:hover {
+            background-color: #f0f0f0;
+            transform: translateY(-3px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+    }
+
+
 }
 
 .logoLink {
