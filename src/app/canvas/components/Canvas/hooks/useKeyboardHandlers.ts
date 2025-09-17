@@ -63,21 +63,13 @@ export const useKeyboardHandlers = ({
             // Ctrl+Shift+Z for Redo
             e.preventDefault();
             if (canRedo) {
-                console.log('🔄 Executing Redo - canRedo:', canRedo);
-                const result = redo();
-                console.log('Redo result:', result);
-            } else {
-                console.log('❌ Cannot redo - canRedo:', canRedo);
+                redo();
             }
         } else if (isCtrlOrCmd && e.key === 'z') {
             // Ctrl+Z for Undo
             e.preventDefault();
             if (canUndo) {
-                console.log('↶ Executing Undo - canUndo:', canUndo);
-                const result = undo();
-                console.log('Undo result:', result);
-            } else {
-                console.log('❌ Cannot undo - canUndo:', canUndo);
+                undo();
             }
         } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNodeId) {
             e.preventDefault();

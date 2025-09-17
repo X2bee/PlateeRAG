@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import type { DragState, View } from '@/app/canvas/types';
+import { devLog } from '@/app/_common/utils/logger';
 
 interface UseDragStateProps {
     historyHelpers?: {
@@ -62,6 +63,12 @@ export const useDragState = ({ historyHelpers, nodes }: UseDragStateProps): UseD
                 );
 
                 if (distance > 5) {
+                    devLog.log('Node move recorded', {
+                        nodeId: dragState.nodeId,
+                        distance: Math.round(distance),
+                        from: initialPosition,
+                        to: currentPosition
+                    });
                     historyHelpers.recordNodeMove(dragState.nodeId, initialPosition, currentPosition);
                 }
             }

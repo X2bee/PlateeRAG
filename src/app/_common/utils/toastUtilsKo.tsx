@@ -454,6 +454,23 @@ export const showNewWorkflowConfirmKo = (
 };
 
 /**
+ * 작업 히스토리 초기화 경고 토스트 (한국어)
+ */
+export const showHistoryClearWarningKo = (
+    onConfirm: () => void | Promise<void>,
+    onCancel?: () => void
+) => {
+    return showWarningConfirmToastKo({
+        title: '작업 히스토리가 초기화됩니다',
+        message: '이 작업을 수행하면 모든 작업 히스토리가 삭제됩니다.',
+        onConfirm,
+        onCancel,
+        confirmText: '계속',
+        cancelText: '취소',
+    });
+};
+
+/**
  * 워크플로우 삭제 전용 유틸리티 (한국어)
  */
 export const showWorkflowDeleteConfirmKo = (

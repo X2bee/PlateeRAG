@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { showSuccessToastKo, showErrorToastKo, showLoadingToastKo, dismissToastKo } from '@/app/_common/utils/toastUtilsKo';
 import Canvas from '@/app/canvas/components/Canvas';
@@ -8,8 +8,8 @@ import SideMenu from '@/app/canvas/components/SideMenu';
 import ExecutionPanel from '@/app/canvas/components/ExecutionPanel';
 import NodeModal from '@/app/canvas/components/NodeModal';
 import AuthGuard from '@/app/_common/components/authGuard/AuthGuard';
+import HistoryPanel from '@/app/canvas/components/HistoryPanel';
 import { DeploymentModal } from '@/app/chat/components/DeploymentModal';
-import { HistoryPanel } from '@/app/canvas/components/HistoryPanel';
 import { useNodes } from '@/app/_common/utils/nodeHook';
 import { useHistoryManagement, createHistoryHelpers } from '@/app/canvas/components/Canvas/hooks/useHistoryManagement';
 import styles from '@/app/canvas/assets/PlateeRAG.module.scss';
@@ -79,11 +79,14 @@ function CanvasPageContent() {
         redo,
         jumpToHistoryIndex
     } = historyManagement;
-    const historyHelpers = createHistoryHelpers(
+
+    // historyHelpers를 useMemo로 메모이제이션하여 무한 루프 방지
+    const historyHelpers = useMemo(() => createHistoryHelpers(
         addHistoryEntry,
         historyManagement,
         () => canvasRef.current ? (canvasRef.current as any).getCanvasState() : null
-    );
+    ), [addHistoryEntry, historyManagement]); // 의존성 최소화
+
     const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
 
     // NodeModal 관련 상태
@@ -257,11 +260,16 @@ function CanvasPageContent() {
         // Canvas가 마운트된 후에 상태 복원자 설정
         const setupRestorer = () => {
             if (canvasRef.current) {
-                console.log('🔧 Setting up canvas state restorer');
                 historyManagement.setCanvasStateRestorer((canvasState: any) => {
-                    console.log('🔄 Restoring canvas state:', canvasState);
                     if (canvasRef.current) {
-                        (canvasRef.current as any).loadCanvasState(canvasState);
+                        try {
+                            devLog.log('Attempting to restore canvas state:', canvasState);
+                            (canvasRef.current as any).loadCanvasState(canvasState);
+                            devLog.log('Canvas state restored successfully');
+                        } catch (error) {
+                            devLog.error('Failed to restore canvas state:', error);
+                            // 에러가 발생해도 전체 애플리케이션이 중단되지 않도록 함
+                        }
                     }
                 });
                 return true;
@@ -836,8 +844,9 @@ function CanvasPageContent() {
                 isDeploy={isDeploy}
                 handleExecute={handleExecute}
                 isLoading={isExecuting}
-                onHistoryClick={() => setIsHistoryPanelOpen(true)}
+                onHistoryClick={() => setIsHistoryPanelOpen(!isHistoryPanelOpen)}
                 historyCount={history.length}
+                isHistoryPanelOpen={isHistoryPanelOpen}
             />
             <main className={styles.mainContent}>
                 <Canvas

@@ -31,9 +31,9 @@ interface UsePredictedNodesReturn {
     isPredictedNodeId: (nodeId: string) => boolean;
 }
 
-export const usePredictedNodes = ({ 
-    availableNodeSpecs, 
-    areTypesCompatible 
+export const usePredictedNodes = ({
+    availableNodeSpecs,
+    areTypesCompatible
 }: UsePredictedNodesProps): UsePredictedNodesReturn => {
     const [predictedNodes, setPredictedNodes] = useState<PredictedNode[]>([]);
     const [isDraggingOutput, setIsDraggingOutput] = useState<boolean>(false);
@@ -159,7 +159,8 @@ export const usePredictedNodes = ({
         devLog.log('=== handlePredictedNodeClick called ===', {
             nodeData: nodeData.nodeName,
             isDraggingOutput,
-            isDraggingInput
+            isDraggingInput,
+            sourcePortForConnection
         });
 
         const newNode: CanvasNode = {
@@ -178,7 +179,7 @@ export const usePredictedNodes = ({
 
         devLog.log('Predicted node converted to actual node:', newNode.id);
         return newNode;
-    }, [isDraggingOutput, isDraggingInput]);
+    }, [isDraggingOutput, isDraggingInput, sourcePortForConnection]);
 
     const clearPredictedNodes = useCallback(() => {
         setPredictedNodes([]);
