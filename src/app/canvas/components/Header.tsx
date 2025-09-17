@@ -26,8 +26,6 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({
     onMenuClick,
     onSave,
-    onLoad,
-    onExport,
     onNewWorkflow,
     onBack,
     workflowName: externalWorkflowName,
@@ -171,12 +169,6 @@ const Header: React.FC<HeaderProps> = ({
                             <span>배포 테스트</span>
                         </button>
                     )}
-                <button onClick={onLoad} className={styles.menuButton} title="Load Workflow">
-                    <LuFileText />
-                </button>
-                <button onClick={onExport} className={styles.menuButton} title="Export Workflow">
-                    <LuSave />
-                </button>
                 <button onClick={onNewWorkflow} className={styles.menuButton} title="New Workflow">
                     <LuFileText />
                 </button>
