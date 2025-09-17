@@ -262,7 +262,14 @@ function CanvasPageContent() {
             if (canvasRef.current) {
                 historyManagement.setCanvasStateRestorer((canvasState: any) => {
                     if (canvasRef.current) {
-                        (canvasRef.current as any).loadCanvasState(canvasState);
+                        try {
+                            devLog.log('Attempting to restore canvas state:', canvasState);
+                            (canvasRef.current as any).loadCanvasState(canvasState);
+                            devLog.log('Canvas state restored successfully');
+                        } catch (error) {
+                            devLog.error('Failed to restore canvas state:', error);
+                            // 에러가 발생해도 전체 애플리케이션이 중단되지 않도록 함
+                        }
                     }
                 });
                 return true;

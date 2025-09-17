@@ -523,37 +523,43 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
             addNode(newNode);
         },
         loadCanvasState: (state: Partial<CanvasState>): void => {
-            // NODE_MOVE 특별 처리
-            if ('actionType' in state && state.actionType === 'NODE_MOVE') {
-                const { nodeId, position } = state as any;
+            try {
+                devLog.log('Restoring full canvas state:', {
+                    hasNodes: !!state.nodes,
+                    nodesCount: state.nodes?.length,
+                    hasEdges: !!state.edges,
+                    edgesCount: state.edges?.length,
+                    hasView: !!state.view
+                });
 
-                // 현재 nodes에서 해당 노드를 찾아서 업데이트
-                const currentNodes = nodesRef.current;
-                const nodeIndex = currentNodes.findIndex(n => n.id === nodeId);
-
-                if (nodeIndex !== -1) {
-                    const updatedNodes = [...currentNodes];
-                    updatedNodes[nodeIndex] = {
-                        ...updatedNodes[nodeIndex],
-                        position: { ...position }
-                    };
-
-                    devLog.log('NODE_MOVE restored', {
-                        nodeId,
-                        position,
-                        nodeIndex
-                    });
-
-                    setNodes(updatedNodes);
-                    nodesRef.current = updatedNodes;
-                } else {
-                    devLog.error('Node not found for restoration:', nodeId);
+                if (state.nodes) {
+                    // 노드 상태 복원 시 유효성 검사
+                    const validNodes = state.nodes.filter(node => node && node.id && node.data);
+                    if (validNodes.length !== state.nodes.length) {
+                        devLog.warn('Some nodes filtered out due to invalid data:',
+                            state.nodes.length - validNodes.length);
+                    }
+                    setNodes(validNodes);
                 }
-            } else {
-                // 일반적인 전체 상태 복원
-                if (state.nodes) setNodes(state.nodes);
-                if (state.edges) setEdges(state.edges);
-                if (state.view) setView(state.view);
+
+                if (state.edges) {
+                    // 엣지 상태 복원 시 유효성 검사
+                    const validEdges = state.edges.filter(edge =>
+                        edge && edge.id && edge.source && edge.target
+                    );
+                    if (validEdges.length !== state.edges.length) {
+                        devLog.warn('Some edges filtered out due to invalid data:',
+                            state.edges.length - validEdges.length);
+                    }
+                    setEdges(validEdges);
+                }
+
+                if (state.view) {
+                    setView(state.view);
+                }
+            } catch (error) {
+                devLog.error('Error during canvas state restoration:', error);
+                // 에러가 발생해도 애플리케이션이 중단되지 않도록 함
             }
         },
         loadWorkflowState: (state: Partial<CanvasState>): void => {
