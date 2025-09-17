@@ -4,9 +4,13 @@ import styles from './HistoryPanel.module.scss';
 
 interface HistoryPanelProps {
     history: HistoryEntry[];
+    currentHistoryIndex: number;
     isOpen: boolean;
     onClose: () => void;
     onClearHistory?: () => void;
+    onJumpToHistoryIndex?: (index: number) => void;
+    canUndo: boolean;
+    canRedo: boolean;
 }
 
 const actionTypeColors: Record<HistoryActionType, string> = {
@@ -31,9 +35,13 @@ const actionTypeLabels: Record<HistoryActionType, string> = {
 
 export const HistoryPanel: React.FC<HistoryPanelProps> = ({
     history,
+    currentHistoryIndex,
     isOpen,
     onClose,
-    onClearHistory
+    onClearHistory,
+    onJumpToHistoryIndex,
+    canUndo,
+    canRedo
 }) => {
     const [filterType, setFilterType] = useState<HistoryActionType | 'ALL'>('ALL');
     const [searchTerm, setSearchTerm] = useState('');
@@ -115,49 +123,66 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({
                         {history.length === 0 ? '아직 기록된 작업이 없습니다.' : '검색 결과가 없습니다.'}
                     </div>
                 ) : (
-                    filteredHistory.map((entry) => (
-                        <div key={entry.id} className={styles.historyItem}>
+                    <>
+                        {/* Current State Indicator */}
+                        <div
+                            className={`${styles.historyItem} ${styles.currentState} ${currentHistoryIndex === -1 ? styles.active : ''}`}
+                            onClick={() => onJumpToHistoryIndex?.(-1)}
+                        >
                             <div className={styles.itemHeader}>
-                                <span
-                                    className={styles.actionBadge}
-                                    style={{ backgroundColor: actionTypeColors[entry.actionType] }}
-                                >
-                                    {actionTypeLabels[entry.actionType]}
-                                </span>
-                                <span className={styles.timestamp}>
-                                    {formatTimestamp(entry.timestamp)}
+                                <span className={styles.currentStateBadge}>
+                                    현재 상태
                                 </span>
                             </div>
                             <div className={styles.description}>
-                                {entry.description}
+                                최신 작업 상태
                             </div>
-                            {Object.keys(entry.details).length > 0 && (
-                                <div className={styles.details}>
-                                    {entry.details.nodeId && (
-                                        <span className={styles.detailItem}>
-                                            Node: {entry.details.nodeId}
+                        </div>
+
+                        {filteredHistory.map((entry, index) => {
+                            const actualIndex = history.indexOf(entry);
+                            const isActive = currentHistoryIndex === actualIndex;
+                            const isFuture = currentHistoryIndex !== -1 && actualIndex < currentHistoryIndex;
+                            const isPast = currentHistoryIndex !== -1 && actualIndex >= currentHistoryIndex;
+
+                            return (
+                                <div
+                                    key={entry.id}
+                                    className={`${styles.historyItem} ${isActive ? styles.active : ''} ${isFuture ? styles.future : ''} ${isPast ? styles.past : ''}`}
+                                    onClick={() => onJumpToHistoryIndex?.(actualIndex)}
+                                >
+                                    <div className={styles.itemHeader}>
+                                        <span
+                                            className={styles.actionBadge}
+                                            style={{ backgroundColor: actionTypeColors[entry.actionType] }}
+                                        >
+                                            {actionTypeLabels[entry.actionType]}
                                         </span>
-                                    )}
-                                    {entry.details.edgeId && (
-                                        <span className={styles.detailItem}>
-                                            Edge: {entry.details.edgeId}
+                                        <span className={styles.timestamp}>
+                                            {formatTimestamp(entry.timestamp)}
                                         </span>
-                                    )}
-                                    {entry.details.fromPosition && entry.details.toPosition && (
-                                        <span className={styles.detailItem}>
-                                            Position: ({entry.details.fromPosition.x.toFixed(1)}, {entry.details.fromPosition.y.toFixed(1)}) →
-                                            ({entry.details.toPosition.x.toFixed(1)}, {entry.details.toPosition.y.toFixed(1)})
-                                        </span>
-                                    )}
-                                    {entry.details.sourceId && entry.details.targetId && (
-                                        <span className={styles.detailItem}>
-                                            Connection: {entry.details.sourceId} → {entry.details.targetId}
-                                        </span>
+                                    </div>
+                                    <div className={styles.description}>
+                                        {entry.description}
+                                    </div>
+                                    {Object.keys(entry.details).length > 0 && (
+                                        <div className={styles.details}>
+                                            {entry.details.nodeId && (
+                                                <span className={styles.detailItem}>
+                                                    Node: {entry.details.nodeId}
+                                                </span>
+                                            )}
+                                            {entry.details.edgeId && (
+                                                <span className={styles.detailItem}>
+                                                    Edge: {entry.details.edgeId}
+                                                </span>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
-                            )}
-                        </div>
-                    ))
+                            );
+                        })}
+                    </>
                 )}
             </div>
         </div>

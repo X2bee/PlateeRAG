@@ -181,7 +181,7 @@ export interface NodeProps {
     onPortMouseUp: (data: PortMouseEventData, mouseEvent?: React.MouseEvent) => void;
     registerPortRef: (nodeId: string, portId: string, portType: string, el: HTMLElement | null) => void;
     snappedPortKey: string | null;
-    onParameterChange: (nodeId: string, paramId: string, value: string | number | boolean) => void;
+    onParameterChange: (nodeId: string, paramId: string, value: string | number | boolean, skipHistory?: boolean) => void;
     isSnapTargetInvalid: boolean;
     isPreview?: boolean;
     onNodeNameChange: (nodeId: string, newName: string) => void;
@@ -272,6 +272,10 @@ export interface CanvasProps {
         recordEdgeDelete: (edgeId: string, sourceId: string, targetId: string) => void;
         recordNodeUpdate: (nodeId: string, field: string, oldValue: any, newValue: any) => void;
         recordEdgeUpdate: (edgeId: string, field: string, oldValue: any, newValue: any) => void;
+        undo: () => any;
+        redo: () => any;
+        canUndo: boolean;
+        canRedo: boolean;
     };
 }
 
@@ -284,7 +288,7 @@ export interface CanvasRef {
     clearSelectedNode: () => void;
     validateAndPrepareExecution: () => ExecutionValidationResult;
     setAvailableNodeSpecs: (nodeSpecs: NodeData[]) => void;
-    updateNodeParameter: (nodeId: string, paramId: string, value: string) => void;
+    updateNodeParameter: (nodeId: string, paramId: string, value: string | number | boolean, skipHistory?: boolean) => void;
 }
 
 // ========== Execution Panel Types ==========

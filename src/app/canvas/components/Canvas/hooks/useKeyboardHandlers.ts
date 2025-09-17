@@ -16,6 +16,12 @@ interface UseKeyboardHandlersProps {
     removeNodeEdges: (nodeId: string) => CanvasEdge[];
     clearSelection: () => void;
     selectNode: (nodeId: string) => void;
+
+    // History management
+    undo: () => any;
+    redo: () => any;
+    canUndo: boolean;
+    canRedo: boolean;
 }
 
 interface UseKeyboardHandlersReturn {
@@ -31,7 +37,11 @@ export const useKeyboardHandlers = ({
     removeEdge,
     removeNodeEdges,
     clearSelection,
-    selectNode
+    selectNode,
+    undo,
+    redo,
+    canUndo,
+    canRedo
 }: UseKeyboardHandlersProps): UseKeyboardHandlersReturn => {
 
     const handleKeyDown = useCallback((e: KeyboardEvent): void => {
@@ -49,6 +59,26 @@ export const useKeyboardHandlers = ({
             e.preventDefault();
             const pastedNodeId = pasteNode();
             if (pastedNodeId) selectNode(pastedNodeId);
+        } else if (isCtrlOrCmd && e.shiftKey && e.key === 'Z') {
+            // Ctrl+Shift+Z for Redo
+            e.preventDefault();
+            if (canRedo) {
+                console.log('🔄 Executing Redo - canRedo:', canRedo);
+                const result = redo();
+                console.log('Redo result:', result);
+            } else {
+                console.log('❌ Cannot redo - canRedo:', canRedo);
+            }
+        } else if (isCtrlOrCmd && e.key === 'z') {
+            // Ctrl+Z for Undo
+            e.preventDefault();
+            if (canUndo) {
+                console.log('↶ Executing Undo - canUndo:', canUndo);
+                const result = undo();
+                console.log('Undo result:', result);
+            } else {
+                console.log('❌ Cannot undo - canUndo:', canUndo);
+            }
         } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNodeId) {
             e.preventDefault();
             const connectedEdges = removeNodeEdges(selectedNodeId);
@@ -68,7 +98,11 @@ export const useKeyboardHandlers = ({
         removeEdge,
         removeNodeEdges,
         clearSelection,
-        selectNode
+        selectNode,
+        undo,
+        redo,
+        canUndo,
+        canRedo
     ]);
 
     return {

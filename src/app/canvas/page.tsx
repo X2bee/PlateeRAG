@@ -67,8 +67,23 @@ function CanvasPageContent() {
     const [loadingCanvas, setLoadingCanvas] = useState(true);
 
     // History 관리 상태
-    const { history, addHistoryEntry, clearHistory } = useHistoryManagement();
-    const historyHelpers = createHistoryHelpers(addHistoryEntry);
+    const historyManagement = useHistoryManagement();
+    const {
+        history,
+        currentHistoryIndex,
+        addHistoryEntry,
+        clearHistory,
+        canUndo,
+        canRedo,
+        undo,
+        redo,
+        jumpToHistoryIndex
+    } = historyManagement;
+    const historyHelpers = createHistoryHelpers(
+        addHistoryEntry,
+        historyManagement,
+        () => canvasRef.current ? (canvasRef.current as any).getCanvasState() : null
+    );
     const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
 
     // NodeModal 관련 상태
@@ -236,6 +251,30 @@ function CanvasPageContent() {
             (canvasRef.current as any).setAvailableNodeSpecs(nodeDataList);
         }
     }, [nodesInitialized, nodeSpecs]);
+
+    // Canvas 상태 복원자 설정
+    useEffect(() => {
+        // Canvas가 마운트된 후에 상태 복원자 설정
+        const setupRestorer = () => {
+            if (canvasRef.current) {
+                console.log('🔧 Setting up canvas state restorer');
+                historyManagement.setCanvasStateRestorer((canvasState: any) => {
+                    console.log('🔄 Restoring canvas state:', canvasState);
+                    if (canvasRef.current) {
+                        (canvasRef.current as any).loadCanvasState(canvasState);
+                    }
+                });
+                return true;
+            }
+            return false;
+        };
+
+        // 즉시 시도하고, 실패하면 약간의 지연 후 재시도
+        if (!setupRestorer()) {
+            const timer = setTimeout(setupRestorer, 100);
+            return () => clearTimeout(timer);
+        }
+    }, []); // 빈 의존성 배열
 
     // 워크플로우 상태 변경 시 자동 저장
     const handleCanvasStateChange = (state: any) => {
@@ -843,9 +882,13 @@ function CanvasPageContent() {
             />
             <HistoryPanel
                 history={history}
+                currentHistoryIndex={currentHistoryIndex}
                 isOpen={isHistoryPanelOpen}
                 onClose={() => setIsHistoryPanelOpen(false)}
                 onClearHistory={clearHistory}
+                onJumpToHistoryIndex={jumpToHistoryIndex}
+                canUndo={canUndo}
+                canRedo={canRedo}
             />
             <input
                 type="file"

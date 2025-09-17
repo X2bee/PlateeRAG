@@ -431,7 +431,11 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         removeEdge,
         removeNodeEdges,
         clearSelection,
-        selectNode
+        selectNode,
+        undo: historyHelpers?.undo || (() => console.log('Undo called - no historyHelpers')),
+        redo: historyHelpers?.redo || (() => console.log('Redo called - no historyHelpers')),
+        canUndo: historyHelpers?.canUndo || false,
+        canRedo: historyHelpers?.canRedo || false
     });
 
     // Get final handlers from hooks
@@ -494,8 +498,8 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         setAvailableNodeSpecs: (nodeSpecs: NodeData[]): void => {
             setAvailableNodeSpecs(nodeSpecs);
         },
-        updateNodeParameter: (nodeId: string, paramId: string, value: string): void => {
-            updateNodeParameter(nodeId, paramId, value);
+        updateNodeParameter: (nodeId: string, paramId: string, value: string | number | boolean, skipHistory?: boolean): void => {
+            updateNodeParameter(nodeId, paramId, value, skipHistory);
         }
     }));
 

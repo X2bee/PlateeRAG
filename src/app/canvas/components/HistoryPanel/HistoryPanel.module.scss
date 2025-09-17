@@ -165,7 +165,8 @@
 .historyItem {
     padding: 0.75rem 1.5rem;
     border-bottom: 1px solid #f3f4f6;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
+    cursor: pointer;
 
     &:hover {
         background: #f9fafb;
@@ -173,6 +174,32 @@
 
     &:last-child {
         border-bottom: none;
+    }
+
+    // Photoshop-style states
+    &.active {
+        background: #dbeafe;
+        border-left: 3px solid #3b82f6;
+        font-weight: 600;
+    }
+
+    &.future {
+        opacity: 0.4;
+        background: #f9fafb;
+    }
+
+    &.past {
+        opacity: 0.7;
+    }
+
+    &.currentState {
+        background: #f0fdf4;
+        border-left: 3px solid #10b981;
+
+        &.active {
+            background: #dcfce7;
+            border-left: 3px solid #10b981;
+        }
     }
 }
 
@@ -192,6 +219,18 @@
     color: white;
     text-transform: uppercase;
     letter-spacing: 0.025em;
+}
+
+.currentStateBadge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    background: #10b981;
 }
 
 .timestamp {

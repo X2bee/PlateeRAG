@@ -8,7 +8,7 @@ export const useApiParameters = (
     nodeDataId: string,
     nodeId: string,
     parameters?: Parameter[],
-    onParameterChange?: (nodeId: string, paramId: string, value: string | number | boolean) => void
+    onParameterChange?: (nodeId: string, paramId: string, value: string | number | boolean, skipHistory?: boolean) => void
 ): UseApiParametersReturn => {
     const [apiOptions, setApiOptions] = useState<Record<string, ParameterOption[]>>({});
     const [loadingApiOptions, setLoadingApiOptions] = useState<Record<string, boolean>>({});
@@ -31,12 +31,13 @@ export const useApiParameters = (
             if (options.length === 1 && options[0].isSingleValue) {
                 const singleValue = String(options[0].value);
                 setApiSingleValues(prev => ({ ...prev, [paramKey]: singleValue }));
-                
+
                 if ((param.value === undefined || param.value === null || param.value === '') && onParameterChange) {
-                    onParameterChange(nodeId, param.id, singleValue);
-                } 
-                
-                devLog.log('Single value loaded for parameter:', param.name, 'value:', singleValue);
+                    // API에서 받아온 값이므로 히스토리에 기록하지 않음
+                    onParameterChange(nodeId, param.id, singleValue, true);
+                }
+
+                devLog.log('Single value loaded for parameter (skipHistory: true):', param.name, 'value:', singleValue);
             } else {
                 // Array options case
                 setApiOptions(prev => ({ ...prev, [paramKey]: options }));
@@ -80,12 +81,12 @@ export const useApiParameters = (
                 const singleValue = String(options[0].value);
                 setApiSingleValues(prev => ({ ...prev, [paramKey]: singleValue }));
 
-                // Update parameter value to new API value
+                // Update parameter value to new API value (refresh는 API 호출이므로 히스토리에 기록하지 않음)
                 if (onParameterChange) {
-                    onParameterChange(nodeId, param.id, singleValue);
+                    onParameterChange(nodeId, param.id, singleValue, true);
                 }
 
-                devLog.log('Single value refreshed for parameter:', param.name, 'value:', singleValue);
+                devLog.log('Single value refreshed for parameter (skipHistory: true):', param.name, 'value:', singleValue);
             } else {
                 // Array options case
                 setApiOptions(prev => ({ ...prev, [paramKey]: options }));

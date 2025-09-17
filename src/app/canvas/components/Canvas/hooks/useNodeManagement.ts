@@ -19,7 +19,7 @@ interface UseNodeManagementReturn {
     deleteNode: (nodeId: string, connectedEdges: any[]) => void;
     copyNode: (nodeId: string) => void;
     pasteNode: () => string | null;
-    updateNodeParameter: (nodeId: string, paramId: string, value: string | number | boolean) => void;
+    updateNodeParameter: (nodeId: string, paramId: string, value: string | number | boolean, skipHistory?: boolean) => void;
     updateNodeName: (nodeId: string, newName: string) => void;
     updateParameterName: (nodeId: string, paramId: string, newName: string) => void;
     addParameter: (nodeId: string, newParameter: Parameter) => void;
@@ -86,9 +86,8 @@ export const useNodeManagement = ({ historyHelpers }: UseNodeManagementProps = {
         return null;
     }, [copiedNode, historyHelpers]);
 
-    const updateNodeParameter = useCallback((nodeId: string, paramId: string, value: string | number | boolean): void => {
-        devLog.log('=== Canvas Parameter Change ===');
-        devLog.log('Received:', { nodeId, paramId, value });
+    const updateNodeParameter = useCallback((nodeId: string, paramId: string, value: string | number | boolean, skipHistory?: boolean): void => {
+        devLog.log('updateNodeParameter called:', { nodeId, paramId, value, skipHistory });
 
         setNodes(prevNodes => {
             const targetNodeIndex = prevNodes.findIndex(node => node.id === nodeId);
@@ -98,8 +97,8 @@ export const useNodeManagement = ({ historyHelpers }: UseNodeManagementProps = {
             }
 
             const targetNode = prevNodes[targetNodeIndex];
-            if (!targetNode.data.parameters || !Array.isArray(targetNode.data.parameters)) {
-                devLog.warn('No parameters found in target node');
+            if (!targetNode.data.parameters) {
+                devLog.warn('Target node has no parameters:', nodeId);
                 return prevNodes;
             }
 
@@ -117,10 +116,12 @@ export const useNodeManagement = ({ historyHelpers }: UseNodeManagementProps = {
                 return prevNodes;
             }
 
-            // 히스토리 기록
-            if (historyHelpers?.recordNodeUpdate) {
+            // 히스토리 기록 (skipHistory가 true이면 기록하지 않음)
+            if (!skipHistory && historyHelpers?.recordNodeUpdate) {
                 devLog.log('Recording parameter update in history:', { nodeId, paramName: targetParam.name, oldValue: targetParam.value, newValue });
                 historyHelpers.recordNodeUpdate(nodeId, targetParam.name, targetParam.value, newValue);
+            } else if (skipHistory) {
+                devLog.log('Skipping history record for parameter update (API/init):', { nodeId, paramName: targetParam.name, newValue });
             } else {
                 devLog.warn('historyHelpers.recordNodeUpdate not available');
             }
