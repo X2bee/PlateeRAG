@@ -1,1 +1,0 @@
-export { HistoryPanel } from './HistoryPanel';

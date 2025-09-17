@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { HistoryEntry, HistoryActionType } from '../Canvas/hooks/useHistoryManagement';
-import styles from './HistoryPanel.module.scss';
+import { HistoryEntry, HistoryActionType } from '@/app/canvas/components/Canvas/hooks/useHistoryManagement';
+import styles from '@/app/canvas/assets/HistoryPanel.module.scss';
 
 interface HistoryPanelProps {
     history: HistoryEntry[];
@@ -35,7 +35,7 @@ const actionTypeLabels: Record<HistoryActionType, string> = {
     'MULTI_ACTION': '통합작업'
 };
 
-export const HistoryPanel: React.FC<HistoryPanelProps> = ({
+const HistoryPanel: React.FC<HistoryPanelProps> = ({
     history,
     currentHistoryIndex,
     isOpen,
@@ -204,3 +204,5 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({
         </div>
     );
 };
+
+export default HistoryPanel;
