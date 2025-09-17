@@ -86,11 +86,11 @@ const isIdenticalAction = (entry1: HistoryEntry, entry2: Partial<HistoryEntry>):
 export const useHistoryManagement = (): UseHistoryManagementReturn => {
     const [history, setHistory] = useState<HistoryEntry[]>([]);
     const [currentHistoryIndex, setCurrentHistoryIndex] = useState<number>(-1); // -1 means current state (no undo)
-    const [canvasStateRestorer, setCanvasStateRestorer] = useState<((canvasState: any) => void) | null>(null);
     const [currentState, setCurrentState] = useState<any>(null); // 최신 상태를 저장하는 상태
     const currentHistoryIndexRef = useRef(-1);
     const historyRef = useRef<HistoryEntry[]>([]); // history를 ref로도 관리
     const currentStateCaptureRef = useRef<(() => any) | null>(null); // 현재 상태 캡처 함수
+    const canvasStateRestorerRef = useRef<((canvasState: any) => void) | null>(null); // Canvas 상태 복원 함수
 
     // refs 동기화
     currentHistoryIndexRef.current = currentHistoryIndex;
@@ -202,14 +202,29 @@ export const useHistoryManagement = (): UseHistoryManagementReturn => {
         setCurrentHistoryIndex(newIndex);
 
         // Canvas 상태 복원
-        if (canvasStateRestorer && targetEntry?.canvasState) {
+        if (canvasStateRestorerRef.current && targetEntry) {
             console.log('🔙 Restoring canvas state for undo:', targetEntry);
-            canvasStateRestorer(targetEntry.canvasState);
+
+            // NODE_MOVE 액션의 경우 특별 처리
+            if (targetEntry.actionType === 'NODE_MOVE' && targetEntry.details) {
+                const { nodeId, fromPosition } = targetEntry.details;
+                console.log('🔙 NODE_MOVE undo - restoring node position:', { nodeId, fromPosition });
+
+                // 노드의 위치만 되돌리는 특별한 복원 로직
+                canvasStateRestorerRef.current({
+                    actionType: 'NODE_MOVE',
+                    nodeId,
+                    position: fromPosition
+                });
+            } else if (targetEntry.canvasState) {
+                // 일반적인 전체 상태 복원
+                canvasStateRestorerRef.current(targetEntry.canvasState);
+            }
         }
 
         console.log('🔙 Undo: Moving to index', newIndex, 'Entry:', targetEntry);
         return targetEntry || null;
-    }, [canUndo, currentHistoryIndex, history, canvasStateRestorer]);
+    }, [canUndo, currentHistoryIndex, history]);
 
     // Redo 함수
     const redo = useCallback(() => {
@@ -222,23 +237,38 @@ export const useHistoryManagement = (): UseHistoryManagementReturn => {
         // Canvas 상태 복원
         if (newIndex === -1) {
             // 최신 상태로 복원 - 저장된 currentState 사용
-            if (canvasStateRestorer && currentState) {
+            if (canvasStateRestorerRef.current && currentState) {
                 console.log('🔄 Restoring saved current state for redo to latest');
-                canvasStateRestorer(currentState);
+                canvasStateRestorerRef.current(currentState);
             } else {
                 console.log('🔄 Redo: Back to current state (no saved state available)');
             }
         } else {
             const targetEntry = history[newIndex];
-            if (canvasStateRestorer && targetEntry?.canvasState) {
+            if (canvasStateRestorerRef.current && targetEntry) {
                 console.log('🔄 Restoring canvas state for redo:', targetEntry);
-                canvasStateRestorer(targetEntry.canvasState);
+
+                // NODE_MOVE 액션의 경우 특별 처리 - toPosition으로 복원
+                if (targetEntry.actionType === 'NODE_MOVE' && targetEntry.details) {
+                    const { nodeId, toPosition } = targetEntry.details;
+                    console.log('🔄 NODE_MOVE redo - restoring node position:', { nodeId, toPosition });
+
+                    // 노드를 이동된 위치로 복원
+                    canvasStateRestorerRef.current({
+                        actionType: 'NODE_MOVE',
+                        nodeId,
+                        position: toPosition
+                    });
+                } else if (targetEntry.canvasState) {
+                    // 일반적인 전체 상태 복원
+                    canvasStateRestorerRef.current(targetEntry.canvasState);
+                }
             }
         }
 
         console.log('🔄 Redo: Moving to index', newIndex, newIndex === -1 ? 'Current state' : 'Entry: ' + JSON.stringify(history[newIndex]));
         return newIndex === -1 ? null : history[newIndex] || null;
-    }, [canRedo, currentHistoryIndex, history, canvasStateRestorer, currentState]);
+    }, [canRedo, currentHistoryIndex, history, currentState]);
 
     // Jump to specific history index
     const jumpToHistoryIndex = useCallback((index: number) => {
@@ -249,22 +279,37 @@ export const useHistoryManagement = (): UseHistoryManagementReturn => {
         // Canvas 상태 복원
         if (index === -1) {
             // 최신 상태로 복원 - 저장된 currentState 사용
-            if (canvasStateRestorer && currentState) {
+            if (canvasStateRestorerRef.current && currentState) {
                 console.log('🎯 Restoring saved current state for jump to latest');
-                canvasStateRestorer(currentState);
+                canvasStateRestorerRef.current(currentState);
             } else {
                 console.log('🎯 Jump to current state (no saved state available)');
             }
         } else {
             const targetEntry = history[index];
-            if (canvasStateRestorer && targetEntry?.canvasState) {
+            if (canvasStateRestorerRef.current && targetEntry) {
                 console.log('🎯 Restoring canvas state for jump to index', index, ':', targetEntry);
-                canvasStateRestorer(targetEntry.canvasState);
+
+                // NODE_MOVE 액션의 경우 특별 처리
+                if (targetEntry.actionType === 'NODE_MOVE' && targetEntry.details) {
+                    const { nodeId, fromPosition } = targetEntry.details;
+                    console.log('🎯 NODE_MOVE jump - restoring node position:', { nodeId, fromPosition });
+
+                    // 노드의 이전 위치로 복원 (Undo와 동일)
+                    canvasStateRestorerRef.current({
+                        actionType: 'NODE_MOVE',
+                        nodeId,
+                        position: fromPosition
+                    });
+                } else if (targetEntry.canvasState) {
+                    // 일반적인 전체 상태 복원
+                    canvasStateRestorerRef.current(targetEntry.canvasState);
+                }
             }
         }
 
         return index === -1 ? [] : history.slice(0, index + 1);
-    }, [history, canvasStateRestorer, currentState]);
+    }, [history, currentState]);
 
     // 특정 액션 타입의 히스토리만 필터링
     const getHistoryByType = useCallback((actionType: HistoryActionType) => {
@@ -299,7 +344,7 @@ export const useHistoryManagement = (): UseHistoryManagementReturn => {
         redo,
         jumpToHistoryIndex,
         setCanvasStateRestorer: (restorer: (canvasState: any) => void) => {
-            setCanvasStateRestorer(() => restorer);
+            canvasStateRestorerRef.current = restorer;
         },
         setCurrentStateCapture
     };
@@ -313,13 +358,15 @@ export const createHistoryHelpers = (
 ) => ({
     // Node 이동 기록
     recordNodeMove: (nodeId: string, fromPosition: { x: number; y: number }, toPosition: { x: number; y: number }) => {
-        const canvasState = getCanvasState?.();
+        console.log('📝 recordNodeMove called:', { nodeId, fromPosition, toPosition });
+        // NODE_MOVE의 경우 canvasState를 저장하지 않음 - fromPosition/toPosition 정보만 사용
         addHistoryEntry(
             'NODE_MOVE',
             `Node ${nodeId} moved from (${fromPosition.x.toFixed(1)}, ${fromPosition.y.toFixed(1)}) to (${toPosition.x.toFixed(1)}, ${toPosition.y.toFixed(1)})`,
-            { nodeId, fromPosition, toPosition },
-            canvasState
+            { nodeId, fromPosition, toPosition }
+            // canvasState 파라미터 제거 - NODE_MOVE는 position 정보만 필요
         );
+        console.log('📝 recordNodeMove completed');
     },
 
     // Node 생성 기록
