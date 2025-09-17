@@ -844,8 +844,9 @@ function CanvasPageContent() {
                 isDeploy={isDeploy}
                 handleExecute={handleExecute}
                 isLoading={isExecuting}
-                onHistoryClick={() => setIsHistoryPanelOpen(true)}
+                onHistoryClick={() => setIsHistoryPanelOpen(!isHistoryPanelOpen)}
                 historyCount={history.length}
+                isHistoryPanelOpen={isHistoryPanelOpen}
             />
             <main className={styles.mainContent}>
                 <Canvas

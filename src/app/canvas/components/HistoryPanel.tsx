@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { HistoryEntry, HistoryActionType } from '@/app/canvas/components/Canvas/hooks/useHistoryManagement';
 import styles from '@/app/canvas/assets/HistoryPanel.module.scss';
+import { showHistoryClearWarningKo } from '@/app/_common/utils/toastUtilsKo';
 
 interface HistoryPanelProps {
     history: HistoryEntry[];
@@ -80,7 +81,13 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
                     {onClearHistory && (
                         <button
                             className={styles.clearButton}
-                            onClick={onClearHistory}
+                            onClick={() => {
+                                if (history.length > 0) {
+                                    showHistoryClearWarningKo(() => {
+                                        onClearHistory();
+                                    });
+                                }
+                            }}
                             disabled={history.length === 0}
                         >
                             전체 삭제
