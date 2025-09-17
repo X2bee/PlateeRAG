@@ -20,7 +20,8 @@ const actionTypeColors: Record<HistoryActionType, string> = {
     'EDGE_CREATE': '#8B5CF6',    // purple
     'EDGE_DELETE': '#F59E0B',    // amber
     'NODE_UPDATE': '#06B6D4',    // cyan
-    'EDGE_UPDATE': '#EC4899'     // pink
+    'EDGE_UPDATE': '#EC4899',    // pink
+    'MULTI_ACTION': '#F97316'    // orange
 };
 
 const actionTypeLabels: Record<HistoryActionType, string> = {
@@ -30,7 +31,8 @@ const actionTypeLabels: Record<HistoryActionType, string> = {
     'EDGE_CREATE': '연결',
     'EDGE_DELETE': '연결해제',
     'NODE_UPDATE': '수정',
-    'EDGE_UPDATE': '연결수정'
+    'EDGE_UPDATE': '연결수정',
+    'MULTI_ACTION': '통합작업'
 };
 
 export const HistoryPanel: React.FC<HistoryPanelProps> = ({
@@ -167,15 +169,29 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({
                                     </div>
                                     {Object.keys(entry.details).length > 0 && (
                                         <div className={styles.details}>
-                                            {entry.details.nodeId && (
-                                                <span className={styles.detailItem}>
-                                                    Node: {entry.details.nodeId}
-                                                </span>
-                                            )}
-                                            {entry.details.edgeId && (
-                                                <span className={styles.detailItem}>
-                                                    Edge: {entry.details.edgeId}
-                                                </span>
+                                            {entry.actionType === 'MULTI_ACTION' && entry.details.actions ? (
+                                                <div className={styles.multiActionDetails}>
+                                                    {entry.details.actions.map((action: any, index: number) => (
+                                                        <span key={index} className={styles.detailItem}>
+                                                            {actionTypeLabels[action.actionType as HistoryActionType]}:
+                                                            {action.nodeId && ` Node ${action.nodeId}`}
+                                                            {action.edgeId && ` Edge ${action.edgeId}`}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    {entry.details.nodeId && (
+                                                        <span className={styles.detailItem}>
+                                                            Node: {entry.details.nodeId}
+                                                        </span>
+                                                    )}
+                                                    {entry.details.edgeId && (
+                                                        <span className={styles.detailItem}>
+                                                            Edge: {entry.details.edgeId}
+                                                        </span>
+                                                    )}
+                                                </>
                                             )}
                                         </div>
                                     )}

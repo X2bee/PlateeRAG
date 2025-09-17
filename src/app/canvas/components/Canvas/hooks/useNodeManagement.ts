@@ -15,7 +15,7 @@ interface UseNodeManagementReturn {
     nodes: CanvasNode[];
     setNodes: React.Dispatch<React.SetStateAction<CanvasNode[]>>;
     copiedNode: CanvasNode | null;
-    addNode: (node: CanvasNode) => void;
+    addNode: (node: CanvasNode, skipHistory?: boolean) => void;
     deleteNode: (nodeId: string, connectedEdges: any[]) => void;
     copyNode: (nodeId: string) => void;
     pasteNode: () => string | null;
@@ -30,14 +30,14 @@ export const useNodeManagement = ({ historyHelpers }: UseNodeManagementProps = {
     const [nodes, setNodes] = useState<CanvasNode[]>([]);
     const [copiedNode, setCopiedNode] = useState<CanvasNode | null>(null);
 
-    const addNode = useCallback((node: CanvasNode) => {
-        devLog.log('=== addNode called ===', node.id, node.data.nodeName, node.position);
+    const addNode = useCallback((node: CanvasNode, skipHistory = false) => {
+        devLog.log('=== addNode called ===', node.id, node.data.nodeName, node.position, 'skipHistory:', skipHistory);
         setNodes(prev => [...prev, node]);
         // 히스토리 기록
-        if (historyHelpers?.recordNodeCreate) {
+        if (!skipHistory && historyHelpers?.recordNodeCreate) {
             devLog.log('Recording node creation in history:', node.id);
             historyHelpers.recordNodeCreate(node.id, node.data.nodeName, node.position);
-        } else {
+        } else if (!skipHistory) {
             devLog.warn('historyHelpers.recordNodeCreate not available');
         }
     }, [historyHelpers]);

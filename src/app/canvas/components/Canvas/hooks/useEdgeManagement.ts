@@ -11,7 +11,7 @@ interface UseEdgeManagementProps {
 interface UseEdgeManagementReturn {
     edges: CanvasEdge[];
     setEdges: React.Dispatch<React.SetStateAction<CanvasEdge[]>>;
-    addEdge: (edge: CanvasEdge) => void;
+    addEdge: (edge: CanvasEdge, skipHistory?: boolean) => void;
     removeEdge: (edgeId: string) => void;
     removeNodeEdges: (nodeId: string) => CanvasEdge[];
     isDuplicateEdge: (sourceNodeId: string, sourcePortId: string, targetNodeId: string, targetPortId: string) => boolean;
@@ -21,10 +21,10 @@ interface UseEdgeManagementReturn {
 export const useEdgeManagement = ({ historyHelpers }: UseEdgeManagementProps = {}): UseEdgeManagementReturn => {
     const [edges, setEdges] = useState<CanvasEdge[]>([]);
 
-    const addEdge = useCallback((edge: CanvasEdge) => {
+    const addEdge = useCallback((edge: CanvasEdge, skipHistory = false) => {
         setEdges(prev => [...prev, edge]);
         // 히스토리 기록
-        if (historyHelpers?.recordEdgeCreate) {
+        if (!skipHistory && historyHelpers?.recordEdgeCreate) {
             historyHelpers.recordEdgeCreate(edge.id, edge.source.nodeId, edge.target.nodeId);
         }
     }, [historyHelpers]);

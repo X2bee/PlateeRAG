@@ -44,7 +44,8 @@ import type {
     ExecutionValidationResult,
     CanvasProps,
     CanvasRef,
-    Parameter
+    Parameter,
+    View
 } from './types';
 
 const Canvas = forwardRef<CanvasRef, CanvasProps>(({
@@ -140,6 +141,8 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
 
     // Refs for accessing current state in callbacks
     const nodesRef = useRef<CanvasNode[]>(nodes);
+    const edgesRef = useRef<CanvasEdge[]>(edges);
+    const viewRef = useRef<View>(view);
     const edgePreviewRef = useRef<EdgePreview | null>(edgePreview);
     const snappedPortKeyRef = useRef<string | null>(snappedPortKey);
     const isSnapTargetValidRef = useRef<boolean>(isSnapTargetValid);
@@ -147,10 +150,12 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
     // Update refs when state changes
     useEffect(() => {
         nodesRef.current = nodes;
+        edgesRef.current = edges;
+        viewRef.current = view;
         edgePreviewRef.current = edgePreview;
         snappedPortKeyRef.current = snappedPortKey;
         isSnapTargetValidRef.current = isSnapTargetValid;
-    }, [nodes, edgePreview, snappedPortKey, isSnapTargetValid]);
+    }, [nodes, edges, view, edgePreview, snappedPortKey, isSnapTargetValid]);
 
     // Port positions calculation
     useLayoutEffect(() => {
@@ -191,6 +196,43 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         }
     }, [nodesInitialized]);
 
+    // 히스토리 관리 설정 - 상태 캡처와 복원 함수 등록 (한 번만 실행)
+    useEffect(() => {
+        if (!historyHelpers) return;
+
+        // 현재 상태 캡처 함수 설정 (ref를 사용하여 최신 상태 확보)
+        if ('setCurrentStateCapture' in historyHelpers) {
+            const setCurrentStateCapture = historyHelpers.setCurrentStateCapture as (captureFunction: () => any) => void;
+            setCurrentStateCapture(() => {
+                // ref를 통해 캡처 시점의 최신 상태를 반환
+                return {
+                    view: { ...viewRef.current },
+                    nodes: [...nodesRef.current],
+                    edges: [...edgesRef.current]
+                };
+            });
+            console.log('🔧 Current state capture function set in Canvas');
+        }
+
+        // Canvas 상태 복원 함수 설정
+        if ('setCanvasStateRestorer' in historyHelpers) {
+            const setCanvasStateRestorer = historyHelpers.setCanvasStateRestorer as (restorer: (canvasState: any) => void) => void;
+            setCanvasStateRestorer((canvasState: CanvasState) => {
+                console.log('🔄 Restoring canvas state:', canvasState);
+                if (canvasState.view) {
+                    setView(canvasState.view);
+                }
+                if (canvasState.nodes) {
+                    setNodes(canvasState.nodes);
+                }
+                if (canvasState.edges) {
+                    setEdges(canvasState.edges);
+                }
+            });
+            console.log('🔧 Canvas state restorer function set');
+        }
+    }, []); // 의존성 배열을 비워서 마운트 시에만 한 번 실행
+
     // Port reference registration
     const registerPortRef = useCallback((nodeId: string, portId: string, portType: string, el: HTMLElement | null) => {
         const key = `${nodeId}__PORTKEYDELIM__${portId}__PORTKEYDELIM__${portType}`;
@@ -208,9 +250,6 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
 
         const newNode = basePredictedNodeClick(nodeData, position);
         if (!newNode) return;
-
-        // Add the new node
-        addNode(newNode);
 
         // Create edge if there's a connection source
         const currentEdgePreview = edgePreviewRef.current;
@@ -262,8 +301,37 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
             }
 
             if (newEdge) {
-                addEdge(newEdge);
+                // MULTI_ACTION으로 통합 히스토리 기록
+                if (historyHelpers?.recordMultiAction) {
+                    const actions = [
+                        {
+                            actionType: 'NODE_CREATE' as const,
+                            nodeId: newNode.id,
+                            nodeType: newNode.data.nodeName,
+                            position: newNode.position
+                        },
+                        {
+                            actionType: 'EDGE_CREATE' as const,
+                            edgeId: newEdge.id,
+                            sourceId: newEdge.source.nodeId,
+                            targetId: newEdge.target.nodeId
+                        }
+                    ];
+
+                    const description = `Created predicted node ${newNode.data.nodeName} with edge connection`;
+                    historyHelpers.recordMultiAction(description, actions);
+                }
+
+                // Add node and edge without individual history recording
+                addNode(newNode, true); // skipHistory = true
+                addEdge(newEdge, true); // skipHistory = true
+            } else {
+                // No edge created, just add node normally
+                addNode(newNode);
             }
+        } else {
+            // No connection source, just add node normally
+            addNode(newNode);
         }
 
         // Clean up edge preview
@@ -277,7 +345,8 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         isDraggingInput,
         sourcePortForConnection,
         setEdgePreview,
-        setSourcePortForConnection
+        setSourcePortForConnection,
+        historyHelpers
     ]);
 
     // Schema synchronization

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { showSuccessToastKo, showErrorToastKo, showLoadingToastKo, dismissToastKo } from '@/app/_common/utils/toastUtilsKo';
 import Canvas from '@/app/canvas/components/Canvas';
@@ -79,11 +79,14 @@ function CanvasPageContent() {
         redo,
         jumpToHistoryIndex
     } = historyManagement;
-    const historyHelpers = createHistoryHelpers(
+
+    // historyHelpers를 useMemo로 메모이제이션하여 무한 루프 방지
+    const historyHelpers = useMemo(() => createHistoryHelpers(
         addHistoryEntry,
         historyManagement,
         () => canvasRef.current ? (canvasRef.current as any).getCanvasState() : null
-    );
+    ), [addHistoryEntry, historyManagement]); // 의존성 최소화
+
     const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
 
     // NodeModal 관련 상태
