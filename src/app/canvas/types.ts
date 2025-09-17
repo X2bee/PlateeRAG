@@ -294,6 +294,7 @@ export interface CanvasRef {
     getCanvasState: () => CanvasState;
     addNode: (nodeData: NodeData, clientX: number, clientY: number) => void;
     loadCanvasState: (state: Partial<CanvasState>) => void;
+    loadCanvasStateWithoutView: (state: Partial<CanvasState>) => void;
     loadWorkflowState: (state: Partial<CanvasState>) => void;
     getCenteredView: () => View;
     clearSelectedNode: () => void;

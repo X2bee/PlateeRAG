@@ -339,6 +339,15 @@ export const useHistoryManagement = (): UseHistoryManagementReturn => {
     };
 };
 
+// History 전용 canvas state 생성 (view 제외)
+const createHistoryCanvasState = (fullCanvasState: any) => {
+    if (!fullCanvasState) return null;
+
+    // view를 제외한 상태만 반환
+    const { view, ...stateWithoutView } = fullCanvasState;
+    return stateWithoutView;
+};
+
 // 각 액션별 편의 함수들
 export const createHistoryHelpers = (
     addHistoryEntry: UseHistoryManagementReturn['addHistoryEntry'],
@@ -369,10 +378,14 @@ export const createHistoryHelpers = (
                 nodes: nodesWithOriginalPosition
             };
 
+            // History에서는 view를 제외
+            beforeMoveState = createHistoryCanvasState(beforeMoveState);
+
             devLog.log('NODE_MOVE: Storing state before move for UNDO', {
                 nodeId,
                 fromPosition,
-                toPosition
+                toPosition,
+                hasView: 'view' in beforeMoveState
             });
         }
 
@@ -380,73 +393,79 @@ export const createHistoryHelpers = (
             'NODE_MOVE',
             `Node ${nodeId} moved from (${fromPosition.x.toFixed(1)}, ${fromPosition.y.toFixed(1)}) to (${toPosition.x.toFixed(1)}, ${toPosition.y.toFixed(1)})`,
             { nodeId, fromPosition, toPosition },
-            beforeMoveState // 이동 이전 상태를 저장
+            beforeMoveState // 이동 이전 상태를 저장 (view 제외)
         );
     },
 
     // Node 생성 기록
     recordNodeCreate: (nodeId: string, nodeType: string, position: { x: number; y: number }) => {
-        const canvasState = getCanvasState?.();
+        const fullCanvasState = getCanvasState?.();
+        const historyCanvasState = createHistoryCanvasState(fullCanvasState);
         addHistoryEntry(
             'NODE_CREATE',
             `Created ${nodeType} node ${nodeId} at (${position.x.toFixed(1)}, ${position.y.toFixed(1)})`,
             { nodeId, nodeType, position },
-            canvasState
+            historyCanvasState
         );
     },
 
     // Node 삭제 기록
     recordNodeDelete: (nodeId: string, nodeType: string) => {
-        const canvasState = getCanvasState?.();
+        const fullCanvasState = getCanvasState?.();
+        const historyCanvasState = createHistoryCanvasState(fullCanvasState);
         addHistoryEntry(
             'NODE_DELETE',
             `Deleted ${nodeType} node ${nodeId}`,
             { nodeId, nodeType },
-            canvasState
+            historyCanvasState
         );
     },
 
     // Edge 생성 기록
     recordEdgeCreate: (edgeId: string, sourceId: string, targetId: string) => {
-        const canvasState = getCanvasState?.();
+        const fullCanvasState = getCanvasState?.();
+        const historyCanvasState = createHistoryCanvasState(fullCanvasState);
         addHistoryEntry(
             'EDGE_CREATE',
             `Created edge ${edgeId} from ${sourceId} to ${targetId}`,
             { edgeId, sourceId, targetId },
-            canvasState
+            historyCanvasState
         );
     },
 
     // Edge 삭제 기록
     recordEdgeDelete: (edgeId: string, sourceId: string, targetId: string) => {
-        const canvasState = getCanvasState?.();
+        const fullCanvasState = getCanvasState?.();
+        const historyCanvasState = createHistoryCanvasState(fullCanvasState);
         addHistoryEntry(
             'EDGE_DELETE',
             `Deleted edge ${edgeId} from ${sourceId} to ${targetId}`,
             { edgeId, sourceId, targetId },
-            canvasState
+            historyCanvasState
         );
     },
 
     // Node 업데이트 기록
     recordNodeUpdate: (nodeId: string, field: string, oldValue: any, newValue: any) => {
-        const canvasState = getCanvasState?.();
+        const fullCanvasState = getCanvasState?.();
+        const historyCanvasState = createHistoryCanvasState(fullCanvasState);
         addHistoryEntry(
             'NODE_UPDATE',
             `Updated node ${nodeId} ${field} from "${oldValue}" to "${newValue}"`,
             { nodeId, field, oldValue, newValue },
-            canvasState
+            historyCanvasState
         );
     },
 
     // Edge 업데이트 기록
     recordEdgeUpdate: (edgeId: string, field: string, oldValue: any, newValue: any) => {
-        const canvasState = getCanvasState?.();
+        const fullCanvasState = getCanvasState?.();
+        const historyCanvasState = createHistoryCanvasState(fullCanvasState);
         addHistoryEntry(
             'EDGE_UPDATE',
             `Updated edge ${edgeId} ${field} from "${oldValue}" to "${newValue}"`,
             { edgeId, field, oldValue, newValue },
-            canvasState
+            historyCanvasState
         );
     },
 
@@ -460,12 +479,13 @@ export const createHistoryHelpers = (
         targetId?: string;
         position?: { x: number; y: number };
     }>) => {
-        const canvasState = getCanvasState?.();
+        const fullCanvasState = getCanvasState?.();
+        const historyCanvasState = createHistoryCanvasState(fullCanvasState);
         addHistoryEntry(
             'MULTI_ACTION',
             description,
             { actions },
-            canvasState
+            historyCanvasState
         );
     },
 

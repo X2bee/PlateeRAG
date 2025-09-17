@@ -212,6 +212,10 @@ function CanvasPageContent() {
                 try {
                     const validState = ensureValidWorkflowState(savedState);
                     if (validState) {
+                        // History 초기화
+                        clearHistory();
+                        devLog.log('History cleared for localStorage workflow restore');
+
                         devLog.log(
                             'Loading workflow state to Canvas:',
                             validState,
@@ -260,18 +264,19 @@ function CanvasPageContent() {
         // Canvas가 마운트된 후에 상태 복원자 설정
         const setupRestorer = () => {
             if (canvasRef.current) {
-                historyManagement.setCanvasStateRestorer((canvasState: any) => {
-                    if (canvasRef.current) {
-                        try {
-                            devLog.log('Attempting to restore canvas state:', canvasState);
-                            (canvasRef.current as any).loadCanvasState(canvasState);
-                            devLog.log('Canvas state restored successfully');
-                        } catch (error) {
-                            devLog.error('Failed to restore canvas state:', error);
-                            // 에러가 발생해도 전체 애플리케이션이 중단되지 않도록 함
+                const canvasInstance = canvasRef.current as any;
+
+                // History 전용 상태 복원자 - view 복원하지 않음
+                if ('setCanvasStateRestorer' in historyHelpers) {
+                    historyHelpers.setCanvasStateRestorer((canvasState: any) => {
+                        devLog.log('History state restoration using loadCanvasStateWithoutView');
+                        if (canvasInstance.loadCanvasStateWithoutView) {
+                            canvasInstance.loadCanvasStateWithoutView(canvasState);
+                        } else {
+                            devLog.error('loadCanvasStateWithoutView method not found');
                         }
-                    }
-                });
+                    });
+                }
                 return true;
             }
             return false;
@@ -282,9 +287,7 @@ function CanvasPageContent() {
             const timer = setTimeout(setupRestorer, 100);
             return () => clearTimeout(timer);
         }
-    }, []); // 빈 의존성 배열
-
-    // 워크플로우 상태 변경 시 자동 저장
+    }, []); // 빈 의존성 배열    // 워크플로우 상태 변경 시 자동 저장
     const handleCanvasStateChange = (state: any) => {
         devLog.log('handleCanvasStateChange called with:', {
             hasState: !!state,
@@ -348,6 +351,10 @@ function CanvasPageContent() {
 
             // localStorage 데이터 초기화
             startNewWorkflow();
+
+            // History 초기화
+            clearHistory();
+            devLog.log('History cleared for new workflow');
 
             // Canvas 상태 초기화 (기존 Canvas 초기화 로직과 동일하게)
             if (canvasRef.current) {
@@ -493,6 +500,10 @@ function CanvasPageContent() {
         workflowName?: string,
     ) => {
         try {
+            // History 초기화
+            clearHistory();
+            devLog.log('History cleared for workflow load');
+
             if (canvasRef.current) {
                 const validState = ensureValidWorkflowState(workflowData);
                 (canvasRef.current as any).loadCanvasState(validState);
@@ -520,6 +531,10 @@ function CanvasPageContent() {
                 const json = event.target?.result as string;
                 const savedState = JSON.parse(json);
                 if (canvasRef.current) {
+                    // History 초기화
+                    clearHistory();
+                    devLog.log('History cleared for file load');
+
                     const validState = ensureValidWorkflowState(savedState);
                     (canvasRef.current as any).loadCanvasState(validState);
                     saveWorkflowState(validState);

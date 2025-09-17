@@ -562,6 +562,45 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
                 // 에러가 발생해도 애플리케이션이 중단되지 않도록 함
             }
         },
+        loadCanvasStateWithoutView: (state: Partial<CanvasState>): void => {
+            try {
+                devLog.log('Restoring canvas state without view:', {
+                    hasNodes: !!state.nodes,
+                    nodesCount: state.nodes?.length,
+                    hasEdges: !!state.edges,
+                    edgesCount: state.edges?.length,
+                    hasView: !!state.view,
+                    viewRestored: false // view는 복원하지 않음
+                });
+
+                if (state.nodes) {
+                    // 노드 상태 복원 시 유효성 검사
+                    const validNodes = state.nodes.filter(node => node && node.id && node.data);
+                    if (validNodes.length !== state.nodes.length) {
+                        devLog.warn('Some nodes filtered out due to invalid data:',
+                            state.nodes.length - validNodes.length);
+                    }
+                    setNodes(validNodes);
+                }
+
+                if (state.edges) {
+                    // 엣지 상태 복원 시 유효성 검사
+                    const validEdges = state.edges.filter(edge =>
+                        edge && edge.id && edge.source && edge.target
+                    );
+                    if (validEdges.length !== state.edges.length) {
+                        devLog.warn('Some edges filtered out due to invalid data:',
+                            state.edges.length - validEdges.length);
+                    }
+                    setEdges(validEdges);
+                }
+
+                // view는 복원하지 않음 - History 전용
+            } catch (error) {
+                devLog.error('Error during canvas state restoration (without view):', error);
+                // 에러가 발생해도 애플리케이션이 중단되지 않도록 함
+            }
+        },
         loadWorkflowState: (state: Partial<CanvasState>): void => {
             if (state.nodes) setNodes(state.nodes);
             if (state.edges) setEdges(state.edges);
