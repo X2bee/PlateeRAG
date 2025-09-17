@@ -22,6 +22,11 @@ import {
     type FeedbackLoopInfo
 } from '@/app/_common/components/chatParser/ChatParserFeedback';
 import {
+    TodoDetailsBlock,
+    findTodoDetailsBlocks,
+    type TodoDetailsInfo
+} from '@/app/_common/components/chatParser/ChatParserTodoDetails';
+import {
     parseSimpleMarkdown
 } from '@/app/_common/components/chatParser/ChatParserMarkdown';
 import { parseCitation } from '@/app/_common/components/chatParser/ChatParserCite';
@@ -31,6 +36,10 @@ import { convertToString, needsConversion } from '@/app/_common/components/chatP
 const showThinkBlock = APP_CONFIG.SHOW_THINK_BLOCK;
 // const showToolOutputBlock = APP_CONFIG.SHOW_TOOL_OUTPUT_BLOCK;
 const showToolOutputBlock = true;
+// const showFeedbackLoop = APP_CONFIG.SHOW_FEEDBACK_LOOP;
+const showFeedbackLoop = true;
+// const showTodoDetails = APP_CONFIG.SHOW_TODO_DETAILS;
+const showTodoDetails = true;
 
 export interface ParsedContent {
     html: string;
@@ -191,11 +200,12 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
     const elements: React.ReactNode[] = [];
     let currentIndex = 0;
 
-    // Think 블록, Tool Use Log 블록, Tool Output Log 블록, Feedback Loop 블록 먼저 처리
+    // Think 블록, Tool Use Log 블록, Tool Output Log 블록, Feedback Loop 블록, TODO Details 블록 먼저 처리
     const thinkBlocks = findThinkBlocks(processed);
     const toolUseLogBlocks = findToolUseLogBlocks(processed);
     const toolOutputLogBlocks = findToolOutputLogBlocks(processed);
     const feedbackLoopBlocks = findFeedbackLoopBlocks(processed);
+    const todoDetailsBlocks = findTodoDetailsBlocks(processed);
     // 코드 블록 처리
     const codeBlocks = findCodeBlocks(processed);
 
@@ -205,21 +215,27 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
         ...toolUseLogBlocks.map(block => ({ ...block, type: 'tooluselog' as const })),
         ...toolOutputLogBlocks.map(block => ({ ...block, type: 'tooloutputlog' as const })),
         ...feedbackLoopBlocks.map(block => ({ ...block, type: 'feedbackloop' as const })),
+        ...todoDetailsBlocks.map(block => ({ ...block, type: 'tododetails' as const })),
         ...codeBlocks.map(block => ({ ...block, type: 'code' as const }))
     ].sort((a, b) => a.start - b.start);
 
-    // 피드백 루프 블록 내부에 있는 다른 블록들 제거 (중복 렌더링 방지)
+    // 피드백 루프/TODO Details 블록 내부에 있는 다른 블록들 제거 (중복 렌더링 방지)
     const filteredBlocks = allBlocks.filter((block, index) => {
-        // 피드백 루프 블록은 그대로 유지
-        if (block.type === 'feedbackloop') return true;
+        // 피드백 루프 블록과 TODO Details 블록은 그대로 유지
+        if (block.type === 'feedbackloop' || block.type === 'tododetails') return true;
 
         // 다른 블록들이 피드백 루프 블록 내부에 있는지 확인
         const isInsideFeedbackLoop = feedbackLoopBlocks.some(fbBlock =>
             block.start >= fbBlock.start && block.end <= fbBlock.end
         );
 
-        // 피드백 루프 내부에 있으면 제외
-        return !isInsideFeedbackLoop;
+        // 다른 블록들이 TODO Details 블록 내부에 있는지 확인
+        const isInsideTodoDetails = todoDetailsBlocks.some(tdBlock =>
+            block.start >= tdBlock.start && block.end <= tdBlock.end
+        );
+
+        // 피드백 루프나 TODO Details 내부에 있으면 제외
+        return !isInsideFeedbackLoop && !isInsideTodoDetails;
     });
 
     for (const block of filteredBlocks) {
@@ -298,13 +314,42 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
             const isStreaming = block.end === processed.length &&
                 !processed.slice(block.start).includes('</FEEDBACK_LOOP>');
 
-            elements.push(
-                <FeedbackLoopBlock
-                    key={`feedbackloop-${elements.length}`}
-                    content={block.content}
-                    isStreaming={isStreaming}
-                />
-            );
+            if ((mode === 'deploy' || !showFeedbackLoop) && !isStreaming) {
+                // 완성된 feedback loop 블록은 렌더링하지 않음
+            } else {
+                // showFeedbackLoop가 false이면서 스트리밍 중이라면 애니메이션 프리뷰 모드로 전달
+                const streamingPreview = (!showFeedbackLoop && isStreaming);
+                elements.push(
+                    <FeedbackLoopBlock
+                        key={`feedbackloop-${elements.length}`}
+                        content={block.content}
+                        isStreaming={isStreaming}
+                        streamingPreview={streamingPreview}
+                        previewLines={3}
+                    />
+                );
+            }
+        } else if (block.type === 'tododetails') {
+            // 스트리밍 중인지 확인 (블록이 문서 끝까지 이어지고 </TODO_DETAILS>가 없는 경우)
+            const isStreaming = block.end === processed.length &&
+                !processed.slice(block.start).includes('</TODO_DETAILS>');
+
+            // showTodoDetails가 false이고 완성된 블록인 경우, 또는 deploy 모드인 경우 숨김
+            if ((mode === 'deploy' || !showTodoDetails) && !isStreaming) {
+                // 완성된 TODO details 블록은 렌더링하지 않음
+            } else {
+                // showTodoDetails가 false이면서 스트리밍 중이라면 애니메이션 프리뷰 모드로 전달
+                const streamingPreview = (!showTodoDetails && isStreaming);
+                elements.push(
+                    <TodoDetailsBlock
+                        key={`tododetails-${elements.length}`}
+                        content={block.content}
+                        isStreaming={isStreaming}
+                        streamingPreview={streamingPreview}
+                        previewLines={3}
+                    />
+                );
+            }
         } else if (block.type === 'code') {
             elements.push(
                 <CodeBlock
