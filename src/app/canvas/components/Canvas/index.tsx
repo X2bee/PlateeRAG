@@ -156,7 +156,6 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         edgePreviewRef.current = edgePreview;
         snappedPortKeyRef.current = snappedPortKey;
         isSnapTargetValidRef.current = isSnapTargetValid;
-        console.log('🔧 Canvas state updated - nodes count:', nodes.length, 'nodes positions:', nodes.map(n => ({ id: n.id, position: n.position })));
     }, [nodes, edges, view, edgePreview, snappedPortKey, isSnapTargetValid]);
 
     // Port positions calculation
@@ -198,7 +197,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         }
     }, [nodesInitialized]);
 
-    // 히스토리 관리 설정 - 상태 캡처와 복원 함수 등록 (한 번만 실행)
+    // 히스토리 관리 설정 - 상태 캡처 함수 등록 (한 번만 실행)
     useEffect(() => {
         if (!historyHelpers) return;
 
@@ -213,64 +212,8 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
                     edges: [...edgesRef.current]
                 };
             });
-            console.log('🔧 Current state capture function set in Canvas');
         }
-
-        // Canvas 상태 복원 함수 설정 - page.tsx에서 이미 설정하므로 주석 처리
-        // if ('setCanvasStateRestorer' in historyHelpers) {
-        //     const setCanvasStateRestorer = historyHelpers.setCanvasStateRestorer as (restorer: (canvasState: any) => void) => void;
-        //     setCanvasStateRestorer((canvasState: any) => {
-        //         console.log('🔄 Restoring canvas state:', canvasState);
-        //
-        //         // NODE_MOVE 특별 처리
-        //         if (canvasState.actionType === 'NODE_MOVE') {
-        //             const { nodeId, position } = canvasState;
-        //             console.log('🔄 NODE_MOVE restoration - updating single node position:', { nodeId, position });
-        //
-        //             // 현재 nodes에서 해당 노드를 찾아서 업데이트
-        //             const currentNodes = nodesRef.current;
-        //             const nodeIndex = currentNodes.findIndex(n => n.id === nodeId);
-        //
-        //             if (nodeIndex !== -1) {
-        //                 const updatedNodes = [...currentNodes];
-        //                 updatedNodes[nodeIndex] = {
-        //                     ...updatedNodes[nodeIndex],
-        //                     position: { ...position }
-        //                 };
-        //
-        //                 console.log('🔄 Direct node update:', {
-        //                     nodeIndex,
-        //                     oldPosition: currentNodes[nodeIndex].position,
-        //                     newPosition: position,
-        //                     updatedNodes: updatedNodes.map(n => ({ id: n.id, position: n.position }))
-        //                 });
-        //
-        //                 // 직접 state 업데이트
-        //                 setNodes(updatedNodes);
-        //
-        //                 // nodesRef도 즉시 업데이트
-        //                 nodesRef.current = updatedNodes;
-        //
-        //                 console.log('🔄 After update - nodesRef.current:', nodesRef.current.map(n => ({ id: n.id, position: n.position })));
-        //             } else {
-        //                 console.error('🔄 Node not found for update:', nodeId);
-        //             }
-        //         } else {
-        //             // 일반적인 전체 상태 복원
-        //             if (canvasState.view) {
-        //                 setView(canvasState.view);
-        //             }
-        //             if (canvasState.nodes) {
-        //                 setNodes(canvasState.nodes);
-        //             }
-        //             if (canvasState.edges) {
-        //                 setEdges(canvasState.edges);
-        //             }
-        //         }
-        //     });
-        //     console.log('🔧 Canvas state restorer function set');
-        // }
-    }, [setNodes, setEdges, setView]); // setNodes를 의존성에 추가
+    }, [setNodes, setEdges, setView]);
 
     // Port reference registration
     const registerPortRef = useCallback((nodeId: string, portId: string, portType: string, el: HTMLElement | null) => {
@@ -540,8 +483,8 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         removeNodeEdges,
         clearSelection,
         selectNode,
-        undo: historyHelpers?.undo || (() => console.log('Undo called - no historyHelpers')),
-        redo: historyHelpers?.redo || (() => console.log('Redo called - no historyHelpers')),
+        undo: historyHelpers?.undo || (() => devLog.warn('Undo called - no historyHelpers')),
+        redo: historyHelpers?.redo || (() => devLog.warn('Redo called - no historyHelpers')),
         canUndo: historyHelpers?.canUndo || false,
         canRedo: historyHelpers?.canRedo || false
     });
@@ -580,12 +523,9 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
             addNode(newNode);
         },
         loadCanvasState: (state: Partial<CanvasState>): void => {
-            console.log('📋 loadCanvasState called:', state);
-
             // NODE_MOVE 특별 처리
             if ('actionType' in state && state.actionType === 'NODE_MOVE') {
                 const { nodeId, position } = state as any;
-                console.log('📋 NODE_MOVE in loadCanvasState:', { nodeId, position });
 
                 // 현재 nodes에서 해당 노드를 찾아서 업데이트
                 const currentNodes = nodesRef.current;
@@ -598,17 +538,16 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
                         position: { ...position }
                     };
 
-                    console.log('📋 loadCanvasState NODE_MOVE update:', {
-                        nodeIndex,
-                        oldPosition: currentNodes[nodeIndex].position,
-                        newPosition: position,
-                        updatedNodes: updatedNodes.map(n => ({ id: n.id, position: n.position }))
+                    devLog.log('NODE_MOVE restored', {
+                        nodeId,
+                        position,
+                        nodeIndex
                     });
 
                     setNodes(updatedNodes);
                     nodesRef.current = updatedNodes;
                 } else {
-                    console.error('📋 Node not found for loadCanvasState:', nodeId);
+                    devLog.error('Node not found for restoration:', nodeId);
                 }
             } else {
                 // 일반적인 전체 상태 복원

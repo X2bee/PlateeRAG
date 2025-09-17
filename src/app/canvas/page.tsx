@@ -260,9 +260,7 @@ function CanvasPageContent() {
         // Canvas가 마운트된 후에 상태 복원자 설정
         const setupRestorer = () => {
             if (canvasRef.current) {
-                console.log('🔧 Setting up canvas state restorer');
                 historyManagement.setCanvasStateRestorer((canvasState: any) => {
-                    console.log('🔄 Restoring canvas state:', canvasState);
                     if (canvasRef.current) {
                         (canvasRef.current as any).loadCanvasState(canvasState);
                     }

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import type { DragState, View } from '@/app/canvas/types';
+import { devLog } from '@/app/_common/utils/logger';
 
 interface UseDragStateProps {
     historyHelpers?: {
@@ -48,11 +49,9 @@ export const useDragState = ({ historyHelpers, nodes }: UseDragStateProps): UseD
     }, []);
 
     const stopDrag = useCallback(() => {
-        console.log('🛑 stopDrag called, dragState:', dragState);
         // 노드 드래그가 끝났을 때 히스토리 기록
         if (dragState.type === 'node' && dragState.nodeId && historyHelpers?.recordNodeMove) {
             const node = nodes.find(n => n.id === dragState.nodeId);
-            console.log('🛑 Found node for drag:', node, 'initialPosition:', dragState.initialNodePosition);
             if (node && dragState.initialNodePosition) {
                 const currentPosition = node.position;
                 const initialPosition = dragState.initialNodePosition;
@@ -63,10 +62,13 @@ export const useDragState = ({ historyHelpers, nodes }: UseDragStateProps): UseD
                     Math.pow(currentPosition.y - initialPosition.y, 2)
                 );
 
-                console.log('🛑 Movement distance:', distance, 'from', initialPosition, 'to', currentPosition);
-
                 if (distance > 5) {
-                    console.log('🛑 Recording node move:', { nodeId: dragState.nodeId, initialPosition, currentPosition });
+                    devLog.log('Node move recorded', {
+                        nodeId: dragState.nodeId,
+                        distance: Math.round(distance),
+                        from: initialPosition,
+                        to: currentPosition
+                    });
                     historyHelpers.recordNodeMove(dragState.nodeId, initialPosition, currentPosition);
                 }
             }

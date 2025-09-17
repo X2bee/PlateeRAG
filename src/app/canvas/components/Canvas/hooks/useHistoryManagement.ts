@@ -1,15 +1,6 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
-
-// 히스토리 액션 타입 정의
-export type HistoryActionType =
-    | 'NODE_MOVE'
-    | 'NODE_CREATE'
-    | 'NODE_DELETE'
-    | 'EDGE_CREATE'
-    | 'EDGE_DELETE'
-    | 'NODE_UPDATE'
-    | 'EDGE_UPDATE'
-    | 'MULTI_ACTION';
+import { devLog } from '@/app/_common/utils/logger';
+export type HistoryActionType = 'NODE_MOVE' | 'NODE_CREATE' | 'NODE_DELETE' | 'EDGE_CREATE' | 'EDGE_DELETE' | 'NODE_UPDATE' | 'EDGE_UPDATE' | 'MULTI_ACTION'; // 다중 액션 추가
 
 // 히스토리 엔트리 타입 정의
 export interface HistoryEntry {
@@ -122,11 +113,9 @@ export const useHistoryManagement = (): UseHistoryManagementReturn => {
         });
 
         if (isDuplicate) {
-            console.log('🚫 Duplicate history entry prevented:', {
+            devLog.warn('Duplicate history entry prevented:', {
                 actionType,
-                description,
-                recentEntriesCount: recentEntries.length,
-                checkWindow: DUPLICATE_PREVENTION_WINDOW_MS + 'ms'
+                description
             });
             return;
         }
@@ -140,8 +129,6 @@ export const useHistoryManagement = (): UseHistoryManagementReturn => {
             canvasState
         };
 
-        console.log('📝 Adding history entry:', { actionType, description, currentHistoryIndex: currentHistoryIndexRef.current, hasCanvasState: !!canvasState });
-
         setHistory(prev => {
             // If we're in the middle of history and add a new entry, truncate future entries
             const currentIndex = currentHistoryIndexRef.current;
@@ -154,7 +141,6 @@ export const useHistoryManagement = (): UseHistoryManagementReturn => {
                 currentHistory = prev.slice(currentIndex + 1);
             }
             const newHistory = [newEntry, ...currentHistory];
-            console.log('📝 currentHistoryIndex:', currentIndex, 'Previous history length:', prev.length, 'Current history length after truncation:', currentHistory.length, 'New history length:', newHistory.length);
             // 최대 50개까지만 유지
             const finalHistory = newHistory.slice(0, MAX_HISTORY_SIZE);
 
@@ -169,8 +155,6 @@ export const useHistoryManagement = (): UseHistoryManagementReturn => {
 
         // 새로운 액션 추가 시 저장된 현재 상태 초기화
         setCurrentState(null);
-
-        console.log('📝 Reset currentHistoryIndex to -1');
     }, []); // history 의존성 제거 - ref 사용으로 불필요
 
     // 히스토리 전체 삭제
@@ -187,14 +171,12 @@ export const useHistoryManagement = (): UseHistoryManagementReturn => {
 
     // Undo 함수
     const undo = useCallback(() => {
-        console.log('🔙 Undo called - canUndo:', canUndo, 'currentHistoryIndex:', currentHistoryIndex, 'history.length:', history.length);
         if (!canUndo) return null;
 
         // 최신 상태에서 첫 번째 Undo인 경우 현재 상태를 저장
         if (currentHistoryIndex === -1 && currentStateCaptureRef.current) {
             const capturedState = currentStateCaptureRef.current();
             setCurrentState(capturedState);
-            console.log('💾 Saving current state before first undo');
         }
 
         const newIndex = currentHistoryIndex + 1;
@@ -203,12 +185,10 @@ export const useHistoryManagement = (): UseHistoryManagementReturn => {
 
         // Canvas 상태 복원
         if (canvasStateRestorerRef.current && targetEntry) {
-            console.log('🔙 Restoring canvas state for undo:', targetEntry);
-
             // NODE_MOVE 액션의 경우 특별 처리
             if (targetEntry.actionType === 'NODE_MOVE' && targetEntry.details) {
                 const { nodeId, fromPosition } = targetEntry.details;
-                console.log('🔙 NODE_MOVE undo - restoring node position:', { nodeId, fromPosition });
+                devLog.log('UNDO: NODE_MOVE', { nodeId, fromPosition });
 
                 // 노드의 위치만 되돌리는 특별한 복원 로직
                 canvasStateRestorerRef.current({
@@ -222,13 +202,11 @@ export const useHistoryManagement = (): UseHistoryManagementReturn => {
             }
         }
 
-        console.log('🔙 Undo: Moving to index', newIndex, 'Entry:', targetEntry);
         return targetEntry || null;
     }, [canUndo, currentHistoryIndex, history]);
 
     // Redo 함수
     const redo = useCallback(() => {
-        console.log('🔄 Redo called - canRedo:', canRedo, 'currentHistoryIndex:', currentHistoryIndex);
         if (!canRedo) return null;
 
         const newIndex = currentHistoryIndex - 1;
@@ -238,20 +216,15 @@ export const useHistoryManagement = (): UseHistoryManagementReturn => {
         if (newIndex === -1) {
             // 최신 상태로 복원 - 저장된 currentState 사용
             if (canvasStateRestorerRef.current && currentState) {
-                console.log('🔄 Restoring saved current state for redo to latest');
                 canvasStateRestorerRef.current(currentState);
-            } else {
-                console.log('🔄 Redo: Back to current state (no saved state available)');
             }
         } else {
             const targetEntry = history[newIndex];
             if (canvasStateRestorerRef.current && targetEntry) {
-                console.log('🔄 Restoring canvas state for redo:', targetEntry);
-
                 // NODE_MOVE 액션의 경우 특별 처리 - toPosition으로 복원
                 if (targetEntry.actionType === 'NODE_MOVE' && targetEntry.details) {
                     const { nodeId, toPosition } = targetEntry.details;
-                    console.log('🔄 NODE_MOVE redo - restoring node position:', { nodeId, toPosition });
+                    devLog.log('REDO: NODE_MOVE', { nodeId, toPosition });
 
                     // 노드를 이동된 위치로 복원
                     canvasStateRestorerRef.current({
@@ -266,7 +239,6 @@ export const useHistoryManagement = (): UseHistoryManagementReturn => {
             }
         }
 
-        console.log('🔄 Redo: Moving to index', newIndex, newIndex === -1 ? 'Current state' : 'Entry: ' + JSON.stringify(history[newIndex]));
         return newIndex === -1 ? null : history[newIndex] || null;
     }, [canRedo, currentHistoryIndex, history, currentState]);
 
@@ -280,20 +252,14 @@ export const useHistoryManagement = (): UseHistoryManagementReturn => {
         if (index === -1) {
             // 최신 상태로 복원 - 저장된 currentState 사용
             if (canvasStateRestorerRef.current && currentState) {
-                console.log('🎯 Restoring saved current state for jump to latest');
                 canvasStateRestorerRef.current(currentState);
-            } else {
-                console.log('🎯 Jump to current state (no saved state available)');
             }
         } else {
             const targetEntry = history[index];
             if (canvasStateRestorerRef.current && targetEntry) {
-                console.log('🎯 Restoring canvas state for jump to index', index, ':', targetEntry);
-
                 // NODE_MOVE 액션의 경우 특별 처리
                 if (targetEntry.actionType === 'NODE_MOVE' && targetEntry.details) {
                     const { nodeId, fromPosition } = targetEntry.details;
-                    console.log('🎯 NODE_MOVE jump - restoring node position:', { nodeId, fromPosition });
 
                     // 노드의 이전 위치로 복원 (Undo와 동일)
                     canvasStateRestorerRef.current({
@@ -324,7 +290,6 @@ export const useHistoryManagement = (): UseHistoryManagementReturn => {
     // 현재 상태 캡처 함수 설정
     const setCurrentStateCapture = useCallback((captureFunction: () => any) => {
         currentStateCaptureRef.current = captureFunction;
-        console.log('� Current state capture function set');
     }, []);
 
     // 히스토리 카운트
@@ -358,7 +323,6 @@ export const createHistoryHelpers = (
 ) => ({
     // Node 이동 기록
     recordNodeMove: (nodeId: string, fromPosition: { x: number; y: number }, toPosition: { x: number; y: number }) => {
-        console.log('📝 recordNodeMove called:', { nodeId, fromPosition, toPosition });
         // NODE_MOVE의 경우 canvasState를 저장하지 않음 - fromPosition/toPosition 정보만 사용
         addHistoryEntry(
             'NODE_MOVE',
@@ -366,7 +330,6 @@ export const createHistoryHelpers = (
             { nodeId, fromPosition, toPosition }
             // canvasState 파라미터 제거 - NODE_MOVE는 position 정보만 필요
         );
-        console.log('📝 recordNodeMove completed');
     },
 
     // Node 생성 기록
