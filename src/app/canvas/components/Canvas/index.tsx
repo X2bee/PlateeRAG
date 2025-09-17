@@ -47,10 +47,11 @@ import type {
     Parameter
 } from './types';
 
-const Canvas = forwardRef<CanvasRef, CanvasProps>(({ 
-    onStateChange, 
-    nodesInitialized = false, 
-    onOpenNodeModal
+const Canvas = forwardRef<CanvasRef, CanvasProps>(({
+    onStateChange,
+    nodesInitialized = false,
+    onOpenNodeModal,
+    historyHelpers
 }, ref) => {
     // Refs
     const contentRef = useRef<HTMLDivElement>(null);
@@ -74,18 +75,16 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
     const {
         nodes,
         setNodes,
-        lastDeleted,
         addNode,
         deleteNode,
         copyNode,
         pasteNode,
-        undoDelete,
         updateNodeParameter,
         updateNodeName,
         updateParameterName,
         addParameter,
         deleteParameter
-    } = useNodeManagement();
+    } = useNodeManagement({ historyHelpers });
 
     const {
         edges,
@@ -94,7 +93,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         removeEdge,
         removeNodeEdges,
         isDuplicateEdge
-    } = useEdgeManagement();
+    } = useEdgeManagement({ historyHelpers });
 
     const {
         dragState,
@@ -102,7 +101,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         startNodeDrag,
         startEdgeDrag,
         stopDrag
-    } = useDragState();
+    } = useDragState({ historyHelpers, nodes });
 
     // State for port interactions and edge preview
     const [edgePreview, setEdgePreview] = useState<EdgePreview | null>(null);
@@ -195,7 +194,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
     // Port reference registration
     const registerPortRef = useCallback((nodeId: string, portId: string, portType: string, el: HTMLElement | null) => {
         const key = `${nodeId}__PORTKEYDELIM__${portId}__PORTKEYDELIM__${portType}`;
-        
+
         if (el) {
             portRefs.current.set(key, el);
         } else {
@@ -271,11 +270,11 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         setEdgePreview(null);
         setSourcePortForConnection(null);
     }, [
-        basePredictedNodeClick, 
-        addNode, 
-        addEdge, 
-        isDraggingOutput, 
-        isDraggingInput, 
+        basePredictedNodeClick,
+        addNode,
+        addEdge,
+        isDraggingOutput,
+        isDraggingInput,
         sourcePortForConnection,
         setEdgePreview,
         setSourcePortForConnection
@@ -284,7 +283,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
     // Schema synchronization
     const handleSynchronizeSchema = useCallback((nodeId: string, portId: string): void => {
         devLog.log('=== Schema Synchronization Started ===');
-        
+
         const connectedEdge = edges.find(edge =>
             edge.target?.nodeId === nodeId && edge.target?.portId === portId
         );
@@ -426,11 +425,8 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
     const keyboardHandlers = useKeyboardHandlers({
         selectedNodeId,
         selectedEdgeId,
-        lastDeleted,
-        setEdges,
         copyNode,
         pasteNode,
-        undoDelete,
         deleteNode,
         removeEdge,
         removeNodeEdges,
@@ -439,7 +435,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
     });
 
     // Get final handlers from hooks
-    const { 
+    const {
         handleCanvasMouseDown,
         handleMouseMove,
         handleMouseUp,
@@ -447,7 +443,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         handleEdgeClick
     } = canvasHandlers;
 
-    const { 
+    const {
         handlePortMouseDown,
         handlePortMouseUp
     } = portHandlers;
@@ -510,17 +506,12 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
 
         // Wheel event for zooming
         container.addEventListener('wheel', handleWheel, { passive: false });
-        
-        // Keyboard events
-        container.addEventListener('keydown', handleKeyDown);
-        container.setAttribute('tabindex', '0');
 
-        // Global keyboard events
+        // Global keyboard events (only window level to avoid duplication)
         window.addEventListener('keydown', handleKeyDown);
 
         return () => {
             container.removeEventListener('wheel', handleWheel);
-            container.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [handleWheel, handleKeyDown]);

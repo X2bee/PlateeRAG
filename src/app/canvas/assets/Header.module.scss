@@ -255,8 +255,27 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
+    position: relative;
 
     &:hover {
         background-color: #f0f0f0;
     }
+}
+
+.historyBadge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #ef4444;
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 1px 4px;
+    border-radius: 8px;
+    min-width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
 }

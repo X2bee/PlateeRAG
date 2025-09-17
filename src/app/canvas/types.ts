@@ -123,6 +123,7 @@ export interface DragState {
     nodeId?: string;
     offsetX?: number;
     offsetY?: number;
+    initialNodePosition?: Position;
 }
 
 export interface PredictedNode {
@@ -263,6 +264,15 @@ export interface CanvasProps {
     onStateChange?: (state: CanvasState) => void;
     nodesInitialized?: boolean;
     onOpenNodeModal?: (nodeId: string, paramId: string, paramName: string, currentValue: string) => void;
+    historyHelpers?: {
+        recordNodeMove: (nodeId: string, fromPosition: { x: number; y: number }, toPosition: { x: number; y: number }) => void;
+        recordNodeCreate: (nodeId: string, nodeType: string, position: { x: number; y: number }) => void;
+        recordNodeDelete: (nodeId: string, nodeType: string) => void;
+        recordEdgeCreate: (edgeId: string, sourceId: string, targetId: string) => void;
+        recordEdgeDelete: (edgeId: string, sourceId: string, targetId: string) => void;
+        recordNodeUpdate: (nodeId: string, field: string, oldValue: any, newValue: any) => void;
+        recordEdgeUpdate: (edgeId: string, field: string, oldValue: any, newValue: any) => void;
+    };
 }
 
 export interface CanvasRef {

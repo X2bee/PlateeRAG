@@ -9,7 +9,9 @@ import ExecutionPanel from '@/app/canvas/components/ExecutionPanel';
 import NodeModal from '@/app/canvas/components/NodeModal';
 import AuthGuard from '@/app/_common/components/authGuard/AuthGuard';
 import { DeploymentModal } from '@/app/chat/components/DeploymentModal';
+import { HistoryPanel } from '@/app/canvas/components/HistoryPanel';
 import { useNodes } from '@/app/_common/utils/nodeHook';
+import { useHistoryManagement, createHistoryHelpers } from '@/app/canvas/components/Canvas/hooks/useHistoryManagement';
 import styles from '@/app/canvas/assets/PlateeRAG.module.scss';
 import {
     saveWorkflow,
@@ -63,6 +65,11 @@ function CanvasPageContent() {
     const [isDeploy, setIsDeploy] = useState(false);
     const [workflowDetailData, setWorkflowDetailData] = useState<any>(null);
     const [loadingCanvas, setLoadingCanvas] = useState(true);
+
+    // History 관리 상태
+    const { history, addHistoryEntry, clearHistory } = useHistoryManagement();
+    const historyHelpers = createHistoryHelpers(addHistoryEntry);
+    const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
 
     // NodeModal 관련 상태
     const [nodeModalState, setNodeModalState] = useState<{
@@ -790,6 +797,8 @@ function CanvasPageContent() {
                 isDeploy={isDeploy}
                 handleExecute={handleExecute}
                 isLoading={isExecuting}
+                onHistoryClick={() => setIsHistoryPanelOpen(true)}
+                historyCount={history.length}
             />
             <main className={styles.mainContent}>
                 <Canvas
@@ -797,6 +806,7 @@ function CanvasPageContent() {
                     onStateChange={handleCanvasStateChange}
                     nodesInitialized={nodesInitialized}
                     onOpenNodeModal={handleOpenNodeModal}
+                    historyHelpers={historyHelpers}
                     {...({} as any)}
                 />
                 {isMenuOpen && (
@@ -830,6 +840,12 @@ function CanvasPageContent() {
                 onSave={handleSaveNodeModal}
                 parameterName={nodeModalState.paramName}
                 initialValue={nodeModalState.currentValue}
+            />
+            <HistoryPanel
+                history={history}
+                isOpen={isHistoryPanelOpen}
+                onClose={() => setIsHistoryPanelOpen(false)}
+                onClearHistory={clearHistory}
             />
             <input
                 type="file"

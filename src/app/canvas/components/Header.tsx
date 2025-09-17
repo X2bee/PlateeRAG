@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, KeyboardEvent, ChangeEvent } from '
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from '@/app/canvas/assets/Header.module.scss';
-import { LuPanelRightOpen, LuSave, LuCheck, LuX, LuPencil, LuFileText, LuArrowLeft } from "react-icons/lu";
+import { LuPanelRightOpen, LuSave, LuCheck, LuX, LuPencil, LuFileText, LuArrowLeft, LuHistory } from "react-icons/lu";
 import { getWorkflowName, saveWorkflowName } from '@/app/_common/utils/workflowStorage';
 import { FiUpload } from 'react-icons/fi';
 import { BiCodeAlt } from "react-icons/bi";
@@ -21,6 +21,8 @@ interface HeaderProps {
     isDeploy?: boolean;
     handleExecute?: () => void;
     isLoading?: boolean;
+    onHistoryClick?: () => void;
+    historyCount?: number;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -33,7 +35,9 @@ const Header: React.FC<HeaderProps> = ({
     onDeploy,
     isDeploy,
     handleExecute,
-    isLoading
+    isLoading,
+    onHistoryClick,
+    historyCount = 0
 }) => {
     const [workflowName, setWorkflowName] = useState<string>('Workflow');
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -175,6 +179,14 @@ const Header: React.FC<HeaderProps> = ({
                 <button onClick={onSave} className={styles.menuButton} title="Save Workflow">
                     <LuSave />
                 </button>
+                {onHistoryClick && (
+                    <button onClick={onHistoryClick} className={styles.menuButton} title="작업 히스토리">
+                        <LuHistory />
+                        {historyCount > 0 && (
+                            <span className={styles.historyBadge}>{historyCount}</span>
+                        )}
+                    </button>
+                )}
                 <button onClick={onMenuClick} className={styles.menuButton}>
                     <LuPanelRightOpen />
                 </button>

@@ -1,17 +1,24 @@
 import { useState, useCallback } from 'react';
-import type { CanvasNode, Parameter, DeletedItem } from '@/app/canvas/types';
+import type { CanvasNode, Parameter } from '@/app/canvas/types';
 import { devLog } from '@/app/_common/utils/logger';
+
+interface UseNodeManagementProps {
+    historyHelpers?: {
+        recordNodeMove: (nodeId: string, fromPosition: { x: number; y: number }, toPosition: { x: number; y: number }) => void;
+        recordNodeCreate: (nodeId: string, nodeType: string, position: { x: number; y: number }) => void;
+        recordNodeDelete: (nodeId: string, nodeType: string) => void;
+        recordNodeUpdate: (nodeId: string, field: string, oldValue: any, newValue: any) => void;
+    };
+}
 
 interface UseNodeManagementReturn {
     nodes: CanvasNode[];
     setNodes: React.Dispatch<React.SetStateAction<CanvasNode[]>>;
     copiedNode: CanvasNode | null;
-    lastDeleted: DeletedItem | null;
     addNode: (node: CanvasNode) => void;
     deleteNode: (nodeId: string, connectedEdges: any[]) => void;
     copyNode: (nodeId: string) => void;
     pasteNode: () => string | null;
-    undoDelete: () => CanvasNode | null;
     updateNodeParameter: (nodeId: string, paramId: string, value: string | number | boolean) => void;
     updateNodeName: (nodeId: string, newName: string) => void;
     updateParameterName: (nodeId: string, paramId: string, newName: string) => void;
@@ -19,23 +26,33 @@ interface UseNodeManagementReturn {
     deleteParameter: (nodeId: string, paramId: string) => void;
 }
 
-export const useNodeManagement = (): UseNodeManagementReturn => {
+export const useNodeManagement = ({ historyHelpers }: UseNodeManagementProps = {}): UseNodeManagementReturn => {
     const [nodes, setNodes] = useState<CanvasNode[]>([]);
     const [copiedNode, setCopiedNode] = useState<CanvasNode | null>(null);
-    const [lastDeleted, setLastDeleted] = useState<DeletedItem | null>(null);
 
     const addNode = useCallback((node: CanvasNode) => {
+        devLog.log('=== addNode called ===', node.id, node.data.nodeName, node.position);
         setNodes(prev => [...prev, node]);
-    }, []);
+        // 히스토리 기록
+        if (historyHelpers?.recordNodeCreate) {
+            devLog.log('Recording node creation in history:', node.id);
+            historyHelpers.recordNodeCreate(node.id, node.data.nodeName, node.position);
+        } else {
+            devLog.warn('historyHelpers.recordNodeCreate not available');
+        }
+    }, [historyHelpers]);
 
     const deleteNode = useCallback((nodeId: string, connectedEdges: any[]) => {
         const nodeToDelete = nodes.find(node => node.id === nodeId);
         if (nodeToDelete) {
-            setLastDeleted({ node: nodeToDelete, edges: connectedEdges });
             setNodes(prev => prev.filter(node => node.id !== nodeId));
-            devLog.log('Node deleted and saved for undo:', nodeToDelete.data.nodeName);
+            // 히스토리 기록
+            if (historyHelpers?.recordNodeDelete) {
+                historyHelpers.recordNodeDelete(nodeId, nodeToDelete.data.nodeName);
+            }
+            devLog.log('Node deleted:', nodeToDelete.data.nodeName);
         }
-    }, [nodes]);
+    }, [nodes, historyHelpers]);
 
     const copyNode = useCallback((nodeId: string) => {
         const nodeToCopy = nodes.find(node => node.id === nodeId);
@@ -57,22 +74,17 @@ export const useNodeManagement = (): UseNodeManagementReturn => {
             };
 
             setNodes(prev => [...prev, newNode]);
+
+            // 히스토리 기록
+            if (historyHelpers?.recordNodeCreate) {
+                historyHelpers.recordNodeCreate(newNode.id, newNode.data.nodeName, newNode.position);
+            }
+
             devLog.log('Node pasted:', newNode.data.nodeName);
             return newNode.id;
         }
         return null;
-    }, [copiedNode]);
-
-    const undoDelete = useCallback((): CanvasNode | null => {
-        if (lastDeleted) {
-            setNodes(prev => [...prev, lastDeleted.node]);
-            devLog.log('Node restored:', lastDeleted.node.data.nodeName);
-            const restoredNode = lastDeleted.node;
-            setLastDeleted(null);
-            return restoredNode;
-        }
-        return null;
-    }, [lastDeleted]);
+    }, [copiedNode, historyHelpers]);
 
     const updateNodeParameter = useCallback((nodeId: string, paramId: string, value: string | number | boolean): void => {
         devLog.log('=== Canvas Parameter Change ===');
@@ -105,6 +117,14 @@ export const useNodeManagement = (): UseNodeManagementReturn => {
                 return prevNodes;
             }
 
+            // 히스토리 기록
+            if (historyHelpers?.recordNodeUpdate) {
+                devLog.log('Recording parameter update in history:', { nodeId, paramName: targetParam.name, oldValue: targetParam.value, newValue });
+                historyHelpers.recordNodeUpdate(nodeId, targetParam.name, targetParam.value, newValue);
+            } else {
+                devLog.warn('historyHelpers.recordNodeUpdate not available');
+            }
+
             const newNodes = [...prevNodes];
             newNodes[targetNodeIndex] = {
                 ...targetNode,
@@ -121,7 +141,7 @@ export const useNodeManagement = (): UseNodeManagementReturn => {
             devLog.log('Parameter update completed successfully');
             return newNodes;
         });
-    }, []);
+    }, [historyHelpers]);
 
     const updateNodeName = useCallback((nodeId: string, newName: string): void => {
         setNodes(prevNodes => {
@@ -251,12 +271,10 @@ export const useNodeManagement = (): UseNodeManagementReturn => {
         nodes,
         setNodes,
         copiedNode,
-        lastDeleted,
         addNode,
         deleteNode,
         copyNode,
         pasteNode,
-        undoDelete,
         updateNodeParameter,
         updateNodeName,
         updateParameterName,
