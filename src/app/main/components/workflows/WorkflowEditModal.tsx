@@ -122,11 +122,17 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
                     <label>워크플로우 배포</label>
                     <button
                         type="button"
-                        className={`${styles.toggleButton} ${toggleDeploy ? styles.active : ''}`}
+                        className={`${styles.toggleButton} ${
+                            workflow.inquire_deploy
+                                ? (toggleDeploy ? styles.pending : styles.pendingOff)
+                                : toggleDeploy
+                                ? styles.active
+                                : ''
+                        }`}
                         onClick={() => setToggleDeploy(!toggleDeploy)}
                         disabled={loading}
                     >
-                        {toggleDeploy ? '배포 활성화' : '배포 비활성화'}
+                        {workflow.inquire_deploy ? '배포 승인 대기중' : toggleDeploy ? '배포 활성화' : '배포 비활성화'}
                     </button>
                     <small>
                         관리자인 경우 즉시 배포, 일반 사용자인 경우 관리자 승인 후 배포됩니다.

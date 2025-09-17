@@ -10,7 +10,8 @@ import {
 } from './smartTokenizer';
 import { 
   defaultHighlightConfig, 
-  HighlightConfig 
+  HighlightConfig, 
+  highlightPresets
 } from './highlightConfig';
 
 interface PDFHighlighterProps {
@@ -30,7 +31,7 @@ const PDFHighlighter: React.FC<PDFHighlighterProps> = ({
   pageWidth,
   pageHeight,
   textContent,
-  highlightConfig = defaultHighlightConfig
+  highlightConfig = highlightPresets.balanced || defaultHighlightConfig
 }) => {
   
   // 현재 페이지가 하이라이트 대상인지 확인

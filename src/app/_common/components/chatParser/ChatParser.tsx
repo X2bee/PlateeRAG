@@ -17,6 +17,11 @@ import {
     type ToolOutputLogInfo
 } from '@/app/_common/components/chatParser/ChatParserToolResponse';
 import {
+    FeedbackLoopBlock,
+    findFeedbackLoopBlocks,
+    type FeedbackLoopInfo
+} from '@/app/_common/components/chatParser/ChatParserFeedback';
+import {
     parseSimpleMarkdown
 } from '@/app/_common/components/chatParser/ChatParserMarkdown';
 import { parseCitation } from '@/app/_common/components/chatParser/ChatParserCite';
@@ -186,10 +191,11 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
     const elements: React.ReactNode[] = [];
     let currentIndex = 0;
 
-    // Think 블록, Tool Use Log 블록, Tool Output Log 블록 먼저 처리
+    // Think 블록, Tool Use Log 블록, Tool Output Log 블록, Feedback Loop 블록 먼저 처리
     const thinkBlocks = findThinkBlocks(processed);
     const toolUseLogBlocks = findToolUseLogBlocks(processed);
     const toolOutputLogBlocks = findToolOutputLogBlocks(processed);
+    const feedbackLoopBlocks = findFeedbackLoopBlocks(processed);
     // 코드 블록 처리
     const codeBlocks = findCodeBlocks(processed);
 
@@ -198,6 +204,7 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
         ...thinkBlocks.map(block => ({ ...block, type: 'think' as const })),
         ...toolUseLogBlocks.map(block => ({ ...block, type: 'tooluselog' as const })),
         ...toolOutputLogBlocks.map(block => ({ ...block, type: 'tooloutputlog' as const })),
+        ...feedbackLoopBlocks.map(block => ({ ...block, type: 'feedbackloop' as const })),
         ...codeBlocks.map(block => ({ ...block, type: 'code' as const }))
     ].sort((a, b) => a.start - b.start);
 
@@ -271,6 +278,18 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
         } else if (block.type === 'tooloutputlog') {
             // 도구 출력 로그는 독립적으로 렌더링하지 않고, 위의 tooluselog에서 함께 처리함
             // 따라서 여기서는 아무것도 하지 않음
+        } else if (block.type === 'feedbackloop') {
+            // 스트리밍 중인지 확인 (블록이 문서 끝까지 이어지고 </FEEDBACK_LOOP>가 없는 경우)
+            const isStreaming = block.end === processed.length &&
+                !processed.slice(block.start).includes('</FEEDBACK_LOOP>');
+
+            elements.push(
+                <FeedbackLoopBlock
+                    key={`feedbackloop-${elements.length}`}
+                    content={block.content}
+                    isStreaming={isStreaming}
+                />
+            );
         } else if (block.type === 'code') {
             elements.push(
                 <CodeBlock

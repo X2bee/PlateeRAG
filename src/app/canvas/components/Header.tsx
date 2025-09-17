@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, KeyboardEvent, ChangeEvent } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import styles from '@/app/canvas/assets/Header.module.scss';
-import { LuPanelRightOpen, LuSave, LuCheck, LuX, LuPencil, LuFileText } from "react-icons/lu";
+import { LuPanelRightOpen, LuSave, LuCheck, LuX, LuPencil, LuFileText, LuArrowLeft } from "react-icons/lu";
 import { getWorkflowName, saveWorkflowName } from '@/app/_common/utils/workflowStorage';
 import { FiUpload } from 'react-icons/fi';
 import { BiCodeAlt } from "react-icons/bi";
@@ -13,6 +14,7 @@ interface HeaderProps {
     onLoad: () => void;
     onExport: () => void;
     onNewWorkflow: () => void;
+    onBack?: () => void;
     workflowName?: string;
     onWorkflowNameChange?: (name: string) => void;
     onDeploy: () => void;
@@ -24,9 +26,8 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({
     onMenuClick,
     onSave,
-    onLoad,
-    onExport,
     onNewWorkflow,
+    onBack,
     workflowName: externalWorkflowName,
     onWorkflowNameChange,
     onDeploy,
@@ -38,6 +39,19 @@ const Header: React.FC<HeaderProps> = ({
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [editValue, setEditValue] = useState<string>('');
     const inputRef = useRef<HTMLInputElement>(null);
+    const router = useRouter();
+
+    const handleBackClick = (): void => {
+        try {
+            if (onBack) {
+                onBack();
+            } else {
+                router.back();
+            }
+        } catch {
+            // ignore
+        }
+    };
 
     useEffect(() => {
         if (externalWorkflowName) {
@@ -94,6 +108,9 @@ const Header: React.FC<HeaderProps> = ({
     return (
         <header className={styles.header}>
             <div className={styles.leftSection}>
+                <button onClick={handleBackClick} className={styles.backButton} title="뒤로가기">
+                    <LuArrowLeft />
+                </button>
                 <Link href="/main" className={styles.logoLink}>
                     <div className={styles.logo}>
                         XGEN
