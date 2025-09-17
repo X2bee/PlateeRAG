@@ -1,8 +1,8 @@
 import { useState, useCallback, useRef } from 'react';
 import type { View, Position } from '@/app/canvas/types';
 
-const MIN_SCALE = 0.6;
-const MAX_SCALE = 20;
+const MIN_SCALE = 0.23;
+const MAX_SCALE = 30;
 const ZOOM_SENSITIVITY = 0.05;
 
 interface UseCanvasViewProps {
@@ -17,9 +17,9 @@ interface UseCanvasViewReturn {
     handleWheel: (e: WheelEvent) => void;
 }
 
-export const useCanvasView = ({ 
-    containerRef, 
-    contentRef 
+export const useCanvasView = ({
+    containerRef,
+    contentRef
 }: UseCanvasViewProps): UseCanvasViewReturn => {
     const [view, setView] = useState<View>({ x: 0, y: 0, scale: 1 });
 
@@ -57,12 +57,12 @@ export const useCanvasView = ({
         setView(prevView => {
             const delta = e.deltaY > 0 ? -1 : 1;
             const newScale = Math.max(
-                MIN_SCALE, 
+                MIN_SCALE,
                 Math.min(MAX_SCALE, prevView.scale + delta * ZOOM_SENSITIVITY * prevView.scale)
             );
-            
+
             if (newScale === prevView.scale) return prevView;
-            
+
             const rect = container.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
@@ -70,7 +70,7 @@ export const useCanvasView = ({
             const worldY = (mouseY - prevView.y) / prevView.scale;
             const newX = mouseX - worldX * newScale;
             const newY = mouseY - worldY * newScale;
-            
+
             return { x: newX, y: newY, scale: newScale };
         });
     }, [containerRef]);

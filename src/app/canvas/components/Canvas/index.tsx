@@ -44,13 +44,15 @@ import type {
     ExecutionValidationResult,
     CanvasProps,
     CanvasRef,
-    Parameter
+    Parameter,
+    View
 } from './types';
 
-const Canvas = forwardRef<CanvasRef, CanvasProps>(({ 
-    onStateChange, 
-    nodesInitialized = false, 
-    onOpenNodeModal
+const Canvas = forwardRef<CanvasRef, CanvasProps>(({
+    onStateChange,
+    nodesInitialized = false,
+    onOpenNodeModal,
+    historyHelpers
 }, ref) => {
     // Refs
     const contentRef = useRef<HTMLDivElement>(null);
@@ -74,18 +76,16 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
     const {
         nodes,
         setNodes,
-        lastDeleted,
         addNode,
         deleteNode,
         copyNode,
         pasteNode,
-        undoDelete,
         updateNodeParameter,
         updateNodeName,
         updateParameterName,
         addParameter,
         deleteParameter
-    } = useNodeManagement();
+    } = useNodeManagement({ historyHelpers });
 
     const {
         edges,
@@ -94,7 +94,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         removeEdge,
         removeNodeEdges,
         isDuplicateEdge
-    } = useEdgeManagement();
+    } = useEdgeManagement({ historyHelpers });
 
     const {
         dragState,
@@ -102,7 +102,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         startNodeDrag,
         startEdgeDrag,
         stopDrag
-    } = useDragState();
+    } = useDragState({ historyHelpers, nodes });
 
     // State for port interactions and edge preview
     const [edgePreview, setEdgePreview] = useState<EdgePreview | null>(null);
@@ -110,6 +110,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
     const [snappedPortKey, setSnappedPortKey] = useState<string | null>(null);
     const [isSnapTargetValid, setIsSnapTargetValid] = useState<boolean>(true);
     const [availableNodeSpecs, setAvailableNodeSpecs] = useState<NodeData[]>([]);
+    const [, forceUpdate] = useState({});
     const [portClickStart, setPortClickStart] = useState<{
         data: PortMouseEventData;
         timestamp: number;
@@ -141,6 +142,8 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
 
     // Refs for accessing current state in callbacks
     const nodesRef = useRef<CanvasNode[]>(nodes);
+    const edgesRef = useRef<CanvasEdge[]>(edges);
+    const viewRef = useRef<View>(view);
     const edgePreviewRef = useRef<EdgePreview | null>(edgePreview);
     const snappedPortKeyRef = useRef<string | null>(snappedPortKey);
     const isSnapTargetValidRef = useRef<boolean>(isSnapTargetValid);
@@ -148,10 +151,12 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
     // Update refs when state changes
     useEffect(() => {
         nodesRef.current = nodes;
+        edgesRef.current = edges;
+        viewRef.current = view;
         edgePreviewRef.current = edgePreview;
         snappedPortKeyRef.current = snappedPortKey;
         isSnapTargetValidRef.current = isSnapTargetValid;
-    }, [nodes, edgePreview, snappedPortKey, isSnapTargetValid]);
+    }, [nodes, edges, view, edgePreview, snappedPortKey, isSnapTargetValid]);
 
     // Port positions calculation
     useLayoutEffect(() => {
@@ -192,10 +197,28 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         }
     }, [nodesInitialized]);
 
+    // 히스토리 관리 설정 - 상태 캡처 함수 등록 (한 번만 실행)
+    useEffect(() => {
+        if (!historyHelpers) return;
+
+        // 현재 상태 캡처 함수 설정 (ref를 사용하여 최신 상태 확보)
+        if ('setCurrentStateCapture' in historyHelpers) {
+            const setCurrentStateCapture = historyHelpers.setCurrentStateCapture as (captureFunction: () => any) => void;
+            setCurrentStateCapture(() => {
+                // ref를 통해 캡처 시점의 최신 상태를 반환
+                return {
+                    view: { ...viewRef.current },
+                    nodes: [...nodesRef.current],
+                    edges: [...edgesRef.current]
+                };
+            });
+        }
+    }, [setNodes, setEdges, setView]);
+
     // Port reference registration
     const registerPortRef = useCallback((nodeId: string, portId: string, portType: string, el: HTMLElement | null) => {
         const key = `${nodeId}__PORTKEYDELIM__${portId}__PORTKEYDELIM__${portType}`;
-        
+
         if (el) {
             portRefs.current.set(key, el);
         } else {
@@ -209,9 +232,6 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
 
         const newNode = basePredictedNodeClick(nodeData, position);
         if (!newNode) return;
-
-        // Add the new node
-        addNode(newNode);
 
         // Create edge if there's a connection source
         const currentEdgePreview = edgePreviewRef.current;
@@ -263,28 +283,58 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
             }
 
             if (newEdge) {
-                addEdge(newEdge);
+                // MULTI_ACTION으로 통합 히스토리 기록
+                if (historyHelpers?.recordMultiAction) {
+                    const actions = [
+                        {
+                            actionType: 'NODE_CREATE' as const,
+                            nodeId: newNode.id,
+                            nodeType: newNode.data.nodeName,
+                            position: newNode.position
+                        },
+                        {
+                            actionType: 'EDGE_CREATE' as const,
+                            edgeId: newEdge.id,
+                            sourceId: newEdge.source.nodeId,
+                            targetId: newEdge.target.nodeId
+                        }
+                    ];
+
+                    const description = `Created predicted node ${newNode.data.nodeName} with edge connection`;
+                    historyHelpers.recordMultiAction(description, actions);
+                }
+
+                // Add node and edge without individual history recording
+                addNode(newNode, true); // skipHistory = true
+                addEdge(newEdge, true); // skipHistory = true
+            } else {
+                // No edge created, just add node normally
+                addNode(newNode);
             }
+        } else {
+            // No connection source, just add node normally
+            addNode(newNode);
         }
 
         // Clean up edge preview
         setEdgePreview(null);
         setSourcePortForConnection(null);
     }, [
-        basePredictedNodeClick, 
-        addNode, 
-        addEdge, 
-        isDraggingOutput, 
-        isDraggingInput, 
+        basePredictedNodeClick,
+        addNode,
+        addEdge,
+        isDraggingOutput,
+        isDraggingInput,
         sourcePortForConnection,
         setEdgePreview,
-        setSourcePortForConnection
+        setSourcePortForConnection,
+        historyHelpers
     ]);
 
     // Schema synchronization
     const handleSynchronizeSchema = useCallback((nodeId: string, portId: string): void => {
         devLog.log('=== Schema Synchronization Started ===');
-        
+
         const connectedEdge = edges.find(edge =>
             edge.target?.nodeId === nodeId && edge.target?.portId === portId
         );
@@ -426,20 +476,21 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
     const keyboardHandlers = useKeyboardHandlers({
         selectedNodeId,
         selectedEdgeId,
-        lastDeleted,
-        setEdges,
         copyNode,
         pasteNode,
-        undoDelete,
         deleteNode,
         removeEdge,
         removeNodeEdges,
         clearSelection,
-        selectNode
+        selectNode,
+        undo: historyHelpers?.undo || (() => devLog.warn('Undo called - no historyHelpers')),
+        redo: historyHelpers?.redo || (() => devLog.warn('Redo called - no historyHelpers')),
+        canUndo: historyHelpers?.canUndo || false,
+        canRedo: historyHelpers?.canRedo || false
     });
 
     // Get final handlers from hooks
-    const { 
+    const {
         handleCanvasMouseDown,
         handleMouseMove,
         handleMouseUp,
@@ -447,7 +498,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         handleEdgeClick
     } = canvasHandlers;
 
-    const { 
+    const {
         handlePortMouseDown,
         handlePortMouseUp
     } = portHandlers;
@@ -472,9 +523,83 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
             addNode(newNode);
         },
         loadCanvasState: (state: Partial<CanvasState>): void => {
-            if (state.nodes) setNodes(state.nodes);
-            if (state.edges) setEdges(state.edges);
-            if (state.view) setView(state.view);
+            try {
+                devLog.log('Restoring full canvas state:', {
+                    hasNodes: !!state.nodes,
+                    nodesCount: state.nodes?.length,
+                    hasEdges: !!state.edges,
+                    edgesCount: state.edges?.length,
+                    hasView: !!state.view
+                });
+
+                if (state.nodes) {
+                    // 노드 상태 복원 시 유효성 검사
+                    const validNodes = state.nodes.filter(node => node && node.id && node.data);
+                    if (validNodes.length !== state.nodes.length) {
+                        devLog.warn('Some nodes filtered out due to invalid data:',
+                            state.nodes.length - validNodes.length);
+                    }
+                    setNodes(validNodes);
+                }
+
+                if (state.edges) {
+                    // 엣지 상태 복원 시 유효성 검사
+                    const validEdges = state.edges.filter(edge =>
+                        edge && edge.id && edge.source && edge.target
+                    );
+                    if (validEdges.length !== state.edges.length) {
+                        devLog.warn('Some edges filtered out due to invalid data:',
+                            state.edges.length - validEdges.length);
+                    }
+                    setEdges(validEdges);
+                }
+
+                if (state.view) {
+                    setView(state.view);
+                }
+            } catch (error) {
+                devLog.error('Error during canvas state restoration:', error);
+                // 에러가 발생해도 애플리케이션이 중단되지 않도록 함
+            }
+        },
+        loadCanvasStateWithoutView: (state: Partial<CanvasState>): void => {
+            try {
+                devLog.log('Restoring canvas state without view:', {
+                    hasNodes: !!state.nodes,
+                    nodesCount: state.nodes?.length,
+                    hasEdges: !!state.edges,
+                    edgesCount: state.edges?.length,
+                    hasView: !!state.view,
+                    viewRestored: false // view는 복원하지 않음
+                });
+
+                if (state.nodes) {
+                    // 노드 상태 복원 시 유효성 검사
+                    const validNodes = state.nodes.filter(node => node && node.id && node.data);
+                    if (validNodes.length !== state.nodes.length) {
+                        devLog.warn('Some nodes filtered out due to invalid data:',
+                            state.nodes.length - validNodes.length);
+                    }
+                    setNodes(validNodes);
+                }
+
+                if (state.edges) {
+                    // 엣지 상태 복원 시 유효성 검사
+                    const validEdges = state.edges.filter(edge =>
+                        edge && edge.id && edge.source && edge.target
+                    );
+                    if (validEdges.length !== state.edges.length) {
+                        devLog.warn('Some edges filtered out due to invalid data:',
+                            state.edges.length - validEdges.length);
+                    }
+                    setEdges(validEdges);
+                }
+
+                // view는 복원하지 않음 - History 전용
+            } catch (error) {
+                devLog.error('Error during canvas state restoration (without view):', error);
+                // 에러가 발생해도 애플리케이션이 중단되지 않도록 함
+            }
         },
         loadWorkflowState: (state: Partial<CanvasState>): void => {
             if (state.nodes) setNodes(state.nodes);
@@ -498,8 +623,8 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         setAvailableNodeSpecs: (nodeSpecs: NodeData[]): void => {
             setAvailableNodeSpecs(nodeSpecs);
         },
-        updateNodeParameter: (nodeId: string, paramId: string, value: string): void => {
-            updateNodeParameter(nodeId, paramId, value);
+        updateNodeParameter: (nodeId: string, paramId: string, value: string | number | boolean, skipHistory?: boolean): void => {
+            updateNodeParameter(nodeId, paramId, value, skipHistory);
         }
     }));
 
@@ -510,17 +635,12 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
 
         // Wheel event for zooming
         container.addEventListener('wheel', handleWheel, { passive: false });
-        
-        // Keyboard events
-        container.addEventListener('keydown', handleKeyDown);
-        container.setAttribute('tabindex', '0');
 
-        // Global keyboard events
+        // Global keyboard events (only window level to avoid duplication)
         window.addEventListener('keydown', handleKeyDown);
 
         return () => {
             container.removeEventListener('wheel', handleWheel);
-            container.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [handleWheel, handleKeyDown]);

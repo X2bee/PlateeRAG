@@ -36,24 +36,6 @@
     }
 }
 
-.logoLink {
-    text-decoration: none;
-    transition: all 0.2s ease;
-    border-radius: 8px;
-    padding: 8px 12px;
-
-    &:hover {
-        background-color: #f8f9fa;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    &:active {
-        transform: translateY(0);
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-    }
-}
-
 .logo {
     font-size: 1.5rem; // 24px
     font-weight: 700;
@@ -62,14 +44,10 @@
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    transition: all 0.2s ease;
-
-    .logoLink:hover & {
-        background: linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%);
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
 .workflowNameSection {
@@ -255,8 +233,32 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
+    position: relative;
 
     &:hover {
         background-color: #f0f0f0;
     }
+
+    &.active {
+        background-color: #e1eaf7;
+        // color: white;
+    }
+}
+
+.historyBadge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #ef4444;
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 1px 4px;
+    border-radius: 8px;
+    min-width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
 }

@@ -6,7 +6,7 @@ export interface ParameterComponentProps {
     id: string;
     parameter: Parameter;
     nodeId: string;
-    onParameterChange: (nodeId: string, paramId: string, value: string | number | boolean) => void;
+    onParameterChange: (nodeId: string, paramId: string, value: string | number | boolean, skipHistory?: boolean) => void;
     onClearSelection?: () => void;
     isPreview?: boolean;
 }
@@ -42,7 +42,7 @@ export interface ToolNameParameterProps extends ParameterComponentProps {
     onValidationError: (error: string) => void;
 }
 
-// Expandable Parameter specific types  
+// Expandable Parameter specific types
 export interface ExpandableParameterProps extends ParameterComponentProps {
     onOpenModal?: (nodeId: string, paramId: string, paramName: string, currentValue: string) => void;
 }
@@ -171,7 +171,7 @@ export interface ParameterRenderOptions {
     shouldRenderAsInput: boolean|undefined;
 }
 
-export type ParameterType = 
+export type ParameterType =
     | 'api'
     | 'handle'
     | 'boolean'
