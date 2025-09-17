@@ -208,7 +208,21 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
         ...codeBlocks.map(block => ({ ...block, type: 'code' as const }))
     ].sort((a, b) => a.start - b.start);
 
-    for (const block of allBlocks) {
+    // 피드백 루프 블록 내부에 있는 다른 블록들 제거 (중복 렌더링 방지)
+    const filteredBlocks = allBlocks.filter((block, index) => {
+        // 피드백 루프 블록은 그대로 유지
+        if (block.type === 'feedbackloop') return true;
+
+        // 다른 블록들이 피드백 루프 블록 내부에 있는지 확인
+        const isInsideFeedbackLoop = feedbackLoopBlocks.some(fbBlock =>
+            block.start >= fbBlock.start && block.end <= fbBlock.end
+        );
+
+        // 피드백 루프 내부에 있으면 제외
+        return !isInsideFeedbackLoop;
+    });
+
+    for (const block of filteredBlocks) {
         // 블록 이전 텍스트 처리
         if (block.start > currentIndex) {
             const beforeText = processed.slice(currentIndex, block.start);
@@ -277,7 +291,8 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
             }
         } else if (block.type === 'tooloutputlog') {
             // 도구 출력 로그는 독립적으로 렌더링하지 않고, 위의 tooluselog에서 함께 처리함
-            // 따라서 여기서는 아무것도 하지 않음
+            // currentIndex는 업데이트하지 않음 (이미 tooluselog에서 처리됨)
+            continue;
         } else if (block.type === 'feedbackloop') {
             // 스트리밍 중인지 확인 (블록이 문서 끝까지 이어지고 </FEEDBACK_LOOP>가 없는 경우)
             const isStreaming = block.end === processed.length &&
