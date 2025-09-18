@@ -16,9 +16,6 @@ export const DefaultParameter: React.FC<DefaultParameterProps> = ({
     const eventHandlers = createCommonEventHandlers(onClearSelection);
 
     const handleValueChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        devLog.log('=== Default Parameter Change Event ===');
-        devLog.log('nodeId:', nodeId, 'paramId:', parameter.id, 'value:', e.target.value);
-
         e.preventDefault();
         e.stopPropagation();
 
@@ -29,17 +26,17 @@ export const DefaultParameter: React.FC<DefaultParameterProps> = ({
                 return;
             }
 
-            devLog.log('Calling onParameterChange...');
+            // devLog.log('Calling onParameterChange...');
             if (typeof onParameterChange === 'function') {
                 onParameterChange(nodeId, parameter.id, value);
-                devLog.log('onParameterChange completed successfully');
+                // devLog.log('onParameterChange completed successfully');
             } else {
                 devLog.error('onParameterChange is not a function');
             }
         } catch (error) {
             devLog.error('Error in handleValueChange:', error);
         }
-        devLog.log('=== End Default Parameter Change ===');
+        // devLog.log('=== End Default Parameter Change ===');
     };
 
     // Handle parameters with options (dropdown)

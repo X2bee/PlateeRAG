@@ -86,7 +86,7 @@ export const useNodeManagement = ({ historyHelpers }: UseNodeManagementProps = {
     }, [copiedNode, historyHelpers]);
 
     const updateNodeParameter = useCallback((nodeId: string, paramId: string, value: string | number | boolean, skipHistory?: boolean): void => {
-        devLog.log('updateNodeParameter called:', { nodeId, paramId, value, skipHistory });
+        // devLog.log('updateNodeParameter called:', { nodeId, paramId, value, skipHistory });
 
         setNodes(prevNodes => {
             const targetNodeIndex = prevNodes.findIndex(node => node.id === nodeId);
@@ -128,7 +128,7 @@ export const useNodeManagement = ({ historyHelpers }: UseNodeManagementProps = {
                 }
             };
 
-            devLog.log('Parameter update completed successfully');
+            // devLog.log('Parameter update completed successfully');
             return newNodes;
         });
     }, []);
