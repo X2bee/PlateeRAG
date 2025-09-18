@@ -11,7 +11,7 @@ import {
     FiBookmark,
     FiX,
 } from 'react-icons/fi';
-import styles from '@/app/chat/assets/ChatInterface.module.scss';
+import styles from '@/app/main/chatSection/assets/ChatInterface.module.scss';
 import { getWorkflowIOLogs, executeWorkflowById, executeWorkflowByIdStream, loadWorkflow } from '@/app/api/workflowAPI';
 import { loadWorkflow as loadWorkflowDeploy } from '@/app/api/workflow/workflowDeployAPI';
 import { MessageRenderer } from '@/app/_common/components/ChatParser';
@@ -107,19 +107,19 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         if (!isUserScrolling) {
             saveScrollPosition();
         }
-        
+
         // 답변 내용을 sourceInfo에 추가
         const enrichedSourceInfo = {
             ...sourceInfo,
             response_content: messageContent || sourceInfo.response_content
         };
-        
+
         setCurrentSourceInfo(enrichedSourceInfo);
         setShowPDFViewer(true);
         // 출처 뷰어가 켜질 때 패널 크기를 적절히 조정 (65% 채팅, 35% 출처)
         setPanelSplit(65);
         localStorage.setItem('chatPanelSplit', '65');
-        
+
         // 스크롤 위치 복원 (DOM 렌더링 후, 사용자가 스크롤 중이 아닐 때만)
         setTimeout(() => {
             if (!isUserScrolling) {
@@ -159,12 +159,12 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
     const handleUserScroll = useCallback(() => {
         if (!isResizing) {
             setIsUserScrolling(true);
-            
+
             // 스크롤 정지 감지
             if (scrollTimeoutRef.current) {
                 clearTimeout(scrollTimeoutRef.current);
             }
-            
+
             scrollTimeoutRef.current = setTimeout(() => {
                 setIsUserScrolling(false);
                 // 스크롤이 정지된 후 현재 위치를 저장
@@ -518,7 +518,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         const messagesElement = messagesRef.current;
         if (messagesElement) {
             messagesElement.addEventListener('scroll', handleUserScroll, { passive: true });
-            
+
             return () => {
                 messagesElement.removeEventListener('scroll', handleUserScroll);
             };
@@ -673,11 +673,11 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         if (textarea) {
             // 먼저 높이를 auto로 설정하여 scrollHeight를 정확히 계산
             textarea.style.height = 'auto';
-            
+
             const scrollHeight = textarea.scrollHeight;
             const minHeight = 45; // 최소 높이
             const maxHeight = 200; // 최대 높이
-            
+
             if (scrollHeight <= maxHeight) {
                 // 최대 높이보다 작으면 스크롤 숨김하고 내용에 맞게 높이 설정
                 textarea.style.height = `${Math.max(scrollHeight, minHeight)}px`;
@@ -709,7 +709,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
         if (isComposing) {
             return;
         }
-        
+
         if (e.key === 'Enter' && !e.shiftKey && !executing) {
             e.preventDefault();
             scrollToBottom();
@@ -788,7 +788,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                             setIsResizing(true);
                             setPanelSplit(size);
                             localStorage.setItem('chatPanelSplit', size.toString());
-                            
+
                             // 리사이즈 완료 후 플래그 해제
                             setTimeout(() => {
                                 setIsResizing(false);
@@ -990,13 +990,13 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = (
                                     if (!isUserScrolling) {
                                         saveScrollPosition();
                                     }
-                                    
+
                                     setShowPDFViewer(false);
                                     setCurrentSourceInfo(null);
                                     // 출처 뷰어 닫힘 시 패널 크기를 초기화하여 채팅 영역이 꽉 차게 설정
                                     setPanelSplit(100);
                                     localStorage.setItem('chatPanelSplit', '100');
-                                    
+
                                     // 스크롤 위치 복원 (DOM 렌더링 후, 사용자가 스크롤 중이 아닐 때만)
                                     setTimeout(() => {
                                         if (!isUserScrolling) {

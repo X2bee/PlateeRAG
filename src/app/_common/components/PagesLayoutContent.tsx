@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/app/_common/components/Sidebar';
 import { getChatSidebarItems,  getTrainSidebarItems, getWorkflowSidebarItems } from '@/app/_common/components/sidebarConfig';
 import { getChatItems,  getWorkflowItems, getTrainItems } from '@/app/_common/components/sidebarConfig';
-import styles from '@/app/main/assets/MainPage.module.scss';
+import styles from '@/app/main/workflowSection/assets/MainPage.module.scss';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FiChevronRight } from 'react-icons/fi';
 

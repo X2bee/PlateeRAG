@@ -11,7 +11,7 @@ import { RiChatSmileAiLine } from "react-icons/ri";
 import { LuBrainCircuit } from "react-icons/lu";
 import { HiSaveAs } from "react-icons/hi";
 import { TbBrandSpeedtest } from "react-icons/tb";
-import { SidebarItem } from '@/app/main//types/index';
+import { SidebarItem } from '@/app/main/workflowSection/types/index';
 import { devLog } from '@/app/_common/utils/logger';
 
 export const getChatItems = ['new-chat', 'current-chat', 'chat-history'];

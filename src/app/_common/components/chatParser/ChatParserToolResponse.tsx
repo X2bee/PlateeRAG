@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { FiChevronDown, FiChevronRight } from 'react-icons/fi';
-import SourceButton from '@/app/chat/components/SourceButton';
-import { SourceInfo } from '@/app/chat/types/source';
-import sourceStyles from '@/app/chat/assets/SourceButton.module.scss';
+import SourceButton from '@/app/main/chatSection/components/SourceButton';
+import { SourceInfo } from '@/app/main/chatSection/types/source';
+import sourceStyles from '@/app/main/chatSection/assets/SourceButton.module.scss';
 
 /**
  * Tool Use Log 블록 정보

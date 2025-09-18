@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import ChatInterface from '@/app/chat/components/ChatInterface';
-import { Workflow } from '@/app/chat/components/types';
+import ChatInterface from '@/app/main/chatSection/components/ChatInterface';
+import { Workflow } from '@/app/main/chatSection/components/types';
 import { decryptUrlParams } from '@/app/_common/utils/urlEncryption';
 //import { ALLOWED_ORIGINS } from '@/app/config';
 import styles from './StandaloneChat.module.scss';
@@ -80,7 +80,7 @@ const StandaloneChatPage = () => {
             try {
                 // 암호화된 파라미터 복호화
                 const decryptedParams = await decryptUrlParams(encryptedParams);
-                
+
                 if (!decryptedParams) {
                     // 기존 방식으로 fallback (하위 호환성)
                     if (workflowNameFromUrl) {
@@ -93,8 +93,8 @@ const StandaloneChatPage = () => {
                     }
                 } else {
                     if (decryptedParams.message) {
-                        setError(decryptedParams.message === 'This workflow is not deployed.' 
-                            ? '이 워크플로우는 배포되지 않았습니다.' 
+                        setError(decryptedParams.message === 'This workflow is not deployed.'
+                            ? '이 워크플로우는 배포되지 않았습니다.'
                             : decryptedParams.message);
                         setLoading(false);
                         return;
