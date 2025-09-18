@@ -36,8 +36,8 @@ import { convertToString, needsConversion } from '@/app/_common/components/chatP
 const showThinkBlock = APP_CONFIG.SHOW_THINK_BLOCK;
 // const showToolOutputBlock = APP_CONFIG.SHOW_TOOL_OUTPUT_BLOCK;
 const showToolOutputBlock = true;
-// const showFeedbackLoop = APP_CONFIG.SHOW_FEEDBACK_LOOP;
-const showFeedbackLoop = true;
+const showFeedbackLoop = APP_CONFIG.SHOW_FEEDBACK_LOOP;
+// const showFeedbackLoop = true;
 // const showTodoDetails = APP_CONFIG.SHOW_TODO_DETAILS;
 const showTodoDetails = true;
 

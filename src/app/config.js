@@ -41,7 +41,7 @@ export const APP_CONFIG = {
     SHOW_TOOL_OUTPUT_BLOCK:
         process.env.NEXT_PUBLIC_SHOW_TOOL_OUTPUT_BLOCK === 'true' || false,
     SHOW_FEEDBACK_LOOP:
-        process.env.NEXT_PUBLIC_SHOW_FEEDBACK_LOOP === 'true' || true,
+        process.env.NEXT_PUBLIC_SHOW_FEEDBACK_LOOP === 'true' || false,
     SHOW_TODO_DETAILS:
         process.env.NEXT_PUBLIC_SHOW_TODO_DETAILS === 'true' || true,
     // 허용된 origins 추가
