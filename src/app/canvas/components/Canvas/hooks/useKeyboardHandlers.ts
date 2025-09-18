@@ -28,6 +28,11 @@ interface UseKeyboardHandlersReturn {
     handleKeyDown: (e: KeyboardEvent) => void;
 }
 
+const isCtrlOrCmdPressed = (e: KeyboardEvent): boolean => {
+    const isMac = typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+    return isMac ? e.metaKey : e.ctrlKey;
+};
+
 export const useKeyboardHandlers = ({
     selectedNodeId,
     selectedEdgeId,
@@ -50,7 +55,7 @@ export const useKeyboardHandlers = ({
             return;
         }
 
-        const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+        const isCtrlOrCmd = isCtrlOrCmdPressed(e);
 
         if (isCtrlOrCmd && e.key === 'c') {
             e.preventDefault();

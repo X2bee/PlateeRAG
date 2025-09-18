@@ -165,7 +165,7 @@ const CompletedWorkflows: React.FC = () => {
 
     const handleEdit = (workflow: Workflow) => {
         router.push(
-            `/canvas?load=${encodeURIComponent(workflow.name)}`,
+            `/canvas?load=${encodeURIComponent(workflow.name)}&user_id=${workflow.user_id}`,
         );
     };
 
@@ -452,6 +452,28 @@ const CompletedWorkflows: React.FC = () => {
                                             </>
                                         ) : (
                                             <>
+                                                {/* 다른 사용자의 워크플로우 - 권한에 따라 편집 버튼 제어 */}
+                                                <button
+                                                    className={`${styles.actionButton} ${
+                                                        workflow.share_permissions !== 'read_write'
+                                                            ? styles.disabled
+                                                            : ''
+                                                    }`}
+                                                    title={
+                                                        workflow.share_permissions !== 'read_write'
+                                                            ? "읽기 전용으로 공유되었습니다"
+                                                            : "편집"
+                                                    }
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (workflow.share_permissions === 'read_write') {
+                                                            handleEdit(workflow);
+                                                        }
+                                                    }}
+                                                    disabled={workflow.share_permissions !== 'read_write'}
+                                                >
+                                                    <FiEdit />
+                                                </button>
                                                 <button
                                                     className={styles.actionButton}
                                                     title="복사"
@@ -462,9 +484,6 @@ const CompletedWorkflows: React.FC = () => {
                                                 >
                                                     <FiCopy />
                                                 </button>
-                                                <div className={styles.sharedMessage}>
-                                                    공유받은 워크플로우는 편집이 불가능합니다.
-                                                </div>
                                             </>
                                         )}
                                     </>

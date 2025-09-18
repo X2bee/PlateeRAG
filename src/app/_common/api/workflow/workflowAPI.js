@@ -9,15 +9,25 @@ import { apiClient } from '@/app/_common/api/helper/apiClient';
  * @returns {Promise<Object>} API 응답 객체를 포함하는 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
-export const saveWorkflow = async (workflowName, workflowContent) => {
+export const saveWorkflow = async (workflowName, workflowContent, userId = null) => {
     try {
         devLog.log('SaveWorkflow called with:');
         devLog.log('- workflowName (name):', workflowName);
         devLog.log('- workflowContent.id:', workflowContent.id);
+        devLog.log('- userId:', userId);
         devLog.log(
             '- Full workflowContent keys:',
             Object.keys(workflowContent),
         );
+
+        const requestBody = {
+            workflow_name: workflowName,
+            content: workflowContent,
+        };
+
+        if (userId !== null && (typeof userId === 'number' || (typeof userId === 'string' && /^\d+$/.test(userId)))) {
+            requestBody.user_id = userId;
+        }
 
         // apiClient가 자동으로 Authorization header와 X-User-ID header를 추가합니다
         const response = await apiClient(`${API_BASE_URL}/api/workflow/save`, {
@@ -25,10 +35,7 @@ export const saveWorkflow = async (workflowName, workflowContent) => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                workflow_name: workflowName,
-                content: workflowContent,
-            }),
+            body: JSON.stringify(requestBody),
         });
 
         const result = await response.json();

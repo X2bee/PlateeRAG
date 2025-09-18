@@ -24,6 +24,7 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
     const [isShared, setIsShared] = useState<boolean>(false);
     const [toggleDeploy, setToggleDeploy] = useState<boolean>(false);
     const [shareGroup, setShareGroup] = useState<string>('');
+    const [sharePermissions, setSharePermissions] = useState<string>('read');
     const [availableGroups, setAvailableGroups] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -33,6 +34,7 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
         if (workflow) {
             setIsShared(workflow.is_shared === true);
             setShareGroup(workflow.share_group || '');
+            setSharePermissions(workflow.share_permissions || 'read');
 
             const workflowDetail = workflow as any;
             if (workflowDetail.inquire_deploy) {
@@ -74,6 +76,7 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
             const updateDict = {
                 is_shared: isShared,
                 share_group: isShared ? shareGroup || null : null,
+                share_permissions: isShared ? sharePermissions : null,
                 enable_deploy: toggleDeploy  // 백엔드에서 관리자 권한에 따라 처리
             };
 
@@ -83,6 +86,7 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
                 ...workflow,
                 is_shared: isShared,
                 share_group: isShared ? shareGroup || null : null,
+                share_permissions: isShared ? sharePermissions : null,
             };
 
             // 배포 상태: toggleDeploy가 true이면 'pending' (일반 사용자) 또는 true (관리자)
@@ -177,6 +181,23 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
                                 ? "공유 그룹을 지정하지 않으면 공유되지 않습니다."
                                 : "그룹에 소속되어야 특정 그룹과 공유할 수 있습니다."
                             }
+                        </small>
+                    </div>
+                )}
+
+                {isShared && (
+                    <div className={styles.formGroup}>
+                        <label>권한</label>
+                        <select
+                            value={sharePermissions}
+                            onChange={(e) => setSharePermissions(e.target.value)}
+                            disabled={loading}
+                        >
+                            <option value="read">Read Only</option>
+                            <option value="read_write">Read and Write</option>
+                        </select>
+                        <small>
+                            공유된 워크플로우에 대한 접근 권한을 설정합니다.
                         </small>
                     </div>
                 )}

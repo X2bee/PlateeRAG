@@ -121,6 +121,27 @@
     }
 }
 
+.sharedIndicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    color: #6c757d;
+    padding: 4px;
+    border-radius: 4px;
+    min-width: 24px;
+    min-height: 24px;
+    flex-shrink: 0;
+    cursor: help;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: #e9ecef;
+        color: #495057;
+        transform: scale(1.1);
+    }
+}
+
 .saveButton {
     color: #28a745;
 

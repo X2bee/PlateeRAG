@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef, KeyboardEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '@/app/canvas/assets/Header.module.scss';
-import { LuPanelRightOpen, LuSave, LuCheck, LuX, LuPencil, LuFileText, LuArrowLeft, LuHistory } from "react-icons/lu";
+import { LuPanelRightOpen, LuSave, LuCheck, LuX, LuPencil, LuFileText, LuArrowLeft, LuHistory, LuUsers } from "react-icons/lu";
 import { getWorkflowName, saveWorkflowName } from '@/app/_common/utils/workflowStorage';
 import { FiUpload } from 'react-icons/fi';
 import { BiCodeAlt } from "react-icons/bi";
 import { showHistoryClearWarningKo } from '@/app/_common/utils/toastUtilsKo';
 
-// Type definitions
 interface HeaderProps {
     onMenuClick: () => void;
     onSave: () => void;
@@ -24,6 +23,7 @@ interface HeaderProps {
     onHistoryClick?: () => void;
     historyCount?: number;
     isHistoryPanelOpen?: boolean;
+    isOwner?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -39,7 +39,8 @@ const Header: React.FC<HeaderProps> = ({
     isLoading,
     onHistoryClick,
     historyCount = 0,
-    isHistoryPanelOpen = false
+    isHistoryPanelOpen = false,
+    isOwner = true
 }) => {
     const [workflowName, setWorkflowName] = useState<string>('Workflow');
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -165,13 +166,23 @@ const Header: React.FC<HeaderProps> = ({
                     ) : (
                         <div className={styles.displayMode}>
                             <span className={styles.workflowName}>{workflowName}</span>
-                            <button
-                                onClick={handleEditClick}
-                                className={styles.editButton}
-                                title="Edit workflow name"
-                            >
-                                <LuPencil />
-                            </button>
+                            {!isOwner && (
+                                <span
+                                    className={styles.sharedIndicator}
+                                    title="공유받은 워크플로우입니다. 이름을 수정할 수 없습니다."
+                                >
+                                    <LuUsers />
+                                </span>
+                            )}
+                            {isOwner && (
+                                <button
+                                    onClick={handleEditClick}
+                                    className={styles.editButton}
+                                    title="Edit workflow name"
+                                >
+                                    <LuPencil />
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>
