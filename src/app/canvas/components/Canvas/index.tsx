@@ -287,17 +287,11 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
                 if (historyHelpers?.recordMultiAction) {
                     const actions = [
                         {
-                            actionType: 'NODE_CREATE' as const,
+                            actionType: 'MULTI_ACTION' as const,
                             nodeId: newNode.id,
                             nodeType: newNode.data.nodeName,
                             position: newNode.position
                         },
-                        {
-                            actionType: 'EDGE_CREATE' as const,
-                            edgeId: newEdge.id,
-                            sourceId: newEdge.source.nodeId,
-                            targetId: newEdge.target.nodeId
-                        }
                     ];
 
                     const description = `Created predicted node ${newNode.data.nodeName} with edge connection`;
