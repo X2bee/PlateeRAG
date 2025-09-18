@@ -1,9 +1,9 @@
-import { SourceInfo } from "@/app/chat/types/source";
+import { SourceInfo } from "@/app/main/chatSection/types/source";
 import { devLog } from "@/app/_common/utils/logger";
 import { hasLatex, processLatexInText } from "@/app/_common/components/chatParser/ChatParserLatex";
 import { processInlineMarkdown } from "@/app/_common/components/chatParser/ChatParserMarkdown";
-import SourceButton from "@/app/chat/components/SourceButton";
-import sourceStyles from '@/app/chat/assets/SourceButton.module.scss';
+import SourceButton from "@/app/main/chatSection/components/SourceButton";
+import sourceStyles from '@/app/main/chatSection/assets/SourceButton.module.scss';
 
 /**
  * Citation Placeholder 컴포넌트 - 스트리밍 중 부분적인 citation 표시

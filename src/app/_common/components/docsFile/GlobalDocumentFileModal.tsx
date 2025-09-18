@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import styles from '@/app/_common/assets/DocumentFileModal.module.scss';
-import { uploadDocument } from '@/app/api/rag/retrievalAPI';
-import { getEmbeddingConfigStatus } from '@/app/api/rag/embeddingAPI';
+import { uploadDocument } from '@/app/_common/api/rag/retrievalAPI';
+import { getEmbeddingConfigStatus } from '@/app/_common/api/rag/embeddingAPI';
 import { useDocumentFileModal } from '@/app/_common/contexts/DocumentFileModalContext';
 
 interface UploadProgress {

@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
-import ChatInterface from '@/app/chat/components/ChatInterface';
-import { Workflow } from '@/app/chat/components/types';
+import ChatInterface from '@/app/main/chatSection/components/ChatInterface';
+import { Workflow } from '@/app/main/chatSection/components/types';
 import styles from './Embed.module.scss'; // 임베드 전용 스타일
 
 const EmbedChatContent = () => {
@@ -66,8 +66,8 @@ const EmbedChatContent = () => {
                 onBack={() => { } }
                 onChatStarted={() => { } }
                 hideBackButton={true}
-                existingChatData={undefined} 
-                workflow={workflow}            
+                existingChatData={undefined}
+                workflow={workflow}
                 user_id = {chatId}
                 />
         </div>

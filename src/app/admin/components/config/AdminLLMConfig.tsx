@@ -19,7 +19,7 @@ import {
     getLLMStatus,
     switchLLMProvider,
     testConnection,
-} from '@/app/api/llmAPI';
+} from '@/app/_common/api/llmAPI';
 
 interface AdminLLMConfigProps {
     configData?: ConfigItem[];

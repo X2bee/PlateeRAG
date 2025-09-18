@@ -1,7 +1,7 @@
 // User 관리 API 호출 함수들을 관리하는 파일 (Manager용 - 그룹 관련 기능만 제한적)
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
-import { apiClient } from '@/app/api/helper/apiClient';
+import { apiClient } from '@/app/_common/api/helper/apiClient';
 
 /**
  * 사용자를 그룹에서 제거하는 함수 (매니저가 속한 그룹만)

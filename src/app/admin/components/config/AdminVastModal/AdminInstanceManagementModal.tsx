@@ -9,7 +9,7 @@ import {
     showDeleteConfirmToastKo
 } from '@/app/_common/utils/toastUtilsKo';
 import AdminVastAiConfigModal from '@/app/admin/components/config/AdminVastModal/AdminVastAiConfigModal';
-import { listVastInstances, destroyVastInstance, updateVllmConnectionConfig, vllmDown, vllmServe, vllmHealthCheck } from '@/app/api/vastAPI';
+import { listVastInstances, destroyVastInstance, updateVllmConnectionConfig, vllmDown, vllmServe, vllmHealthCheck } from '@/app/_common/api/vastAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
 

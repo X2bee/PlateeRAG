@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { ManagerSidebarProps } from '@/app/manager/components/types';
 import styles from '@/app/manager/assets/ManagerPage.module.scss';
-import { logout } from '@/app/api/authAPI';
+import { logout } from '@/app/_common/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useQuickLogout } from '@/app/_common/utils/logoutUtils';
 import { FiChevronLeft, FiLogOut, FiMessageCircle } from 'react-icons/fi';
@@ -73,7 +73,7 @@ const ManagerSidebar: React.FC<ManagerSidebarProps> = ({
                             <h2>MANAGER</h2>
                         </button>
                         <button
-                            onClick={() => router.push('/chat')}
+                            onClick={() => router.push('/main')}
                             className={styles.chatButton}
                             title="채팅으로 돌아가기"
                         >

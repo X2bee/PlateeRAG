@@ -14,7 +14,7 @@ import {
     showInstanceStatusToastKo,
     showCopySuccessToastKo
 } from '@/app/_common/utils/toastUtilsKo';
-import { searchVastOffers, createVastInstance, subscribeToInstanceStatus } from '@/app/api/vastAPI';
+import { searchVastOffers, createVastInstance, subscribeToInstanceStatus } from '@/app/_common/api/vastAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
 

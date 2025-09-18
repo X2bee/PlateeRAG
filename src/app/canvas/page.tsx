@@ -9,7 +9,7 @@ import ExecutionPanel from '@/app/canvas/components/ExecutionPanel';
 import NodeModal from '@/app/canvas/components/NodeModal';
 import AuthGuard from '@/app/_common/components/authGuard/AuthGuard';
 import HistoryPanel from '@/app/canvas/components/HistoryPanel';
-import { DeploymentModal } from '@/app/chat/components/DeploymentModal';
+import { DeploymentModal } from '@/app/main/chatSection/components/DeploymentModal';
 import { useNodes } from '@/app/_common/utils/nodeHook';
 import { useHistoryManagement, createHistoryHelpers } from '@/app/canvas/components/Canvas/hooks/useHistoryManagement';
 import styles from '@/app/canvas/assets/PlateeRAG.module.scss';
@@ -19,7 +19,7 @@ import {
     loadWorkflow,
     executeWorkflowByIdStream,
     executeWorkflowById,
-} from '@/app/api/workflow/workflowAPI';
+} from '@/app/_common/api/workflow/workflowAPI';
 import {
     getWorkflowName,
     getWorkflowState,
@@ -964,7 +964,7 @@ export default function CanvasPage() {
         <AuthGuard
             fallback={<LoadingFallback />}
             requiredSection="canvas"
-            sectionRedirectTo="/chat"
+            sectionRedirectTo="/main"
         >
             <CanvasPageContent />
         </AuthGuard>

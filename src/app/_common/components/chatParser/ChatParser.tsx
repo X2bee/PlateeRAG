@@ -2,9 +2,9 @@
 
 import React from 'react';
 import { FiMoreHorizontal } from 'react-icons/fi';
-import styles from '@/app/chat/assets/chatParser.module.scss';
+import styles from '@/app/main/chatSection/assets/chatParser.module.scss';
 import { APP_CONFIG } from '@/app/config';
-import { SourceInfo } from '@/app/chat/types/source';
+import { SourceInfo } from '@/app/main/chatSection/types/source';
 import { ThinkBlock, findThinkBlocks, type ThinkBlockInfo } from '@/app/_common/components/chatParser/ChatParserThink';
 import { CodeBlock, findCodeBlocks, type CodeBlockInfo, detectCodeLanguage, truncateText } from '@/app/_common/components/chatParser/ChatParserCode';
 import {

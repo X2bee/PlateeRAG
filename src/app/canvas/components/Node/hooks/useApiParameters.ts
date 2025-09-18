@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchParameterOptions } from '@/app/api/parameterApi';
+import { fetchParameterOptions } from '@/app/_common/api/parameterApi';
 import { devLog } from '@/app/_common/utils/logger';
 import type { Parameter, ParameterOption } from '@/app/canvas/types';
 import type { UseApiParametersReturn } from '../types';

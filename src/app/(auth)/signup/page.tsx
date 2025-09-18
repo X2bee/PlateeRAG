@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from '@/app/(auth)/signup/SignupPage.module.scss';
-import { signup } from '@/app/api/authAPI';
+import { signup } from '@/app/_common/api/authAPI';
 import { showSuccessToastKo } from '@/app/_common/utils/toastUtilsKo';
 import ReverseAuthGuard from '@/app/_common/components/authGuard/ReverseAuthGuard';
 

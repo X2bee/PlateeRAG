@@ -17,7 +17,7 @@ import {
     FiLogOut,
 } from 'react-icons/fi';
 import styles from '@/app/HomePage.module.scss';
-import { logout } from '@/app/api/authAPI';
+import { logout } from '@/app/_common/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 
 export default function HomePage() {
@@ -71,7 +71,7 @@ export default function HomePage() {
                                 </Link>
                             )}
                             <Link
-                                href="/chat"
+                                href="/main"
                                 className={styles.getStartedBtn}
                             >
                                 Get Started
@@ -115,7 +115,7 @@ export default function HomePage() {
                             </div>
                         </div>
                         <div className={styles.heroActions}>
-                            <Link href="/chat" className={styles.primaryBtn}>
+                            <Link href="/main" className={styles.primaryBtn}>
                                 <FiPlay />
                                 Be More Productive with XGEN
                             </Link>
