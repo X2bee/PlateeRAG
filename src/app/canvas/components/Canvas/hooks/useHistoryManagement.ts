@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
 import { devLog } from '@/app/_common/utils/logger';
-export type HistoryActionType = 'NODE_MOVE' | 'NODE_CREATE' | 'NODE_DELETE' | 'EDGE_CREATE' | 'EDGE_DELETE' | 'NODE_UPDATE' | 'EDGE_UPDATE' | 'MULTI_ACTION'; // 다중 액션 추가
+export type HistoryActionType = 'NODE_MOVE' | 'NODE_CREATE' | 'NODE_DELETE' | 'EDGE_CREATE' | 'EDGE_DELETE' | 'EDGE_UPDATE' | 'MULTI_ACTION'; // 다중 액션 추가
 
 // 히스토리 엔트리 타입 정의
 export interface HistoryEntry {
@@ -58,17 +58,6 @@ const isIdenticalAction = (entry1: HistoryEntry, entry2: Partial<HistoryEntry>):
 
     // 설명이 다르면 다른 액션
     if (entry1.description !== entry2.description) return false;
-
-    // NODE_UPDATE 액션의 경우 더 세밀한 비교
-    if (entry1.actionType === 'NODE_UPDATE' && entry2.details) {
-        const details1 = entry1.details;
-        const details2 = entry2.details;
-
-        return details1.nodeId === details2.nodeId &&
-               details1.field === details2.field &&
-               details1.oldValue === details2.oldValue &&
-               details1.newValue === details2.newValue;
-    }
 
     // 기타 액션들은 JSON 비교
     return JSON.stringify(entry1.details) === JSON.stringify(entry2.details);
@@ -441,18 +430,6 @@ export const createHistoryHelpers = (
             'EDGE_DELETE',
             `[Delete] Edge`,
             { edgeId, sourceId, targetId },
-            historyCanvasState
-        );
-    },
-
-    // Node 업데이트 기록
-    recordNodeUpdate: (nodeId: string, field: string, oldValue: any, newValue: any) => {
-        const fullCanvasState = getCanvasState?.();
-        const historyCanvasState = createHistoryCanvasState(fullCanvasState);
-        addHistoryEntry(
-            'NODE_UPDATE',
-            `[Update: ${field}] "${oldValue}" to "${newValue}"`,
-            { nodeId, field, oldValue, newValue },
             historyCanvasState
         );
     },

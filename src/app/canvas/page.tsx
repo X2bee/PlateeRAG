@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { showSuccessToastKo, showErrorToastKo, showLoadingToastKo, dismissToastKo } from '@/app/_common/utils/toastUtilsKo';
 import Canvas from '@/app/canvas/components/Canvas';
@@ -287,21 +287,39 @@ function CanvasPageContent() {
             const timer = setTimeout(setupRestorer, 100);
             return () => clearTimeout(timer);
         }
-    }, []); // 빈 의존성 배열    // 워크플로우 상태 변경 시 자동 저장
-    const handleCanvasStateChange = (state: any) => {
-        devLog.log('handleCanvasStateChange called with:', {
-            hasState: !!state,
-            nodesCount: state?.nodes?.length || 0,
-            edgesCount: state?.edges?.length || 0,
-            view: state?.view,
-        });
+    }, []);
+
+    const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+    const handleCanvasStateChange = useCallback((state: any) => {
+        const hadPreviousTimer = !!saveTimerRef.current;
+
+        if (!hadPreviousTimer) {
+            devLog.log('handleCanvasStateChange called with:', {
+                hasState: !!state,
+                nodesCount: state?.nodes?.length || 0,
+                edgesCount: state?.edges?.length || 0,
+                view: state?.view,
+            });
+        }
 
         try {
-            // 상태가 있고 비어있지 않으면 저장 (빈 상태로 덮어쓰기 방지)
             if (state && (state.nodes?.length > 0 || state.edges?.length > 0)) {
-                devLog.log('Saving non-empty state to localStorage');
-                saveWorkflowState(state);
-                devLog.log('Workflow state saved to localStorage');
+
+                if (saveTimerRef.current) {
+                    clearTimeout(saveTimerRef.current);
+                }
+
+                saveTimerRef.current = setTimeout(() => {
+                    devLog.log('Saving state to localStorage after debounce delay');
+                    saveWorkflowState(state);
+                    devLog.log('Workflow state saved to localStorage');
+                    saveTimerRef.current = null;
+                }, 1000);
+
+                if (!hadPreviousTimer) {
+                    devLog.log('Save timer set for 1 second delay');
+                }
             } else {
                 devLog.log(
                     'Skipping save of empty state to preserve existing localStorage data',
@@ -310,7 +328,19 @@ function CanvasPageContent() {
         } catch (error) {
             devLog.warn('Failed to auto-save workflow state:', error);
         }
-    };    // 워크플로우 이름 업데이트 헬퍼 함수
+    }, []);
+
+    // 컴포넌트 언마운트 시 타이머 정리
+    useEffect(() => {
+        return () => {
+            if (saveTimerRef.current) {
+                clearTimeout(saveTimerRef.current);
+                devLog.log('Save timer cleared on component unmount');
+            }
+        };
+    }, []);
+
+    // 워크플로우 이름 업데이트 헬퍼 함수
     const updateWorkflowName = (newName: string) => {
         setCurrentWorkflowName(newName);
         saveWorkflowName(newName);

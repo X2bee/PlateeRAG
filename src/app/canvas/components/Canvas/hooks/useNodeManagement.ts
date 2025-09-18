@@ -7,7 +7,6 @@ interface UseNodeManagementProps {
         recordNodeMove: (nodeId: string, fromPosition: { x: number; y: number }, toPosition: { x: number; y: number }) => void;
         recordNodeCreate: (nodeId: string, nodeType: string, position: { x: number; y: number }) => void;
         recordNodeDelete: (nodeId: string, nodeType: string) => void;
-        recordNodeUpdate: (nodeId: string, field: string, oldValue: any, newValue: any) => void;
     };
 }
 
@@ -116,16 +115,6 @@ export const useNodeManagement = ({ historyHelpers }: UseNodeManagementProps = {
                 return prevNodes;
             }
 
-            // 히스토리 기록 (skipHistory가 true이면 기록하지 않음)
-            if (!skipHistory && historyHelpers?.recordNodeUpdate) {
-                devLog.log('Recording parameter update in history:', { nodeId, paramName: targetParam.name, oldValue: targetParam.value, newValue });
-                historyHelpers.recordNodeUpdate(nodeId, targetParam.name, targetParam.value, newValue);
-            } else if (skipHistory) {
-                devLog.log('Skipping history record for parameter update (API/init):', { nodeId, paramName: targetParam.name, newValue });
-            } else {
-                devLog.warn('historyHelpers.recordNodeUpdate not available');
-            }
-
             const newNodes = [...prevNodes];
             newNodes[targetNodeIndex] = {
                 ...targetNode,
@@ -142,7 +131,7 @@ export const useNodeManagement = ({ historyHelpers }: UseNodeManagementProps = {
             devLog.log('Parameter update completed successfully');
             return newNodes;
         });
-    }, [historyHelpers]);
+    }, []);
 
     const updateNodeName = useCallback((nodeId: string, newName: string): void => {
         setNodes(prevNodes => {

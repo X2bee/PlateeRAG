@@ -1,8 +1,7 @@
-import React, { useCallback, useRef } from 'react';
-import type { Parameter } from '@/app/canvas/types';
+import React from 'react';
+import styles from '@/app/canvas/assets/Node.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
 import { isNumberType, getParameterDisplayValue } from '../../utils/parameterUtils';
-import styles from '@/app/canvas/assets/Node.module.scss';
 import { createCommonEventHandlers } from '../../utils/nodeUtils';
 import type { DefaultParameterProps } from '../../types';
 
@@ -16,11 +15,7 @@ export const DefaultParameter: React.FC<DefaultParameterProps> = ({
 }) => {
     const eventHandlers = createCommonEventHandlers(onClearSelection);
 
-    // 디바운싱을 위한 ref
-    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const lastValueRef = useRef<string | number | boolean | null>(null);
-
-    const handleValueChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleValueChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         devLog.log('=== Default Parameter Change Event ===');
         devLog.log('nodeId:', nodeId, 'paramId:', parameter.id, 'value:', e.target.value);
 
@@ -34,35 +29,18 @@ export const DefaultParameter: React.FC<DefaultParameterProps> = ({
                 return;
             }
 
-            // 같은 값이면 처리하지 않음
-            if (lastValueRef.current === value) {
-                devLog.log('Same value, skipping update');
-                return;
+            devLog.log('Calling onParameterChange...');
+            if (typeof onParameterChange === 'function') {
+                onParameterChange(nodeId, parameter.id, value);
+                devLog.log('onParameterChange completed successfully');
+            } else {
+                devLog.error('onParameterChange is not a function');
             }
-
-            // 이전 타이머가 있으면 취소
-            if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-            }
-
-            // 디바운스: 200ms 후에 실제 업데이트 실행
-            debounceTimerRef.current = setTimeout(() => {
-                devLog.log('Calling onParameterChange after debounce...');
-                if (typeof onParameterChange === 'function') {
-                    onParameterChange(nodeId, parameter.id, value);
-                    lastValueRef.current = value;
-                    devLog.log('onParameterChange completed successfully');
-                } else {
-                    devLog.error('onParameterChange is not a function');
-                }
-                debounceTimerRef.current = null;
-            }, 200);
-
         } catch (error) {
             devLog.error('Error in handleValueChange:', error);
         }
         devLog.log('=== End Default Parameter Change ===');
-    }, [nodeId, parameter.id, onParameterChange]);
+    };
 
     // Handle parameters with options (dropdown)
     if (parameter.options && parameter.options.length > 0) {

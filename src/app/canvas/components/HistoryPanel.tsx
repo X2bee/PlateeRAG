@@ -21,7 +21,6 @@ const actionTypeColors: Record<HistoryActionType, string> = {
     'NODE_DELETE': '#EF4444',    // red
     'EDGE_CREATE': '#8B5CF6',    // purple
     'EDGE_DELETE': '#F59E0B',    // amber
-    'NODE_UPDATE': '#06B6D4',    // cyan
     'EDGE_UPDATE': '#EC4899',    // pink
     'MULTI_ACTION': '#F97316'    // orange
 };
@@ -32,7 +31,6 @@ const actionTypeLabels: Record<HistoryActionType, string> = {
     'NODE_DELETE': '삭제',
     'EDGE_CREATE': '연결',
     'EDGE_DELETE': '연결해제',
-    'NODE_UPDATE': '수정',
     'EDGE_UPDATE': '연결수정',
     'MULTI_ACTION': '통합작업'
 };
