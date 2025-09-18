@@ -13,6 +13,15 @@ export interface FeedbackLoopInfo {
 }
 
 /**
+ * Feedback Status 정보
+ */
+export interface FeedbackStatusInfo {
+    start: number;
+    end: number;
+    content: string;
+}
+
+/**
  * <FEEDBACK_LOOP></FEEDBACK_LOOP> 블록 찾기 (스트리밍 지원)
  * 완성된 블록과 미완성된 블록 모두 처리
  */
@@ -56,6 +65,33 @@ export const findFeedbackLoopBlocks = (content: string): FeedbackLoopInfo[] => {
 };
 
 /**
+ * <FEEDBACK_STATUS></FEEDBACK_STATUS> 태그 찾기
+ */
+export const findFeedbackStatusTags = (content: string): FeedbackStatusInfo[] => {
+    const statusTags: FeedbackStatusInfo[] = [];
+    const feedbackStatusRegex = /<FEEDBACK_STATUS>([\s\S]*?)<\/FEEDBACK_STATUS>/gi;
+    let match;
+
+    while ((match = feedbackStatusRegex.exec(content)) !== null) {
+        statusTags.push({
+            start: match.index,
+            end: match.index + match[0].length,
+            content: match[1].trim()
+        });
+    }
+
+    return statusTags.sort((a, b) => a.start - b.start);
+};
+
+/**
+ * FEEDBACK_STATUS 태그를 제거하고 내용만 반환
+ */
+export const processFeedbackContent = (content: string): string => {
+    // FEEDBACK_STATUS 태그를 찾아서 내용만 추출
+    return content.replace(/<FEEDBACK_STATUS>([\s\S]*?)<\/FEEDBACK_STATUS>/gi, '$1');
+};
+
+/**
  * Feedback Loop 블록 컴포넌트 - 접힐 수 있는 피드백 루프 표시 (스트리밍 지원)
  */
 interface FeedbackLoopBlockProps {
@@ -76,7 +112,8 @@ export const FeedbackLoopBlock: React.FC<FeedbackLoopBlockProps> = ({
 }) => {
     // streamingPreview 모드에서는 짧은 라인들을 스스륵 나타났다 사라지게 보여줌
     if (streamingPreview) {
-        const lines = content ? content.split('\n').filter(l => l.trim()) : [];
+        const processedContent = processFeedbackContent(content || '');
+        const lines = processedContent ? processedContent.split('\n').filter(l => l.trim()) : [];
         const preview = lines.length ? lines.slice(-previewLines) : ['...'];
 
         return (
@@ -209,8 +246,10 @@ export const FeedbackLoopBlock: React.FC<FeedbackLoopBlockProps> = ({
 
             {isExpanded && (
                 <div style={{ padding: '0 1rem 1rem 1rem', borderTop: '1px solid #e5e7eb', marginTop: '-1px' }}>
-                    <div style={{ backgroundColor: '#ffffff', padding: '1rem', borderRadius: '0.375rem', fontSize: '0.875rem', lineHeight: '1.5', color: '#374151', whiteSpace: 'pre-wrap' }}>
-                        {content}
+                    <div style={{ backgroundColor: '#ffffff', padding: '1rem', borderRadius: '0.375rem', fontSize: '0.875rem', lineHeight: '1.5', color: '#374151' }}>
+                        <div dangerouslySetInnerHTML={{
+                            __html: processFeedbackContent(content).replace(/\n/g, '<br/>')
+                        }} />
                         {isStreaming && (
                             <span className="pulse-animation" style={{ color: '#ef4444', marginLeft: '0.25rem' }}>▮</span>
                         )}

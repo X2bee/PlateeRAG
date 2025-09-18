@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/(auth)/login/LoginPage.module.scss';
-import { login } from '@/app/api/authAPI';
+import { login } from '@/app/_common/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import ReverseAuthGuard from '@/app/_common/components/authGuard/ReverseAuthGuard';
 

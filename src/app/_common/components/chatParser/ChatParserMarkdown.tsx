@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { SourceInfo } from '@/app/chat/types/source';
+import { SourceInfo } from '@/app/main/chatSection/types/source';
 import { hasLatex, processLatexInText } from '@/app/_common/components/chatParser/ChatParserLatex';
 import { processInlineMarkdownWithCitations } from '@/app/_common/components/chatParser/ChatParserCite';
 

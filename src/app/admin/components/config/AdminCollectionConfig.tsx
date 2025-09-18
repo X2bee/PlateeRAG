@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import AdminBaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/admin/components/config/AdminBaseConfigPanel';
-import { testCollectionConnection } from '@/app/api/llmAPI';
+import { testCollectionConnection } from '@/app/_common/api/llmAPI';
 
 interface AdminCollectionConfigProps {
     configData?: ConfigItem[];

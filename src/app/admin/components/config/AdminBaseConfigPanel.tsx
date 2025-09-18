@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiEdit3, FiCheck, FiX } from 'react-icons/fi';
-import { updateConfig } from '@/app/api/configAPI';
+import { updateConfig } from '@/app/_common/api/configAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
 import { showValidationErrorToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';

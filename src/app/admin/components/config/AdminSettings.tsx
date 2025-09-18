@@ -15,7 +15,7 @@ import { BsGear, BsGpuCard } from 'react-icons/bs';
 import {
     testConnection,
     fetchAllConfigs,
-} from '@/app/api/configAPI';
+} from '@/app/_common/api/configAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';

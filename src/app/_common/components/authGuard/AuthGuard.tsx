@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { validateToken, refreshToken } from '@/app/api/authAPI';
+import { validateToken, refreshToken } from '@/app/_common/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useSessionExpiredLogout } from '@/app/_common/utils/logoutUtils';
 import { devLog } from '@/app/_common/utils/logger';
@@ -11,7 +11,7 @@ interface AuthGuardProps {
     fallback?: React.ReactNode;
     redirectTo?: string; // 인증 실패 시 리다이렉트할 URL (기본값: '/login')
     requiredSection?: string; // 특정 섹션 접근 권한이 필요한 경우
-    sectionRedirectTo?: string; // 섹션 접근 실패 시 리다이렉트할 URL (기본값: '/chat')
+    sectionRedirectTo?: string; // 섹션 접근 실패 시 리다이렉트할 URL (기본값: '/main')
 }
 
 // interface User {
@@ -38,7 +38,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     fallback,
     redirectTo = '/login',
     requiredSection,
-    sectionRedirectTo = '/chat'
+    sectionRedirectTo = '/main'
 }) => {
     const router = useRouter();
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);

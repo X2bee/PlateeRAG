@@ -2,7 +2,7 @@
  * TTS 관련 유틸리티 함수들
  */
 
-import { generateSpeech, playAudioBlob } from '@/app/api/ttsAPI';
+import { generateSpeech, playAudioBlob } from '@/app/_common/api/ttsAPI';
 import { devLog } from '@/app/_common/utils/logger';
 
 interface TTSRequest {

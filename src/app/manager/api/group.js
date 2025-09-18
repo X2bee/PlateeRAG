@@ -1,7 +1,7 @@
 // Group 관리 API 호출 함수들을 관리하는 파일 (Manager용 - 제한된 기능)
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
-import { apiClient } from '@/app/api/helper/apiClient';
+import { apiClient } from '@/app/_common/api/helper/apiClient';
 
 /**
  * 매니저가 접근 가능한 그룹 목록을 가져오는 함수 (자신이 속한 그룹만)

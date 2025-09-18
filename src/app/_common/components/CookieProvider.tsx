@@ -11,7 +11,7 @@ import {
 } from '@/app/_common/utils/cookieUtils';
 import { clearAllUserData } from '@/app/_common/utils/storageUtils';
 import { devLog } from '@/app/_common/utils/logger';
-import { getGroupAvailableSections } from '@/app/api/authAPI';
+import { getGroupAvailableSections } from '@/app/_common/api/authAPI';
 
 interface User {
     user_id: number;
