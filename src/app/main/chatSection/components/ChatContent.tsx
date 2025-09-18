@@ -110,7 +110,7 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted}) => {
 
         // URL 길이 제한 체크 (일반적으로 2000자 이하 권장)
         const maxUrlLength = 1500; // 안전 마진 포함
-        const baseUrl = `/chat?mode=current-chat&workflowId=${selectedWorkflow.id}&workflowName=${normalizeWorkflowName(selectedWorkflow.name)}&initial_message=`;
+        const baseUrl = `/main?view=current-chat&workflowId=${selectedWorkflow.id}&workflowName=${normalizeWorkflowName(selectedWorkflow.name)}&initial_message=`;
 
         if (baseUrl.length + encodeURIComponent(message).length > maxUrlLength) {
             // 메시지가 너무 길면 localStorage에 저장하고 ID만 전달
@@ -121,7 +121,9 @@ const ChatContentInner: React.FC<ChatContentProps> = ({ onChatStarted}) => {
             params.set('initial_message', message);
         }
 
-        const finalUrl = `/chat?${params.toString()}`;
+        // /main으로 라우팅하고 view 파라미터 추가
+        params.set('view', 'current-chat');
+        const finalUrl = `/main?${params.toString()}`;
         router.replace(finalUrl);
 
     }, [selectedWorkflow, router]);

@@ -159,7 +159,7 @@ const CompletedWorkflows: React.FC = () => {
 
     const handleExecute = (workflow: Workflow) => {
         router.push(
-            `/chat?mode=new-chat&workflowName=${encodeURIComponent(workflow.name)}&workflowId=${encodeURIComponent(workflow.id)}&user_id=${workflow.user_id}`,
+            `/main?mode=new-chat&workflowName=${encodeURIComponent(workflow.name)}&workflowId=${encodeURIComponent(workflow.id)}&user_id=${workflow.user_id}`,
         );
     };
 
