@@ -46,6 +46,8 @@ export interface Parameter {
     is_added?: boolean;
     expandable?: boolean;
     from_schema?: boolean;
+    dependency?: string;
+    dependencyValue?: string | number | boolean;
 }
 
 // ========== Node Types ==========

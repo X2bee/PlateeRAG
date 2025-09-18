@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { LuPlus, LuRefreshCw } from 'react-icons/lu';
 import styles from '@/app/canvas/assets/Node.module.scss';
 import { separateParameters, detectParameterType, createCustomParameter } from '../utils/parameterUtils';
 import { useApiParameters } from '../hooks/useApiParameters';
 import { useParameterEditing } from '../hooks/useParameterEditing';
 import type { NodeParametersProps } from '../types';
+import type { Parameter } from '@/app/canvas/types';
 
 // Parameter components
 import { ApiParameter } from './parameters/ApiParameter';
@@ -38,6 +39,46 @@ export const NodeParameters: React.FC<NodeParametersProps> = ({
     const apiParamsHook = useApiParameters(nodeDataId, nodeId, parameters, onParameterChange);
     const paramEditingHook = useParameterEditing();
 
+    const parameterValueMap = useMemo(() => {
+        const valueMap: Record<string, Parameter['value'] | undefined> = {};
+        (parameters ?? []).forEach((param) => {
+            valueMap[param.id] = param.value;
+        });
+        return valueMap;
+    }, [parameters]);
+
+    const normalizeBoolean = (value: Parameter['value'] | undefined): boolean | undefined => {
+        if (typeof value === 'boolean') return value;
+        if (typeof value === 'string') {
+            const normalized = value.trim().toLowerCase();
+            if (normalized === 'true') return true;
+            if (normalized === 'false') return false;
+        }
+        return undefined;
+    };
+
+    const isDependencySatisfied = (param: Parameter): boolean => {
+        if (!param.dependency) return true;
+
+        const dependencyValue = parameterValueMap[param.dependency];
+        const expectedValue = param.dependencyValue ?? true;
+
+        if (typeof expectedValue === 'boolean') {
+            const normalized = normalizeBoolean(dependencyValue);
+            if (normalized !== undefined) return normalized === expectedValue;
+            return dependencyValue === expectedValue;
+        }
+
+        if (typeof expectedValue === 'string') {
+            if (typeof dependencyValue === 'string') {
+                return dependencyValue.trim().toLowerCase() === expectedValue.trim().toLowerCase();
+            }
+            return false;
+        }
+
+        return dependencyValue === expectedValue;
+    };
+
     const handleAddCustomParameter = (): void => {
         if (isPreview || !onParameterAdd) return;
         
@@ -45,7 +86,11 @@ export const NodeParameters: React.FC<NodeParametersProps> = ({
         onParameterAdd(nodeId, newParameter);
     };
 
-    const renderParameter = (param: any) => {
+    const renderParameter = (param: Parameter) => {
+        if (!isDependencySatisfied(param)) {
+            return null;
+        }
+
         const parameterType = detectParameterType(param);
         const paramKey = `${nodeId}-${param.id}`;
 
@@ -59,7 +104,6 @@ export const NodeParameters: React.FC<NodeParametersProps> = ({
         };
 
         const isApiParam = param.is_api && param.api_name;
-        const apiOptions = apiParamsHook.apiOptions[paramKey] || [];
         const isLoadingOptions = apiParamsHook.loadingApiOptions[paramKey] || false;
 
         // Parameter name with description tooltip and refresh button for API parameters
