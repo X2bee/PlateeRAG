@@ -26,7 +26,7 @@ import {
     getChatItems,
     getWorkflowItems,
     getTrainItems
-} from '@/app/_common/components/sidebarConfig';
+} from '@/app/main/sidebar/sidebarConfig';
 
 interface XgenPageContentProps {
     activeSection: string;

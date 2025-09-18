@@ -1,9 +1,8 @@
 'use client';
 import React, { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { SidebarProps } from '@/app/main/workflowSection/types/index';
-import styles from '../assets/Sidebar.module.scss';
+import styles from '@/app/main/sidebar/Sidebar.module.scss';
 import { logout } from '@/app/_common/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useQuickLogout } from '@/app/_common/utils/logoutUtils';
@@ -13,29 +12,61 @@ import {
     getChatSidebarItems,
     getFilteredWorkflowSidebarItems,
     getFilteredTrainSidebarItems
-} from '@/app/_common/components/sidebarConfig';
-import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<SidebarProps> = ({
+} from '@/app/main/sidebar/sidebarConfig';
+import { devLog } from '@/app/_common/utils/logger';
+
+interface XgenSidebarProps {
+    isOpen: boolean;
+    onToggle: () => void;
+    activeItem: string;
+    onItemClick: (itemId: string) => void;
+    className?: string;
+}
+
+const XgenSidebar: React.FC<XgenSidebarProps> = ({
     isOpen,
     onToggle,
     activeItem,
     onItemClick,
     className = '',
-    initialChatExpanded = false,
-    initialWorkflowExpanded = false,
-    initialTrainExpanded = false,
 }) => {
     const router = useRouter();
-    const [isChatExpanded, setIsChatExpanded] = useState(initialChatExpanded);
-    const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(initialWorkflowExpanded);
-    const [isTrainExpanded, setIsTrainExpanded] = useState(initialTrainExpanded);
+    const searchParams = useSearchParams();
+    const [isChatExpanded, setIsChatExpanded] = useState(true); // 기본적으로 채팅 섹션 확장
+    const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(false);
+    const [isTrainExpanded, setIsTrainExpanded] = useState(false);
 
     const { user, hasAccessToSection, isInitialized } = useAuth();
     const { quickLogout } = useQuickLogout();
 
+    // URL 파라미터를 기반으로 초기 확장 상태 설정
+    React.useEffect(() => {
+        const view = searchParams.get('view');
+        if (view) {
+            const chatItems = ['new-chat', 'current-chat', 'chat-history'];
+            const workflowItems = ['canvas', 'workflows', 'documents'];
+            const trainItems = ['train', 'train-monitor', 'eval', 'storage'];
+
+            if (chatItems.includes(view)) {
+                setIsChatExpanded(true);
+                setIsWorkflowExpanded(false);
+                setIsTrainExpanded(false);
+            } else if (workflowItems.includes(view)) {
+                setIsChatExpanded(false);
+                setIsWorkflowExpanded(true);
+                setIsTrainExpanded(false);
+            } else if (trainItems.includes(view)) {
+                setIsChatExpanded(false);
+                setIsWorkflowExpanded(false);
+                setIsTrainExpanded(true);
+            }
+        }
+    }, [searchParams]);
+
     // 권한에 따라 필터링된 사이드바 아이템들을 메모이제이션
     const filteredItems = useMemo(() => {
         if (!isInitialized || !hasAccessToSection) {
-            devLog.log('Sidebar: Not initialized or no hasAccessToSection function');
+            devLog.log('XgenSidebar: Not initialized or no hasAccessToSection function');
             return {
                 chatItems: [],
                 workflowItems: [],
@@ -47,7 +78,7 @@ import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<Side
         const workflowItems = getFilteredWorkflowSidebarItems(hasAccessToSection);
         const trainItems = getFilteredTrainSidebarItems(hasAccessToSection);
 
-        devLog.log('Sidebar: Filtered items:', {
+        devLog.log('XgenSidebar: Filtered items:', {
             chatItems: chatItems.length,
             workflowItems: workflowItems.length,
             trainItems: trainItems.length
@@ -62,9 +93,8 @@ import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<Side
 
     const handleLogout = async () => {
         try {
-            // 로그아웃 전에 현재 메인 컨텐츠 페이지를 sessionStorage에 저장
-            // /canvas가 아닌 실제 메인 컨텐츠 페이지로 돌아가기 위함
-            const fullUrl = window.location.pathname + window.location.search; // 경로 + 쿼리 파라미터
+            // 로그아웃 전에 현재 페이지를 sessionStorage에 저장
+            const fullUrl = window.location.pathname + window.location.search;
             if (fullUrl && !fullUrl.includes('/login') && !fullUrl.includes('/signup')) {
                 sessionStorage.setItem('logoutFromPage', fullUrl);
             }
@@ -84,7 +114,6 @@ import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<Side
     const toggleWorkflowExpanded = () => setIsWorkflowExpanded(!isWorkflowExpanded);
     const toggleTrainExpanded = () => setIsTrainExpanded(!isTrainExpanded);
 
-
     const handleLogoClick = () => {
         router.push('/');
     };
@@ -96,7 +125,6 @@ import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<Side
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "tween", duration: 0.3 }}
-
         >
             <button onClick={onToggle} className={styles.closeOnlyBtn}>
                 <FiChevronLeft />
@@ -147,6 +175,7 @@ import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<Side
                     )}
                 </div>
 
+                {/* 채팅 섹션 - 항상 표시 */}
                 <button
                     className={styles.sidebarToggle}
                     onClick={toggleChatExpanded}
@@ -245,4 +274,4 @@ import { devLog } from '@/app/_common/utils/logger';const Sidebar: React.FC<Side
     );
 };
 
-export default Sidebar;
+export default XgenSidebar;

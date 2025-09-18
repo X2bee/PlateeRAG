@@ -3,8 +3,8 @@
 import React, { useState, useMemo, createContext, useContext, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import XgenPageContent from '@/app/main/components/XgenPageContent';
-import XgenSidebar from '@/app/main/components/XgenSidebar';
-import { getChatItems, getWorkflowItems, getTrainItems } from '@/app/_common/components/sidebarConfig';
+import XgenSidebar from '@/app/main/sidebar/XgenSidebar';
+import { getChatItems, getWorkflowItems, getTrainItems } from '@/app/main/sidebar/sidebarConfig';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import styles from '@/app/main/workflowSection/assets/MainPage.module.scss';
 import { AnimatePresence, motion } from 'framer-motion';

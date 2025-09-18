@@ -73,7 +73,7 @@ const ManagerSidebar: React.FC<ManagerSidebarProps> = ({
                             <h2>MANAGER</h2>
                         </button>
                         <button
-                            onClick={() => router.push('/chat')}
+                            onClick={() => router.push('/main')}
                             className={styles.chatButton}
                             title="채팅으로 돌아가기"
                         >

@@ -6,7 +6,7 @@ import { getWorkflowTesterIOLogs, deleteWorkflowTesterIOLogs } from '@/app/_comm
 import { devLog } from '@/app/_common/utils/logger';
 import { showSuccessToastKo, showErrorToastKo, showLogDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
 import TesterChartDashboard from './charts/TesterChartDashboard';
-import { usePagesLayout } from '@/app/_common/components/PagesLayoutContent';
+import { useXgenLayout } from '@/app/main/components/XgenLayoutContent';
 
 interface Workflow {
     id: number;
@@ -42,7 +42,7 @@ interface TesterLogsProps {
 }
 
 const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
-    const layoutContext = usePagesLayout();
+    const layoutContext = useXgenLayout();
     const sidebarWasOpenRef = useRef<boolean | null>(null);
     const [batchGroups, setBatchGroups] = useState<BatchGroup[]>([]);
     const [loading, setLoading] = useState(false);

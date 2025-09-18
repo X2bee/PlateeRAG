@@ -94,7 +94,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                             <h2>ADMIN</h2>
                         </button>
                         <button
-                            onClick={() => router.push('/chat')}
+                            onClick={() => router.push('/main')}
                             className={styles.chatButton}
                             title="채팅으로 돌아가기"
                         >

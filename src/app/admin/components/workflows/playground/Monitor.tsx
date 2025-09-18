@@ -5,7 +5,7 @@ import { getWorkflowPerformance, deleteWorkflowPerformance } from '@/app/_common
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/playground/Monitor.module.scss';
 import ChartDashboard from '@/app/admin/components/workflows/playground/charts/ChartDashboard';
-import { usePagesLayout } from '@/app/_common/components/PagesLayoutContent';
+import { useXgenLayout } from '@/app/main/components/XgenLayoutContent';
 import {
     showPerformanceDataDeleteConfirmKo,
     showDeleteSuccessToastKo,
@@ -52,7 +52,7 @@ interface WorkflowPartsProps {
 }
 
 const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
-    const layoutContext = usePagesLayout();
+    const layoutContext = useXgenLayout();
     const sidebarWasOpenRef = useRef<boolean | null>(null);
 
     const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(

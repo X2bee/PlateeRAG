@@ -71,7 +71,7 @@ export default function HomePage() {
                                 </Link>
                             )}
                             <Link
-                                href="/chat"
+                                href="/main"
                                 className={styles.getStartedBtn}
                             >
                                 Get Started
@@ -115,7 +115,7 @@ export default function HomePage() {
                             </div>
                         </div>
                         <div className={styles.heroActions}>
-                            <Link href="/chat" className={styles.primaryBtn}>
+                            <Link href="/main" className={styles.primaryBtn}>
                                 <FiPlay />
                                 Be More Productive with XGEN
                             </Link>
