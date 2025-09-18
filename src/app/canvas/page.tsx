@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { showSuccessToastKo, showErrorToastKo, showLoadingToastKo, dismissToastKo } from '@/app/_common/utils/toastUtilsKo';
+import { getAuthCookie } from '@/app/_common/utils/cookieUtils';
 import Canvas from '@/app/canvas/components/Canvas';
 import Header from '@/app/canvas/components/Header';
 import SideMenu from '@/app/canvas/components/SideMenu';
@@ -65,6 +66,12 @@ function CanvasPageContent() {
     const [isDeploy, setIsDeploy] = useState(false);
     const [workflowDetailData, setWorkflowDetailData] = useState<any>(null);
     const [loadingCanvas, setLoadingCanvas] = useState(true);
+    const [workflowOriginUserId, setWorkflowOriginUserId] = useState<string | null>(null);
+    const [isOwner, setIsOwner] = useState(true);
+
+    const getUserId = () => {
+        return getAuthCookie('user_id');
+    };
 
     // History 관리 상태
     const historyManagement = useHistoryManagement();
@@ -144,11 +151,18 @@ function CanvasPageContent() {
 
         if (loadWorkflowName) {
             const decodedWorkflowName = decodeURIComponent(loadWorkflowName);
+            const userId = searchParams.get('user_id');
             setCurrentWorkflowName(decodedWorkflowName);
+            setWorkflowOriginUserId(userId);
+
+            // 소유권 확인
+            const currentUserId = getUserId();
+            const isWorkflowOwner = !userId || userId === currentUserId;
+            setIsOwner(isWorkflowOwner);
 
             const loadFromServer = async () => {
                 try {
-                    const workflowData = await loadWorkflow(decodedWorkflowName, null);
+                    const workflowData = await loadWorkflow(decodedWorkflowName, userId);
 
                     if (canvasRef.current && workflowData) {
                         await handleLoadWorkflow(workflowData, decodedWorkflowName);
@@ -404,6 +418,10 @@ function CanvasPageContent() {
             // 현재 워크플로우 이름을 기본값으로 재설정
             setCurrentWorkflowName('Workflow');
 
+            // 새 워크플로우이므로 소유자로 설정
+            setWorkflowOriginUserId(null);
+            setIsOwner(true);
+
             devLog.log('New workflow started successfully');
             showSuccessToastKo('새 워크플로우가 시작되었습니다');
         } catch (error: any) {
@@ -494,7 +512,7 @@ function CanvasPageContent() {
         const toastId = showLoadingToastKo('워크플로우 저장 중...');
 
         try {
-            const result = await saveWorkflow(workflowName, canvasState);
+            const result = await (saveWorkflow as any)(workflowName, canvasState, workflowOriginUserId);
             showSuccessToastKo(`워크플로우 '${workflowName}'이(가) 성공적으로 저장되었습니다!`);
         } catch (error: any) {
             devLog.error('Save failed:', error);
@@ -681,7 +699,7 @@ function CanvasPageContent() {
             const workflowId = `workflow_${generateWorkflowHash(workflowName)}`;
             workflowData = { ...workflowData, workflow_id: workflowId };
             workflowData = { ...workflowData, workflow_name: workflowName };
-            await saveWorkflow(workflowName, workflowData);
+            await (saveWorkflow as any)(workflowName, workflowData, workflowOriginUserId);
             const isStreaming = await isStreamingWorkflowFromWorkflow(workflowData);
 
             if (isStreaming) {
@@ -892,6 +910,7 @@ function CanvasPageContent() {
                 onHistoryClick={() => setIsHistoryPanelOpen(!isHistoryPanelOpen)}
                 historyCount={history.length}
                 isHistoryPanelOpen={isHistoryPanelOpen}
+                isOwner={isOwner}
             />
             <main className={styles.mainContent}>
                 <Canvas

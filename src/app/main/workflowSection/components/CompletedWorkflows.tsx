@@ -165,7 +165,7 @@ const CompletedWorkflows: React.FC = () => {
 
     const handleEdit = (workflow: Workflow) => {
         router.push(
-            `/canvas?load=${encodeURIComponent(workflow.name)}`,
+            `/canvas?load=${encodeURIComponent(workflow.name)}&user_id=${workflow.user_id}`,
         );
     };
 
@@ -454,6 +454,16 @@ const CompletedWorkflows: React.FC = () => {
                                             <>
                                                 <button
                                                     className={styles.actionButton}
+                                                    title="편집"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEdit(workflow);
+                                                    }}
+                                                >
+                                                    <FiEdit />
+                                                </button>
+                                                <button
+                                                    className={styles.actionButton}
                                                     title="복사"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -462,9 +472,6 @@ const CompletedWorkflows: React.FC = () => {
                                                 >
                                                     <FiCopy />
                                                 </button>
-                                                <div className={styles.sharedMessage}>
-                                                    공유받은 워크플로우는 편집이 불가능합니다.
-                                                </div>
                                             </>
                                         )}
                                     </>
