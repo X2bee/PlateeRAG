@@ -19,7 +19,7 @@ const SectionGuard: React.FC<SectionGuardProps> = ({
     children,
     requiredSection,
     fallback,
-    redirectTo = '/chat'
+    redirectTo = '/main'
 }) => {
     const router = useRouter();
     const [hasAccess, setHasAccess] = useState<boolean | null>(null);

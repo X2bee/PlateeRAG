@@ -11,7 +11,7 @@ import { RiChatSmileAiLine } from "react-icons/ri";
 import { LuBrainCircuit } from "react-icons/lu";
 import { HiSaveAs } from "react-icons/hi";
 import { TbBrandSpeedtest } from "react-icons/tb";
-import { SidebarItem } from '@/app/main/workflowSection/types/index';
+import { SidebarItem } from '@/app/main/sidebar/index';
 import { devLog } from '@/app/_common/utils/logger';
 
 export const getChatItems = ['new-chat', 'current-chat', 'chat-history'];
@@ -119,30 +119,4 @@ export const getFilteredTrainSidebarItems = (hasAccessToSection: (sectionId: str
     });
     devLog.log('SidebarConfig: Filtered train items:', filteredItems.map(item => item.id));
     return filteredItems;
-};
-
-// 공통 아이템 클릭 핸들러 (localStorage 사용)
-export const createItemClickHandler = (router: any) => {
-    return (itemId: string) => {
-        // 클릭한 섹션을 localStorage에 저장하고 /main으로 이동
-        localStorage.setItem('activeSection', itemId);
-        router.push('/main');
-    };
-};
-
-export const createTrainItemClickHandler = (router: any) => {
-    return (itemId: string) => {
-        // 클릭한 섹션을 localStorage에 저장하고 /train으로 이동
-        localStorage.setItem('activeSection', itemId);
-        router.push('/train');
-    };
-};
-
-// 채팅 아이템 클릭 핸들러 (localStorage 사용)
-export const createChatItemClickHandler = (router: any) => {
-    return (itemId: string) => {
-        // 클릭한 채팅 섹션을 localStorage에 저장하고 /chat으로 이동
-        localStorage.setItem('activeChatSection', itemId);
-        router.push('/chat');
-    };
 };

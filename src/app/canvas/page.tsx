@@ -964,7 +964,7 @@ export default function CanvasPage() {
         <AuthGuard
             fallback={<LoadingFallback />}
             requiredSection="canvas"
-            sectionRedirectTo="/chat"
+            sectionRedirectTo="/main"
         >
             <CanvasPageContent />
         </AuthGuard>
