@@ -3,7 +3,7 @@
     position: fixed;
     top: 60px; // Header 높이만큼 아래로
     right: 0;
-    width: 550px;
+    width: 450px;
     height: calc(100vh - 60px);
     background: white;
     border-left: 1px solid #e5e7eb;
@@ -51,7 +51,7 @@
 }
 
 .clearButton {
-    padding: 0.5rem 1rem;
+    padding: 0.5rem;
     font-size: 0.875rem;
     border: 1px solid #d1d5db;
     border-radius: 6px;
@@ -88,62 +88,6 @@
     &:hover {
         background: #d1d5db;
         color: #374151;
-    }
-}
-
-.filters {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
-    background: white;
-    flex-shrink: 0;
-}
-
-.filterGroup {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-
-    label {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: #374151;
-    }
-}
-
-.select {
-    padding: 0.5rem;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    background: white;
-    color: #374151;
-    min-width: 120px;
-
-    &:focus {
-        outline: none;
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 1px #3b82f6;
-    }
-}
-
-.searchInput {
-    padding: 0.5rem;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    width: 100%;
-
-    &:focus {
-        outline: none;
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 1px #3b82f6;
-    }
-
-    &::placeholder {
-        color: #9ca3af;
     }
 }
 
@@ -297,10 +241,6 @@
 
     .title {
         font-size: 1rem;
-    }
-
-    .filters {
-        padding: 0.75rem 1rem;
     }
 
     .historyItem {

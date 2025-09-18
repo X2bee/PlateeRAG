@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { HistoryEntry, HistoryActionType } from '@/app/canvas/components/Canvas/hooks/useHistoryManagement';
 import styles from '@/app/canvas/assets/HistoryPanel.module.scss';
 import { showHistoryClearWarningKo } from '@/app/_common/utils/toastUtilsKo';
+import { FaTrashAlt } from "react-icons/fa";
 
 interface HistoryPanelProps {
     history: HistoryEntry[];
@@ -46,18 +47,6 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
     canUndo,
     canRedo
 }) => {
-    const [filterType, setFilterType] = useState<HistoryActionType | 'ALL'>('ALL');
-    const [searchTerm, setSearchTerm] = useState('');
-
-    const filteredHistory = history.filter(entry => {
-        const matchesFilter = filterType === 'ALL' || entry.actionType === filterType;
-        const matchesSearch = searchTerm === '' ||
-            entry.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            entry.details.nodeId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            entry.details.edgeId?.toLowerCase().includes(searchTerm.toLowerCase());
-
-        return matchesFilter && matchesSearch;
-    });
 
     const formatTimestamp = (timestamp: Date) => {
         return timestamp.toLocaleString('ko-KR', {
@@ -90,7 +79,7 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
                             }}
                             disabled={history.length === 0}
                         >
-                            전체 삭제
+                            <FaTrashAlt />
                         </button>
                     )}
                     <button className={styles.closeButton} onClick={onClose}>
@@ -99,37 +88,11 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
                 </div>
             </div>
 
-            {/* Filters */}
-            <div className={styles.filters}>
-                <div className={styles.filterGroup}>
-                    <label>필터:</label>
-                    <select
-                        value={filterType}
-                        onChange={(e) => setFilterType(e.target.value as HistoryActionType | 'ALL')}
-                        className={styles.select}
-                    >
-                        <option value="ALL">전체</option>
-                        {Object.entries(actionTypeLabels).map(([type, label]) => (
-                            <option key={type} value={type}>{label}</option>
-                        ))}
-                    </select>
-                </div>
-                <div className={styles.filterGroup}>
-                    <input
-                        type="text"
-                        placeholder="검색..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className={styles.searchInput}
-                    />
-                </div>
-            </div>
-
             {/* History List */}
             <div className={styles.historyList}>
-                {filteredHistory.length === 0 ? (
+                {history.length === 0 ? (
                     <div className={styles.emptyState}>
-                        {history.length === 0 ? '아직 기록된 작업이 없습니다.' : '검색 결과가 없습니다.'}
+                        아직 기록된 작업이 없습니다.
                     </div>
                 ) : (
                     <>
@@ -148,7 +111,7 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
                             </div>
                         </div>
 
-                        {filteredHistory.map((entry, index) => {
+                        {history.map((entry, index) => {
                             const actualIndex = history.indexOf(entry);
                             const isActive = currentHistoryIndex === actualIndex;
                             const isFuture = currentHistoryIndex !== -1 && actualIndex < currentHistoryIndex;
