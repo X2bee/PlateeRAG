@@ -36,6 +36,7 @@ export interface ChunkInfo {
 export interface DocumentInCollection {
     document_id: string;
     file_name: string;
+    file_path?: string;
     file_type: string;
     processed_at: string;
     total_chunks: number;

@@ -11,6 +11,8 @@ import DocumentDocumentsSection from '@/app/main/workflowSection/components/docu
 import DocumentDetailSection from '@/app/main/workflowSection/components/documents/DocumentDetailSection';
 import DocumentHeader from '@/app/main/workflowSection/components/documents/DocumentHeader';
 
+import toast from 'react-hot-toast';
+
 import {
     listCollections,
     searchDocuments,
@@ -45,6 +47,7 @@ import {
     CollectionFilter,
     Folder,
 } from '@/app/main/workflowSection/types/index';
+import { downloadDocumentByPath } from '@/app/_common/api/rag/documentAPI';
 
 interface EmbeddingConfig {
     client_initialized: boolean;
@@ -77,6 +80,9 @@ const Documents: React.FC = () => {
     // Graph 데이터 상태
     const [allDocumentDetailMeta, setAllDocumentDetailMeta] = useState<any>(null);
     const [allDocumentDetailEdges, setAllDocumentDetailEdges] = useState<any>(null);
+
+    // 문서 다운로드 상태
+    const [downloadingDocumentIds, setDownloadingDocumentIds] = useState<Set<string>>(new Set());
 
     // 모달 상태
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -183,6 +189,61 @@ const Documents: React.FC = () => {
             console.error('Failed to load document details:', err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const resolveDocumentFilePath = (doc: DocumentInCollection): string | null => {
+        if (doc.file_path) {
+            return doc.file_path;
+        }
+
+        const metadataPath = doc.metadata?.file_path || doc.metadata?.relative_path;
+        if (metadataPath) {
+            return metadataPath;
+        }
+
+        return null;
+    };
+
+    const handleDownloadDocument = async (doc: DocumentInCollection) => {
+        const filePath = resolveDocumentFilePath(doc);
+
+        if (!filePath) {
+            toast.error('문서 경로를 확인할 수 없어 다운로드할 수 없습니다.');
+            return;
+        }
+
+        setDownloadingDocumentIds((prev) => {
+            const next = new Set(prev);
+            next.add(doc.document_id);
+            return next;
+        });
+
+        try {
+            const { blob, fileName } = await downloadDocumentByPath(filePath);
+            const resolvedFileName = fileName || doc.file_name || 'document';
+
+            if (typeof window !== 'undefined') {
+                const url = window.URL.createObjectURL(blob);
+                const link = window.document.createElement('a');
+                link.href = url;
+                link.download = resolvedFileName;
+                window.document.body.appendChild(link);
+                link.click();
+                window.document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            }
+
+            toast.success('문서 다운로드를 시작했습니다.');
+        } catch (err) {
+            console.error('Failed to download document:', err);
+            toast.error('문서 다운로드에 실패했습니다.');
+        } finally {
+            setDownloadingDocumentIds((prev) => {
+                const next = new Set(prev);
+                next.delete(doc.document_id);
+                return next;
+            });
         }
     };
 
@@ -687,6 +748,8 @@ const Documents: React.FC = () => {
                     onSetCurrentFolder={setCurrentFolder}
                     onSetFolderPath={setFolderPath}
                     onToggleNode={setExpandedNodes}
+                    onDownloadDocument={handleDownloadDocument}
+                    downloadingDocumentIds={downloadingDocumentIds}
                 />
             )}
 

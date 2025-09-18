@@ -6,6 +6,7 @@ import {
     FiTrash2,
     FiBarChart,
     FiClock,
+    FiDownload,
 } from 'react-icons/fi';
 import styles from '@/app/main/workflowSection/assets/Documents.module.scss';
 import { Collection, DocumentInCollection, Folder } from '@/app/main/workflowSection/types/index';
@@ -24,11 +25,13 @@ interface DocumentDocumentsSectionProps {
     onSelectDocument: (document: DocumentInCollection) => void;
     onNavigateToFolder: (folder: Folder) => void;
     onNavigateUp: () => void;
+    onDownloadDocument: (document: DocumentInCollection) => void;
     onDeleteDocument: (document: DocumentInCollection) => void;
     onDeleteFolder: (folder: Folder) => void;
     onSetCurrentFolder: (folder: Folder | null) => void;
     onSetFolderPath: (path: Folder[]) => void;
     onToggleNode: (updater: (prev: Set<string>) => Set<string>) => void;
+    downloadingDocumentIds: Set<string>;
 }
 
 const DocumentDocumentsSection: React.FC<DocumentDocumentsSectionProps> = ({
@@ -43,11 +46,13 @@ const DocumentDocumentsSection: React.FC<DocumentDocumentsSectionProps> = ({
     onSelectDocument,
     onNavigateToFolder,
     onNavigateUp,
+    onDownloadDocument,
     onDeleteDocument,
     onDeleteFolder,
     onSetCurrentFolder,
     onSetFolderPath,
     onToggleNode,
+    downloadingDocumentIds,
 }) => {
     // 현재 폴더에 속한 하위 폴더들을 필터링
     const getCurrentFolders = () => {
@@ -166,50 +171,68 @@ const DocumentDocumentsSection: React.FC<DocumentDocumentsSectionProps> = ({
                             ))}
 
                             {/* 현재 폴더의 문서들 표시 */}
-                            {getCurrentDocuments().map((doc) => (
-                                <div
-                                    key={doc.document_id}
-                                    className={styles.documentCard}
-                                    onClick={() => onSelectDocument(doc)}
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    <div className={styles.cardHeader}>
-                                        <div className={styles.collectionIcon}>
-                                            <FiUser />
-                                        </div>
-                                        <div className={`${styles.status} ${styles.statusPersonal}`}>
-                                            문서
-                                        </div>
-                                    </div>
+                            {getCurrentDocuments().map((doc) => {
+                                const isDownloading = downloadingDocumentIds.has(doc.document_id);
 
-                                    <div className={styles.cardContent}>
-                                        <h3 className={styles.collectionName}>{doc.file_name}</h3>
-                                        <div className={styles.collectionMeta}>
-                                            <div className={styles.metaItem}>
-                                                <FiBarChart />
-                                                <span>청크: {doc.actual_chunks}개</span>
+                                return (
+                                    <div
+                                        key={doc.document_id}
+                                        className={styles.documentCard}
+                                        onClick={() => onSelectDocument(doc)}
+                                        style={{ cursor: 'pointer' }}
+                                    >
+                                        <div className={styles.cardHeader}>
+                                            <div className={styles.collectionIcon}>
+                                                <FiUser />
                                             </div>
-                                            <div className={styles.metaItem}>
-                                                <FiClock />
-                                                <span>업로드: {getRelativeTime(doc.processed_at)}</span>
+                                            <div className={`${styles.status} ${styles.statusPersonal}`}>
+                                                문서
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div className={styles.cardActions}>
-                                        <button
-                                            className={`${styles.actionButton} ${styles.danger}`}
-                                            title="문서 삭제"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onDeleteDocument(doc);
-                                            }}
-                                        >
-                                            <FiTrash2 />
-                                        </button>
+                                        <div className={styles.cardContent}>
+                                            <h3 className={styles.collectionName}>{doc.file_name}</h3>
+                                            <div className={styles.collectionMeta}>
+                                                <div className={styles.metaItem}>
+                                                    <FiBarChart />
+                                                    <span>청크: {doc.actual_chunks}개</span>
+                                                </div>
+                                                <div className={styles.metaItem}>
+                                                    <FiClock />
+                                                    <span>업로드: {getRelativeTime(doc.processed_at)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.cardActions}>
+                                            <button
+                                                className={styles.actionButton}
+                                                title={isDownloading ? '다운로드 준비 중...' : '문서 다운로드'}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onDownloadDocument(doc);
+                                                }}
+                                                disabled={isDownloading}
+                                                aria-busy={isDownloading}
+                                                aria-label={isDownloading ? '다운로드 준비 중' : '문서 다운로드'}
+                                                style={isDownloading ? { cursor: 'not-allowed', opacity: 0.6 } : undefined}
+                                            >
+                                                {isDownloading ? '...' : <FiDownload />}
+                                            </button>
+                                            <button
+                                                className={`${styles.actionButton} ${styles.danger}`}
+                                                title="문서 삭제"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onDeleteDocument(doc);
+                                                }}
+                                            >
+                                                <FiTrash2 />
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </div>
