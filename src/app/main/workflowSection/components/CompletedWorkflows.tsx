@@ -452,13 +452,25 @@ const CompletedWorkflows: React.FC = () => {
                                             </>
                                         ) : (
                                             <>
+                                                {/* 다른 사용자의 워크플로우 - 권한에 따라 편집 버튼 제어 */}
                                                 <button
-                                                    className={styles.actionButton}
-                                                    title="편집"
+                                                    className={`${styles.actionButton} ${
+                                                        workflow.share_permissions !== 'read_write'
+                                                            ? styles.disabled
+                                                            : ''
+                                                    }`}
+                                                    title={
+                                                        workflow.share_permissions !== 'read_write'
+                                                            ? "읽기 전용으로 공유되었습니다"
+                                                            : "편집"
+                                                    }
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        handleEdit(workflow);
+                                                        if (workflow.share_permissions === 'read_write') {
+                                                            handleEdit(workflow);
+                                                        }
                                                     }}
+                                                    disabled={workflow.share_permissions !== 'read_write'}
                                                 >
                                                     <FiEdit />
                                                 </button>
