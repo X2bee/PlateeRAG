@@ -391,7 +391,7 @@ export const createHistoryHelpers = (
 
         addHistoryEntry(
             'NODE_MOVE',
-            `Node ${nodeId} moved from (${fromPosition.x.toFixed(1)}, ${fromPosition.y.toFixed(1)}) to (${toPosition.x.toFixed(1)}, ${toPosition.y.toFixed(1)})`,
+            `[Node Move] (${fromPosition.x.toFixed(1)}, ${fromPosition.y.toFixed(1)}) to (${toPosition.x.toFixed(1)}, ${toPosition.y.toFixed(1)})`,
             { nodeId, fromPosition, toPosition },
             beforeMoveState // 이동 이전 상태를 저장 (view 제외)
         );
@@ -403,7 +403,7 @@ export const createHistoryHelpers = (
         const historyCanvasState = createHistoryCanvasState(fullCanvasState);
         addHistoryEntry(
             'NODE_CREATE',
-            `Created ${nodeType} node ${nodeId} at (${position.x.toFixed(1)}, ${position.y.toFixed(1)})`,
+            `[Create] ${nodeType} node`,
             { nodeId, nodeType, position },
             historyCanvasState
         );
@@ -415,7 +415,7 @@ export const createHistoryHelpers = (
         const historyCanvasState = createHistoryCanvasState(fullCanvasState);
         addHistoryEntry(
             'NODE_DELETE',
-            `Deleted ${nodeType} node ${nodeId}`,
+            `[Delete] ${nodeType} node`,
             { nodeId, nodeType },
             historyCanvasState
         );
@@ -427,7 +427,7 @@ export const createHistoryHelpers = (
         const historyCanvasState = createHistoryCanvasState(fullCanvasState);
         addHistoryEntry(
             'EDGE_CREATE',
-            `Created edge ${edgeId} from ${sourceId} to ${targetId}`,
+            `[Create] Edge`,
             { edgeId, sourceId, targetId },
             historyCanvasState
         );
@@ -439,7 +439,7 @@ export const createHistoryHelpers = (
         const historyCanvasState = createHistoryCanvasState(fullCanvasState);
         addHistoryEntry(
             'EDGE_DELETE',
-            `Deleted edge ${edgeId} from ${sourceId} to ${targetId}`,
+            `[Delete] Edge`,
             { edgeId, sourceId, targetId },
             historyCanvasState
         );
@@ -451,7 +451,7 @@ export const createHistoryHelpers = (
         const historyCanvasState = createHistoryCanvasState(fullCanvasState);
         addHistoryEntry(
             'NODE_UPDATE',
-            `Updated node ${nodeId} ${field} from "${oldValue}" to "${newValue}"`,
+            `[Update: ${field}] "${oldValue}" to "${newValue}"`,
             { nodeId, field, oldValue, newValue },
             historyCanvasState
         );
@@ -463,7 +463,7 @@ export const createHistoryHelpers = (
         const historyCanvasState = createHistoryCanvasState(fullCanvasState);
         addHistoryEntry(
             'EDGE_UPDATE',
-            `Updated edge ${edgeId} ${field} from "${oldValue}" to "${newValue}"`,
+            `[Update] Edge`,
             { edgeId, field, oldValue, newValue },
             historyCanvasState
         );

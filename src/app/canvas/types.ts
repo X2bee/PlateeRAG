@@ -273,7 +273,7 @@ export interface CanvasProps {
         recordNodeUpdate: (nodeId: string, field: string, oldValue: any, newValue: any) => void;
         recordEdgeUpdate: (edgeId: string, field: string, oldValue: any, newValue: any) => void;
         recordMultiAction: (description: string, actions: Array<{
-            actionType: 'NODE_CREATE' | 'EDGE_CREATE' | 'NODE_DELETE' | 'EDGE_DELETE' | 'NODE_UPDATE' | 'EDGE_UPDATE' | 'NODE_MOVE';
+            actionType: 'NODE_CREATE' | 'EDGE_CREATE' | 'NODE_DELETE' | 'EDGE_DELETE' | 'NODE_UPDATE' | 'EDGE_UPDATE' | 'NODE_MOVE' | 'MULTI_ACTION';
             nodeId?: string;
             edgeId?: string;
             nodeType?: string;
