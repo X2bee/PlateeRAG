@@ -1,7 +1,7 @@
 // lib/api/evaluationApi.js
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config';
-import { apiClient } from '@/app/api/helper/apiClient';
+import { apiClient } from '@/app/_common/api/helper/apiClient';
 
 /**
  * 평가 API 호출 함수들을 관리하는 클래스

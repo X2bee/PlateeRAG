@@ -7,7 +7,7 @@ import {
     clearAllAuth
 } from '@/app/_common/utils/cookieUtils';
 import { generateSha256Hash } from '@/app/_common/utils/generateSha1Hash';
-import { apiClient } from '@/app/api/helper/apiClient';
+import { apiClient } from '@/app/_common/api/helper/apiClient';
 
 
 /**

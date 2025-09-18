@@ -2,7 +2,7 @@
 import React from 'react';
 import styles from '@/app/main/workflowSection/assets/Documents.module.scss';
 import { DocumentInCollection, SearchResult } from '@/app/main/workflowSection/types/index';
-import { formatFileSize, getRelativeTime } from '@/app/api/rag/retrievalAPI';
+import { formatFileSize, getRelativeTime } from '@/app/_common/api/rag/retrievalAPI';
 
 interface DocumentDetailSectionProps {
     searchQuery: string;

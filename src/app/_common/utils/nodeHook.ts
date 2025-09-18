@@ -5,7 +5,7 @@ import {
     getNodes as apiGetNodes,
     exportNodes as apiExportNodes,
     refreshNodes as apiRefreshNodes
-} from '@/app/api/nodeAPI';
+} from '@/app/_common/api/nodeAPI';
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { devLog } from '@/app/_common/utils/logger';
 

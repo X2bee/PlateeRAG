@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { FiX, FiFolder, FiFileText, FiChevronRight, FiRefreshCw } from 'react-icons/fi';
 import styles from '@/app/main/chatSection/assets/CollectionModal.module.scss';
-import { listCollections, listDocumentsInCollection } from '@/app/api/rag/retrievalAPI';
+import { listCollections, listDocumentsInCollection } from '@/app/_common/api/rag/retrievalAPI';
 import { devLog } from '@/app/_common/utils/logger';
 
 interface Collection {

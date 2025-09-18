@@ -1,7 +1,7 @@
 // LLM API 호출 함수들을 관리하는 파일
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config';
-import { apiClient } from '@/app/api/helper/apiClient';
+import { apiClient } from '@/app/_common/api/helper/apiClient';
 
 /**
  * LLM 제공자 상태 정보를 가져오는 함수

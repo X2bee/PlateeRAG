@@ -11,7 +11,7 @@ import styles from '../../assets/ChatInterface.module.scss';
 import { useInputHandling } from '../../hooks/useInputHandling';
 import SoundInput from '../SoundInput/SoundInputModal';
 import SoundInputHandler from '../SoundInput/SoundInputHandler';
-import { getSTTSimpleStatus } from '@/app/api/sttAPI';
+import { getSTTSimpleStatus } from '@/app/_common/api/sttAPI';
 import { devLog } from '@/app/_common/utils/logger';
 
 interface STTSimpleStatusResponse {

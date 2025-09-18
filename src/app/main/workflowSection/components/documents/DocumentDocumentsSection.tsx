@@ -9,7 +9,7 @@ import {
 } from 'react-icons/fi';
 import styles from '@/app/main/workflowSection/assets/Documents.module.scss';
 import { Collection, DocumentInCollection, Folder } from '@/app/main/workflowSection/types/index';
-import { getRelativeTime } from '@/app/api/rag/retrievalAPI';
+import { getRelativeTime } from '@/app/_common/api/rag/retrievalAPI';
 import DocumentsDirectoryTree from './DocumentsDirectoryTree';
 
 interface DocumentDocumentsSectionProps {

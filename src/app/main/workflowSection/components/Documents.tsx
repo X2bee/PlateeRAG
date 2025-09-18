@@ -23,8 +23,8 @@ import {
     getAllDocumentDetailEdges,
     deleteCollection,
     remakeCollection,
-} from '@/app/api/rag/retrievalAPI';
-import { getEmbeddingConfigStatus } from '@/app/api/rag/embeddingAPI';
+} from '@/app/_common/api/rag/retrievalAPI';
+import { getEmbeddingConfigStatus } from '@/app/_common/api/rag/embeddingAPI';
 import { handleDeleteFolderRequest } from '@/app/main/workflowSection/components/documents/DocumentDirectory';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useDocumentFileModal } from '@/app/_common/contexts/DocumentFileModalContext';

@@ -2,7 +2,7 @@
  * URL 파라미터 암호화/복호화 유틸리티 (AES 암호화 사용)
  */
 
-import { getDeployStatus } from "@/app/api/workflow/deploy";
+import { getDeployStatus } from "@/app/_common/api/workflow/deploy";
 
 // 암호화 키 (실제 환경에서는 환경변수나 더 안전한 방식으로 관리해야 함)
 const ENCRYPTION_KEY = 'PlateerXgenAILab'; // 16바이트 키

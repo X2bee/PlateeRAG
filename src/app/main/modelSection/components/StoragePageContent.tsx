@@ -15,7 +15,7 @@ import {
 } from 'react-icons/fi';
 import ContentArea from '@/app/main/workflowSection/components/ContentArea';
 import styles from '@/app/main/modelSection/assets/StoragePage.module.scss';
-import { getAllHuggingFaceResources } from '@/app/api/huggingfaceAPI';
+import { getAllHuggingFaceResources } from '@/app/_common/api/huggingfaceAPI';
 import StorageModelInfoModal from './Storage/StorageModelInfoModal';
 import StorageDatasetInfoModal from './Storage/StorageDatasetInfoModal';
 

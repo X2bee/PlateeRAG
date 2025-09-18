@@ -19,7 +19,7 @@ import {
     loadWorkflow,
     executeWorkflowByIdStream,
     executeWorkflowById,
-} from '@/app/api/workflow/workflowAPI';
+} from '@/app/_common/api/workflow/workflowAPI';
 import {
     getWorkflowName,
     getWorkflowState,

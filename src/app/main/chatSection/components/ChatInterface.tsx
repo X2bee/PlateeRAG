@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import styles from '@/app/main/chatSection/assets/ChatInterface.module.scss';
 import { useRouter } from 'next/navigation';
-import { getWorkflowIOLogs, loadWorkflow, rateWorkflowIOLog } from '@/app/api/workflow/workflowAPI';
-import { loadWorkflow as loadWorkflowDeploy } from '@/app/api/workflow/workflowDeployAPI';
+import { getWorkflowIOLogs, loadWorkflow, rateWorkflowIOLog } from '@/app/_common/api/workflow/workflowAPI';
+import { loadWorkflow as loadWorkflowDeploy } from '@/app/_common/api/workflow/workflowDeployAPI';
 import { MessageRenderer } from '@/app/_common/components/chatParser/ChatParser';
 import CollectionModal from '@/app/main/chatSection/components/CollectionModal';
 import AIChatEditDropdown from '@/app/main/chatSection/components/AIChatEditModal/AIChatEditModal';
@@ -11,7 +11,7 @@ import { IOLog, ChatInterfaceProps } from './types';
 import ChatHeader from './ChatHeader';
 import { DeploymentModal } from './DeploymentModal';
 import ChatToolsDisplay from './ChatToolsDisplay';
-import { generateInteractionId } from '@/app/api/interactionAPI';
+import { generateInteractionId } from '@/app/_common/api/interactionAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import { SourceInfo } from '../types/source';
 import { ChatContainer, ChatContainerRef } from './ChatContainer';
@@ -21,7 +21,7 @@ import { useScrollManagement } from '../hooks/useScrollManagement';
 import { useChatState } from '../hooks/useChatState';
 import { speakText, extractPlainText, sanitizeTextForTTS } from '@/app/_common/utils/ttsUtils';
 import { showCopySuccessToastKo, showSuccessToastKo, showWarningToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
-import { getTTSSimpleStatus } from '@/app/api/ttsAPI';
+import { getTTSSimpleStatus } from '@/app/_common/api/ttsAPI';
 import { defaultConfig } from 'next/dist/server/config-shared';
 
 interface TTSSimpleStatusResponse {

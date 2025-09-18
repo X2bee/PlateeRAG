@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import styles from '@/app/main/workflowSection/assets/DocumentCollectionModal.module.scss';
-import { createCollection, isValidCollectionName } from '@/app/api/rag/retrievalAPI';
+import { createCollection, isValidCollectionName } from '@/app/_common/api/rag/retrievalAPI';
 
 interface DocumentCollectionModalProps {
     isOpen: boolean;

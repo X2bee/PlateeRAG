@@ -1,5 +1,5 @@
 import { devLog } from '@/app/_common/utils/logger';
-import { apiClient } from '@/app/api/helper/apiClient.js';
+import { apiClient } from '@/app/_common/api/helper/apiClient.js';
 import { API_BASE_URL } from '@/app/config';
 
 /**

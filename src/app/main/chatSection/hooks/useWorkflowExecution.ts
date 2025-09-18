@@ -1,8 +1,8 @@
 import { useState, useCallback, useRef } from 'react';
 import { showLoadingToastKo, showErrorToastKo, dismissToastKo } from '@/app/_common/utils/toastUtilsKo';
-import { executeWorkflowById, executeWorkflowByIdStream } from '@/app/api/workflow/workflowAPI';
-import { executeWorkflowByIdDeploy, executeWorkflowByIdStreamDeploy } from '@/app/api/workflow/workflowDeployAPI';
-import { generateInteractionId } from '@/app/api/interactionAPI';
+import { executeWorkflowById, executeWorkflowByIdStream } from '@/app/_common/api/workflow/workflowAPI';
+import { executeWorkflowByIdDeploy, executeWorkflowByIdStreamDeploy } from '@/app/_common/api/workflow/workflowDeployAPI';
+import { generateInteractionId } from '@/app/_common/api/interactionAPI';
 import { isStreamingWorkflowFromWorkflow } from '@/app/_common/utils/isStreamingWorkflow';
 import { WorkflowData } from '@/app/canvas/types';
 import { IOLog } from '../components/types';

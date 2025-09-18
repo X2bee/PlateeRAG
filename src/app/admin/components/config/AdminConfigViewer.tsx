@@ -16,7 +16,7 @@ import {
 import { BsDatabaseUp } from 'react-icons/bs';
 import { SiOpenai } from 'react-icons/si';
 import { RiAnthropicFill, RiGeminiFill } from "react-icons/ri";
-import { fetchAllConfigs, updateConfig } from '@/app/api/configAPI';
+import { fetchAllConfigs, updateConfig } from '@/app/_common/api/configAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import { showValidationErrorToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/admin/assets/AdminConfigViewer.module.scss';

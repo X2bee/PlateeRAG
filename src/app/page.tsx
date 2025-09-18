@@ -17,7 +17,7 @@ import {
     FiLogOut,
 } from 'react-icons/fi';
 import styles from '@/app/HomePage.module.scss';
-import { logout } from '@/app/api/authAPI';
+import { logout } from '@/app/_common/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 
 export default function HomePage() {

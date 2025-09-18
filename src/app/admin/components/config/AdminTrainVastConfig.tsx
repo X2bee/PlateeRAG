@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FiRefreshCw, FiSettings, FiServer } from 'react-icons/fi';
 import { showConnectionSuccessToastKo, showConnectionErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import AdminBaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/admin/components/config/AdminBaseConfigPanel';
-import { checkVastHealth } from '@/app/api/vastAPI';
+import { checkVastHealth } from '@/app/_common/api/vastAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
 

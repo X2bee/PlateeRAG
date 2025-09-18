@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { FiX, FiMessageSquare } from 'react-icons/fi';
-import { getWorkflowIOLogs } from '@/app/api/workflow/workflowAPI';
+import { getWorkflowIOLogs } from '@/app/_common/api/workflow/workflowAPI';
 import { MessageRenderer } from '@/app/_common/components/chatParser/ChatParser';
 import styles from '@/app/main/chatSection/assets/HistoryModal.module.scss';
 

@@ -1,6 +1,6 @@
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
-import { apiClient } from '@/app/api/helper/apiClient';
+import { apiClient } from '@/app/_common/api/helper/apiClient';
 
 /**
  * Data Manager API 함수들을 관리하는 파일

@@ -6,8 +6,8 @@ import {
     FiUser,
     FiPlay,
 } from 'react-icons/fi';
-import { listInteractions } from '@/app/api/interactionAPI';
-import { deleteWorkflowIOLogs, listWorkflowsDetail } from '@/app/api/workflow/workflowAPI';
+import { listInteractions } from '@/app/_common/api/interactionAPI';
+import { deleteWorkflowIOLogs, listWorkflowsDetail } from '@/app/_common/api/workflow/workflowAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/main/chatSection/assets/ChatHistory.module.scss';
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';

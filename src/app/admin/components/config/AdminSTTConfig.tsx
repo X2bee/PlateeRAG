@@ -2,8 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { FiRefreshCw } from 'react-icons/fi';
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import AdminBaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/admin/components/config/AdminBaseConfigPanel';
-import { testCollectionConnection } from '@/app/api/llmAPI';
-import { refreshSTT } from '@/app/api/sttAPI';
+import { testCollectionConnection } from '@/app/_common/api/llmAPI';
+import { refreshSTT } from '@/app/_common/api/sttAPI';
 import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
 
 interface AdminSTTConfigProps {

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FiDatabase, FiTrash2, FiInfo } from 'react-icons/fi';
-import { getDocumentCacheStats, clearAllDocumentCache, hasDocumentInCache } from '../../../../api/rag/documentAPI';
+import { getDocumentCacheStats, clearAllDocumentCache, hasDocumentInCache } from '../../../../_common/api/rag/documentAPI';
 import styles from './CacheStatusIndicator.module.scss';
 
 interface CacheStatusIndicatorProps {

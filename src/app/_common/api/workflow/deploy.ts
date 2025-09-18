@@ -1,4 +1,4 @@
-import { apiClient } from "@/app/api/helper/apiClient";
+import { apiClient } from "@/app/_common/api/helper/apiClient";
 import { API_BASE_URL } from '@/app/config.js';
 import { devLog } from "@/app/_common/utils/logger";
 

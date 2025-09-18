@@ -5,7 +5,7 @@ import { FiMessageSquare } from 'react-icons/fi';
 import styles from '@/app/main/chatSection/assets/ChatInterface.module.scss';
 import chatContentStyles from '@/app/main/chatSection/assets/ChatContent.module.scss';
 import { useSearchParams } from 'next/navigation';
-import { generateInteractionId } from '@/app/api/interactionAPI';
+import { generateInteractionId } from '@/app/_common/api/interactionAPI';
 
 interface CurrentChatInterfaceProps {
     onBack?: () => void;

@@ -4,7 +4,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { FiX, FiZoomIn, FiZoomOut, FiChevronLeft, FiChevronRight, FiRotateCcw } from 'react-icons/fi';
 import { PDFViewerProps, HighlightRange } from '../../types/source';
-import { fetchDocumentByPath, hasDocumentInCache } from '../../../../api/rag/documentAPI';
+import { fetchDocumentByPath, hasDocumentInCache } from '../../../../_common/api/rag/documentAPI';
 import CacheStatusIndicator from './CacheStatusIndicator';
 import styles from './SidePanelPDFViewer.module.scss';
 import { devLog } from '@/app/_common/utils/logger';

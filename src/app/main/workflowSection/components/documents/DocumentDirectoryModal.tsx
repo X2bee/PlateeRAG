@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import styles from '@/app/main/workflowSection/assets/Documents.module.scss';
-import { createFolder } from '@/app/api/rag/folderAPI';
+import { createFolder } from '@/app/_common/api/rag/folderAPI';
 import { Collection, Folder } from '@/app/main/workflowSection/types/index';
 
 interface DocumentDirectoryModalProps {

@@ -2,7 +2,7 @@
 import { devLog } from '@/app/_common/utils/logger';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { FiMic, FiSquare, FiLoader } from 'react-icons/fi';
-import { transcribeAudio } from '@/app/api/sttAPI';
+import { transcribeAudio } from '@/app/_common/api/sttAPI';
 
 interface SoundInputHandlerProps {
     onTranscriptionReady?: (transcription: string) => void;

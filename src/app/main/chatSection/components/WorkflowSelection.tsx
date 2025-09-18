@@ -13,7 +13,7 @@ import {
     FiFolder
 } from 'react-icons/fi';
 import styles from '@/app/main/chatSection/assets/WorkflowSelection.module.scss';
-import { listWorkflowsDetail } from '@/app/api/workflow/workflowAPI';
+import { listWorkflowsDetail } from '@/app/_common/api/workflow/workflowAPI';
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 
 interface Workflow {

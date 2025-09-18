@@ -1,7 +1,7 @@
 // Hugging Face API 호출 함수들을 관리하는 파일
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config';
-import { apiClient } from '@/app/api/helper/apiClient';
+import { apiClient } from '@/app/_common/api/helper/apiClient';
 
 /**
  * Hugging Face 모델 목록을 가져오는 함수

@@ -5,7 +5,7 @@ import { devLog } from '@/app/_common/utils/logger';
 import dynamic from 'next/dynamic';
 import { FiX, FiZoomIn, FiZoomOut, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { PDFViewerProps, HighlightRange } from '../../types/source';
-import { fetchDocumentByPath, hasDocumentInCache } from '../../../../api/rag/documentAPI';
+import { fetchDocumentByPath, hasDocumentInCache } from '../../../../_common/api/rag/documentAPI';
 import CacheStatusIndicator from './CacheStatusIndicator';
 import styles from './PDFViewer.module.scss';
 

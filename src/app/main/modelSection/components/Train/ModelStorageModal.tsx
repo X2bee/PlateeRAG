@@ -15,7 +15,7 @@ import {
     FiCheck,
 } from 'react-icons/fi';
 import styles from '@/app/main/modelSection/assets/ModelStorageModal.module.scss';
-import { getHuggingFaceModels } from '@/app/api/huggingfaceAPI';
+import { getHuggingFaceModels } from '@/app/_common/api/huggingfaceAPI';
 
 interface HuggingFaceModel {
     id: string;

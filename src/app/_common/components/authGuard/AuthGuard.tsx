@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { validateToken, refreshToken } from '@/app/api/authAPI';
+import { validateToken, refreshToken } from '@/app/_common/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useSessionExpiredLogout } from '@/app/_common/utils/logoutUtils';
 import { devLog } from '@/app/_common/utils/logger';

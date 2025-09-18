@@ -9,8 +9,8 @@ import { showCopySuccessToastKo, showCopyErrorToastKo } from '@/app/_common/util
 import { Workflow } from './types';
 import { getAuthCookie } from '@/app/_common/utils/cookieUtils';
 import { createEncryptedUrlParams } from '@/app/_common/utils/urlEncryption';
-import { getDeployStatus } from '@/app/api/workflow/deploy';
-import { updateWorkflow } from '@/app/api/workflow/workflowAPI';
+import { getDeployStatus } from '@/app/_common/api/workflow/deploy';
+import { updateWorkflow } from '@/app/_common/api/workflow/workflowAPI';
 import { devLog } from '@/app/_common/utils/logger';
 
 interface DeploymentModalProps {

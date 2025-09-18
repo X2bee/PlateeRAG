@@ -5,7 +5,7 @@ import { LuWorkflow } from "react-icons/lu";
 import { IoChatbubblesOutline } from "react-icons/io5";
 import WorkflowSelection from './WorkflowSelection';
 import ChatInterface from './ChatInterface';
-import { normalizeWorkflowName } from '@/app/api/interactionAPI';
+import { normalizeWorkflowName } from '@/app/_common/api/interactionAPI';
 
 interface ChatContentProps {
     onChatStarted?: () => void; // 채팅 시작 후 호출될 콜백

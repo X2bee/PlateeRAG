@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { showSuccessToastKo, showErrorToastKo, showValidationErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 
-import { EvaluationAPI } from '@/app/api/trainer/evalAPI';
+import { EvaluationAPI } from '@/app/_common/api/trainer/evalAPI';
 
 import { ModelInfo , PopupState } from '@/app/main/modelSection/components/types'
 

@@ -15,7 +15,7 @@ import {
     FiCheck,
 } from 'react-icons/fi';
 import styles from '@/app/main/modelSection/assets/DataStorageModal.module.scss';
-import { getHuggingFaceDatasets } from '@/app/api/huggingfaceAPI';
+import { getHuggingFaceDatasets } from '@/app/_common/api/huggingfaceAPI';
 
 interface HuggingFaceDataset {
     id: string;

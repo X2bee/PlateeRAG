@@ -1,7 +1,7 @@
 // RAG Folder API 호출 함수들을 관리하는 파일
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config';
-import { apiClient } from '@/app/api/helper/apiClient';
+import { apiClient } from '@/app/_common/api/helper/apiClient';
 
 /**
  * 새로운 폴더를 생성하는 함수

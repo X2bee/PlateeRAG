@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import styles from '@/app/admin/assets/workflows/AdminWorkflowEditModal.module.scss';
 import { updateWorkflow } from '@/app/admin/api/workflow';
-import { getGroupAvailableGroups } from '@/app/api/authAPI';
+import { getGroupAvailableGroups } from '@/app/_common/api/authAPI';
 
 interface AdminWorkflow {
     key_value: number;

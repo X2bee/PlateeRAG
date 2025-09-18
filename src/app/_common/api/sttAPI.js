@@ -1,7 +1,7 @@
 // STT API 호출 함수들을 관리하는 파일
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config';
-import { apiClient, apiClientV2 } from '@/app/api/helper/apiClient';
+import { apiClient, apiClientV2 } from '@/app/_common/api/helper/apiClient';
 
 /**
  * 오디오 파일을 텍스트로 변환하는 함수

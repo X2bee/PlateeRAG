@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { AdminSidebarProps } from '@/app/admin/components/types';
 import styles from '@/app/admin/assets/AdminPage.module.scss';
-import { logout } from '@/app/api/authAPI';
+import { logout } from '@/app/_common/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useQuickLogout } from '@/app/_common/utils/logoutUtils';
 import { FiChevronLeft, FiLogOut, FiMessageCircle } from 'react-icons/fi';

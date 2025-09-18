@@ -1,6 +1,6 @@
 'use client';
-import { deleteDocumentFromCollection } from '@/app/api/rag/retrievalAPI';
-import { deleteFolder } from '@/app/api/rag/folderAPI';
+import { deleteDocumentFromCollection } from '@/app/_common/api/rag/retrievalAPI';
+import { deleteFolder } from '@/app/_common/api/rag/folderAPI';
 import {
     showDeleteConfirmToastKo,
     showDeleteSuccessToastKo,

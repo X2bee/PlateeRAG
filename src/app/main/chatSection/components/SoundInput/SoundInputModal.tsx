@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { FiMic, FiPause, FiPlay, FiSquare, FiUpload, FiDownload, FiLoader } from 'react-icons/fi';
 import styles from './SoundInput.module.scss';
-import { transcribeAudio } from '@/app/api/sttAPI';
+import { transcribeAudio } from '@/app/_common/api/sttAPI';
 
 interface SoundInputProps {
     isOpen?: boolean; // Portal을 위한 isOpen prop 추가
@@ -355,7 +355,7 @@ const SoundInput: React.FC<SoundInputProps> = ({
 
                 {audioUrl && state === "finished" && (
                     <div className={styles.playback}>
-                        
+
                         {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                         <audio src={audioUrl} controls className={styles.audioPlayer} />
                         <div className={styles.actions}>

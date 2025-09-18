@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import styles from '@/app/main/workflowSection/assets/CollectionEditModal.module.scss';
-import { updateCollection } from '@/app/api/rag/retrievalAPI';
-import { getGroupAvailableGroups } from '@/app/api/authAPI';
+import { updateCollection } from '@/app/_common/api/rag/retrievalAPI';
+import { getGroupAvailableGroups } from '@/app/_common/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { Collection, CollectionEditModalProps } from '@/app/main/workflowSection/types/index';
 

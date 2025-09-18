@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { FiPlay, FiSettings, FiDatabase, FiCpu, FiBox } from 'react-icons/fi';
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
-import { startTraining } from '@/app/api/trainer/trainAPI';
+import { startTraining } from '@/app/_common/api/trainer/trainAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import { handleGemma3Training, handleQwen3Training } from './Train/sampleHandler';
 import BasicCategory from '@/app/main/modelSection/components/Train/BasicCategory';

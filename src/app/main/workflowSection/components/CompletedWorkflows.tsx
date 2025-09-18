@@ -13,7 +13,7 @@ import {
     FiCopy,
 } from 'react-icons/fi';
 import styles from '@/app/main/workflowSection/assets/CompletedWorkflows.module.scss';
-import { listWorkflowsDetail, deleteWorkflow, duplicateWorkflow } from '@/app/api/workflow/workflowAPI';
+import { listWorkflowsDetail, deleteWorkflow, duplicateWorkflow } from '@/app/_common/api/workflow/workflowAPI';
 import { useRouter } from 'next/navigation';
 import { Workflow, WorkflowDetailResponse } from '@/app/main/workflowSection/types/index';
 import {

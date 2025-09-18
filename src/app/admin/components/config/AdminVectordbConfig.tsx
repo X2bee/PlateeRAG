@@ -11,12 +11,12 @@ import AdminBaseConfigPanel, { ConfigItem, FieldConfig } from '@/app/admin/compo
 import {
     getCurrentEmbeddingDimension,
     refreshRetrievalConfig
-} from '@/app/api/rag/retrievalAPI';
+} from '@/app/_common/api/rag/retrievalAPI';
 import {
     switchEmbeddingProvider,
     testEmbeddingQuery,
     getEmbeddingConfigStatus,
-} from '@/app/api/rag/embeddingAPI';
+} from '@/app/_common/api/rag/embeddingAPI';
 import styles from '@/app/admin/assets/settings/AdminSettings.module.scss';
 
 interface AdminVectordbConfigProps {
