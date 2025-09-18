@@ -1,11 +1,11 @@
-import type { 
-    CanvasProps, 
-    CanvasRef, 
-    CanvasState, 
-    View, 
-    CanvasNode, 
-    CanvasEdge, 
-    PredictedNode, 
+import type {
+    CanvasProps,
+    CanvasRef,
+    CanvasState,
+    View,
+    CanvasNode,
+    CanvasEdge,
+    PredictedNode,
     NodeData,
     Position,
     EdgePreview,
@@ -57,10 +57,11 @@ export interface CanvasImperativeHandle extends CanvasRef {
     getCanvasState: () => CanvasState;
     addNode: (nodeData: NodeData, clientX: number, clientY: number) => void;
     loadCanvasState: (state: Partial<CanvasState>) => void;
+    loadCanvasStateWithoutView: (state: Partial<CanvasState>) => void;
     loadWorkflowState: (state: Partial<CanvasState>) => void;
     getCenteredView: () => View;
     clearSelectedNode: () => void;
-    updateNodeParameter: (nodeId: string, paramId: string, value: string) => void;
+    updateNodeParameter: (nodeId: string, paramId: string, value: string | number | boolean, skipHistory?: boolean) => void;
     setAvailableNodeSpecs: (nodeSpecs: NodeData[]) => void;
 }
 

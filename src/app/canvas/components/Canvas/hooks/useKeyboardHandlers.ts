@@ -1,24 +1,27 @@
 import { useCallback } from 'react';
-import type { CanvasNode, CanvasEdge, DeletedItem } from '@/app/canvas/types';
+import type { CanvasNode, CanvasEdge } from '@/app/canvas/types';
 
 interface UseKeyboardHandlersProps {
     // State
     selectedNodeId: string | null;
     selectedEdgeId: string | null;
-    lastDeleted: DeletedItem | null;
-    
-    // State setters
-    setEdges: React.Dispatch<React.SetStateAction<CanvasEdge[]>>;
-    
+
+    // State setters - removed setEdges as it was only used for undo
+
     // Handlers from other hooks
     copyNode: (nodeId: string) => void;
     pasteNode: () => string | null;
-    undoDelete: () => CanvasNode | null;
     deleteNode: (nodeId: string, connectedEdges: CanvasEdge[]) => void;
     removeEdge: (edgeId: string) => void;
     removeNodeEdges: (nodeId: string) => CanvasEdge[];
     clearSelection: () => void;
     selectNode: (nodeId: string) => void;
+
+    // History management
+    undo: () => any;
+    redo: () => any;
+    canUndo: boolean;
+    canRedo: boolean;
 }
 
 interface UseKeyboardHandlersReturn {
@@ -28,16 +31,17 @@ interface UseKeyboardHandlersReturn {
 export const useKeyboardHandlers = ({
     selectedNodeId,
     selectedEdgeId,
-    lastDeleted,
-    setEdges,
     copyNode,
     pasteNode,
-    undoDelete,
     deleteNode,
     removeEdge,
     removeNodeEdges,
     clearSelection,
-    selectNode
+    selectNode,
+    undo,
+    redo,
+    canUndo,
+    canRedo
 }: UseKeyboardHandlersProps): UseKeyboardHandlersReturn => {
 
     const handleKeyDown = useCallback((e: KeyboardEvent): void => {
@@ -55,12 +59,17 @@ export const useKeyboardHandlers = ({
             e.preventDefault();
             const pastedNodeId = pasteNode();
             if (pastedNodeId) selectNode(pastedNodeId);
-        } else if (isCtrlOrCmd && e.key === 'z') {
+        } else if (isCtrlOrCmd && e.shiftKey && e.key === 'Z') {
+            // Ctrl+Shift+Z for Redo
             e.preventDefault();
-            const restoredNode = undoDelete();
-            if (restoredNode) {
-                const connectedEdges = lastDeleted?.edges || [];
-                setEdges(prev => [...prev, ...connectedEdges]);
+            if (canRedo) {
+                redo();
+            }
+        } else if (isCtrlOrCmd && e.key === 'z') {
+            // Ctrl+Z for Undo
+            e.preventDefault();
+            if (canUndo) {
+                undo();
             }
         } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNodeId) {
             e.preventDefault();
@@ -75,16 +84,17 @@ export const useKeyboardHandlers = ({
     }, [
         selectedNodeId,
         selectedEdgeId,
-        lastDeleted,
         copyNode,
         pasteNode,
-        undoDelete,
         deleteNode,
         removeEdge,
         removeNodeEdges,
         clearSelection,
         selectNode,
-        setEdges
+        undo,
+        redo,
+        canUndo,
+        canRedo
     ]);
 
     return {

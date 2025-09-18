@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
-import type { 
-    CanvasEdge, 
-    CanvasNode, 
-    PredictedNode, 
-    Position, 
+import type {
+    CanvasEdge,
+    CanvasNode,
+    PredictedNode,
+    Position,
     PortMouseEventData,
     EdgePreview
 } from '@/app/canvas/types';
@@ -18,10 +18,10 @@ interface UsePortHandlersProps {
     isDraggingOutput: boolean;
     isDraggingInput: boolean;
     portClickStart: { data: PortMouseEventData; timestamp: number; position: { x: number; y: number } } | null;
-    
+
     // Refs
     edgePreviewRef: React.MutableRefObject<EdgePreview | null>;
-    
+
     // State setters
     setPortClickStart: React.Dispatch<React.SetStateAction<any>>;
     setEdgePreview: React.Dispatch<React.SetStateAction<EdgePreview | null>>;
@@ -34,7 +34,7 @@ interface UsePortHandlersProps {
     setSourcePortForConnection: (value: any) => void;
     setPredictedNodes: React.Dispatch<React.SetStateAction<PredictedNode[]>>;
     setEdges: React.Dispatch<React.SetStateAction<CanvasEdge[]>>;
-    
+
     // Handlers from other hooks
     startEdgeDrag: () => void;
     removeEdge: (edgeId: string) => void;
@@ -44,7 +44,7 @@ interface UsePortHandlersProps {
     isDuplicateEdge: (sourceNodeId: string, sourcePortId: string, targetNodeId: string, targetPortId: string) => boolean;
     generatePredictedNodes: (outputType: string, targetPos: Position) => PredictedNode[];
     generatePredictedOutputNodes: (inputType: string, targetPos: Position) => PredictedNode[];
-    
+
     // Utils
     isNodePredicted: (nodeId: string) => boolean;
 }
@@ -103,7 +103,7 @@ export const usePortHandlers = ({
             } else {
                 existingEdge = edges.findLast(e => e.target.nodeId === nodeId && e.target.portId === portId);
             }
-            
+
             if (existingEdge) {
                 startEdgeDrag();
                 const sourcePosKey = generatePortKey(existingEdge.source.nodeId, existingEdge.source.portId, existingEdge.source.portType as 'input' | 'output');
@@ -151,26 +151,26 @@ export const usePortHandlers = ({
             const startPosKey = generatePortKey(nodeId, portId, portType as 'input' | 'output');
             const startPos = portPositions[startPosKey];
             if (startPos) {
-                setEdgePreview({ 
-                    source: { nodeId, portId, portType, type }, 
-                    startPos, 
-                    targetPos: startPos 
+                setEdgePreview({
+                    source: { nodeId, portId, portType, type },
+                    startPos,
+                    targetPos: startPos
                 });
             }
             return;
         }
     }, [
-        edges, 
-        portPositions, 
-        nodes, 
-        startEdgeDrag, 
-        setPortClickStart, 
-        setEdgePreview, 
-        removeEdge, 
-        setIsDraggingInput, 
-        setIsDraggingOutput, 
-        setCurrentInputType, 
-        setCurrentOutputType, 
+        edges,
+        portPositions,
+        nodes,
+        startEdgeDrag,
+        setPortClickStart,
+        setEdgePreview,
+        removeEdge,
+        setIsDraggingInput,
+        setIsDraggingOutput,
+        setCurrentInputType,
+        setCurrentOutputType,
         setSourcePortForConnection
     ]);
 
@@ -187,11 +187,11 @@ export const usePortHandlers = ({
             );
 
         // Handle port click (generate predicted nodes)
-        if (isClickAction && 
+        if (isClickAction &&
             portClickStart.data.nodeId === nodeId &&
             portClickStart.data.portId === portId &&
             portClickStart.data.portType === portType) {
-            
+
             const portPosKey = generatePortKey(nodeId, portId, portType as 'input' | 'output');
             const portPos = portPositions[portPosKey];
 
@@ -276,7 +276,7 @@ export const usePortHandlers = ({
                 addEdge(newEdge);
                 clearPredictedNodes();
             }
-            
+
             setEdgePreview(null);
             setSnappedPortKey(null);
             setIsSnapTargetValid(true);
@@ -292,11 +292,17 @@ export const usePortHandlers = ({
             return;
         }
 
-        let newEdges = [...edges];
+        // Handle input port replacement (for non-multi inputs)
         if (portType === 'input') {
             const targetPort = findPortData(nodes, nodeId, portId, 'input');
             if (targetPort && !targetPort.multi) {
-                newEdges = newEdges.filter(edge => !(edge.target.nodeId === nodeId && edge.target.portId === portId));
+                // Remove existing edge for non-multi input port with history recording
+                const existingEdge = edges.find(edge =>
+                    edge.target.nodeId === nodeId && edge.target.portId === portId
+                );
+                if (existingEdge) {
+                    removeEdge(existingEdge.id); // This will record history
+                }
             }
         }
 
@@ -315,7 +321,8 @@ export const usePortHandlers = ({
             };
         }
 
-        setEdges([...newEdges, newEdge]);
+        // Use addEdge instead of setEdges to ensure history recording
+        addEdge(newEdge);
         setEdgePreview(null);
         setSnappedPortKey(null);
         setIsSnapTargetValid(true);

@@ -17,10 +17,10 @@
 
     background-color: $canvas-grid-background;
     background-image:
-        linear-gradient($canvas-grid-minor 1px, transparent 1px),
-        linear-gradient(90deg, $canvas-grid-minor 1px, transparent 1px),
-        linear-gradient($canvas-grid-major 1px, transparent 1px),
-        linear-gradient(90deg, $canvas-grid-major 1px, transparent 1px);
+        linear-gradient($canvas-grid-minor 3px, transparent 3px),
+        linear-gradient(90deg, $canvas-grid-minor 3px, transparent 3px),
+        linear-gradient($canvas-grid-major 3px, transparent 3px),
+        linear-gradient(90deg, $canvas-grid-major 3px, transparent 3px);
 
     background-size:
         $canvas-grid-size-minor $canvas-grid-size-minor,

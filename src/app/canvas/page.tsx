@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { showSuccessToastKo, showErrorToastKo, showLoadingToastKo, dismissToastKo } from '@/app/_common/utils/toastUtilsKo';
 import Canvas from '@/app/canvas/components/Canvas';
@@ -8,8 +8,10 @@ import SideMenu from '@/app/canvas/components/SideMenu';
 import ExecutionPanel from '@/app/canvas/components/ExecutionPanel';
 import NodeModal from '@/app/canvas/components/NodeModal';
 import AuthGuard from '@/app/_common/components/authGuard/AuthGuard';
+import HistoryPanel from '@/app/canvas/components/HistoryPanel';
 import { DeploymentModal } from '@/app/chat/components/DeploymentModal';
 import { useNodes } from '@/app/_common/utils/nodeHook';
+import { useHistoryManagement, createHistoryHelpers } from '@/app/canvas/components/Canvas/hooks/useHistoryManagement';
 import styles from '@/app/canvas/assets/PlateeRAG.module.scss';
 import {
     saveWorkflow,
@@ -63,6 +65,29 @@ function CanvasPageContent() {
     const [isDeploy, setIsDeploy] = useState(false);
     const [workflowDetailData, setWorkflowDetailData] = useState<any>(null);
     const [loadingCanvas, setLoadingCanvas] = useState(true);
+
+    // History 관리 상태
+    const historyManagement = useHistoryManagement();
+    const {
+        history,
+        currentHistoryIndex,
+        addHistoryEntry,
+        clearHistory,
+        canUndo,
+        canRedo,
+        undo,
+        redo,
+        jumpToHistoryIndex
+    } = historyManagement;
+
+    // historyHelpers를 useMemo로 메모이제이션하여 무한 루프 방지
+    const historyHelpers = useMemo(() => createHistoryHelpers(
+        addHistoryEntry,
+        historyManagement,
+        () => canvasRef.current ? (canvasRef.current as any).getCanvasState() : null
+    ), [addHistoryEntry, historyManagement]); // 의존성 최소화
+
+    const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
 
     // NodeModal 관련 상태
     const [nodeModalState, setNodeModalState] = useState<{
@@ -187,6 +212,10 @@ function CanvasPageContent() {
                 try {
                     const validState = ensureValidWorkflowState(savedState);
                     if (validState) {
+                        // History 초기화
+                        clearHistory();
+                        devLog.log('History cleared for localStorage workflow restore');
+
                         devLog.log(
                             'Loading workflow state to Canvas:',
                             validState,
@@ -230,7 +259,35 @@ function CanvasPageContent() {
         }
     }, [nodesInitialized, nodeSpecs]);
 
-    // 워크플로우 상태 변경 시 자동 저장
+    // Canvas 상태 복원자 설정
+    useEffect(() => {
+        // Canvas가 마운트된 후에 상태 복원자 설정
+        const setupRestorer = () => {
+            if (canvasRef.current) {
+                const canvasInstance = canvasRef.current as any;
+
+                // History 전용 상태 복원자 - view 복원하지 않음
+                if ('setCanvasStateRestorer' in historyHelpers) {
+                    historyHelpers.setCanvasStateRestorer((canvasState: any) => {
+                        devLog.log('History state restoration using loadCanvasStateWithoutView');
+                        if (canvasInstance.loadCanvasStateWithoutView) {
+                            canvasInstance.loadCanvasStateWithoutView(canvasState);
+                        } else {
+                            devLog.error('loadCanvasStateWithoutView method not found');
+                        }
+                    });
+                }
+                return true;
+            }
+            return false;
+        };
+
+        // 즉시 시도하고, 실패하면 약간의 지연 후 재시도
+        if (!setupRestorer()) {
+            const timer = setTimeout(setupRestorer, 100);
+            return () => clearTimeout(timer);
+        }
+    }, []); // 빈 의존성 배열    // 워크플로우 상태 변경 시 자동 저장
     const handleCanvasStateChange = (state: any) => {
         devLog.log('handleCanvasStateChange called with:', {
             hasState: !!state,
@@ -294,6 +351,10 @@ function CanvasPageContent() {
 
             // localStorage 데이터 초기화
             startNewWorkflow();
+
+            // History 초기화
+            clearHistory();
+            devLog.log('History cleared for new workflow');
 
             // Canvas 상태 초기화 (기존 Canvas 초기화 로직과 동일하게)
             if (canvasRef.current) {
@@ -439,6 +500,10 @@ function CanvasPageContent() {
         workflowName?: string,
     ) => {
         try {
+            // History 초기화
+            clearHistory();
+            devLog.log('History cleared for workflow load');
+
             if (canvasRef.current) {
                 const validState = ensureValidWorkflowState(workflowData);
                 (canvasRef.current as any).loadCanvasState(validState);
@@ -466,6 +531,10 @@ function CanvasPageContent() {
                 const json = event.target?.result as string;
                 const savedState = JSON.parse(json);
                 if (canvasRef.current) {
+                    // History 초기화
+                    clearHistory();
+                    devLog.log('History cleared for file load');
+
                     const validState = ensureValidWorkflowState(savedState);
                     (canvasRef.current as any).loadCanvasState(validState);
                     saveWorkflowState(validState);
@@ -790,6 +859,9 @@ function CanvasPageContent() {
                 isDeploy={isDeploy}
                 handleExecute={handleExecute}
                 isLoading={isExecuting}
+                onHistoryClick={() => setIsHistoryPanelOpen(!isHistoryPanelOpen)}
+                historyCount={history.length}
+                isHistoryPanelOpen={isHistoryPanelOpen}
             />
             <main className={styles.mainContent}>
                 <Canvas
@@ -797,6 +869,7 @@ function CanvasPageContent() {
                     onStateChange={handleCanvasStateChange}
                     nodesInitialized={nodesInitialized}
                     onOpenNodeModal={handleOpenNodeModal}
+                    historyHelpers={historyHelpers}
                     {...({} as any)}
                 />
                 {isMenuOpen && (
@@ -830,6 +903,16 @@ function CanvasPageContent() {
                 onSave={handleSaveNodeModal}
                 parameterName={nodeModalState.paramName}
                 initialValue={nodeModalState.currentValue}
+            />
+            <HistoryPanel
+                history={history}
+                currentHistoryIndex={currentHistoryIndex}
+                isOpen={isHistoryPanelOpen}
+                onClose={() => setIsHistoryPanelOpen(false)}
+                onClearHistory={clearHistory}
+                onJumpToHistoryIndex={jumpToHistoryIndex}
+                canUndo={canUndo}
+                canRedo={canRedo}
             />
             <input
                 type="file"

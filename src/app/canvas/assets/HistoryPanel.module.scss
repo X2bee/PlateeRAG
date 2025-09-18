@@ -1,0 +1,259 @@
+// 사이드 패널 스타일 - 오른쪽에서 슬라이드
+.panel {
+    position: fixed;
+    top: 60px; // Header 높이만큼 아래로
+    right: 0;
+    width: 450px;
+    height: calc(100vh - 60px);
+    background: white;
+    border-left: 1px solid #e5e7eb;
+    box-shadow: -4px 0 15px -3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 999;
+
+    &.open {
+        transform: translateX(0);
+    }
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+    flex-shrink: 0;
+}
+
+.title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.headerControls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.count {
+    font-size: 0.875rem;
+    color: #6b7280;
+    padding: 0.25rem 0.75rem;
+    background: #e5e7eb;
+    border-radius: 6px;
+}
+
+.clearButton {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: white;
+    color: #ef4444;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+        background: #fef2f2;
+        border-color: #ef4444;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.closeButton {
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    background: #e5e7eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.25rem;
+    color: #6b7280;
+    transition: all 0.2s;
+
+    &:hover {
+        background: #d1d5db;
+        color: #374151;
+    }
+}
+
+.historyList {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.emptyState {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+.historyItem {
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid #f3f4f6;
+    transition: all 0.2s;
+    cursor: pointer;
+
+    &:hover {
+        background: #f9fafb;
+    }
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    // Photoshop-style states
+    &.active {
+        background: #dbeafe;
+        border-left: 3px solid #3b82f6;
+        font-weight: 600;
+    }
+
+    &.future {
+        opacity: 0.4;
+        background: #f9fafb;
+    }
+
+    &.past {
+        opacity: 0.7;
+    }
+
+    &.currentState {
+        background: #f0fdf4;
+        border-left: 3px solid #10b981;
+
+        &.active {
+            background: #dcfce7;
+            border-left: 3px solid #10b981;
+        }
+    }
+}
+
+.itemHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.actionBadge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.currentStateBadge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    background: #10b981;
+}
+
+.timestamp {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+}
+
+.description {
+    color: #374151;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+}
+
+.details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.detailItem {
+    font-size: 0.75rem;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+}
+
+/* 스크롤바 스타일링 */
+.historyList {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f3f4f6;
+}
+
+.historyList::-webkit-scrollbar {
+    width: 6px;
+}
+
+.historyList::-webkit-scrollbar-track {
+    background: #f3f4f6;
+}
+
+.historyList::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+}
+
+.historyList::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .panel {
+        width: 100%;
+        right: 0;
+    }
+
+    .header {
+        padding: 0.75rem 1rem;
+    }
+
+    .title {
+        font-size: 1rem;
+    }
+
+    .historyItem {
+        padding: 0.75rem 1rem;
+    }
+
+    .itemHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .details {
+        flex-direction: column;
+    }
+}

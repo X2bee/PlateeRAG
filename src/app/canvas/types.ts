@@ -123,6 +123,7 @@ export interface DragState {
     nodeId?: string;
     offsetX?: number;
     offsetY?: number;
+    initialNodePosition?: Position;
 }
 
 export interface PredictedNode {
@@ -180,7 +181,7 @@ export interface NodeProps {
     onPortMouseUp: (data: PortMouseEventData, mouseEvent?: React.MouseEvent) => void;
     registerPortRef: (nodeId: string, portId: string, portType: string, el: HTMLElement | null) => void;
     snappedPortKey: string | null;
-    onParameterChange: (nodeId: string, paramId: string, value: string | number | boolean) => void;
+    onParameterChange: (nodeId: string, paramId: string, value: string | number | boolean, skipHistory?: boolean) => void;
     isSnapTargetInvalid: boolean;
     isPreview?: boolean;
     onNodeNameChange: (nodeId: string, newName: string) => void;
@@ -263,18 +264,43 @@ export interface CanvasProps {
     onStateChange?: (state: CanvasState) => void;
     nodesInitialized?: boolean;
     onOpenNodeModal?: (nodeId: string, paramId: string, paramName: string, currentValue: string) => void;
+    historyHelpers?: {
+        recordNodeMove: (nodeId: string, fromPosition: { x: number; y: number }, toPosition: { x: number; y: number }) => void;
+        recordNodeCreate: (nodeId: string, nodeType: string, position: { x: number; y: number }) => void;
+        recordNodeDelete: (nodeId: string, nodeType: string) => void;
+        recordEdgeCreate: (edgeId: string, sourceId: string, targetId: string) => void;
+        recordEdgeDelete: (edgeId: string, sourceId: string, targetId: string) => void;
+        recordNodeUpdate: (nodeId: string, field: string, oldValue: any, newValue: any) => void;
+        recordEdgeUpdate: (edgeId: string, field: string, oldValue: any, newValue: any) => void;
+        recordMultiAction: (description: string, actions: Array<{
+            actionType: 'NODE_CREATE' | 'EDGE_CREATE' | 'NODE_DELETE' | 'EDGE_DELETE' | 'NODE_UPDATE' | 'EDGE_UPDATE' | 'NODE_MOVE' | 'MULTI_ACTION';
+            nodeId?: string;
+            edgeId?: string;
+            nodeType?: string;
+            sourceId?: string;
+            targetId?: string;
+            position?: { x: number; y: number };
+        }>) => void;
+        undo: () => any;
+        redo: () => any;
+        canUndo: boolean;
+        canRedo: boolean;
+        setCurrentStateCapture: (captureFunction: () => any) => void;
+        setCanvasStateRestorer: (restorer: (canvasState: any) => void) => void;
+    };
 }
 
 export interface CanvasRef {
     getCanvasState: () => CanvasState;
     addNode: (nodeData: NodeData, clientX: number, clientY: number) => void;
     loadCanvasState: (state: Partial<CanvasState>) => void;
+    loadCanvasStateWithoutView: (state: Partial<CanvasState>) => void;
     loadWorkflowState: (state: Partial<CanvasState>) => void;
     getCenteredView: () => View;
     clearSelectedNode: () => void;
     validateAndPrepareExecution: () => ExecutionValidationResult;
     setAvailableNodeSpecs: (nodeSpecs: NodeData[]) => void;
-    updateNodeParameter: (nodeId: string, paramId: string, value: string) => void;
+    updateNodeParameter: (nodeId: string, paramId: string, value: string | number | boolean, skipHistory?: boolean) => void;
 }
 
 // ========== Execution Panel Types ==========

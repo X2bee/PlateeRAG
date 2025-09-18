@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, KeyboardEvent, ChangeEvent } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from '@/app/canvas/assets/Header.module.scss';
-import { LuPanelRightOpen, LuSave, LuCheck, LuX, LuPencil, LuFileText, LuArrowLeft } from "react-icons/lu";
+import { LuPanelRightOpen, LuSave, LuCheck, LuX, LuPencil, LuFileText, LuArrowLeft, LuHistory } from "react-icons/lu";
 import { getWorkflowName, saveWorkflowName } from '@/app/_common/utils/workflowStorage';
 import { FiUpload } from 'react-icons/fi';
 import { BiCodeAlt } from "react-icons/bi";
+import { showHistoryClearWarningKo } from '@/app/_common/utils/toastUtilsKo';
 
 // Type definitions
 interface HeaderProps {
@@ -21,6 +21,9 @@ interface HeaderProps {
     isDeploy?: boolean;
     handleExecute?: () => void;
     isLoading?: boolean;
+    onHistoryClick?: () => void;
+    historyCount?: number;
+    isHistoryPanelOpen?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -33,7 +36,10 @@ const Header: React.FC<HeaderProps> = ({
     onDeploy,
     isDeploy,
     handleExecute,
-    isLoading
+    isLoading,
+    onHistoryClick,
+    historyCount = 0,
+    isHistoryPanelOpen = false
 }) => {
     const [workflowName, setWorkflowName] = useState<string>('Workflow');
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -43,10 +49,25 @@ const Header: React.FC<HeaderProps> = ({
 
     const handleBackClick = (): void => {
         try {
-            if (onBack) {
-                onBack();
+            // 히스토리가 있는 경우 경고 표시
+            if (historyCount > 0) {
+                showHistoryClearWarningKo(
+                    () => {
+                        // 확인 시 뒤로가기 실행
+                        if (onBack) {
+                            onBack();
+                        } else {
+                            router.back();
+                        }
+                    }
+                );
             } else {
-                router.back();
+                // 히스토리가 없으면 바로 뒤로가기
+                if (onBack) {
+                    onBack();
+                } else {
+                    router.back();
+                }
             }
         } catch {
             // ignore
@@ -111,11 +132,9 @@ const Header: React.FC<HeaderProps> = ({
                 <button onClick={handleBackClick} className={styles.backButton} title="뒤로가기">
                     <LuArrowLeft />
                 </button>
-                <Link href="/main" className={styles.logoLink}>
-                    <div className={styles.logo}>
-                        XGEN
-                    </div>
-                </Link>
+                <div className={styles.logo}>
+                    XGEN
+                </div>
                 <div className={styles.workflowNameSection}>
                     {isEditing ? (
                         <div className={styles.editMode}>
@@ -175,6 +194,18 @@ const Header: React.FC<HeaderProps> = ({
                 <button onClick={onSave} className={styles.menuButton} title="Save Workflow">
                     <LuSave />
                 </button>
+                {onHistoryClick && (
+                    <button
+                        onClick={onHistoryClick}
+                        className={`${styles.menuButton} ${isHistoryPanelOpen ? styles.active : ''}`}
+                        title="작업 히스토리"
+                    >
+                        <LuHistory />
+                        {historyCount > 0 && (
+                            <span className={styles.historyBadge}>{historyCount}</span>
+                        )}
+                    </button>
+                )}
                 <button onClick={onMenuClick} className={styles.menuButton}>
                     <LuPanelRightOpen />
                 </button>

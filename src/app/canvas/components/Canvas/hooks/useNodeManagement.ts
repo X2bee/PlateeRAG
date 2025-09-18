@@ -1,41 +1,58 @@
 import { useState, useCallback } from 'react';
-import type { CanvasNode, Parameter, DeletedItem } from '@/app/canvas/types';
+import type { CanvasNode, Parameter } from '@/app/canvas/types';
 import { devLog } from '@/app/_common/utils/logger';
+
+interface UseNodeManagementProps {
+    historyHelpers?: {
+        recordNodeMove: (nodeId: string, fromPosition: { x: number; y: number }, toPosition: { x: number; y: number }) => void;
+        recordNodeCreate: (nodeId: string, nodeType: string, position: { x: number; y: number }) => void;
+        recordNodeDelete: (nodeId: string, nodeType: string) => void;
+        recordNodeUpdate: (nodeId: string, field: string, oldValue: any, newValue: any) => void;
+    };
+}
 
 interface UseNodeManagementReturn {
     nodes: CanvasNode[];
     setNodes: React.Dispatch<React.SetStateAction<CanvasNode[]>>;
     copiedNode: CanvasNode | null;
-    lastDeleted: DeletedItem | null;
-    addNode: (node: CanvasNode) => void;
+    addNode: (node: CanvasNode, skipHistory?: boolean) => void;
     deleteNode: (nodeId: string, connectedEdges: any[]) => void;
     copyNode: (nodeId: string) => void;
     pasteNode: () => string | null;
-    undoDelete: () => CanvasNode | null;
-    updateNodeParameter: (nodeId: string, paramId: string, value: string | number | boolean) => void;
+    updateNodeParameter: (nodeId: string, paramId: string, value: string | number | boolean, skipHistory?: boolean) => void;
     updateNodeName: (nodeId: string, newName: string) => void;
     updateParameterName: (nodeId: string, paramId: string, newName: string) => void;
     addParameter: (nodeId: string, newParameter: Parameter) => void;
     deleteParameter: (nodeId: string, paramId: string) => void;
 }
 
-export const useNodeManagement = (): UseNodeManagementReturn => {
+export const useNodeManagement = ({ historyHelpers }: UseNodeManagementProps = {}): UseNodeManagementReturn => {
     const [nodes, setNodes] = useState<CanvasNode[]>([]);
     const [copiedNode, setCopiedNode] = useState<CanvasNode | null>(null);
-    const [lastDeleted, setLastDeleted] = useState<DeletedItem | null>(null);
 
-    const addNode = useCallback((node: CanvasNode) => {
+    const addNode = useCallback((node: CanvasNode, skipHistory = false) => {
+        devLog.log('=== addNode called ===', node.id, node.data.nodeName, node.position, 'skipHistory:', skipHistory);
         setNodes(prev => [...prev, node]);
-    }, []);
+        // 히스토리 기록
+        if (!skipHistory && historyHelpers?.recordNodeCreate) {
+            devLog.log('Recording node creation in history:', node.id);
+            historyHelpers.recordNodeCreate(node.id, node.data.nodeName, node.position);
+        } else if (!skipHistory) {
+            devLog.warn('historyHelpers.recordNodeCreate not available');
+        }
+    }, [historyHelpers]);
 
     const deleteNode = useCallback((nodeId: string, connectedEdges: any[]) => {
         const nodeToDelete = nodes.find(node => node.id === nodeId);
         if (nodeToDelete) {
-            setLastDeleted({ node: nodeToDelete, edges: connectedEdges });
             setNodes(prev => prev.filter(node => node.id !== nodeId));
-            devLog.log('Node deleted and saved for undo:', nodeToDelete.data.nodeName);
+            // 히스토리 기록
+            if (historyHelpers?.recordNodeDelete) {
+                historyHelpers.recordNodeDelete(nodeId, nodeToDelete.data.nodeName);
+            }
+            devLog.log('Node deleted:', nodeToDelete.data.nodeName);
         }
-    }, [nodes]);
+    }, [nodes, historyHelpers]);
 
     const copyNode = useCallback((nodeId: string) => {
         const nodeToCopy = nodes.find(node => node.id === nodeId);
@@ -57,26 +74,20 @@ export const useNodeManagement = (): UseNodeManagementReturn => {
             };
 
             setNodes(prev => [...prev, newNode]);
+
+            // 히스토리 기록
+            if (historyHelpers?.recordNodeCreate) {
+                historyHelpers.recordNodeCreate(newNode.id, newNode.data.nodeName, newNode.position);
+            }
+
             devLog.log('Node pasted:', newNode.data.nodeName);
             return newNode.id;
         }
         return null;
-    }, [copiedNode]);
+    }, [copiedNode, historyHelpers]);
 
-    const undoDelete = useCallback((): CanvasNode | null => {
-        if (lastDeleted) {
-            setNodes(prev => [...prev, lastDeleted.node]);
-            devLog.log('Node restored:', lastDeleted.node.data.nodeName);
-            const restoredNode = lastDeleted.node;
-            setLastDeleted(null);
-            return restoredNode;
-        }
-        return null;
-    }, [lastDeleted]);
-
-    const updateNodeParameter = useCallback((nodeId: string, paramId: string, value: string | number | boolean): void => {
-        devLog.log('=== Canvas Parameter Change ===');
-        devLog.log('Received:', { nodeId, paramId, value });
+    const updateNodeParameter = useCallback((nodeId: string, paramId: string, value: string | number | boolean, skipHistory?: boolean): void => {
+        devLog.log('updateNodeParameter called:', { nodeId, paramId, value, skipHistory });
 
         setNodes(prevNodes => {
             const targetNodeIndex = prevNodes.findIndex(node => node.id === nodeId);
@@ -86,8 +97,8 @@ export const useNodeManagement = (): UseNodeManagementReturn => {
             }
 
             const targetNode = prevNodes[targetNodeIndex];
-            if (!targetNode.data.parameters || !Array.isArray(targetNode.data.parameters)) {
-                devLog.warn('No parameters found in target node');
+            if (!targetNode.data.parameters) {
+                devLog.warn('Target node has no parameters:', nodeId);
                 return prevNodes;
             }
 
@@ -103,6 +114,16 @@ export const useNodeManagement = (): UseNodeManagementReturn => {
             if (targetParam.value === newValue) {
                 devLog.log('Parameter value unchanged, skipping update');
                 return prevNodes;
+            }
+
+            // 히스토리 기록 (skipHistory가 true이면 기록하지 않음)
+            if (!skipHistory && historyHelpers?.recordNodeUpdate) {
+                devLog.log('Recording parameter update in history:', { nodeId, paramName: targetParam.name, oldValue: targetParam.value, newValue });
+                historyHelpers.recordNodeUpdate(nodeId, targetParam.name, targetParam.value, newValue);
+            } else if (skipHistory) {
+                devLog.log('Skipping history record for parameter update (API/init):', { nodeId, paramName: targetParam.name, newValue });
+            } else {
+                devLog.warn('historyHelpers.recordNodeUpdate not available');
             }
 
             const newNodes = [...prevNodes];
@@ -121,7 +142,7 @@ export const useNodeManagement = (): UseNodeManagementReturn => {
             devLog.log('Parameter update completed successfully');
             return newNodes;
         });
-    }, []);
+    }, [historyHelpers]);
 
     const updateNodeName = useCallback((nodeId: string, newName: string): void => {
         setNodes(prevNodes => {
@@ -251,12 +272,10 @@ export const useNodeManagement = (): UseNodeManagementReturn => {
         nodes,
         setNodes,
         copiedNode,
-        lastDeleted,
         addNode,
         deleteNode,
         copyNode,
         pasteNode,
-        undoDelete,
         updateNodeParameter,
         updateNodeName,
         updateParameterName,
