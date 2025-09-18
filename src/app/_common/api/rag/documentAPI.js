@@ -19,6 +19,37 @@ const encodeFilePath = (filePath) => {
     }).join('/');
 };
 
+/**
+ * Content-Disposition 헤더에서 파일명을 추출
+ * @param {string|null} contentDisposition
+ * @returns {string|null}
+ */
+const extractFileNameFromContentDisposition = (contentDisposition) => {
+    if (!contentDisposition) return null;
+
+    // RFC 5987 형식 (filename*=)
+    const filenameStarMatch = contentDisposition.match(/filename\*=([^;]+)/i);
+    if (filenameStarMatch?.[1]) {
+        const value = filenameStarMatch[1].trim();
+        const parts = value.split("''");
+        const encodedFileName = parts.length === 2 ? parts[1] : value;
+        try {
+            return decodeURIComponent(encodedFileName.replace(/^"|"$/g, ''));
+        } catch (error) {
+            console.warn('Failed to decode filename* header value:', error);
+            return encodedFileName.replace(/^"|"$/g, '');
+        }
+    }
+
+    // 기본 형식 (filename=)
+    const filenameMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+    if (filenameMatch?.[1]) {
+        return filenameMatch[1];
+    }
+
+    return null;
+};
+
 
 /**
  * 파일 경로를 기반으로 문서를 가져오는 API (캐싱 지원)
@@ -283,6 +314,52 @@ export const checkDocumentAccess = async (filePath, mode = null, userId = null) 
     } catch (error) {
         console.error('문서 접근 권한 확인 오류:', error);
         return false;
+    }
+};
+
+/**
+ * 파일 경로를 통해 문서를 다운로드 (Blob 반환)
+ * @param {string} filePath - 문서 파일 경로
+ * @param {string|null} mode - 현재 모드 ('deploy' 등)
+ * @param {string|null} userId - 사용자 ID (deploy 모드에서 필요)
+ * @returns {Promise<{blob: Blob, fileName: string | null}>}
+ */
+export const downloadDocumentByPath = async (filePath, mode = null, userId = null) => {
+    try {
+        const requestBody = {
+            file_path: encodeFilePath(filePath),
+        };
+
+        if (mode === 'deploy' && userId) {
+            requestBody.user_id = userId;
+            devLog.log(`🔑 [DocumentAPI] Deploy mode: Adding user_id for download: ${userId}`);
+        }
+
+        const endpoint = `${API_BASE_URL}/api/documents/download`;
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        };
+
+        const response = mode === 'deploy'
+            ? await fetch(endpoint, requestOptions)
+            : await apiClient(endpoint, requestOptions);
+
+        if (!response.ok) {
+            throw new Error(`문서를 다운로드하는데 실패했습니다: ${response.status} ${response.statusText}`);
+        }
+
+        const blob = await response.blob();
+        const disposition = response.headers.get('Content-Disposition');
+        const fileName = extractFileNameFromContentDisposition(disposition);
+
+        return { blob, fileName };
+    } catch (error) {
+        console.error('문서 다운로드 오류:', error);
+        throw error;
     }
 };
 

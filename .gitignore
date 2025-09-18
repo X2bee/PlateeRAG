@@ -42,5 +42,6 @@ next-env.d.ts
 
 CLAUDE.md
 INSTRUCTION.md
+AGENTS.md
 
 public/sample_1.pdf
