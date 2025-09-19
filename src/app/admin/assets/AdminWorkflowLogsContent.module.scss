@@ -478,3 +478,164 @@
         max-width: 80px;
     }
 }
+
+// 모달 관련 스타일
+.cellContent {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: $admin-spacing-xs;
+
+    &:hover .expandButton {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+.expandButton {
+    position: absolute;
+    right: $admin-spacing-xs;
+    top: 50%;
+    transform: translateY(-50%);
+    background: $admin-primary;
+    color: $admin-text-inverse;
+    border: none;
+    border-radius: $admin-radius-sm;
+    padding: 0;
+    font-size: 10px !important;
+    font-family: $admin-font-family;
+    cursor: pointer;
+    transition: $admin-transition;
+    flex-shrink: 0;
+    opacity: 0;
+    visibility: hidden;
+    width: 24px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+
+    &:hover {
+        background: $admin-primary-hover;
+    }
+}
+
+// Modal styles
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: $admin-bg-primary;
+    border-radius: $admin-radius-md;
+    box-shadow: $admin-shadow-xl;
+    min-width: 30vw;
+    max-width: 60vw;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid $admin-border;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $admin-spacing-md $admin-spacing-lg;
+    border-bottom: 1px solid $admin-border;
+    background: $admin-bg-secondary;
+    border-radius: $admin-radius-md $admin-radius-md 0 0;
+
+    h4 {
+        margin: 0;
+        font-size: $admin-font-size-lg;
+        font-weight: 600;
+        color: $admin-text-primary;
+    }
+}
+
+.modalFooter {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: $admin-spacing-sm $admin-spacing-lg;
+    border-top: 1px solid $admin-border;
+    background: $admin-bg-secondary;
+    border-radius: 0 0 $admin-radius-md $admin-radius-md;
+}
+
+.copyButton {
+    padding: $admin-spacing-xs $admin-spacing-md;
+    background: $admin-primary;
+    color: $admin-text-inverse;
+    border: none;
+    border-radius: $admin-radius-md;
+    cursor: pointer;
+    font-size: $admin-font-size-sm;
+    font-weight: 500;
+    font-family: $admin-font-family;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: $admin-spacing-xs;
+    min-width: 80px;
+    justify-content: center;
+
+    &:hover {
+        background: $admin-primary-hover;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    &:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.modalCloseButton {
+    background: none;
+    border: none;
+    font-size: $admin-font-size-2xl;
+    cursor: pointer;
+    color: $admin-text-secondary;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $admin-radius-sm;
+    transition: $admin-transition;
+
+    &:hover {
+        background: $admin-bg-hover;
+        color: $admin-text-primary;
+    }
+}
+
+.modalBody {
+    padding: $admin-spacing-md;
+    overflow: auto;
+    flex: 1;
+}
+
+.modalText {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: $admin-font-size-sm;
+    line-height: 1.5;
+    color: $admin-text-primary;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+}

@@ -578,7 +578,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: $admin-spacing-lg;
+    padding: $admin-spacing-md $admin-spacing-lg;
     border-bottom: 1px solid $admin-border;
     background: $admin-bg-secondary;
     border-radius: $admin-radius-md $admin-radius-md 0 0;

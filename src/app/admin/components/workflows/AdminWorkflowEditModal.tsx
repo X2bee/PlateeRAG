@@ -86,7 +86,7 @@ const AdminWorkflowEditModal: React.FC<AdminWorkflowEditModalProps> = ({
                 is_shared: isShared,
                 share_group: isShared ? shareGroup || null : null,
                 enable_deploy: toggleDeploy,
-                inquire_deploy: null,
+                inquire_deploy: Boolean(workflow.inquire_deploy),
                 is_accepted: isAccepted,
                 user_id: workflow.user_id
             };

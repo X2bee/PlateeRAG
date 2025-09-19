@@ -5,6 +5,7 @@ import { getAllIOLogs } from '@/app/admin/api/workflow';
 import { devLog } from '@/app/_common/utils/logger';
 import { showValidationErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/admin/assets/AdminWorkflowLogsContent.module.scss';
+import AdminWorkflowChatLogsDetailModal from './AdminWorkflowChatLogsDetailModal';
 
 interface WorkflowLog {
     id: number;
@@ -45,6 +46,10 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
     const [hasNextPage, setHasNextPage] = useState(false);
     const [showProcessedOutput, setShowProcessedOutput] = useState(true); // 기본값: 가공
 
+    // 모달 관련 상태
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalContent, setModalContent] = useState<string | null>(null);
+
     const PAGE_SIZE = 250;
 
     const parseActualOutput = (output: string | null | undefined): string => {
@@ -62,6 +67,10 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
 
         if (processedOutput.includes('<TOOLOUTPUTLOG>') && processedOutput.includes('</TOOLOUTPUTLOG>')) {
             processedOutput = processedOutput.replace(/<TOOLOUTPUTLOG>[\s\S]*?<\/TOOLOUTPUTLOG>/g, '');
+        }
+
+        if (processedOutput.includes('<at>') && processedOutput.includes('</at>')) {
+            processedOutput = processedOutput.replace(/<at>[\s\S]*?<\/at>/gi, '');
         }
 
         if (processedOutput.includes('[Cite.') && processedOutput.includes('}]')) {
@@ -407,6 +416,43 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
         return convertOutputToString(outputData);
     };
 
+    // 모달 열기
+    const openModal = (content: string) => {
+        setModalContent(content);
+        setIsModalOpen(true);
+    };
+
+    // 모달 닫기
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setModalContent(null);
+    };
+
+    // 값 표시 함수
+    const renderCellValue = (value: any, maxLength: number = 50) => {
+        if (value === null || value === undefined) {
+            return '-';
+        }
+
+        const stringValue = String(value);
+        if (stringValue.length <= maxLength) {
+            return stringValue;
+        }
+
+        return (
+            <div className={styles.cellContent}>
+                <span>{stringValue.substring(0, maxLength)}</span>
+                <button
+                    className={styles.expandButton}
+                    onClick={() => openModal(stringValue)}
+                    title="전체 내용 보기"
+                >
+                    ...
+                </button>
+            </div>
+        );
+    };
+
     if (loading) {
         return (
             <div className={styles.container}>
@@ -645,14 +691,14 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
                                     <td className={styles.workflowName} title={log.workflow_name}>
                                         {truncateText(log.workflow_name, 30)}
                                     </td>
-                                    <td className={styles.interactionId} title={log.interaction_id}>
-                                        {truncateText(log.interaction_id, 20)}
+                                    <td className={styles.interactionId}>
+                                        {renderCellValue(log.interaction_id, 20)}
                                     </td>
-                                    <td className={styles.dataCell} title={log.input_data || ''}>
-                                        {truncateText(log.input_data)}
+                                    <td className={styles.dataCell}>
+                                        {renderCellValue(getDisplayOutput(log.input_data))}
                                     </td>
-                                    <td className={styles.dataCell} title={getDisplayOutput(log.output_data) || ''}>
-                                        {truncateText(getDisplayOutput(log.output_data))}
+                                    <td className={styles.dataCell}>
+                                        {renderCellValue(getDisplayOutput(log.output_data))}
                                     </td>
                                     <td className={styles.score}>
                                         {formatScore(log.llm_eval_score)}
@@ -668,6 +714,13 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* 모달 */}
+            <AdminWorkflowChatLogsDetailModal
+                isOpen={isModalOpen}
+                content={modalContent}
+                onClose={closeModal}
+            />
         </div>
     );
 };
