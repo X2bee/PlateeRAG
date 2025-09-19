@@ -185,9 +185,9 @@ const AdminWorkflowControll: React.FC = () => {
             const updateDict = {
                 enable_deploy: true,
                 inquire_deploy: false,
-                is_accepted: null,
-                is_shared: null,
-                share_group: null,
+                is_accepted: Boolean(workflow.is_accepted),
+                is_shared: Boolean(workflow.is_shared),
+                share_group: workflow.share_group || null,
                 user_id: workflow.user_id
             };
 
@@ -208,9 +208,9 @@ const AdminWorkflowControll: React.FC = () => {
             const updateDict = {
                 enable_deploy: false,
                 inquire_deploy: false,
-                is_accepted: null,
-                is_shared: null,
-                share_group: null,
+                is_accepted: Boolean(workflow.is_accepted),
+                is_shared: Boolean(workflow.is_shared),
+                share_group: workflow.share_group || null,
                 user_id: workflow.user_id
             };
 

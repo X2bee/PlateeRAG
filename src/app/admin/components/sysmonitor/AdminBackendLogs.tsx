@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { getBackendLogs } from '@/app/admin/api/admin';
 import { devLog } from '@/app/_common/utils/logger';
 import { showValidationErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
-import AdminBackendLogDetailModal from '@/app/admin/components/security/AdminBackendLogDetailModal';
+import AdminBackendLogDetailModal from '@/app/admin/components/sysmonitor/AdminBackendLogDetailModal';
 import styles from '@/app/admin/assets/AdminBackendLogs.module.scss';
 
 interface BackendLog {
