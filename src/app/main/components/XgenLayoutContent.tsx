@@ -4,7 +4,7 @@ import React, { useState, useMemo, createContext, useContext, useEffect } from '
 import { useSearchParams } from 'next/navigation';
 import XgenPageContent from '@/app/main/components/XgenPageContent';
 import XgenSidebar from '@/app/main/sidebar/XgenSidebar';
-import { getChatItems, getWorkflowItems, getTrainItems } from '@/app/main/sidebar/sidebarConfig';
+import { getChatItems, getWorkflowItems, getTrainItems, getDataItems } from '@/app/main/sidebar/sidebarConfig';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import styles from '@/app/main/workflowSection/assets/MainPage.module.scss';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -36,7 +36,7 @@ export default function XgenLayoutContent() {
         if (!isInitialized) return;
 
         const view = searchParams.get('view');
-        const allValidSections = [...getChatItems, ...getWorkflowItems, ...getTrainItems];
+        const allValidSections = [...getChatItems, ...getWorkflowItems, ...getTrainItems, ...getDataItems];
 
         // 접근 가능한 첫 번째 섹션을 찾기
         const getAccessibleSection = () => {
@@ -45,8 +45,8 @@ export default function XgenLayoutContent() {
                 if (getChatItems.includes(view)) {
                     return view;
                 }
-                // 워크플로우 및 모델 섹션은 권한 확인
-                if (getWorkflowItems.includes(view) || getTrainItems.includes(view)) {
+                // 워크플로우, 모델, 데이터 섹션은 권한 확인
+                if (getWorkflowItems.includes(view) || getTrainItems.includes(view) || getDataItems.includes(view)) {
                     if (hasAccessToSection(view)) {
                         return view;
                     }
@@ -66,7 +66,14 @@ export default function XgenLayoutContent() {
                 }
             }
 
-            // 3. 모델 섹션 시도
+            // 3. 데이터 섹션 시도
+            for (const section of getDataItems) {
+                if (hasAccessToSection(section)) {
+                    return section;
+                }
+            }
+
+            // 4. 모델 섹션 시도
             for (const section of getTrainItems) {
                 if (hasAccessToSection(section)) {
                     return section;
@@ -92,7 +99,8 @@ export default function XgenLayoutContent() {
         const chatItems = getChatItems;
         const workflowItems = getWorkflowItems;
         const trainItems = getTrainItems;
-        const allItems = [...chatItems, ...workflowItems, ...trainItems];
+        const dataItems = getDataItems;
+        const allItems = [...chatItems, ...workflowItems, ...trainItems, ...dataItems];
 
         if (allItems.includes(id)) {
             navigateToView(id);

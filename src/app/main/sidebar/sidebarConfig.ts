@@ -6,6 +6,7 @@ import {
     FiMessageCircle,
     FiFile,
     FiBarChart2,
+    FiDatabase,
 } from 'react-icons/fi';
 import { RiChatSmileAiLine } from "react-icons/ri";
 import { LuBrainCircuit } from "react-icons/lu";
@@ -62,6 +63,17 @@ export const getWorkflowSidebarItems = (): SidebarItem[] => [
 
 export const getTrainItems = ['train', 'train-monitor', 'eval', 'storage'];
 
+export const getDataItems = ['data-station'];
+
+export const getDataSidebarItems = (): SidebarItem[] => [
+    {
+        id: 'data-station',
+        title: '데이터 스테이션',
+        description: '데이터 매니저를 생성하고 관리합니다',
+        icon: React.createElement(FiDatabase),
+    },
+];
+
 export const getTrainSidebarItems = (): SidebarItem[] => [
     {
         id: 'train',
@@ -88,6 +100,22 @@ export const getTrainSidebarItems = (): SidebarItem[] => [
         icon: React.createElement(HiSaveAs),
     },
 ];
+
+/**
+ * 사용자 권한에 따라 데이터 아이템 필터링
+ * @param hasAccessToSection - 섹션 접근 권한 확인 함수
+ * @returns 접근 가능한 데이터 아이템들
+ */
+export const getFilteredDataSidebarItems = (hasAccessToSection: (sectionId: string) => boolean): SidebarItem[] => {
+    const allItems = getDataSidebarItems();
+    const filteredItems = allItems.filter(item => {
+        const hasAccess = hasAccessToSection(item.id);
+        devLog.log(`SidebarConfig: Checking data item '${item.id}': ${hasAccess}`);
+        return hasAccess;
+    });
+    devLog.log('SidebarConfig: Filtered data items:', filteredItems.map(item => item.id));
+    return filteredItems;
+};
 
 /**
  * 사용자 권한에 따라 워크플로우 아이템 필터링

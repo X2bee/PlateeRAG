@@ -16,6 +16,9 @@ import EvalPageContent from '@/app/main/modelSection/components/EvalPageContent'
 import TrainPageContent from '@/app/main/modelSection/components/TrainPageContent';
 import StoragePageContent from '@/app/main/modelSection/components/StoragePageContent';
 
+// Data Page Components
+import DataStation from '@/app/main/dataSection/components/DataStation';
+
 // Chat Page Components
 import ChatHistory from '@/app/main/chatSection/components/ChatHistory';
 import CurrentChatInterface from '@/app/main/chatSection/components/CurrentChatInterface';
@@ -25,7 +28,8 @@ import ChatContent from '@/app/main/chatSection/components/ChatContent';
 import {
     getChatItems,
     getWorkflowItems,
-    getTrainItems
+    getTrainItems,
+    getDataItems
 } from '@/app/main/sidebar/sidebarConfig';
 
 interface XgenPageContentProps {
@@ -95,7 +99,7 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
         }
 
         // 권한이 필요한 섹션에 대한 접근 권한 확인
-        const needsPermission = getWorkflowItems.includes(activeSection) || getTrainItems.includes(activeSection);
+        const needsPermission = getWorkflowItems.includes(activeSection) || getTrainItems.includes(activeSection) || getDataItems.includes(activeSection);
         if (needsPermission && !hasAccessToSection(activeSection)) {
             return (
                 <ContentArea
@@ -164,6 +168,17 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
                 return <EvalPageContent />;
             case 'storage':
                 return <StoragePageContent />;
+
+            // 데이터 섹션
+            case 'data-station':
+                return (
+                    <ContentArea
+                        title="데이터 스테이션"
+                        description="데이터 매니저를 생성하고 관리합니다."
+                    >
+                        <DataStation />
+                    </ContentArea>
+                );
 
             // 기본값
             default:

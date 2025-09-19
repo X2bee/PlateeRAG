@@ -237,3 +237,136 @@ export const formatResourceUsage = (memoryMb, cpuPercent) => {
         }
     };
 };
+
+/**
+ * Huggingface 데이터셋 다운로드 및 적재
+ * @param {string} managerId - 매니저 ID
+ * @param {string} repoId - Huggingface 리포지토리 ID (예: "squad")
+ * @param {string} [filename] - 특정 파일명 (선택사항)
+ * @param {string} [split] - 데이터 분할 (예: "train")
+ * @returns {Promise<Object>} 다운로드 결과
+ */
+export const downloadDataset = async (managerId, repoId, filename = null, split = null) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID is required');
+        }
+        if (!repoId) {
+            throw new Error('Repository ID is required');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+            repo_id: repoId
+        };
+
+        if (filename) {
+            requestBody.filename = filename;
+        }
+        if (split) {
+            requestBody.split = split;
+        }
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/hf/download-dataset`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        const data = await response.json();
+        devLog.info(`Dataset downloaded and loaded for manager ${managerId} from ${repoId}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to download dataset for manager ${managerId} from ${repoId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * 데이터셋 샘플 조회
+ * @param {string} managerId - 매니저 ID
+ * @param {number} [numSamples=10] - 조회할 샘플 개수 (기본값: 10)
+ * @returns {Promise<Object>} 데이터셋 샘플 정보
+ */
+export const getDatasetSample = async (managerId, numSamples = 10) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID is required');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+            num_samples: numSamples
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/managers/dataset/sample`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        const data = await response.json();
+        devLog.info(`Dataset sample retrieved for manager ${managerId}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to get dataset sample for manager ${managerId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * 데이터셋 삭제
+ * @param {string} managerId - 매니저 ID
+ * @returns {Promise<Object>} 데이터셋 삭제 결과
+ */
+export const removeDataset = async (managerId) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID is required');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/managers/dataset/remove`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        const data = await response.json();
+        devLog.info(`Dataset removed for manager ${managerId}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to remove dataset for manager ${managerId}:`, error);
+        throw error;
+    }
+};
