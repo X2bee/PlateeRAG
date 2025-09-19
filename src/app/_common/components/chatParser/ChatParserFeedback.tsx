@@ -1,12 +1,21 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FiChevronDown, FiChevronRight } from 'react-icons/fi';
+import { FiChevronDown, FiChevronRight, FiFileText } from 'react-icons/fi';
 
 /**
  * Feedback Loop 블록 정보
  */
 export interface FeedbackLoopInfo {
+    start: number;
+    end: number;
+    content: string;
+}
+
+/**
+ * Feedback Report 블록 정보
+ */
+export interface FeedbackReportInfo {
     start: number;
     end: number;
     content: string;
@@ -64,6 +73,46 @@ export const findFeedbackLoopBlocks = (content: string): FeedbackLoopInfo[] => {
     return blocks.sort((a, b) => a.start - b.start);
 };
 
+
+/**
+ * <FEEDBACK_REPORT></FEEDBACK_REPORT> 블록 찾기 (스트리밍 지원)
+ * 완성된 블록과 미완성된 블록 모두 처리
+ */
+export const findFeedbackReportBlocks = (content: string): FeedbackReportInfo[] => {
+    const blocks: FeedbackReportInfo[] = [];
+
+    const completeReportRegex = /<FEEDBACK_REPORT>([\s\S]*?)<\/FEEDBACK_REPORT>/gi;
+    let match;
+
+    while ((match = completeReportRegex.exec(content)) !== null) {
+        blocks.push({
+            start: match.index,
+            end: match.index + match[0].length,
+            content: match[1].trim()
+        });
+    }
+
+    const incompleteReportRegex = /<FEEDBACK_REPORT>(?![\s\S]*?<\/FEEDBACK_REPORT>)([\s\S]*)$/gi;
+    const incompleteMatch = incompleteReportRegex.exec(content);
+
+    if (incompleteMatch) {
+        const incompleteStart = incompleteMatch.index;
+        const isOverlapping = blocks.some(block =>
+            incompleteStart >= block.start && incompleteStart < block.end
+        );
+
+        if (!isOverlapping) {
+            blocks.push({
+                start: incompleteStart,
+                end: content.length,
+                content: incompleteMatch[1].trim()
+            });
+        }
+    }
+
+    return blocks.sort((a, b) => a.start - b.start);
+};
+
 /**
  * <FEEDBACK_STATUS></FEEDBACK_STATUS> 태그 찾기
  */
@@ -87,8 +136,128 @@ export const findFeedbackStatusTags = (content: string): FeedbackStatusInfo[] =>
  * FEEDBACK_STATUS 태그를 제거하고 내용만 반환
  */
 export const processFeedbackContent = (content: string): string => {
-    // FEEDBACK_STATUS 태그를 찾아서 내용만 추출
-    return content.replace(/<FEEDBACK_STATUS>([\s\S]*?)<\/FEEDBACK_STATUS>/gi, '$1');
+    const tagsToStrip = ['FEEDBACK_STATUS', 'FEEDBACK_REPORT'];
+
+    return tagsToStrip.reduce((processed, tag) =>
+        processed.replace(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, 'gi'), '$1')
+    , content);
+};
+
+/**
+ * Feedback Report 블록 컴포넌트
+ */
+interface FeedbackReportBlockProps {
+    content: string;
+    className?: string;
+    isStreaming?: boolean;
+}
+
+export const FeedbackReportBlock: React.FC<FeedbackReportBlockProps> = ({
+    content,
+    className = '',
+    isStreaming = false
+}) => {
+    const [isExpanded, setIsExpanded] = useState(true);
+
+    useEffect(() => {
+        if (isStreaming) setIsExpanded(true);
+    }, [isStreaming]);
+
+    const toggleExpanded = () => {
+        if (!isStreaming) setIsExpanded(prev => !prev);
+    };
+
+    const processedContent = processFeedbackContent(content || '');
+
+    const renderContent = () => {
+        if (!processedContent) return null;
+
+        const sections = processedContent.split('\n').filter(line => line.trim().length > 0);
+
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {sections.map((line, index) => (
+                    <div
+                        key={index}
+                        style={{
+                            fontSize: '0.875rem',
+                            lineHeight: '1.5',
+                            color: '#374151',
+                            whiteSpace: 'pre-wrap'
+                        }}
+                    >
+                        {line}
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
+    return (
+        <div
+            className={`feedback-report-container ${isStreaming ? 'streaming' : ''} ${className}`}
+            style={{
+                border: '1px solid #e5e7eb',
+                borderRadius: '0.5rem',
+                margin: '0.5rem 0',
+                backgroundColor: '#f9fafb',
+                ...(isStreaming && {
+                    borderColor: '#10b981',
+                    backgroundColor: '#ecfdf5'
+                })
+            }}
+        >
+            <button
+                onClick={toggleExpanded}
+                disabled={isStreaming}
+                style={{
+                    width: '100%',
+                    padding: '0.75rem 1rem',
+                    border: 'none',
+                    background: 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    cursor: isStreaming ? 'default' : 'pointer',
+                    fontSize: '0.875rem',
+                    color: '#065f46',
+                    borderRadius: '0.5rem',
+                    opacity: isStreaming ? 0.85 : 1
+                }}
+                onMouseEnter={(e) => {
+                    if (!isStreaming) e.currentTarget.style.backgroundColor = '#ecfdf5';
+                }}
+                onMouseLeave={(e) => {
+                    if (!isStreaming) e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+            >
+                {isStreaming ? (
+                    <FiChevronDown size={16} style={{ opacity: 0.5 }} />
+                ) : (
+                    isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />
+                )}
+                <FiFileText size={16} style={{ color: '#10b981' }} />
+                <span>📑 피드백 리포트</span>
+                {isStreaming && (
+                    <span style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 'bold' }}>(진행 중...)</span>
+                )}
+                {!isExpanded && !isStreaming && (
+                    <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>(클릭하여 보기)</span>
+                )}
+            </button>
+
+            {isExpanded && processedContent && (
+                <div style={{ padding: '0 1rem 1rem 1rem', borderTop: '1px solid #e5e7eb', marginTop: '-1px' }}>
+                    <div style={{ backgroundColor: '#ffffff', padding: '1rem', borderRadius: '0.375rem' }}>
+                        {renderContent()}
+                        {isStreaming && (
+                            <span className="pulse-animation" style={{ color: '#10b981', marginLeft: '0.25rem' }}>▮</span>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 };
 
 /**
