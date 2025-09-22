@@ -12,7 +12,7 @@ import {
 } from 'react-icons/io5';
 import { MdDataset } from 'react-icons/md';
 import { showErrorToastKo, showSuccessToastKo } from '@/app/_common/utils/toastUtilsKo';
-import { removeDataset, uploadLocalDataset, exportDatasetAsCSV, exportDatasetAsParquet } from '@/app/_common/api/dataManagerAPI';
+import { removeDataset, uploadLocalDataset, exportDatasetAsCSV, exportDatasetAsParquet, getDatasetStatistics } from '@/app/_common/api/dataManagerAPI';
 import styles from '@/app/main/dataSection/assets/DataProcessorSidebar.module.scss';
 
 interface DataTableInfo {
@@ -40,6 +40,7 @@ interface DataProcessorSidebarProps {
     downloadDialog: DownloadDialogState;
     setDownloadDialog: (state: DownloadDialogState) => void;
     onDataReload: () => void;
+    onStatisticsModal?: (statistics: any, loading: boolean) => void;
 }
 
 type CategoryType = 'load' | 'analyze' | 'edit' | 'save';
@@ -52,6 +53,7 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
     downloadDialog,
     setDownloadDialog,
     onDataReload,
+    onStatisticsModal,
 }) => {
     const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null);
     const [selectedAction, setSelectedAction] = useState<ActionType>(null);
@@ -192,6 +194,43 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
         showErrorToastKo('데이터 편집 기능은 추후 구현 예정입니다.');
     };
 
+    const handleBasicStats = async () => {
+        if (!dataTableInfo || !dataTableInfo.success || dataTableInfo.sample_count === 0) {
+            showErrorToastKo('통계를 분석할 데이터가 없습니다.');
+            return;
+        }
+
+        try {
+            // 로딩 상태로 모달 열기
+            if (onStatisticsModal) {
+                onStatisticsModal(null, true);
+            }
+
+            showSuccessToastKo('데이터셋 통계 정보를 생성하는 중...');
+
+            const result = await getDatasetStatistics(managerId);
+
+            // 통계 결과와 함께 모달 업데이트
+            if (onStatisticsModal) {
+                onStatisticsModal(result, false);
+            }
+
+            if ((result as any).success) {
+                showSuccessToastKo('데이터셋 기술통계정보가 생성되었습니다!');
+            } else {
+                showErrorToastKo((result as any).message || '통계 생성에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Statistics generation failed:', error);
+            showErrorToastKo(`통계 생성 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+
+            // 에러 시 모달 닫기
+            if (onStatisticsModal) {
+                onStatisticsModal(null, false);
+            }
+        }
+    };
+
     const handleExportCSV = async () => {
         if (!dataTableInfo || !dataTableInfo.success || dataTableInfo.sample_count === 0) {
             showErrorToastKo('내보낼 데이터가 없습니다.');
@@ -264,6 +303,9 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
                 break;
             case 'file-upload':
                 handleUploadFile();
+                break;
+            case 'basic-stats':
+                handleBasicStats();
                 break;
             case 'edit-data':
                 handleEditData();

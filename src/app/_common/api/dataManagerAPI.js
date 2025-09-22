@@ -523,3 +523,42 @@ export const exportDatasetAsParquet = async (managerId) => {
         throw error;
     }
 };
+
+/**
+ * 데이터셋 기술통계정보 조회
+ * @param {string} managerId - 매니저 ID
+ * @returns {Promise<Object>} 기술통계정보
+ */
+export const getDatasetStatistics = async (managerId) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID is required');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/statistics`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        const data = await response.json();
+        devLog.info(`Dataset statistics retrieved for manager ${managerId}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to get dataset statistics for manager ${managerId}:`, error);
+        throw error;
+    }
+};

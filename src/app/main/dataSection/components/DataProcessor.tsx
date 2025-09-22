@@ -6,7 +6,7 @@ import {
     IoRefresh,
 } from 'react-icons/io5';
 import { MdOutlineMore } from "react-icons/md";
-import { ColumnInfoModal, DownloadDialog } from './DataProcessorModal';
+import { ColumnInfoModal, DownloadDialog, StatisticsModal } from './DataProcessorModal';
 import DataProcessorSidebar from './DataProcessorSidebar';
 import { downloadDataset, getDatasetSample } from '@/app/_common/api/dataManagerAPI';
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
@@ -56,6 +56,9 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
         split: ''
     });
     const [downloading, setDownloading] = useState(false);
+    const [statisticsModalOpen, setStatisticsModalOpen] = useState(false);
+    const [statisticsData, setStatisticsData] = useState<any>(null);
+    const [statisticsLoading, setStatisticsLoading] = useState(false);
 
     // 데이터 로드
     useEffect(() => {
@@ -74,6 +77,23 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleStatisticsModal = (statistics: any, loading: boolean) => {
+        setStatisticsData(statistics);
+        setStatisticsLoading(loading);
+        setStatisticsModalOpen(true);
+
+        // 에러가 발생해서 statistics가 null이고 loading이 false인 경우 모달 닫기
+        if (!statistics && !loading) {
+            setStatisticsModalOpen(false);
+        }
+    };
+
+    const handleCloseStatisticsModal = () => {
+        setStatisticsModalOpen(false);
+        setStatisticsData(null);
+        setStatisticsLoading(false);
     };    const handleDownloadDataset = async () => {
         if (!downloadDialog.repoId.trim()) {
             showErrorToastKo('Repository ID를 입력해주세요.');
@@ -224,6 +244,7 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                     downloadDialog={downloadDialog}
                     setDownloadDialog={setDownloadDialog}
                     onDataReload={loadDataTableInfo}
+                    onStatisticsModal={handleStatisticsModal}
                 />
             </div>
 
@@ -239,6 +260,12 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                 onClose={() => setDownloadDialog({ isOpen: false, repoId: '', filename: '', split: '' })}
                 onDownload={handleDownloadDataset}
                 onUpdateDialog={(updates) => setDownloadDialog({ ...downloadDialog, ...updates })}
+            />
+            <StatisticsModal
+                isOpen={statisticsModalOpen}
+                statistics={statisticsData}
+                loading={statisticsLoading}
+                onClose={handleCloseStatisticsModal}
             />
         </div>
     );
