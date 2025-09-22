@@ -19,6 +19,8 @@
     fill: none;
     transition: stroke 0.2s ease;
     pointer-events: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .edgeHitbox {
