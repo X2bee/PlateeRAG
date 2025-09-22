@@ -239,7 +239,9 @@ export const ToolUseLogBlock: React.FC<ToolUseLogBlockProps> = ({
             <div
                 className={`tool-use-log-container streaming ${className}`}
                 style={{
-                    border: '1px solid #e5e7eb',
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderColor: '#e5e7eb',
                     borderRadius: '0.5rem',
                     margin: '0.5rem 0',
                     backgroundColor: '#fefdf8'
@@ -312,14 +314,12 @@ export const ToolUseLogBlock: React.FC<ToolUseLogBlockProps> = ({
         <div
             className={`tool-use-log-container ${isStreaming ? 'streaming' : ''} ${className}`}
             style={{
-                border: '1px solid #e5e7eb',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: isStreaming ? '#f59e0b' : '#e5e7eb',
                 borderRadius: '0.5rem',
                 margin: '0.5rem 0',
-                backgroundColor: '#fefdf8',
-                ...(isStreaming && {
-                    borderColor: '#f59e0b',
-                    backgroundColor: '#fefdf8'
-                })
+                backgroundColor: '#fefdf8'
             }}
         >
             <button
