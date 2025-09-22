@@ -83,7 +83,9 @@ export const TodoDetailsBlock: React.FC<TodoDetailsBlockProps> = ({
             <div
                 className={`todo-details-container streaming ${className}`}
                 style={{
-                    border: '1px solid #e5e7eb',
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderColor: '#e5e7eb',
                     borderRadius: '0.5rem',
                     margin: '0.5rem 0',
                     backgroundColor: '#f0f9ff'
@@ -160,14 +162,12 @@ export const TodoDetailsBlock: React.FC<TodoDetailsBlockProps> = ({
         <div
             className={`todo-details-container ${isStreaming ? 'streaming' : ''} ${className}`}
             style={{
-                border: '1px solid #e5e7eb',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: isStreaming ? '#3b82f6' : '#e5e7eb',
                 borderRadius: '0.5rem',
                 margin: '0.5rem 0',
-                backgroundColor: '#fefefe',
-                ...(isStreaming && {
-                    borderColor: '#3b82f6',
-                    backgroundColor: '#f0f9ff'
-                })
+                backgroundColor: isStreaming ? '#f0f9ff' : '#fefefe'
             }}
         >
             <button

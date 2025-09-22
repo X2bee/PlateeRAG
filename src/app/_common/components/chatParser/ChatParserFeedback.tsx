@@ -206,14 +206,12 @@ export const FeedbackReportBlock: React.FC<FeedbackReportBlockProps> = ({
         <div
             className={`feedback-report-container ${isStreaming ? 'streaming' : ''} ${className}`}
             style={{
-                border: '1px solid #e5e7eb',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: isStreaming ? '#10b981' : '#e5e7eb',
                 borderRadius: '0.5rem',
                 margin: '0.5rem 0',
-                backgroundColor: '#f9fafb',
-                ...(isStreaming && {
-                    borderColor: '#10b981',
-                    backgroundColor: '#ecfdf5'
-                })
+                backgroundColor: isStreaming ? '#ecfdf5' : '#f9fafb'
             }}
         >
             <button
@@ -298,7 +296,9 @@ export const FeedbackLoopBlock: React.FC<FeedbackLoopBlockProps> = ({
             <div
                 className={`feedback-loop-container streaming ${className}`}
                 style={{
-                    border: '1px solid #e5e7eb',
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderColor: '#e5e7eb',
                     borderRadius: '0.5rem',
                     margin: '0.5rem 0',
                     backgroundColor: '#fef3f2'
@@ -374,14 +374,12 @@ export const FeedbackLoopBlock: React.FC<FeedbackLoopBlockProps> = ({
         <div
             className={`feedback-loop-container ${isStreaming ? 'streaming' : ''} ${className}`}
             style={{
-                border: '1px solid #e5e7eb',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: isStreaming ? '#ef4444' : '#e5e7eb',
                 borderRadius: '0.5rem',
                 margin: '0.5rem 0',
-                backgroundColor: '#fefcfc',
-                ...(isStreaming && {
-                    borderColor: '#ef4444',
-                    backgroundColor: '#fef3f2'
-                })
+                backgroundColor: isStreaming ? '#fef3f2' : '#fefcfc'
             }}
         >
             <button
