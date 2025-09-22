@@ -60,12 +60,14 @@ const AdminGroupContent: React.FC = () => {
     // 사용 가능한 섹션 목록
     const availableSectionOptions = [
         'canvas',
-        'workflows',
         'documents',
         'train',
-        'train-monitor',
+        'workflows',
         'eval',
-        'storage'
+        'train-monitor',
+        'model-storage',
+        'data-station',
+        'data-storage'
     ];
 
     // 그룹 데이터 로드

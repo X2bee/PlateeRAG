@@ -61,10 +61,8 @@ export const getWorkflowSidebarItems = (): SidebarItem[] => [
     },
 ];
 
-export const getTrainItems = ['train', 'train-monitor', 'eval', 'storage'];
 
-export const getDataItems = ['data-station'];
-
+export const getDataItems = ['data-station', 'data-storage'];
 export const getDataSidebarItems = (): SidebarItem[] => [
     {
         id: 'data-station',
@@ -72,8 +70,15 @@ export const getDataSidebarItems = (): SidebarItem[] => [
         description: '데이터 매니저를 생성하고 관리합니다',
         icon: React.createElement(FiDatabase),
     },
+    {
+        id: 'data-storage',
+        title: '데이터셋 허브',
+        description: 'HF 데이터셋을 확인하고 관리합니다',
+        icon: React.createElement(HiSaveAs),
+    },
 ];
 
+export const getTrainItems = ['train', 'train-monitor', 'eval', 'model-storage'];
 export const getTrainSidebarItems = (): SidebarItem[] => [
     {
         id: 'train',
@@ -94,7 +99,7 @@ export const getTrainSidebarItems = (): SidebarItem[] => [
         icon: React.createElement(TbBrandSpeedtest),
     },
     {
-        id: 'storage',
+        id: 'model-storage',
         title: '모델 허브',
         description: '모델 허브',
         icon: React.createElement(HiSaveAs),

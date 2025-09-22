@@ -47,8 +47,8 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
         if (view) {
             const chatItems = ['new-chat', 'current-chat', 'chat-history'];
             const workflowItems = ['canvas', 'workflows', 'documents'];
-            const dataItems = ['data-station'];
-            const trainItems = ['train', 'train-monitor', 'eval', 'storage'];
+            const dataItems = ['data-station', 'data-storage'];
+            const trainItems = ['train', 'train-monitor', 'eval', 'model-storage'];
 
             if (chatItems.includes(view)) {
                 setIsChatExpanded(true);

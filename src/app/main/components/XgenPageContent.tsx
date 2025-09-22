@@ -18,6 +18,7 @@ import StoragePageContent from '@/app/main/modelSection/components/StoragePageCo
 
 // Data Page Components
 import DataStation from '@/app/main/dataSection/components/DataStation';
+import DataStorage from '@/app/main/dataSection/components/DataStorage';
 
 // Chat Page Components
 import ChatHistory from '@/app/main/chatSection/components/ChatHistory';
@@ -166,7 +167,7 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
                 return <MetricsPageContent />;
             case 'eval':
                 return <EvalPageContent />;
-            case 'storage':
+            case 'model-storage':
                 return <StoragePageContent />;
 
             // 데이터 섹션
@@ -179,6 +180,8 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
                         <DataStation />
                     </ContentArea>
                 );
+            case 'data-storage':
+                return <DataStorage />;
 
             // 기본값
             default:
