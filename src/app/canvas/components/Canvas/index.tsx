@@ -108,6 +108,9 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
     const [edgePreview, setEdgePreview] = useState<EdgePreview | null>(null);
     const [portPositions, setPortPositions] = useState<Record<string, Position>>({});
     const [snappedPortKey, setSnappedPortKey] = useState<string | null>(null);
+
+    // State for node expanded/collapsed
+    const [nodeExpandedState, setNodeExpandedState] = useState<Record<string, boolean>>({});
     const [isSnapTargetValid, setIsSnapTargetValid] = useState<boolean>(true);
     const [availableNodeSpecs, setAvailableNodeSpecs] = useState<NodeData[]>([]);
     const [, forceUpdate] = useState({});
@@ -395,6 +398,37 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         setNodes(newNodes);
         devLog.log('Schema synchronization completed successfully');
     }, [nodes, edges, setNodes]);
+
+    // Handle node expand/collapse toggle
+    const handleToggleExpanded = useCallback((nodeId: string): void => {
+        setNodeExpandedState(prev => ({
+            ...prev,
+            [nodeId]: !prev[nodeId]
+        }));
+
+        // 포트 위치 업데이트를 위해 다음 프레임에서 강제 재계산
+        requestAnimationFrame(() => {
+            const newPortPositions: Record<string, Position> = {};
+            const contentEl = contentRef.current;
+            if (!contentEl) return;
+
+            const contentRect = contentEl.getBoundingClientRect();
+
+            portRefs.current.forEach((portEl, key) => {
+                if (portEl) {
+                    const portRect = portEl.getBoundingClientRect();
+                    const x = (portRect.left + portRect.width / 2 - contentRect.left) / view.scale;
+                    const y = (portRect.top + portRect.height / 2 - contentRect.top) / view.scale;
+                    newPortPositions[key] = { x, y };
+                }
+            });
+
+            setPortPositions(prevPositions => ({
+                ...prevPositions,
+                ...newPortPositions
+            }));
+        });
+    }, [view.scale]);
 
     // Event Handlers using custom hooks
     const canvasHandlers = useCanvasEventHandlers({
@@ -688,6 +722,8 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
                     onOpenNodeModal={onOpenNodeModal}
                     onSynchronizeSchema={handleSynchronizeSchema}
                     currentEdges={edges}
+                    nodeExpandedState={nodeExpandedState}
+                    onToggleExpanded={handleToggleExpanded}
                 />
 
                 {/* Predicted Nodes */}

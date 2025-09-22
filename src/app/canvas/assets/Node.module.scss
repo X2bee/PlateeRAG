@@ -65,13 +65,59 @@
     cursor: grab;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: space-between;
     flex-shrink: 0;
     position: relative;
     z-index: 1;
 }
 
-.functionId {
+.headerContent {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.toggleButton {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #64748b;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    padding: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+    &:hover {
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        border-color: #cbd5e1;
+        color: #475569;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    &:active {
+        background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+        transform: translateY(0);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    svg {
+        pointer-events: none;
+        transition: transform 0.2s ease;
+    }
+
+    &:hover svg {
+        transform: scale(1.1);
+    }
+}.functionId {
     font-size: 0.75rem;
     color: #6b7280;
     font-weight: normal;
@@ -127,7 +173,99 @@
     flex-direction: column;
 }
 
-// --- IO 섹션 스타일 ---
+// --- 축소된 노드 스타일 (헤더 + 포트만) ---
+.collapsedBody {
+    padding: 12px 0px;
+    margin-left: -8px;
+    margin-right: -8px;
+    min-height: auto;
+}
+
+.collapsedPorts {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    min-height: 24px;
+}
+
+.collapsedInputs {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.collapsedOutputs {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.collapsedPortItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.collapsedPortCircle {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid;
+    cursor: crosshair;
+    transition: all 0.2s ease;
+    position: relative;
+    z-index: 5;
+    background-color: #fff;
+
+    // 타입별 색상 (테두리 색상으로 구분)
+    &.type-STR { border-color: #5D9CF4; }
+    &.type-INT { border-color: #7AD37A; }
+    &.type-FLOAT { border-color: #F7C966; }
+    &.type-ANY { border-color: #9C5BF4; }
+
+    // 다중 연결 포트 스타일
+    &.multi {
+        border-style: dashed;
+        background-color: #f8fafc;
+    }
+
+    &:hover {
+        transform: scale(1.2);
+        z-index: 10;
+    }
+
+    &.snapping {
+        transform: scale(1.3);
+        border-width: 3px;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    }
+
+    &.invalid-snap {
+        border-color: #e53e3e !important;
+        background-color: #fed7d7;
+        cursor: not-allowed;
+    }
+}
+
+.collapsedPortType {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #6b7280;
+    user-select: none;
+    pointer-events: none;
+}
+
+// 축소 모드일 때 노드 크기 조정
+.node {
+    &.collapsed {
+        min-width: 450px; // 확대 모드와 동일한 폭 유지
+
+        // 헤더 스타일은 기존과 완벽하게 동일하게 유지 (패딩 변경 없음)
+    }
+}// --- IO 섹션 스타일 ---
 .ioContainer {
     display: flex;
     justify-content: space-between;
@@ -263,7 +401,7 @@
 .portRow {
     display: flex;
     align-items: center;
-    gap: 12px; // [수정] 간격 조정
+    gap: 12px;
 }
 
 .portLabel {

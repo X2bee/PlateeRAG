@@ -199,6 +199,8 @@ export interface NodeProps {
     onSynchronizeSchema?: (nodeId: string, portId: string) => void;
     currentNodes?: CanvasNode[];
     currentEdges?: CanvasEdge[];
+    isExpanded?: boolean;
+    onToggleExpanded?: (nodeId: string) => void;
 }
 
 export interface EdgeProps {

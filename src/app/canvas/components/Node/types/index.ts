@@ -86,11 +86,13 @@ export interface NodeHeaderProps {
     isEditingName: boolean;
     editingName: string;
     isPreview?: boolean;
+    isExpanded?: boolean;
     onNameDoubleClick: (e: React.MouseEvent) => void;
     onNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onNameKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
     onNameBlur: () => void;
     onClearSelection?: () => void;
+    onToggleExpanded?: (e: React.MouseEvent) => void;
 }
 
 export interface NodePortsProps {
