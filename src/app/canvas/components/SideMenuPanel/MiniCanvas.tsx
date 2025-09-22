@@ -226,6 +226,8 @@ const MiniCanvas: React.FC<MiniCanvasProps> = ({ template }) => {
                                 id={edge.id}
                                 sourcePos={sourcePos}
                                 targetPos={targetPos}
+                                sourcePortType={edge.source.portType as 'input' | 'output'}
+                                targetPortType={edge.target.portType as 'input' | 'output'}
                                 isPreview={true}
                                 onEdgeClick={() => {}}
                                 isSelected={false}

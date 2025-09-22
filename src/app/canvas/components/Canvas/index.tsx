@@ -751,6 +751,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
                     selectedEdgeId={selectedEdgeId}
                     edgePreview={edgePreview}
                     portPositions={portPositions}
+                    nodeExpandedState={nodeExpandedState}
                     onEdgeClick={handleEdgeClick}
                 />
             </div>
