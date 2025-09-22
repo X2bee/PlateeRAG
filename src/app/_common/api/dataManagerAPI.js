@@ -562,3 +562,214 @@ export const getDatasetStatistics = async (managerId) => {
         throw error;
     }
 };
+
+/**
+ * 데이터셋 컬럼 삭제
+ * @param {string} managerId - 매니저 ID
+ * @param {string[]} columns - 삭제할 컬럼명들
+ * @returns {Promise<Object>} 컬럼 삭제 결과
+ */
+export const dropDatasetColumns = async (managerId, columns) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID is required');
+        }
+        if (!columns || !Array.isArray(columns) || columns.length === 0) {
+            throw new Error('Columns array is required and must contain at least one column');
+        }
+
+        // 컬럼명 유효성 검사
+        for (const column of columns) {
+            if (!column || typeof column !== 'string' || column.trim() === '') {
+                throw new Error('All column names must be non-empty strings');
+            }
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+            columns: columns.map(col => col.trim()) // 컬럼명 공백 제거
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/drop-columns`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        const data = await response.json();
+        devLog.info(`Dataset columns dropped for manager ${managerId}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to drop dataset columns for manager ${managerId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * 컬럼 값 교체
+ * @param {string} managerId - 매니저 ID
+ * @param {string} columnName - 대상 컬럼명
+ * @param {string} oldValue - 교체할 기존 값
+ * @param {string} newValue - 새로운 값
+ * @returns {Promise<Object>} 컬럼 값 교체 결과
+ */
+export const replaceColumnValues = async (managerId, columnName, oldValue, newValue) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID is required');
+        }
+        if (!columnName || typeof columnName !== 'string' || columnName.trim() === '') {
+            throw new Error('Column name is required and must be a non-empty string');
+        }
+        if (oldValue === undefined || oldValue === null) {
+            throw new Error('Old value is required');
+        }
+        if (newValue === undefined || newValue === null) {
+            throw new Error('New value is required');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+            column_name: columnName.trim(),
+            old_value: String(oldValue),
+            new_value: String(newValue)
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/replace-values`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        const data = await response.json();
+        devLog.info(`Column values replaced for manager ${managerId}, column ${columnName}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to replace column values for manager ${managerId}, column ${columnName}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * 컬럼 연산 적용
+ * @param {string} managerId - 매니저 ID
+ * @param {string} columnName - 대상 컬럼명
+ * @param {string} operation - 연산식 (예: +4, *3+4)
+ * @returns {Promise<Object>} 컬럼 연산 적용 결과
+ */
+export const applyColumnOperation = async (managerId, columnName, operation) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID is required');
+        }
+        if (!columnName || typeof columnName !== 'string' || columnName.trim() === '') {
+            throw new Error('Column name is required and must be a non-empty string');
+        }
+        if (!operation || typeof operation !== 'string' || operation.trim() === '') {
+            throw new Error('Operation is required and must be a non-empty string');
+        }
+
+        // 연산식 유효성 검사 (정규식)
+        const operationPattern = /^[+\-*/\d.]+$/;
+        if (!operationPattern.test(operation.trim())) {
+            throw new Error('Invalid operation format. Only +, -, *, /, numbers, and dots are allowed');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+            column_name: columnName.trim(),
+            operation: operation.trim()
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/apply-operation`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        const data = await response.json();
+        devLog.info(`Column operation applied for manager ${managerId}, column ${columnName}, operation ${operation}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to apply column operation for manager ${managerId}, column ${columnName}, operation ${operation}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * NULL 행 제거
+ * @param {string} managerId - 매니저 ID
+ * @param {string|null} columnName - 대상 컬럼명 (null인 경우 전체 컬럼에서 NULL 체크)
+ * @returns {Promise<Object>} NULL 행 제거 결과
+ */
+export const removeNullRows = async (managerId, columnName = null) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID is required');
+        }
+
+        const requestBody = {
+            manager_id: managerId
+        };
+
+        // columnName이 제공된 경우에만 추가
+        if (columnName && typeof columnName === 'string' && columnName.trim() !== '') {
+            requestBody.column_name = columnName.trim();
+        }
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/remove-null-rows`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        const data = await response.json();
+        const logMessage = columnName
+            ? `NULL rows removed for manager ${managerId}, column ${columnName}`
+            : `NULL rows removed for manager ${managerId}, all columns`;
+        devLog.info(logMessage, data);
+        return data;
+    } catch (error) {
+        const errorMessage = columnName
+            ? `Failed to remove NULL rows for manager ${managerId}, column ${columnName}`
+            : `Failed to remove NULL rows for manager ${managerId}, all columns`;
+        devLog.error(errorMessage, error);
+        throw error;
+    }
+};

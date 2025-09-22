@@ -247,6 +247,47 @@
                     min-width: 120px;
                     position: sticky;
                     top: 0;
+
+                    .columnHeader {
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-start;
+                        gap: 0.25rem;
+                        width: 100%;
+
+                        .columnName {
+                            flex: 0 1 auto;
+                            min-width: 0;
+                            word-break: break-word;
+                        }
+
+                        .dropButton {
+                            background: #ef4444;
+                            color: white;
+                            border: none;
+                            border-radius: 25%;
+                            width: 16px;
+                            height: 16px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            cursor: pointer;
+                            font-size: 10px;
+                            font-weight: bold;
+                            transition: all 0.2s ease;
+                            flex-shrink: 0;
+                            margin-left: 0.25rem;
+
+                            &:hover {
+                                background: #dc2626;
+                                transform: scale(1.1);
+                            }
+
+                            &:active {
+                                transform: scale(0.95);
+                            }
+                        }
+                    }
                 }
 
                 td {

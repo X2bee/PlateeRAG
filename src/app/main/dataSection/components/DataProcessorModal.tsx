@@ -37,6 +37,34 @@ interface StatisticsModalProps {
     onClose: () => void;
 }
 
+interface ColumnDeleteModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onDeleteMultipleColumns: (columnNames: string[]) => void;
+    availableColumns: string[];
+}
+
+interface ColumnValueReplaceModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onReplaceValues: (columnName: string, oldValue: string, newValue: string) => void;
+    availableColumns: string[];
+}
+
+interface ColumnOperationModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onApplyOperation: (columnName: string, operation: string) => void;
+    availableColumns: string[];
+}
+
+interface SpecificColumnNullRemoveModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onRemoveNullRows: (columnName: string) => void;
+    availableColumns: string[];
+}
+
 // 컬럼 정보 포매팅 함수
 const formatColumnInfo = (columnInfo: string | object): React.ReactNode => {
     if (typeof columnInfo === 'string') {
@@ -377,6 +405,504 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({
                         className={styles.confirmButton}
                     >
                         확인
+                    </button>
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+};
+
+// 컬럼 삭제 모달 컴포넌트
+export const ColumnDeleteModal: React.FC<ColumnDeleteModalProps> = ({
+    isOpen,
+    onClose,
+    onDeleteMultipleColumns,
+    availableColumns
+}) => {
+    const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
+
+    if (!isOpen) return null;
+
+    const handleMultipleDelete = () => {
+        if (selectedColumns.length === 0) {
+            return;
+        }
+        onDeleteMultipleColumns(selectedColumns);
+        setSelectedColumns([]);
+        onClose();
+    };
+
+    const toggleColumnSelection = (columnName: string) => {
+        setSelectedColumns(prev =>
+            prev.includes(columnName)
+                ? prev.filter(col => col !== columnName)
+                : [...prev, columnName]
+        );
+    };
+
+    const selectAllColumns = () => {
+        if (selectedColumns.length === availableColumns.length) {
+            setSelectedColumns([]);
+        } else {
+            setSelectedColumns([...availableColumns]);
+        }
+    };
+
+    return createPortal(
+        <div className={styles.dialogOverlay}>
+            <div className={styles.dialog} style={{ maxWidth: '600px', maxHeight: '80vh' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3>컬럼 삭제</h3>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            border: 'none',
+                            background: 'transparent',
+                            cursor: 'pointer',
+                            padding: '0.25rem',
+                            borderRadius: '0.25rem',
+                            transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                        <IoClose size={20} />
+                    </button>
+                </div>
+
+                <div style={{ marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <p>삭제할 컬럼을 선택해주세요:</p>
+                        <button
+                            onClick={selectAllColumns}
+                            className={styles.cancelButton}
+                            style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}
+                        >
+                            {selectedColumns.length === availableColumns.length ? '모두 해제' : '모두 선택'}
+                        </button>
+                    </div>
+
+                    <div className={styles.columnDeleteGrid}>
+                        {availableColumns.map((columnName) => (
+                            <div key={columnName} className={styles.columnDeleteItem}>
+                                <label className={styles.columnDeleteLabel}>
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedColumns.includes(columnName)}
+                                        onChange={() => toggleColumnSelection(columnName)}
+                                        className={styles.columnDeleteCheckbox}
+                                    />
+                                    <span className={styles.columnDeleteName}>{columnName}</span>
+                                </label>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className={styles.dialogActions}>
+                    <button
+                        onClick={onClose}
+                        className={styles.cancelButton}
+                    >
+                        취소
+                    </button>
+                    <button
+                        onClick={handleMultipleDelete}
+                        className={styles.confirmButton}
+                        disabled={selectedColumns.length === 0}
+                        style={{
+                            backgroundColor: selectedColumns.length === 0 ? '#9ca3af' : '#dc2626',
+                            borderColor: selectedColumns.length === 0 ? '#9ca3af' : '#b91c1c'
+                        }}
+                    >
+                        선택된 {selectedColumns.length}개 컬럼 삭제
+                    </button>
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+};
+
+// 컬럼 값 교체 모달 컴포넌트
+export const ColumnValueReplaceModal: React.FC<ColumnValueReplaceModalProps> = ({
+    isOpen,
+    onClose,
+    onReplaceValues,
+    availableColumns
+}) => {
+    const [selectedColumn, setSelectedColumn] = useState<string>('');
+    const [oldValue, setOldValue] = useState<string>('');
+    const [newValue, setNewValue] = useState<string>('');
+
+    if (!isOpen) return null;
+
+    const handleSubmit = () => {
+        if (!selectedColumn.trim()) {
+            alert('컬럼을 선택해주세요.');
+            return;
+        }
+        if (oldValue.trim() === '') {
+            alert('기존 값을 입력해주세요.');
+            return;
+        }
+        if (newValue.trim() === '') {
+            alert('새로운 값을 입력해주세요.');
+            return;
+        }
+
+        onReplaceValues(selectedColumn, oldValue, newValue);
+
+        // 폼 초기화
+        setSelectedColumn('');
+        setOldValue('');
+        setNewValue('');
+        onClose();
+    };
+
+    const handleClose = () => {
+        // 폼 초기화
+        setSelectedColumn('');
+        setOldValue('');
+        setNewValue('');
+        onClose();
+    };
+
+    return createPortal(
+        <div className={styles.dialogOverlay}>
+            <div className={styles.dialog} style={{ maxWidth: '500px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3>컬럼 값 교체</h3>
+                    <button
+                        onClick={handleClose}
+                        style={{
+                            border: 'none',
+                            background: 'transparent',
+                            cursor: 'pointer',
+                            padding: '0.25rem',
+                            borderRadius: '0.25rem',
+                            transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                        <IoClose size={20} />
+                    </button>
+                </div>
+
+                <div className={styles.dialogForm}>
+                    <div className={styles.formGroup}>
+                        <label>대상 컬럼 *</label>
+                        <select
+                            value={selectedColumn}
+                            onChange={(e) => setSelectedColumn(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '0.25rem',
+                                fontSize: '0.875rem'
+                            }}
+                        >
+                            <option value="">컬럼을 선택하세요</option>
+                            {availableColumns.map((column) => (
+                                <option key={column} value={column}>
+                                    {column}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label>기존 값 *</label>
+                        <input
+                            type="text"
+                            value={oldValue}
+                            onChange={(e) => setOldValue(e.target.value)}
+                            placeholder="교체할 기존 값을 입력하세요"
+                            style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '0.25rem',
+                                fontSize: '0.875rem'
+                            }}
+                        />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label>새로운 값 *</label>
+                        <input
+                            type="text"
+                            value={newValue}
+                            onChange={(e) => setNewValue(e.target.value)}
+                            placeholder="새로운 값을 입력하세요"
+                            style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '0.25rem',
+                                fontSize: '0.875rem'
+                            }}
+                        />
+                    </div>
+                </div>
+
+                <div className={styles.dialogActions}>
+                    <button
+                        onClick={handleClose}
+                        className={styles.cancelButton}
+                    >
+                        취소
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        className={styles.confirmButton}
+                        disabled={!selectedColumn.trim() || oldValue.trim() === '' || newValue.trim() === ''}
+                        style={{
+                            backgroundColor: (!selectedColumn.trim() || oldValue.trim() === '' || newValue.trim() === '') ? '#9ca3af' : undefined
+                        }}
+                    >
+                        값 교체
+                    </button>
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+};
+
+// 컬럼 연산 적용 모달 컴포넌트
+export const ColumnOperationModal: React.FC<ColumnOperationModalProps> = ({
+    isOpen,
+    onClose,
+    onApplyOperation,
+    availableColumns
+}) => {
+    const [selectedColumn, setSelectedColumn] = useState<string>('');
+    const [operation, setOperation] = useState<string>('');
+
+    if (!isOpen) return null;
+
+    const handleSubmit = () => {
+        if (!selectedColumn.trim()) {
+            alert('컬럼을 선택해주세요.');
+            return;
+        }
+        if (!operation.trim()) {
+            alert('연산식을 입력해주세요.');
+            return;
+        }
+
+        // 연산식 유효성 간단 검사
+        const operationPattern = /^[+\-*/\d.]+$/;
+        if (!operationPattern.test(operation.trim())) {
+            alert('유효하지 않은 연산식입니다. +, -, *, /, 숫자, 소수점만 사용 가능합니다.');
+            return;
+        }
+
+        onApplyOperation(selectedColumn, operation);
+
+        // 폼 초기화
+        setSelectedColumn('');
+        setOperation('');
+        onClose();
+    };
+
+    const handleClose = () => {
+        // 폼 초기화
+        setSelectedColumn('');
+        setOperation('');
+        onClose();
+    };
+
+    return createPortal(
+        <div className={styles.dialogOverlay}>
+            <div className={styles.dialog} style={{ maxWidth: '500px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3>컬럼 연산 적용</h3>
+                    <button
+                        onClick={handleClose}
+                        style={{
+                            border: 'none',
+                            background: 'transparent',
+                            cursor: 'pointer',
+                            padding: '0.25rem',
+                            borderRadius: '0.25rem',
+                            transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                        <IoClose size={20} />
+                    </button>
+                </div>
+
+                <div className={styles.dialogForm}>
+                    <div className={styles.formGroup}>
+                        <label>대상 컬럼 *</label>
+                        <select
+                            value={selectedColumn}
+                            onChange={(e) => setSelectedColumn(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '0.25rem',
+                                fontSize: '0.875rem'
+                            }}
+                        >
+                            <option value="">컬럼을 선택하세요</option>
+                            {availableColumns.map((column) => (
+                                <option key={column} value={column}>
+                                    {column}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label>연산식 *</label>
+                        <input
+                            type="text"
+                            value={operation}
+                            onChange={(e) => setOperation(e.target.value)}
+                            placeholder="예: +5, -3, *2, /4, *2+1"
+                            style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '0.25rem',
+                                fontSize: '0.875rem'
+                            }}
+                        />
+                        <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                            사용 가능한 연산자: +, -, *, /, 숫자, 소수점 (예: +5, *2.5, /3+1)
+                        </small>
+                    </div>
+                </div>
+
+                <div className={styles.dialogActions}>
+                    <button
+                        onClick={handleClose}
+                        className={styles.cancelButton}
+                    >
+                        취소
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        className={styles.confirmButton}
+                        disabled={!selectedColumn.trim() || !operation.trim()}
+                        style={{
+                            backgroundColor: (!selectedColumn.trim() || !operation.trim()) ? '#9ca3af' : undefined
+                        }}
+                    >
+                        연산 적용
+                    </button>
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+};
+
+// 특정 컬럼 NULL 제거 모달 컴포넌트
+export const SpecificColumnNullRemoveModal: React.FC<SpecificColumnNullRemoveModalProps> = ({
+    isOpen,
+    onClose,
+    onRemoveNullRows,
+    availableColumns
+}) => {
+    const [selectedColumn, setSelectedColumn] = useState<string>('');
+
+    if (!isOpen) return null;
+
+    const handleSubmit = () => {
+        if (!selectedColumn.trim()) {
+            alert('컬럼을 선택해주세요.');
+            return;
+        }
+
+        onRemoveNullRows(selectedColumn);
+
+        // 폼 초기화
+        setSelectedColumn('');
+        onClose();
+    };
+
+    const handleClose = () => {
+        // 폼 초기화
+        setSelectedColumn('');
+        onClose();
+    };
+
+    return createPortal(
+        <div className={styles.dialogOverlay}>
+            <div className={styles.dialog} style={{ maxWidth: '500px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3>특정 컬럼 결측치 제거</h3>
+                    <button
+                        onClick={handleClose}
+                        style={{
+                            border: 'none',
+                            background: 'transparent',
+                            cursor: 'pointer',
+                            padding: '0.25rem',
+                            borderRadius: '0.25rem',
+                            transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                        <IoClose size={20} />
+                    </button>
+                </div>
+
+                <div className={styles.dialogForm}>
+                    <div className={styles.formGroup}>
+                        <label>대상 컬럼 *</label>
+                        <select
+                            value={selectedColumn}
+                            onChange={(e) => setSelectedColumn(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '0.25rem',
+                                fontSize: '0.875rem'
+                            }}
+                        >
+                            <option value="">컬럼을 선택하세요</option>
+                            {availableColumns.map((column) => (
+                                <option key={column} value={column}>
+                                    {column}
+                                </option>
+                            ))}
+                        </select>
+                        <small style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
+                            선택한 컬럼에 NULL 값이 있는 모든 행이 제거됩니다.
+                        </small>
+                    </div>
+                </div>
+
+                <div className={styles.dialogActions}>
+                    <button
+                        onClick={handleClose}
+                        className={styles.cancelButton}
+                    >
+                        취소
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        className={styles.confirmButton}
+                        disabled={!selectedColumn.trim()}
+                        style={{
+                            backgroundColor: !selectedColumn.trim() ? '#9ca3af' : '#dc2626',
+                            borderColor: !selectedColumn.trim() ? '#9ca3af' : '#b91c1c'
+                        }}
+                    >
+                        결측치 제거
                     </button>
                 </div>
             </div>

@@ -9,10 +9,11 @@ import {
     IoAnalytics,
     IoSave,
     IoChevronBack,
+    IoWaterOutline,
 } from 'react-icons/io5';
 import { MdDataset } from 'react-icons/md';
-import { showErrorToastKo, showSuccessToastKo } from '@/app/_common/utils/toastUtilsKo';
-import { removeDataset, uploadLocalDataset, exportDatasetAsCSV, exportDatasetAsParquet, getDatasetStatistics } from '@/app/_common/api/dataManagerAPI';
+import { showErrorToastKo, showSuccessToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
+import { removeDataset, uploadLocalDataset, exportDatasetAsCSV, exportDatasetAsParquet, getDatasetStatistics, dropDatasetColumns, replaceColumnValues, applyColumnOperation, removeNullRows } from '@/app/_common/api/dataManagerAPI';
 import styles from '@/app/main/dataSection/assets/DataProcessorSidebar.module.scss';
 
 interface DataTableInfo {
@@ -41,10 +42,14 @@ interface DataProcessorSidebarProps {
     setDownloadDialog: (state: DownloadDialogState) => void;
     onDataReload: () => void;
     onStatisticsModal?: (statistics: any, loading: boolean) => void;
+    onColumnDeleteModal?: () => void;
+    onColumnValueReplaceModal?: () => void;
+    onColumnOperationModal?: () => void;
+    onSpecificColumnNullRemoveModal?: () => void;
 }
 
 type CategoryType = 'load' | 'analyze' | 'edit' | 'save';
-type ActionType = 'huggingface' | 'file-upload' | 'basic-stats' | 'edit-data' | 'export-csv' | 'export-parquet' | null;
+type ActionType = 'huggingface' | 'file-upload' | 'basic-stats' | 'edit-columns' | 'add-columns' | 'drop-columns' | 'clean-data' | 'export-csv' | 'export-parquet' | 'change-column-data' | 'column-operation' | 'remove-all-null-rows' | 'remove-specific-column-null-rows' | null;
 
 const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
     managerId,
@@ -54,6 +59,10 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
     setDownloadDialog,
     onDataReload,
     onStatisticsModal,
+    onColumnDeleteModal,
+    onColumnValueReplaceModal,
+    onColumnOperationModal,
+    onSpecificColumnNullRemoveModal,
 }) => {
     const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null);
     const [selectedAction, setSelectedAction] = useState<ActionType>(null);
@@ -116,10 +125,28 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
             case 'edit':
                 return [
                     {
-                        id: 'edit-data' as ActionType,
-                        title: '데이터 편집',
+                        id: 'edit-columns' as ActionType,
+                        title: '컬럼 편집',
                         icon: IoCreate,
-                        description: '데이터 행/열 편집'
+                        description: '컬럼 데이터 편집'
+                    },
+                    {
+                        id: 'add-columns' as ActionType,
+                        title: '컬럼 추가',
+                        icon: IoCloudUpload,
+                        description: '새로운 컬럼 추가'
+                    },
+                    {
+                        id: 'drop-columns' as ActionType,
+                        title: '컬럼 삭제',
+                        icon: IoTrash,
+                        description: '여러 컬럼을 한 번에 삭제'
+                    },
+                    {
+                        id: 'clean-data' as ActionType,
+                        title: '데이터 정제',
+                        icon: IoWaterOutline,
+                        description: '결측치 및 불필요한 데이터 제거'
                     }
                 ];
             case 'save':
@@ -140,6 +167,42 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
             default:
                 return [];
         }
+    };
+
+    // 편집 하위 액션들
+    const getEditDataSubActions = () => {
+        if (selectedAction === 'edit-columns') {
+            return [
+                {
+                    id: 'change-column-data' as ActionType,
+                    title: '열 데이터 변경',
+                    icon: IoCreate,
+                    description: 'str 바꾸기'
+                },
+                {
+                    id: 'column-operation' as ActionType,
+                    title: '열 데이터 연산',
+                    icon: IoAnalytics,
+                    description: '입력된 연산자 수행'
+                }
+            ];
+        } else if (selectedAction === 'clean-data') {
+            return [
+                {
+                    id: 'remove-all-null-rows' as ActionType,
+                    title: '모든 결측치 제거',
+                    icon: IoWaterOutline,
+                    description: '모든 컬럼에서 NULL 값이 있는 행 제거'
+                },
+                {
+                    id: 'remove-specific-column-null-rows' as ActionType,
+                    title: '특정 열 결측치 제거',
+                    icon: IoTrash,
+                    description: '선택한 컬럼에서만 NULL 값이 있는 행 제거'
+                }
+            ];
+        }
+        return [];
     };
 
     const handleUploadFile = async () => {
@@ -189,9 +252,95 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
         input.click();
     };
 
-    const handleEditData = async () => {
-        // TODO: 데이터 편집 로직 구현
-        showErrorToastKo('데이터 편집 기능은 추후 구현 예정입니다.');
+    const handleEditColumns = async () => {
+        // 컬럼 편집의 경우 하위 메뉴로 이동
+        setSelectedAction('edit-columns');
+    };
+
+    const handleAddColumns = async () => {
+        // TODO: 컬럼 추가 로직 구현
+        showErrorToastKo('컬럼 추가 기능은 추후 구현 예정입니다.');
+    };
+
+    const handleChangeColumnData = async () => {
+        if (!dataTableInfo || !dataTableInfo.success || dataTableInfo.sample_count === 0) {
+            showErrorToastKo('편집할 데이터가 없습니다.');
+            return;
+        }
+
+        // 컬럼 값 교체 모달 열기
+        if (onColumnValueReplaceModal) {
+            onColumnValueReplaceModal();
+        }
+    };
+
+    const handleColumnOperation = async () => {
+        if (!dataTableInfo || !dataTableInfo.success || dataTableInfo.sample_count === 0) {
+            showErrorToastKo('연산을 적용할 데이터가 없습니다.');
+            return;
+        }
+
+        // 컬럼 연산 적용 모달 열기
+        if (onColumnOperationModal) {
+            onColumnOperationModal();
+        }
+    };
+
+    const handleDropColumns = async () => {
+        if (!dataTableInfo || !dataTableInfo.success || dataTableInfo.sample_count === 0) {
+            showErrorToastKo('컬럼을 삭제할 데이터가 없습니다.');
+            return;
+        }
+
+        // 컬럼 삭제 모달 열기
+        if (onColumnDeleteModal) {
+            onColumnDeleteModal();
+        }
+    };
+
+    const handleRemoveAllNullRows = async () => {
+        if (!dataTableInfo || !dataTableInfo.success || dataTableInfo.sample_count === 0) {
+            showErrorToastKo('정제할 데이터가 없습니다.');
+            return;
+        }
+
+        showDeleteConfirmToastKo({
+            title: '모든 결측치 제거',
+            message: '모든 컬럼에서 NULL 값이 있는 행을 제거하시겠습니까?\n이 작업은 되돌릴 수 없습니다.',
+            itemName: 'NULL 값이 포함된 행',
+            onConfirm: async () => {
+                try {
+                    showSuccessToastKo('모든 컬럼에서 NULL 값이 있는 행을 제거하는 중...');
+
+                    const result = await removeNullRows(managerId, null) as any;
+
+                    if (result.success) {
+                        const removedCount = result.removal_info?.removed_rows || 0;
+                        showSuccessToastKo(`${removedCount}개의 NULL 값이 포함된 행이 성공적으로 제거되었습니다!`);
+                        onDataReload(); // 데이터 다시 로드
+                    } else {
+                        showErrorToastKo(result.message || 'NULL 행 제거에 실패했습니다.');
+                    }
+                } catch (error) {
+                    console.error('NULL rows removal failed:', error);
+                    showErrorToastKo(`NULL 행 제거 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+                }
+            },
+            confirmText: '제거',
+            cancelText: '취소'
+        });
+    };
+
+    const handleRemoveSpecificColumnNullRows = async () => {
+        if (!dataTableInfo || !dataTableInfo.success || dataTableInfo.sample_count === 0) {
+            showErrorToastKo('정제할 데이터가 없습니다.');
+            return;
+        }
+
+        // 특정 컬럼 NULL 제거 모달 열기
+        if (onSpecificColumnNullRemoveModal) {
+            onSpecificColumnNullRemoveModal();
+        }
     };
 
     const handleBasicStats = async () => {
@@ -269,23 +418,23 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
             return;
         }
 
-        // 확인 다이얼로그
-        const confirmDelete = window.confirm(
-            '정말로 현재 데이터셋을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.'
-        );
-
-        if (!confirmDelete) {
-            return;
-        }
-
-        try {
-            await removeDataset(managerId);
-            showSuccessToastKo('데이터셋이 성공적으로 삭제되었습니다!');
-            onDataReload();
-        } catch (error) {
-            console.error('Dataset deletion failed:', error);
-            showErrorToastKo(`데이터셋 삭제 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
-        }
+        showDeleteConfirmToastKo({
+            title: '데이터셋 삭제',
+            message: '정말로 현재 데이터셋을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.',
+            itemName: '데이터셋',
+            onConfirm: async () => {
+                try {
+                    await removeDataset(managerId);
+                    showSuccessToastKo('데이터셋이 성공적으로 삭제되었습니다!');
+                    onDataReload();
+                } catch (error) {
+                    console.error('Dataset deletion failed:', error);
+                    showErrorToastKo(`데이터셋 삭제 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+                }
+            },
+            confirmText: '삭제',
+            cancelText: '취소'
+        });
     };
 
     const handleCategorySelect = (categoryId: CategoryType) => {
@@ -307,8 +456,24 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
             case 'basic-stats':
                 handleBasicStats();
                 break;
-            case 'edit-data':
-                handleEditData();
+            case 'edit-columns':
+                handleEditColumns();
+                break;
+            case 'add-columns':
+                handleAddColumns();
+                break;
+            case 'drop-columns':
+                handleDropColumns();
+                break;
+            case 'clean-data':
+                // 데이터 정제는 하위 메뉴로 이동
+                setSelectedAction('clean-data');
+                break;
+            case 'change-column-data':
+                handleChangeColumnData();
+                break;
+            case 'column-operation':
+                handleColumnOperation();
                 break;
             case 'export-csv':
                 handleExportCSV();
@@ -316,13 +481,31 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
             case 'export-parquet':
                 handleExportParquet();
                 break;
+            case 'remove-all-null-rows':
+                handleRemoveAllNullRows();
+                break;
+            case 'remove-specific-column-null-rows':
+                handleRemoveSpecificColumnNullRows();
+                break;
             default:
                 showErrorToastKo('해당 기능은 추후 구현 예정입니다.');
         }
     };
 
     const handleBackToCategories = () => {
-        setSelectedCategory(null);
+        if (selectedAction === 'edit-columns' || selectedAction === 'clean-data') {
+            // 하위 메뉴에서 뒤로가기 시 카테고리로
+            setSelectedCategory(null);
+            setSelectedAction(null);
+        } else {
+            // 일반 액션에서 뒤로가기 시 카테고리로
+            setSelectedCategory(null);
+            setSelectedAction(null);
+        }
+    };
+
+    const handleBackToActions = () => {
+        // 하위 액션에서 상위 액션으로 돌아가기
         setSelectedAction(null);
     };
 
@@ -335,9 +518,12 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
             {/* 뒤로가기 버튼 (액션 선택 시) */}
             {selectedCategory && (
                 <div className={styles.backButton}>
-                    <button onClick={handleBackToCategories} className={styles.backBtn}>
+                    <button
+                        onClick={(selectedAction === 'edit-columns' || selectedAction === 'clean-data') ? handleBackToActions : handleBackToCategories}
+                        className={styles.backBtn}
+                    >
                         <IoChevronBack />
-                        <span>카테고리로 돌아가기</span>
+                        <span>{(selectedAction === 'edit-columns' || selectedAction === 'clean-data') ? '액션으로 돌아가기' : '카테고리로 돌아가기'}</span>
                     </button>
                 </div>
             )}
@@ -364,12 +550,34 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
             )}
 
             {/* 액션 선택 화면 */}
-            {selectedCategory && (
+            {selectedCategory && selectedAction !== 'edit-columns' && selectedAction !== 'clean-data' && (
                 <div className={styles.actionList}>
                     <h4 className={styles.actionTitle}>
                         {categories.find(c => c.id === selectedCategory)?.title}
                     </h4>
                     {getActionsForCategory(selectedCategory).map((action) => (
+                        <button
+                            key={action.id}
+                            onClick={() => handleActionSelect(action.id)}
+                            className={styles.actionButton}
+                        >
+                            <action.icon />
+                            <div className={styles.actionContent}>
+                                <span className={styles.actionName}>{action.title}</span>
+                                <span className={styles.actionDesc}>{action.description}</span>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {/* 편집 하위 메뉴 (컬럼 편집 또는 데이터 정제) */}
+            {(selectedAction === 'edit-columns' || selectedAction === 'clean-data') && (
+                <div className={styles.actionList}>
+                    <h4 className={styles.actionTitle}>
+                        {selectedAction === 'edit-columns' ? '컬럼 편집 옵션' : '데이터 정제 옵션'}
+                    </h4>
+                    {getEditDataSubActions().map((action) => (
                         <button
                             key={action.id}
                             onClick={() => handleActionSelect(action.id)}
@@ -393,7 +601,7 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
                     className={`${styles.deleteButton} ${!hasDataset ? styles.disabled : ''}`}
                 >
                     <IoTrash />
-                    <span>데이터셋 삭제</span>
+                    <span>Dataset Unload</span>
                 </button>
             </div>
         </div>

@@ -417,7 +417,55 @@
 }
 
 .uniqueValueCount {
-	font-weight: 600;
-	color: #3b82f6;
-	white-space: nowrap;
+    font-weight: 600;
+    color: #3b82f6;
+    white-space: nowrap;
+}
+
+// Column Delete Modal Styles
+.columnDeleteGrid {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+
+.columnDeleteItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: #f9fafb;
+    }
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.columnDeleteLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    cursor: pointer;
+}
+
+.columnDeleteCheckbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.columnDeleteName {
+    font-weight: 500;
+    color: #1f2937;
+    font-size: 0.9rem;
 }

@@ -6,10 +6,10 @@ import {
     IoRefresh,
 } from 'react-icons/io5';
 import { MdOutlineMore } from "react-icons/md";
-import { ColumnInfoModal, DownloadDialog, StatisticsModal } from './DataProcessorModal';
+import { ColumnInfoModal, DownloadDialog, StatisticsModal, ColumnDeleteModal, ColumnValueReplaceModal, ColumnOperationModal, SpecificColumnNullRemoveModal } from './DataProcessorModal';
 import DataProcessorSidebar from './DataProcessorSidebar';
-import { downloadDataset, getDatasetSample } from '@/app/_common/api/dataManagerAPI';
-import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
+import { downloadDataset, getDatasetSample, dropDatasetColumns, replaceColumnValues, applyColumnOperation, removeNullRows } from '@/app/_common/api/dataManagerAPI';
+import { showSuccessToastKo, showErrorToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/main/dataSection/assets/DataProcessor.module.scss';
 
 interface DataProcessorProps {
@@ -59,6 +59,10 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
     const [statisticsModalOpen, setStatisticsModalOpen] = useState(false);
     const [statisticsData, setStatisticsData] = useState<any>(null);
     const [statisticsLoading, setStatisticsLoading] = useState(false);
+    const [columnDeleteModalOpen, setColumnDeleteModalOpen] = useState(false);
+    const [columnValueReplaceModalOpen, setColumnValueReplaceModalOpen] = useState(false);
+    const [columnOperationModalOpen, setColumnOperationModalOpen] = useState(false);
+    const [specificColumnNullRemoveModalOpen, setSpecificColumnNullRemoveModalOpen] = useState(false);
 
     // 데이터 로드
     useEffect(() => {
@@ -94,6 +98,148 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
         setStatisticsModalOpen(false);
         setStatisticsData(null);
         setStatisticsLoading(false);
+    };
+
+    const handleOpenColumnDeleteModal = () => {
+        setColumnDeleteModalOpen(true);
+    };
+
+    const handleCloseColumnDeleteModal = () => {
+        setColumnDeleteModalOpen(false);
+    };
+
+    const handleOpenColumnValueReplaceModal = () => {
+        setColumnValueReplaceModalOpen(true);
+    };
+
+    const handleCloseColumnValueReplaceModal = () => {
+        setColumnValueReplaceModalOpen(false);
+    };
+
+    const handleOpenColumnOperationModal = () => {
+        setColumnOperationModalOpen(true);
+    };
+
+    const handleCloseColumnOperationModal = () => {
+        setColumnOperationModalOpen(false);
+    };
+
+    const handleReplaceColumnValues = async (columnName: string, oldValue: string, newValue: string) => {
+        try {
+            showSuccessToastKo(`컬럼 '${columnName}'에서 값을 교체하는 중...`);
+
+            const result = await replaceColumnValues(managerId, columnName, oldValue, newValue) as any;
+
+            if (result.success) {
+                showSuccessToastKo(`컬럼 '${columnName}'에서 값이 성공적으로 교체되었습니다!`);
+                loadDataTableInfo(); // 데이터 다시 로드
+            } else {
+                showErrorToastKo(result.message || '값 교체에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Column values replacement failed:', error);
+            showErrorToastKo(`값 교체 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+        }
+    };
+
+    const handleApplyColumnOperation = async (columnName: string, operation: string) => {
+        try {
+            showSuccessToastKo(`컬럼 '${columnName}'에 연산 '${operation}'을 적용하는 중...`);
+
+            const result = await applyColumnOperation(managerId, columnName, operation) as any;
+
+            if (result.success) {
+                showSuccessToastKo(`컬럼 '${columnName}'에 연산이 성공적으로 적용되었습니다!`);
+                loadDataTableInfo(); // 데이터 다시 로드
+            } else {
+                showErrorToastKo(result.message || '연산 적용에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Column operation failed:', error);
+            showErrorToastKo(`연산 적용 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+        }
+    };
+
+    const handleOpenSpecificColumnNullRemoveModal = () => {
+        setSpecificColumnNullRemoveModalOpen(true);
+    };
+
+    const handleCloseSpecificColumnNullRemoveModal = () => {
+        setSpecificColumnNullRemoveModalOpen(false);
+    };
+
+    const handleRemoveSpecificColumnNullRows = async (columnName: string) => {
+        try {
+            showSuccessToastKo(`컬럼 '${columnName}'에서 NULL 값이 있는 행을 제거하는 중...`);
+
+            const result = await removeNullRows(managerId, columnName) as any;
+
+            if (result.success) {
+                const removedCount = result.removal_info?.removed_rows || 0;
+                showSuccessToastKo(`컬럼 '${columnName}'에서 ${removedCount}개의 NULL 값이 포함된 행이 성공적으로 제거되었습니다!`);
+                loadDataTableInfo(); // 데이터 다시 로드
+            } else {
+                showErrorToastKo(result.message || 'NULL 행 제거에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('NULL rows removal failed:', error);
+            showErrorToastKo(`NULL 행 제거 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+        }
+    };
+
+    const handleDeleteMultipleColumns = async (columnNames: string[]) => {
+        showDeleteConfirmToastKo({
+            title: '컬럼 삭제',
+            message: `선택된 ${columnNames.length}개 컬럼을 삭제하시겠습니까?\n${columnNames.join(', ')}\n\n이 작업은 되돌릴 수 없습니다.`,
+            itemName: `${columnNames.length}개 컬럼`,
+            onConfirm: async () => {
+                try {
+                    showSuccessToastKo(`${columnNames.length}개 컬럼을 삭제하는 중...`);
+
+                    const result = await dropDatasetColumns(managerId, columnNames) as any;
+
+                    if (result.success) {
+                        showSuccessToastKo(`${columnNames.length}개 컬럼이 성공적으로 삭제되었습니다!`);
+                        loadDataTableInfo();
+                    } else {
+                        showErrorToastKo(result.message || '컬럼 삭제에 실패했습니다.');
+                    }
+                } catch (error) {
+                    console.error('Columns drop failed:', error);
+                    showErrorToastKo(`컬럼 삭제 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+                }
+            },
+            confirmText: '삭제',
+            cancelText: '취소'
+        });
+    };
+
+    const handleDropColumn = async (columnName: string) => {
+        showDeleteConfirmToastKo({
+            title: '컬럼 삭제',
+            message: `'${columnName}' 컬럼을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`,
+            itemName: columnName,
+            onConfirm: async () => {
+                try {
+                    showSuccessToastKo(`'${columnName}' 컬럼을 삭제하는 중...`);
+
+                    const result = await dropDatasetColumns(managerId, [columnName]) as any;
+
+                    if (result.success) {
+                        showSuccessToastKo(`'${columnName}' 컬럼이 성공적으로 삭제되었습니다!`);
+                        // 데이터 다시 로드
+                        loadDataTableInfo();
+                    } else {
+                        showErrorToastKo(result.message || '컬럼 삭제에 실패했습니다.');
+                    }
+                } catch (error) {
+                    console.error('Column drop failed:', error);
+                    showErrorToastKo(`컬럼 삭제 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+                }
+            },
+            confirmText: '삭제',
+            cancelText: '취소'
+        });
     };    const handleDownloadDataset = async () => {
         if (!downloadDialog.repoId.trim()) {
             showErrorToastKo('Repository ID를 입력해주세요.');
@@ -215,7 +361,18 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                                     <thead>
                                         <tr>
                                             {dataTableInfo.columns.map((column, index) => (
-                                                <th key={index}>{column}</th>
+                                                <th key={index}>
+                                                    <div className={styles.columnHeader}>
+                                                        <span className={styles.columnName}>{column}</span>
+                                                        <button
+                                                            onClick={() => handleDropColumn(column)}
+                                                            className={styles.dropButton}
+                                                            title={`'${column}' 컬럼 삭제`}
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </div>
+                                                </th>
                                             ))}
                                         </tr>
                                     </thead>
@@ -245,6 +402,10 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                     setDownloadDialog={setDownloadDialog}
                     onDataReload={loadDataTableInfo}
                     onStatisticsModal={handleStatisticsModal}
+                    onColumnDeleteModal={handleOpenColumnDeleteModal}
+                    onColumnValueReplaceModal={handleOpenColumnValueReplaceModal}
+                    onColumnOperationModal={handleOpenColumnOperationModal}
+                    onSpecificColumnNullRemoveModal={handleOpenSpecificColumnNullRemoveModal}
                 />
             </div>
 
@@ -266,6 +427,30 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                 statistics={statisticsData}
                 loading={statisticsLoading}
                 onClose={handleCloseStatisticsModal}
+            />
+            <ColumnDeleteModal
+                isOpen={columnDeleteModalOpen}
+                onClose={handleCloseColumnDeleteModal}
+                onDeleteMultipleColumns={handleDeleteMultipleColumns}
+                availableColumns={dataTableInfo?.columns || []}
+            />
+            <ColumnValueReplaceModal
+                isOpen={columnValueReplaceModalOpen}
+                onClose={handleCloseColumnValueReplaceModal}
+                onReplaceValues={handleReplaceColumnValues}
+                availableColumns={dataTableInfo?.columns || []}
+            />
+            <ColumnOperationModal
+                isOpen={columnOperationModalOpen}
+                onClose={handleCloseColumnOperationModal}
+                onApplyOperation={handleApplyColumnOperation}
+                availableColumns={dataTableInfo?.columns || []}
+            />
+            <SpecificColumnNullRemoveModal
+                isOpen={specificColumnNullRemoveModalOpen}
+                onClose={handleCloseSpecificColumnNullRemoveModal}
+                onRemoveNullRows={handleRemoveSpecificColumnNullRows}
+                availableColumns={dataTableInfo?.columns || []}
             />
         </div>
     );
