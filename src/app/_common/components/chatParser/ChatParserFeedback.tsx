@@ -136,11 +136,20 @@ export const findFeedbackStatusTags = (content: string): FeedbackStatusInfo[] =>
  * FEEDBACK_STATUS 태그를 제거하고 내용만 반환
  */
 export const processFeedbackContent = (content: string): string => {
-    const tagsToStrip = ['FEEDBACK_STATUS', 'FEEDBACK_REPORT'];
+    if (!content) return '';
 
-    return tagsToStrip.reduce((processed, tag) =>
-        processed.replace(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, 'gi'), '$1')
-    , content);
+    const sanitized = content.replace(/<FEEDBACK_STATUS>([\s\S]*?)<\/FEEDBACK_STATUS>/gi, (_, statusContent) => {
+        const trimmedContent = statusContent ?? '';
+        const hasNestedParserTag = /<(?!\/?FEEDBACK_STATUS)[A-Z_]+(?:\s|>)/.test(trimmedContent);
+
+        if (hasNestedParserTag) {
+            return '';
+        }
+
+        return trimmedContent;
+    });
+
+    return sanitized.replace(/<FEEDBACK_REPORT>([\s\S]*?)<\/FEEDBACK_REPORT>/gi, '$1');
 };
 
 /**
@@ -157,10 +166,10 @@ export const FeedbackReportBlock: React.FC<FeedbackReportBlockProps> = ({
     className = '',
     isStreaming = false
 }) => {
-    const [isExpanded, setIsExpanded] = useState(true);
+    const [isExpanded, setIsExpanded] = useState(() => isStreaming);
 
     useEffect(() => {
-        if (isStreaming) setIsExpanded(true);
+        setIsExpanded(isStreaming);
     }, [isStreaming]);
 
     const toggleExpanded = () => {

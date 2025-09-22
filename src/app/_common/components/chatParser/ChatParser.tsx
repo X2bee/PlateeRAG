@@ -17,7 +17,8 @@ import {
     FeedbackLoopBlock,
     findFeedbackLoopBlocks,
     FeedbackReportBlock,
-    findFeedbackReportBlocks
+    findFeedbackReportBlocks,
+    findFeedbackStatusTags
 } from '@/app/_common/components/chatParser/ChatParserFeedback';
 import {
     TodoDetailsBlock,
@@ -202,6 +203,7 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
     const toolOutputLogBlocks = findToolOutputLogBlocks(processed);
     const feedbackLoopBlocks = findFeedbackLoopBlocks(processed);
     const feedbackReportBlocks = findFeedbackReportBlocks(processed);
+    const feedbackStatusTags = findFeedbackStatusTags(processed);
     const todoDetailsBlocks = findTodoDetailsBlocks(processed);
     // 코드 블록 처리
     const codeBlocks = findCodeBlocks(processed);
@@ -217,28 +219,33 @@ const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo
         ...codeBlocks.map(block => ({ ...block, type: 'code' as const }))
     ].sort((a, b) => a.start - b.start);
 
-    // 피드백 루프/TODO Details 블록 내부에 있는 다른 블록들 제거 (중복 렌더링 방지)
+    // 피드백 관련 컨테이너 내부에 있는 다른 블록들 제거 (중복 렌더링 방지)
     const filteredBlocks = allBlocks.filter((block) => {
         // 피드백 루프 블록, 피드백 리포트, TODO Details 블록은 그대로 유지
         if (block.type === 'feedbackloop' || block.type === 'feedbackreport' || block.type === 'tododetails') return true;
 
         // 다른 블록들이 피드백 루프 블록 내부에 있는지 확인
         const isInsideFeedbackLoop = feedbackLoopBlocks.some(fbBlock =>
-            block.start >= fbBlock.start && block.end <= fbBlock.end
+            block.start >= fbBlock.start && block.start < fbBlock.end
         );
 
         // 다른 블록들이 TODO Details 블록 내부에 있는지 확인
         const isInsideTodoDetails = todoDetailsBlocks.some(tdBlock =>
-            block.start >= tdBlock.start && block.end <= tdBlock.end
+            block.start >= tdBlock.start && block.start < tdBlock.end
         );
 
         // 다른 블록들이 피드백 리포트 블록 내부에 있는지 확인
         const isInsideFeedbackReport = feedbackReportBlocks.some(frBlock =>
-            block.start >= frBlock.start && block.end <= frBlock.end
+            block.start >= frBlock.start && block.start < frBlock.end
+        );
+
+        // 다른 블록들이 피드백 상태 태그 내부에 있는지 확인
+        const isInsideFeedbackStatus = feedbackStatusTags.some(status =>
+            block.start >= status.start && block.start < status.end
         );
 
         // 피드백 루프나 TODO Details 내부에 있으면 제외
-        return !isInsideFeedbackLoop && !isInsideTodoDetails && !isInsideFeedbackReport;
+        return !isInsideFeedbackLoop && !isInsideTodoDetails && !isInsideFeedbackReport && !isInsideFeedbackStatus;
     });
 
     for (const block of filteredBlocks) {
