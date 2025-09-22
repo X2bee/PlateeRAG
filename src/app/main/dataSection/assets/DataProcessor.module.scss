@@ -1,7 +1,7 @@
 @use "@/app/_common/_variables" as *;
 
 .container {
-    height: 70vh;
+    height: 75vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -142,6 +142,24 @@
                     gap: 0.75rem;
                     padding-bottom: 0.5rem;
                     border-bottom: 1px solid #e5e7eb;
+
+                    .columnInfoRow {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+
+                        .columnLabel {
+                            font-weight: 500;
+                            color: #374151;
+                            min-width: 80px;
+                        }
+
+                        .columnValue {
+                            color: #6b7280;
+                            word-break: break-word;
+                            flex: 1;
+                        }
+                    }
                 }
 
                 .columnInfoSection {
@@ -354,233 +372,6 @@
 }
 
 
-
-.sidebar {
-    width: 22rem;
-    padding: 1rem;
-    border-left: 1px solid #e5e7eb;
-    background: #f9fafb;
-    flex-shrink: 0;
-    overflow-y: auto;
-
-    h3 {
-        font-weight: 600;
-        margin: 0 0 1rem 0;
-        font-size: 1.125rem;
-        color: #1f2937;
-    }
-
-    .buttonGroup {
-        .actionButton {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.875rem;
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 0.75rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-
-            svg {
-                width: 1.25rem;
-                height: 1.25rem;
-                flex-shrink: 0;
-            }
-
-            &.download {
-                background: #3b82f6;
-                color: white;
-
-                &:hover {
-                    background: #2563eb;
-                    transform: translateY(-1px);
-                }
-            }
-
-            &.upload {
-                background: #10b981;
-                color: white;
-
-                &:hover {
-                    background: #059669;
-                    transform: translateY(-1px);
-                }
-            }
-
-            &.edit {
-                background: #f59e0b;
-                color: white;
-
-                &:hover:not(:disabled) {
-                    background: #d97706;
-                    transform: translateY(-1px);
-                }
-
-                &:disabled {
-                    background: #d1d5db;
-                    cursor: not-allowed;
-                    color: #9ca3af;
-                }
-            }
-
-            &.delete {
-                background: #ef4444;
-                color: white;
-
-                &:hover:not(:disabled) {
-                    background: #dc2626;
-                    transform: translateY(-1px);
-                }
-
-                &:disabled {
-                    background: #d1d5db;
-                    cursor: not-allowed;
-                    color: #9ca3af;
-                }
-            }
-        }
-
-        .divider {
-            border-top: 1px solid #e5e7eb;
-            padding-top: 1rem;
-            margin-top: 1rem;
-
-            .sectionTitle {
-                font-size: 0.875rem;
-                color: #6b7280;
-                margin: 0 0 0.75rem 0;
-                font-weight: 500;
-            }
-        }
-    }
-
-    .managerInfo {
-        margin-top: 2rem;
-        padding: 1rem;
-        background: white;
-        border-radius: 0.5rem;
-        border: 1px solid #e5e7eb;
-
-        .infoTitle {
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin: 0 0 0.5rem 0;
-            color: #1f2937;
-        }
-
-        .infoDetails {
-            font-size: 0.75rem;
-            color: #4b5563;
-
-            p {
-                margin: 0.25rem 0;
-                font-family: monospace;
-            }
-        }
-    }
-}
-
-.loading {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    .loadingContent {
-        text-align: center;
-
-        .spinIcon {
-            width: 2rem;
-            height: 2rem;
-            margin: 0 auto 1rem;
-            color: #3b82f6;
-            animation: spin 1s linear infinite;
-        }
-
-        p {
-            margin: 0;
-        }
-    }
-}
-
-.error {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    .errorContent {
-        text-align: center;
-        color: #ef4444;
-
-        p {
-            margin: 0 0 1rem 0;
-        }
-
-        .retryButton {
-            padding: 0.5rem 1rem;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 0.375rem;
-            cursor: pointer;
-
-            &:hover {
-                background: #2563eb;
-            }
-        }
-    }
-}
-
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-// 반응형 디자인
-@media (max-width: 768px) {
-    .columnInfoGrid {
-        grid-template-columns: 1fr !important;
-    }
-
-    .basicInfo {
-        grid-template-columns: 1fr !important;
-    }
-
-    .columnInfoItem {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-
-        .columnName {
-            margin-bottom: 0.25rem;
-        }
-    }
-}
-
-@media (max-width: 1024px) {
-    .columnInfoGrid {
-        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
-    }
-}
-
-.columnInfoRow {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-
-    p {
-        margin: 0;
-    }
-}
 
 .infoButton {
     border: none;

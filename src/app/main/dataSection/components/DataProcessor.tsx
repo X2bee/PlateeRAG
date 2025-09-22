@@ -3,15 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import {
     IoArrowBack,
-    IoDownload,
-    IoCloudUpload,
-    IoCreate,
-    IoTrash,
     IoRefresh,
 } from 'react-icons/io5';
 import { MdOutlineMore } from "react-icons/md";
 import { ColumnInfoModal, DownloadDialog } from './DataProcessorModal';
-import { downloadDataset, getDatasetSample, removeDataset } from '@/app/_common/api/dataManagerAPI';
+import DataProcessorSidebar from './DataProcessorSidebar';
+import { downloadDataset, getDatasetSample } from '@/app/_common/api/dataManagerAPI';
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/main/dataSection/assets/DataProcessor.module.scss';
 
@@ -105,43 +102,6 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
         }
     };
 
-    const handleUploadFile = async () => {
-        // TODO: 파일 업로드 로직 구현
-        showErrorToastKo('파일 업로드 기능은 추후 구현 예정입니다.');
-    };
-
-    const handleEditData = async () => {
-        // TODO: 데이터 편집 로직 구현
-        showErrorToastKo('데이터 편집 기능은 추후 구현 예정입니다.');
-    };
-
-    const handleDeleteFile = async () => {
-        if (!dataTableInfo || !dataTableInfo.success || dataTableInfo.sample_count === 0) {
-            showErrorToastKo('삭제할 데이터가 없습니다.');
-            return;
-        }
-
-        // 확인 다이얼로그
-        const confirmDelete = window.confirm(
-            '정말로 현재 데이터셋을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.'
-        );
-
-        if (!confirmDelete) {
-            return;
-        }
-
-        try {
-            await removeDataset(managerId);
-            showSuccessToastKo('데이터셋이 성공적으로 삭제되었습니다!');
-
-            // 데이터 다시 로드 (빈 상태로)
-            loadDataTableInfo();
-        } catch (error) {
-            console.error('Dataset deletion failed:', error);
-            showErrorToastKo(`데이터셋 삭제 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
-        }
-    };
-
     const handleRefresh = () => {
         loadDataTableInfo();
     };
@@ -180,7 +140,7 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                     </button>
                     <div className={styles.headerInfo}>
                         <h2>데이터 프로세서</h2>
-                        <p>Manager ID: {managerId}</p>
+                        <p>Manager ID: {managerId} | User ID: {userId}</p>
                     </div>
                 </div>
                 <button
@@ -257,62 +217,14 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                 </div>
 
                 {/* 우측 - 데이터 편집 버튼들 */}
-                <div className={styles.sidebar}>
-                    <h3>데이터 관리</h3>
-
-                    <div className={styles.buttonGroup}>
-                        {/* 데이터셋 다운로드 */}
-                        <button
-                            onClick={() => setDownloadDialog({ ...downloadDialog, isOpen: true })}
-                            className={`${styles.actionButton} ${styles.download}`}
-                        >
-                            <IoDownload />
-                            <span>데이터셋 다운로드</span>
-                        </button>
-
-                        {/* 파일 업로드 */}
-                        <button
-                            onClick={handleUploadFile}
-                            className={`${styles.actionButton} ${styles.upload}`}
-                        >
-                            <IoCloudUpload />
-                            <span>파일 업로드</span>
-                        </button>
-
-                        <div className={styles.divider}>
-                            <p className={styles.sectionTitle}>데이터 작업</p>
-
-                            {/* 데이터 편집 */}
-                            <button
-                                onClick={handleEditData}
-                                disabled={!dataTableInfo || !dataTableInfo.success || dataTableInfo.sample_count === 0}
-                                className={`${styles.actionButton} ${styles.edit}`}
-                            >
-                                <IoCreate />
-                                <span>데이터 편집</span>
-                            </button>
-
-                            {/* 데이터셋 삭제 */}
-                            <button
-                                onClick={handleDeleteFile}
-                                disabled={!dataTableInfo || !dataTableInfo.success || dataTableInfo.sample_count === 0}
-                                className={`${styles.actionButton} ${styles.delete}`}
-                            >
-                                <IoTrash />
-                                <span>데이터셋 삭제</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* 현재 매니저 정보 */}
-                    <div className={styles.managerInfo}>
-                        <p className={styles.infoTitle}>매니저 정보</p>
-                        <div className={styles.infoDetails}>
-                            <p>ID: {managerId}</p>
-                            <p>사용자: {userId}</p>
-                        </div>
-                    </div>
-                </div>
+                <DataProcessorSidebar
+                    managerId={managerId}
+                    userId={userId}
+                    dataTableInfo={dataTableInfo}
+                    downloadDialog={downloadDialog}
+                    setDownloadDialog={setDownloadDialog}
+                    onDataReload={loadDataTableInfo}
+                />
             </div>
 
             {/* 모달들 */}

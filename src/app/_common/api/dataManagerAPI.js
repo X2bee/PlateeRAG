@@ -1,6 +1,6 @@
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
-import { apiClient } from '@/app/_common/api/helper/apiClient';
+import { apiClient, apiClientV2 } from '@/app/_common/api/helper/apiClient';
 
 /**
  * Data Manager API 함수들을 관리하는 파일
@@ -367,6 +367,159 @@ export const removeDataset = async (managerId) => {
         return data;
     } catch (error) {
         devLog.error(`Failed to remove dataset for manager ${managerId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * 로컬 파일 업로드 및 자동 적재
+ * @param {string} managerId - 매니저 ID
+ * @param {FileList|File[]} files - 업로드할 파일들 (parquet 또는 csv)
+ * @returns {Promise<Object>} 업로드 결과
+ */
+export const uploadLocalDataset = async (managerId, files) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID is required');
+        }
+        if (!files || files.length === 0) {
+            throw new Error('Files are required');
+        }
+
+        // 파일 형식 검증
+        const supportedFormats = ['.parquet', '.csv'];
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const hasValidExtension = supportedFormats.some(ext =>
+                file.name.toLowerCase().endsWith(ext)
+            );
+            if (!hasValidExtension) {
+                throw new Error(`지원되지 않는 파일 형식: ${file.name}. parquet 또는 csv 파일만 지원됩니다.`);
+            }
+        }
+
+        // FormData 생성
+        const formData = new FormData();
+        formData.append('manager_id', managerId);
+
+        // 파일들 추가 - API 스펙에 맞게 'files' 필드명 사용
+        for (let i = 0; i < files.length; i++) {
+            formData.append('files', files[i]);
+        }
+
+        const response = await apiClientV2(`${API_BASE_URL}/api/data-manager/processing/local/upload-dataset`, {
+            method: 'POST',
+            body: formData, // FormData는 Content-Type 헤더를 자동으로 설정
+        });
+
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        const data = await response.json();
+        devLog.info(`Local dataset uploaded for manager ${managerId}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to upload local dataset for manager ${managerId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * 데이터셋을 CSV 파일로 내보내기
+ * @param {string} managerId - 매니저 ID
+ * @returns {Promise<void>} CSV 파일 다운로드
+ */
+export const exportDatasetAsCSV = async (managerId) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID is required');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/export/csv`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        // 파일 다운로드 처리
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `dataset_${managerId}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        devLog.info(`Dataset exported as CSV for manager ${managerId}`);
+    } catch (error) {
+        devLog.error(`Failed to export dataset as CSV for manager ${managerId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * 데이터셋을 Parquet 파일로 내보내기
+ * @param {string} managerId - 매니저 ID
+ * @returns {Promise<void>} Parquet 파일 다운로드
+ */
+export const exportDatasetAsParquet = async (managerId) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID is required');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/export/parquet`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        // 파일 다운로드 처리
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `dataset_${managerId}.parquet`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        devLog.info(`Dataset exported as Parquet for manager ${managerId}`);
+    } catch (error) {
+        devLog.error(`Failed to export dataset as Parquet for manager ${managerId}:`, error);
         throw error;
     }
 };
