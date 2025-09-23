@@ -1,0 +1,160 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    padding: 2rem clamp(1rem, 5vw, 2.75rem);
+    background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.12), transparent 45%),
+        #020617;
+    min-height: 100vh;
+    color: #f8fafc;
+}
+
+.pageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.pageHeader h1 {
+    margin: 0;
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+}
+
+.pageHeader p {
+    margin: 0.5rem 0 0;
+    max-width: 720px;
+    font-size: 1rem;
+    color: rgba(203, 213, 225, 0.9);
+}
+
+.statusBadge {
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(250, 204, 21, 0.18);
+    color: #facc15;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    align-self: center;
+}
+
+.connectionPanel {
+    display: grid;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border-radius: 18px;
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.actionsRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-self: flex-start;
+}
+
+.actionsRow button {
+    border-radius: 12px;
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    background: rgba(30, 41, 59, 0.8);
+    color: rgba(226, 232, 240, 0.95);
+    padding: 0.55rem 1.2rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.actionsRow button:hover:not(:disabled) {
+    background: rgba(51, 65, 85, 0.85);
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(59, 130, 246, 0.2);
+}
+
+.actionsRow button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.statusColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+}
+
+.statusInfo {
+    margin: 0;
+    color: rgba(110, 231, 183, 0.9);
+}
+
+.statusError {
+    margin: 0;
+    color: #fecaca;
+}
+
+.connectionField {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.connectionField label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(148, 163, 184, 0.95);
+}
+
+.connectionField input {
+    background: rgba(2, 6, 23, 0.75);
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    border-radius: 12px;
+    padding: 0.65rem 0.85rem;
+    color: #e2e8f0;
+    font-size: 0.95rem;
+}
+
+.connectionField input:focus {
+    outline: none;
+    border-color: rgba(125, 211, 252, 0.6);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+}
+
+.connectionField small {
+    font-size: 0.8rem;
+    color: rgba(148, 163, 184, 0.85);
+}
+
+.grid {
+    display: grid;
+    gap: 1.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.leftColumn,
+.rightColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.rightColumn {
+    flex: 1;
+}
+
+@media (max-width: 960px) {
+    .pageHeader {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .statusBadge {
+        align-self: flex-start;
+    }
+}

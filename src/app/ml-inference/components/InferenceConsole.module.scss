@@ -1,0 +1,268 @@
+.console {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.75rem;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+    border: 1px solid rgba(59, 130, 246, 0.12);
+    color: #f8fafc;
+}
+
+.header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.header p {
+    margin: 0.35rem 0 0;
+    font-size: 0.95rem;
+    color: rgba(226, 232, 240, 0.85);
+}
+
+.endpointBadge {
+    padding: 0.4rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(79, 70, 229, 0.2);
+    color: #c7d2fe;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.modelSelector {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.modelSelector label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    font-size: 0.85rem;
+    color: rgba(226, 232, 240, 0.9);
+}
+
+.modelSelector select,
+.modelSelector input {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 10px;
+    padding: 0.6rem 0.75rem;
+    color: #f8fafc;
+    font-size: 0.95rem;
+}
+
+.modelSelector select:focus,
+.modelSelector input:focus {
+    outline: none;
+    border-color: rgba(129, 140, 248, 0.7);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+}
+
+.manualInputs {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.modelSummary {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: rgba(30, 41, 59, 0.65);
+    border-radius: 12px;
+    border: 1px solid rgba(99, 102, 241, 0.18);
+}
+
+.modelSummary span {
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgba(148, 163, 184, 0.9);
+}
+
+.modelSummary strong {
+    font-size: 1rem;
+    color: #f8fafc;
+}
+
+.schemaPreview ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0;
+    margin: 0.5rem 0 0;
+    list-style: none;
+}
+
+.schemaPreview li {
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(129, 140, 248, 0.18);
+    color: #e0e7ff;
+    font-size: 0.8rem;
+}
+
+.jsonEditor {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.editorHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.editorHeader span {
+    font-size: 0.9rem;
+    color: rgba(226, 232, 240, 0.9);
+}
+
+.editorHeader button {
+    border: 1px solid rgba(129, 140, 248, 0.4);
+    border-radius: 8px;
+    background: rgba(30, 41, 59, 0.7);
+    color: #c7d2fe;
+    padding: 0.45rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.editorHeader button:hover {
+    background: rgba(59, 69, 145, 0.75);
+}
+
+.jsonEditor textarea {
+    width: 100%;
+    min-height: 240px;
+    border-radius: 12px;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    background: rgba(15, 23, 42, 0.85);
+    color: #e2e8f0;
+    font-family: 'JetBrains Mono', Consolas, Monaco, 'Courier New', monospace;
+    font-size: 0.9rem;
+    padding: 1rem;
+    line-height: 1.5;
+    resize: vertical;
+}
+
+.toggleRow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+    color: rgba(226, 232, 240, 0.9);
+}
+
+.toggleRow input {
+    width: 18px;
+    height: 18px;
+}
+
+.errorPanel {
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    background: rgba(220, 38, 38, 0.17);
+    border: 1px solid rgba(252, 165, 165, 0.35);
+    color: #fecaca;
+}
+
+.errorPanel strong {
+    display: block;
+    margin-bottom: 0.35rem;
+}
+
+.errorPanel code {
+    display: inline-block;
+    margin-top: 0.35rem;
+    background: rgba(76, 29, 149, 0.35);
+    padding: 0.2rem 0.4rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+}
+
+.requestPreview {
+    border-radius: 12px;
+    border: 1px solid rgba(129, 140, 248, 0.25);
+    background: rgba(30, 41, 59, 0.6);
+    color: #e0f2fe;
+    padding: 0.75rem 1rem;
+}
+
+.requestPreview summary {
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.requestPreview pre {
+    margin: 0.75rem 0 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.actions button {
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(90deg, rgba(129, 140, 248, 0.95), rgba(59, 130, 246, 0.95));
+    color: #0f172a;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
+}
+
+.actions button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(59, 130, 246, 0.35);
+}
+
+.resultPanel {
+    border-radius: 16px;
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    background: rgba(13, 148, 136, 0.08);
+    padding: 1.25rem;
+}
+
+.resultPanel h3 {
+    margin: 0 0 0.75rem;
+    font-size: 1.05rem;
+    color: #d1fae5;
+}
+
+.resultPanel pre {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+}

@@ -1,0 +1,179 @@
+.registry {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.25rem;
+    border-radius: 16px;
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    color: #e2e8f0;
+}
+
+.registryEmpty {
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px dashed rgba(148, 163, 184, 0.35);
+    background: rgba(15, 23, 42, 0.6);
+    color: rgba(226, 232, 240, 0.85);
+    text-align: center;
+}
+
+.registryEmpty h3 {
+    margin: 0 0 0.5rem;
+}
+
+.registryEmpty p {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h3 {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.header span {
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.2);
+    color: #bfdbfe;
+    font-size: 0.75rem;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.listItem,
+.listItemActive {
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(59, 130, 246, 0.12);
+}
+
+.listItemActive {
+    border-color: rgba(56, 189, 248, 0.5);
+    box-shadow: 0 8px 24px rgba(56, 189, 248, 0.15);
+}
+
+.listItemInner {
+    display: flex;
+    align-items: stretch;
+    gap: 0.5rem;
+}
+
+.selectButton {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.85rem 1rem;
+    background: transparent;
+    border: none;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.selectButton:hover {
+    background: rgba(30, 64, 175, 0.18);
+}
+
+.listItemActive .selectButton {
+    background: rgba(59, 130, 246, 0.18);
+}
+
+.deleteButton {
+    flex: 0 0 auto;
+    margin-right: 0.75rem;
+    align-self: center;
+    padding: 0.4rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid rgba(248, 113, 113, 0.45);
+    background: rgba(239, 68, 68, 0.12);
+    color: #fecaca;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.deleteButton:hover {
+    background: rgba(239, 68, 68, 0.22);
+    transform: translateY(-1px);
+}
+
+.deleteButton:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.modelTitle {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+.modelTitle strong {
+    font-size: 1rem;
+}
+
+.modelTitle span {
+    font-size: 0.85rem;
+    color: rgba(191, 219, 254, 0.85);
+}
+
+.modelMeta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: rgba(148, 163, 184, 0.85);
+    flex-wrap: wrap;
+}
+
+.statusTag {
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.18);
+    color: #bfdbfe;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.schemaChips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.schemaChips span {
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(56, 189, 248, 0.2);
+    color: #cffafe;
+    font-size: 0.75rem;
+}
+
+.timestampRow {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.75rem;
+    color: rgba(148, 163, 184, 0.7);
+}

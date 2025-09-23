@@ -1,0 +1,140 @@
+.detail {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 1.5rem;
+    border-radius: 16px;
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    color: #f8fafc;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.header p {
+    margin: 0.35rem 0 0;
+    font-size: 0.9rem;
+    color: rgba(203, 213, 225, 0.85);
+}
+
+.header button {
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(30, 41, 59, 0.8);
+    color: rgba(226, 232, 240, 0.9);
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.header button:hover:not(:disabled) {
+    background: rgba(51, 65, 85, 0.85);
+    transform: translateY(-1px);
+}
+
+.header button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.info {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba(148, 163, 184, 0.9);
+}
+
+.error {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #fecaca;
+    background: rgba(248, 113, 113, 0.18);
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+}
+
+.body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.metaGrid {
+    margin: 0;
+    display: grid;
+    gap: 0.9rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.metaGrid dt {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(148, 163, 184, 0.75);
+}
+
+.metaGrid dd {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    color: rgba(226, 232, 240, 0.95);
+}
+
+.schemaSection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.schemaSection h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.schemaSection ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    display: grid;
+    gap: 0.3rem;
+    color: rgba(226, 232, 240, 0.92);
+}
+
+.descriptionBox,
+.metadataBox {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.descriptionBox h3,
+.metadataBox h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.descriptionBox p {
+    margin: 0;
+    line-height: 1.6;
+    color: rgba(226, 232, 240, 0.9);
+}
+
+.metadataBox pre {
+    margin: 0;
+    background: rgba(2, 6, 23, 0.45);
+    border-radius: 12px;
+    padding: 1rem;
+    color: #e0f2fe;
+    font-size: 0.85rem;
+    max-height: 260px;
+    overflow: auto;
+}

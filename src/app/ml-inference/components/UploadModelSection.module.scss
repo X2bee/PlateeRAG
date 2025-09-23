@@ -1,0 +1,211 @@
+.uploadSection {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.75rem;
+    background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #f9fafb;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.sectionHeader h2 {
+    font-size: 1.35rem;
+    margin: 0;
+}
+
+.sectionHeader p {
+    margin: 0.35rem 0 0;
+    font-size: 0.95rem;
+    color: rgba(229, 231, 235, 0.9);
+}
+
+.sectionBadge {
+    align-self: center;
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.18);
+    color: #bfdbfe;
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.uploadForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.formGrid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.formField,
+.formFieldFull {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.formField span,
+.formFieldFull span {
+    font-size: 0.85rem;
+    color: rgba(243, 244, 246, 0.9);
+}
+
+.formField input,
+.formFieldFull input,
+.formField textarea,
+.formFieldFull textarea {
+    background: rgba(17, 24, 39, 0.8);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 10px;
+    padding: 0.6rem 0.75rem;
+    color: #f9fafb;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.formField input:focus,
+.formFieldFull input:focus,
+.formField textarea:focus,
+.formFieldFull textarea:focus {
+    outline: none;
+    border-color: rgba(96, 165, 250, 0.75);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+.formFieldFull {
+    grid-column: 1 / -1;
+}
+
+.filePreview {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    background: rgba(17, 24, 39, 0.55);
+    border: 1px solid rgba(59, 130, 246, 0.14);
+}
+
+.filePreview strong {
+    display: block;
+    font-size: 0.95rem;
+}
+
+.filePreview span {
+    font-size: 0.85rem;
+    color: rgba(209, 213, 219, 0.85);
+}
+
+.badgeOk,
+.badgeWarn {
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+}
+
+.badgeOk {
+    background: rgba(34, 197, 94, 0.18);
+    color: #bbf7d0;
+}
+
+.badgeWarn {
+    background: rgba(234, 179, 8, 0.2);
+    color: #fef08a;
+}
+
+.errorMessage {
+    background: rgba(239, 68, 68, 0.18);
+    border: 1px solid rgba(248, 113, 113, 0.35);
+    color: #fecaca;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+}
+
+.formActions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.formActions button {
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.formActions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
+}
+
+.formActions button:not(.secondaryButton) {
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.95), rgba(14, 165, 233, 0.95));
+    color: #f9fafb;
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.25);
+}
+
+.formActions button:not(.secondaryButton):hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 30px rgba(37, 99, 235, 0.35);
+}
+
+.secondaryButton {
+    background: rgba(17, 24, 39, 0.8);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    color: rgba(226, 232, 240, 0.9);
+}
+
+.secondaryButton:hover:not(:disabled) {
+    background: rgba(30, 41, 59, 0.9);
+}
+
+.responsePanel {
+    background: rgba(30, 41, 59, 0.75);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    border: 1px solid rgba(59, 130, 246, 0.18);
+}
+
+.responsePanel h3 {
+    margin: 0 0 0.75rem;
+    font-size: 1.05rem;
+}
+
+.responsePanel dl {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.responsePanel dt {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(148, 163, 184, 0.9);
+}
+
+.responsePanel dd {
+    margin: 0.15rem 0 0;
+    font-size: 0.95rem;
+    color: #e2e8f0;
+}

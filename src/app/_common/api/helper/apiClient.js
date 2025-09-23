@@ -26,10 +26,14 @@ const getUserId = () => {
 export const apiClient = async (url, options = {}) => {
     const token = getToken();
     const userId = getUserId();
+    const isFormDataRequest =
+        typeof FormData !== 'undefined' && options?.body instanceof FormData;
 
-    const defaultHeaders = {
-        'Content-Type': 'application/json',
-    };
+    const defaultHeaders = {};
+
+    if (!isFormDataRequest) {
+        defaultHeaders['Content-Type'] = 'application/json';
+    }
 
     if (token) {
         defaultHeaders['Authorization'] = `Bearer ${token}`;
@@ -67,8 +71,14 @@ export const apiClient = async (url, options = {}) => {
 export const apiClientV2 = async (url, options = {}) => {
     const token = getToken();
     const userId = getUserId();
+    const isFormDataRequest =
+        typeof FormData !== 'undefined' && options?.body instanceof FormData;
 
     const defaultHeaders = {};
+
+    if (!isFormDataRequest) {
+        defaultHeaders['Content-Type'] = 'application/json';
+    }
 
     if (token) {
         defaultHeaders['Authorization'] = `Bearer ${token}`;
