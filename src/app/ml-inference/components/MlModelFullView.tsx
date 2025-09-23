@@ -68,6 +68,7 @@ const MlModelFullView: React.FC = () => {
                     models={models}
                     selectedModelId={selectedModelId}
                     onSelectModel={setSelectedModelId}
+                    activeModelDetail={modelDetail}
                 />
             </section>
             <MlModelDeleteDialogContainer />

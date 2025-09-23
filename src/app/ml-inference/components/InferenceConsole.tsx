@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import styles from './InferenceConsole.module.scss';
-import type { ApiError, InferenceResultPayload, RegisteredModel, RequestContext } from '../types';
+import type { ApiError, InferenceResultPayload, RegisteredModel, RequestContext, ModelDetailResponse } from '../types';
 import { apiClient } from '@/app/_common/api/helper/apiClient';
 
 interface InferenceConsoleProps {
@@ -10,9 +10,10 @@ interface InferenceConsoleProps {
     models: RegisteredModel[];
     selectedModelId: number | null;
     onSelectModel: (modelId: number | null) => void;
+    activeModelDetail?: ModelDetailResponse | null;
 }
 
-const InferenceConsole: React.FC<InferenceConsoleProps> = ({ request, models, selectedModelId, onSelectModel }) => {
+const InferenceConsole: React.FC<InferenceConsoleProps> = ({ request, models, selectedModelId, onSelectModel, activeModelDetail }) => {
     const [manualModelId, setManualModelId] = useState('');
     const [modelName, setModelName] = useState('');
     const [modelVersion, setModelVersion] = useState('');
@@ -25,6 +26,20 @@ const InferenceConsole: React.FC<InferenceConsoleProps> = ({ request, models, se
 
     const selectedModel = useMemo(() => models.find(model => model.model_id === selectedModelId) ?? null, [models, selectedModelId]);
 
+    const resolvedSchema = useMemo(() => {
+        if (selectedModel?.input_schema && selectedModel.input_schema.length > 0) {
+            return selectedModel.input_schema;
+        }
+
+        if (activeModelDetail && activeModelDetail.input_schema && activeModelDetail.input_schema.length > 0) {
+            if (!selectedModel || activeModelDetail.model_id === selectedModel.model_id) {
+                return activeModelDetail.input_schema;
+            }
+        }
+
+        return null;
+    }, [selectedModel, activeModelDetail]);
+
     useEffect(() => {
         if (!selectedModel) {
             return;
@@ -33,15 +48,16 @@ const InferenceConsole: React.FC<InferenceConsoleProps> = ({ request, models, se
         setModelName(selectedModel.model_name ?? '');
         setModelVersion(selectedModel.model_version ?? '');
 
-        if (selectedModel.input_schema && selectedModel.input_schema.length > 0) {
+        const schema = resolvedSchema;
+        if (schema && schema.length > 0) {
             const templateObject: Record<string, unknown> = {};
-            selectedModel.input_schema.forEach(field => {
+            schema.forEach(field => {
                 templateObject[field] = '';
             });
 
             setInputsText(JSON.stringify([templateObject], null, 2));
         }
-    }, [selectedModel]);
+    }, [selectedModel, resolvedSchema]);
 
     const validateAndParseInputs = (): unknown[] | null => {
         try {
@@ -149,9 +165,11 @@ const InferenceConsole: React.FC<InferenceConsoleProps> = ({ request, models, se
     };
 
     const handleTemplatePopulate = () => {
-        if (selectedModel?.input_schema && selectedModel.input_schema.length > 0) {
+        const schema = resolvedSchema;
+
+        if (schema && schema.length > 0) {
             const template: Record<string, unknown> = {};
-            selectedModel.input_schema.forEach(field => {
+            schema.forEach(field => {
                 template[field] = '';
             });
             setInputsText(JSON.stringify([template], null, 2));

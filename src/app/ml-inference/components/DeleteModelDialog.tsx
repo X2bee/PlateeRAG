@@ -3,6 +3,7 @@
 import React from 'react';
 import styles from './DeleteModelDialog.module.scss';
 import type { RegisteredModel } from '../types';
+import { createPortal } from 'react-dom';
 
 interface DeleteModelDialogProps {
     model: RegisteredModel;
@@ -13,7 +14,7 @@ interface DeleteModelDialogProps {
 }
 
 const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({ model, isDeleting, errorMessage, onCancel, onConfirm }) => {
-    return (
+    const modalContent = (
         <div className={styles.backdrop} role="presentation">
             <div className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby="ml-delete-heading">
                 <header className={styles.header}>
@@ -62,6 +63,8 @@ const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({ model, isDeleting
             </div>
         </div>
     );
+    
+    return createPortal(modalContent, document.body);
 };
 
 export default DeleteModelDialog;

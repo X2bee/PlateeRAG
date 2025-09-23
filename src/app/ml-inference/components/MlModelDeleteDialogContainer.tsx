@@ -3,6 +3,8 @@
 import React from 'react';
 import DeleteModelDialog from './DeleteModelDialog';
 import { useMlModelWorkspace } from './MlModelWorkspaceContext';
+import { create } from 'domain';
+import { createPortal } from 'react-dom';
 
 const MlModelDeleteDialogContainer: React.FC = () => {
     const { deleteState, cancelDelete, confirmDelete } = useMlModelWorkspace();
@@ -11,7 +13,7 @@ const MlModelDeleteDialogContainer: React.FC = () => {
         return null;
     }
 
-    return (
+    const modalContent = (
         <DeleteModelDialog
             model={deleteState.model}
             isDeleting={deleteState.isDeleting}
@@ -20,6 +22,8 @@ const MlModelDeleteDialogContainer: React.FC = () => {
             onConfirm={confirmDelete}
         />
     );
+
+    return modalContent;
 };
 
 export default MlModelDeleteDialogContainer;
