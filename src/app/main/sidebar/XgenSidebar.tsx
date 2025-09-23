@@ -11,7 +11,8 @@ import { motion } from 'framer-motion';
 import {
     getChatSidebarItems,
     getFilteredWorkflowSidebarItems,
-    getFilteredTrainSidebarItems
+    getFilteredTrainSidebarItems,
+    getFilteredDataSidebarItems
 } from '@/app/main/sidebar/sidebarConfig';
 import { devLog } from '@/app/_common/utils/logger';
 
@@ -34,6 +35,7 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
     const searchParams = useSearchParams();
     const [isChatExpanded, setIsChatExpanded] = useState(true); // 기본적으로 채팅 섹션 확장
     const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(false);
+    const [isDataExpanded, setIsDataExpanded] = useState(false);
     const [isTrainExpanded, setIsTrainExpanded] = useState(false);
 
     const { user, hasAccessToSection, isInitialized } = useAuth();
@@ -45,19 +47,28 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
         if (view) {
             const chatItems = ['new-chat', 'current-chat', 'chat-history'];
             const workflowItems = ['canvas', 'workflows', 'documents'];
-            const trainItems = ['train', 'train-monitor', 'eval', 'storage'];
+            const dataItems = ['data-station', 'data-storage'];
+            const trainItems = ['train', 'train-monitor', 'eval', 'model-storage'];
 
             if (chatItems.includes(view)) {
                 setIsChatExpanded(true);
                 setIsWorkflowExpanded(false);
+                setIsDataExpanded(false);
                 setIsTrainExpanded(false);
             } else if (workflowItems.includes(view)) {
                 setIsChatExpanded(false);
                 setIsWorkflowExpanded(true);
+                setIsDataExpanded(false);
+                setIsTrainExpanded(false);
+            } else if (dataItems.includes(view)) {
+                setIsChatExpanded(false);
+                setIsWorkflowExpanded(false);
+                setIsDataExpanded(true);
                 setIsTrainExpanded(false);
             } else if (trainItems.includes(view)) {
                 setIsChatExpanded(false);
                 setIsWorkflowExpanded(false);
+                setIsDataExpanded(false);
                 setIsTrainExpanded(true);
             }
         }
@@ -70,23 +81,27 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
             return {
                 chatItems: [],
                 workflowItems: [],
+                dataItems: [],
                 trainItems: []
             };
         }
 
         const chatItems = getChatSidebarItems();
         const workflowItems = getFilteredWorkflowSidebarItems(hasAccessToSection);
+        const dataItems = getFilteredDataSidebarItems(hasAccessToSection);
         const trainItems = getFilteredTrainSidebarItems(hasAccessToSection);
 
         devLog.log('XgenSidebar: Filtered items:', {
             chatItems: chatItems.length,
             workflowItems: workflowItems.length,
+            dataItems: dataItems.length,
             trainItems: trainItems.length
         });
 
         return {
             chatItems,
             workflowItems,
+            dataItems,
             trainItems
         };
     }, [hasAccessToSection, isInitialized]);
@@ -112,6 +127,7 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
 
     const toggleChatExpanded = () => setIsChatExpanded(!isChatExpanded);
     const toggleWorkflowExpanded = () => setIsWorkflowExpanded(!isWorkflowExpanded);
+    const toggleDataExpanded = () => setIsDataExpanded(!isDataExpanded);
     const toggleTrainExpanded = () => setIsTrainExpanded(!isTrainExpanded);
 
     const handleLogoClick = () => {
@@ -219,6 +235,39 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
 
                         <nav className={`${styles.sidebarNav} ${isWorkflowExpanded ? styles.expanded : ''}`}>
                             {filteredItems.workflowItems.map((item) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => onItemClick(item.id)}
+                                    className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                                >
+                                    {item.icon}
+                                    <div className={styles.navText}>
+                                        <div className={styles.navTitle}>{item.title}</div>
+                                        <div className={styles.navDescription}>
+                                            {item.description}
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </nav>
+                    </>
+                )}
+
+                {/* 데이터 섹션 - 접근 가능한 아이템이 있을 때만 표시 */}
+                {filteredItems.dataItems.length > 0 && (
+                    <>
+                        <button
+                            className={styles.sidebarToggle}
+                            onClick={toggleDataExpanded}
+                        >
+                            <span>데이터</span>
+                            <span className={`${styles.toggleIcon} ${isDataExpanded ? styles.expanded : ''}`}>
+                                ▼
+                            </span>
+                        </button>
+
+                        <nav className={`${styles.sidebarNav} ${isDataExpanded ? styles.expanded : ''}`}>
+                            {filteredItems.dataItems.map((item) => (
                                 <button
                                     key={item.id}
                                     onClick={() => onItemClick(item.id)}

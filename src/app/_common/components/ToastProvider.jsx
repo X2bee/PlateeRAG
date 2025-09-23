@@ -22,7 +22,9 @@ const ToastProvider = () => {
                     style: {
                         background: '#ffffff',
                         color: '#374151',
-                        border: '2px solid #10b981',
+                        borderWidth: '2px',
+                        borderStyle: 'solid',
+                        borderColor: '#10b981',
                         borderRadius: '10px',
                         fontWeight: '500',
                         boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)',
@@ -32,7 +34,9 @@ const ToastProvider = () => {
                     style: {
                         background: '#ffffff',
                         color: '#374151',
-                        border: '2px solid #ef4444',
+                        borderWidth: '2px',
+                        borderStyle: 'solid',
+                        borderColor: '#ef4444',
                         borderRadius: '10px',
                         fontWeight: '500',
                         fontFamily: 'system-ui, -apple-system, sans-serif',
@@ -63,7 +67,9 @@ const ToastProvider = () => {
                     style: {
                         background: '#f9fafb',
                         color: '#374151',
-                        border: '2px solid #374151',
+                        borderWidth: '2px',
+                        borderStyle: 'solid',
+                        borderColor: '#374151',
                         borderRadius: '12px',
                         boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
                         maxWidth: '420px',

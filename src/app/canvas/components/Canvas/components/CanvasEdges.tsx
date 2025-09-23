@@ -8,6 +8,7 @@ interface CanvasEdgesProps {
     selectedEdgeId: string | null;
     edgePreview: EdgePreview | null;
     portPositions: Record<string, Position>;
+    nodeExpandedState: Record<string, boolean>;
     onEdgeClick: (edgeId: string) => void;
 }
 
@@ -16,6 +17,7 @@ export const CanvasEdges: React.FC<CanvasEdgesProps> = ({
     selectedEdgeId,
     edgePreview,
     portPositions,
+    nodeExpandedState,
     onEdgeClick
 }) => {
     return (
@@ -52,6 +54,10 @@ export const CanvasEdges: React.FC<CanvasEdgesProps> = ({
                                 id={edge.id}
                                 sourcePos={sourcePos}
                                 targetPos={targetPos}
+                                sourcePortType={edge.source.portType as 'input' | 'output'}
+                                targetPortType={edge.target.portType as 'input' | 'output'}
+                                sourceExpanded={Boolean(nodeExpandedState[edge.source.nodeId])}
+                                targetExpanded={Boolean(nodeExpandedState[edge.target.nodeId])}
                                 onEdgeClick={onEdgeClick}
                                 isSelected={false}
                             />
@@ -81,6 +87,10 @@ export const CanvasEdges: React.FC<CanvasEdgesProps> = ({
                                 id={edge.id}
                                 sourcePos={sourcePos}
                                 targetPos={targetPos}
+                                sourcePortType={edge.source.portType as 'input' | 'output'}
+                                targetPortType={edge.target.portType as 'input' | 'output'}
+                                sourceExpanded={Boolean(nodeExpandedState[edge.source.nodeId])}
+                                targetExpanded={Boolean(nodeExpandedState[edge.target.nodeId])}
                                 onEdgeClick={onEdgeClick}
                                 isSelected={true}
                             />
@@ -92,6 +102,8 @@ export const CanvasEdges: React.FC<CanvasEdgesProps> = ({
                     <Edge
                         sourcePos={edgePreview.startPos}
                         targetPos={edgePreview.targetPos}
+                        sourcePortType={edgePreview.source.portType as 'input' | 'output'}
+                        sourceExpanded={Boolean(nodeExpandedState[edgePreview.source.nodeId])}
                         isPreview={true}
                     />
                 )}

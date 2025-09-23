@@ -17,18 +17,8 @@ import ContentArea from '@/app/main/workflowSection/components/ContentArea';
 import styles from '@/app/main/modelSection/assets/StoragePage.module.scss';
 import { getAllHuggingFaceResources } from '@/app/_common/api/huggingfaceAPI';
 import StorageModelInfoModal from './Storage/StorageModelInfoModal';
-import StorageDatasetInfoModal from './Storage/StorageDatasetInfoModal';
 
 interface HuggingFaceModel {
-    id: string;
-    author: string;
-    private: boolean;
-    downloads: number;
-    created_at: string | null;
-    additional_info?: Record<string, any>;
-}
-
-interface HuggingFaceDataset {
     id: string;
     author: string;
     private: boolean;
@@ -46,7 +36,7 @@ interface HuggingFaceResourcesData {
     };
     datasets: {
         success: boolean;
-        data: { datasets: HuggingFaceDataset[] } | null;
+        data: { datasets: any[] } | null;
         error: string | null;
     };
 }
@@ -55,14 +45,12 @@ type SortField = 'date' | 'downloads';
 type SortOrder = 'asc' | 'desc';
 
 const StoragePageContent: React.FC = () => {
-    const [resourceType, setResourceType] = useState<'models' | 'datasets'>('models');
     const [resources, setResources] = useState<HuggingFaceResourcesData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [sortField, setSortField] = useState<SortField>('date');
     const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
     const [selectedModel, setSelectedModel] = useState<HuggingFaceModel | null>(null);
-    const [selectedDataset, setSelectedDataset] = useState<HuggingFaceDataset | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const fetchResources = async () => {
@@ -75,14 +63,14 @@ const StoragePageContent: React.FC = () => {
             console.error('Failed to fetch Hugging Face resources:', error);
 
             // 에러 메시지에 따라 적절한 안내 메시지 설정
-            const errorMessage = error instanceof Error ? error.message : 'Hugging Face 리소스를 불러오는데 실패했습니다.';
+            const errorMessage = error instanceof Error ? error.message : 'Hugging Face 모델을 불러오는데 실패했습니다.';
 
             if (errorMessage.includes('사용자 ID가 설정되지 않았습니다') ||
                 errorMessage.includes('허브 토큰이 설정되지 않았습니다') ||
                 errorMessage.includes('API가 설정되지 않았거나 사용할 수 없습니다')) {
                 setError(errorMessage);
             } else {
-                setError('Hugging Face 리소스를 불러오는데 실패했습니다.');
+                setError('Hugging Face 모델을 불러오는데 실패했습니다.');
             }
         } finally {
             setLoading(false);
@@ -93,22 +81,13 @@ const StoragePageContent: React.FC = () => {
         fetchResources();
     }, []);
 
-    const getCurrentResources = () => {
-        if (!resources) return [];
+    const getCurrentModels = () => {
+        if (!resources || !resources.models.success || !resources.models.data) return [];
 
-        let resourceList = [];
-        if (resourceType === 'models') {
-            resourceList = resources.models.success && resources.models.data
-                ? resources.models.data.models
-                : [];
-        } else {
-            resourceList = resources.datasets.success && resources.datasets.data
-                ? resources.datasets.data.datasets
-                : [];
-        }
+        const models = resources.models.data.models;
 
         // 정렬 적용
-        return resourceList.sort((a, b) => {
+        return models.sort((a, b) => {
             let compareValue = 0;
 
             if (sortField === 'date') {
@@ -134,15 +113,7 @@ const StoragePageContent: React.FC = () => {
 
     const getCurrentError = () => {
         if (!resources) return null;
-
-        let currentError = null;
-        if (resourceType === 'models') {
-            currentError = resources.models.error;
-        } else {
-            currentError = resources.datasets.error;
-        }
-
-        return currentError;
+        return resources.models.error;
     };
 
     const isConfigurationError = (errorMessage: string | null) => {
@@ -153,37 +124,29 @@ const StoragePageContent: React.FC = () => {
                errorMessage.includes('API가 설정되지 않았거나 사용할 수 없습니다');
     };
 
-    const currentResources = getCurrentResources();
+    const currentModels = getCurrentModels();
     const currentError = getCurrentError();
 
     const handleModelClick = (model: HuggingFaceModel) => {
         setSelectedModel(model);
-        setSelectedDataset(null);
-        setIsModalOpen(true);
-    };
-
-    const handleDatasetClick = (dataset: HuggingFaceDataset) => {
-        setSelectedDataset(dataset);
-        setSelectedModel(null);
         setIsModalOpen(true);
     };
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setSelectedModel(null);
-        setSelectedDataset(null);
     };
 
     return (
         <ContentArea
-            title="Hugging Face 저장소"
-            description="Hugging Face에 저장된 모델과 데이터셋을 확인하고 관리하세요."
+            title="Hugging Face 모델 저장소"
+            description="Hugging Face에 저장된 모델을 확인하고 관리하세요."
         >
             <div className={styles.container}>
             {/* Header with Sorting Controls and Actions */}
             <div className={styles.header}>
                 <div className={styles.headerLeft}>
-                    {!loading && !error && !currentError && currentResources.length > 0 && (
+                    {!loading && !error && !currentError && currentModels.length > 0 && (
                         <div className={styles.sortControls}>
                             <span className={styles.sortLabel}>정렬:</span>
                             <button
@@ -211,21 +174,6 @@ const StoragePageContent: React.FC = () => {
                 </div>
 
                 <div className={styles.headerActions}>
-                    <div className={styles.filters}>
-                        <button
-                            onClick={() => setResourceType('models')}
-                            className={`${styles.filterButton} ${resourceType === 'models' ? styles.active : ''}`}
-                        >
-                            모델
-                        </button>
-                        <button
-                            onClick={() => setResourceType('datasets')}
-                            className={`${styles.filterButton} ${resourceType === 'datasets' ? styles.active : ''}`}
-                        >
-                            데이터셋
-                        </button>
-                    </div>
-
                     <button
                         className={`${styles.refreshButton} ${loading ? styles.spinning : ''}`}
                         onClick={fetchResources}
@@ -240,7 +188,7 @@ const StoragePageContent: React.FC = () => {
             {/* Loading State */}
             {loading && (
                 <div className={styles.loadingState}>
-                    <p>Hugging Face 리소스를 불러오는 중...</p>
+                    <p>Hugging Face 모델을 불러오는 중...</p>
                 </div>
             )}
 
@@ -263,54 +211,48 @@ const StoragePageContent: React.FC = () => {
             {/* Resources Grid */}
             {!loading && !error && !currentError && (
                 <div className={styles.resourcesGrid}>
-                    {currentResources.map((resource) => (
+                    {currentModels.map((model) => (
                         <div
-                            key={resource.id}
+                            key={model.id}
                             className={styles.resourceCard}
-                            onClick={() => {
-                                if (resourceType === 'models') {
-                                    handleModelClick(resource as HuggingFaceModel);
-                                } else {
-                                    handleDatasetClick(resource as HuggingFaceDataset);
-                                }
-                            }}
+                            onClick={() => handleModelClick(model)}
                             style={{
                                 cursor: 'pointer'
                             }}
                         >
                             <div className={styles.cardHeader}>
                                 <div className={styles.resourceIcon}>
-                                    {resourceType === 'models' ? <FiPackage /> : <FiDatabase />}
+                                    <FiPackage />
                                 </div>
                                 <div
-                                    className={`${styles.status} ${resource.private ? styles.statusPrivate : styles.statusPublic}`}
+                                    className={`${styles.status} ${model.private ? styles.statusPrivate : styles.statusPublic}`}
                                 >
-                                    {resource.private ? <FiLock /> : <FiUnlock />}
-                                    {resource.private ? '비공개' : '공개'}
+                                    {model.private ? <FiLock /> : <FiUnlock />}
+                                    {model.private ? '비공개' : '공개'}
                                 </div>
                             </div>
 
                             <div className={styles.cardContent}>
                                 <h3 className={styles.resourceName}>
-                                    {resource.id}
+                                    {model.id}
                                 </h3>
 
                                 <div className={styles.resourceMeta}>
                                     <div className={styles.metaItem}>
                                         <FiUser />
-                                        <span>{resource.author || resource.id.split('/')[0] || 'Unknown'}</span>
+                                        <span>{model.author || model.id.split('/')[0] || 'Unknown'}</span>
                                     </div>
-                                    {resource.created_at && (
+                                    {model.created_at && (
                                         <div className={styles.metaItem}>
                                             <FiClock />
                                             <span>
-                                                {new Date(resource.created_at).toLocaleDateString('ko-KR')}
+                                                {new Date(model.created_at).toLocaleDateString('ko-KR')}
                                             </span>
                                         </div>
                                     )}
                                     <div className={styles.metaItem}>
                                         <FiDownload />
-                                        <span>{resource.downloads?.toLocaleString() || 0} 다운로드</span>
+                                        <span>{model.downloads?.toLocaleString() || 0} 다운로드</span>
                                     </div>
                                 </div>
                             </div>
@@ -319,12 +261,12 @@ const StoragePageContent: React.FC = () => {
                 </div>
             )}
 
-            {!loading && !error && !currentError && currentResources.length === 0 && (
+            {!loading && !error && !currentError && currentModels.length === 0 && (
                 <div className={styles.emptyState}>
-                    {resourceType === 'models' ? <FiPackage className={styles.emptyIcon} /> : <FiDatabase className={styles.emptyIcon} />}
-                    <h3>{resourceType === 'models' ? '모델이 없습니다' : '데이터셋이 없습니다'}</h3>
+                    <FiPackage className={styles.emptyIcon} />
+                    <h3>모델이 없습니다</h3>
                     <p>
-                        아직 Hugging Face에 {resourceType === 'models' ? '모델' : '데이터셋'}이 없습니다.
+                        아직 Hugging Face에 모델이 없습니다.
                     </p>
                 </div>
             )}
@@ -334,15 +276,6 @@ const StoragePageContent: React.FC = () => {
             {selectedModel && (
                 <StorageModelInfoModal
                     model={selectedModel}
-                    isOpen={isModalOpen}
-                    onClose={handleCloseModal}
-                />
-            )}
-
-            {/* Dataset Info Modal */}
-            {selectedDataset && (
-                <StorageDatasetInfoModal
-                    dataset={selectedDataset}
                     isOpen={isModalOpen}
                     onClose={handleCloseModal}
                 />

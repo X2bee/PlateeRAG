@@ -23,6 +23,8 @@ interface CanvasNodesProps {
     onOpenNodeModal?: NodeProps['onOpenNodeModal'];
     onSynchronizeSchema?: (nodeId: string, portId: string) => void;
     currentEdges: any[];
+    nodeExpandedState: Record<string, boolean>;
+    onToggleExpanded: (nodeId: string) => void;
 }
 
 export const CanvasNodes: React.FC<CanvasNodesProps> = ({
@@ -42,7 +44,9 @@ export const CanvasNodes: React.FC<CanvasNodesProps> = ({
     onClearSelection,
     onOpenNodeModal,
     onSynchronizeSchema,
-    currentEdges
+    currentEdges,
+    nodeExpandedState,
+    onToggleExpanded
 }) => {
     return (
         <>
@@ -100,6 +104,8 @@ export const CanvasNodes: React.FC<CanvasNodesProps> = ({
                         onSynchronizeSchema={onSynchronizeSchema && ((portId: string) => onSynchronizeSchema(node.id, portId))}
                         currentNodes={nodes}
                         currentEdges={currentEdges}
+                        isExpanded={nodeExpandedState[node.id] ?? false}
+                        onToggleExpanded={onToggleExpanded}
                     />
                 );
             })}

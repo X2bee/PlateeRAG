@@ -83,7 +83,9 @@ export const ThinkBlock: React.FC<ThinkBlockProps> = ({
             <div
                 className={`think-block-container streaming ${className}`}
                 style={{
-                    border: '1px solid #e5e7eb',
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderColor: '#e5e7eb',
                     borderRadius: '0.5rem',
                     margin: '0.5rem 0',
                     backgroundColor: '#eff6ff'
@@ -160,14 +162,12 @@ export const ThinkBlock: React.FC<ThinkBlockProps> = ({
         <div
             className={`think-block-container ${isStreaming ? 'streaming' : ''} ${className}`}
             style={{
-                border: '1px solid #e5e7eb',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: isStreaming ? '#3b82f6' : '#e5e7eb',
                 borderRadius: '0.5rem',
                 margin: '0.5rem 0',
-                backgroundColor: '#f9fafb',
-                ...(isStreaming && {
-                    borderColor: '#3b82f6',
-                    backgroundColor: '#eff6ff'
-                })
+                backgroundColor: isStreaming ? '#eff6ff' : '#f9fafb'
             }}
         >
             <button

@@ -122,12 +122,19 @@ const AdminPageContent: React.FC = () => {
     // 유효한 섹션인지 확인하는 함수
     const isValidSection = (section: string): boolean => {
         const validSections = [
+            // Dashboard (기본 페이지)
             'dashboard',
+            // User Items
             'users', 'user-create', 'group-permissions',
-            'workflow-management',  'chat-monitoring', 'workflow-monitoring',
+            // Workflow Items
+            'workflow-management', 'workflow-monitoring', 'chat-monitoring',
+            // Setting Items
             'system-config', 'system-settings',
+            // System Items
             'system-monitor', 'system-health', 'backend-logs',
+            // Data Items
             'database', 'storage', 'backup',
+            // Security Items
             'security-settings', 'audit-logs', 'error-logs',
         ];
         return validSections.includes(section);

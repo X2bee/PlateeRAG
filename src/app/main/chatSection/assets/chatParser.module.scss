@@ -30,7 +30,9 @@ $white: #ffffff;
 
 .editButton {
     background: rgba(248, 250, 252, 0.95);
-    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgba(226, 232, 240, 0.8);
     border-radius: 6px;
     padding: 8px;
     cursor: pointer;
@@ -219,7 +221,9 @@ $white: #ffffff;
         margin: 0.75rem 0;
         border-radius: 8px;
         overflow: hidden;
-        border: 1px solid $gray-200;
+        border-width: 1px;
+        border-style: solid;
+        border-color: $gray-200;
         background: $white;
 
         :global(.code-block-header) {
@@ -246,7 +250,9 @@ $white: #ffffff;
                 width: 28px;
                 height: 22px;
                 background: transparent;
-                border: 1px solid $gray-300;
+                border-width: 1px;
+                border-style: solid;
+                border-color: $gray-300;
                 border-radius: 4px;
                 cursor: pointer;
                 color: $gray-600;
@@ -578,7 +584,9 @@ $white: #ffffff;
 
     // Think Block 스타일
     :global(.think-block-container) {
-        border: 1px solid $gray-200;
+        border-width: 1px;
+        border-style: solid;
+        border-color: $gray-200;
         border-radius: 0.5rem;
         margin: 0.5rem 0;
         background-color: $gray-50;
