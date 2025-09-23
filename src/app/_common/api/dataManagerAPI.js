@@ -777,7 +777,51 @@ export const removeNullRows = async (managerId, columnName = null) => {
  * @returns {Promise<Object>} HuggingFace 업로드 결과
  */
 export const uploadToHuggingFace = async (managerId, repoId, filename, isPrivate = false, hfUserId, hubToken) => {
-    try {/* Lines 781-821 omitted */} catch (error) {/* Lines 822-824 omitted */}
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID는 필수입니다.');
+        }
+        if (!repoId || typeof repoId !== 'string' || repoId.trim() === '') {
+            throw new Error('Repository ID는 필수입니다.');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+            repo_id: repoId.trim(),
+            private: isPrivate
+        };
+
+        // 선택적 파라미터 추가
+        if (filename && typeof filename === 'string' && filename.trim() !== '') {
+            requestBody.filename = filename.trim();
+        }
+        if (hfUserId && typeof hfUserId === 'string' && hfUserId.trim() !== '') {
+            requestBody.hf_user_id = hfUserId.trim();
+        }
+        if (hubToken && typeof hubToken === 'string' && hubToken.trim() !== '') {
+            requestBody.hub_token = hubToken.trim();
+        }
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/upload-to-hf`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `HuggingFace 업로드 요청 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info(`Dataset uploaded to HuggingFace for manager ${managerId} → ${repoId}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to upload dataset to HuggingFace for manager ${managerId} → ${repoId}:`, error);
+        throw error;
+    }
 };
 
 /**
