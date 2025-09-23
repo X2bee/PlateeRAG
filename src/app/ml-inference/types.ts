@@ -47,7 +47,7 @@ export interface ApiError {
 }
 
 export interface RequestContext {
-    token: string;
+    token?: string;
     endpoint: string;
 }
 

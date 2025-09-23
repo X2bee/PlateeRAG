@@ -78,7 +78,7 @@ const UploadModelSection: React.FC<UploadModelSectionProps> = ({ request, onUplo
     };
 
     const submitFormData = async (form: FormData) => {
-        const trimmedToken = request.token.trim();
+        const trimmedToken = request.token?.trim() ?? '';
         const headers = trimmedToken
             ? { Authorization: `Bearer ${trimmedToken}` }
             : undefined;

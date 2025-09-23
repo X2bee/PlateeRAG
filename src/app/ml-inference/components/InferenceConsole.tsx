@@ -113,9 +113,6 @@ const InferenceConsole: React.FC<InferenceConsoleProps> = ({ request, models, se
         try {
             const response = await apiClient(request.endpoint, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
                 body: JSON.stringify(payload),
             });
 

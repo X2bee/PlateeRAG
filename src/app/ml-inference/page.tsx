@@ -17,6 +17,7 @@ import type {
     SyncResponse,
 } from './types';
 import { apiClient } from '@/app/_common/api/helper/apiClient';
+import { API_BASE_URL } from '@/app/config.js';
 
 const joinUrl = (baseUrl: string, path: string) => {
     const trimmed = baseUrl.trim();
@@ -56,8 +57,7 @@ const normalizeModelResponse = (payload: UploadSuccessResponse): RegisteredModel
 };
 
 const MlInferencePage: React.FC = () => {
-    const [token, setToken] = useState('');
-    const [baseUrl, setBaseUrl] = useState('');
+    const [baseUrl, setBaseUrl] = useState(API_BASE_URL ?? '');
     const [models, setModels] = useState<RegisteredModel[]>([]);
     const [selectedModelId, setSelectedModelId] = useState<number | null>(null);
     const [deleteCandidate, setDeleteCandidate] = useState<RegisteredModel | null>(null);
@@ -104,15 +104,6 @@ const MlInferencePage: React.FC = () => {
         updated_at: item.updated_at ?? null,
     }), []);
 
-    const buildAuthHeaders = useCallback(() => {
-        const trimmedToken = token.trim();
-        return trimmedToken
-            ? {
-                Authorization: `Bearer ${trimmedToken}`,
-            }
-            : undefined;
-    }, [token]);
-
     const fetchModelsFromServer = useCallback(async () => {
         setIsLoadingList(true);
         setListError(null);
@@ -122,7 +113,6 @@ const MlInferencePage: React.FC = () => {
         try {
             const response = await apiClient(joinUrl(baseUrl, '/api/models?limit=100&offset=0'), {
                 method: 'GET',
-                headers: buildAuthHeaders(),
             });
 
             const payload = await response.json().catch(() => null);
@@ -156,7 +146,7 @@ const MlInferencePage: React.FC = () => {
         } finally {
             setIsLoadingList(false);
         }
-    }, [baseUrl, buildAuthHeaders, mapListItemToRegisteredModel, selectedModelId]);
+    }, [baseUrl, mapListItemToRegisteredModel, selectedModelId]);
 
     const fetchModelDetail = useCallback(async (modelId: number, silent = false) => {
         if (!silent) {
@@ -167,7 +157,6 @@ const MlInferencePage: React.FC = () => {
         try {
             const response = await apiClient(joinUrl(baseUrl, `/api/models/${modelId}`), {
                 method: 'GET',
-                headers: buildAuthHeaders(),
             });
 
             const payload = await response.json().catch(() => null);
@@ -209,12 +198,11 @@ const MlInferencePage: React.FC = () => {
                 setDetailLoading(false);
             }
         }
-    }, [baseUrl, buildAuthHeaders]);
+    }, [baseUrl]);
 
     const requestDeleteModel = async (modelId: number) => {
         const response = await apiClient(joinUrl(baseUrl, `/api/models/${modelId}`), {
             method: 'DELETE',
-            headers: buildAuthHeaders(),
         });
 
         let payload: unknown = null;
@@ -286,7 +274,6 @@ const MlInferencePage: React.FC = () => {
         try {
             const response = await apiClient(joinUrl(baseUrl, '/api/models/sync'), {
                 method: 'POST',
-                headers: buildAuthHeaders(),
             });
 
             const payload = await response.json().catch(() => null);
@@ -312,7 +299,7 @@ const MlInferencePage: React.FC = () => {
         } finally {
             setIsSyncing(false);
         }
-    }, [baseUrl, buildAuthHeaders, fetchModelsFromServer]);
+    }, [baseUrl, fetchModelsFromServer]);
 
     useEffect(() => {
         if (!selectedModelId) {
@@ -331,11 +318,11 @@ const MlInferencePage: React.FC = () => {
     }, [fetchModelDetail, selectedModelId]);
 
     useEffect(() => {
-        // 베이스 URL이나 토큰이 변경되면 기존 데이터 간단히 초기화
+        // 베이스 URL이 변경되면 기존 상태 초기화
         setListError(null);
         setSyncError(null);
         setSyncMessage(null);
-    }, [baseUrl, token]);
+    }, [baseUrl]);
 
     return (
         <main className={styles.page}>
@@ -355,20 +342,9 @@ const MlInferencePage: React.FC = () => {
                         type="text"
                         value={baseUrl}
                         onChange={event => setBaseUrl(event.target.value)}
-                        placeholder="예: http://localhost:8080"
+                        placeholder="예: http://localhost:8000"
                     />
-                    <small>비워두면 현재 프론트엔드 오리진을 그대로 사용합니다.</small>
-                </div>
-                <div className={styles.connectionField}>
-                    <label htmlFor="ml-inference-token">Auth Token</label>
-                    <input
-                        id="ml-inference-token"
-                        type="text"
-                        value={token}
-                        onChange={event => setToken(event.target.value)}
-                        placeholder="Bearer 토큰 값을 입력하세요"
-                    />
-                    <small>모든 요청에 Authorization 헤더가 추가됩니다. 토큰이 없다면 비워두어도 됩니다.</small>
+                    <small>기본값은 환경 변수로 설정된 API_CONFIG.BASE_URL입니다.</small>
                 </div>
                 <div className={styles.actionsRow}>
                     <button type="button" onClick={fetchModelsFromServer} disabled={isLoadingList}>
@@ -388,7 +364,7 @@ const MlInferencePage: React.FC = () => {
             <div className={styles.grid}>
                 <div className={styles.leftColumn}>
                     <UploadModelSection
-                        request={{ token, endpoint: uploadEndpoint }}
+                        request={{ endpoint: uploadEndpoint }}
                         onUploadSuccess={handleModelInserted}
                     />
                     <ModelRegistryPanel
@@ -406,7 +382,7 @@ const MlInferencePage: React.FC = () => {
                         onRefetch={selectedModelId ? () => fetchModelDetail(selectedModelId) : undefined}
                     />
                     <InferenceConsole
-                        request={{ token, endpoint: inferenceEndpoint }}
+                        request={{ endpoint: inferenceEndpoint }}
                         models={models}
                         selectedModelId={selectedModelId}
                         onSelectModel={setSelectedModelId}
