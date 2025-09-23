@@ -13,7 +13,7 @@ import {
 } from 'react-icons/io5';
 import { MdDataset } from 'react-icons/md';
 import { showErrorToastKo, showSuccessToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
-import { removeDataset, uploadLocalDataset, exportDatasetAsCSV, exportDatasetAsParquet, getDatasetStatistics, dropDatasetColumns, replaceColumnValues, applyColumnOperation, removeNullRows, uploadToHuggingFace } from '@/app/_common/api/dataManagerAPI';
+import { removeDataset, uploadLocalDataset, exportDatasetAsCSV, exportDatasetAsParquet, getDatasetStatistics, removeNullRows } from '@/app/_common/api/dataManagerAPI';
 import styles from '@/app/main/dataSection/assets/DataProcessorSidebar.module.scss';
 
 interface DataTableInfo {
