@@ -74,13 +74,12 @@ export const DatasetCallbackModal: React.FC<DatasetCallbackModalProps> = ({
                 let newValue = '';
                 let adjustedStart = start;
                 let adjustedEnd = end;
-                let totalRemoved = 0;
 
                 for (let i = 0; i < lines.length; i++) {
                     if (i >= startLine && i <= endLine) {
                         // 현재 줄에서 앞의 공백 4개 제거
                         const originalLine = lines[i];
-                        const newLine = originalLine.replace(/^    /, '');
+                        const newLine = originalLine.replace(/^ {4}/, '');
                         const removed = originalLine.length - newLine.length;
 
                         if (i === startLine) {
@@ -90,7 +89,6 @@ export const DatasetCallbackModal: React.FC<DatasetCallbackModalProps> = ({
                             adjustedEnd = Math.max(0, adjustedEnd - removed);
                         }
 
-                        totalRemoved += removed;
                         lines[i] = newLine;
                     }
                 }
