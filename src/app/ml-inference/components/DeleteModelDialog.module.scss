@@ -1,8 +1,8 @@
 .backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(2, 6, 23, 0.6);
-    backdrop-filter: blur(4px);
+    background: rgba(15, 23, 42, 0.25);
+    backdrop-filter: blur(3px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -12,13 +12,13 @@
 
 .dialog {
     width: min(480px, 100%);
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
-    border: 1px solid rgba(248, 113, 113, 0.25);
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
     border-radius: 18px;
-    box-shadow: 0 24px 55px rgba(15, 23, 42, 0.45);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
     display: flex;
     flex-direction: column;
-    color: #f8fafc;
+    color: #1f2937;
 }
 
 .header {
@@ -31,13 +31,14 @@
 .header h2 {
     margin: 0;
     font-size: 1.3rem;
+    color: #111827;
 }
 
 .header button {
     border: none;
     background: transparent;
     font-size: 1.1rem;
-    color: rgba(148, 163, 184, 0.85);
+    color: #6b7280;
     cursor: pointer;
     transition: color 0.2s ease;
 }
@@ -48,7 +49,7 @@
 }
 
 .header button:hover:not(:disabled) {
-    color: #fca5a5;
+    color: #ef4444;
 }
 
 .content {
@@ -62,6 +63,7 @@
     margin: 0;
     font-size: 0.95rem;
     line-height: 1.6;
+    color: #374151;
 }
 
 .versionTag {
@@ -69,13 +71,13 @@
     margin-left: 0.4rem;
     padding: 0.2rem 0.45rem;
     border-radius: 999px;
-    background: rgba(59, 130, 246, 0.25);
-    color: #bfdbfe;
+    background: rgba(59, 130, 246, 0.12);
+    color: #1d4ed8;
     font-size: 0.75rem;
 }
 
 .subText {
-    color: rgba(148, 163, 184, 0.85);
+    color: #6b7280;
 }
 
 .metaList {
@@ -88,21 +90,22 @@
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: rgba(148, 163, 184, 0.75);
+    color: #6b7280;
 }
 
 .metaList dd {
     margin: 0.15rem 0 0;
     font-size: 0.95rem;
+    color: #1f2937;
 }
 
 .error {
     margin: 0;
     padding: 0.75rem 1rem;
     border-radius: 10px;
-    background: rgba(248, 113, 113, 0.18);
-    border: 1px solid rgba(248, 113, 113, 0.3);
-    color: #fecaca;
+    background: rgba(248, 113, 113, 0.12);
+    border: 1px solid rgba(248, 113, 113, 0.35);
+    color: #b91c1c;
     font-size: 0.9rem;
 }
 
@@ -123,18 +126,18 @@
 }
 
 .cancelBtn {
-    background: rgba(30, 41, 59, 0.8);
-    border: 1px solid rgba(148, 163, 184, 0.35);
-    color: rgba(226, 232, 240, 0.9);
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #4b5563;
 }
 
 .cancelBtn:hover:not(:disabled) {
-    background: rgba(51, 65, 85, 0.9);
+    background: #f3f4f6;
 }
 
 .deleteBtn {
-    background: linear-gradient(90deg, rgba(239, 68, 68, 0.95), rgba(248, 113, 113, 0.95));
-    color: #fff5f5;
+    background: linear-gradient(90deg, #ef4444, #f97316);
+    color: #ffffff;
     box-shadow: 0 10px 25px rgba(248, 113, 113, 0.35);
 }
 

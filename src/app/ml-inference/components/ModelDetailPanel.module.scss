@@ -4,9 +4,10 @@
     gap: 1.25rem;
     padding: 1.5rem;
     border-radius: 16px;
-    background: rgba(15, 23, 42, 0.72);
-    border: 1px solid rgba(59, 130, 246, 0.18);
-    color: #f8fafc;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    color: #1f2937;
 }
 
 .header {
@@ -19,28 +20,30 @@
 .header h2 {
     margin: 0;
     font-size: 1.2rem;
+    color: #111827;
 }
 
 .header p {
     margin: 0.35rem 0 0;
     font-size: 0.9rem;
-    color: rgba(203, 213, 225, 0.85);
+    color: #6b7280;
 }
 
 .header button {
     border-radius: 999px;
-    border: 1px solid rgba(148, 163, 184, 0.35);
-    background: rgba(30, 41, 59, 0.8);
-    color: rgba(226, 232, 240, 0.9);
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: #1f2937;
     padding: 0.5rem 1rem;
     font-size: 0.85rem;
     cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease;
+    transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
 }
 
 .header button:hover:not(:disabled) {
-    background: rgba(51, 65, 85, 0.85);
+    background: #f3f4f6;
     transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
 }
 
 .header button:disabled {
@@ -51,15 +54,15 @@
 .info {
     margin: 0;
     font-size: 0.9rem;
-    color: rgba(148, 163, 184, 0.9);
+    color: #6b7280;
 }
 
 .error {
     margin: 0;
     font-size: 0.9rem;
-    color: #fecaca;
-    background: rgba(248, 113, 113, 0.18);
-    border: 1px solid rgba(248, 113, 113, 0.3);
+    color: #b91c1c;
+    background: rgba(248, 113, 113, 0.12);
+    border: 1px solid rgba(248, 113, 113, 0.35);
     padding: 0.75rem 1rem;
     border-radius: 10px;
 }
@@ -81,13 +84,13 @@
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: rgba(148, 163, 184, 0.75);
+    color: #6b7280;
 }
 
 .metaGrid dd {
     margin: 0.25rem 0 0;
     font-size: 0.95rem;
-    color: rgba(226, 232, 240, 0.95);
+    color: #1f2937;
 }
 
 .schemaSection {
@@ -99,6 +102,7 @@
 .schemaSection h3 {
     margin: 0;
     font-size: 1rem;
+    color: #111827;
 }
 
 .schemaSection ul {
@@ -106,7 +110,7 @@
     padding-left: 1.1rem;
     display: grid;
     gap: 0.3rem;
-    color: rgba(226, 232, 240, 0.92);
+    color: #374151;
 }
 
 .descriptionBox,
@@ -120,21 +124,23 @@
 .metadataBox h3 {
     margin: 0;
     font-size: 1rem;
+    color: #111827;
 }
 
 .descriptionBox p {
     margin: 0;
     line-height: 1.6;
-    color: rgba(226, 232, 240, 0.9);
+    color: #374151;
 }
 
 .metadataBox pre {
     margin: 0;
-    background: rgba(2, 6, 23, 0.45);
+    background: #f9fafb;
     border-radius: 12px;
     padding: 1rem;
-    color: #e0f2fe;
+    color: #1f2937;
     font-size: 0.85rem;
     max-height: 260px;
     overflow: auto;
+    border: 1px solid #e5e7eb;
 }

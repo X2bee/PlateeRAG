@@ -4,9 +4,10 @@
     gap: 1.5rem;
     padding: 1.75rem;
     border-radius: 16px;
-    background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
-    border: 1px solid rgba(59, 130, 246, 0.12);
-    color: #f8fafc;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+    color: #1f2937;
 }
 
 .header {
@@ -19,20 +20,21 @@
 .header h2 {
     margin: 0;
     font-size: 1.3rem;
+    color: #111827;
 }
 
 .header p {
     margin: 0.35rem 0 0;
     font-size: 0.95rem;
-    color: rgba(226, 232, 240, 0.85);
+    color: #6b7280;
 }
 
 .endpointBadge {
     padding: 0.4rem 0.7rem;
     border-radius: 999px;
-    background: rgba(79, 70, 229, 0.2);
-    color: #c7d2fe;
-    font-size: 0.8rem;
+    background: rgba(59, 130, 246, 0.12);
+    color: #1d4ed8;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
 }
@@ -54,24 +56,24 @@
     flex-direction: column;
     gap: 0.45rem;
     font-size: 0.85rem;
-    color: rgba(226, 232, 240, 0.9);
+    color: #4b5563;
 }
 
 .modelSelector select,
 .modelSelector input {
-    background: rgba(15, 23, 42, 0.85);
-    border: 1px solid rgba(99, 102, 241, 0.25);
+    background: #ffffff;
+    border: 1px solid #d1d5db;
     border-radius: 10px;
     padding: 0.6rem 0.75rem;
-    color: #f8fafc;
+    color: #111827;
     font-size: 0.95rem;
 }
 
 .modelSelector select:focus,
 .modelSelector input:focus {
     outline: none;
-    border-color: rgba(129, 140, 248, 0.7);
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25);
 }
 
 .manualInputs {
@@ -84,21 +86,21 @@
     display: grid;
     gap: 0.75rem;
     padding: 1rem 1.25rem;
-    background: rgba(30, 41, 59, 0.65);
+    background: #f9fafb;
     border-radius: 12px;
-    border: 1px solid rgba(99, 102, 241, 0.18);
+    border: 1px solid #e5e7eb;
 }
 
 .modelSummary span {
     font-size: 0.75rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: rgba(148, 163, 184, 0.9);
+    color: #6b7280;
 }
 
 .modelSummary strong {
     font-size: 1rem;
-    color: #f8fafc;
+    color: #1f2937;
 }
 
 .schemaPreview ul {
@@ -113,8 +115,8 @@
 .schemaPreview li {
     padding: 0.3rem 0.6rem;
     border-radius: 999px;
-    background: rgba(129, 140, 248, 0.18);
-    color: #e0e7ff;
+    background: rgba(59, 130, 246, 0.12);
+    color: #1d4ed8;
     font-size: 0.8rem;
 }
 
@@ -130,32 +132,34 @@
     align-items: center;
 }
 
-.editorHeader span {
+.editorHeader label {
     font-size: 0.9rem;
-    color: rgba(226, 232, 240, 0.9);
+    color: #374151;
 }
 
 .editorHeader button {
-    border: 1px solid rgba(129, 140, 248, 0.4);
+    border: 1px solid #d1d5db;
     border-radius: 8px;
-    background: rgba(30, 41, 59, 0.7);
-    color: #c7d2fe;
+    background: #ffffff;
+    color: #1f2937;
     padding: 0.45rem 0.75rem;
     cursor: pointer;
     font-size: 0.85rem;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .editorHeader button:hover {
-    background: rgba(59, 69, 145, 0.75);
+    background: #f3f4f6;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
 }
 
 .jsonEditor textarea {
     width: 100%;
     min-height: 240px;
     border-radius: 12px;
-    border: 1px solid rgba(99, 102, 241, 0.2);
-    background: rgba(15, 23, 42, 0.85);
-    color: #e2e8f0;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: #111827;
     font-family: 'JetBrains Mono', Consolas, Monaco, 'Courier New', monospace;
     font-size: 0.9rem;
     padding: 1rem;
@@ -168,7 +172,7 @@
     align-items: center;
     gap: 0.6rem;
     font-size: 0.9rem;
-    color: rgba(226, 232, 240, 0.9);
+    color: #374151;
 }
 
 .toggleRow input {
@@ -179,9 +183,9 @@
 .errorPanel {
     padding: 0.85rem 1rem;
     border-radius: 10px;
-    background: rgba(220, 38, 38, 0.17);
-    border: 1px solid rgba(252, 165, 165, 0.35);
-    color: #fecaca;
+    background: rgba(248, 113, 113, 0.12);
+    border: 1px solid rgba(248, 113, 113, 0.35);
+    color: #b91c1c;
 }
 
 .errorPanel strong {
@@ -192,23 +196,25 @@
 .errorPanel code {
     display: inline-block;
     margin-top: 0.35rem;
-    background: rgba(76, 29, 149, 0.35);
+    background: rgba(254, 226, 226, 0.8);
     padding: 0.2rem 0.4rem;
     border-radius: 6px;
     font-size: 0.8rem;
+    color: #991b1b;
 }
 
 .requestPreview {
     border-radius: 12px;
-    border: 1px solid rgba(129, 140, 248, 0.25);
-    background: rgba(30, 41, 59, 0.6);
-    color: #e0f2fe;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    color: #1f2937;
     padding: 0.75rem 1rem;
 }
 
 .requestPreview summary {
     cursor: pointer;
     font-weight: 600;
+    color: #1d4ed8;
 }
 
 .requestPreview pre {
@@ -216,6 +222,7 @@
     font-size: 0.85rem;
     line-height: 1.5;
     white-space: pre-wrap;
+    color: #374151;
 }
 
 .actions {
@@ -227,8 +234,8 @@
     border: none;
     border-radius: 10px;
     padding: 0.75rem 1.5rem;
-    background: linear-gradient(90deg, rgba(129, 140, 248, 0.95), rgba(59, 130, 246, 0.95));
-    color: #0f172a;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    color: #ffffff;
     font-weight: 600;
     cursor: pointer;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -243,20 +250,20 @@
 
 .actions button:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 12px 24px rgba(59, 130, 246, 0.35);
+    box-shadow: 0 12px 24px rgba(59, 130, 246, 0.28);
 }
 
 .resultPanel {
     border-radius: 16px;
-    border: 1px solid rgba(56, 189, 248, 0.25);
-    background: rgba(13, 148, 136, 0.08);
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
     padding: 1.25rem;
 }
 
 .resultPanel h3 {
     margin: 0 0 0.75rem;
     font-size: 1.05rem;
-    color: #d1fae5;
+    color: #111827;
 }
 
 .resultPanel pre {
@@ -265,4 +272,5 @@
     line-height: 1.55;
     white-space: pre-wrap;
     word-break: break-word;
+    color: #374151;
 }
