@@ -753,23 +753,123 @@ export const removeNullRows = async (managerId, columnName = null) => {
         });
 
         if (!response.ok) {
-            const result = await response.json().catch(() => ({}));
-            throw new Error(
-                result.detail || `HTTP error! status: ${response.status}`
-            );
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
-        const logMessage = columnName
-            ? `NULL rows removed for manager ${managerId}, column ${columnName}`
-            : `NULL rows removed for manager ${managerId}, all columns`;
-        devLog.info(logMessage, data);
+        devLog.info(`NULL rows removed for manager ${managerId}${columnName ? ` in column ${columnName}` : ''}:`, data);
         return data;
     } catch (error) {
-        const errorMessage = columnName
-            ? `Failed to remove NULL rows for manager ${managerId}, column ${columnName}`
-            : `Failed to remove NULL rows for manager ${managerId}, all columns`;
-        devLog.error(errorMessage, error);
+        devLog.error(`Failed to remove NULL rows for manager ${managerId}${columnName ? ` in column ${columnName}` : ''}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * 데이터셋을 HuggingFace Hub에 업로드
+ * @param {string} managerId - 매니저 ID
+ * @param {string} repoId - HuggingFace 리포지토리 ID (user/repo-name 또는 repo-name)
+ * @param {string} [filename] - 업로드할 파일명 (미지정시 자동 생성)
+ * @param {boolean} [isPrivate=false] - 프라이빗 리포지토리 여부
+ * @param {string} [hfUserId] - HuggingFace 사용자 ID (미지정시 설정값 사용)
+ * @param {string} [hubToken] - HuggingFace Hub 토큰 (미지정시 설정값 사용)
+ * @returns {Promise<Object>} HuggingFace 업로드 결과
+ */
+export const uploadToHuggingFace = async (managerId, repoId, filename, isPrivate = false, hfUserId, hubToken) => {
+    try {/* Lines 781-821 omitted */} catch (error) {/* Lines 822-824 omitted */}
+};
+
+/**
+ * 컬럼 복사
+ * @param {string} managerId - 매니저 ID
+ * @param {string} sourceColumn - 복사할 원본 컬럼명
+ * @param {string} newColumn - 새로운 컬럼명
+ * @returns {Promise<Object>} 컬럼 복사 결과
+ */
+export const copyDatasetColumn = async (managerId, sourceColumn, newColumn) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID가 필요합니다.');
+        }
+        if (!sourceColumn || typeof sourceColumn !== 'string' || sourceColumn.trim() === '') {
+            throw new Error('원본 컬럼명이 필요합니다.');
+        }
+        if (!newColumn || typeof newColumn !== 'string' || newColumn.trim() === '') {
+            throw new Error('새로운 컬럼명이 필요합니다.');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+            source_column: sourceColumn.trim(),
+            new_column: newColumn.trim()
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/copy-column`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `컬럼 복사 요청 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info(`Column copied for manager ${managerId}, '${sourceColumn}' → '${newColumn}':`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to copy column for manager ${managerId}, '${sourceColumn}' → '${newColumn}':`, error);
+        throw error;
+    }
+};
+
+/**
+ * 컬럼 이름 변경
+ * @param {string} managerId - 매니저 ID
+ * @param {string} oldName - 기존 컬럼명
+ * @param {string} newName - 새로운 컬럼명
+ * @returns {Promise<Object>} 컬럼 이름 변경 결과
+ */
+export const renameDatasetColumn = async (managerId, oldName, newName) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID가 필요합니다.');
+        }
+        if (!oldName || typeof oldName !== 'string' || oldName.trim() === '') {
+            throw new Error('기존 컬럼명이 필요합니다.');
+        }
+        if (!newName || typeof newName !== 'string' || newName.trim() === '') {
+            throw new Error('새로운 컬럼명이 필요합니다.');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+            old_name: oldName.trim(),
+            new_name: newName.trim()
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/rename-column`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `컬럼 이름 변경 요청 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info(`Column renamed for manager ${managerId}, '${oldName}' → '${newName}':`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to rename column for manager ${managerId}, '${oldName}' → '${newName}':`, error);
         throw error;
     }
 };

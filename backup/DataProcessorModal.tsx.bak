@@ -65,6 +65,26 @@ interface SpecificColumnNullRemoveModalProps {
     availableColumns: string[];
 }
 
+interface HuggingFaceUploadModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onUpload: (repoId: string, filename: string, isPrivate: boolean, hfUserId: string, hubToken: string) => void;
+}
+
+interface ColumnCopyModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onCopyColumn: (sourceColumn: string, newColumn: string) => void;
+    availableColumns: string[];
+}
+
+interface ColumnRenameModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onRenameColumn: (oldName: string, newName: string) => void;
+    availableColumns: string[];
+}
+
 // 컬럼 정보 포매팅 함수
 const formatColumnInfo = (columnInfo: string | object): React.ReactNode => {
     if (typeof columnInfo === 'string') {
@@ -903,6 +923,416 @@ export const SpecificColumnNullRemoveModal: React.FC<SpecificColumnNullRemoveMod
                         }}
                     >
                         결측치 제거
+                    </button>
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+};
+
+// HuggingFace 업로드 모달 컴포넌트
+export const HuggingFaceUploadModal: React.FC<HuggingFaceUploadModalProps> = ({
+    isOpen,
+    onClose,
+    onUpload
+}) => {
+    const [repoId, setRepoId] = useState<string>('');
+    const [filename, setFilename] = useState<string>('');
+    const [isPrivate, setIsPrivate] = useState<boolean>(false);
+    const [hfUserId, setHfUserId] = useState<string>('');
+    const [hubToken, setHubToken] = useState<string>('');
+
+    if (!isOpen) return null;
+
+    const handleSubmit = () => {
+        if (!repoId.trim()) {
+            alert('리포지토리 ID를 입력해주세요.');
+            return;
+        }
+
+        onUpload(repoId, filename, isPrivate, hfUserId, hubToken);
+
+        // 폼 초기화
+        setRepoId('');
+        setFilename('');
+        setIsPrivate(false);
+        setHfUserId('');
+        setHubToken('');
+        onClose();
+    };
+
+    const handleClose = () => {
+        // 폼 초기화
+        setRepoId('');
+        setFilename('');
+        setIsPrivate(false);
+        setHfUserId('');
+        setHubToken('');
+        onClose();
+    };
+
+    return createPortal(
+        <div className={styles.dialogOverlay}>
+            <div className={`${styles.dialog} ${styles.uploadModal}`}>
+                <div className={styles.uploadModalHeader}>
+                    <h3>HuggingFace Hub 업로드</h3>
+                    <button
+                        onClick={handleClose}
+                        className={styles.uploadModalCloseButton}
+                    >
+                        <IoClose size={20} />
+                    </button>
+                </div>
+
+                <div className={styles.uploadModalForm}>
+                    <div className={styles.uploadFormGroup}>
+                        <label>
+                            리포지토리 ID<span className={styles.requiredMark}>*</span>
+                        </label>
+                        <input
+                            type="text"
+                            value={repoId}
+                            onChange={(e) => setRepoId(e.target.value)}
+                            placeholder="예: username/my-dataset 또는 my-dataset"
+                        />
+                        <small>
+                            사용자명/리포지토리명 형태로 입력하거나 리포지토리명만 입력하세요
+                        </small>
+                    </div>
+
+                    <div className={styles.uploadFormGroup}>
+                        <label>
+                            파일명 (선택사항)
+                        </label>
+                        <input
+                            type="text"
+                            value={filename}
+                            onChange={(e) => setFilename(e.target.value)}
+                            placeholder="예: dataset.parquet (미지정시 자동 생성)"
+                        />
+                    </div>
+
+                    <div className={styles.uploadFormGroup}>
+                        <label>
+                            HuggingFace 사용자 ID (선택사항)
+                        </label>
+                        <input
+                            type="text"
+                            value={hfUserId}
+                            onChange={(e) => setHfUserId(e.target.value)}
+                            placeholder="미지정시 설정값 사용"
+                        />
+                    </div>
+
+                    <div className={styles.uploadFormGroup}>
+                        <label>
+                            HuggingFace Hub 토큰 (선택사항)
+                        </label>
+                        <input
+                            type="password"
+                            value={hubToken}
+                            onChange={(e) => setHubToken(e.target.value)}
+                            placeholder="미지정시 설정값 사용"
+                        />
+                        <small>
+                            보안상 미지정 권장 (서버 설정값 사용)
+                        </small>
+                    </div>
+
+                    <div className={styles.checkboxGroup}>
+                        <label className={styles.checkboxLabel}>
+                            <input
+                                type="checkbox"
+                                checked={isPrivate}
+                                onChange={(e) => setIsPrivate(e.target.checked)}
+                            />
+                            <span>프라이빗 리포지토리로 생성</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div className={styles.dialogActions}>
+                    <button
+                        onClick={handleClose}
+                        className={styles.cancelButton}
+                    >
+                        취소
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        className={styles.confirmButton}
+                        disabled={!repoId.trim()}
+                        style={{
+                            backgroundColor: !repoId.trim() ? '#9ca3af' : '#2563eb',
+                            borderColor: !repoId.trim() ? '#9ca3af' : '#1d4ed8'
+                        }}
+                    >
+                        업로드
+                    </button>
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+};
+
+// 컬럼 복사 모달 컴포넌트
+export const ColumnCopyModal: React.FC<ColumnCopyModalProps> = ({
+    isOpen,
+    onClose,
+    onCopyColumn,
+    availableColumns
+}) => {
+    const [sourceColumn, setSourceColumn] = useState<string>('');
+    const [newColumn, setNewColumn] = useState<string>('');
+
+    if (!isOpen) return null;
+
+    const handleSubmit = () => {
+        if (!sourceColumn.trim()) {
+            alert('복사할 컬럼을 선택해주세요.');
+            return;
+        }
+        if (!newColumn.trim()) {
+            alert('새로운 컬럼명을 입력해주세요.');
+            return;
+        }
+
+        // 컬럼명 중복 체크
+        if (availableColumns.includes(newColumn.trim())) {
+            alert('이미 존재하는 컬럼명입니다. 다른 이름을 입력해주세요.');
+            return;
+        }
+
+        onCopyColumn(sourceColumn, newColumn);
+
+        // 폼 초기화
+        setSourceColumn('');
+        setNewColumn('');
+        onClose();
+    };
+
+    const handleClose = () => {
+        // 폼 초기화
+        setSourceColumn('');
+        setNewColumn('');
+        onClose();
+    };
+
+    return createPortal(
+        <div className={styles.dialogOverlay}>
+            <div className={styles.dialog} style={{ maxWidth: '500px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3>컬럼 복사</h3>
+                    <button
+                        onClick={handleClose}
+                        style={{
+                            border: 'none',
+                            background: 'transparent',
+                            cursor: 'pointer',
+                            padding: '0.25rem',
+                            borderRadius: '0.25rem',
+                            transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                        <IoClose size={20} />
+                    </button>
+                </div>
+
+                <div className={styles.dialogForm}>
+                    <div className={styles.formGroup}>
+                        <label>복사할 컬럼 선택 *</label>
+                        <select
+                            value={sourceColumn}
+                            onChange={(e) => setSourceColumn(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '0.25rem',
+                                fontSize: '0.875rem'
+                            }}
+                        >
+                            <option value="">컬럼을 선택하세요</option>
+                            {availableColumns.map((column) => (
+                                <option key={column} value={column}>
+                                    {column}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className={styles.formGroup}>
+                        <label>새로운 컬럼명 *</label>
+                        <input
+                            type="text"
+                            value={newColumn}
+                            onChange={(e) => setNewColumn(e.target.value)}
+                            placeholder="새로운 컬럼명을 입력하세요"
+                            style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '0.25rem',
+                                fontSize: '0.875rem'
+                            }}
+                        />
+                    </div>
+                </div>
+
+                <div className={styles.dialogActions}>
+                    <button
+                        onClick={handleClose}
+                        className={styles.cancelButton}
+                    >
+                        취소
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        className={styles.confirmButton}
+                        disabled={!sourceColumn.trim() || !newColumn.trim()}
+                        style={{
+                            backgroundColor: (!sourceColumn.trim() || !newColumn.trim()) ? '#9ca3af' : undefined
+                        }}
+                    >
+                        복사
+                    </button>
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+};
+
+// 컬럼 이름 변경 모달 컴포넌트
+export const ColumnRenameModal: React.FC<ColumnRenameModalProps> = ({
+    isOpen,
+    onClose,
+    onRenameColumn,
+    availableColumns
+}) => {
+    const [oldName, setOldName] = useState<string>('');
+    const [newName, setNewName] = useState<string>('');
+
+    if (!isOpen) return null;
+
+    const handleSubmit = () => {
+        if (!oldName.trim()) {
+            alert('이름을 변경할 컬럼을 선택해주세요.');
+            return;
+        }
+        if (!newName.trim()) {
+            alert('새로운 컬럼명을 입력해주세요.');
+            return;
+        }
+
+        // 컬럼명 중복 체크 (자기 자신과 같은 이름인 경우는 허용)
+        if (availableColumns.includes(newName.trim()) && oldName.trim() !== newName.trim()) {
+            alert('이미 존재하는 컬럼명입니다. 다른 이름을 입력해주세요.');
+            return;
+        }
+
+        // 같은 이름으로 변경하려는 경우 체크
+        if (oldName.trim() === newName.trim()) {
+            alert('기존 이름과 같은 이름으로 변경할 수 없습니다.');
+            return;
+        }
+
+        onRenameColumn(oldName, newName);
+
+        // 폼 초기화
+        setOldName('');
+        setNewName('');
+        onClose();
+    };
+
+    const handleClose = () => {
+        // 폼 초기화
+        setOldName('');
+        setNewName('');
+        onClose();
+    };
+
+    return createPortal(
+        <div className={styles.dialogOverlay}>
+            <div className={styles.dialog} style={{ maxWidth: '500px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3>컬럼 이름 변경</h3>
+                    <button
+                        onClick={handleClose}
+                        style={{
+                            border: 'none',
+                            background: 'transparent',
+                            cursor: 'pointer',
+                            padding: '0.25rem',
+                            borderRadius: '0.25rem',
+                            transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                        <IoClose size={20} />
+                    </button>
+                </div>
+
+                <div className={styles.dialogForm}>
+                    <div className={styles.formGroup}>
+                        <label>이름을 변경할 컬럼 선택 *</label>
+                        <select
+                            value={oldName}
+                            onChange={(e) => setOldName(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '0.25rem',
+                                fontSize: '0.875rem'
+                            }}
+                        >
+                            <option value="">컬럼을 선택하세요</option>
+                            {availableColumns.map((column) => (
+                                <option key={column} value={column}>
+                                    {column}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className={styles.formGroup}>
+                        <label>새로운 컬럼명 *</label>
+                        <input
+                            type="text"
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            placeholder="새로운 컬럼명을 입력하세요"
+                            style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '0.25rem',
+                                fontSize: '0.875rem'
+                            }}
+                        />
+                    </div>
+                </div>
+
+                <div className={styles.dialogActions}>
+                    <button
+                        onClick={handleClose}
+                        className={styles.cancelButton}
+                    >
+                        취소
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        className={styles.confirmButton}
+                        disabled={!oldName.trim() || !newName.trim()}
+                        style={{
+                            backgroundColor: (!oldName.trim() || !newName.trim()) ? '#9ca3af' : undefined
+                        }}
+                    >
+                        변경
                     </button>
                 </div>
             </div>

@@ -13,7 +13,7 @@ import {
 } from 'react-icons/io5';
 import { MdDataset } from 'react-icons/md';
 import { showErrorToastKo, showSuccessToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
-import { removeDataset, uploadLocalDataset, exportDatasetAsCSV, exportDatasetAsParquet, getDatasetStatistics, dropDatasetColumns, replaceColumnValues, applyColumnOperation, removeNullRows } from '@/app/_common/api/dataManagerAPI';
+import { removeDataset, uploadLocalDataset, exportDatasetAsCSV, exportDatasetAsParquet, getDatasetStatistics, dropDatasetColumns, replaceColumnValues, applyColumnOperation, removeNullRows, uploadToHuggingFace } from '@/app/_common/api/dataManagerAPI';
 import styles from '@/app/main/dataSection/assets/DataProcessorSidebar.module.scss';
 
 interface DataTableInfo {
@@ -46,10 +46,13 @@ interface DataProcessorSidebarProps {
     onColumnValueReplaceModal?: () => void;
     onColumnOperationModal?: () => void;
     onSpecificColumnNullRemoveModal?: () => void;
+    onHuggingFaceUploadModal?: () => void;
+    onColumnCopyModal?: () => void;
+    onColumnRenameModal?: () => void;
 }
 
 type CategoryType = 'load' | 'analyze' | 'edit' | 'save';
-type ActionType = 'huggingface' | 'file-upload' | 'basic-stats' | 'edit-columns' | 'add-columns' | 'drop-columns' | 'clean-data' | 'export-csv' | 'export-parquet' | 'change-column-data' | 'column-operation' | 'remove-all-null-rows' | 'remove-specific-column-null-rows' | null;
+type ActionType = 'huggingface' | 'file-upload' | 'basic-stats' | 'edit-columns' | 'add-columns' | 'drop-columns' | 'clean-data' | 'export-csv' | 'export-parquet' | 'change-column-data' | 'column-operation' | 'remove-all-null-rows' | 'remove-specific-column-null-rows' | 'copy-specific-column' | 'column-calculation-copy' | 'upload-to-huggingface' | 'rename-column' | null;
 
 const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
     managerId,
@@ -63,6 +66,9 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
     onColumnValueReplaceModal,
     onColumnOperationModal,
     onSpecificColumnNullRemoveModal,
+    onHuggingFaceUploadModal,
+    onColumnCopyModal,
+    onColumnRenameModal,
 }) => {
     const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null);
     const [selectedAction, setSelectedAction] = useState<ActionType>(null);
@@ -152,6 +158,12 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
             case 'save':
                 return [
                     {
+                        id: 'upload-to-huggingface' as ActionType,
+                        title: 'Hugging Face에 업로드',
+                        icon: IoCloudUpload,
+                        description: 'Hugging Face Hub에 데이터셋 업로드'
+                    },
+                    {
                         id: 'export-csv' as ActionType,
                         title: 'CSV로 저장',
                         icon: IoSave,
@@ -184,6 +196,12 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
                     title: '열 데이터 연산',
                     icon: IoAnalytics,
                     description: '입력된 연산자 수행'
+                },
+                {
+                    id: 'rename-column' as ActionType,
+                    title: '열 이름 변경',
+                    icon: IoCreate,
+                    description: '컬럼 이름 변경'
                 }
             ];
         } else if (selectedAction === 'clean-data') {
@@ -199,6 +217,21 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
                     title: '특정 열 결측치 제거',
                     icon: IoTrash,
                     description: '선택한 컬럼에서만 NULL 값이 있는 행 제거'
+                }
+            ];
+        } else if (selectedAction === 'add-columns') {
+            return [
+                {
+                    id: 'copy-specific-column' as ActionType,
+                    title: '특정 컬럼 복사',
+                    icon: IoCloudUpload,
+                    description: '선택한 컬럼을 새로운 이름으로 복사'
+                },
+                {
+                    id: 'column-calculation-copy' as ActionType,
+                    title: '컬럼간 연산 실행 및 복사',
+                    icon: IoAnalytics,
+                    description: '여러 컬럼 간 연산을 수행하고 새 컬럼으로 저장'
                 }
             ];
         }
@@ -258,8 +291,8 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
     };
 
     const handleAddColumns = async () => {
-        // TODO: 컬럼 추가 로직 구현
-        showErrorToastKo('컬럼 추가 기능은 추후 구현 예정입니다.');
+        // 컬럼 추가의 경우 하위 메뉴로 이동
+        setSelectedAction('add-columns');
     };
 
     const handleChangeColumnData = async () => {
@@ -340,6 +373,52 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
         // 특정 컬럼 NULL 제거 모달 열기
         if (onSpecificColumnNullRemoveModal) {
             onSpecificColumnNullRemoveModal();
+        }
+    };
+
+    const handleCopySpecificColumn = async () => {
+        if (!dataTableInfo || !dataTableInfo.success || dataTableInfo.sample_count === 0) {
+            showErrorToastKo('복사할 데이터가 없습니다.');
+            return;
+        }
+
+        // 컬럼 복사 모달 열기
+        if (onColumnCopyModal) {
+            onColumnCopyModal();
+        }
+    };
+
+    const handleRenameColumn = async () => {
+        if (!dataTableInfo || !dataTableInfo.success || dataTableInfo.sample_count === 0) {
+            showErrorToastKo('이름을 변경할 데이터가 없습니다.');
+            return;
+        }
+
+        // 컬럼 이름 변경 모달 열기
+        if (onColumnRenameModal) {
+            onColumnRenameModal();
+        }
+    };
+
+    const handleColumnCalculationCopy = async () => {
+        if (!dataTableInfo || !dataTableInfo.success || dataTableInfo.sample_count === 0) {
+            showErrorToastKo('연산을 적용할 데이터가 없습니다.');
+            return;
+        }
+
+        // TODO: 컬럼간 연산 및 복사 모달 열기
+        showErrorToastKo('컬럼간 연산 실행 및 복사 기능은 추후 구현 예정입니다.');
+    };
+
+    const handleUploadToHuggingFace = async () => {
+        if (!dataTableInfo || !dataTableInfo.success || dataTableInfo.sample_count === 0) {
+            showErrorToastKo('업로드할 데이터가 없습니다.');
+            return;
+        }
+
+        // HuggingFace 업로드 모달 열기
+        if (onHuggingFaceUploadModal) {
+            onHuggingFaceUploadModal();
         }
     };
 
@@ -487,13 +566,25 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
             case 'remove-specific-column-null-rows':
                 handleRemoveSpecificColumnNullRows();
                 break;
+            case 'copy-specific-column':
+                handleCopySpecificColumn();
+                break;
+            case 'column-calculation-copy':
+                handleColumnCalculationCopy();
+                break;
+            case 'rename-column':
+                handleRenameColumn();
+                break;
+            case 'upload-to-huggingface':
+                handleUploadToHuggingFace();
+                break;
             default:
                 showErrorToastKo('해당 기능은 추후 구현 예정입니다.');
         }
     };
 
     const handleBackToCategories = () => {
-        if (selectedAction === 'edit-columns' || selectedAction === 'clean-data') {
+        if (selectedAction === 'edit-columns' || selectedAction === 'clean-data' || selectedAction === 'add-columns') {
             // 하위 메뉴에서 뒤로가기 시 카테고리로
             setSelectedCategory(null);
             setSelectedAction(null);
@@ -519,11 +610,11 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
             {selectedCategory && (
                 <div className={styles.backButton}>
                     <button
-                        onClick={(selectedAction === 'edit-columns' || selectedAction === 'clean-data') ? handleBackToActions : handleBackToCategories}
+                        onClick={(selectedAction === 'edit-columns' || selectedAction === 'clean-data' || selectedAction === 'add-columns') ? handleBackToActions : handleBackToCategories}
                         className={styles.backBtn}
                     >
                         <IoChevronBack />
-                        <span>{(selectedAction === 'edit-columns' || selectedAction === 'clean-data') ? '액션으로 돌아가기' : '카테고리로 돌아가기'}</span>
+                        <span>{(selectedAction === 'edit-columns' || selectedAction === 'clean-data' || selectedAction === 'add-columns') ? '액션으로 돌아가기' : '카테고리로 돌아가기'}</span>
                     </button>
                 </div>
             )}
@@ -550,7 +641,7 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
             )}
 
             {/* 액션 선택 화면 */}
-            {selectedCategory && selectedAction !== 'edit-columns' && selectedAction !== 'clean-data' && (
+            {selectedCategory && selectedAction !== 'edit-columns' && selectedAction !== 'clean-data' && selectedAction !== 'add-columns' && (
                 <div className={styles.actionList}>
                     <h4 className={styles.actionTitle}>
                         {categories.find(c => c.id === selectedCategory)?.title}
@@ -571,11 +662,13 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
                 </div>
             )}
 
-            {/* 편집 하위 메뉴 (컬럼 편집 또는 데이터 정제) */}
-            {(selectedAction === 'edit-columns' || selectedAction === 'clean-data') && (
+            {/* 편집 하위 메뉴 (컬럼 편집, 데이터 정제, 컬럼 추가) */}
+            {(selectedAction === 'edit-columns' || selectedAction === 'clean-data' || selectedAction === 'add-columns') && (
                 <div className={styles.actionList}>
                     <h4 className={styles.actionTitle}>
-                        {selectedAction === 'edit-columns' ? '컬럼 편집 옵션' : '데이터 정제 옵션'}
+                        {selectedAction === 'edit-columns' ? '컬럼 편집 옵션' :
+                         selectedAction === 'clean-data' ? '데이터 정제 옵션' :
+                         '컬럼 추가 옵션'}
                     </h4>
                     {getEditDataSubActions().map((action) => (
                         <button

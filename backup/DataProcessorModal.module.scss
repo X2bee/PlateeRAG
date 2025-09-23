@@ -469,3 +469,121 @@
     color: #1f2937;
     font-size: 0.9rem;
 }
+
+// HuggingFace Upload Modal Styles
+.uploadModal {
+    max-width: 600px;
+}
+
+.uploadModalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+
+    h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1f2937;
+    }
+}
+
+.uploadModalCloseButton {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    transition: background-color 0.2s;
+    color: #6b7280;
+
+    &:hover {
+        background-color: #f3f4f6;
+        color: #374151;
+    }
+}
+
+.uploadModalForm {
+    margin: 1.5rem 0;
+
+    .uploadFormGroup {
+        margin-bottom: 1.25rem;
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+
+            &:focus {
+                outline: none;
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+
+            &::placeholder {
+                color: #9ca3af;
+            }
+        }
+
+        small {
+            color: #6b7280;
+            font-size: 0.75rem;
+            display: block;
+            margin-top: 0.25rem;
+        }
+    }
+
+    .checkboxGroup {
+        margin-bottom: 1.25rem;
+        margin-top: 2rem;
+
+        .checkboxLabel {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            transition: background-color 0.2s, border-color 0.2s;
+
+            &:hover {
+                background: #f1f5f9;
+                border-color: #cbd5e1;
+            }
+
+            input[type="checkbox"] {
+                width: 18px;
+                height: 18px;
+                margin-right: 0.75rem;
+                cursor: pointer;
+                accent-color: #3b82f6;
+            }
+
+            span {
+                font-weight: 500;
+                color: #1e293b;
+                font-size: 0.875rem;
+            }
+        }
+    }
+
+    .requiredMark {
+        color: #dc2626;
+        margin-left: 0.25rem;
+    }
+}

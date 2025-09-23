@@ -6,9 +6,9 @@ import {
     IoRefresh,
 } from 'react-icons/io5';
 import { MdOutlineMore } from "react-icons/md";
-import { ColumnInfoModal, DownloadDialog, StatisticsModal, ColumnDeleteModal, ColumnValueReplaceModal, ColumnOperationModal, SpecificColumnNullRemoveModal } from './DataProcessorModal';
+import { ColumnInfoModal, DownloadDialog, StatisticsModal, ColumnDeleteModal, ColumnValueReplaceModal, ColumnOperationModal, SpecificColumnNullRemoveModal, HuggingFaceUploadModal, ColumnCopyModal, ColumnRenameModal } from './modals';
 import DataProcessorSidebar from './DataProcessorSidebar';
-import { downloadDataset, getDatasetSample, dropDatasetColumns, replaceColumnValues, applyColumnOperation, removeNullRows } from '@/app/_common/api/dataManagerAPI';
+import { downloadDataset, getDatasetSample, dropDatasetColumns, replaceColumnValues, applyColumnOperation, removeNullRows, uploadToHuggingFace, copyDatasetColumn, renameDatasetColumn } from '@/app/_common/api/dataManagerAPI';
 import { showSuccessToastKo, showErrorToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/main/dataSection/assets/DataProcessor.module.scss';
 
@@ -63,6 +63,9 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
     const [columnValueReplaceModalOpen, setColumnValueReplaceModalOpen] = useState(false);
     const [columnOperationModalOpen, setColumnOperationModalOpen] = useState(false);
     const [specificColumnNullRemoveModalOpen, setSpecificColumnNullRemoveModalOpen] = useState(false);
+    const [huggingFaceUploadModalOpen, setHuggingFaceUploadModalOpen] = useState(false);
+    const [columnCopyModalOpen, setColumnCopyModalOpen] = useState(false);
+    const [columnRenameModalOpen, setColumnRenameModalOpen] = useState(false);
 
     // 데이터 로드
     useEffect(() => {
@@ -184,6 +187,84 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
         } catch (error) {
             console.error('NULL rows removal failed:', error);
             showErrorToastKo(`NULL 행 제거 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+        }
+    };
+
+    const handleUploadToHuggingFace = async (repoId: string, filename: string, isPrivate: boolean, hfUserId: string, hubToken: string) => {
+        try {
+            showSuccessToastKo('HuggingFace Hub에 데이터셋을 업로드하는 중...');
+
+            const result = await uploadToHuggingFace(
+                managerId,
+                repoId,
+                filename || undefined,
+                isPrivate,
+                hfUserId || undefined,
+                hubToken || undefined
+            ) as any;
+
+            if (result.success) {
+                showSuccessToastKo(`데이터셋이 HuggingFace Hub에 성공적으로 업로드되었습니다!\n리포지토리: ${result.upload_info?.repo_id || repoId}`);
+            } else {
+                showErrorToastKo(result.message || 'HuggingFace 업로드에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('HuggingFace upload failed:', error);
+            showErrorToastKo(`HuggingFace 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+        }
+    };
+
+    // 컬럼 복사 모달 핸들러들
+    const handleOpenColumnCopyModal = () => {
+        setColumnCopyModalOpen(true);
+    };
+
+    const handleCloseColumnCopyModal = () => {
+        setColumnCopyModalOpen(false);
+    };
+
+    const handleCopyColumn = async (sourceColumn: string, newColumn: string) => {
+        try {
+            showSuccessToastKo(`컬럼 '${sourceColumn}'을 '${newColumn}'으로 복사하는 중...`);
+
+            const result = await copyDatasetColumn(managerId, sourceColumn, newColumn) as any;
+
+            if (result.success) {
+                showSuccessToastKo(`컬럼 '${sourceColumn}'이 '${newColumn}'으로 성공적으로 복사되었습니다!`);
+                loadDataTableInfo(); // 데이터 다시 로드
+            } else {
+                showErrorToastKo(result.message || '컬럼 복사에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Column copy failed:', error);
+            showErrorToastKo(`컬럼 복사 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+        }
+    };
+
+    // 컬럼 이름 변경 모달 핸들러들
+    const handleOpenColumnRenameModal = () => {
+        setColumnRenameModalOpen(true);
+    };
+
+    const handleCloseColumnRenameModal = () => {
+        setColumnRenameModalOpen(false);
+    };
+
+    const handleRenameColumn = async (oldName: string, newName: string) => {
+        try {
+            showSuccessToastKo(`컬럼 이름을 '${oldName}'에서 '${newName}'으로 변경하는 중...`);
+
+            const result = await renameDatasetColumn(managerId, oldName, newName) as any;
+
+            if (result.success) {
+                showSuccessToastKo(`컬럼 이름이 '${oldName}'에서 '${newName}'으로 성공적으로 변경되었습니다!`);
+                loadDataTableInfo(); // 데이터 다시 로드
+            } else {
+                showErrorToastKo(result.message || '컬럼 이름 변경에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Column rename failed:', error);
+            showErrorToastKo(`컬럼 이름 변경 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
         }
     };
 
@@ -406,6 +487,9 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                     onColumnValueReplaceModal={handleOpenColumnValueReplaceModal}
                     onColumnOperationModal={handleOpenColumnOperationModal}
                     onSpecificColumnNullRemoveModal={handleOpenSpecificColumnNullRemoveModal}
+                    onHuggingFaceUploadModal={() => setHuggingFaceUploadModalOpen(true)}
+                    onColumnCopyModal={handleOpenColumnCopyModal}
+                    onColumnRenameModal={handleOpenColumnRenameModal}
                 />
             </div>
 
@@ -450,6 +534,23 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                 isOpen={specificColumnNullRemoveModalOpen}
                 onClose={handleCloseSpecificColumnNullRemoveModal}
                 onRemoveNullRows={handleRemoveSpecificColumnNullRows}
+                availableColumns={dataTableInfo?.columns || []}
+            />
+            <HuggingFaceUploadModal
+                isOpen={huggingFaceUploadModalOpen}
+                onClose={() => setHuggingFaceUploadModalOpen(false)}
+                onUpload={handleUploadToHuggingFace}
+            />
+            <ColumnCopyModal
+                isOpen={columnCopyModalOpen}
+                onClose={handleCloseColumnCopyModal}
+                onCopyColumn={handleCopyColumn}
+                availableColumns={dataTableInfo?.columns || []}
+            />
+            <ColumnRenameModal
+                isOpen={columnRenameModalOpen}
+                onClose={handleCloseColumnRenameModal}
+                onRenameColumn={handleRenameColumn}
                 availableColumns={dataTableInfo?.columns || []}
             />
         </div>
