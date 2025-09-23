@@ -45,7 +45,7 @@ interface MlModelWorkspaceContextValue {
     modelDetail: ModelDetailResponse | null;
     detailLoading: boolean;
     detailError: string | null;
-    fetchModelDetail: (modelId: number, options?: { silent?: boolean }) => Promise<void>;
+    fetchModelDetail: (modelId: number, options?: { silent?: boolean }) => Promise<ModelDetailResponse | null>;
     openDeleteDialog: (model: RegisteredModel) => void;
     cancelDelete: () => void;
     confirmDelete: () => Promise<void>;
@@ -218,12 +218,15 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
                         : model
                 );
             });
+
+            return detailPayload;
         } catch (error) {
             const apiError: ApiError =
                 error instanceof Error
                     ? { status: 0, message: error.message }
                     : (error as ApiError);
             setDetailError(apiError.message);
+            return null;
         } finally {
             if (!options?.silent) {
                 setDetailLoading(false);
@@ -395,4 +398,3 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
 };
 
 export { joinUrl };
-

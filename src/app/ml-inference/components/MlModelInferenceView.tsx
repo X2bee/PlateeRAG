@@ -55,6 +55,7 @@ const MlModelInferenceView: React.FC = () => {
                         selectedModelId={selectedModelId}
                         onSelectModel={setSelectedModelId}
                         activeModelDetail={modelDetail}
+                        onRequestModelDetail={(modelId, options) => fetchModelDetail(modelId, { silent: true, ...options })}
                     />
                 </section>
             </div>

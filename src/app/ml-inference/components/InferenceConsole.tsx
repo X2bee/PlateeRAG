@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styles from './InferenceConsole.module.scss';
 import type { ApiError, InferenceResultPayload, RegisteredModel, RequestContext, ModelDetailResponse } from '../types';
 import { apiClient } from '@/app/_common/api/helper/apiClient';
@@ -11,9 +11,10 @@ interface InferenceConsoleProps {
     selectedModelId: number | null;
     onSelectModel: (modelId: number | null) => void;
     activeModelDetail?: ModelDetailResponse | null;
+    onRequestModelDetail?: (modelId: number, options?: { silent?: boolean }) => Promise<ModelDetailResponse | null> | ModelDetailResponse | null;
 }
 
-const InferenceConsole: React.FC<InferenceConsoleProps> = ({ request, models, selectedModelId, onSelectModel, activeModelDetail }) => {
+const InferenceConsole: React.FC<InferenceConsoleProps> = ({ request, models, selectedModelId, onSelectModel, activeModelDetail, onRequestModelDetail }) => {
     const [manualModelId, setManualModelId] = useState('');
     const [modelName, setModelName] = useState('');
     const [modelVersion, setModelVersion] = useState('');
@@ -26,19 +27,67 @@ const InferenceConsole: React.FC<InferenceConsoleProps> = ({ request, models, se
 
     const selectedModel = useMemo(() => models.find(model => model.model_id === selectedModelId) ?? null, [models, selectedModelId]);
 
-    const resolvedSchema = useMemo(() => {
-        if (selectedModel?.input_schema && selectedModel.input_schema.length > 0) {
-            return selectedModel.input_schema;
+    const normalizeSchema = useCallback((schema: unknown): string[] | null => {
+        if (!schema) {
+            return null;
         }
 
-        if (activeModelDetail && activeModelDetail.input_schema && activeModelDetail.input_schema.length > 0) {
-            if (!selectedModel || activeModelDetail.model_id === selectedModel.model_id) {
-                return activeModelDetail.input_schema;
+        if (Array.isArray(schema)) {
+            const normalized = schema
+                .map(item => {
+                    if (typeof item === 'string') {
+                        return item.trim();
+                    }
+                    if (item && typeof item === 'object') {
+                        const record = item as Record<string, unknown>;
+                        if (record.name) {
+                            return String(record.name);
+                        }
+                        if (record.field) {
+                            return String(record.field);
+                        }
+                    }
+                    return String(item ?? '').trim();
+                })
+                .filter(Boolean);
+            return normalized.length > 0 ? normalized : null;
+        }
+
+        if (typeof schema === 'string') {
+            try {
+                const parsed = JSON.parse(schema);
+                if (Array.isArray(parsed)) {
+                    return normalizeSchema(parsed);
+                }
+            } catch {
+                // ignore JSON parse errors
+            }
+
+            const split = schema
+                .split(',')
+                .map(part => part.trim())
+                .filter(Boolean);
+            return split.length > 0 ? split : null;
+        }
+
+        return null;
+    }, []);
+
+    const resolvedSchema = useMemo(() => {
+        const schemaFromList = normalizeSchema(selectedModel?.input_schema ?? null);
+        if (schemaFromList && schemaFromList.length > 0) {
+            return schemaFromList;
+        }
+
+        if (activeModelDetail && (!selectedModel || activeModelDetail.model_id === selectedModel.model_id)) {
+            const schemaFromDetail = normalizeSchema(activeModelDetail.input_schema ?? null);
+            if (schemaFromDetail && schemaFromDetail.length > 0) {
+                return schemaFromDetail;
             }
         }
 
         return null;
-    }, [selectedModel, activeModelDetail]);
+    }, [selectedModel, activeModelDetail, normalizeSchema]);
 
     useEffect(() => {
         if (!selectedModel) {
@@ -164,7 +213,7 @@ const InferenceConsole: React.FC<InferenceConsoleProps> = ({ request, models, se
         onSelectModel(Number(value));
     };
 
-    const handleTemplatePopulate = () => {
+    const handleTemplatePopulate = useCallback(async () => {
         const schema = resolvedSchema;
 
         if (schema && schema.length > 0) {
@@ -173,10 +222,33 @@ const InferenceConsole: React.FC<InferenceConsoleProps> = ({ request, models, se
                 template[field] = '';
             });
             setInputsText(JSON.stringify([template], null, 2));
+            return;
+        }
+
+        if (selectedModel && onRequestModelDetail) {
+            const detail = await Promise.resolve(onRequestModelDetail(selectedModel.model_id, { silent: true }));
+            const fetchedSchema = normalizeSchema(detail?.input_schema ?? null);
+            if (fetchedSchema && fetchedSchema.length > 0) {
+                const templateFromFetch: Record<string, unknown> = {};
+                fetchedSchema.forEach(field => {
+                    templateFromFetch[field] = '';
+                });
+                setInputsText(JSON.stringify([templateFromFetch], null, 2));
+                return;
+            }
+        }
+
+        const fallbackSchema = resolvedSchema;
+        if (fallbackSchema && fallbackSchema.length > 0) {
+            const template: Record<string, unknown> = {};
+            fallbackSchema.forEach(field => {
+                template[field] = '';
+            });
+            setInputsText(JSON.stringify([template], null, 2));
         } else {
             setInputsText('[\n  {\n    "feature": null\n  }\n]');
         }
-    };
+    }, [resolvedSchema, selectedModel, onRequestModelDetail, normalizeSchema]);
 
     return (
         <section className={styles.console}>
