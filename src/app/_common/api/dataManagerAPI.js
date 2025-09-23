@@ -873,3 +873,161 @@ export const renameDatasetColumn = async (managerId, oldName, newName) => {
         throw error;
     }
 };
+
+/**
+ * 컬럼 문자열 포맷팅
+ * @param {string} managerId - 매니저 ID
+ * @param {string[]} columnNames - 사용할 컬럼명들
+ * @param {string} template - 문자열 템플릿 (예: {col1}_aiaiaiai_{col2})
+ * @param {string} newColumn - 새로운 컬럼명
+ * @returns {Promise<Object>} 컬럼 문자열 포맷팅 결과
+ */
+export const formatDatasetColumns = async (managerId, columnNames, template, newColumn) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID가 필요합니다.');
+        }
+        if (!columnNames || !Array.isArray(columnNames) || columnNames.length === 0) {
+            throw new Error('컬럼명 배열이 필요합니다.');
+        }
+        if (!template || typeof template !== 'string' || template.trim() === '') {
+            throw new Error('문자열 템플릿이 필요합니다.');
+        }
+        if (!newColumn || typeof newColumn !== 'string' || newColumn.trim() === '') {
+            throw new Error('새로운 컬럼명이 필요합니다.');
+        }
+
+        // 컬럼명 유효성 검사
+        for (const column of columnNames) {
+            if (!column || typeof column !== 'string' || column.trim() === '') {
+                throw new Error('모든 컬럼명은 비어있지 않은 문자열이어야 합니다.');
+            }
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+            column_names: columnNames.map(col => col.trim()),
+            template: template.trim(),
+            new_column: newColumn.trim()
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/format-columns`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `컬럼 문자열 포맷팅 요청 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info(`Columns formatted for manager ${managerId}, ${columnNames} → '${newColumn}':`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to format columns for manager ${managerId}, ${columnNames} → '${newColumn}':`, error);
+        throw error;
+    }
+};
+
+/**
+ * 컬럼 간 사칙연산
+ * @param {string} managerId - 매니저 ID
+ * @param {string} col1 - 첫 번째 컬럼명
+ * @param {string} col2 - 두 번째 컬럼명
+ * @param {string} operation - 연산자 (+, -, *, /)
+ * @param {string} newColumn - 새로운 컬럼명
+ * @returns {Promise<Object>} 컬럼 간 연산 결과
+ */
+export const calculateDatasetColumns = async (managerId, col1, col2, operation, newColumn) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID가 필요합니다.');
+        }
+        if (!col1 || typeof col1 !== 'string' || col1.trim() === '') {
+            throw new Error('첫 번째 컬럼명이 필요합니다.');
+        }
+        if (!col2 || typeof col2 !== 'string' || col2.trim() === '') {
+            throw new Error('두 번째 컬럼명이 필요합니다.');
+        }
+        if (!operation || typeof operation !== 'string' || !['+', '-', '*', '/'].includes(operation)) {
+            throw new Error('유효한 연산자(+, -, *, /)가 필요합니다.');
+        }
+        if (!newColumn || typeof newColumn !== 'string' || newColumn.trim() === '') {
+            throw new Error('새로운 컬럼명이 필요합니다.');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+            col1: col1.trim(),
+            col2: col2.trim(),
+            operation: operation,
+            new_column: newColumn.trim()
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/calculate-columns`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `컬럼 간 연산 요청 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info(`Columns calculated for manager ${managerId}, '${col1}' ${operation} '${col2}' → '${newColumn}':`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to calculate columns for manager ${managerId}, '${col1}' ${operation} '${col2}' → '${newColumn}':`, error);
+        throw error;
+    }
+};
+
+/**
+ * 사용자 콜백 코드 실행
+ * @param {string} managerId - 매니저 ID
+ * @param {string} callbackCode - 실행할 PyArrow 코드
+ * @returns {Promise<Object>} 콜백 코드 실행 결과
+ */
+export const executeDatasetCallback = async (managerId, callbackCode) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID가 필요합니다.');
+        }
+        if (!callbackCode || typeof callbackCode !== 'string' || callbackCode.trim() === '') {
+            throw new Error('실행할 콜백 코드가 필요합니다.');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+            callback_code: callbackCode.trim()
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/execute-callback`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `콜백 코드 실행 요청 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info(`Dataset callback executed for manager ${managerId}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to execute dataset callback for manager ${managerId}:`, error);
+        throw error;
+    }
+};

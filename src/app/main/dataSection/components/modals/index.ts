@@ -10,3 +10,6 @@ export { SpecificColumnNullRemoveModal } from './SpecificColumnNullRemoveModal';
 export { HuggingFaceUploadModal } from './HuggingFaceUploadModal';
 export { ColumnCopyModal } from './ColumnCopyModal';
 export { ColumnRenameModal } from './ColumnRenameModal';
+export { ColumnFormatModal } from './ColumnFormatModal';
+export { ColumnCalculationModal } from './ColumnCalculationModal';
+export { DatasetCallbackModal } from './DatasetCallbackModal';

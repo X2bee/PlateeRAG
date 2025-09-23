@@ -6,9 +6,9 @@ import {
     IoRefresh,
 } from 'react-icons/io5';
 import { MdOutlineMore } from "react-icons/md";
-import { ColumnInfoModal, DownloadDialog, StatisticsModal, ColumnDeleteModal, ColumnValueReplaceModal, ColumnOperationModal, SpecificColumnNullRemoveModal, HuggingFaceUploadModal, ColumnCopyModal, ColumnRenameModal } from './modals';
+import { ColumnInfoModal, DownloadDialog, StatisticsModal, ColumnDeleteModal, ColumnValueReplaceModal, ColumnOperationModal, SpecificColumnNullRemoveModal, HuggingFaceUploadModal, ColumnCopyModal, ColumnRenameModal, ColumnFormatModal, ColumnCalculationModal, DatasetCallbackModal } from './modals';
 import DataProcessorSidebar from './DataProcessorSidebar';
-import { downloadDataset, getDatasetSample, dropDatasetColumns, replaceColumnValues, applyColumnOperation, removeNullRows, uploadToHuggingFace, copyDatasetColumn, renameDatasetColumn } from '@/app/_common/api/dataManagerAPI';
+import { downloadDataset, getDatasetSample, dropDatasetColumns, replaceColumnValues, applyColumnOperation, removeNullRows, uploadToHuggingFace, copyDatasetColumn, renameDatasetColumn, formatDatasetColumns, calculateDatasetColumns, executeDatasetCallback } from '@/app/_common/api/dataManagerAPI';
 import { showSuccessToastKo, showErrorToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/main/dataSection/assets/DataProcessor.module.scss';
 
@@ -66,6 +66,9 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
     const [huggingFaceUploadModalOpen, setHuggingFaceUploadModalOpen] = useState(false);
     const [columnCopyModalOpen, setColumnCopyModalOpen] = useState(false);
     const [columnRenameModalOpen, setColumnRenameModalOpen] = useState(false);
+    const [columnFormatModalOpen, setColumnFormatModalOpen] = useState(false);
+    const [columnCalculationModalOpen, setColumnCalculationModalOpen] = useState(false);
+    const [datasetCallbackModalOpen, setDatasetCallbackModalOpen] = useState(false);
 
     // 데이터 로드
     useEffect(() => {
@@ -265,6 +268,94 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
         } catch (error) {
             console.error('Column rename failed:', error);
             showErrorToastKo(`컬럼 이름 변경 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+        }
+    };
+
+    // 컬럼 포맷 모달 핸들러들
+    const handleOpenColumnFormatModal = () => {
+        setColumnFormatModalOpen(true);
+    };
+
+    const handleCloseColumnFormatModal = () => {
+        setColumnFormatModalOpen(false);
+    };
+
+    const handleFormatColumns = async (columnNames: string[], template: string, newColumn: string) => {
+        try {
+            showSuccessToastKo(`컬럼들을 포맷팅하여 '${newColumn}' 컬럼을 생성하는 중...`);
+
+            const result = await formatDatasetColumns(managerId, columnNames, template, newColumn) as any;
+
+            if (result.success) {
+                showSuccessToastKo(`새로운 컬럼 '${newColumn}'이 성공적으로 생성되었습니다!`);
+                loadDataTableInfo(); // 데이터 다시 로드
+            } else {
+                showErrorToastKo(result.message || '컬럼 포맷팅에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Column format failed:', error);
+            showErrorToastKo(`컬럼 포맷팅 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+        }
+    };
+
+    // 컬럼 연산 모달 핸들러들
+    const handleOpenColumnCalculationModal = () => {
+        setColumnCalculationModalOpen(true);
+    };
+
+    const handleCloseColumnCalculationModal = () => {
+        setColumnCalculationModalOpen(false);
+    };
+
+    const handleCalculateColumns = async (col1: string, col2: string, operation: string, newColumn: string) => {
+        try {
+            showSuccessToastKo(`컬럼 '${col1}'과 '${col2}'를 연산하여 '${newColumn}' 컬럼을 생성하는 중...`);
+
+            const result = await calculateDatasetColumns(managerId, col1, col2, operation, newColumn) as any;
+
+            if (result.success) {
+                showSuccessToastKo(`새로운 컬럼 '${newColumn}'이 성공적으로 생성되었습니다!`);
+                loadDataTableInfo(); // 데이터 다시 로드
+            } else {
+                showErrorToastKo(result.message || '컬럼 연산에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Column calculation failed:', error);
+            showErrorToastKo(`컬럼 연산 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+        }
+    };
+
+    // 데이터셋 콜백 모달 핸들러들
+    const handleOpenDatasetCallbackModal = () => {
+        setDatasetCallbackModalOpen(true);
+    };
+
+    const handleCloseDatasetCallbackModal = () => {
+        setDatasetCallbackModalOpen(false);
+    };
+
+    const handleExecuteDatasetCallback = async (callbackCode: string) => {
+        try {
+            showSuccessToastKo('PyArrow 콜백 코드를 실행하는 중...');
+
+            const result = await executeDatasetCallback(managerId, callbackCode) as any;
+
+            if (result.success) {
+                const callbackResult = result.callback_result;
+                const rowsChanged = callbackResult?.rows_changed || 0;
+                const columnsChanged = callbackResult?.columns_changed || 0;
+
+                showSuccessToastKo(
+                    `콜백 코드가 성공적으로 실행되었습니다!\n` +
+                    `행 변경: ${rowsChanged >= 0 ? '+' + rowsChanged : rowsChanged}, 컬럼 변경: ${columnsChanged >= 0 ? '+' + columnsChanged : columnsChanged}`
+                );
+                loadDataTableInfo(); // 데이터 다시 로드
+            } else {
+                showErrorToastKo(result.message || '콜백 코드 실행에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Dataset callback execution failed:', error);
+            showErrorToastKo(`콜백 코드 실행 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
         }
     };
 
@@ -490,6 +581,9 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                     onHuggingFaceUploadModal={() => setHuggingFaceUploadModalOpen(true)}
                     onColumnCopyModal={handleOpenColumnCopyModal}
                     onColumnRenameModal={handleOpenColumnRenameModal}
+                    onColumnFormatModal={handleOpenColumnFormatModal}
+                    onColumnCalculationModal={handleOpenColumnCalculationModal}
+                    onDatasetCallbackModal={handleOpenDatasetCallbackModal}
                 />
             </div>
 
@@ -552,6 +646,25 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                 onClose={handleCloseColumnRenameModal}
                 onRenameColumn={handleRenameColumn}
                 availableColumns={dataTableInfo?.columns || []}
+            />
+            <ColumnFormatModal
+                isOpen={columnFormatModalOpen}
+                onClose={handleCloseColumnFormatModal}
+                onFormatColumns={handleFormatColumns}
+                availableColumns={dataTableInfo?.columns || []}
+            />
+            <ColumnCalculationModal
+                isOpen={columnCalculationModalOpen}
+                onClose={handleCloseColumnCalculationModal}
+                onCalculateColumns={handleCalculateColumns}
+                availableColumns={dataTableInfo?.columns || []}
+            />
+            <DatasetCallbackModal
+                isOpen={datasetCallbackModalOpen}
+                onClose={handleCloseDatasetCallbackModal}
+                onExecuteCallback={handleExecuteDatasetCallback}
+                sampleData={dataTableInfo?.sample_data?.slice(0, 3) || []}
+                columns={dataTableInfo?.columns || []}
             />
         </div>
     );
