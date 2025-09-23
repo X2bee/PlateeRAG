@@ -1,0 +1,134 @@
+.toolbar {
+    display: grid;
+    gap: 1rem;
+    padding: 1.25rem;
+    border-radius: 16px;
+    background: rgba(15, 23, 42, 0.76);
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.toolbarField {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.toolbarField label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(148, 163, 184, 0.95);
+}
+
+.toolbarField input {
+    background: rgba(2, 6, 23, 0.8);
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    border-radius: 12px;
+    padding: 0.6rem 0.9rem;
+    color: #e2e8f0;
+    font-size: 0.95rem;
+}
+
+.toolbarField input:focus {
+    outline: none;
+    border-color: rgba(96, 165, 250, 0.75);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+.toolbarField small {
+    font-size: 0.75rem;
+    color: rgba(148, 163, 184, 0.75);
+}
+
+.toolbarActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: flex-end;
+}
+
+.toolbarActions button {
+    border-radius: 12px;
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    background: rgba(30, 41, 59, 0.85);
+    color: rgba(226, 232, 240, 0.95);
+    padding: 0.55rem 1.2rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.toolbarActions button:hover:not(:disabled) {
+    background: rgba(51, 65, 85, 0.85);
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(59, 130, 246, 0.2);
+}
+
+.toolbarActions button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.statusArea {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+}
+
+.statusInfo {
+    margin: 0;
+    color: rgba(110, 231, 183, 0.9);
+}
+
+.statusError {
+    margin: 0;
+    color: #fecaca;
+}
+
+.workspaceGrid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.twoColumn {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.singleColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.sectionTitle {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #e2e8f0;
+}
+
+.sectionDescription {
+    margin: 0.4rem 0 1rem;
+    color: rgba(148, 163, 184, 0.85);
+}
+
+.sectionCard {
+    padding: 1.5rem;
+    border-radius: 16px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+@media (max-width: 960px) {
+    .toolbar {
+        grid-template-columns: 1fr;
+    }
+}

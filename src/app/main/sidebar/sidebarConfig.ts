@@ -7,6 +7,9 @@ import {
     FiFile,
     FiBarChart2,
     FiDatabase,
+    FiUpload,
+    FiLayers,
+    FiZap,
 } from 'react-icons/fi';
 import { RiChatSmileAiLine } from "react-icons/ri";
 import { LuBrainCircuit } from "react-icons/lu";
@@ -106,6 +109,29 @@ export const getTrainSidebarItems = (): SidebarItem[] => [
     },
 ];
 
+export const getMlModelItems = ['model-upload', 'model-hub', 'model-inference'];
+
+export const getMlModelSidebarItems = (): SidebarItem[] => [
+    {
+        id: 'model-upload',
+        title: '모델 업로드',
+        description: '학습된 모델을 등록합니다',
+        icon: React.createElement(FiUpload),
+    },
+    {
+        id: 'model-hub',
+        title: '모델 허브',
+        description: '저장된 모델을 확인하고 관리합니다',
+        icon: React.createElement(FiLayers),
+    },
+    {
+        id: 'model-inference',
+        title: '모델 추론',
+        description: '모델 메타데이터와 추론 콘솔',
+        icon: React.createElement(FiZap),
+    },
+];
+
 /**
  * 사용자 권한에 따라 데이터 아이템 필터링
  * @param hasAccessToSection - 섹션 접근 권한 확인 함수
@@ -151,5 +177,16 @@ export const getFilteredTrainSidebarItems = (hasAccessToSection: (sectionId: str
         return hasAccess;
     });
     devLog.log('SidebarConfig: Filtered train items:', filteredItems.map(item => item.id));
+    return filteredItems;
+};
+
+export const getFilteredMlModelSidebarItems = (hasAccessToSection: (sectionId: string) => boolean): SidebarItem[] => {
+    const allItems = getMlModelSidebarItems();
+    const filteredItems = allItems.filter(item => {
+        const hasAccess = hasAccessToSection(item.id);
+        devLog.log(`SidebarConfig: Checking ML model item '${item.id}': ${hasAccess}`);
+        return hasAccess;
+    });
+    devLog.log('SidebarConfig: Filtered ML model items:', filteredItems.map(item => item.id));
     return filteredItems;
 };

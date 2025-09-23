@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useMemo, createContext, useContext, useEffect } from 'react';
+import React, { useState, createContext, useContext, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import XgenPageContent from '@/app/main/components/XgenPageContent';
 import XgenSidebar from '@/app/main/sidebar/XgenSidebar';
-import { getChatItems, getWorkflowItems, getTrainItems, getDataItems } from '@/app/main/sidebar/sidebarConfig';
+import { getChatItems, getWorkflowItems, getTrainItems, getDataItems, getMlModelItems } from '@/app/main/sidebar/sidebarConfig';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import styles from '@/app/main/workflowSection/assets/MainPage.module.scss';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -36,7 +36,7 @@ export default function XgenLayoutContent() {
         if (!isInitialized) return;
 
         const view = searchParams.get('view');
-        const allValidSections = [...getChatItems, ...getWorkflowItems, ...getTrainItems, ...getDataItems];
+        const allValidSections = [...getChatItems, ...getWorkflowItems, ...getTrainItems, ...getDataItems, ...getMlModelItems];
 
         // 접근 가능한 첫 번째 섹션을 찾기
         const getAccessibleSection = () => {
@@ -46,7 +46,7 @@ export default function XgenLayoutContent() {
                     return view;
                 }
                 // 워크플로우, 모델, 데이터 섹션은 권한 확인
-                if (getWorkflowItems.includes(view) || getTrainItems.includes(view) || getDataItems.includes(view)) {
+                if (getWorkflowItems.includes(view) || getTrainItems.includes(view) || getDataItems.includes(view) || getMlModelItems.includes(view)) {
                     if (hasAccessToSection(view)) {
                         return view;
                     }
@@ -80,6 +80,13 @@ export default function XgenLayoutContent() {
                 }
             }
 
+            // 5. ML 모델 섹션 시도
+            for (const section of getMlModelItems) {
+                if (hasAccessToSection(section)) {
+                    return section;
+                }
+            }
+
             // 기본값으로 new-chat 반환
             return 'new-chat';
         };
@@ -100,7 +107,8 @@ export default function XgenLayoutContent() {
         const workflowItems = getWorkflowItems;
         const trainItems = getTrainItems;
         const dataItems = getDataItems;
-        const allItems = [...chatItems, ...workflowItems, ...trainItems, ...dataItems];
+        const mlModelItems = getMlModelItems;
+        const allItems = [...chatItems, ...workflowItems, ...trainItems, ...dataItems, ...mlModelItems];
 
         if (allItems.includes(id)) {
             navigateToView(id);
