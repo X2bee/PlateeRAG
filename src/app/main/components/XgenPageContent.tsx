@@ -33,9 +33,7 @@ import {
 } from '@/app/main/sidebar/sidebarConfig';
 
 import { MlModelWorkspaceProvider } from '@/app/ml-inference/components/MlModelWorkspaceContext';
-import MlModelUploadView from '@/app/ml-inference/components/MlModelUploadView';
-import MlModelHubView from '@/app/ml-inference/components/MlModelHubView';
-import MlModelInferenceView from '@/app/ml-inference/components/MlModelInferenceView';
+import MlModelWorkspacePage from '@/app/ml-inference/components/MlModelWorkspacePage';
 
 interface XgenPageContentProps {
     activeSection: string;
@@ -181,14 +179,20 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
             // ML 모델 섹션
             case 'model-upload':
             case 'model-hub':
-            case 'model-inference':
+            case 'model-inference': {
+                const view =
+                    activeSection === 'model-upload'
+                        ? 'upload'
+                        : activeSection === 'model-hub'
+                            ? 'hub'
+                            : 'inference';
+
                 return (
                     <MlModelWorkspaceProvider>
-                        {activeSection === 'model-upload' && <MlModelUploadView />}
-                        {activeSection === 'model-hub' && <MlModelHubView />}
-                        {activeSection === 'model-inference' && <MlModelInferenceView />}
+                        <MlModelWorkspacePage view={view} />
                     </MlModelWorkspaceProvider>
                 );
+            }
 
             // 데이터 섹션
             case 'data-station':

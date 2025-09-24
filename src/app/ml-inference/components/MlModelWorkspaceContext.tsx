@@ -32,7 +32,6 @@ interface DeleteState {
 
 interface MlModelWorkspaceContextValue {
     baseUrl: string;
-    setBaseUrl: React.Dispatch<React.SetStateAction<string>>;
     uploadEndpoint: string;
     inferenceEndpoint: string;
     models: RegisteredModel[];
@@ -67,7 +66,7 @@ export const useMlModelWorkspace = () => {
 };
 
 export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-    const [baseUrl, setBaseUrl] = useState<string>(API_BASE_URL ?? '');
+    const baseUrl = API_BASE_URL ?? '';
     const uploadEndpoint = useMemo(() => joinUrl(baseUrl, '/api/models/upload'), [baseUrl]);
     const inferenceEndpoint = useMemo(() => joinUrl(baseUrl, '/api/models/infer'), [baseUrl]);
 
@@ -337,7 +336,6 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
 
     const contextValue = useMemo<MlModelWorkspaceContextValue>(() => ({
         baseUrl,
-        setBaseUrl,
         uploadEndpoint,
         inferenceEndpoint,
         models,
@@ -361,7 +359,6 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
         syncError,
     }), [
         baseUrl,
-        setBaseUrl,
         uploadEndpoint,
         inferenceEndpoint,
         models,

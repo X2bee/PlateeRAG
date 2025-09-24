@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import MlModelToolbar from './MlModelToolbar';
 import styles from './MlModelWorkspace.module.scss';
 import UploadModelSection from './UploadModelSection';
 import ModelRegistryPanel from './ModelRegistryPanel';
@@ -25,7 +24,6 @@ const MlModelUploadView: React.FC = () => {
 
     return (
         <div className={styles.workspaceGrid}>
-            <MlModelToolbar />
             <div className={styles.twoColumn}>
                 <section className={styles.sectionCard}>
                     <h2 className={styles.sectionTitle}>모델 업로드</h2>

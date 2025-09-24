@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import MlModelToolbar from './MlModelToolbar';
 import styles from './MlModelWorkspace.module.scss';
 import ModelRegistryPanel from './ModelRegistryPanel';
 import ModelDetailPanel from './ModelDetailPanel';
@@ -22,7 +21,6 @@ const MlModelHubView: React.FC = () => {
 
     return (
         <div className={styles.workspaceGrid}>
-            <MlModelToolbar />
             <div className={styles.twoColumn}>
                 <section className={styles.sectionCard}>
                     <h2 className={styles.sectionTitle}>모델 허브</h2>

@@ -1,69 +1,39 @@
-.toolbar {
-    display: grid;
-    gap: 1rem;
-    padding: 1.25rem;
-    border-radius: 16px;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-}
+@use "@/app/_common/_variables" as *;
 
-.toolbarField {
+.contentAreaWrapper {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
-}
+    gap: $spacing-lg;
 
-.toolbarField label {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #6b7280;
-}
-
-.toolbarField input {
-    background: #ffffff;
-    border: 1px solid #d1d5db;
-    border-radius: 12px;
-    padding: 0.6rem 0.9rem;
-    color: #111827;
-    font-size: 0.95rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.toolbarField input:focus {
-    outline: none;
-    border-color: #60a5fa;
-    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
-}
-
-.toolbarField small {
-    font-size: 0.75rem;
-    color: #6b7280;
+    > div:last-child {
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-lg;
+    }
 }
 
 .toolbarActions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    align-items: flex-end;
+    align-items: center;
 }
 
 .toolbarActions button {
-    border-radius: 12px;
+    border-radius: $radius-lg;
     border: none;
-    background: linear-gradient(90deg, #3b82f6, #60a5fa);
-    color: #ffffff;
+    background: linear-gradient(90deg, $blue-500, $blue-400);
+    color: $white;
     padding: 0.55rem 1.2rem;
     font-size: 0.9rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: transform 0.1s ease, box-shadow 0.2s ease;
+    transition: transform 0.12s ease, box-shadow 0.2s ease;
 }
 
 .toolbarActions button:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 10px 24px rgba(59, 130, 246, 0.28);
+    box-shadow: 0 12px 24px rgba($blue-500, 0.28);
 }
 
 .toolbarActions button:disabled {
@@ -71,6 +41,13 @@
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
+}
+
+.statusBanner {
+    border-radius: $radius-lg;
+    border: 1px solid $gray-200;
+    background: $gray-50;
+    padding: 0.85rem 1rem;
 }
 
 .statusArea {
@@ -82,55 +59,60 @@
 
 .statusInfo {
     margin: 0;
-    color: #047857;
+    color: $green-600;
+    font-weight: 500;
 }
 
 .statusError {
     margin: 0;
-    color: #b91c1c;
+    color: $red-700;
+    font-weight: 500;
 }
 
 .workspaceGrid {
     display: grid;
-    gap: 1.5rem;
+    gap: $spacing-lg;
 }
 
 .twoColumn {
     display: grid;
-    gap: 1.5rem;
+    gap: $spacing-lg;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }
 
 .singleColumn {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: $spacing-lg;
 }
 
 .sectionTitle {
     margin: 0;
-    font-size: 1.4rem;
-    color: #111827;
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: $gray-900;
 }
 
 .sectionDescription {
     margin: 0.4rem 0 1rem;
-    color: #6b7280;
+    color: $gray-600;
+    line-height: 1.6;
 }
 
 .sectionCard {
-    padding: 1.5rem;
-    border-radius: 16px;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    padding: $spacing-lg;
+    border-radius: $radius-xl;
+    background: $white;
+    border: 1px solid $gray-200;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: $spacing-md;
 }
 
 @media (max-width: 960px) {
-    .toolbar {
-        grid-template-columns: 1fr;
+    .toolbarActions {
+        width: 100%;
+        justify-content: flex-start;
     }
 }
