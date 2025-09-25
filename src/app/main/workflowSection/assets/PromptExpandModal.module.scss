@@ -1,3 +1,4 @@
+@use "sass:color";
 @use "@/app/_common/_variables" as *;
 
 // 모달 오버레이
@@ -145,7 +146,7 @@
                 transition: all 0.2s ease;
 
                 &:hover {
-                    background: darken($primary-blue, 5%);
+                    background: color.adjust($primary-blue, $lightness: -5%);
                     transform: translateY(-1px);
                 }
 
@@ -153,7 +154,7 @@
                     background: $primary-green;
 
                     &:hover {
-                        background: darken($primary-green, 5%);
+                        background: color.adjust($primary-green, $lightness: -5%);
                     }
                 }
 
