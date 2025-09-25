@@ -12,6 +12,7 @@
 
 .header {
     padding: 2rem;
+    padding-top: 0;
     background: $white;
     border-bottom: 1px solid $gray-200;
 
@@ -321,16 +322,6 @@
                     border-color: $primary-blue;
                     color: $primary-blue;
                     background: rgba($primary-blue, 0.05);
-                }
-
-                &.primary {
-                    background: $primary-blue;
-                    color: $white;
-                    border-color: $primary-blue;
-
-                    &:hover {
-                        background: darken($primary-blue, 5%);
-                    }
                 }
 
                 .actionIcon {

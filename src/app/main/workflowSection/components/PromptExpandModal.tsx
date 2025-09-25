@@ -159,10 +159,6 @@ const PromptExpandModal: React.FC<PromptExpandModalProps> = ({ prompt, isOpen, o
                         <h3>추가 정보</h3>
                         <div className={styles.infoGrid}>
                             <div className={styles.infoItem}>
-                                <span className={styles.infoLabel}>프롬프트 ID:</span>
-                                <span className={styles.infoValue}>{prompt.prompt_uid}</span>
-                            </div>
-                            <div className={styles.infoItem}>
                                 <span className={styles.infoLabel}>문자수:</span>
                                 <span className={styles.infoValue}>{prompt.prompt_content.length}자</span>
                             </div>
@@ -177,14 +173,6 @@ const PromptExpandModal: React.FC<PromptExpandModalProps> = ({ prompt, isOpen, o
                                 <span className={styles.infoValue}>
                                     {prompt.public_available ? '공개' : '비공개'}
                                 </span>
-                            </div>
-                            <div className={styles.infoItem}>
-                                <span className={styles.infoLabel}>생성일:</span>
-                                <span className={styles.infoValue}>{formatDate(prompt.created_at)}</span>
-                            </div>
-                            <div className={styles.infoItem}>
-                                <span className={styles.infoLabel}>수정일:</span>
-                                <span className={styles.infoValue}>{formatDate(prompt.updated_at)}</span>
                             </div>
                         </div>
                     </div>

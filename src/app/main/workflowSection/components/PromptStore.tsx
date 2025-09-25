@@ -10,7 +10,6 @@ import {
     IoPerson,
     IoCalendar,
     IoCopy,
-    IoEye,
     IoSearchOutline
 } from 'react-icons/io5';
 
@@ -100,9 +99,8 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
 
     // 프롬프트 카드 클릭 핸들러
     const handlePromptClick = (prompt: Prompt) => {
-        if (onPromptSelect) {
-            onPromptSelect(prompt);
-        }
+        setSelectedPrompt(prompt);
+        setIsModalOpen(true);
     };
 
     // 프롬프트 복사 핸들러
@@ -120,13 +118,6 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
     // 새로고침 핸들러
     const handleRefresh = () => {
         loadPrompts(selectedLanguage);
-    };
-
-    // 프롬프트 상세보기 핸들러
-    const handleViewPrompt = (prompt: Prompt, e: React.MouseEvent) => {
-        e.stopPropagation();
-        setSelectedPrompt(prompt);
-        setIsModalOpen(true);
     };
 
     // 모달 닫기 핸들러
@@ -270,14 +261,6 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
                                         >
                                             <IoCopy className={styles.actionIcon} />
                                             복사
-                                        </button>
-                                        <button
-                                            className={`${styles.actionButton} ${styles.primary}`}
-                                            onClick={(e) => handleViewPrompt(prompt, e)}
-                                            title="프롬프트 보기"
-                                        >
-                                            <IoEye className={styles.actionIcon} />
-                                            보기
                                         </button>
                                     </div>
                                 </div>
