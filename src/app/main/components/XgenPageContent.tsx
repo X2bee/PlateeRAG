@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { useAuth } from '@/app/_common/components/CookieProvider';
-import { devLog } from '@/app/_common/utils/logger';
 
 // Main Page Components
 import ContentArea from '@/app/main/workflowSection/components/ContentArea';
@@ -27,11 +26,14 @@ import ChatContent from '@/app/main/chatSection/components/ChatContent';
 
 // Sidebar Config
 import {
-    getChatItems,
     getWorkflowItems,
     getTrainItems,
-    getDataItems
+    getDataItems,
+    getMlModelItems,
 } from '@/app/main/sidebar/sidebarConfig';
+
+import { MlModelWorkspaceProvider } from '@/app/ml-inference/components/MlModelWorkspaceContext';
+import MlModelWorkspacePage from '@/app/ml-inference/components/MlModelWorkspacePage';
 
 interface XgenPageContentProps {
     activeSection: string;
@@ -100,7 +102,11 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
         }
 
         // 권한이 필요한 섹션에 대한 접근 권한 확인
-        const needsPermission = getWorkflowItems.includes(activeSection) || getTrainItems.includes(activeSection) || getDataItems.includes(activeSection);
+        const needsPermission =
+            getWorkflowItems.includes(activeSection) ||
+            getTrainItems.includes(activeSection) ||
+            getDataItems.includes(activeSection) ||
+            getMlModelItems.includes(activeSection);
         if (needsPermission && !hasAccessToSection(activeSection)) {
             return (
                 <ContentArea
@@ -169,6 +175,24 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
                 return <EvalPageContent />;
             case 'model-storage':
                 return <StoragePageContent />;
+
+            // ML 모델 섹션
+            case 'model-upload':
+            case 'model-hub':
+            case 'model-inference': {
+                const view =
+                    activeSection === 'model-upload'
+                        ? 'upload'
+                        : activeSection === 'model-hub'
+                            ? 'hub'
+                            : 'inference';
+
+                return (
+                    <MlModelWorkspaceProvider>
+                        <MlModelWorkspacePage view={view} />
+                    </MlModelWorkspaceProvider>
+                );
+            }
 
             // 데이터 섹션
             case 'data-station':

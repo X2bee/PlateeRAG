@@ -1,0 +1,215 @@
+.uploadSection {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.75rem;
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+    color: #1f2937;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.sectionHeader h2 {
+    font-size: 1.35rem;
+    margin: 0;
+    color: #111827;
+}
+
+.sectionHeader p {
+    margin: 0.35rem 0 0;
+    font-size: 0.95rem;
+    color: #6b7280;
+}
+
+.sectionBadge {
+    align-self: center;
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.12);
+    color: #1d4ed8;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.uploadForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.formGrid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.formField,
+.formFieldFull {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.formField span,
+.formFieldFull span {
+    font-size: 0.85rem;
+    color: #4b5563;
+}
+
+.formField input,
+.formFieldFull input,
+.formField textarea,
+.formFieldFull textarea {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    padding: 0.6rem 0.75rem;
+    color: #111827;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.formField input:focus,
+.formFieldFull input:focus,
+.formField textarea:focus,
+.formFieldFull textarea:focus {
+    outline: none;
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.18);
+}
+
+.formFieldFull {
+    grid-column: 1 / -1;
+}
+
+.filePreview {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+}
+
+.filePreview strong {
+    display: block;
+    font-size: 0.95rem;
+    color: #1f2937;
+}
+
+.filePreview span {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.badgeOk,
+.badgeWarn {
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+}
+
+.badgeOk {
+    background: rgba(34, 197, 94, 0.12);
+    color: #047857;
+}
+
+.badgeWarn {
+    background: rgba(234, 179, 8, 0.14);
+    color: #b45309;
+}
+
+.errorMessage {
+    background: rgba(248, 113, 113, 0.12);
+    border: 1px solid rgba(248, 113, 113, 0.35);
+    color: #b91c1c;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+}
+
+.formActions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.formActions button {
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.formActions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
+}
+
+.formActions button:not(.secondaryButton) {
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    color: #ffffff;
+    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.25);
+}
+
+.formActions button:not(.secondaryButton):hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px rgba(59, 130, 246, 0.32);
+}
+
+.secondaryButton {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #4b5563;
+}
+
+.secondaryButton:hover:not(:disabled) {
+    background: #f3f4f6;
+}
+
+.responsePanel {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    border: 1px solid #e5e7eb;
+}
+
+.responsePanel h3 {
+    margin: 0 0 0.75rem;
+    font-size: 1.05rem;
+    color: #1f2937;
+}
+
+.responsePanel dl {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.responsePanel dt {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6b7280;
+}
+
+.responsePanel dd {
+    margin: 0.15rem 0 0;
+    font-size: 0.95rem;
+    color: #374151;
+}

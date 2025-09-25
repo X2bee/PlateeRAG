@@ -67,7 +67,10 @@ const AdminGroupContent: React.FC = () => {
         'train-monitor',
         'model-storage',
         'data-station',
-        'data-storage'
+        'data-storage',
+        'model-upload', 
+        'model-hub', 
+        'model-inference'
     ];
 
     // 그룹 데이터 로드

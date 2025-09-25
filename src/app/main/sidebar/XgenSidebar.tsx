@@ -12,7 +12,8 @@ import {
     getChatSidebarItems,
     getFilteredWorkflowSidebarItems,
     getFilteredTrainSidebarItems,
-    getFilteredDataSidebarItems
+    getFilteredDataSidebarItems,
+    getFilteredMlModelSidebarItems,
 } from '@/app/main/sidebar/sidebarConfig';
 import { devLog } from '@/app/_common/utils/logger';
 
@@ -37,6 +38,7 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
     const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(false);
     const [isDataExpanded, setIsDataExpanded] = useState(false);
     const [isTrainExpanded, setIsTrainExpanded] = useState(false);
+    const [isMlModelExpanded, setIsMlModelExpanded] = useState(false);
 
     const { user, hasAccessToSection, isInitialized } = useAuth();
     const { quickLogout } = useQuickLogout();
@@ -49,27 +51,38 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
             const workflowItems = ['canvas', 'workflows', 'documents'];
             const dataItems = ['data-station', 'data-storage'];
             const trainItems = ['train', 'train-monitor', 'eval', 'model-storage'];
+            const mlModelItems = ['model-upload', 'model-hub', 'model-inference'];
 
             if (chatItems.includes(view)) {
                 setIsChatExpanded(true);
                 setIsWorkflowExpanded(false);
                 setIsDataExpanded(false);
                 setIsTrainExpanded(false);
+                setIsMlModelExpanded(false);
             } else if (workflowItems.includes(view)) {
                 setIsChatExpanded(false);
                 setIsWorkflowExpanded(true);
                 setIsDataExpanded(false);
                 setIsTrainExpanded(false);
+                setIsMlModelExpanded(false);
             } else if (dataItems.includes(view)) {
                 setIsChatExpanded(false);
                 setIsWorkflowExpanded(false);
                 setIsDataExpanded(true);
                 setIsTrainExpanded(false);
+                setIsMlModelExpanded(false);
             } else if (trainItems.includes(view)) {
                 setIsChatExpanded(false);
                 setIsWorkflowExpanded(false);
                 setIsDataExpanded(false);
                 setIsTrainExpanded(true);
+                setIsMlModelExpanded(false);
+            } else if (mlModelItems.includes(view)) {
+                setIsChatExpanded(false);
+                setIsWorkflowExpanded(false);
+                setIsDataExpanded(false);
+                setIsTrainExpanded(false);
+                setIsMlModelExpanded(true);
             }
         }
     }, [searchParams]);
@@ -82,7 +95,8 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
                 chatItems: [],
                 workflowItems: [],
                 dataItems: [],
-                trainItems: []
+                trainItems: [],
+                mlModelItems: [],
             };
         }
 
@@ -90,19 +104,22 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
         const workflowItems = getFilteredWorkflowSidebarItems(hasAccessToSection);
         const dataItems = getFilteredDataSidebarItems(hasAccessToSection);
         const trainItems = getFilteredTrainSidebarItems(hasAccessToSection);
+        const mlModelItems = getFilteredMlModelSidebarItems(hasAccessToSection);
 
         devLog.log('XgenSidebar: Filtered items:', {
             chatItems: chatItems.length,
             workflowItems: workflowItems.length,
             dataItems: dataItems.length,
-            trainItems: trainItems.length
+            trainItems: trainItems.length,
+            mlModelItems: mlModelItems.length,
         });
 
         return {
             chatItems,
             workflowItems,
             dataItems,
-            trainItems
+            trainItems,
+            mlModelItems,
         };
     }, [hasAccessToSection, isInitialized]);
 
@@ -129,6 +146,7 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
     const toggleWorkflowExpanded = () => setIsWorkflowExpanded(!isWorkflowExpanded);
     const toggleDataExpanded = () => setIsDataExpanded(!isDataExpanded);
     const toggleTrainExpanded = () => setIsTrainExpanded(!isTrainExpanded);
+    const toggleMlModelExpanded = () => setIsMlModelExpanded(!isMlModelExpanded);
 
     const handleLogoClick = () => {
         router.push('/');
@@ -301,6 +319,39 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
 
                         <nav className={`${styles.sidebarNav} ${isTrainExpanded ? styles.expanded : ''}`}>
                             {filteredItems.trainItems.map((item) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => onItemClick(item.id)}
+                                    className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                                >
+                                    {item.icon}
+                                    <div className={styles.navText}>
+                                        <div className={styles.navTitle}>{item.title}</div>
+                                        <div className={styles.navDescription}>
+                                            {item.description}
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </nav>
+                    </>
+                )}
+
+                {/* ML 모델 섹션 - 접근 가능한 아이템이 있을 때만 표시 */}
+                {filteredItems.mlModelItems.length > 0 && (
+                    <>
+                        <button
+                            className={styles.sidebarToggle}
+                            onClick={toggleMlModelExpanded}
+                        >
+                            <span>ML 모델</span>
+                            <span className={`${styles.toggleIcon} ${isMlModelExpanded ? styles.expanded : ''}`}>
+                                ▼
+                            </span>
+                        </button>
+
+                        <nav className={`${styles.sidebarNav} ${isMlModelExpanded ? styles.expanded : ''}`}>
+                            {filteredItems.mlModelItems.map((item) => (
                                 <button
                                     key={item.id}
                                     onClick={() => onItemClick(item.id)}
