@@ -51,7 +51,7 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
             const workflowItems = ['canvas', 'workflows', 'documents'];
             const dataItems = ['data-station', 'data-storage'];
             const trainItems = ['train', 'train-monitor', 'eval', 'model-storage'];
-            const mlModelItems = ['model-upload', 'model-hub', 'model-inference'];
+            const mlModelItems = ['model-upload', 'model-hub', 'model-inference','ml-train', 'ml-train-monitor'];
 
             if (chatItems.includes(view)) {
                 setIsChatExpanded(true);
@@ -147,6 +147,7 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
     const toggleDataExpanded = () => setIsDataExpanded(!isDataExpanded);
     const toggleTrainExpanded = () => setIsTrainExpanded(!isTrainExpanded);
     const toggleMlModelExpanded = () => setIsMlModelExpanded(!isMlModelExpanded);
+
 
     const handleLogoClick = () => {
         router.push('/');
@@ -346,10 +347,9 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
                         >
                             <span>ML 모델</span>
                             <span className={`${styles.toggleIcon} ${isMlModelExpanded ? styles.expanded : ''}`}>
-                                ▼
+
                             </span>
                         </button>
-
                         <nav className={`${styles.sidebarNav} ${isMlModelExpanded ? styles.expanded : ''}`}>
                             {filteredItems.mlModelItems.map((item) => (
                                 <button

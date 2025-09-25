@@ -109,7 +109,7 @@ export const getTrainSidebarItems = (): SidebarItem[] => [
     },
 ];
 
-export const getMlModelItems = ['model-upload', 'model-hub', 'model-inference'];
+export const getMlModelItems = ['model-upload', 'model-hub', 'model-inference' , 'ml-train', 'ml-train-monitor'];
 
 export const getMlModelSidebarItems = (): SidebarItem[] => [
     {
@@ -129,6 +129,18 @@ export const getMlModelSidebarItems = (): SidebarItem[] => [
         title: '모델 추론',
         description: '모델 메타데이터와 추론 콘솔',
         icon: React.createElement(FiZap),
+    },
+    {
+        id: 'ml-train',
+        title: 'ML 모델 훈련',
+        description: 'ML 모델 훈련',
+        icon: React.createElement(LuBrainCircuit),
+    },
+    {
+        id: 'ml-train-monitor',
+        title: 'ML 모델 훈련 모니터 및 저장소',
+        description: 'ML 모델 훈련 파라미터 모니터링',
+        icon: React.createElement(FiBarChart2),
     },
 ];
 
@@ -190,3 +202,4 @@ export const getFilteredMlModelSidebarItems = (hasAccessToSection: (sectionId: s
     devLog.log('SidebarConfig: Filtered ML model items:', filteredItems.map(item => item.id));
     return filteredItems;
 };
+

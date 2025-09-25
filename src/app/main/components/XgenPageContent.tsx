@@ -24,6 +24,9 @@ import ChatHistory from '@/app/main/chatSection/components/ChatHistory';
 import CurrentChatInterface from '@/app/main/chatSection/components/CurrentChatInterface';
 import ChatContent from '@/app/main/chatSection/components/ChatContent';
 
+// ml page components
+import MLTrainPage from '@/app/main/mlSection/components/MLTrainPage';
+
 // Sidebar Config
 import {
     getWorkflowItems,
@@ -206,6 +209,11 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
                 );
             case 'data-storage':
                 return <DataStorage />;
+            
+            case 'ml-train':
+                return <MLTrainPage />;
+            case 'ml-train-monitor':
+                return <MetricsPageContent />;
 
             // 기본값
             default:
