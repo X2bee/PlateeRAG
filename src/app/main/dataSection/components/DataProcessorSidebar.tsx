@@ -13,7 +13,7 @@ import {
 } from 'react-icons/io5';
 import { MdDataset } from 'react-icons/md';
 import { showErrorToastKo, showSuccessToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
-import { removeDataset, uploadLocalDataset, exportDatasetAsCSV, exportDatasetAsParquet, getDatasetStatistics, dropDatasetColumns, replaceColumnValues, applyColumnOperation, removeNullRows, uploadToHuggingFace } from '@/app/_common/api/dataManagerAPI';
+import { removeDataset, uploadLocalDataset, exportDatasetAsCSV, exportDatasetAsParquet, getDatasetStatistics, removeNullRows } from '@/app/_common/api/dataManagerAPI';
 import styles from '@/app/main/dataSection/assets/DataProcessorSidebar.module.scss';
 
 interface DataTableInfo {
@@ -49,10 +49,13 @@ interface DataProcessorSidebarProps {
     onHuggingFaceUploadModal?: () => void;
     onColumnCopyModal?: () => void;
     onColumnRenameModal?: () => void;
+    onColumnFormatModal?: () => void;
+    onColumnCalculationModal?: () => void;
+    onDatasetCallbackModal?: () => void;
 }
 
 type CategoryType = 'load' | 'analyze' | 'edit' | 'save';
-type ActionType = 'huggingface' | 'file-upload' | 'basic-stats' | 'edit-columns' | 'add-columns' | 'drop-columns' | 'clean-data' | 'export-csv' | 'export-parquet' | 'change-column-data' | 'column-operation' | 'remove-all-null-rows' | 'remove-specific-column-null-rows' | 'copy-specific-column' | 'column-calculation-copy' | 'upload-to-huggingface' | 'rename-column' | null;
+type ActionType = 'huggingface' | 'file-upload' | 'basic-stats' | 'edit-columns' | 'add-columns' | 'drop-columns' | 'clean-data' | 'export-csv' | 'export-parquet' | 'change-column-data' | 'column-operation' | 'remove-all-null-rows' | 'remove-specific-column-null-rows' | 'copy-specific-column' | 'column-format-string' | 'column-calculation' | 'upload-to-huggingface' | 'rename-column' | 'dataset-callback' | null;
 
 const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
     managerId,
@@ -69,6 +72,9 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
     onHuggingFaceUploadModal,
     onColumnCopyModal,
     onColumnRenameModal,
+    onColumnFormatModal,
+    onColumnCalculationModal,
+    onDatasetCallbackModal,
 }) => {
     const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null);
     const [selectedAction, setSelectedAction] = useState<ActionType>(null);
@@ -202,6 +208,12 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
                     title: '열 이름 변경',
                     icon: IoCreate,
                     description: '컬럼 이름 변경'
+                },
+                {
+                    id: 'dataset-callback' as ActionType,
+                    title: 'PyArrow 콜백 함수',
+                    icon: IoAnalytics,
+                    description: '사용자 정의 PyArrow 코드 실행'
                 }
             ];
         } else if (selectedAction === 'clean-data') {
@@ -228,10 +240,16 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
                     description: '선택한 컬럼을 새로운 이름으로 복사'
                 },
                 {
-                    id: 'column-calculation-copy' as ActionType,
-                    title: '컬럼간 연산 실행 및 복사',
+                    id: 'column-format-string' as ActionType,
+                    title: '컬럼 문자열 포맷팅',
+                    icon: IoCreate,
+                    description: '여러 컬럼의 값들을 문자열 템플릿으로 결합하여 새 컬럼 생성'
+                },
+                {
+                    id: 'column-calculation' as ActionType,
+                    title: '컬럼 간 연산',
                     icon: IoAnalytics,
-                    description: '여러 컬럼 간 연산을 수행하고 새 컬럼으로 저장'
+                    description: '두 컬럼 간 사칙연산을 수행하고 새 컬럼으로 저장'
                 }
             ];
         }
@@ -406,8 +424,34 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
             return;
         }
 
-        // TODO: 컬럼간 연산 및 복사 모달 열기
-        showErrorToastKo('컬럼간 연산 실행 및 복사 기능은 추후 구현 예정입니다.');
+        // 컬럼 간 연산 모달 열기
+        if (onColumnCalculationModal) {
+            onColumnCalculationModal();
+        }
+    };
+
+    const handleColumnFormatString = async () => {
+        if (!dataTableInfo || !dataTableInfo.success || dataTableInfo.sample_count === 0) {
+            showErrorToastKo('포맷팅할 데이터가 없습니다.');
+            return;
+        }
+
+        // 컬럼 문자열 포맷팅 모달 열기
+        if (onColumnFormatModal) {
+            onColumnFormatModal();
+        }
+    };
+
+    const handleDatasetCallback = async () => {
+        if (!dataTableInfo || !dataTableInfo.success || dataTableInfo.sample_count === 0) {
+            showErrorToastKo('실행할 데이터가 없습니다.');
+            return;
+        }
+
+        // PyArrow 콜백 모달 열기
+        if (onDatasetCallbackModal) {
+            onDatasetCallbackModal();
+        }
     };
 
     const handleUploadToHuggingFace = async () => {
@@ -569,7 +613,10 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
             case 'copy-specific-column':
                 handleCopySpecificColumn();
                 break;
-            case 'column-calculation-copy':
+            case 'column-format-string':
+                handleColumnFormatString();
+                break;
+            case 'column-calculation':
                 handleColumnCalculationCopy();
                 break;
             case 'rename-column':
@@ -577,6 +624,9 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
                 break;
             case 'upload-to-huggingface':
                 handleUploadToHuggingFace();
+                break;
+            case 'dataset-callback':
+                handleDatasetCallback();
                 break;
             default:
                 showErrorToastKo('해당 기능은 추후 구현 예정입니다.');
