@@ -19,6 +19,7 @@ import AdminSystemMonitor from '@/app/admin/components/sysmonitor/AdminSystemMon
 import AdminDatabase from '@/app/admin/components/database/AdminDatabase';
 import AdminWorkflowControll from '@/app/admin/components/workflows/AdminWorkflowControll';
 import AdminBackendLogs from '@/app/admin/components/sysmonitor/AdminBackendLogs';
+import MCPMarketContent from '@/app/admin/components/mcp/MCPMarketContent';
 import {
     getUserSidebarItems,
     getWorkflowSidebarItems,
@@ -26,6 +27,7 @@ import {
     getSystemSidebarItems,
     getDataSidebarItems,
     getSecuritySidebarItems,
+    getMCPSidebarItems,
     createAdminItemClickHandler,
 } from '@/app/admin/components/adminSidebarConfig';
 import styles from '@/app/admin/assets/AdminPage.module.scss';
@@ -100,6 +102,7 @@ const AdminPageContent: React.FC = () => {
     const systemItems = getSystemSidebarItems();
     const dataItems = getDataSidebarItems();
     const securityItems = getSecuritySidebarItems();
+    const mcpItems = getMCPSidebarItems();
 
     // 아이템 클릭 핸들러
     const handleItemClick = createAdminItemClickHandler(router);
@@ -136,6 +139,8 @@ const AdminPageContent: React.FC = () => {
             'database', 'storage', 'backup',
             // Security Items
             'security-settings', 'audit-logs', 'error-logs',
+            // MCP Items
+            'mcp-market',
         ];
         return validSections.includes(section);
     };
@@ -305,6 +310,15 @@ const AdminPageContent: React.FC = () => {
                         <div>에러 로그 컴포넌트가 여기에 표시됩니다.</div>
                     </AdminContentArea>
                 );
+            case 'mcp-market':
+                return (
+                    <AdminContentArea
+                        title="MCP 마켓"
+                        description="활동성, 안정성, 커뮤니티 평가 등 다차원 점수를 기반으로 MCP는 신뢰할 수 있는 API, 플러그인 및 서버를 빠르게 찾아 더 강력한 AI 시스템을 구축할 수 있도록 도와줍니다."
+                    >
+                        <MCPMarketContent />
+                    </AdminContentArea>
+                );
             default:
                 return (
                     <AdminContentArea
@@ -330,6 +344,7 @@ const AdminPageContent: React.FC = () => {
                     systemItems={systemItems}
                     dataItems={dataItems}
                     securityItems={securityItems}
+                    mcpItems={mcpItems}
                     activeItem={activeSection}
                     onItemClick={(itemId: string) => setActiveSection(itemId)}
                     initialUserExpanded={['users', 'user-create', 'group-permissions'].includes(activeSection)}
@@ -338,6 +353,7 @@ const AdminPageContent: React.FC = () => {
                     initialSystemExpanded={['system-monitor', 'system-health'].includes(activeSection)}
                     initialDataExpanded={['database', 'storage', 'backup'].includes(activeSection)}
                     initialSecurityExpanded={['security-settings', 'audit-logs', 'error-logs', 'access-logs'].includes(activeSection)}
+                    initialMCPExpanded={['mcp-market'].includes(activeSection)}
                 />
                 {!isSidebarOpen && (
                     <motion.button

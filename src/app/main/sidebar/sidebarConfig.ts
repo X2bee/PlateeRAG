@@ -8,6 +8,7 @@ import {
     FiBarChart2,
     FiDatabase,
 } from 'react-icons/fi';
+import { IoDocumentTextOutline } from 'react-icons/io5';
 import { RiChatSmileAiLine } from "react-icons/ri";
 import { LuBrainCircuit } from "react-icons/lu";
 import { HiSaveAs } from "react-icons/hi";
@@ -38,7 +39,7 @@ export const getChatSidebarItems = (): SidebarItem[] => [
     },
 ];
 
-export const getWorkflowItems = ['canvas', 'workflows', 'documents'];
+export const getWorkflowItems = ['canvas', 'workflows', 'documents', 'prompt-store'];
 
 export const getWorkflowSidebarItems = (): SidebarItem[] => [
     {
@@ -58,6 +59,12 @@ export const getWorkflowSidebarItems = (): SidebarItem[] => [
         title: '문서',
         description: '문서 저장소',
         icon: React.createElement(FiFile),
+    },
+    {
+        id: 'prompt-store',
+        title: '프롬프트 스토어',
+        description: '프롬프트 템플릿을 탐색하고 관리',
+        icon: React.createElement(IoDocumentTextOutline),
     },
 ];
 

@@ -16,6 +16,7 @@ export interface AdminSidebarProps {
     systemItems?: AdminSidebarItem[];
     dataItems?: AdminSidebarItem[];
     securityItems?: AdminSidebarItem[];
+    mcpItems?: AdminSidebarItem[];
     activeItem: string;
     onItemClick: (itemId: string) => void;
     className?: string;
@@ -25,6 +26,7 @@ export interface AdminSidebarProps {
     initialSystemExpanded?: boolean;
     initialDataExpanded?: boolean;
     initialSecurityExpanded?: boolean;
+    initialMCPExpanded?: boolean;
 }
 
 export interface AdminContentAreaProps {

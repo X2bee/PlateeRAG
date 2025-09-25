@@ -19,6 +19,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     systemItems = [],
     dataItems = [],
     securityItems = [],
+    mcpItems = [],
     activeItem,
     onItemClick,
     className = '',
@@ -28,6 +29,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     initialSystemExpanded = false,
     initialDataExpanded = false,
     initialSecurityExpanded = false,
+    initialMCPExpanded = false,
 }) => {
     const router = useRouter();
     const pathname = usePathname();
@@ -37,6 +39,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     const [isSystemExpanded, setIsSystemExpanded] = useState(initialSystemExpanded);
     const [isDataExpanded, setIsDataExpanded] = useState(initialDataExpanded);
     const [isSecurityExpanded, setIsSecurityExpanded] = useState(initialSecurityExpanded);
+    const [isMCPExpanded, setIsMCPExpanded] = useState(initialMCPExpanded);
 
     // CookieProvider의 useAuth 훅 사용 (AuthGuard에서 이미 인증 검증을 수행하므로 refreshAuth 호출 불필요)
     const { user, isAuthenticated } = useAuth();
@@ -68,6 +71,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     const toggleSystemExpanded = () => setIsSystemExpanded(!isSystemExpanded);
     const toggleDataExpanded = () => setIsDataExpanded(!isDataExpanded);
     const toggleSecurityExpanded = () => setIsSecurityExpanded(!isSecurityExpanded);
+    const toggleMCPExpanded = () => setIsMCPExpanded(!isMCPExpanded);
 
     const handleLogoClick = () => {
         onItemClick('dashboard');
@@ -270,6 +274,35 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
                 <nav className={`${styles.sidebarNav} ${isSecurityExpanded ? styles.expanded : ''}`}>
                     {securityItems.map((item: any) => (
+                        <button
+                            key={item.id}
+                            onClick={() => onItemClick(item.id)}
+                            className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                        >
+                            {item.icon}
+                            <div className={styles.navText}>
+                                <div className={styles.navTitle}>{item.title}</div>
+                                <div className={styles.navDescription}>
+                                    {item.description}
+                                </div>
+                            </div>
+                        </button>
+                    ))}
+                </nav>
+
+                {/* MCP 섹션 */}
+                <button
+                    className={styles.sidebarToggle}
+                    onClick={toggleMCPExpanded}
+                >
+                    <span>MCP</span>
+                    <span className={`${styles.toggleIcon} ${isMCPExpanded ? styles.expanded : ''}`}>
+                        ▼
+                    </span>
+                </button>
+
+                <nav className={`${styles.sidebarNav} ${isMCPExpanded ? styles.expanded : ''}`}>
+                    {mcpItems && mcpItems.map((item: any) => (
                         <button
                             key={item.id}
                             onClick={() => onItemClick(item.id)}

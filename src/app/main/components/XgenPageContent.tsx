@@ -9,6 +9,7 @@ import ContentArea from '@/app/main/workflowSection/components/ContentArea';
 import CanvasIntroduction from '@/app/main/workflowSection/components/CanvasIntroduction';
 import CompletedWorkflows from '@/app/main/workflowSection/components/CompletedWorkflows';
 import Documents from '@/app/main/workflowSection/components/Documents';
+import PromptStore from '@/app/main/workflowSection/components/PromptStore';
 
 // Model Page Components
 import MetricsPageContent from '@/app/main/modelSection/components/MetricsPageContent';
@@ -157,6 +158,15 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
                         description="문서 저장소"
                     >
                         <Documents />
+                    </ContentArea>
+                );
+            case 'prompt-store':
+                return (
+                    <ContentArea
+                        title="프롬프트 스토어"
+                        description="다양한 프롬프트 템플릿을 탐색하고 활용하세요."
+                    >
+                        <PromptStore />
                     </ContentArea>
                 );
 
