@@ -10,7 +10,7 @@ const getMLApiBaseUrl = () => {
         return `${protocol}${host}:${port}`;
     }
 
-    return process.env.NEXT_PUBLIC_ML_API_URL || 'http://localhost:8001';
+    return process.env.NEXT_PUBLIC_ML_API_URL || 'https://xgen-ml.x2bee.com';
 };
 
 const ML_API_BASE_URL = getMLApiBaseUrl();
