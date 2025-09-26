@@ -1,8 +1,9 @@
 import React from 'react';
 import Node from '@/app/canvas/components/Node';
 import SchemaProviderNode from '@/app/canvas/components/SpecialNode/SchemaProviderNode';
+import RouterNode from '@/app/canvas/components/SpecialNode/RouterNode';
 import type { CanvasNode, NodeProps } from '@/app/canvas/types';
-import { isSchemaProviderNode } from '../utils';
+import { isSchemaProviderNode, isRouterNode } from '../utils';
 import { devLog } from '@/app/_common/utils/logger';
 
 interface CanvasNodesProps {
@@ -22,6 +23,10 @@ interface CanvasNodesProps {
     onClearSelection: () => void;
     onOpenNodeModal?: NodeProps['onOpenNodeModal'];
     onSynchronizeSchema?: (nodeId: string, portId: string) => void;
+    // Router specific props
+    onOutputAdd?: (nodeId: string, output: any) => void;
+    onOutputDelete?: (nodeId: string, outputId: string) => void;
+    onOutputNameChange?: (nodeId: string, outputId: string, newName: string) => void;
     currentEdges: any[];
     nodeExpandedState: Record<string, boolean>;
     onToggleExpanded: (nodeId: string) => void;
@@ -44,6 +49,9 @@ export const CanvasNodes: React.FC<CanvasNodesProps> = ({
     onClearSelection,
     onOpenNodeModal,
     onSynchronizeSchema,
+    onOutputAdd,
+    onOutputDelete,
+    onOutputNameChange,
     currentEdges,
     nodeExpandedState,
     onToggleExpanded
@@ -52,6 +60,7 @@ export const CanvasNodes: React.FC<CanvasNodesProps> = ({
         <>
             {nodes.map(node => {
                 const isSchemaProvider = isSchemaProviderNode(node.data);
+                const isRouter = isRouterNode(node.data);
                 const isSelected = node.id === selectedNodeId;
                 const isSnapTargetInvalid = Boolean(snappedPortKey?.startsWith(node.id) && !isSnapTargetValid);
 
@@ -77,6 +86,38 @@ export const CanvasNodes: React.FC<CanvasNodesProps> = ({
                             isSnapTargetInvalid={isSnapTargetInvalid}
                             onClearSelection={onClearSelection}
                             onOpenNodeModal={onOpenNodeModal}
+                        />
+                    );
+                }
+
+                if (isRouter) {
+                    devLog.log(`Using RouterNode for: ${node.data.nodeName}`);
+                    return (
+                        <RouterNode
+                            key={node.id}
+                            id={node.id}
+                            data={node.data}
+                            position={node.position}
+                            onNodeMouseDown={onNodeMouseDown}
+                            isSelected={isSelected}
+                            onPortMouseDown={onPortMouseDown}
+                            onPortMouseUp={onPortMouseUp}
+                            registerPortRef={registerPortRef}
+                            snappedPortKey={snappedPortKey}
+                            onParameterChange={onParameterChange}
+                            onNodeNameChange={onNodeNameChange}
+                            onParameterNameChange={onParameterNameChange}
+                            onParameterAdd={onParameterAdd}
+                            onParameterDelete={onParameterDelete}
+                            isSnapTargetInvalid={isSnapTargetInvalid}
+                            onClearSelection={onClearSelection}
+                            onOpenNodeModal={onOpenNodeModal}
+                            onSynchronizeSchema={onSynchronizeSchema && ((portId: string) => onSynchronizeSchema(node.id, portId))}
+                            currentNodes={nodes}
+                            currentEdges={currentEdges}
+                            onOutputAdd={onOutputAdd}
+                            onOutputDelete={onOutputDelete}
+                            onOutputNameChange={onOutputNameChange}
                         />
                     );
                 }

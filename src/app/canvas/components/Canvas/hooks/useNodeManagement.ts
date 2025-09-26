@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { CanvasNode, Parameter } from '@/app/canvas/types';
+import type { CanvasNode, Parameter, Port } from '@/app/canvas/types';
 import { devLog } from '@/app/_common/utils/logger';
 
 interface UseNodeManagementProps {
@@ -23,6 +23,10 @@ interface UseNodeManagementReturn {
     updateParameterName: (nodeId: string, paramId: string, newName: string) => void;
     addParameter: (nodeId: string, newParameter: Parameter) => void;
     deleteParameter: (nodeId: string, paramId: string) => void;
+    // Router specific functions
+    addOutput: (nodeId: string, newOutput: Port) => void;
+    deleteOutput: (nodeId: string, outputId: string) => void;
+    updateOutputName: (nodeId: string, outputId: string, newName: string) => void;
 }
 
 export const useNodeManagement = ({ historyHelpers }: UseNodeManagementProps = {}): UseNodeManagementReturn => {
@@ -257,6 +261,103 @@ export const useNodeManagement = ({ historyHelpers }: UseNodeManagementProps = {
         });
     }, []);
 
+    // Router specific functions
+    const addOutput = useCallback((nodeId: string, newOutput: Port): void => {
+        setNodes(prevNodes => {
+            const targetNodeIndex = prevNodes.findIndex(node => node.id === nodeId);
+            if (targetNodeIndex === -1) {
+                return prevNodes;
+            }
+
+            const targetNode = prevNodes[targetNodeIndex];
+            const existingOutputs = targetNode.data.outputs || [];
+
+            const newNodes = [
+                ...prevNodes.slice(0, targetNodeIndex),
+                {
+                    ...targetNode,
+                    data: {
+                        ...targetNode.data,
+                        outputs: [...existingOutputs, newOutput]
+                    }
+                },
+                ...prevNodes.slice(targetNodeIndex + 1)
+            ];
+
+            return newNodes;
+        });
+    }, []);
+
+    const deleteOutput = useCallback((nodeId: string, outputId: string): void => {
+        setNodes(prevNodes => {
+            const targetNodeIndex = prevNodes.findIndex(node => node.id === nodeId);
+            if (targetNodeIndex === -1) {
+                return prevNodes;
+            }
+
+            const targetNode = prevNodes[targetNodeIndex];
+            if (!targetNode.data.outputs || !Array.isArray(targetNode.data.outputs)) {
+                return prevNodes;
+            }
+
+            const newNodes = [
+                ...prevNodes.slice(0, targetNodeIndex),
+                {
+                    ...targetNode,
+                    data: {
+                        ...targetNode.data,
+                        outputs: targetNode.data.outputs.filter(output => output.id !== outputId)
+                    }
+                },
+                ...prevNodes.slice(targetNodeIndex + 1)
+            ];
+
+            return newNodes;
+        });
+    }, []);
+
+    const updateOutputName = useCallback((nodeId: string, outputId: string, newName: string): void => {
+        setNodes(prevNodes => {
+            const targetNodeIndex = prevNodes.findIndex(node => node.id === nodeId);
+            if (targetNodeIndex === -1) {
+                return prevNodes;
+            }
+
+            const targetNode = prevNodes[targetNodeIndex];
+            if (!targetNode.data.outputs || !Array.isArray(targetNode.data.outputs)) {
+                return prevNodes;
+            }
+
+            const targetOutputIndex = targetNode.data.outputs.findIndex(output => output.id === outputId);
+            if (targetOutputIndex === -1) {
+                return prevNodes;
+            }
+
+            const targetOutput = targetNode.data.outputs[targetOutputIndex];
+            if (targetOutput.name === newName) {
+                return prevNodes;
+            }
+
+            const newNodes = [
+                ...prevNodes.slice(0, targetNodeIndex),
+                {
+                    ...targetNode,
+                    data: {
+                        ...targetNode.data,
+                        outputs: [
+                            ...targetNode.data.outputs.slice(0, targetOutputIndex),
+                            { ...targetOutput, name: newName, id: newName },
+                            ...targetNode.data.outputs.slice(targetOutputIndex + 1)
+                        ]
+                    }
+                },
+                ...prevNodes.slice(targetNodeIndex + 1)
+            ];
+
+            return newNodes;
+        });
+    }, []);
+
     return {
         nodes,
         setNodes,
@@ -269,6 +370,9 @@ export const useNodeManagement = ({ historyHelpers }: UseNodeManagementProps = {
         updateNodeName,
         updateParameterName,
         addParameter,
-        deleteParameter
+        deleteParameter,
+        addOutput,
+        deleteOutput,
+        updateOutputName
     };
 };
