@@ -2,7 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
     experimental: {
-        proxyTimeout: 600,
+        proxyTimeout: 600000,
     },
     async rewrites() {
         const host_url =
