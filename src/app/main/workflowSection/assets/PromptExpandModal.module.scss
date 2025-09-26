@@ -1,0 +1,356 @@
+@use "sass:color";
+@use "@/app/_common/_variables" as *;
+
+// 모달 오버레이
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 2rem;
+    backdrop-filter: blur(0px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.fadeIn {
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+    }
+}
+
+// 모달 컨테이너
+.modalContainer {
+    background: $white;
+    border-radius: 1rem;
+    width: 100%;
+    max-width: 1200px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    border: 1px solid $gray-200;
+    overflow: hidden;
+    transform: scale(0.9) translateY(20px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.slideIn {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+// 모달 헤더
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 2rem 2rem 1.5rem 2rem;
+    border-bottom: 1px solid $gray-200;
+    background: $gray-50;
+
+    .headerInfo {
+        flex: 1;
+
+        .promptTitle {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: $gray-900;
+            margin: 0 0 1rem 0;
+            line-height: 1.4;
+        }
+
+        .promptMeta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+
+            .metaItem {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-size: 0.875rem;
+                color: $gray-600;
+
+                .metaIcon {
+                    font-size: 1rem;
+                    color: $primary-blue;
+                }
+            }
+        }
+    }
+
+    .closeButton {
+        background: transparent;
+        border: none;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        color: $gray-500;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        margin-left: 1rem;
+
+        &:hover {
+            background: rgba($gray-500, 0.1);
+            color: $gray-700;
+        }
+
+        svg {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+    }
+}
+
+// 모달 바디
+.modalBody {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+
+    .contentSection {
+        .sectionHeader {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+
+            h3 {
+                font-size: 1.125rem;
+                font-weight: 600;
+                color: $gray-800;
+                margin: 0;
+            }
+
+            .copyButton {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                background: $primary-blue;
+                color: $white;
+                border: none;
+                padding: 0.75rem 1rem;
+                border-radius: 0.5rem;
+                font-size: 0.875rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+
+                &:hover {
+                    background: color.adjust($primary-blue, $lightness: -5%);
+                    transform: translateY(-1px);
+                }
+
+                &.copied {
+                    background: $primary-green;
+
+                    &:hover {
+                        background: color.adjust($primary-green, $lightness: -5%);
+                    }
+                }
+
+                .copyIcon {
+                    font-size: 1rem;
+                }
+            }
+        }
+
+        .promptContent {
+            background: $gray-50;
+            border: 1px solid $gray-200;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.7;
+            color: $gray-800;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+
+            &::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            &::-webkit-scrollbar-track {
+                background: $gray-100;
+                border-radius: 4px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: $gray-300;
+                border-radius: 4px;
+
+                &:hover {
+                    background: $gray-400;
+                }
+            }
+        }
+    }
+
+    .infoSection {
+        h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: $gray-800;
+            margin: 0 0 1rem 0;
+        }
+
+        .infoGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+
+            .infoItem {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem 1rem;
+                background: $gray-50;
+                border: 1px solid $gray-200;
+                border-radius: 0.5rem;
+
+                .infoLabel {
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                    color: $gray-600;
+                }
+
+                .infoValue {
+                    font-size: 0.875rem;
+                    font-weight: 600;
+                    color: $gray-900;
+                    text-align: right;
+                }
+            }
+        }
+    }
+}
+
+// 반응형 디자인
+@media (max-width: 768px) {
+    .modalOverlay {
+        padding: 1rem;
+    }
+
+    .modalContainer {
+        max-width: 100%;
+        max-height: 95vh;
+    }
+
+    .modalHeader {
+        padding: 1.5rem 1.5rem 1rem 1.5rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+
+        .headerInfo {
+            .promptTitle {
+                font-size: 1.25rem;
+            }
+
+            .promptMeta {
+                gap: 1rem;
+
+                .metaItem {
+                    font-size: 0.8125rem;
+                }
+            }
+        }
+
+        .closeButton {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            margin-left: 0;
+        }
+    }
+
+    .modalBody {
+        padding: 1.5rem;
+        gap: 1.5rem;
+
+        .contentSection {
+            .sectionHeader {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.75rem;
+
+                .copyButton {
+                    align-self: flex-end;
+                }
+            }
+
+            .promptContent {
+                font-size: 0.8125rem;
+                padding: 1rem;
+                max-height: 300px;
+            }
+        }
+
+        .infoSection {
+            .infoGrid {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+
+                .infoItem {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 0.25rem;
+
+                    .infoValue {
+                        text-align: left;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .modalOverlay {
+        padding: 0.5rem;
+    }
+
+    .modalHeader {
+        padding: 1rem;
+
+        .headerInfo {
+            .promptTitle {
+                font-size: 1.125rem;
+            }
+
+            .promptMeta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+
+        .closeButton {
+            top: 0.75rem;
+            right: 0.75rem;
+        }
+    }
+
+    .modalBody {
+        padding: 1rem;
+
+        .contentSection {
+            .promptContent {
+                padding: 0.75rem;
+                font-size: 0.75rem;
+            }
+        }
+    }
+}

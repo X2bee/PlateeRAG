@@ -1,0 +1,146 @@
+@use "@/app/_common/_variables" as *;
+
+.mcpCard {
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: $radius-lg;
+    padding: $spacing-lg;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    &:hover {
+        border-color: $blue-400;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+    }
+}
+
+.cardHeader {
+    display: flex;
+    align-items: flex-start;
+    gap: $spacing-md;
+    margin-bottom: $spacing-md;
+}
+
+.iconContainer {
+    width: 48px;
+    height: 48px;
+    background: $gray-100;
+    border-radius: $radius-md;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 20px;
+    color: $gray-600;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: $radius-md;
+    }
+}
+
+.cardInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.cardTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: $gray-900;
+    margin: 0 0 4px 0;
+    line-height: 1.4;
+}
+
+.cardAuthor {
+    font-size: 14px;
+    color: $gray-600;
+    margin: 0;
+}
+
+.statusBadge {
+    padding: 2px 8px;
+    border-radius: $radius-sm;
+    font-size: 12px;
+    font-weight: 500;
+
+    &.excellent {
+        background: $admin-success-light;
+        color: $admin-success;
+        border: 1px solid $admin-success;
+    }
+
+    &.normal {
+        background: $gray-50;
+        color: $gray-700;
+        border: 1px solid $gray-200;
+    }
+}
+
+.cardDescription {
+    font-size: 14px;
+    color: $gray-700;
+    line-height: 1.5;
+    margin-bottom: $spacing-md;
+    flex: 1;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.cardFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: $spacing-sm;
+    border-top: 1px solid $gray-100;
+    margin-top: auto;
+}
+
+.cardStats {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+}
+
+.statItem {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: $gray-600;
+
+    svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+.cardVersion {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: $gray-500;
+
+    svg {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+// 그리드 레이아웃용
+.mcpGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: $spacing-lg;
+    margin-top: $spacing-lg;
+}

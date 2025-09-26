@@ -16,6 +16,8 @@ import {
     FiAlertTriangle,
     FiMessageSquare,
     FiBarChart,
+    FiPackage,
+    FiGrid,
 } from 'react-icons/fi';
 import { AdminSidebarItem } from '@/app/admin/components/types';
 
@@ -148,6 +150,17 @@ export const getSecuritySidebarItems = (): AdminSidebarItem[] => [
         title: '에러 로그',
         description: '시스템 오류 및 예외 로그',
         icon: React.createElement(FiAlertTriangle),
+    },
+];
+
+export const getMCPItems = ['mcp-market'];
+
+export const getMCPSidebarItems = (): AdminSidebarItem[] => [
+    {
+        id: 'mcp-market',
+        title: 'MCP 마켓',
+        description: 'Model Context Protocol 확장 프로그램 검색 및 관리',
+        icon: React.createElement(FiPackage),
     },
 ];
 

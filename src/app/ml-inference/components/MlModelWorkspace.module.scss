@@ -1,0 +1,118 @@
+@use "@/app/_common/_variables" as *;
+
+.contentAreaWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-lg;
+
+    > div:last-child {
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-lg;
+    }
+}
+
+.toolbarActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.toolbarActions button {
+    border-radius: $radius-lg;
+    border: none;
+    background: linear-gradient(90deg, $blue-500, $blue-400);
+    color: $white;
+    padding: 0.55rem 1.2rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.2s ease;
+}
+
+.toolbarActions button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba($blue-500, 0.28);
+}
+
+.toolbarActions button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.statusBanner {
+    border-radius: $radius-lg;
+    border: 1px solid $gray-200;
+    background: $gray-50;
+    padding: 0.85rem 1rem;
+}
+
+.statusArea {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+}
+
+.statusInfo {
+    margin: 0;
+    color: $green-600;
+    font-weight: 500;
+}
+
+.statusError {
+    margin: 0;
+    color: $red-700;
+    font-weight: 500;
+}
+
+.workspaceGrid {
+    display: grid;
+    gap: $spacing-lg;
+}
+
+.twoColumn {
+    display: grid;
+    gap: $spacing-lg;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.singleColumn {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-lg;
+}
+
+.sectionTitle {
+    margin: 0;
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: $gray-900;
+}
+
+.sectionDescription {
+    margin: 0.4rem 0 1rem;
+    color: $gray-600;
+    line-height: 1.6;
+}
+
+.sectionCard {
+    padding: $spacing-lg;
+    border-radius: $radius-xl;
+    background: $white;
+    border: 1px solid $gray-200;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+}
+
+@media (max-width: 960px) {
+    .toolbarActions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}

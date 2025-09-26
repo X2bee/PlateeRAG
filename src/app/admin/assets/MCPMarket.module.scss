@@ -1,0 +1,201 @@
+@use "@/app/_common/_variables" as *;
+
+// 검색바 스타일
+.searchContainer {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    margin-bottom: $spacing-lg;
+}
+
+.searchInputWrapper {
+    position: relative;
+    flex: 1;
+    max-width: 400px;
+}
+
+.searchInput {
+    width: 100%;
+    padding: $spacing-sm $spacing-md $spacing-sm 40px;
+    border: 1px solid $gray-300;
+    border-radius: $radius-md;
+    font-size: 14px;
+    transition: border-color 0.2s ease-in-out;
+
+    &:focus {
+        outline: none;
+        border-color: $blue-500;
+        box-shadow: 0 0 0 3px rgba($blue-500, 0.1);
+    }
+
+    &::placeholder {
+        color: $gray-500;
+    }
+}
+
+.searchIcon {
+    position: absolute;
+    left: $spacing-sm;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $gray-400;
+    width: 16px;
+    height: 16px;
+}
+
+.clearButton {
+    position: absolute;
+    right: $spacing-sm;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: $gray-400;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: $radius-sm;
+
+    &:hover {
+        color: $gray-600;
+        background: $gray-100;
+    }
+}
+
+// 탭 스타일
+.categoryTabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: $spacing-lg;
+    overflow-x: auto;
+    padding-bottom: 8px;
+
+    &::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: $gray-100;
+        border-radius: 2px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: $gray-300;
+        border-radius: 2px;
+
+        &:hover {
+            background: $gray-400;
+        }
+    }
+}
+
+.categoryTab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px $spacing-sm;
+    border: 1px solid $gray-300;
+    border-radius: $radius-md;
+    background: $white;
+    font-size: 13px;
+    font-weight: 500;
+    color: $gray-700;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    white-space: nowrap;
+    flex-shrink: 0;
+
+    &:hover {
+        border-color: $blue-300;
+        background: $blue-50;
+        color: $blue-700;
+    }
+
+    &.active {
+        border-color: $blue-500;
+        background: $blue-500;
+        color: $white;
+
+        .categoryCount {
+            background: rgba($white, 0.2);
+            color: $white;
+        }
+    }
+}
+
+.categoryCount {
+    background: $gray-200;
+    color: $gray-600;
+    padding: 2px 6px;
+    border-radius: $radius-sm;
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 20px;
+    text-align: center;
+    transition: all 0.2s ease-in-out;
+}
+
+// 필터 및 정렬 옵션
+.filterContainer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $spacing-md;
+}
+
+.filterLeft {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+}
+
+.filterRight {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+}
+
+.sortSelect {
+    padding: $spacing-xs $spacing-sm;
+    border: 1px solid $gray-300;
+    border-radius: $radius-sm;
+    font-size: 13px;
+    color: $gray-700;
+    background: $white;
+    cursor: pointer;
+
+    &:focus {
+        outline: none;
+        border-color: $blue-500;
+    }
+}
+
+.resultCount {
+    font-size: 13px;
+    color: $gray-600;
+}
+
+// 빈 상태
+.emptyState {
+    text-align: center;
+    padding: $spacing-xl * 2;
+    color: $gray-500;
+
+    .emptyIcon {
+        font-size: 48px;
+        margin-bottom: $spacing-md;
+        color: $gray-400;
+    }
+
+    .emptyTitle {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: $spacing-xs;
+        color: $gray-700;
+    }
+
+    .emptyDescription {
+        font-size: 14px;
+        line-height: 1.5;
+    }
+}
