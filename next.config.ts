@@ -1,6 +1,9 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+    experimental: {
+        proxyTimeout: 600,
+    },
     async rewrites() {
         const host_url =
             process.env.NEXT_PUBLIC_BACKEND_HOST || 'http://localhost';
