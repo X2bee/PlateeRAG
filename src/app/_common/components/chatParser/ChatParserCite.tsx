@@ -1,7 +1,7 @@
 import { SourceInfo } from "@/app/main/chatSection/types/source";
 import { devLog } from "@/app/_common/utils/logger";
 import { hasLatex, processLatexInText } from "@/app/_common/components/chatParser/ChatParserLatex";
-import { processInlineMarkdown } from "@/app/_common/components/chatParser/ChatParserMarkdown";
+import { renderMarkdownTextWithImages } from "@/app/_common/components/chatParser/ChatParserMarkdown";
 import SourceButton from "@/app/main/chatSection/components/SourceButton";
 import sourceStyles from '@/app/main/chatSection/assets/SourceButton.module.scss';
 
@@ -52,8 +52,8 @@ export const processInlineMarkdownWithCitations = (
         if (hasLatexContent) {
             return processLatexInText(text, key, isStreaming);
         } else {
-            const processedText = processInlineMarkdown(text);
-            return [<div key={key} dangerouslySetInnerHTML={{ __html: processedText }} />];
+            const rendered = renderMarkdownTextWithImages(text, key);
+            return rendered ? [rendered] : [];
         }
     }
 
@@ -194,10 +194,10 @@ export const processInlineMarkdownWithCitations = (
                     const latexElements = processLatexInText(beforeText, `${key}-text-before`, isStreaming);
                     elements.push(...latexElements);
                 } else {
-                    const processedText = processInlineMarkdown(beforeText);
-                    elements.push(
-                        <span key={`${key}-text-before`} dangerouslySetInnerHTML={{ __html: processedText }} />
-                    );
+                    const rendered = renderMarkdownTextWithImages(beforeText, `${key}-text-before`, { wrapper: 'span' });
+                    if (rendered) {
+                        elements.push(rendered);
+                    }
                 }
             }
 
@@ -212,8 +212,8 @@ export const processInlineMarkdownWithCitations = (
             if (hasLatexContent) {
                 return processLatexInText(text, key, isStreaming);
             } else {
-                const processedText = processInlineMarkdown(text);
-                return [<div key={key} dangerouslySetInnerHTML={{ __html: processedText }} />];
+                const rendered = renderMarkdownTextWithImages(text, key);
+                return rendered ? [rendered] : [];
             }
         }
     }
@@ -232,10 +232,10 @@ export const processInlineMarkdownWithCitations = (
                     const latexElements = processLatexInText(beforeText, `${key}-text-${i}`, isStreaming);
                     elements.push(...latexElements);
                 } else {
-                    const processedText = processInlineMarkdown(beforeText);
-                    elements.push(
-                        <span key={`${key}-text-${i}`} dangerouslySetInnerHTML={{ __html: processedText }} />
-                    );
+                    const rendered = renderMarkdownTextWithImages(beforeText, `${key}-text-${i}`, { wrapper: 'span' });
+                    if (rendered) {
+                        elements.push(rendered);
+                    }
                 }
             }
         }
@@ -295,10 +295,10 @@ export const processInlineMarkdownWithCitations = (
                 const latexElements = processLatexInText(remainingText, `${key}-text-remaining`, isStreaming);
                 elements.push(...latexElements);
             } else {
-                const processedText = processInlineMarkdown(remainingText);
-                elements.push(
-                    <span key={`${key}-text-remaining`} dangerouslySetInnerHTML={{ __html: processedText }} />
-                );
+                const rendered = renderMarkdownTextWithImages(remainingText, `${key}-text-remaining`, { wrapper: 'span' });
+                if (rendered) {
+                    elements.push(rendered);
+                }
             }
         }
     }

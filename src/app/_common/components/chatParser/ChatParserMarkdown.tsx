@@ -41,6 +41,228 @@ export const getLastLines = (text: string, n: number = 3): string => {
     return `...\n${lastLines}`;
 };
 
+interface MarkdownImageMatch {
+    start: number;
+    end: number;
+    alt: string;
+    url: string;
+    title?: string;
+}
+
+const ALLOWED_IMAGE_PROTOCOLS = ['http:', 'https:', 'data:', 'blob:'];
+
+const sanitizeImageSource = (rawUrl: string): string | null => {
+    const trimmed = rawUrl.trim();
+    if (!trimmed) return null;
+
+    // React will escape by default, but we defensively guard against unsafe schemes
+    const lower = trimmed.toLowerCase();
+    if (lower.startsWith('javascript:') || lower.startsWith('vbscript:')) {
+        return null;
+    }
+
+    try {
+        const parsed = new URL(trimmed, 'http://localhost');
+        if (parsed.origin === 'http://localhost' && !trimmed.startsWith('http') && !trimmed.startsWith('blob:') && !trimmed.startsWith('data:')) {
+            // Relative path - allowed
+            return trimmed;
+        }
+        if (ALLOWED_IMAGE_PROTOCOLS.includes(parsed.protocol)) {
+            return trimmed;
+        }
+    } catch {
+        // 입력이 상대경로이거나 URL 생성이 실패한 경우 - 공백/기타는 그대로 허용
+        if (trimmed.startsWith('/') || trimmed.startsWith('./') || trimmed.startsWith('../')) {
+            return trimmed;
+        }
+    }
+
+    return null;
+};
+
+const unescapeMarkdownText = (text: string): string => {
+    return text
+        .replace(/\\\[/g, '[')
+        .replace(/\\\]/g, ']')
+        .replace(/\\\(/g, '(')
+        .replace(/\\\)/g, ')')
+        .replace(/\\!/g, '!')
+        .replace(/\\\\/g, '\\');
+};
+
+const parseImageDestination = (destination: string): { url: string; title?: string } => {
+    let working = destination.trim();
+    let title: string | undefined;
+
+    if (working.startsWith('<') && working.endsWith('>')) {
+        working = working.slice(1, -1).trim();
+    }
+
+    const extractTitle = (quoteChar: '"' | "'") => {
+        const first = working.indexOf(quoteChar);
+        const last = working.lastIndexOf(quoteChar);
+        if (first !== -1 && last !== -1 && last > first) {
+            title = working.slice(first + 1, last);
+            working = working.slice(0, first).trim();
+        }
+    };
+
+    if (working.includes('"')) {
+        extractTitle('"');
+    } else if (working.includes("'")) {
+        extractTitle("'");
+    }
+
+    return {
+        url: working,
+        title
+    };
+};
+
+const findMarkdownImageMatches = (input: string): MarkdownImageMatch[] => {
+    const matches: MarkdownImageMatch[] = [];
+    let cursor = 0;
+
+    while (cursor < input.length) {
+        const bangIndex = input.indexOf('![', cursor);
+        if (bangIndex === -1) break;
+
+        const altStart = bangIndex + 2;
+        const altEnd = input.indexOf(']', altStart);
+        if (altEnd === -1) break;
+        if (input[altEnd + 1] !== '(') {
+            cursor = altEnd + 1;
+            continue;
+        }
+
+        const destinationStart = altEnd + 2;
+        let depth = 1;
+        let pos = destinationStart;
+        let destinationEnd = -1;
+
+        while (pos < input.length) {
+            const char = input[pos];
+
+            if (char === '\\') {
+                pos += 2;
+                continue;
+            }
+
+            if (char === '(') {
+                depth++;
+            } else if (char === ')') {
+                depth--;
+                if (depth === 0) {
+                    destinationEnd = pos;
+                    break;
+                }
+            }
+
+            pos++;
+        }
+
+        if (destinationEnd === -1) {
+            cursor = altEnd + 1;
+            continue;
+        }
+
+        const altRaw = input.slice(altStart, altEnd);
+        const destinationRaw = input.slice(destinationStart, destinationEnd);
+        const { url, title } = parseImageDestination(destinationRaw);
+
+        matches.push({
+            start: bangIndex,
+            end: destinationEnd + 1,
+            alt: unescapeMarkdownText(altRaw.trim()),
+            url: unescapeMarkdownText(url.trim()),
+            title: title ? title.trim() : undefined
+        });
+
+        cursor = destinationEnd + 1;
+    }
+
+    return matches;
+};
+
+export const renderMarkdownTextWithImages = (
+    text: string,
+    key: string,
+    options: { wrapper?: 'div' | 'span'; className?: string } = {}
+): React.ReactNode | null => {
+    const { wrapper = 'div', className } = options;
+    const matches = findMarkdownImageMatches(text);
+
+    if (matches.length === 0) {
+        const processedText = processInlineMarkdown(text);
+        if (!processedText) return null;
+        if (wrapper === 'span') {
+            return <span key={key} className={className} dangerouslySetInnerHTML={{ __html: processedText }} />;
+        }
+        return <div key={key} className={className} dangerouslySetInnerHTML={{ __html: processedText }} />;
+    }
+
+    const Wrapper = wrapper === 'span' ? 'span' : 'div';
+    const children: React.ReactNode[] = [];
+    let lastIndex = 0;
+
+    matches.forEach((match, index) => {
+        if (match.start > lastIndex) {
+            const slice = text.slice(lastIndex, match.start);
+            if (slice.trim()) {
+                const html = processInlineMarkdown(slice);
+                if (html) {
+                    children.push(
+                        <span key={`${key}-text-${index}`} dangerouslySetInnerHTML={{ __html: html }} />
+                    );
+                }
+            }
+        }
+
+        const sanitizedUrl = sanitizeImageSource(match.url);
+        if (sanitizedUrl) {
+            children.push(
+                <span key={`${key}-img-${index}`} className="markdown-image-wrapper">
+                    <img
+                        src={sanitizedUrl}
+                        alt={match.alt || ''}
+                        title={match.title || undefined}
+                        loading="lazy"
+                    />
+                </span>
+            );
+        } else {
+            const fallbackHtml = processInlineMarkdown(`![${match.alt}](${match.url})`);
+            children.push(
+                <span key={`${key}-img-fallback-${index}`} dangerouslySetInnerHTML={{ __html: fallbackHtml }} />
+            );
+        }
+
+        lastIndex = match.end;
+    });
+
+    if (lastIndex < text.length) {
+        const slice = text.slice(lastIndex);
+        if (slice.trim()) {
+            const html = processInlineMarkdown(slice);
+            if (html) {
+                children.push(
+                    <span key={`${key}-text-final`} dangerouslySetInnerHTML={{ __html: html }} />
+                );
+            }
+        }
+    }
+
+    if (children.length === 0) {
+        return null;
+    }
+
+    return (
+        <Wrapper key={key} className={className}>
+            {children}
+        </Wrapper>
+    );
+};
+
 /**
  * 인라인 마크다운 처리 (볼드, 이탤릭, 링크 등) - LaTeX 제외
  */
