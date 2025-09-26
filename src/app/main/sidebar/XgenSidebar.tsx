@@ -347,9 +347,10 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
                         >
                             <span>ML 모델</span>
                             <span className={`${styles.toggleIcon} ${isMlModelExpanded ? styles.expanded : ''}`}>
-
+                                ▼
                             </span>
                         </button>
+                        
                         <nav className={`${styles.sidebarNav} ${isMlModelExpanded ? styles.expanded : ''}`}>
                             {filteredItems.mlModelItems.map((item) => (
                                 <button
