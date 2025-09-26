@@ -1,0 +1,481 @@
+@use "sass:color";
+@use "@/app/_common/_variables" as *;
+
+// 모달 오버레이
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 2rem;
+    backdrop-filter: blur(0px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.fadeIn {
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+    }
+}
+
+// 모달 컨테이너
+.modalContainer {
+    background: $white;
+    border-radius: 1rem;
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    border: 1px solid $gray-200;
+    overflow: hidden;
+    transform: scale(0.9) translateY(20px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.slideIn {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+// 모달 헤더
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 2rem 2rem 1.5rem 2rem;
+    border-bottom: 1px solid $gray-200;
+    background: $gray-50;
+
+    .headerInfo {
+        flex: 1;
+
+        .modalTitle {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: $gray-900;
+            margin: 0 0 0.5rem 0;
+            line-height: 1.4;
+        }
+
+        .modalDescription {
+            font-size: 0.875rem;
+            color: $gray-600;
+            margin: 0;
+            line-height: 1.5;
+        }
+    }
+
+    .closeButton {
+        background: transparent;
+        border: none;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        color: $gray-500;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        margin-left: 1rem;
+
+        &:hover:not(:disabled) {
+            background: rgba($gray-500, 0.1);
+            color: $gray-700;
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        svg {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+    }
+}
+
+// 모달 바디 (폼)
+.modalBody {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+
+    .formGroup {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+
+        .label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: $gray-700;
+            margin-bottom: 0.25rem;
+        }
+
+        .input, .textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid $gray-300;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            color: $gray-900;
+            background: $white;
+            transition: all 0.2s ease;
+            resize: none;
+
+            &:focus {
+                outline: none;
+                border-color: $primary-blue;
+                box-shadow: 0 0 0 3px rgba($primary-blue, 0.1);
+            }
+
+            &.error {
+                border-color: $primary-red;
+                box-shadow: 0 0 0 3px rgba($primary-red, 0.1);
+            }
+
+            &:disabled {
+                background: $gray-100;
+                color: $gray-500;
+                cursor: not-allowed;
+            }
+
+            &::placeholder {
+                color: $gray-500;
+            }
+        }
+
+        .textarea {
+            min-height: 120px;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        .errorMessage {
+            font-size: 0.75rem;
+            color: $primary-red;
+            margin-top: 0.25rem;
+        }
+
+        .charCount {
+            font-size: 0.75rem;
+            color: $gray-500;
+            text-align: right;
+            margin-top: 0.25rem;
+        }
+    }
+
+    .optionsSection {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+
+        .optionGroup {
+            .optionLabel {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: $gray-700;
+                margin-bottom: 0.75rem;
+
+                .optionIcon {
+                    font-size: 1rem;
+                    color: $primary-blue;
+                }
+            }
+
+            .languageButtons {
+                display: flex;
+                gap: 0.75rem;
+
+                .languageButton {
+                    flex: 1;
+                    padding: 0.75rem 1rem;
+                    border: 1px solid $gray-300;
+                    border-radius: 0.5rem;
+                    background: $white;
+                    color: $gray-700;
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+
+                    &:hover:not(:disabled) {
+                        background: $gray-50;
+                        border-color: $gray-400;
+                    }
+
+                    &.active {
+                        background: $primary-blue;
+                        border-color: $primary-blue;
+                        color: $white;
+                    }
+
+                    &:disabled {
+                        opacity: 0.5;
+                        cursor: not-allowed;
+                    }
+                }
+            }
+
+            .publicToggle {
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+
+                .toggleButton {
+                    padding: 1rem;
+                    border: 1px solid $gray-300;
+                    border-radius: 0.5rem;
+                    background: $white;
+                    color: $gray-700;
+                    font-size: 0.875rem;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    text-align: left;
+
+                    &:hover:not(:disabled) {
+                        background: $gray-50;
+                        border-color: $gray-400;
+                    }
+
+                    &.active {
+                        background: $primary-blue;
+                        border-color: $primary-blue;
+                        color: $white;
+                    }
+
+                    &:disabled {
+                        opacity: 0.5;
+                        cursor: not-allowed;
+                    }
+
+                    .toggleIcon {
+                        font-size: 1.125rem;
+                        flex-shrink: 0;
+                    }
+
+                    .toggleDescription {
+                        font-size: 0.75rem;
+                        opacity: 0.8;
+                        margin-left: auto;
+                    }
+                }
+            }
+        }
+    }
+
+    .actionButtons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid $gray-200;
+        margin-top: auto;
+
+        .cancelButton, .submitButton {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            min-width: 120px;
+        }
+
+        .cancelButton {
+            background: $white;
+            color: $gray-700;
+            border: 1px solid $gray-300;
+
+            &:hover:not(:disabled) {
+                background: $gray-50;
+                border-color: $gray-400;
+            }
+
+            &:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+        }
+
+        .submitButton {
+            background: $primary-blue;
+            color: $white;
+            border: 1px solid $primary-blue;
+
+            &:hover:not(:disabled) {
+                background: color.adjust($primary-blue, $lightness: -5%);
+                transform: translateY(-1px);
+            }
+
+            &:disabled {
+                background: $gray-400;
+                border-color: $gray-400;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            .submitIcon {
+                font-size: 1rem;
+            }
+
+            .spinner {
+                width: 1rem;
+                height: 1rem;
+                border: 2px solid transparent;
+                border-top: 2px solid currentColor;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            }
+        }
+    }
+}
+
+// 스피너 애니메이션
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// 반응형 디자인
+@media (max-width: 768px) {
+    .modalOverlay {
+        padding: 1rem;
+    }
+
+    .modalContainer {
+        max-width: 100%;
+        max-height: 95vh;
+    }
+
+    .modalHeader {
+        padding: 1.5rem 1.5rem 1rem 1.5rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+
+        .headerInfo {
+            .modalTitle {
+                font-size: 1.25rem;
+            }
+
+            .modalDescription {
+                font-size: 0.8125rem;
+            }
+        }
+
+        .closeButton {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            margin-left: 0;
+        }
+    }
+
+    .modalBody {
+        padding: 1.5rem;
+        gap: 1.5rem;
+
+        .optionsSection {
+            gap: 1.25rem;
+
+            .optionGroup {
+                .languageButtons {
+                    flex-direction: column;
+                    gap: 0.5rem;
+                }
+
+                .publicToggle {
+                    gap: 0.5rem;
+                }
+            }
+        }
+
+        .actionButtons {
+            flex-direction: column;
+            gap: 0.5rem;
+
+            .cancelButton, .submitButton {
+                width: 100%;
+            }
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .modalOverlay {
+        padding: 0.5rem;
+    }
+
+    .modalHeader {
+        padding: 1rem;
+
+        .headerInfo {
+            .modalTitle {
+                font-size: 1.125rem;
+            }
+        }
+
+        .closeButton {
+            top: 0.75rem;
+            right: 0.75rem;
+        }
+    }
+
+    .modalBody {
+        padding: 1rem;
+
+        .formGroup {
+            .input, .textarea {
+                padding: 0.625rem 0.75rem;
+                font-size: 0.8125rem;
+            }
+
+            .textarea {
+                min-height: 100px;
+            }
+        }
+
+        .optionsSection {
+            .optionGroup {
+                .publicToggle {
+                    .toggleButton {
+                        padding: 0.75rem;
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 0.5rem;
+
+                        .toggleDescription {
+                            margin-left: 0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
