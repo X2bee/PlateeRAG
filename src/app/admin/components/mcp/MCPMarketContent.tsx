@@ -5,14 +5,13 @@ import { FiPackage } from 'react-icons/fi';
 import MCPCard from './MCPCard';
 import MCPSearchBar from './MCPSearchBar';
 import MCPCategoryTabs from './MCPCategoryTabs';
-import { MCPItem, MCPCategory, MCPSearchFilters } from './types';
+import { MCPItem } from './types';
 import { mockMCPItems, mockMCPCategories } from './mockData';
 import styles from '@/app/admin/assets/MCPMarket.module.scss';
 import cardStyles from '@/app/admin/assets/MCPCard.module.scss';
 
-interface MCPMarketContentProps {
-    // 추후 API 연동을 위한 props
-}
+// 추후 API 연동을 위한 props
+type MCPMarketContentProps = object;
 
 const MCPMarketContent: React.FC<MCPMarketContentProps> = () => {
     const [searchQuery, setSearchQuery] = useState<string>('');
