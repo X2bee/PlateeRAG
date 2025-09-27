@@ -1,16 +1,19 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 import styles from '../assets/PromptStore.module.scss';
-import { getPromptsByLanguage, searchPrompts } from '@/app/_common/api/promptAPI';
+import { getPromptsByLanguage } from '@/app/_common/api/promptAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import PromptExpandModal from './PromptExpandModal';
+import PromptCreateModal from './PromptCreateModal';
+import { useAuth } from '@/app/_common/components/CookieProvider';
 import {
     IoSearch,
     IoRefresh,
     IoPerson,
     IoCalendar,
     IoCopy,
-    IoSearchOutline
+    IoSearchOutline,
+    IoAdd
 } from 'react-icons/io5';
 
 interface Prompt {
@@ -41,6 +44,11 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showMyPrompts, setShowMyPrompts] = useState(false);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+    // 현재 로그인한 사용자 정보 가져오기
+    const { user } = useAuth();
 
     // 프롬프트 데이터 로딩
     const loadPrompts = async (language: 'ko' | 'en') => {
@@ -82,9 +90,13 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
                 prompt.prompt_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 prompt.prompt_content.toLowerCase().includes(searchTerm.toLowerCase());
 
-            return matchesSearch;
+            // My 프롬프트 필터 (활성화된 경우 현재 사용자의 프롬프트만 표시)
+            const matchesUser = !showMyPrompts || (user && prompt.user_id &&
+                String(prompt.user_id) === String(user.user_id));
+
+            return matchesSearch && matchesUser;
         });
-    }, [prompts, searchTerm]);
+    }, [prompts, searchTerm, showMyPrompts, user]);
 
     // 언어 탭 변경 핸들러
     const handleLanguageChange = (language: 'ko' | 'en') => {
@@ -124,6 +136,22 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setSelectedPrompt(null);
+    };
+
+    // 프롬프트 생성 모달 열기 핸들러
+    const handleCreatePromptClick = () => {
+        setIsCreateModalOpen(true);
+    };
+
+    // 프롬프트 생성 모달 닫기 핸들러
+    const handleCloseCreateModal = () => {
+        setIsCreateModalOpen(false);
+    };
+
+    // 프롬프트 생성 성공 핸들러
+    const handleCreateSuccess = () => {
+        // 프롬프트 목록 새로고침
+        loadPrompts(selectedLanguage);
     };
 
     // 날짜 포맷팅 함수
@@ -177,6 +205,17 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
                             </button>
                         </div>
 
+                        {/* My 필터 버튼 */}
+                        <div className={styles.myFilterContainer}>
+                            <button
+                                className={`${styles.myFilterButton} ${showMyPrompts ? styles.active : ''}`}
+                                onClick={() => setShowMyPrompts(!showMyPrompts)}
+                            >
+                                <span className={styles.tabIcon}>👤</span>
+                                My
+                            </button>
+                        </div>
+
                         <button
                             className={styles.refreshButton}
                             onClick={handleRefresh}
@@ -214,58 +253,71 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
                     </div>
                 ) : (
                     <div className={styles.promptGrid}>
-                        {filteredPrompts.map((prompt) => (
-                            <div
-                                key={prompt.id}
-                                className={styles.promptCard}
-                                onClick={() => handlePromptClick(prompt)}
-                            >
-                                <div className={styles.cardHeader}>
-                                    <h3 className={styles.cardTitle}>{prompt.prompt_title}</h3>
-                                    <div className={styles.cardBadges}>
-                                        <span className={`${styles.badge} ${styles.language}`}>
-                                            {prompt.language.toUpperCase()}
-                                        </span>
-                                    </div>
+                        {/* 나만의 프롬프트 추가 카드 */}
+                        <div className={styles.addPromptCard} onClick={handleCreatePromptClick}>
+                            <div className={styles.addPromptContent}>
+                                <div className={styles.addPromptIcon}>
+                                    <IoAdd />
                                 </div>
-
-                                <div className={styles.cardContent}>
-                                    <div className={styles.contentPreview}>
-                                        {truncateText(prompt.prompt_content)}
-                                    </div>
-                                    <div className={styles.contentMeta}>
-                                        <div className={styles.metaItem}>
-                                            <IoCalendar className={styles.metaIcon} />
-                                            {formatDate(prompt.created_at)}
-                                        </div>
-                                        {prompt.user_id && (
-                                            <div className={styles.metaItem}>
-                                                <IoPerson className={styles.metaIcon} />
-                                                {prompt.user_id}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className={styles.cardFooter}>
-                                    <div className={styles.cardInfo}>
-                                        <div className={styles.infoItem}>
-                                            <span>문자수: {prompt.prompt_content.length}</span>
-                                        </div>
-                                    </div>
-                                    <div className={styles.cardActions}>
-                                        <button
-                                            className={styles.actionButton}
-                                            onClick={(e) => handleCopyPrompt(prompt, e)}
-                                            title="프롬프트 복사"
-                                        >
-                                            <IoCopy className={styles.actionIcon} />
-                                            복사
-                                        </button>
-                                    </div>
-                                </div>
+                                <h3 className={styles.addPromptTitle}>나만의 프롬프트를 추가해 보세요!</h3>
+                                <p className={styles.addPromptDescription}>
+                                    새로운 프롬프트를 생성하여 다른 사용자들과 공유하거나 개인용으로 사용하세요.
+                                </p>
                             </div>
-                        ))}
+                        </div>
+
+                        {filteredPrompts.map((prompt) => (
+                                <div
+                                    key={prompt.id}
+                                    className={styles.promptCard}
+                                    onClick={() => handlePromptClick(prompt)}
+                                >
+                                    <div className={styles.cardHeader}>
+                                        <h3 className={styles.cardTitle}>{prompt.prompt_title}</h3>
+                                        <div className={styles.cardBadges}>
+                                            <span className={`${styles.badge} ${styles.language}`}>
+                                                {prompt.language.toUpperCase()}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.cardContent}>
+                                        <div className={styles.contentPreview}>
+                                            {truncateText(prompt.prompt_content)}
+                                        </div>
+                                        <div className={styles.contentMeta}>
+                                            <div className={styles.metaItem}>
+                                                <IoCalendar className={styles.metaIcon} />
+                                                {formatDate(prompt.created_at)}
+                                            </div>
+                                            {prompt.user_id && (
+                                                <div className={styles.metaItem}>
+                                                    <IoPerson className={styles.metaIcon} />
+                                                    {prompt.user_id}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.cardFooter}>
+                                        <div className={styles.cardInfo}>
+                                            <div className={styles.infoItem}>
+                                                <span>문자수: {prompt.prompt_content.length}</span>
+                                            </div>
+                                        </div>
+                                        <div className={styles.cardActions}>
+                                            <button
+                                                className={styles.actionButton}
+                                                onClick={(e) => handleCopyPrompt(prompt, e)}
+                                                title="프롬프트 복사"
+                                            >
+                                                <IoCopy className={styles.actionIcon} />
+                                                복사
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                     </div>
                 )}
             </div>
@@ -278,6 +330,13 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
                     onClose={handleCloseModal}
                 />
             )}
+
+            {/* 프롬프트 생성 모달 */}
+            <PromptCreateModal
+                isOpen={isCreateModalOpen}
+                onClose={handleCloseCreateModal}
+                onSuccess={handleCreateSuccess}
+            />
         </div>
     );
 };

@@ -64,9 +64,9 @@ export const parsePortKey = (portKey: string): { nodeId: string; portId: string;
 };
 
 export const findPortData = (
-    nodes: CanvasNode[], 
-    nodeId: string, 
-    portId: string, 
+    nodes: CanvasNode[],
+    nodeId: string,
+    portId: string,
     portType: string
 ): Port | null => {
     const node = nodes.find(n => n.id === nodeId);
@@ -81,9 +81,13 @@ export const isPredictedNodeId = (nodeId: string): boolean => {
 };
 
 export const isSchemaProviderNode = (nodeData: any): boolean => {
-    return nodeData.id === 'input_schema_provider' || 
+    return nodeData.id === 'input_schema_provider' ||
            nodeData.id === 'output_schema_provider' ||
            nodeData.nodeName === 'Schema Provider(Input)';
+};
+
+export const isRouterNode = (nodeData: any): boolean => {
+    return nodeData.id === 'router/Router' || nodeData.nodeName === 'Router';
 };
 
 // Event utilities
@@ -220,7 +224,7 @@ export const findClosestSnapTarget = (
 
     Object.entries(portPositions).forEach(([key, pos]) => {
         if (filterFn && !filterFn(key)) return;
-        
+
         const distance = calculateDistance(mousePos, pos);
         if (distance < minSnapDistance) {
             minSnapDistance = distance;

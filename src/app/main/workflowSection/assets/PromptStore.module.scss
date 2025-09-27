@@ -20,33 +20,74 @@
 
         .languageTabs {
             display: flex;
+            align-items: center;
+            gap: 0.5rem;
             background: $gray-100;
-            border-radius: 0.75rem;
             padding: 0.25rem;
-            width: fit-content;
+            border-radius: 0.5rem;
 
             .languageTab {
-                background: transparent;
+                padding: 0.5rem 1rem;
                 border: none;
-                padding: 0.75rem 1.5rem;
-                border-radius: 0.5rem;
-                font-size: 0.875rem;
-                font-weight: 600;
+                background: transparent;
+                color: $gray-700;
+                border-radius: 0.375rem;
+                font-weight: 500;
                 cursor: pointer;
-                transition: all 0.2s ease;
-                color: $gray-600;
+                transition: all 0.2s ease-in-out;
+                font-size: 0.875rem;
                 display: flex;
                 align-items: center;
                 gap: 0.5rem;
 
                 &:hover {
-                    color: $gray-800;
+                    background: $white;
+                    color: $gray-900;
                 }
 
                 &.active {
                     background: $white;
                     color: $primary-blue;
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                }
+
+                .tabIcon {
+                    font-size: 1rem;
+                }
+            }
+        }
+
+        .myFilterContainer {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: $gray-100;
+            padding: 0.25rem;
+            border-radius: 0.5rem;
+
+            .myFilterButton {
+                padding: 0.5rem 1rem;
+                border: none;
+                background: transparent;
+                color: $gray-700;
+                border-radius: 0.375rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease-in-out;
+                font-size: 0.875rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+
+                &:hover {
+                    background: $white;
+                    color: $gray-900;
+                }
+
+                &.active {
+                    background: $white;
+                    color: $primary-blue;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
                 }
 
                 .tabIcon {
@@ -194,6 +235,97 @@
             font-size: 1rem;
             color: $gray-600;
             font-weight: 500;
+        }
+    }
+}
+
+// 프롬프트 추가 카드 스타일
+.addPromptCard {
+    background: linear-gradient(135deg, rgba($primary-blue, 0.05) 0%, rgba($primary-blue, 0.1) 100%);
+    border: 2px dashed $primary-blue;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 250px;
+    position: relative;
+    overflow: hidden;
+
+    &:hover {
+        border-color: $primary-blue;
+        background: linear-gradient(135deg, rgba($primary-blue, 0.1) 0%, rgba($primary-blue, 0.15) 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba($primary-blue, 0.2);
+    }
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba($primary-blue, 0.05), transparent);
+        transform: rotate(45deg);
+        transition: all 0.6s ease;
+        opacity: 0;
+    }
+
+    &:hover::before {
+        opacity: 1;
+        transform: rotate(45deg) translate(50%, 50%);
+    }
+
+    .addPromptContent {
+        position: relative;
+        z-index: 2;
+
+        .addPromptIcon {
+            width: 4rem;
+            height: 4rem;
+            background: $primary-blue;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            transition: all 0.3s ease;
+
+            svg {
+                font-size: 2rem;
+                color: $white;
+            }
+        }
+
+        .addPromptTitle {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: $gray-800;
+            margin: 0 0 0.75rem 0;
+            line-height: 1.4;
+        }
+
+        .addPromptDescription {
+            font-size: 0.875rem;
+            color: $gray-600;
+            margin: 0;
+            line-height: 1.6;
+            max-width: 280px;
+        }
+    }
+
+    &:hover .addPromptContent .addPromptIcon {
+        background: $white;
+        box-shadow: 0 4px 12px rgba($primary-blue, 0.3);
+        transform: scale(1.1);
+
+        svg {
+            color: $primary-blue;
         }
     }
 }
@@ -385,6 +517,31 @@
         }
     }
 
+    .addPromptCard {
+        padding: 1.5rem;
+        min-height: 200px;
+
+        .addPromptContent {
+            .addPromptIcon {
+                width: 3rem;
+                height: 3rem;
+                margin-bottom: 1rem;
+
+                svg {
+                    font-size: 1.5rem;
+                }
+            }
+
+            .addPromptTitle {
+                font-size: 1.125rem;
+            }
+
+            .addPromptDescription {
+                font-size: 0.8125rem;
+            }
+        }
+    }
+
     .promptCard {
         padding: 1rem;
         min-height: 180px;
@@ -431,6 +588,32 @@
                     flex: 1;
                     justify-content: center;
                 }
+            }
+        }
+    }
+
+    .addPromptCard {
+        padding: 1rem;
+        min-height: 180px;
+
+        .addPromptContent {
+            .addPromptIcon {
+                width: 2.5rem;
+                height: 2.5rem;
+                margin-bottom: 0.75rem;
+
+                svg {
+                    font-size: 1.25rem;
+                }
+            }
+
+            .addPromptTitle {
+                font-size: 1rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .addPromptDescription {
+                font-size: 0.75rem;
             }
         }
     }
