@@ -23,7 +23,7 @@ export const SchemaProviderNodeParameters: React.FC<NodeParametersProps> = ({
     onToggleAdvanced
 }) => {
     const [hoveredParam, setHoveredParam] = useState<string | null>(null);
-    
+
     const { basicParameters, advancedParameters, hasAdvancedParams } = separateParameters(parameters);
     const paramEditingHook = useParameterEditing();
 
@@ -95,7 +95,7 @@ export const SchemaProviderNodeParameters: React.FC<NodeParametersProps> = ({
             const descriptionParamId = `${paramId}_description`;
             const descriptionParamName = `${newName}_description`;
             const descriptionParam = parameters?.find((p: Parameter) => p.id === descriptionParamId);
-            
+
             if (descriptionParam && onParameterNameChange) {
                 onParameterNameChange(nodeId, descriptionParamId, descriptionParamName);
             }
@@ -104,7 +104,7 @@ export const SchemaProviderNodeParameters: React.FC<NodeParametersProps> = ({
 
     const renderParameter = (param: Parameter) => {
         const paramKey = `${nodeId}-${param.id}`;
-        
+
         // Hide description parameters (they're handled by main parameters)
         if (param.is_added && param.id.endsWith('_description') && !param.handle_id) {
             return null;
@@ -118,8 +118,8 @@ export const SchemaProviderNodeParameters: React.FC<NodeParametersProps> = ({
         // Handle SchemaProvider specific parameters (handle_id params with description)
         if (param.handle_id === true && param.is_added) {
             const isEditing = paramEditingHook.editingHandleParams[paramKey] || false;
-            const editingValue = paramEditingHook.editingHandleValues[paramKey] || 
-                (param.name && param.name.toString().trim()) || param.id;
+            const editingValue = paramEditingHook.editingHandleValues[paramKey] ??
+                ((param.name && param.name.toString().trim()) || "");
 
             return (
                 <div key={param.id} className={`${styles.param} param`}>
@@ -234,7 +234,7 @@ export const SchemaProviderNodeParameters: React.FC<NodeParametersProps> = ({
                     )}
                     {param.name}
                 </span>
-                
+
                 {renderParameterInput()}
             </div>
         );
@@ -262,15 +262,15 @@ export const SchemaProviderNodeParameters: React.FC<NodeParametersProps> = ({
                     </button>
                 )}
             </div>
-            
+
             {/* Basic Parameters */}
             {basicParameters.map(param => renderParameter(param))}
-            
+
             {/* Advanced Parameters */}
             {hasAdvancedParams && (
                 <div className={styles.advancedParams}>
-                    <div 
-                        className={styles.advancedHeader} 
+                    <div
+                        className={styles.advancedHeader}
                         onClick={onToggleAdvanced}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {

@@ -9,18 +9,18 @@ export const useParameterEditing = (): UseParameterEditingReturn => {
 
     const handleHandleParamClick = (param: Parameter, nodeId: string): void => {
         if (!param.handle_id) return;
-        
+
         const paramKey = `${nodeId}-${param.id}`;
         setEditingHandleParams(prev => ({ ...prev, [paramKey]: true }));
         setEditingHandleValues(prev => ({
             ...prev,
-            [paramKey]: (param.name && param.name.toString().trim()) || param.id
+            [paramKey]: (param.name && param.name.toString().trim()) || ""
         }));
     };
 
     const handleHandleParamChange = (
-        e: React.ChangeEvent<HTMLInputElement>, 
-        param: Parameter, 
+        e: React.ChangeEvent<HTMLInputElement>,
+        param: Parameter,
         nodeId: string
     ): void => {
         const paramKey = `${nodeId}-${param.id}`;
@@ -28,7 +28,7 @@ export const useParameterEditing = (): UseParameterEditingReturn => {
     };
 
     const handleHandleParamKeyDown = (
-        e: React.KeyboardEvent<HTMLInputElement>, 
+        e: React.KeyboardEvent<HTMLInputElement>,
         param: Parameter
     ): void => {
         if (e.key === 'Enter') {
@@ -40,13 +40,13 @@ export const useParameterEditing = (): UseParameterEditingReturn => {
     };
 
     const handleHandleParamSubmit = (
-        param: Parameter, 
+        param: Parameter,
         nodeId: string,
         onParameterNameChange?: NodeProps['onParameterNameChange']
     ): void => {
         const paramKey = `${nodeId}-${param.id}`;
         const trimmedValue = editingHandleValues[paramKey]?.trim() || '';
-        const finalValue = trimmedValue || param.id; // Use param.id as placeholder
+        const finalValue = trimmedValue; // Don't use param.id as fallback
 
         if (finalValue !== param.name && onParameterNameChange) {
             // Change name (both id and name)
@@ -60,13 +60,13 @@ export const useParameterEditing = (): UseParameterEditingReturn => {
         const paramKey = `${nodeId}-${param.id}`;
         setEditingHandleValues(prev => ({
             ...prev,
-            [paramKey]: (param.name && param.name.toString().trim()) || param.id
+            [paramKey]: (param.name && param.name.toString().trim()) || ""
         }));
         setEditingHandleParams(prev => ({ ...prev, [paramKey]: false }));
     };
 
     const handleHandleParamBlur = (
-        param: Parameter, 
+        param: Parameter,
         nodeId: string,
         onParameterNameChange?: NodeProps['onParameterNameChange']
     ): void => {

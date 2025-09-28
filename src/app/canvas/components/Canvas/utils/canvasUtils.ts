@@ -12,7 +12,7 @@ export const HORIZONTAL_SPACING = 500;
 export const areTypesCompatible = (sourceType?: string, targetType?: string): boolean => {
     if (!sourceType || !targetType) return true;
     if (sourceType === targetType) return true;
-    if (targetType === 'ANY') return true;
+    if (targetType === 'ANY' || sourceType === 'ANY') return true;
     if (sourceType === 'INT' && targetType === 'FLOAT') return true;
     return false;
 };
