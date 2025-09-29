@@ -13,7 +13,7 @@ interface HyperparameterConfig {
 }
 
 interface MLConfig {
-    task: 'classification' | 'regression';
+    task: 'classification' | 'regression' | 'clustering' | 'anomaly_detection' | 'timeseries';
     model_names: string[];
     overrides?: Record<string, Record<string, any>>;
     hpo_config?: HyperparameterConfig;
