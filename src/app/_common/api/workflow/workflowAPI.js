@@ -1,6 +1,7 @@
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config';
 import { apiClient } from '@/app/_common/api/helper/apiClient';
+import { validateWorkflowName } from '@/app/_common/utils/workflowStorage';
 
 /**
  * 워크플로우 데이터를 백엔드 서버에 저장합니다.
@@ -11,6 +12,9 @@ import { apiClient } from '@/app/_common/api/helper/apiClient';
  */
 export const saveWorkflow = async (workflowName, workflowContent, userId = null) => {
     try {
+        // workflowName 유효성 검사 및 안전한 이름으로 변환
+        workflowName = validateWorkflowName(workflowName);
+
         devLog.log('SaveWorkflow called with:');
         devLog.log('- workflowName (name):', workflowName);
         devLog.log('- workflowContent.id:', workflowContent.id);
@@ -49,6 +53,7 @@ export const saveWorkflow = async (workflowName, workflowContent, userId = null)
         return result;
     } catch (error) {
         devLog.error('Failed to save workflow:', error);
+        devLog.error('WorkflowName that caused error:', workflowName);
         throw error;
     }
 };

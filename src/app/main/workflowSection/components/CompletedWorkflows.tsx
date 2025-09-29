@@ -205,8 +205,25 @@ const CompletedWorkflows: React.FC = () => {
 
         try {
             const result = await duplicateWorkflow(workflow.name, workflow.user_id);
+
+            // 복사 성공 메시지 표시
             showSuccessToastKo(`"${workflow.name}" 워크플로우가 성공적으로 복사되었습니다!`);
+
+            // 목록 새로고침
             fetchWorkflows();
+
+            // 복사된 workflow의 새로운 이름이 있다면 Canvas로 이동
+            if (result && (result as any).new_workflow_name || (result as any).workflow_name) {
+                const newWorkflowName = (result as any).new_workflow_name || (result as any).workflow_name;
+                const currentUserId = user?.user_id;
+
+                devLog.log('Navigating to duplicated workflow:', newWorkflowName);
+
+                // 복사된 workflow는 현재 사용자 소유이므로 user_id는 현재 사용자 ID 사용
+                router.push(
+                    `/canvas?load=${encodeURIComponent(newWorkflowName)}&user_id=${currentUserId}`
+                );
+            }
         } catch (error) {
             console.error('Failed to duplicate workflow:', error);
             showErrorToastKo(`워크플로우 복사에 실패했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`);

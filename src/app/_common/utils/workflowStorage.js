@@ -28,12 +28,33 @@ export const saveWorkflowName = (name) => {
     if (typeof window === 'undefined') return;
 
     try {
-        const trimmedName = name.trim();
+        const trimmedName = name && typeof name === 'string' ? name.trim() : '';
         const nameToSave = trimmedName || DEFAULT_WORKFLOW_NAME;
         localStorage.setItem(WORKFLOW_NAME_KEY, nameToSave);
+        devLog.log('saveWorkflowName: Saved name to localStorage:', nameToSave);
     } catch (error) {
         devLog.warn('Failed to save workflow name to localStorage:', error);
     }
+};
+
+/**
+ * 워크플로우 이름이 유효한지 검사하고 안전한 이름을 반환합니다
+ * @param {string} name - 검사할 워크플로우 이름
+ * @returns {string} 유효한 워크플로우 이름
+ */
+export const validateWorkflowName = (name) => {
+    if (!name || typeof name !== 'string') {
+        devLog.warn('validateWorkflowName: Invalid name type, using default:', name);
+        return DEFAULT_WORKFLOW_NAME;
+    }
+
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+        devLog.warn('validateWorkflowName: Empty name, using default');
+        return DEFAULT_WORKFLOW_NAME;
+    }
+
+    return trimmedName;
 };
 
 /**

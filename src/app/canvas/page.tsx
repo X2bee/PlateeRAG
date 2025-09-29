@@ -28,6 +28,7 @@ import {
     ensureValidWorkflowState,
     saveWorkflowName,
     startNewWorkflow,
+    validateWorkflowName,
 } from '@/app/_common/utils/workflowStorage';
 import { devLog } from '@/app/_common/utils/logger';
 import { generateWorkflowHash } from '@/app/_common/utils/generateSha1Hash';
@@ -152,7 +153,10 @@ function CanvasPageContent() {
         if (loadWorkflowName) {
             const decodedWorkflowName = decodeURIComponent(loadWorkflowName);
             const userId = searchParams.get('user_id');
+
+            // 즉시 workflow 이름을 localStorage에 저장하고 상태를 업데이트
             setCurrentWorkflowName(decodedWorkflowName);
+            saveWorkflowName(decodedWorkflowName);
             setWorkflowOriginUserId(userId);
 
             // 소유권 확인
@@ -462,7 +466,13 @@ function CanvasPageContent() {
         }
 
         let canvasState = (canvasRef.current as any).getCanvasState();
-        const workflowName = getWorkflowName();
+        let workflowName = getWorkflowName();
+
+        // workflowName 유효성 검사 및 fallback
+        workflowName = validateWorkflowName(workflowName) || validateWorkflowName(currentWorkflowName) || 'Workflow';
+
+        // 최종 이름을 localStorage에 저장하여 동기화
+        saveWorkflowName(workflowName);
 
         const workflowId = `workflow_${generateWorkflowHash(canvasState)}`;
         setWorkflowId(workflowId)
@@ -470,6 +480,7 @@ function CanvasPageContent() {
         canvasState = { ...canvasState, workflow_name: workflowName };
 
         devLog.log('Canvas state before save:', canvasState);
+        devLog.log('Workflow name used for save:', workflowName);
         devLog.log('Workflow ID set:', workflowId);
         devLog.log('Canvas state id field:', canvasState.id);
 
