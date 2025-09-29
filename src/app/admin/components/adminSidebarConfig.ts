@@ -18,6 +18,7 @@ import {
     FiBarChart,
     FiPackage,
     FiGrid,
+    FiLayers,
 } from 'react-icons/fi';
 import { AdminSidebarItem } from '@/app/admin/components/types';
 
@@ -44,7 +45,7 @@ export const getUserSidebarItems = (): AdminSidebarItem[] => [
     },
 ];
 
-export const getWorkflowItems = ['workflow-management', 'workflow-monitoring', 'chat-monitoring'];
+export const getWorkflowItems = ['workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring'];
 
 export const getWorkflowSidebarItems = (): AdminSidebarItem[] => [
     {
@@ -64,6 +65,12 @@ export const getWorkflowSidebarItems = (): AdminSidebarItem[] => [
         title: '채팅 모니터링',
         description: '실시간 채팅 활동 및 상태 모니터링',
         icon: React.createElement(FiMessageSquare),
+    },
+    {
+        id: 'node-management',
+        title: '노드 관리',
+        description: '시스템 노드 목록 및 상세 정보 관리',
+        icon: React.createElement(FiLayers),
     },
 ];
 

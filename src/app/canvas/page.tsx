@@ -481,7 +481,7 @@ function CanvasPageContent() {
         try {
             // 백그라운드에서 중복 확인 (로딩 메시지 없이)
             const existingWorkflows = await listWorkflows();
-            const targetFilename = `${workflowName}.json`;
+            const targetFilename = `${workflowName}`;
             const isDuplicate = existingWorkflows.includes(targetFilename);
 
             if (isDuplicate) {
