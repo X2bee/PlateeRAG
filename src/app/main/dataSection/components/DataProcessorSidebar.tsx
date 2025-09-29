@@ -47,6 +47,7 @@ interface DataProcessorSidebarProps {
     onColumnOperationModal?: () => void;
     onSpecificColumnNullRemoveModal?: () => void;
     onHuggingFaceUploadModal?: () => void;
+    onMLflowUploadModal?: () => void;  // 새로 추가
     onColumnCopyModal?: () => void;
     onColumnRenameModal?: () => void;
     onColumnFormatModal?: () => void;
@@ -55,7 +56,7 @@ interface DataProcessorSidebarProps {
 }
 
 type CategoryType = 'load' | 'analyze' | 'edit' | 'save';
-type ActionType = 'huggingface' | 'file-upload' | 'basic-stats' | 'edit-columns' | 'add-columns' | 'drop-columns' | 'clean-data' | 'export-csv' | 'export-parquet' | 'change-column-data' | 'column-operation' | 'remove-all-null-rows' | 'remove-specific-column-null-rows' | 'copy-specific-column' | 'column-format-string' | 'column-calculation' | 'upload-to-huggingface' | 'rename-column' | 'dataset-callback' | null;
+type ActionType = 'huggingface' | 'file-upload' | 'basic-stats' | 'edit-columns' | 'add-columns' | 'drop-columns' | 'clean-data' | 'export-csv' | 'export-parquet' | 'change-column-data' | 'column-operation' | 'remove-all-null-rows' | 'remove-specific-column-null-rows' | 'copy-specific-column' | 'column-format-string' | 'column-calculation' | 'upload-to-huggingface' | 'upload-to-mlflow' | 'rename-column' | 'dataset-callback' | null;
 
 const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
     managerId,
@@ -70,6 +71,7 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
     onColumnOperationModal,
     onSpecificColumnNullRemoveModal,
     onHuggingFaceUploadModal,
+    onMLflowUploadModal,  // 새로 추가
     onColumnCopyModal,
     onColumnRenameModal,
     onColumnFormatModal,
@@ -168,6 +170,12 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
                         title: 'Hugging Face에 업로드',
                         icon: IoCloudUpload,
                         description: 'Hugging Face Hub에 데이터셋 업로드'
+                    },
+                    {
+                        id: 'upload-to-mlflow' as ActionType,  // 새로 추가
+                        title: 'MLflow에 업로드',
+                        icon: IoAnalytics,
+                        description: 'MLflow 실험에 데이터셋 업로드'
                     },
                     {
                         id: 'export-csv' as ActionType,
@@ -454,6 +462,18 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
         }
     };
 
+    const handleUploadToMLflow = async () => {
+        if (!dataTableInfo || !dataTableInfo.success || dataTableInfo.sample_count === 0) {
+            showErrorToastKo('업로드할 데이터가 없습니다.');
+            return;
+        }
+    
+        // MLflow 업로드 모달 열기
+        if (onMLflowUploadModal) {
+            onMLflowUploadModal();
+        }
+    };
+    
     const handleUploadToHuggingFace = async () => {
         if (!dataTableInfo || !dataTableInfo.success || dataTableInfo.sample_count === 0) {
             showErrorToastKo('업로드할 데이터가 없습니다.');
@@ -624,6 +644,9 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
                 break;
             case 'upload-to-huggingface':
                 handleUploadToHuggingFace();
+                break;
+            case 'upload-to-mlflow':  // 새로 추가
+                handleUploadToMLflow();
                 break;
             case 'dataset-callback':
                 handleDatasetCallback();

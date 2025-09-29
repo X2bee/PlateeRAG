@@ -482,3 +482,442 @@
         }
     }
 }
+
+.dataSourceToggle {
+    display: inline-flex;
+    background: $gray-100;
+    border-radius: 0.75rem;
+    padding: 0.375rem;
+    gap: 0.375rem;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.toggleButton {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    border: none;
+    background: transparent;
+    color: $gray-600;
+    font-weight: 500;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &:hover {
+        color: $gray-800;
+    }
+
+    &.active {
+        background: $white;
+        color: $primary-blue;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+    }
+}
+
+// Dataset List (새로 추가)
+.datasetList {
+    max-height: 450px;
+    overflow-y: auto;
+    border: 1px solid $gray-200;
+    border-radius: 0.75rem;
+    background: $white;
+
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: $gray-50;
+        border-radius: 0 0.75rem 0.75rem 0;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: $gray-300;
+        border-radius: 4px;
+
+        &:hover {
+            background: $gray-400;
+        }
+    }
+}
+
+.datasetCard {
+    padding: 1.25rem;
+    cursor: pointer;
+    background: $white;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+
+    &:not(:last-child) {
+        border-bottom: 1px solid $gray-100;
+    }
+
+    &:hover {
+        background: $gray-50;
+    }
+
+    &.selected {
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        border-left: 4px solid $primary-blue;
+        padding-left: calc(1.25rem - 4px);
+
+        &:hover {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        }
+    }
+}
+
+.datasetCardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 0.75rem;
+}
+
+.datasetName {
+    font-weight: 600;
+    color: $gray-900;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.experimentName {
+    font-size: 0.875rem;
+    color: $gray-600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.datasetMetrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+    font-size: 0.75rem;
+}
+
+.metricBadge {
+    background: $gray-100;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    color: $gray-700;
+    white-space: nowrap;
+
+    &.format {
+        background: #fef3c7;
+        color: #92400e;
+        font-weight: 600;
+    }
+}
+
+.selectedBadge {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    background: $primary-blue;
+    color: $white;
+    padding: 0.375rem 0.875rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+// Empty State (새로 추가)
+.emptyState {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: $gray-500;
+    background: $gray-50;
+    border-radius: 0.75rem;
+    border: 2px dashed $gray-300;
+
+    .emptyIcon {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+        opacity: 0.5;
+    }
+
+    .emptyText {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: $gray-600;
+    }
+}
+
+// Loading State (새로 추가)
+.loadingState {
+    @extend .emptyState;
+    border-style: solid;
+
+    .loadingSpinner {
+        width: 2rem;
+        height: 2rem;
+        border: 3px solid $gray-200;
+        border-top-color: $primary-blue;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto 1rem;
+    }
+}
+
+// Success Box (새로 추가)
+.successBox {
+    margin-top: 1rem;
+    padding: 1.25rem;
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-radius: 0.75rem;
+    border: 2px solid #86efac;
+
+    .successHeader {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #166534;
+        margin-bottom: 0.75rem;
+        font-size: 0.9375rem;
+    }
+
+    .successContent {
+        font-size: 0.875rem;
+        color: #15803d;
+        font-weight: 500;
+    }
+
+    .successDetail {
+        font-size: 0.75rem;
+        color: #16a34a;
+        margin-top: 0.375rem;
+    }
+}
+
+// Error Box (새로 추가)
+.errorBox {
+    padding: 1rem 1.25rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 0.75rem;
+    color: #dc2626;
+    display: flex;
+    align-items: start;
+    gap: 0.75rem;
+
+    .errorIcon {
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .errorText {
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+}
+
+// Column Selection (새로 추가)
+.columnInfo {
+    border: 1px solid $gray-200;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    margin-bottom: 1.5rem;
+}
+
+.columnInfoHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: $gray-800;
+    font-size: 0.9375rem;
+}
+
+.columnInfoDescription {
+    font-size: 0.75rem;
+    color: $gray-600;
+    margin-bottom: 1rem;
+}
+
+.columnGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.625rem;
+}
+
+.columnItem {
+    padding: 0.75rem;
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 0.5rem;
+    font-size: 0.8125rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        transform: translateY(-1px);
+    }
+
+    .columnName {
+        font-weight: 600;
+        color: $gray-900;
+        margin-bottom: 0.375rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .columnType {
+        font-size: 0.6875rem;
+        color: $gray-600;
+        background: $gray-100;
+        padding: 0.125rem 0.5rem;
+        border-radius: 0.25rem;
+        display: inline-block;
+    }
+}
+
+// Feature Selection Area (새로 추가)
+.featureSelection {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 2px dashed $gray-300;
+    border-radius: 0.5rem;
+    background: $white;
+    min-height: 120px;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        border-color: $gray-400;
+        background: $gray-50;
+    }
+
+    &.hasSelection {
+        border-style: solid;
+        border-color: rgba(59, 130, 246, 0.3);
+        background: rgba(59, 130, 246, 0.02);
+    }
+}
+
+.featureChip {
+    padding: 0.5rem 0.875rem;
+    border-radius: 0.5rem;
+    border: 1px solid $gray-300;
+    background: $white;
+    color: $gray-700;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    user-select: none;
+
+    &:hover {
+        border-color: $gray-400;
+        background: $gray-50;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    &.selected {
+        border: 2px solid $primary-blue;
+        background: #eff6ff;
+        color: #1e40af;
+        font-weight: 600;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+
+        &:hover {
+            background: #dbeafe;
+            border-color: color.adjust($primary-blue, $lightness: -7%);
+        }
+    }
+}
+
+.featureSummary {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-radius: 0.75rem;
+    border: 2px solid #86efac;
+
+    .summaryHeader {
+        font-size: 0.875rem;
+        color: #15803d;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .summaryList {
+        font-size: 0.75rem;
+        color: #16a34a;
+        line-height: 1.6;
+    }
+}
+
+// Responsive updates
+@media (max-width: 768px) {
+    .dataSourceToggle {
+        width: 100%;
+        
+        .toggleButton {
+            flex: 1;
+            justify-content: center;
+            padding: 0.625rem 1rem;
+            font-size: 0.8125rem;
+        }
+    }
+
+    .datasetCard {
+        padding: 1rem;
+    }
+
+    .datasetMetrics {
+        gap: 0.5rem;
+    }
+
+    .columnGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .featureSelection {
+        min-height: 100px;
+        padding: 0.75rem;
+    }
+
+    .featureChip {
+        flex: 1 1 100%;
+        text-align: center;
+    }
+}
+
+// Animation
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.datasetCard,
+.columnItem,
+.featureChip {
+    animation: slideIn 0.2s ease-out;
+}

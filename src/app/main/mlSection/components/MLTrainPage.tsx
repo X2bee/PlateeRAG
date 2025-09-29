@@ -5,7 +5,6 @@ import { FaCog, FaDatabase, FaBrain, FaChartLine } from 'react-icons/fa';
 import BasicCategory from './BasicCategory';
 import DataCategory from './DataCategory';
 import ModelCategory from './ModelCategory';
-import TrainResults from './TrainResults';
 import { mlAPI, mlUtils } from '@/app/_common/api/mlAPI';
 import styles from '@/app/main/mlSection/assets/MLTrain.module.scss';
 
@@ -19,7 +18,7 @@ interface HyperparameterConfig {
 interface MLConfig {
     // Basic config
     model_id: string;
-    task: 'classification' | 'regression';
+    task: 'classification' | 'regression' | 'clustering' | 'anomaly_detection' | 'timeseries'
     test_size: number;
     validation_size: number;
     use_cv: boolean;
@@ -31,6 +30,12 @@ interface MLConfig {
     hf_revision?: string;
     target_column: string;
     feature_columns?: string[];
+    
+    // MLflow data config (추가)
+    use_mlflow_dataset: boolean;
+    mlflow_run_id?: string;
+    mlflow_experiment_name?: string;
+    mlflow_artifact_path: string;
 
     // Model config
     model_names: string[];
@@ -39,13 +44,15 @@ interface MLConfig {
     // HPO config
     hpo_config?: HyperparameterConfig;
 
-    // MLflow config (UI용 - 실제 API 요청에는 포함되지 않음)
+    // MLflow config (UI용)
     mlflow_tracking_uri: string;
     artifact_base_uri: string;
     s3_endpoint_url?: string;
     aws_access_key_id?: string;
     aws_secret_access_key?: string;
     aws_region: string;
+    task_config?: Record<string, any>;
+
 }
 
 interface ModelResult {
@@ -108,6 +115,7 @@ const MLTrainPage: React.FC = () => {
     const [trainingMode, setTrainingMode] = useState<'sync' | 'async'>('sync');
 
     const [config, setConfig] = useState<MLConfig>({
+
         // Basic
         model_id: '',
         task: 'classification',
@@ -122,6 +130,12 @@ const MLTrainPage: React.FC = () => {
         hf_revision: undefined,
         target_column: '',
         feature_columns: undefined,
+        
+        // MLflow Data (추가)
+        use_mlflow_dataset: false,
+        mlflow_run_id: undefined,
+        mlflow_experiment_name: undefined,
+        mlflow_artifact_path: 'dataset',
 
         // Model
         model_names: [],
@@ -142,20 +156,28 @@ const MLTrainPage: React.FC = () => {
         aws_access_key_id: undefined,
         aws_secret_access_key: undefined,
         aws_region: 'ap-northeast-2',
-    });
+    // Task config 추가
+        task_config: {
+            // timeseries
+            lookback_window: 10,
+            forecast_horizon: 1,
+            time_column: undefined,
+            // anomaly_detection
+            contamination: 0.1,
+            // clustering
+            n_clusters: 3,
+        },
+});
 
     const handleConfigChange = (key: keyof MLConfig, value: any) => {
         setConfig(prev => ({ ...prev, [key]: value }));
     };
 
     const prepareTrainData = () => {
-        return {
+        const baseData: any = {
             model_id: config.model_id,
             task: config.task,
-            hf_repo: config.hf_repo,
-            hf_filename: config.hf_filename,
-            hf_revision: config.hf_revision || null,
-            target_column: config.target_column,
+            target_column: config.target_column || null,  // clustering/anomaly_detection은 null 가능
             feature_columns: config.feature_columns || null,
             model_names: config.model_names,
             overrides: config.overrides || null,
@@ -163,7 +185,7 @@ const MLTrainPage: React.FC = () => {
             validation_size: config.validation_size,
             use_cv: config.use_cv,
             cv_folds: config.cv_folds,
-            // HPO 설정 추가
+            task_config: config.task_config || null,  // 태스크별 설정 추가
             hpo_config: config.hpo_config && config.hpo_config.enable_hpo ? {
                 enable_hpo: true,
                 n_trials: config.hpo_config.n_trials || 50,
@@ -171,6 +193,35 @@ const MLTrainPage: React.FC = () => {
                 param_spaces: config.hpo_config.param_spaces || null
             } : null
         };
+
+        // 데이터 소스에 따라 분기
+        if (config.use_mlflow_dataset) {
+            // MLflow 데이터셋 사용
+            return {
+                ...baseData,
+                use_mlflow_dataset: true,
+                mlflow_run_id: config.mlflow_run_id,
+                mlflow_experiment_name: config.mlflow_experiment_name || null,
+                mlflow_artifact_path: config.mlflow_artifact_path || 'dataset',
+                // HuggingFace 필드는 null로
+                hf_repo: null,
+                hf_filename: null,
+                hf_revision: null,
+            };
+        } else {
+            // HuggingFace 데이터셋 사용
+            return {
+                ...baseData,
+                use_mlflow_dataset: false,
+                hf_repo: config.hf_repo,
+                hf_filename: config.hf_filename,
+                hf_revision: config.hf_revision || null,
+                // MLflow 필드는 null로
+                mlflow_run_id: null,
+                mlflow_experiment_name: null,
+                mlflow_artifact_path: null,
+            };
+        }
     };
 
     const handleTrain = async (): Promise<void> => {
@@ -284,10 +335,7 @@ const MLTrainPage: React.FC = () => {
     ];
     
     // 결과가 있으면 탭에 추가
-    const tabs = trainResult ? [
-        ...baseTabs,
-        { key: 'results' as const, label: '학습 결과', icon: FaChartLine }
-    ] : baseTabs;
+    const tabs = baseTabs;
 
     return (
         <div className={styles.container}>
@@ -313,18 +361,6 @@ const MLTrainPage: React.FC = () => {
                         >
                             <tab.icon />
                             {tab.label}
-                            {tab.key === 'results' && trainResult?.hpo_summary?.enabled && (
-                                <span style={{ 
-                                    marginLeft: '0.25rem',
-                                    padding: '0.125rem 0.25rem',
-                                    background: '#3b82f6',
-                                    color: 'white',
-                                    fontSize: '0.625rem',
-                                    borderRadius: '0.25rem'
-                                }}>
-                                    HPO
-                                </span>
-                            )}
                         </button>
                     ))}
                 </div>
@@ -349,10 +385,6 @@ const MLTrainPage: React.FC = () => {
                             config={config}
                             handleConfigChange={handleConfigChange}
                         />
-                    )}
-
-                    {activeTab === 'results' && (
-                        <TrainResults result={trainResult} />
                     )}
 
                     {activeTab !== 'results' && (

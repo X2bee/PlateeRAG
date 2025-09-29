@@ -13,3 +13,4 @@ export { ColumnRenameModal } from './ColumnRenameModal';
 export { ColumnFormatModal } from './ColumnFormatModal';
 export { ColumnCalculationModal } from './ColumnCalculationModal';
 export { DatasetCallbackModal } from './DatasetCallbackModal';
+export { MLflowUploadModal } from './MLflowUploadModal';

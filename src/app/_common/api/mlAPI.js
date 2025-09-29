@@ -88,6 +88,7 @@ export const mlAPI = {
         
         return apiCall(`/api/models/catalog?${params.toString()}`);
     },
+    
 
     // 특정 태스크 모델들 조회
     getModelsForTask: async (task) => {
@@ -180,12 +181,20 @@ export const mlUtils = {
             errors.push('모델 ID를 입력해주세요.');
         }
 
-        if (!config.hf_repo?.trim()) {
-            errors.push('HuggingFace 레포지토리를 입력해주세요.');
-        }
-
-        if (!config.hf_filename?.trim()) {
-            errors.push('데이터 파일명을 입력해주세요.');
+        // 데이터 소스 검증
+        if (config.use_mlflow_dataset) {
+            // MLflow 데이터셋 사용 시
+            if (!config.mlflow_run_id?.trim()) {
+                errors.push('MLflow 데이터셋을 선택해주세요.');
+            }
+        } else {
+            // HuggingFace 데이터셋 사용 시
+            if (!config.hf_repo?.trim()) {
+                errors.push('HuggingFace 레포지토리를 입력해주세요.');
+            }
+            if (!config.hf_filename?.trim()) {
+                errors.push('데이터 파일명을 입력해주세요.');
+            }
         }
 
         if (!config.target_column?.trim()) {
@@ -229,9 +238,16 @@ export const mlUtils = {
         validation_size: 0.1,
         use_cv: false,
         cv_folds: 5,
+        // HuggingFace
         hf_repo: '',
         hf_filename: '',
         hf_revision: null,
+        // MLflow (추가)
+        use_mlflow_dataset: false,
+        mlflow_run_id: null,
+        mlflow_experiment_name: null,
+        mlflow_artifact_path: 'dataset',
+        // 나머지
         target_column: '',
         feature_columns: null,
         model_names: [],

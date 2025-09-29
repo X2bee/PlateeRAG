@@ -6,9 +6,9 @@ import {
     IoRefresh,
 } from 'react-icons/io5';
 import { MdOutlineMore } from "react-icons/md";
-import { ColumnInfoModal, DownloadDialog, StatisticsModal, ColumnDeleteModal, ColumnValueReplaceModal, ColumnOperationModal, SpecificColumnNullRemoveModal, HuggingFaceUploadModal, ColumnCopyModal, ColumnRenameModal, ColumnFormatModal, ColumnCalculationModal, DatasetCallbackModal } from './modals';
+import { ColumnInfoModal, DownloadDialog, StatisticsModal, ColumnDeleteModal, ColumnValueReplaceModal, ColumnOperationModal, SpecificColumnNullRemoveModal, HuggingFaceUploadModal, MLflowUploadModal, ColumnCopyModal, ColumnRenameModal, ColumnFormatModal, ColumnCalculationModal, DatasetCallbackModal } from './modals';
 import DataProcessorSidebar from './DataProcessorSidebar';
-import { downloadDataset, getDatasetSample, dropDatasetColumns, replaceColumnValues, applyColumnOperation, removeNullRows, uploadToHuggingFace, copyDatasetColumn, renameDatasetColumn, formatDatasetColumns, calculateDatasetColumns, executeDatasetCallback } from '@/app/_common/api/dataManagerAPI';
+import { downloadDataset, getDatasetSample, dropDatasetColumns, replaceColumnValues, applyColumnOperation, removeNullRows, uploadToHuggingFace, uploadToMLflow, copyDatasetColumn, renameDatasetColumn, formatDatasetColumns, calculateDatasetColumns, executeDatasetCallback } from '@/app/_common/api/dataManagerAPI';
 import { showSuccessToastKo, showErrorToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/main/dataSection/assets/DataProcessor.module.scss';
 
@@ -69,6 +69,7 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
     const [columnFormatModalOpen, setColumnFormatModalOpen] = useState(false);
     const [columnCalculationModalOpen, setColumnCalculationModalOpen] = useState(false);
     const [datasetCallbackModalOpen, setDatasetCallbackModalOpen] = useState(false);
+    const [mlflowUploadModalOpen, setMlflowUploadModalOpen] = useState(false);
 
     // 데이터 로드
     useEffect(() => {
@@ -172,6 +173,32 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
 
     const handleCloseSpecificColumnNullRemoveModal = () => {
         setSpecificColumnNullRemoveModalOpen(false);
+    };
+
+    const handleUploadToMLflow = async (experimentName: string, datasetName: string, options: any) => {
+        try {
+            showSuccessToastKo('MLflow에 데이터셋을 업로드하는 중...');
+    
+            const result = await uploadToMLflow(
+                managerId,
+                experimentName,
+                datasetName,
+                options
+            ) as any;
+    
+            if (result.success) {
+                showSuccessToastKo(
+                    `데이터셋이 MLflow에 성공적으로 업로드되었습니다!\n` +
+                    `실험: ${result.mlflow_info?.experiment_name || experimentName}\n` +
+                    `Run ID: ${result.mlflow_info?.run_id || 'N/A'}`
+                );
+            } else {
+                showErrorToastKo(result.message || 'MLflow 업로드에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('MLflow upload failed:', error);
+            showErrorToastKo(`MLflow 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+        }
     };
 
     const handleRemoveSpecificColumnNullRows = async (columnName: string) => {
@@ -579,6 +606,7 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                     onColumnOperationModal={handleOpenColumnOperationModal}
                     onSpecificColumnNullRemoveModal={handleOpenSpecificColumnNullRemoveModal}
                     onHuggingFaceUploadModal={() => setHuggingFaceUploadModalOpen(true)}
+                    onMLflowUploadModal={() => setMlflowUploadModalOpen(true)}  // 새로 추가
                     onColumnCopyModal={handleOpenColumnCopyModal}
                     onColumnRenameModal={handleOpenColumnRenameModal}
                     onColumnFormatModal={handleOpenColumnFormatModal}
@@ -665,6 +693,11 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                 onExecuteCallback={handleExecuteDatasetCallback}
                 sampleData={dataTableInfo?.sample_data?.slice(0, 3) || []}
                 columns={dataTableInfo?.columns || []}
+            />
+            <MLflowUploadModal
+                isOpen={mlflowUploadModalOpen}
+                onClose={() => setMlflowUploadModalOpen(false)}
+                onUpload={handleUploadToMLflow}
             />
         </div>
     );
