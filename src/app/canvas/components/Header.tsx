@@ -6,6 +6,7 @@ import { getWorkflowName, saveWorkflowName } from '@/app/_common/utils/workflowS
 import { FiUpload } from 'react-icons/fi';
 import { BiCodeAlt } from "react-icons/bi";
 import { showHistoryClearWarningKo } from '@/app/_common/utils/toastUtilsKo';
+import { devLog } from '@/app/_common/utils/logger';
 
 interface HeaderProps {
     onMenuClick: () => void;
@@ -99,8 +100,11 @@ const Header: React.FC<HeaderProps> = ({
     const handleSaveClick = (): void => {
         const trimmedValue = editValue.trim();
         const finalValue = trimmedValue || 'Workflow';
+
         setWorkflowName(finalValue);
         saveWorkflowName(finalValue);
+
+        devLog.log('Header: Workflow name changed to:', finalValue);
 
         // Notify parent component of changes
         if (onWorkflowNameChange) {
