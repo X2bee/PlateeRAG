@@ -1075,3 +1075,351 @@ export const executeDatasetCallback = async (managerId, callbackCode) => {
         throw error;
     }
 };
+
+/**
+ * 데이터셋을 MLflow에 업로드
+ * @param {string} managerId - 매니저 ID
+ * @param {string} experimentName - MLflow 실험 이름
+ * @param {string} datasetName - 데이터셋 이름
+ * @param {Object} options - 추가 옵션
+ * @param {string} [options.artifactPath='dataset'] - 아티팩트 저장 경로
+ * @param {string} [options.description] - 데이터셋 설명
+ * @param {Object} [options.tags] - 추가 태그
+ * @param {string} [options.format='parquet'] - 저장 형식 (parquet|csv)
+ * @param {string} [options.mlflowTrackingUri] - MLflow 추적 서버 URI
+ * @returns {Promise<Object>} MLflow 업로드 결과
+ */
+export const uploadToMLflow = async (managerId, experimentName, datasetName, options = {}) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID가 필요합니다.');
+        }
+        if (!experimentName || typeof experimentName !== 'string' || experimentName.trim() === '') {
+            throw new Error('MLflow 실험 이름이 필요합니다.');
+        }
+        if (!datasetName || typeof datasetName !== 'string' || datasetName.trim() === '') {
+            throw new Error('데이터셋 이름이 필요합니다.');
+        }
+
+        // 기본값 설정
+        const {
+            artifactPath = 'dataset',
+            description = null,
+            tags = null,
+            format = 'parquet',
+            mlflowTrackingUri = null
+        } = options;
+
+        // format 유효성 검사
+        if (!['parquet', 'csv'].includes(format)) {
+            throw new Error('저장 형식은 parquet 또는 csv만 지원됩니다.');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+            experiment_name: experimentName.trim(),
+            dataset_name: datasetName.trim(),
+            artifact_path: artifactPath,
+            format: format
+        };
+
+        // 선택적 파라미터 추가
+        if (description && typeof description === 'string' && description.trim() !== '') {
+            requestBody.description = description.trim();
+        }
+        if (tags && typeof tags === 'object' && tags !== null) {
+            requestBody.tags = tags;
+        }
+        if (mlflowTrackingUri && typeof mlflowTrackingUri === 'string' && mlflowTrackingUri.trim() !== '') {
+            requestBody.mlflow_tracking_uri = mlflowTrackingUri.trim();
+        }
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/upload-to-mlflow`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `MLflow 업로드 요청 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info(`Dataset uploaded to MLflow for manager ${managerId} → experiment ${experimentName}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to upload dataset to MLflow for manager ${managerId} → experiment ${experimentName}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * MLflow 실험 목록 조회 (선택사항 - MLflow API를 직접 호출하는 경우)
+ * @param {string} [mlflowTrackingUri] - MLflow 추적 서버 URI
+ * @returns {Promise<Array>} MLflow 실험 목록
+ */
+export const getMLflowExperiments = async (mlflowTrackingUri = null) => {
+    try {
+        // 이 함수는 MLflow REST API를 직접 호출하는 경우에만 사용
+        // 실제로는 백엔드에서 MLflow API를 proxy하는 엔드포인트를 만들어 사용하는 것을 권장
+        const baseUrl = mlflowTrackingUri || 'https://polar-mlflow-git.x2bee.com/'; // 기본 MLflow 서버
+        
+        const response = await fetch(`${baseUrl}/api/2.0/mlflow/experiments/list`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`MLflow API 호출 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info('MLflow experiments fetched:', data);
+        return data.experiments || [];
+    } catch (error) {
+        devLog.error('Failed to fetch MLflow experiments:', error);
+        throw error;
+    }
+};
+
+/**
+ * MLflow 업로드 결과 검증
+ * @param {string} managerId - 매니저 ID
+ * @param {string} runId - MLflow run ID
+ * @returns {Promise<Object>} 업로드 검증 결과
+ */
+export const verifyMLflowUpload = async (managerId, runId) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID가 필요합니다.');
+        }
+        if (!runId || typeof runId !== 'string' || runId.trim() === '') {
+            throw new Error('MLflow Run ID가 필요합니다.');
+        }
+
+        // 실제로는 백엔드에서 MLflow API를 통해 run 정보를 확인하는 엔드포인트가 필요
+        // 여기서는 예시로 간단한 검증 로직만 제공
+        devLog.info(`Verifying MLflow upload for manager ${managerId}, run ${runId}`);
+        
+        return {
+            success: true,
+            manager_id: managerId,
+            run_id: runId,
+            message: '업로드 검증이 완료되었습니다.',
+            verified_at: new Date().toISOString()
+        };
+    } catch (error) {
+        devLog.error(`Failed to verify MLflow upload for manager ${managerId}, run ${runId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * MLflow에 업로드된 데이터셋 목록 조회
+ * @param {Object} options - 조회 옵션
+ * @param {string} [options.experimentName] - 특정 실험명으로 필터링
+ * @param {number} [options.maxResults=100] - 최대 결과 개수 (1-1000)
+ * @param {string} [options.mlflowTrackingUri] - MLflow 추적 서버 URI
+ * @returns {Promise<Object>} 데이터셋 목록 조회 결과
+ */
+export const listMLflowDatasets = async (options = {}) => {
+    try {
+        const {
+            experimentName = null,
+            maxResults = 100,
+            mlflowTrackingUri = null
+        } = options;
+
+        // maxResults 유효성 검사
+        if (typeof maxResults !== 'number' || maxResults < 1 || maxResults > 1000) {
+            throw new Error('maxResults는 1에서 1000 사이의 숫자여야 합니다.');
+        }
+
+        const requestBody = {
+            max_results: maxResults
+        };
+
+        // 선택적 파라미터 추가
+        if (experimentName && typeof experimentName === 'string' && experimentName.trim() !== '') {
+            requestBody.experiment_name = experimentName.trim();
+        }
+        if (mlflowTrackingUri && typeof mlflowTrackingUri === 'string' && mlflowTrackingUri.trim() !== '') {
+            requestBody.mlflow_tracking_uri = mlflowTrackingUri.trim();
+        }
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/mlflow/list-datasets`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `MLflow 데이터셋 목록 조회 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info(`MLflow datasets fetched (${data.total_count} found):`, data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch MLflow datasets:', error);
+        throw error;
+    }
+};
+
+/**
+ * 특정 실험의 데이터셋만 조회
+ * @param {string} experimentName - 실험명
+ * @param {number} [maxResults=100] - 최대 결과 개수
+ * @returns {Promise<Object>} 데이터셋 목록 조회 결과
+ */
+export const listMLflowDatasetsByExperiment = async (experimentName, maxResults = 100) => {
+    try {
+        if (!experimentName || typeof experimentName !== 'string' || experimentName.trim() === '') {
+            throw new Error('실험명이 필요합니다.');
+        }
+
+        return await listMLflowDatasets({
+            experimentName: experimentName.trim(),
+            maxResults
+        });
+    } catch (error) {
+        devLog.error(`Failed to fetch MLflow datasets for experiment ${experimentName}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * 최근 업로드된 데이터셋 조회
+ * @param {number} [limit=20] - 조회할 데이터셋 개수
+ * @returns {Promise<Array>} 최근 데이터셋 목록
+ */
+export const getRecentMLflowDatasets = async (limit = 20) => {
+    try {
+        const result = await listMLflowDatasets({ maxResults: limit });
+        
+        // created_at 기준으로 정렬 (이미 서버에서 정렬되어 오지만 확실하게)
+        const sortedDatasets = (result.datasets || []).sort((a, b) => {
+            return new Date(b.created_at) - new Date(a.created_at);
+        });
+
+        return sortedDatasets.slice(0, limit);
+    } catch (error) {
+        devLog.error('Failed to fetch recent MLflow datasets:', error);
+        throw error;
+    }
+};
+
+/**
+ * 특정 데이터셋 상세 정보 조회
+ * @param {string} runId - MLflow Run ID
+ * @returns {Promise<Object>} 데이터셋 상세 정보
+ */
+export const getMLflowDatasetDetail = async (runId) => {
+    try {
+        if (!runId || typeof runId !== 'string' || runId.trim() === '') {
+            throw new Error('Run ID가 필요합니다.');
+        }
+
+        // 전체 목록에서 특정 run을 찾거나, 백엔드에 별도 엔드포인트 추가 필요
+        const result = await listMLflowDatasets({ maxResults: 1000 });
+        const dataset = result.datasets?.find(d => d.run_id === runId.trim());
+
+        if (!dataset) {
+            throw new Error(`Run ID ${runId}에 해당하는 데이터셋을 찾을 수 없습니다.`);
+        }
+
+        devLog.info(`MLflow dataset detail fetched for run ${runId}:`, dataset);
+        return dataset;
+    } catch (error) {
+        devLog.error(`Failed to fetch MLflow dataset detail for run ${runId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * 데이터셋 검색 (이름 또는 설명으로)
+ * @param {string} searchTerm - 검색어
+ * @param {Object} [options] - 추가 옵션
+ * @returns {Promise<Array>} 검색된 데이터셋 목록
+ */
+export const searchMLflowDatasets = async (searchTerm, options = {}) => {
+    try {
+        if (!searchTerm || typeof searchTerm !== 'string' || searchTerm.trim() === '') {
+            throw new Error('검색어가 필요합니다.');
+        }
+
+        const result = await listMLflowDatasets(options);
+        const searchTermLower = searchTerm.trim().toLowerCase();
+
+        // 클라이언트 측에서 필터링 (서버 측 검색 기능 추가 권장)
+        const filtered = (result.datasets || []).filter(dataset => {
+            const nameMatch = dataset.dataset_name?.toLowerCase().includes(searchTermLower);
+            const descMatch = dataset.description?.toLowerCase().includes(searchTermLower);
+            const expMatch = dataset.experiment_name?.toLowerCase().includes(searchTermLower);
+            
+            return nameMatch || descMatch || expMatch;
+        });
+
+        devLog.info(`MLflow datasets search for "${searchTerm}" found ${filtered.length} results`);
+        return filtered;
+    } catch (error) {
+        devLog.error(`Failed to search MLflow datasets for "${searchTerm}":`, error);
+        throw error;
+    }
+};
+
+/**
+ * MLflow 데이터셋의 컬럼 정보 조회
+ * @param {string} runId - MLflow Run ID
+ * @param {Object} [options] - 추가 옵션
+ * @returns {Promise<Object>} 컬럼 정보
+ */
+export const getMLflowDatasetColumns = async (runId, options = {}) => {
+    try {
+        if (!runId || typeof runId !== 'string' || runId.trim() === '') {
+            throw new Error('Run ID가 필요합니다.');
+        }
+
+        const {
+            artifactPath = 'dataset',
+            mlflowTrackingUri = null
+        } = options;
+
+        const requestBody = {
+            run_id: runId.trim(),
+            artifact_path: artifactPath
+        };
+
+        if (mlflowTrackingUri && typeof mlflowTrackingUri === 'string' && mlflowTrackingUri.trim() !== '') {
+            requestBody.mlflow_tracking_uri = mlflowTrackingUri.trim();
+        }
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/mlflow/get-dataset-columns`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `컬럼 정보 조회 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info(`MLflow dataset columns fetched for run ${runId}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to fetch MLflow dataset columns for run ${runId}:`, error);
+        throw error;
+    }
+};

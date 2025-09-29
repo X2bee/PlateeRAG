@@ -219,7 +219,6 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
                 );
             case 'data-storage':
                 return <DataStorage />;
-            
             case 'ml-train':
                 return <MLTrainPage />;
             case 'ml-train-monitor':
