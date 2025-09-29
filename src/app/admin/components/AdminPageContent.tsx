@@ -20,6 +20,7 @@ import AdminDatabase from '@/app/admin/components/database/AdminDatabase';
 import AdminWorkflowControll from '@/app/admin/components/workflows/AdminWorkflowControll';
 import AdminBackendLogs from '@/app/admin/components/sysmonitor/AdminBackendLogs';
 import MCPMarketContent from '@/app/admin/components/mcp/MCPMarketContent';
+import AdminNodeManage from '@/app/admin/components/workflows/AdminNodeManage';
 import {
     getUserSidebarItems,
     getWorkflowSidebarItems,
@@ -130,7 +131,7 @@ const AdminPageContent: React.FC = () => {
             // User Items
             'users', 'user-create', 'group-permissions',
             // Workflow Items
-            'workflow-management', 'workflow-monitoring', 'chat-monitoring',
+            'workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring',
             // Setting Items
             'system-config', 'system-settings',
             // System Items
@@ -227,6 +228,15 @@ const AdminPageContent: React.FC = () => {
                         headerButtons={renderWorkflowToggleButtons()}
                     >
                         <AdminPlayground activeTab={workflowTab} onTabChange={handleWorkflowTabChange} />
+                    </AdminContentArea>
+                );
+            case 'node-management':
+                return (
+                    <AdminContentArea
+                        title="노드 관리"
+                        description="시스템에서 사용 가능한 모든 노드를 확인하고 관리할 수 있습니다."
+                    >
+                        <AdminNodeManage />
                     </AdminContentArea>
                 );
             case 'system-monitor':
@@ -348,7 +358,7 @@ const AdminPageContent: React.FC = () => {
                     activeItem={activeSection}
                     onItemClick={(itemId: string) => setActiveSection(itemId)}
                     initialUserExpanded={['users', 'user-create', 'group-permissions'].includes(activeSection)}
-                    initialWorkflowExpanded={['workflow-management', 'workflow-monitoring', 'chat-monitoring'].includes(activeSection)}
+                    initialWorkflowExpanded={['workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring'].includes(activeSection)}
                     initialSettingExpanded={['system-config', 'system-settings'].includes(activeSection)}
                     initialSystemExpanded={['system-monitor', 'system-health'].includes(activeSection)}
                     initialDataExpanded={['database', 'storage', 'backup'].includes(activeSection)}
