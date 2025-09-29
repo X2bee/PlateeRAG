@@ -992,3 +992,174 @@ export const deleteWorkflowTesterIOLogs = async (workflowName, interactionBatchI
         throw error;
     }
 };
+
+/**
+ * 특정 워크플로우의 버전 목록을 가져옵니다.
+ * @param {string} workflowName - 워크플로우 이름
+ * @param {string|number} userId - 워크플로우 소유자의 사용자 ID
+ * @returns {Promise<Array<Object>>} 워크플로우 버전 배열을 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const listWorkflowVersions = async (workflowName, userId) => {
+    try {
+        const params = new URLSearchParams({
+            workflow_name: workflowName,
+            user_id: userId
+        });
+
+        const response = await apiClient(
+            `${API_BASE_URL}/api/workflow/version/list?${params}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        devLog.log('Workflow version list response status:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to fetch workflow versions');
+        }
+
+        const result = await response.json();
+        devLog.log('Successfully retrieved workflow versions:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to list workflow versions:', error);
+        devLog.error('Workflow name that failed:', workflowName);
+        devLog.error('User ID that failed:', userId);
+        throw error;
+    }
+};
+
+/**
+ * 워크플로우의 현재 사용 버전을 변경합니다.
+ * @param {string} workflowName - 워크플로우 이름
+ * @param {number} version - 변경할 버전 번호
+ * @returns {Promise<Object>} 버전 변경 결과를 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const updateWorkflowVersion = async (workflowName, version) => {
+    try {
+        const params = new URLSearchParams({
+            workflow_name: workflowName,
+            version: version
+        });
+
+        const response = await apiClient(
+            `${API_BASE_URL}/api/workflow/version/change?${params}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        devLog.log('Workflow version change response status:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to change workflow version');
+        }
+
+        const result = await response.json();
+        devLog.log('Successfully changed workflow version:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to change workflow version:', error);
+        devLog.error('Workflow name that failed:', workflowName);
+        devLog.error('Version that failed:', version);
+        throw error;
+    }
+};
+
+/**
+ * 워크플로우 버전의 라벨 이름을 변경합니다.
+ * @param {string} workflowName - 워크플로우 이름
+ * @param {number} version - 변경할 버전 번호
+ * @param {string} newVersionLabel - 새로운 버전 라벨
+ * @returns {Promise<Object>} 버전 라벨 변경 결과를 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const updateWorkflowVersionLabel = async (workflowName, version, newVersionLabel) => {
+    try {
+        const params = new URLSearchParams({
+            workflow_name: workflowName,
+            version: version,
+            new_version_label: newVersionLabel
+        });
+
+        const response = await apiClient(
+            `${API_BASE_URL}/api/workflow/version/label-name?${params}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        devLog.log('Workflow version label change response status:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to change workflow version label');
+        }
+
+        const result = await response.json();
+        devLog.log('Successfully changed workflow version label:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to change workflow version label:', error);
+        devLog.error('Workflow name that failed:', workflowName);
+        devLog.error('Version that failed:', version);
+        devLog.error('New version label that failed:', newVersionLabel);
+        throw error;
+    }
+};
+
+/**
+ * 워크플로우의 특정 버전을 삭제합니다.
+ * @param {string} workflowName - 워크플로우 이름
+ * @param {number} version - 삭제할 버전 번호
+ * @returns {Promise<Object>} 버전 삭제 결과를 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const deleteWorkflowVersion = async (workflowName, version) => {
+    try {
+        const params = new URLSearchParams({
+            workflow_name: workflowName,
+            version: version
+        });
+
+        const response = await apiClient(
+            `${API_BASE_URL}/api/workflow/delete/version?${params}`,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        devLog.log('Workflow version delete response status:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to delete workflow version');
+        }
+
+        const result = await response.json();
+        devLog.log('Successfully deleted workflow version:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to delete workflow version:', error);
+        devLog.error('Workflow name that failed:', workflowName);
+        devLog.error('Version that failed:', version);
+        throw error;
+    }
+};
