@@ -11,6 +11,7 @@ interface WorkflowVersionModalProps {
     userId: string | number;
     isOpen: boolean;
     onClose: () => void;
+    isOwner?: boolean; // 워크플로우 소유자인지 여부
 }
 
 interface WorkflowVersion {
@@ -31,7 +32,8 @@ const WorkflowVersionModal: React.FC<WorkflowVersionModalProps> = ({
     workflowName,
     userId,
     isOpen,
-    onClose
+    onClose,
+    isOwner = true // 기본값은 true (기존 동작 유지)
 }) => {
     const [versions, setVersions] = useState<WorkflowVersion[]>([]);
     const [loading, setLoading] = useState(false);
@@ -78,6 +80,11 @@ const WorkflowVersionModal: React.FC<WorkflowVersionModalProps> = ({
 
     // 버전 카드 클릭 핸들러
     const handleVersionCardClick = (version: WorkflowVersion) => {
+        // 소유자가 아니면 클릭 무시
+        if (!isOwner) {
+            return;
+        }
+
         // 편집 중이거나 현재 사용 중인 버전이면 클릭 무시
         if (version.current_use || changingVersion === version.version || editingVersionId === version.id) {
             return;
@@ -93,6 +100,12 @@ const WorkflowVersionModal: React.FC<WorkflowVersionModalProps> = ({
     // 라벨 편집 시작
     const handleStartEditLabel = (version: WorkflowVersion, event: React.MouseEvent) => {
         event.stopPropagation();
+
+        // 소유자가 아니면 편집 불가
+        if (!isOwner) {
+            return;
+        }
+
         setEditingVersionId(version.id);
         setEditingLabel(version.version_label || `v${version.version}`);
     };
@@ -132,6 +145,11 @@ const WorkflowVersionModal: React.FC<WorkflowVersionModalProps> = ({
     // 버전 삭제
     const handleDeleteVersion = (version: WorkflowVersion, event: React.MouseEvent) => {
         event.stopPropagation();
+
+        // 소유자가 아니면 삭제 불가
+        if (!isOwner) {
+            return;
+        }
 
         if (version.current_use) {
             showErrorToastKo('현재 사용 중인 버전은 삭제할 수 없습니다.');
@@ -198,6 +216,11 @@ const WorkflowVersionModal: React.FC<WorkflowVersionModalProps> = ({
                     <div className={styles.workflowInfo}>
                         <h3>{workflowName}</h3>
                         <p>총 {versions.length}개의 버전이 있습니다.</p>
+                        {!isOwner && (
+                            <p className={styles.sharedNotice}>
+                                공유받은 워크플로우의 버전 편집은 불가능합니다.
+                            </p>
+                        )}
                     </div>
 
                     {loading && (
@@ -223,7 +246,7 @@ const WorkflowVersionModal: React.FC<WorkflowVersionModalProps> = ({
                                 versions.map((version) => (
                                     <div
                                         key={version.id}
-                                        className={`${styles.versionItem} ${version.current_use ? styles.currentVersion : ''} ${!version.current_use && changingVersion !== version.version ? styles.clickable : ''}`}
+                                        className={`${styles.versionItem} ${version.current_use ? styles.currentVersion : ''} ${!version.current_use && changingVersion !== version.version && isOwner ? styles.clickable : ''}`}
                                         onClick={() => handleVersionCardClick(version)}
                                     >
                                         <div className={styles.versionHeader}>
@@ -268,24 +291,26 @@ const WorkflowVersionModal: React.FC<WorkflowVersionModalProps> = ({
                                                     </span>
                                                 )}
                                             </div>
-                                            <div className={styles.versionActions}>
-                                                <button
-                                                    className={styles.actionButton}
-                                                    onClick={(e) => handleStartEditLabel(version, e)}
-                                                    title="라벨 편집"
-                                                    disabled={editingVersionId !== null}
-                                                >
-                                                    <FiEdit />
-                                                </button>
-                                                <button
-                                                    className={`${styles.actionButton} ${styles.deleteButton}`}
-                                                    onClick={(e) => handleDeleteVersion(version, e)}
-                                                    title="버전 삭제"
-                                                    disabled={version.current_use || editingVersionId !== null}
-                                                >
-                                                    <FiTrash2 />
-                                                </button>
-                                            </div>
+                                            {isOwner && (
+                                                <div className={styles.versionActions}>
+                                                    <button
+                                                        className={styles.actionButton}
+                                                        onClick={(e) => handleStartEditLabel(version, e)}
+                                                        title="라벨 편집"
+                                                        disabled={editingVersionId !== null}
+                                                    >
+                                                        <FiEdit />
+                                                    </button>
+                                                    <button
+                                                        className={`${styles.actionButton} ${styles.deleteButton}`}
+                                                        onClick={(e) => handleDeleteVersion(version, e)}
+                                                        title="버전 삭제"
+                                                        disabled={version.current_use || editingVersionId !== null}
+                                                    >
+                                                        <FiTrash2 />
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 ))

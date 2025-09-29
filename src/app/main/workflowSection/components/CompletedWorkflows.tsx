@@ -573,6 +573,7 @@ const CompletedWorkflows: React.FC = () => {
                     userId={workflowToShowVersion.user_id}
                     isOpen={showVersionModal}
                     onClose={handleCloseVersionModal}
+                    isOwner={user ? workflowToShowVersion.user_id === user.user_id : false}
                 />
             )}
         </div>
