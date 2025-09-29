@@ -451,6 +451,24 @@ export const showWorkflowOverwriteConfirmKo = (
 };
 
 /**
+ * 워크플로우 버전 변경 확인 토스트 (한국어)
+ */
+export const showWorkflowVersionChangeConfirmKo = (
+    versionLabel: string,
+    onConfirm: () => void | Promise<void>,
+    onCancel?: () => void
+) => {
+    return showWarningConfirmToastKo({
+        title: '워크플로우 버전 변경',
+        message: `${versionLabel}으로 버전을 변경하시겠습니까?\n현재 사용 버전이 변경됩니다.`,
+        onConfirm,
+        onCancel,
+        confirmText: '변경',
+        cancelText: '취소',
+    });
+};
+
+/**
  * 새 워크플로우 시작 확인 토스트 (한국어)
  */
 export const showNewWorkflowConfirmKo = (

@@ -11,6 +11,7 @@ import {
     FiUsers,
     FiSettings,
     FiCopy,
+    FiGitBranch,
 } from 'react-icons/fi';
 import styles from '@/app/main/workflowSection/assets/CompletedWorkflows.module.scss';
 import { listWorkflowsDetail, deleteWorkflow, duplicateWorkflow } from '@/app/_common/api/workflow/workflowAPI';
@@ -24,6 +25,7 @@ import {
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import WorkflowEditModal from '@/app/main/workflowSection/components/workflows/WorkflowEditModal';
+import WorkflowVersionModal from '@/app/main/workflowSection/components/workflows/WorkflowVersionModal';
 import { devLog } from '@/app/_common/utils/logger';
 
 const CompletedWorkflows: React.FC = () => {
@@ -40,6 +42,8 @@ const CompletedWorkflows: React.FC = () => {
     >('all');
     const [showEditModal, setShowEditModal] = useState(false);
     const [workflowToEdit, setWorkflowToEdit] = useState<Workflow | null>(null);
+    const [showVersionModal, setShowVersionModal] = useState(false);
+    const [workflowToShowVersion, setWorkflowToShowVersion] = useState<Workflow | null>(null);
     const [deployed_list, setDeployed_list] = useState<{[key: string]: boolean | 'pending' | null}>({});
 
     const fetchWorkflows = async () => {
@@ -195,6 +199,16 @@ const CompletedWorkflows: React.FC = () => {
     const handleCloseEditModal = () => {
         setShowEditModal(false);
         setWorkflowToEdit(null);
+    };
+
+    const handleShowVersions = (workflow: Workflow) => {
+        setWorkflowToShowVersion(workflow);
+        setShowVersionModal(true);
+    };
+
+    const handleCloseVersionModal = () => {
+        setShowVersionModal(false);
+        setWorkflowToShowVersion(null);
     };
 
     const handleDuplicate = async (workflow: Workflow) => {
@@ -457,6 +471,16 @@ const CompletedWorkflows: React.FC = () => {
                                                     <FiSettings />
                                                 </button>
                                                 <button
+                                                    className={styles.actionButton}
+                                                    title="버전 히스토리"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleShowVersions(workflow);
+                                                    }}
+                                                >
+                                                    <FiGitBranch />
+                                                </button>
+                                                <button
                                                     className={`${styles.actionButton} ${styles.danger}`}
                                                     title="삭제"
                                                     onClick={(e) => {
@@ -490,6 +514,16 @@ const CompletedWorkflows: React.FC = () => {
                                                     disabled={workflow.share_permissions !== 'read_write'}
                                                 >
                                                     <FiEdit />
+                                                </button>
+                                                <button
+                                                    className={styles.actionButton}
+                                                    title="버전 히스토리"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleShowVersions(workflow);
+                                                    }}
+                                                >
+                                                    <FiGitBranch />
                                                 </button>
                                                 <button
                                                     className={styles.actionButton}
@@ -529,6 +563,16 @@ const CompletedWorkflows: React.FC = () => {
                     isOpen={showEditModal}
                     onClose={handleCloseEditModal}
                     onUpdate={handleUpdateWorkflow}
+                />
+            )}
+
+            {/* 워크플로우 버전 모달 */}
+            {showVersionModal && workflowToShowVersion && workflowToShowVersion.user_id && (
+                <WorkflowVersionModal
+                    workflowName={workflowToShowVersion.name}
+                    userId={workflowToShowVersion.user_id}
+                    isOpen={showVersionModal}
+                    onClose={handleCloseVersionModal}
                 />
             )}
         </div>
