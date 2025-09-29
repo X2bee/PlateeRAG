@@ -66,9 +66,6 @@ export interface TreeNode {
     expanded?: boolean;
 }
 
-// Component props
-export interface AdminNodeManageProps {}
-
 export interface NodeTreeProps {
     nodes: NodeCategory[];
     onNodeSelect?: (node: Node) => void;
