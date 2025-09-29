@@ -2,8 +2,8 @@ import React, { memo, useState } from 'react';
 import styles from '@/app/canvas/assets/Node.module.scss';
 import type { NodeProps } from '@/app/canvas/types';
 import { useNodeEditing } from '../Node/hooks/useNodeEditing';
-import { 
-    hasInputsAndOutputs, 
+import {
+    hasInputsAndOutputs,
     getNodeContainerClasses,
     getNodeContainerStyles
 } from '../Node/utils/nodeUtils';
@@ -11,6 +11,7 @@ import {
 // Components
 import { NodeHeader } from '../Node/components/NodeHeader';
 import { NodePorts } from '../Node/components/NodePorts';
+import { NodePortsCollapsed } from '../Node/components/NodePortsCollapsed';
 import { SchemaProviderNodeParameters } from '../Node/components/specialized/SchemaProviderNodeParameters';
 
 const SchemaProviderNode: React.FC<NodeProps> = ({
@@ -38,7 +39,9 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
     onOpenNodeModal,
     onSynchronizeSchema,
     currentNodes = [],
-    currentEdges = []
+    currentEdges = [],
+    isExpanded = true,
+    onToggleExpanded
 }) => {
     const { nodeName, inputs, parameters, outputs, functionId } = data;
     const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
@@ -78,6 +81,13 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
         setShowAdvanced(prev => !prev);
     };
 
+    const handleToggleExpanded = (e: React.MouseEvent): void => {
+        e.stopPropagation();
+        if (onToggleExpanded) {
+            onToggleExpanded(id);
+        }
+    };
+
     const handleSynchronizeSchema = (portId: string): void => {
         if (!onSynchronizeSchema) return;
         onSynchronizeSchema(id, portId);
@@ -87,7 +97,7 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
     const { hasIO } = hasInputsAndOutputs(inputs, outputs);
 
     // Node container classes and styles
-    const nodeClasses = getNodeContainerClasses(isSelected, isPreview, isPredicted, styles);
+    const nodeClasses = `${getNodeContainerClasses(isSelected, isPreview, isPredicted, styles)} ${!isExpanded ? styles.collapsed : ''}`;
     const nodeStyles = getNodeContainerStyles(position, isPredicted, predictedOpacity);
 
 
@@ -106,57 +116,79 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
                 isEditingName={nodeEditingHook.isEditingName}
                 editingName={nodeEditingHook.editingName}
                 isPreview={isPreview}
+                isExpanded={isExpanded}
                 onNameDoubleClick={(e) => nodeEditingHook.handleNameDoubleClick(e, nodeName, isPreview)}
                 onNameChange={nodeEditingHook.handleNameChange}
                 onNameKeyDown={nodeEditingHook.handleNameKeyDown}
                 onNameBlur={() => nodeEditingHook.handleNameBlur(id, nodeName, onNodeNameChange)}
                 onClearSelection={onClearSelection}
+                onToggleExpanded={handleToggleExpanded}
             />
 
             {/* Body Section */}
-            <div className={styles.body}>
-                {/* Input/Output Ports */}
-                {hasIO && (
-                    <NodePorts
-                        nodeId={id}
-                        inputs={inputs}
-                        outputs={outputs}
-                        isPreview={isPreview}
-                        isPredicted={isPredicted}
-                        isSelected={isSelected}
-                        onPortMouseDown={onPortMouseDown}
-                        onPortMouseUp={onPortMouseUp}
-                        registerPortRef={registerPortRef}
-                        snappedPortKey={snappedPortKey}
-                        isSnapTargetInvalid={isSnapTargetInvalid}
-                        currentNodes={currentNodes}
-                        currentEdges={currentEdges}
-                        onSynchronizeSchema={handleSynchronizeSchema}
-                    />
-                )}
-
-                {/* Parameters */}
-                {!isPredicted && (
-                    <>
-                        {hasIO && <div className={styles.divider}></div>}
-                        <SchemaProviderNodeParameters
+            {isExpanded ? (
+                <div className={styles.body}>
+                    {/* Input/Output Ports */}
+                    {hasIO && (
+                        <NodePorts
                             nodeId={id}
-                            nodeDataId={data.id}
-                            parameters={parameters}
+                            inputs={inputs}
+                            outputs={outputs}
                             isPreview={isPreview}
                             isPredicted={isPredicted}
-                            onParameterChange={onParameterChange}
-                            onParameterNameChange={onParameterNameChange}
-                            onParameterAdd={onParameterAdd}
-                            onParameterDelete={onParameterDelete}
-                            onClearSelection={onClearSelection}
-                            onOpenNodeModal={onOpenNodeModal}
-                            showAdvanced={showAdvanced}
-                            onToggleAdvanced={handleToggleAdvanced}
+                            isSelected={isSelected}
+                            onPortMouseDown={onPortMouseDown}
+                            onPortMouseUp={onPortMouseUp}
+                            registerPortRef={registerPortRef}
+                            snappedPortKey={snappedPortKey}
+                            isSnapTargetInvalid={isSnapTargetInvalid}
+                            currentNodes={currentNodes}
+                            currentEdges={currentEdges}
+                            onSynchronizeSchema={handleSynchronizeSchema}
                         />
-                    </>
-                )}
-            </div>
+                    )}
+
+                    {/* Parameters */}
+                    {!isPredicted && (
+                        <>
+                            {hasIO && <div className={styles.divider}></div>}
+                            <SchemaProviderNodeParameters
+                                nodeId={id}
+                                nodeDataId={data.id}
+                                parameters={parameters}
+                                isPreview={isPreview}
+                                isPredicted={isPredicted}
+                                onParameterChange={onParameterChange}
+                                onParameterNameChange={onParameterNameChange}
+                                onParameterAdd={onParameterAdd}
+                                onParameterDelete={onParameterDelete}
+                                onClearSelection={onClearSelection}
+                                onOpenNodeModal={onOpenNodeModal}
+                                showAdvanced={showAdvanced}
+                                onToggleAdvanced={handleToggleAdvanced}
+                            />
+                        </>
+                    )}
+                </div>
+            ) : (
+                <div className={styles.collapsedBody}>
+                    {hasIO && (
+                        <NodePortsCollapsed
+                            nodeId={id}
+                            inputs={inputs}
+                            outputs={outputs}
+                            isPreview={isPreview}
+                            isPredicted={isPredicted}
+                            isSelected={isSelected}
+                            onPortMouseDown={onPortMouseDown}
+                            onPortMouseUp={onPortMouseUp}
+                            registerPortRef={registerPortRef}
+                            snappedPortKey={snappedPortKey}
+                            isSnapTargetInvalid={isSnapTargetInvalid}
+                        />
+                    )}
+                </div>
+            )}
         </div>
     );
 };
