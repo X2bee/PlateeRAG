@@ -11,6 +11,7 @@ import {
 // Components
 import { NodeHeader } from '../Node/components/NodeHeader';
 import { RouterNodePorts } from '../Node/components/RouterNodePorts';
+import { NodePortsCollapsed } from '../Node/components/NodePortsCollapsed';
 import { RouterNodeParameters } from '../Node/components/specialized/RouterNodeParameters';
 
 const RouterNode: React.FC<NodeProps & {
@@ -45,7 +46,9 @@ const RouterNode: React.FC<NodeProps & {
     onOpenNodeModal,
     onSynchronizeSchema,
     currentNodes = [],
-    currentEdges = []
+    currentEdges = [],
+    isExpanded = true,
+    onToggleExpanded
 }) => {
     const { nodeName, inputs, parameters, outputs, functionId } = data;
     const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
@@ -85,6 +88,13 @@ const RouterNode: React.FC<NodeProps & {
         setShowAdvanced(prev => !prev);
     };
 
+    const handleToggleExpanded = (e: React.MouseEvent): void => {
+        e.stopPropagation();
+        if (onToggleExpanded) {
+            onToggleExpanded(id);
+        }
+    };
+
     const handleSynchronizeSchema = (portId: string): void => {
         if (!onSynchronizeSchema) return;
         onSynchronizeSchema(id, portId);
@@ -113,7 +123,7 @@ const RouterNode: React.FC<NodeProps & {
     const { hasIO } = hasInputsAndOutputs(inputs, outputs);
 
     // Node container classes and styles
-    const nodeClasses = getNodeContainerClasses(isSelected, isPreview, isPredicted, styles);
+    const nodeClasses = `${getNodeContainerClasses(isSelected, isPreview, isPredicted, styles)} ${!isExpanded ? styles.collapsed : ''}`;
     const nodeStyles = getNodeContainerStyles(position, isPredicted, predictedOpacity);
 
     return (
@@ -131,60 +141,82 @@ const RouterNode: React.FC<NodeProps & {
                 isEditingName={nodeEditingHook.isEditingName}
                 editingName={nodeEditingHook.editingName}
                 isPreview={isPreview}
+                isExpanded={isExpanded}
                 onNameDoubleClick={(e) => nodeEditingHook.handleNameDoubleClick(e, nodeName, isPreview)}
                 onNameChange={nodeEditingHook.handleNameChange}
                 onNameKeyDown={nodeEditingHook.handleNameKeyDown}
                 onNameBlur={() => nodeEditingHook.handleNameBlur(id, nodeName, onNodeNameChange)}
                 onClearSelection={onClearSelection}
+                onToggleExpanded={handleToggleExpanded}
             />
 
             {/* Body Section */}
-            <div className={styles.body}>
-                {/* Input/Output Ports */}
-                {hasIO && (
-                    <RouterNodePorts
-                        nodeId={id}
-                        inputs={inputs}
-                        outputs={outputs}
-                        isPreview={isPreview}
-                        isPredicted={isPredicted}
-                        isSelected={isSelected}
-                        onPortMouseDown={onPortMouseDown}
-                        onPortMouseUp={onPortMouseUp}
-                        registerPortRef={registerPortRef}
-                        snappedPortKey={snappedPortKey}
-                        isSnapTargetInvalid={isSnapTargetInvalid}
-                        currentNodes={currentNodes}
-                        currentEdges={currentEdges}
-                        onSynchronizeSchema={handleSynchronizeSchema}
-                        onOutputAdd={handleOutputAdd}
-                        onOutputDelete={handleOutputDelete}
-                        onOutputNameChange={handleOutputNameChange}
-                    />
-                )}
-
-                {/* Parameters */}
-                {!isPredicted && (
-                    <>
-                        {hasIO && <div className={styles.divider}></div>}
-                        <RouterNodeParameters
+            {isExpanded ? (
+                <div className={styles.body}>
+                    {/* Input/Output Ports */}
+                    {hasIO && (
+                        <RouterNodePorts
                             nodeId={id}
-                            nodeDataId={data.id}
-                            parameters={parameters}
+                            inputs={inputs}
+                            outputs={outputs}
                             isPreview={isPreview}
                             isPredicted={isPredicted}
-                            onParameterChange={onParameterChange}
-                            onParameterNameChange={onParameterNameChange}
-                            onParameterAdd={onParameterAdd}
-                            onParameterDelete={onParameterDelete}
-                            onClearSelection={onClearSelection}
-                            onOpenNodeModal={onOpenNodeModal}
-                            showAdvanced={showAdvanced}
-                            onToggleAdvanced={handleToggleAdvanced}
+                            isSelected={isSelected}
+                            onPortMouseDown={onPortMouseDown}
+                            onPortMouseUp={onPortMouseUp}
+                            registerPortRef={registerPortRef}
+                            snappedPortKey={snappedPortKey}
+                            isSnapTargetInvalid={isSnapTargetInvalid}
+                            currentNodes={currentNodes}
+                            currentEdges={currentEdges}
+                            onSynchronizeSchema={handleSynchronizeSchema}
+                            onOutputAdd={handleOutputAdd}
+                            onOutputDelete={handleOutputDelete}
+                            onOutputNameChange={handleOutputNameChange}
                         />
-                    </>
-                )}
-            </div>
+                    )}
+
+                    {/* Parameters */}
+                    {!isPredicted && (
+                        <>
+                            {hasIO && <div className={styles.divider}></div>}
+                            <RouterNodeParameters
+                                nodeId={id}
+                                nodeDataId={data.id}
+                                parameters={parameters}
+                                isPreview={isPreview}
+                                isPredicted={isPredicted}
+                                onParameterChange={onParameterChange}
+                                onParameterNameChange={onParameterNameChange}
+                                onParameterAdd={onParameterAdd}
+                                onParameterDelete={onParameterDelete}
+                                onClearSelection={onClearSelection}
+                                onOpenNodeModal={onOpenNodeModal}
+                                showAdvanced={showAdvanced}
+                                onToggleAdvanced={handleToggleAdvanced}
+                            />
+                        </>
+                    )}
+                </div>
+            ) : (
+                <div className={styles.collapsedBody}>
+                    {hasIO && (
+                        <NodePortsCollapsed
+                            nodeId={id}
+                            inputs={inputs}
+                            outputs={outputs}
+                            isPreview={isPreview}
+                            isPredicted={isPredicted}
+                            isSelected={isSelected}
+                            onPortMouseDown={onPortMouseDown}
+                            onPortMouseUp={onPortMouseUp}
+                            registerPortRef={registerPortRef}
+                            snappedPortKey={snappedPortKey}
+                            isSnapTargetInvalid={isSnapTargetInvalid}
+                        />
+                    )}
+                </div>
+            )}
         </div>
     );
 };

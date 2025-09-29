@@ -86,6 +86,11 @@ export const CanvasNodes: React.FC<CanvasNodesProps> = ({
                             isSnapTargetInvalid={isSnapTargetInvalid}
                             onClearSelection={onClearSelection}
                             onOpenNodeModal={onOpenNodeModal}
+                            onSynchronizeSchema={onSynchronizeSchema && ((portId: string) => onSynchronizeSchema(node.id, portId))}
+                            currentNodes={nodes}
+                            currentEdges={currentEdges}
+                            isExpanded={nodeExpandedState[node.id] ?? true}
+                            onToggleExpanded={onToggleExpanded}
                         />
                     );
                 }
@@ -118,6 +123,8 @@ export const CanvasNodes: React.FC<CanvasNodesProps> = ({
                             onOutputAdd={onOutputAdd}
                             onOutputDelete={onOutputDelete}
                             onOutputNameChange={onOutputNameChange}
+                            isExpanded={nodeExpandedState[node.id] ?? true}
+                            onToggleExpanded={onToggleExpanded}
                         />
                     );
                 }

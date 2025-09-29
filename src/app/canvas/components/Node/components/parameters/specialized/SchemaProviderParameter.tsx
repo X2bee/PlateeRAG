@@ -88,7 +88,7 @@ export const SchemaProviderParameter: React.FC<SchemaProviderParameterProps> = (
     // Render main value input (select or input based on options)
     const renderValueInput = () => {
         const effectiveOptions = parameter.options || [];
-        
+
         if (effectiveOptions.length > 0) {
             return (
                 <select
@@ -223,10 +223,10 @@ export const SchemaProviderParameter: React.FC<SchemaProviderParameterProps> = (
                         className={styles.nodeName}
                         style={{ cursor: isPreview ? 'default' : 'pointer' }}
                     >
-                        {parameter.name && parameter.name.toString().trim() ? parameter.name : parameter.id}
+                        {parameter.name && parameter.name.toString().trim() ? parameter.name : '<empty>'}
                     </span>
                 )}
-                
+
                 {/* Delete button for added parameters */}
                 {parameter.is_added && !isPreview && onParameterDelete && (
                     <button
