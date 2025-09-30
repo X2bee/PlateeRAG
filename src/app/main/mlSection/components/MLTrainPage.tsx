@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FaCog, FaDatabase, FaBrain, FaChartLine } from 'react-icons/fa';
+import { FaCog, FaDatabase, FaBrain } from 'react-icons/fa';
 import BasicCategory from './BasicCategory';
 import DataCategory from './DataCategory';
 import ModelCategory from './ModelCategory';
@@ -55,62 +55,13 @@ interface MLConfig {
 
 }
 
-interface ModelResult {
-    run_id: string;
-    algorithm: string;
-    metrics: {
-        test: Record<string, number>;
-        validation?: Record<string, number>;
-        cross_validation?: {
-            scores: number[];
-            mean: number;
-            std: number;
-        };
-    };
-    training_duration: number;
-    hpo_used?: boolean;
-    hpo_results?: any;
-    final_params?: Record<string, any>;
-}
-
-interface TrainResult {
-    results: ModelResult[];
-    best: {
-        run_id: string;
-        algorithm: string;
-        metrics: {
-            test: Record<string, number>;
-            validation?: Record<string, number>;
-        };
-        hpo_used?: boolean;
-    };
-    runs_manifest_uri: string;
-    registry: {
-        model_name: string;
-        production_version: string;
-    };
-    training_duration: number;
-    feature_names: string[];
-    training_timestamp: string;
-    hpo_summary?: {
-        enabled: boolean;
-        models_optimized: number;
-        config: HyperparameterConfig | null;
-    };
-    label_encoding?: {
-        used: boolean;
-        original_classes?: string[];
-        label_mapping?: Record<string, number>;
-    };
-}
-
-type TabKey = 'basic' | 'data' | 'model' | 'results';
+type TabKey = 'basic' | 'data' | 'model';
 
 const MLTrainPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState<TabKey>('basic');
     const [isTraining, setIsTraining] = useState<boolean>(false);
-    const [trainResult, setTrainResult] = useState<TrainResult | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [infoMessage, setInfoMessage] = useState<string | null>(null);
     const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
     const [trainingMode, setTrainingMode] = useState<'sync' | 'async'>('sync');
 
@@ -234,6 +185,7 @@ const MLTrainPage: React.FC = () => {
 
         setIsTraining(true);
         setError(null);
+        setInfoMessage(null);
         setCurrentTaskId(null);
 
         try {
@@ -244,8 +196,8 @@ const MLTrainPage: React.FC = () => {
             const result = await mlAPI.trainSync(trainData);
             console.log('Training completed:', result);
 
-            setTrainResult(result);
-            setActiveTab('results');
+            // 결과 탭 제거로 변경: 완료 안내 메시지 표시
+            setInfoMessage('완료되었습니다. 모니터링 페이지에서 결과를 확인해주세요');
         } catch (err: unknown) {
             const errorMessage = mlUtils.formatError(err);
             console.error('Training failed:', err);
@@ -265,6 +217,7 @@ const MLTrainPage: React.FC = () => {
 
         setIsTraining(true);
         setError(null);
+        setInfoMessage(null);
         setCurrentTaskId(null);
 
         try {
@@ -284,8 +237,8 @@ const MLTrainPage: React.FC = () => {
                     const status = await mlAPI.getAsyncTaskStatus(taskId);
                     
                     if (status.status === 'completed' && status.result) {
-                        setTrainResult(status.result);
-                        setActiveTab('results');
+                        // 결과 탭 제거로 변경: 완료 안내 메시지 표시
+                        setInfoMessage('완료되었습니다. 모니터링 페이지에서 결과를 확인해주세요');
                         setIsTraining(false);
                         setCurrentTaskId(null);
                         return;
@@ -334,7 +287,6 @@ const MLTrainPage: React.FC = () => {
         { key: 'model' as const, label: '모델 설정', icon: FaBrain },
     ];
     
-    // 결과가 있으면 탭에 추가
     const tabs = baseTabs;
 
     return (
@@ -387,108 +339,115 @@ const MLTrainPage: React.FC = () => {
                         />
                     )}
 
-                    {activeTab !== 'results' && (
-                        <div className={styles.formActions}>
-                            <div className={styles.actionGroup}>
-                                {error && (
-                                    <div style={{ 
-                                        color: '#dc2626', 
-                                        fontSize: '0.875rem',
-                                        whiteSpace: 'pre-line',
-                                        maxWidth: '400px'
-                                    }}>
-                                        {error}
-                                    </div>
-                                )}
-                                
-                                {currentTaskId && (
-                                    <div style={{ 
-                                        color: '#1e40af', 
-                                        fontSize: '0.875rem',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.5rem'
-                                    }}>
-                                        <div className={styles.spinner} style={{ width: '16px', height: '16px' }} />
-                                        비동기 학습 진행 중... (Task ID: {currentTaskId})
-                                    </div>
-                                )}
-                            </div>
+                    <div className={styles.formActions}>
+                        <div className={styles.actionGroup}>
+                            {error && (
+                                <div style={{ 
+                                    color: '#dc2626', 
+                                    fontSize: '0.875rem',
+                                    whiteSpace: 'pre-line',
+                                    maxWidth: '400px'
+                                }}>
+                                    {error}
+                                </div>
+                            )}
+                            {infoMessage && (
+                                <div style={{
+                                    color: '#1e40af',
+                                    fontSize: '0.875rem',
+                                    maxWidth: '400px'
+                                }}>
+                                    {infoMessage}
+                                </div>
+                            )}
                             
-                            <div className={styles.actionGroup}>
-                                {/* 학습 모드 선택 */}
-                                {!isTraining && (
-                                    <div style={{ 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        gap: '1rem',
-                                        marginRight: '1rem'
-                                    }}>
-                                        <label style={{ fontSize: '0.875rem', color: '#374151' }}>
-                                            학습 방식:
-                                        </label>
-                                        <label className={styles.checkboxLabel} style={{ fontSize: '0.875rem' }}>
-                                            <input
-                                                type="radio"
-                                                name="trainingMode"
-                                                value="sync"
-                                                checked={trainingMode === 'sync'}
-                                                onChange={(e) => setTrainingMode(e.target.value as 'sync' | 'async')}
-                                            />
-                                            동기 (즉시 결과)
-                                        </label>
-                                        <label className={styles.checkboxLabel} style={{ fontSize: '0.875rem' }}>
-                                            <input
-                                                type="radio"
-                                                name="trainingMode"
-                                                value="async"
-                                                checked={trainingMode === 'async'}
-                                                onChange={(e) => setTrainingMode(e.target.value as 'sync' | 'async')}
-                                            />
-                                            비동기 (백그라운드)
-                                        </label>
-                                    </div>
-                                )}
-
-                                {/* 학습 버튼들 */}
-                                {!currentTaskId ? (
-                                    <button
-                                        className={`${styles.button} ${styles.primary} ${styles.large}`}
-                                        onClick={trainingMode === 'sync' ? handleTrain : handleAsyncTrain}
-                                        disabled={isTraining}
-                                    >
-                                        {isTraining && <div className={styles.spinner} />}
-                                        {isTraining ? 
-                                            (trainingMode === 'sync' ? '동기 학습 중...' : '비동기 학습 시작 중...') : 
-                                            (trainingMode === 'sync' ? '동기 학습 시작' : '비동기 학습 시작')
-                                        }
-                                        {config.hpo_config?.enable_hpo && (
-                                            <span style={{ 
-                                                marginLeft: '0.5rem',
-                                                padding: '0.125rem 0.375rem',
-                                                background: 'rgba(255, 255, 255, 0.2)',
-                                                borderRadius: '0.25rem',
-                                                fontSize: '0.75rem'
-                                            }}>
-                                                HPO
-                                            </span>
-                                        )}
-                                    </button>
-                                ) : (
-                                    <button
-                                        className={`${styles.button} ${styles.secondary} ${styles.large}`}
-                                        onClick={handleCancelAsyncTrain}
-                                    >
-                                        학습 취소
-                                    </button>
-                                )}
-                            </div>
+                            {currentTaskId && (
+                                <div style={{ 
+                                    color: '#1e40af', 
+                                    fontSize: '0.875rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem'
+                                }}>
+                                    <div className={styles.spinner} style={{ width: '16px', height: '16px' }} />
+                                    비동기 학습 진행 중... (Task ID: {currentTaskId})
+                                </div>
+                            )}
                         </div>
-                    )}
+                        
+                        <div className={styles.actionGroup}>
+                            {/* 학습 모드 선택 */}
+                            {!isTraining && (
+                                <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '1rem',
+                                    marginRight: '1rem'
+                                }}>
+                                    <label style={{ fontSize: '0.875rem', color: '#374151' }}>
+                                        학습 방식:
+                                    </label>
+                                    <label className={styles.checkboxLabel} style={{ fontSize: '0.875rem' }}>
+                                        <input
+                                            type="radio"
+                                            name="trainingMode"
+                                            value="sync"
+                                            checked={trainingMode === 'sync'}
+                                            onChange={(e) => setTrainingMode(e.target.value as 'sync' | 'async')}
+                                        />
+                                        동기 (즉시 결과)
+                                    </label>
+                                    <label className={styles.checkboxLabel} style={{ fontSize: '0.875rem' }}>
+                                        <input
+                                            type="radio"
+                                            name="trainingMode"
+                                            value="async"
+                                            checked={trainingMode === 'async'}
+                                            onChange={(e) => setTrainingMode(e.target.value as 'sync' | 'async')}
+                                        />
+                                        비동기 (백그라운드)
+                                    </label>
+                                </div>
+                            )}
+
+                            {/* 학습 버튼들 */}
+                            {!currentTaskId ? (
+                                <button
+                                    className={`${styles.button} ${styles.primary} ${styles.large}`}
+                                    onClick={trainingMode === 'sync' ? handleTrain : handleAsyncTrain}
+                                    disabled={isTraining}
+                                >
+                                    {isTraining && <div className={styles.spinner} />}
+                                    {isTraining ? 
+                                        (trainingMode === 'sync' ? '동기 학습 중...' : '비동기 학습 시작 중...') : 
+                                        (trainingMode === 'sync' ? '동기 학습 시작' : '비동기 학습 시작')
+                                    }
+                                    {config.hpo_config?.enable_hpo && (
+                                        <span style={{ 
+                                            marginLeft: '0.5rem',
+                                            padding: '0.125rem 0.375rem',
+                                            background: 'rgba(255, 255, 255, 0.2)',
+                                            borderRadius: '0.25rem',
+                                            fontSize: '0.75rem'
+                                        }}>
+                                            HPO
+                                        </span>
+                                    )}
+                                </button>
+                            ) : (
+                                <button
+                                    className={`${styles.button} ${styles.secondary} ${styles.large}`}
+                                    onClick={handleCancelAsyncTrain}
+                                >
+                                    학습 취소
+                                </button>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 {/* HPO 활성화 시 추가 안내 */}
-                {config.hpo_config?.enable_hpo && activeTab !== 'results' && (
+                {config.hpo_config?.enable_hpo && (
                     <div style={{
                         marginTop: '1rem',
                         padding: '1rem',
