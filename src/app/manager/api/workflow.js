@@ -92,3 +92,46 @@ export const getIOLogsByCondition = async ({ user_id = null, workflow_name = nul
         throw error;
     }
 };
+
+/**
+ * 매니저가 접근 가능한 모든 워크플로우 목록을 가져오는 함수
+ * @param {number} page - 페이지 번호 (기본값: 1)
+ * @param {number} pageSize - 페이지 크기 (기본값: 250)
+ * @param {number|null} userId - 필터링할 사용자 ID (선택사항)
+ * @returns {Promise<Object>} 워크플로우 목록 및 페이지네이션 정보
+ */
+export const getAllWorkflows = async (page = 1, pageSize = 250, userId = null) => {
+    try {
+        const params = new URLSearchParams({
+            page: page.toString(),
+            page_size: pageSize.toString()
+        });
+
+        if (userId) {
+            params.append('user_id', userId.toString());
+        }
+
+        const response = await apiClient(
+            `${API_BASE_URL}/api/manager/workflow/all-list?${params.toString()}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        const data = await response.json();
+        devLog.log('Get all workflows result:', data);
+
+        if (!response.ok) {
+            devLog.error('Failed to get all workflows:', data);
+            throw new Error(data.detail || 'Failed to get all workflows');
+        }
+
+        return data;
+    } catch (error) {
+        devLog.error('Failed to get all workflows:', error);
+        throw error;
+    }
+};
