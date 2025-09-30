@@ -14,14 +14,17 @@ const ManagerSidebar: React.FC<ManagerSidebarProps> = ({
     isOpen,
     onToggle,
     groupItems = [],
+    workflowItems = [],
     activeItem,
     onItemClick,
     className = '',
     initialGroupExpanded = false,
+    initialWorkflowExpanded = false,
 }) => {
     const router = useRouter();
     const pathname = usePathname();
     const [isGroupExpanded, setIsGroupExpanded] = useState(initialGroupExpanded);
+    const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(initialWorkflowExpanded);
 
     // CookieProvider의 useAuth 훅 사용
     const { user, isAuthenticated } = useAuth();
@@ -47,6 +50,7 @@ const ManagerSidebar: React.FC<ManagerSidebarProps> = ({
     };
 
     const toggleGroupExpanded = () => setIsGroupExpanded(!isGroupExpanded);
+    const toggleWorkflowExpanded = () => setIsWorkflowExpanded(!isWorkflowExpanded);
 
     const handleLogoClick = () => {
         onItemClick('dashboard');
@@ -109,6 +113,34 @@ const ManagerSidebar: React.FC<ManagerSidebarProps> = ({
 
                 <nav className={`${styles.sidebarNav} ${isGroupExpanded ? styles.expanded : ''}`}>
                     {groupItems.map((item: any) => (
+                        <button
+                            key={item.id}
+                            onClick={() => onItemClick(item.id)}
+                            className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                        >
+                            {item.icon}
+                            <div className={styles.navText}>
+                                <div className={styles.navTitle}>{item.title}</div>
+                                <div className={styles.navDescription}>
+                                    {item.description}
+                                </div>
+                            </div>
+                        </button>
+                    ))}
+                </nav>
+
+                <button
+                    className={styles.sidebarToggle}
+                    onClick={toggleWorkflowExpanded}
+                >
+                    <span>워크플로우 관리</span>
+                    <span className={`${styles.toggleIcon} ${isWorkflowExpanded ? styles.expanded : ''}`}>
+                        ▼
+                    </span>
+                </button>
+
+                <nav className={`${styles.sidebarNav} ${isWorkflowExpanded ? styles.expanded : ''}`}>
+                    {workflowItems.map((item: any) => (
                         <button
                             key={item.id}
                             onClick={() => onItemClick(item.id)}

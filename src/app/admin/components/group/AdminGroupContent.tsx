@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { getAllGroups, updateGroupPermissions, deleteGroup, createGroup, getGroupUsers } from '@/app/admin/api/group';
-import { removeUserGroup } from '@/app/admin/api/users';
+import { removeUserGroup, addUserGroup } from '@/app/admin/api/users';
 import { devLog } from '@/app/_common/utils/logger';
 import { showSuccessToastKo, showErrorToastKo, showValidationErrorToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/admin/assets/AdminGroupContent.module.scss';
-import AdminGroupAddModal from '@/app/admin/components/group/AdminGroupAddModal';
+import AdminGroupAddModal from '@/app/admin/components/group/modals/AdminGroupAddModal';
+import AdminGroupCreateModal from '@/app/admin/components/group/modals/AdminGroupCreateModal';
+import AdminGroupPermissionModal from '@/app/admin/components/group/modals/AdminGroupPermissionModal';
 
 interface Group {
     group_name: string;
@@ -26,6 +27,7 @@ interface User {
     is_admin?: boolean;
     user_type: 'superuser' | 'admin' | 'standard' | string;
     group_name?: string;
+    groups?: string[]; // 사용자가 속한 모든 그룹 목록
     last_login?: string | null;
     password_hash?: string;
     preferences?: any;
@@ -68,8 +70,8 @@ const AdminGroupContent: React.FC = () => {
         'model-storage',
         'data-station',
         'data-storage',
-        'model-upload', 
-        'model-hub', 
+        'model-upload',
+        'model-hub',
         'model-inference',
         'ml-train',
         'ml-train-monitor',
@@ -152,6 +154,12 @@ const AdminGroupContent: React.FC = () => {
         }
     };
 
+    // 권한 모달 닫기 핸들러
+    const handleClosePermissionModal = () => {
+        setShowPermissionModal(false);
+        setEditingGroup(null);
+    };
+
     // 그룹 삭제 핸들러
     const handleDeleteGroup = async (groupName: string) => {
         showDeleteConfirmToastKo({
@@ -170,21 +178,6 @@ const AdminGroupContent: React.FC = () => {
                     showErrorToastKo(`삭제 실패: ${errorMessage}`);
                 }
             }
-        });
-    };
-
-    // 섹션 선택/해제 핸들러
-    const handleSectionToggle = (section: string) => {
-        if (!editingGroup) return;
-
-        const currentSections = editingGroup.available_sections || [];
-        const newSections = currentSections.includes(section)
-            ? currentSections.filter(s => s !== section)
-            : [...currentSections, section];
-
-        setEditingGroup({
-            ...editingGroup,
-            available_sections: newSections
         });
     };
 
@@ -274,6 +267,115 @@ const AdminGroupContent: React.FC = () => {
             hour: '2-digit',
             minute: '2-digit'
         });
+    };
+
+    // 그룹 관리자 여부 확인 함수
+    const isGroupAdmin = (user: User, groupName: string): boolean => {
+        // user.groups 배열이 있는 경우
+        if (user.groups && Array.isArray(user.groups)) {
+            const adminGroupName = `${groupName}__admin__`;
+            return user.groups.includes(groupName) && user.groups.includes(adminGroupName);
+        }
+
+        // user.group_name 문자열만 있는 경우 (레거시)
+        // 이 경우 백엔드에서 groups 배열을 제공하지 않으므로 is_admin 사용
+        return false;
+    };
+
+    // 그룹 관리자 권한 토글 핸들러
+    const handleToggleAdminPermission = async (user: User) => {
+        if (!selectedGroup) return;
+
+        const adminGroupName = `${selectedGroup}__admin__`;
+        const isCurrentlyAdmin = isGroupAdmin(user, selectedGroup);
+
+        // 관리자 권한 제거인 경우
+        if (isCurrentlyAdmin) {
+            const message = `"${user.username}" 사용자의 "${selectedGroup}" 조직 관리자 권한을 제거하시겠습니까?`;
+
+            showDeleteConfirmToastKo({
+                title: '권한 변경 확인',
+                message: message,
+                itemName: user.username,
+                confirmText: '제거',
+                onConfirm: async () => {
+                    try {
+                        // 관리자 권한 제거: __admin__ 그룹에서 제거
+                        await removeUserGroup({
+                            id: user.id,
+                            group_name: adminGroupName
+                        });
+                        showSuccessToastKo('관리자 권한이 제거되었습니다.');
+
+                        // 성공 시 사용자 목록 새로고침
+                        await loadGroupUsers(selectedGroup);
+                    } catch (err) {
+                        const errorMessage = err instanceof Error ? err.message : '권한 변경에 실패했습니다.';
+                        devLog.error('Failed to toggle admin permission:', err);
+                        showErrorToastKo(`권한 변경 실패: ${errorMessage}`);
+                    }
+                }
+            });
+        }
+        // 관리자 권한 부여인 경우
+        else {
+            // is_admin이 false인 경우 추가 확인
+            if (!user.is_admin) {
+                const message = `"${user.username}" 사용자는 기본 관리자 권한이 없습니다.\n해당 사용자를 관리자로 설정하시겠습니까?\n\n※ 사용자가 자동으로 관리자 권한을 갖게 됩니다.`;
+
+                showDeleteConfirmToastKo({
+                    title: '관리자 권한 부여 확인',
+                    message: message,
+                    itemName: user.username,
+                    confirmText: '부여',
+                    onConfirm: async () => {
+                        try {
+                            // 관리자 권한 부여: __admin__ 그룹에 추가
+                            await addUserGroup({
+                                id: user.id,
+                                group_name: adminGroupName
+                            });
+                            showSuccessToastKo('관리자 권한이 부여되었습니다.');
+
+                            // 성공 시 사용자 목록 새로고침
+                            await loadGroupUsers(selectedGroup);
+                        } catch (err) {
+                            const errorMessage = err instanceof Error ? err.message : '권한 변경에 실패했습니다.';
+                            devLog.error('Failed to toggle admin permission:', err);
+                            showErrorToastKo(`권한 변경 실패: ${errorMessage}`);
+                        }
+                    }
+                });
+            }
+            // is_admin이 true인 경우 일반 확인
+            else {
+                const message = `"${user.username}" 사용자에게 "${selectedGroup}" 조직 관리자 권한을 부여하시겠습니까?`;
+
+                showDeleteConfirmToastKo({
+                    title: '권한 변경 확인',
+                    message: message,
+                    itemName: user.username,
+                    confirmText: '부여',
+                    onConfirm: async () => {
+                        try {
+                            // 관리자 권한 부여: __admin__ 그룹에 추가
+                            await addUserGroup({
+                                id: user.id,
+                                group_name: adminGroupName
+                            });
+                            showSuccessToastKo('관리자 권한이 부여되었습니다.');
+
+                            // 성공 시 사용자 목록 새로고침
+                            await loadGroupUsers(selectedGroup);
+                        } catch (err) {
+                            const errorMessage = err instanceof Error ? err.message : '권한 변경에 실패했습니다.';
+                            devLog.error('Failed to toggle admin permission:', err);
+                            showErrorToastKo(`권한 변경 실패: ${errorMessage}`);
+                        }
+                    }
+                });
+            }
+        }
     };
 
     if (loading) {
@@ -468,17 +570,27 @@ const AdminGroupContent: React.FC = () => {
                                             {user.last_login ? formatDate(user.last_login) : '로그인 기록 없음'}
                                         </td>
                                         <td>
-                                            <span className={`${styles.role} ${
-                                                user.user_type === 'superuser' ? styles.roleSuperuser :
-                                                user.user_type === 'admin' ? styles.roleAdmin :
-                                                user.user_type === 'standard' ? styles.roleUser :
-                                                styles.roleUnknown
-                                            }`}>
-                                                {user.user_type === 'superuser' ? 'SUPER' :
-                                                 user.user_type === 'admin' ? 'ADMIN' :
-                                                 user.user_type === 'standard' ? 'USER' :
-                                                 'UNKNOWN'}
-                                            </span>
+                                            {user.user_type === 'superuser' ? (
+                                                <span className={`${styles.role} ${styles.roleSuperuser}`}>
+                                                    SUPER
+                                                </span>
+                                            ) : (
+                                                <button
+                                                    className={`${styles.roleButton} ${
+                                                        selectedGroup && isGroupAdmin(user, selectedGroup)
+                                                            ? styles.roleButtonAdmin
+                                                            : styles.roleButtonUser
+                                                    }`}
+                                                    onClick={() => handleToggleAdminPermission(user)}
+                                                    title={
+                                                        selectedGroup && isGroupAdmin(user, selectedGroup)
+                                                            ? '클릭하여 일반 사용자로 변경'
+                                                            : '클릭하여 관리자로 변경'
+                                                    }
+                                                >
+                                                    {selectedGroup && isGroupAdmin(user, selectedGroup) ? 'ADMIN' : 'USER'}
+                                                </button>
+                                            )}
                                         </td>
                                         <td className={styles.actions}>
                                             <button
@@ -497,103 +609,23 @@ const AdminGroupContent: React.FC = () => {
             </div>
 
             {/* 그룹 생성 모달 */}
-            {showCreateModal && createPortal(
-                <div className={styles.modal}>
-                    <div className={styles.modalContent}>
-                        <h3>새 조직 생성</h3>
-                        <div className={styles.formGroup}>
-                            <label>조직명 *</label>
-                            <input
-                                type="text"
-                                value={newGroup.group_name}
-                                onChange={(e) => setNewGroup({...newGroup, group_name: e.target.value})}
-                                placeholder="조직명을 입력하세요"
-                                className={styles.formInput}
-                            />
-                        </div>
-                        <div className={styles.modalActions}>
-                            <button
-                                onClick={() => setShowCreateModal(false)}
-                                className={styles.cancelButton}
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={handleCreateGroup}
-                                className={styles.createButton}
-                            >
-                                생성
-                            </button>
-                        </div>
-                    </div>
-                </div>,
-                document.body
-            )}
+            <AdminGroupCreateModal
+                isOpen={showCreateModal}
+                onClose={() => setShowCreateModal(false)}
+                groupName={newGroup.group_name}
+                onGroupNameChange={(name) => setNewGroup({...newGroup, group_name: name})}
+                onCreate={handleCreateGroup}
+            />
 
             {/* 권한 편집 모달 */}
-            {showPermissionModal && editingGroup && createPortal(
-                <div className={styles.modal}>
-                    <div className={styles.modalContent}>
-                        <h3>권한 변경 - {editingGroup.group_name}</h3>
-
-                        <div className={styles.formGroup}>
-                            <button
-                                type="button"
-                                className={`${styles.statusToggleButton} ${
-                                    editingGroup.available
-                                        ? styles.statusToggleActive
-                                        : styles.statusToggleInactive
-                                }`}
-                                onClick={() => setEditingGroup({
-                                    ...editingGroup,
-                                    available: !editingGroup.available
-                                })}
-                            >
-                                {editingGroup.available ? '활성화 상태입니다.' : '비활성화 상태입니다.'}
-                            </button>
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label>사용 가능한 섹션</label>
-                            <div className={styles.sectionGrid}>
-                                {availableSectionOptions.map((section) => (
-                                    <button
-                                        key={section}
-                                        type="button"
-                                        className={`${styles.sectionButton} ${
-                                            editingGroup.available_sections?.includes(section)
-                                                ? styles.sectionButtonActive
-                                                : styles.sectionButtonInactive
-                                        }`}
-                                        onClick={() => handleSectionToggle(section)}
-                                    >
-                                        {section}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className={styles.modalActions}>
-                            <button
-                                onClick={() => {
-                                    setShowPermissionModal(false);
-                                    setEditingGroup(null);
-                                }}
-                                className={styles.cancelButton}
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={handleUpdatePermissions}
-                                className={styles.createButton}
-                            >
-                                권한 업데이트
-                            </button>
-                        </div>
-                    </div>
-                </div>,
-                document.body
-            )}
+            <AdminGroupPermissionModal
+                isOpen={showPermissionModal}
+                onClose={handleClosePermissionModal}
+                group={editingGroup}
+                onGroupChange={setEditingGroup}
+                onUpdate={handleUpdatePermissions}
+                availableSectionOptions={availableSectionOptions}
+            />
 
             {/* 조직원 추가 모달 */}
             {showAddUserModal && selectedGroup && (

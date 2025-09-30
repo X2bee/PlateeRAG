@@ -1163,3 +1163,45 @@ export const deleteWorkflowVersion = async (workflowName, version) => {
         throw error;
     }
 };
+
+/**
+ * 워크플로우 이름을 변경합니다.
+ * @param {string} oldName - 기존 워크플로우 이름
+ * @param {string} newName - 새로운 워크플로우 이름
+ * @returns {Promise<Object>} 이름 변경 결과를 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const renameWorkflow = async (oldName, newName) => {
+    try {
+        const params = new URLSearchParams({
+            old_name: oldName,
+            new_name: newName
+        });
+
+        const response = await apiClient(
+            `${API_BASE_URL}/api/workflow/rename/workflow?${params}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        devLog.log('Workflow rename response status:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to rename workflow');
+        }
+
+        const result = await response.json();
+        devLog.log('Successfully renamed workflow:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to rename workflow:', error);
+        devLog.error('Old workflow name that failed:', oldName);
+        devLog.error('New workflow name that failed:', newName);
+        throw error;
+    }
+};

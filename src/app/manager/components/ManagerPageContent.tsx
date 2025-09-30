@@ -5,11 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FiChevronRight } from 'react-icons/fi';
+import ManagerAuthGuard from '@/app/manager/components/helper/ManagerAuthGuard';
 import ManagerSidebar from '@/app/manager/components/ManagerSidebar';
 import ManagerContentArea from '@/app/manager/components/helper/ManagerContentArea';
 import ManagerGroupContent from '@/app/manager/components/group/ManagerGroupContent';
+import ManagerWorkflowChatLogsContent from '@/app/manager/components/workflows/ManagerWorkflowChatLogsContent';
 import {
     getGroupSidebarItems,
+    getWorkflowSidebarItems,
     createManagerItemClickHandler,
 } from '@/app/manager/components/managerSidebarConfig';
 import styles from '@/app/manager/assets/ManagerPage.module.scss';
@@ -27,6 +30,7 @@ const ManagerPageContent: React.FC = () => {
 
     // 사이드바 아이템들
     const groupItems = getGroupSidebarItems();
+    const workflowItems = getWorkflowSidebarItems();
 
     // 아이템 클릭 핸들러
     const handleItemClick = createManagerItemClickHandler(router);
@@ -49,7 +53,7 @@ const ManagerPageContent: React.FC = () => {
     // 유효한 섹션인지 확인하는 함수
     const isValidSection = (section: string): boolean => {
         const validSections = [
-            'dashboard', 'group-permissions'
+            'dashboard', 'group-permissions', 'workflow-chat-logs'
         ];
         return validSections.includes(section);
     };
@@ -77,6 +81,15 @@ const ManagerPageContent: React.FC = () => {
                         <ManagerGroupContent />
                     </ManagerContentArea>
                 );
+            case 'workflow-chat-logs':
+                return (
+                    <ManagerContentArea
+                        title="워크플로우 채팅 로그"
+                        description="워크플로우 입출력 및 채팅 상호작용 로그를 조회하세요."
+                    >
+                        <ManagerWorkflowChatLogsContent />
+                    </ManagerContentArea>
+                );
             default:
                 return (
                     <ManagerContentArea
@@ -90,35 +103,39 @@ const ManagerPageContent: React.FC = () => {
     };
 
     return (
-        <div className={styles.container}>
-            <AnimatePresence>
-                <ManagerSidebar
-                    key="manager-sidebar"
-                    isOpen={isSidebarOpen}
-                    onToggle={toggleSidebar}
-                    groupItems={groupItems}
-                    activeItem={activeSection}
-                    onItemClick={(itemId: string) => setActiveSection(itemId)}
-                    initialGroupExpanded={['group-permissions'].includes(activeSection)}
-                />
-                {!isSidebarOpen && (
-                    <motion.button
-                        key="manager-sidebar-open-button"
-                        onClick={toggleSidebar}
-                        className={styles.openOnlyBtn}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                    >
-                        <FiChevronRight />
-                    </motion.button>
-                )}
-            </AnimatePresence>
+        <ManagerAuthGuard>
+            <div className={styles.container}>
+                <AnimatePresence>
+                    <ManagerSidebar
+                        key="manager-sidebar"
+                        isOpen={isSidebarOpen}
+                        onToggle={toggleSidebar}
+                        groupItems={groupItems}
+                        workflowItems={workflowItems}
+                        activeItem={activeSection}
+                        onItemClick={(itemId: string) => setActiveSection(itemId)}
+                        initialGroupExpanded={['group-permissions'].includes(activeSection)}
+                        initialWorkflowExpanded={['workflow-chat-logs'].includes(activeSection)}
+                    />
+                    {!isSidebarOpen && (
+                        <motion.button
+                            key="manager-sidebar-open-button"
+                            onClick={toggleSidebar}
+                            className={styles.openOnlyBtn}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                        >
+                            <FiChevronRight />
+                        </motion.button>
+                    )}
+                </AnimatePresence>
 
-            <main className={`${styles.mainContent} ${!isSidebarOpen ? styles.mainContentPushed : ''}`}>
-                {renderContent()}
-            </main>
-        </div>
+                <main className={`${styles.mainContent} ${!isSidebarOpen ? styles.mainContentPushed : ''}`}>
+                    {renderContent()}
+                </main>
+            </div>
+        </ManagerAuthGuard>
     );
 };
 

@@ -342,6 +342,183 @@
     }
 }
 
+.groupAdminSection {
+    margin-bottom: 24px;
+    padding: 24px;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-radius: 16px;
+    border: 2px solid #bae6fd;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+    .sectionHeader {
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #bae6fd;
+
+        label {
+            display: block;
+            font-size: 16px;
+            font-weight: 700;
+            color: #0c4a6e;
+            margin-bottom: 6px;
+            letter-spacing: -0.02em;
+        }
+
+        .sectionDescription {
+            display: block;
+            font-size: 13px;
+            color: #0369a1;
+            font-weight: 500;
+        }
+    }
+
+    .loadingGroups {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 32px;
+        color: #0369a1;
+        font-size: 14px;
+        font-weight: 500;
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #bae6fd;
+            border-top-color: #0369a1;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+    }
+
+    .noGroups {
+        text-align: center;
+        padding: 32px;
+        color: #64748b;
+        font-size: 14px;
+        font-style: italic;
+        background: white;
+        border-radius: 10px;
+        border: 1px dashed #cbd5e1;
+    }
+
+    .groupGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 12px;
+
+        @media (max-width: 640px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .groupItem {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 16px;
+        background: white;
+        border-radius: 10px;
+        border: 2px solid #e0f2fe;
+        transition: all 0.2s ease;
+
+        &:hover {
+            border-color: #bae6fd;
+            box-shadow: 0 2px 8px rgba(14, 165, 233, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .groupName {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0c4a6e;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
+            .notMemberBadge {
+                display: inline-block;
+                padding: 2px 6px;
+                background: #fef3c7;
+                color: #92400e;
+                font-size: 10px;
+                font-weight: 700;
+                border-radius: 4px;
+                border: 1px solid #fde68a;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+                flex-shrink: 0;
+            }
+        }
+    }
+
+    .groupAdminButton {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        border: 2px solid;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        min-width: 60px;
+        flex-shrink: 0;
+
+        &:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        &:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+            transform: none;
+        }
+    }
+
+    .groupAdminButtonActive {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        border-color: #2563eb;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+
+        &:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            border-color: #1d4ed8;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+    }
+
+    .groupAdminButtonInactive {
+        background: white;
+        color: #64748b;
+        border-color: #cbd5e1;
+
+        &:hover:not(:disabled) {
+            background: #f8fafc;
+            color: #475569;
+            border-color: #94a3b8;
+        }
+    }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 .modalFooter {
     display: flex;
     justify-content: flex-end;

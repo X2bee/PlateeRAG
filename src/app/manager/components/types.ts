@@ -11,10 +11,12 @@ export interface ManagerSidebarProps {
     isOpen: boolean;
     onToggle: () => void;
     groupItems?: ManagerSidebarItem[];
+    workflowItems?: ManagerSidebarItem[];
     activeItem: string;
     onItemClick: (itemId: string) => void;
     className?: string;
     initialGroupExpanded?: boolean;
+    initialWorkflowExpanded?: boolean;
 }
 
 export interface ManagerContentAreaProps {
