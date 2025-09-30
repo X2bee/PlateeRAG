@@ -41,6 +41,8 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
     const [selectedModel, setSelectedModel] = useState<string>('');
     const [availableModels, setAvailableModels] = useState<Model[]>([]);
     const [loading, setLoading] = useState(false);
+    const [localValue, setLocalValue] = useState(config.hpo_config?.n_trials?.toString() || '10');
+
     const [error, setError] = useState<string | null>(null);
 
     // 모델 카탈로그 로드
@@ -223,8 +225,14 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                                         <label className={styles.formLabel}>최적화 시도 횟수</label>
                                         <input
                                             type="number"
-                                            value={config.hpo_config.n_trials || 50}
-                                            onChange={(e) => handleHPOConfigChange('n_trials', parseInt(e.target.value))}
+                                            value={localValue}
+                                            onChange={(e) => setLocalValue(e.target.value)}
+                                            onBlur={(e) => {
+                                                const val = parseInt(e.target.value) || 10;
+                                                const clamped = Math.min(Math.max(val, 10), 500);
+                                                handleHPOConfigChange('n_trials', clamped);
+                                                setLocalValue(clamped.toString());
+                                            }}
                                             className={styles.formInput}
                                             min="10"
                                             max="500"
