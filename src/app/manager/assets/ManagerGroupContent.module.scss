@@ -484,9 +484,11 @@
         }
 
         &:disabled {
-            background: $admin-danger-light;
-            color: $admin-danger-hover;
-            border-color: $admin-danger-light;
+            background: #e0e0e0;
+            color: #9e9e9e;
+            border-color: #bdbdbd;
+            cursor: not-allowed;
+            opacity: 0.6;
         }
     }
 }

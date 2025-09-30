@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { devLog } from '@/app/_common/utils/logger';
+import { getAllGroupsList } from '@/app/admin/api/group';
+import { addUserGroup, removeUserGroup } from '@/app/admin/api/users';
+import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/admin/assets/AdminUserEditModal.module.scss';
 
 interface User {
@@ -47,6 +50,11 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
+    // 그룹 관련 상태
+    const [allGroups, setAllGroups] = useState<string[]>([]);
+    const [loadingGroups, setLoadingGroups] = useState(false);
+    const [adminGroups, setAdminGroups] = useState<Set<string>>(new Set());
+
     // 사용자 데이터가 변경될 때 폼 데이터 업데이트
     useEffect(() => {
         if (user) {
@@ -61,8 +69,44 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
             setShowPasswordChange(false);
             setNewPassword('');
             setConfirmPassword('');
+
+            // 사용자의 admin 그룹 목록 추출
+            if (user.groups && Array.isArray(user.groups)) {
+                const adminGroupSet = new Set<string>();
+                user.groups.forEach(group => {
+                    if (group.endsWith('__admin__')) {
+                        const baseGroup = group.replace('__admin__', '');
+                        adminGroupSet.add(baseGroup);
+                    }
+                });
+                setAdminGroups(adminGroupSet);
+            } else {
+                setAdminGroups(new Set());
+            }
         }
     }, [user]);
+
+    // 전체 그룹 목록 로드
+    useEffect(() => {
+        const loadGroups = async () => {
+            try {
+                setLoadingGroups(true);
+                const groups = await getAllGroupsList();
+                // __admin__ 접미사가 붙은 그룹 제외하고 기본 그룹만 필터링
+                const baseGroups = groups.filter((g: string) => !g.endsWith('__admin__') && g !== 'none');
+                setAllGroups(baseGroups);
+            } catch (error) {
+                devLog.error('Failed to load groups:', error);
+                setAllGroups([]);
+            } finally {
+                setLoadingGroups(false);
+            }
+        };
+
+        if (isOpen) {
+            loadGroups();
+        }
+    }, [isOpen]);
 
     // 폼 필드 변경 핸들러
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -118,6 +162,49 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
                 ...prev,
                 [name]: ''
             }));
+        }
+    };
+
+    // 그룹 admin 권한 토글 핸들러
+    const handleToggleGroupAdmin = async (groupName: string) => {
+        if (!user) return;
+
+        const adminGroupName = `${groupName}__admin__`;
+        const isCurrentlyAdmin = adminGroups.has(groupName);
+
+        try {
+            if (isCurrentlyAdmin) {
+                // admin 권한 제거
+                await removeUserGroup({
+                    id: user.id,
+                    group_name: adminGroupName
+                });
+
+                setAdminGroups(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(groupName);
+                    return newSet;
+                });
+
+                showSuccessToastKo(`${groupName} 조직의 관리자 권한이 제거되었습니다.`);
+            } else {
+                // admin 권한 부여
+                await addUserGroup({
+                    id: user.id,
+                    group_name: adminGroupName
+                });
+
+                setAdminGroups(prev => {
+                    const newSet = new Set(prev);
+                    newSet.add(groupName);
+                    return newSet;
+                });
+
+                showSuccessToastKo(`${groupName} 조직의 관리자 권한이 부여되었습니다.`);
+            }
+        } catch (error) {
+            devLog.error('Failed to toggle group admin permission:', error);
+            showErrorToastKo('그룹 권한 변경에 실패했습니다.');
         }
     };
 
@@ -313,6 +400,66 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
                                 />
                                 {errors.confirmPassword && <span className={styles.errorMessage}>{errors.confirmPassword}</span>}
                             </div>
+                        </div>
+                    )}
+
+                    {/* 그룹 관리자 권한 설정 (admin 사용자만) */}
+                    {formData.user_type === 'admin' && (
+                        <div className={styles.groupAdminSection}>
+                            <div className={styles.sectionHeader}>
+                                <label>그룹 관리자 권한 설정</label>
+                                <span className={styles.sectionDescription}>
+                                    각 조직의 관리자 권한을 설정할 수 있습니다.
+                                </span>
+                            </div>
+
+                            {loadingGroups ? (
+                                <div className={styles.loadingGroups}>
+                                    <div className={styles.spinner}></div>
+                                    <span>그룹 목록을 불러오는 중...</span>
+                                </div>
+                            ) : allGroups.length === 0 ? (
+                                <div className={styles.noGroups}>
+                                    등록된 조직이 없습니다.
+                                </div>
+                            ) : (
+                                <div className={styles.groupGrid}>
+                                    {allGroups.map((group) => {
+                                        const isAdmin = adminGroups.has(group);
+                                        const isUserInGroup = user?.groups?.includes(group);
+
+                                        return (
+                                            <div key={group} className={styles.groupItem}>
+                                                <span className={styles.groupName}>
+                                                    {group}
+                                                    {!isUserInGroup && (
+                                                        <span className={styles.notMemberBadge}>
+                                                            미소속
+                                                        </span>
+                                                    )}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    className={`${styles.groupAdminButton} ${
+                                                        isAdmin ? styles.groupAdminButtonActive : styles.groupAdminButtonInactive
+                                                    }`}
+                                                    onClick={() => handleToggleGroupAdmin(group)}
+                                                    disabled={loading || !isUserInGroup}
+                                                    title={
+                                                        !isUserInGroup
+                                                            ? '먼저 해당 조직에 사용자를 추가해주세요'
+                                                            : isAdmin
+                                                            ? '클릭하여 관리자 권한 제거'
+                                                            : '클릭하여 관리자 권한 부여'
+                                                    }
+                                                >
+                                                    {isAdmin ? 'ADMIN' : 'USER'}
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     )}
 

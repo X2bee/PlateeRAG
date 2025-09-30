@@ -5,8 +5,9 @@ import { LuPanelRightOpen, LuSave, LuCheck, LuX, LuPencil, LuFileText, LuArrowLe
 import { getWorkflowName, saveWorkflowName } from '@/app/_common/utils/workflowStorage';
 import { FiUpload } from 'react-icons/fi';
 import { BiCodeAlt } from "react-icons/bi";
-import { showHistoryClearWarningKo } from '@/app/_common/utils/toastUtilsKo';
+import { showHistoryClearWarningKo, showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { devLog } from '@/app/_common/utils/logger';
+import { renameWorkflow } from '@/app/_common/api/workflow/workflowAPI';
 
 interface HeaderProps {
     onMenuClick: () => void;
@@ -46,6 +47,7 @@ const Header: React.FC<HeaderProps> = ({
     const [workflowName, setWorkflowName] = useState<string>('Workflow');
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [editValue, setEditValue] = useState<string>('');
+    const [oldWorkflowName, setOldWorkflowName] = useState<string>('');
     const inputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
 
@@ -93,25 +95,52 @@ const Header: React.FC<HeaderProps> = ({
     }, [isEditing]);
 
     const handleEditClick = (): void => {
+        setOldWorkflowName(workflowName);
         setEditValue(workflowName);
         setIsEditing(true);
     };
 
-    const handleSaveClick = (): void => {
+    const handleSaveClick = async (): Promise<void> => {
         const trimmedValue = editValue.trim();
         const finalValue = trimmedValue || 'Workflow';
 
-        setWorkflowName(finalValue);
-        saveWorkflowName(finalValue);
-
-        devLog.log('Header: Workflow name changed to:', finalValue);
-
-        // Notify parent component of changes
-        if (onWorkflowNameChange) {
-            onWorkflowNameChange(finalValue);
+        // 이름이 변경되지 않은 경우
+        if (finalValue === oldWorkflowName) {
+            setIsEditing(false);
+            return;
         }
 
-        setIsEditing(false);
+        try {
+            // API를 통해 워크플로우 이름 변경
+            await renameWorkflow(oldWorkflowName, finalValue);
+
+            setWorkflowName(finalValue);
+            saveWorkflowName(finalValue);
+
+            devLog.log('Header: Workflow name changed from:', oldWorkflowName, 'to:', finalValue);
+
+            // Notify parent component of changes
+            if (onWorkflowNameChange) {
+                onWorkflowNameChange(finalValue);
+            }
+
+            showSuccessToastKo('워크플로우 이름이 변경되었습니다.');
+            setIsEditing(false);
+        } catch (error) {
+            devLog.error('Failed to rename workflow:', error);
+
+            // 에러 메시지 파싱
+            const errorMessage = error instanceof Error ? error.message : String(error);
+
+            if (errorMessage.includes('already exists')) {
+                showErrorToastKo('이미 존재하는 이름입니다. 다른 이름으로 시도하세요.');
+            } else {
+                showErrorToastKo('워크플로우 이름 변경에 실패했습니다.');
+            }
+
+            // 실패 시 원래 이름으로 되돌림
+            setEditValue(oldWorkflowName);
+        }
     };
 
     const handleCancelClick = (): void => {
@@ -121,7 +150,7 @@ const Header: React.FC<HeaderProps> = ({
 
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
         if (e.key === 'Enter') {
-            handleSaveClick();
+            void handleSaveClick();
         } else if (e.key === 'Escape') {
             handleCancelClick();
         }

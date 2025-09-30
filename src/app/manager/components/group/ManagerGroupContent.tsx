@@ -24,6 +24,7 @@ interface User {
     is_admin?: boolean;
     user_type: 'superuser' | 'admin' | 'standard' | string;
     group_name?: string;
+    groups?: string[]; // 사용자가 속한 모든 그룹 목록
     last_login?: string | null;
     password_hash?: string;
     preferences?: any;
@@ -163,6 +164,19 @@ const ManagerGroupContent: React.FC = () => {
             hour: '2-digit',
             minute: '2-digit'
         });
+    };
+
+    // 그룹 관리자 여부 확인 함수
+    const isGroupAdmin = (user: User, groupName: string): boolean => {
+        // user.groups 배열이 있는 경우
+        if (user.groups && Array.isArray(user.groups)) {
+            const adminGroupName = `${groupName}__admin__`;
+            return user.groups.includes(groupName) && user.groups.includes(adminGroupName);
+        }
+
+        // user.group_name 문자열만 있는 경우 (레거시)
+        // 이 경우 백엔드에서 groups 배열을 제공하지 않으므로 false 반환
+        return false;
     };
 
     if (loading) {
@@ -341,20 +355,24 @@ const ManagerGroupContent: React.FC = () => {
                                         <td>
                                             <span className={`${styles.role} ${
                                                 user.user_type === 'superuser' ? styles.roleSuperuser :
-                                                user.user_type === 'admin' ? styles.roleAdmin :
-                                                user.user_type === 'standard' ? styles.roleUser :
-                                                styles.roleUnknown
+                                                selectedGroup && isGroupAdmin(user, selectedGroup) ? styles.roleAdmin :
+                                                styles.roleUser
                                             }`}>
                                                 {user.user_type === 'superuser' ? 'SUPER' :
-                                                 user.user_type === 'admin' ? 'ADMIN' :
-                                                 user.user_type === 'standard' ? 'USER' :
-                                                 'UNKNOWN'}
+                                                 selectedGroup && isGroupAdmin(user, selectedGroup) ? 'ADMIN' :
+                                                 'USER'}
                                             </span>
                                         </td>
                                         <td className={styles.actions}>
                                             <button
                                                 className={`${styles.actionButton} ${styles.dangerButton}`}
                                                 onClick={() => handleRemoveUser(user)}
+                                                disabled={user.user_type === 'admin' || user.user_type === 'superuser'}
+                                                title={
+                                                    user.user_type === 'admin' || user.user_type === 'superuser'
+                                                        ? '관리자 계정 편집은 불가능합니다'
+                                                        : '조직에서 제외'
+                                                }
                                             >
                                                 제외
                                             </button>

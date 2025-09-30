@@ -401,6 +401,51 @@
     }
 }
 
+.roleButton {
+    padding: $admin-spacing-xs $admin-spacing-sm;
+    border-radius: $admin-radius-sm;
+    font-size: $admin-font-size-xs;
+    font-weight: 600;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    min-width: 60px;
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: $admin-shadow-sm;
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+.roleButtonAdmin {
+    background: $admin-info-light;
+    color: $admin-info-hover;
+    border-color: $admin-info;
+
+    &:hover {
+        background: $admin-info;
+        color: white;
+        border-color: $admin-info-hover;
+    }
+}
+
+.roleButtonUser {
+    background: $admin-primary-light;
+    color: $admin-primary-hover;
+    border-color: $admin-primary;
+
+    &:hover {
+        background: $admin-primary;
+        color: white;
+        border-color: $admin-primary-hover;
+    }
+}
+
 .email {
     font-weight: 500;
     color: $admin-text-primary;
