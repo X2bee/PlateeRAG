@@ -2,7 +2,7 @@
 
 import React from 'react';
 import styles from './DeleteModelDialog.module.scss';
-import type { RegisteredModel } from '../types';
+import type { RegisteredModel } from '../../types';
 import { createPortal } from 'react-dom';
 
 interface DeleteModelDialogProps {

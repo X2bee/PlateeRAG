@@ -1,3 +1,29 @@
+export interface MlflowAdditionalMetadata {
+    artifact_uri?: string | null;
+    stage?: string | null;
+    status?: string | null;
+    source?: string | null;
+    tags?: Record<string, unknown> | null;
+    creation_timestamp?: number | null;
+    creation_timestamp_iso?: string | null;
+    last_updated_timestamp?: number | null;
+    last_updated_timestamp_iso?: string | null;
+    run_link?: string | null;
+    [key: string]: unknown;
+}
+
+export interface MlflowMetadata {
+    tracking_uri?: string | null;
+    model_uri?: string | null;
+    run_id?: string | null;
+    model_version?: string | null;
+    registered_model_name?: string | null;
+    load_flavor?: string | null;
+    artifact_path?: string | null;
+    additional_metadata?: MlflowAdditionalMetadata | null;
+    [key: string]: unknown;
+}
+
 export interface RegisteredModel {
     model_id: number;
     model_name: string;
@@ -7,6 +33,7 @@ export interface RegisteredModel {
     input_schema?: string[] | null;
     output_schema?: string[] | null;
     metadata?: Record<string, unknown> | null;
+    mlflow_metadata?: MlflowMetadata | null;
     file_path?: string | null;
     file_size?: number | null;
     file_checksum?: string | null;
@@ -64,6 +91,7 @@ export interface ListModelsResponse {
         model_name: string;
         model_version: string | null;
         framework?: string | null;
+        mlflow_metadata?: MlflowMetadata | null;
         file_path?: string | null;
         file_size?: number | null;
         file_checksum?: string | null;

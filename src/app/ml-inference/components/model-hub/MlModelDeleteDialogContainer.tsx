@@ -2,7 +2,7 @@
 
 import React from 'react';
 import DeleteModelDialog from './DeleteModelDialog';
-import { useMlModelWorkspace } from './MlModelWorkspaceContext';
+import { useMlModelWorkspace } from '../MlModelWorkspaceContext';
 import { create } from 'domain';
 import { createPortal } from 'react-dom';
 

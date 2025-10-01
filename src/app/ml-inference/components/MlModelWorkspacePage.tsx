@@ -5,9 +5,9 @@ import ContentArea from '@/app/main/workflowSection/components/ContentArea';
 import styles from './MlModelWorkspace.module.scss';
 import MlModelStatusBanner, { MlModelHeaderActions } from './MlModelToolbar';
 import MlModelFullView from './MlModelFullView';
-import MlModelUploadView from './MlModelUploadView';
-import MlModelHubView from './MlModelHubView';
-import MlModelInferenceView from './MlModelInferenceView';
+import MlModelUploadView from './model-upload/MlModelUploadView';
+import MlModelHubView from './model-hub/MlModelHubView';
+import MlModelInferenceView from './model-infer/MlModelInferenceView';
 
 type WorkspaceView = 'full' | 'upload' | 'hub' | 'inference';
 
@@ -36,6 +36,7 @@ interface MlModelWorkspacePageProps {
 
 const MlModelWorkspacePage: React.FC<MlModelWorkspacePageProps> = ({ view }) => {
     const { title, description } = VIEW_CONFIG[view];
+    const headerButtons = view === 'hub' ? null : <MlModelHeaderActions />;
 
     const renderView = () => {
         switch (view) {
@@ -55,7 +56,7 @@ const MlModelWorkspacePage: React.FC<MlModelWorkspacePageProps> = ({ view }) => 
         <ContentArea
             title={title}
             description={description}
-            headerButtons={<MlModelHeaderActions />}
+            headerButtons={headerButtons ?? undefined}
             className={styles.contentAreaWrapper}
         >
             <MlModelStatusBanner />

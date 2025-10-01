@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { apiClient } from '@/app/_common/api/helper/apiClient';
 import { API_BASE_URL } from '@/app/config.js';
 import type {
@@ -22,6 +22,94 @@ const joinUrl = (baseUrl: string, path: string) => {
     const normalizedBase = trimmed.endsWith('/') ? trimmed.slice(0, -1) : trimmed;
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
     return `${normalizedBase}${normalizedPath}`;
+};
+
+const stripWrapperTokens = (value: string) => {
+    return value
+        .replace(/^\s+|\s+$/g, '')
+        .replace(/^[`"'\[{\(]+/, '')
+        .replace(/[`"'\]}\),]+$/g, '')
+        .replace(/^,+|,+$/g, '')
+        .replace(/\\"/g, '"');
+};
+
+const flattenValues = (input: unknown): string[] => {
+    if (!input) {
+        return [];
+    }
+
+    if (Array.isArray(input)) {
+        return input.flatMap(item => flattenValues(item));
+    }
+
+    if (typeof input === 'object') {
+        return Object.values(input as Record<string, unknown>).flatMap(value => flattenValues(value));
+    }
+
+    const stringValue = String(input);
+    const cleaned = stripWrapperTokens(stringValue);
+    if (!cleaned) {
+        return [];
+    }
+
+    return cleaned.split(',').map(token => stripWrapperTokens(token)).filter(token => token.length > 0);
+};
+
+const normalizeSchema = (schema: unknown): string[] | null => {
+    if (!schema) {
+        return null;
+    }
+
+    if (Array.isArray(schema)) {
+        const normalized = flattenValues(schema);
+        return normalized.length > 0 ? normalized : null;
+    }
+
+    if (typeof schema === 'string') {
+        const trimmed = schema.trim();
+        if (!trimmed) {
+            return null;
+        }
+
+        try {
+            const parsed = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) {
+                const normalized = flattenValues(parsed);
+                return normalized.length > 0 ? normalized : null;
+            }
+            if (parsed && typeof parsed === 'object') {
+                const values = Object.values(parsed as Record<string, unknown>);
+                const normalized = flattenValues(values);
+                return normalized.length > 0 ? normalized : null;
+            }
+            if (parsed !== null && parsed !== undefined) {
+                const tokens = flattenValues(parsed);
+                if (tokens.length > 0) {
+                    return tokens;
+                }
+                const normalized = stripWrapperTokens(String(parsed));
+                return normalized ? [normalized] : null;
+            }
+        } catch {
+            const inline = trimmed.replace(/^\{|\}$/g, '').replace(/^\[|\]$/g, '');
+            const tokens = inline
+                .split(',')
+                .map(token => stripWrapperTokens(token))
+                .filter(token => token.length > 0);
+            return tokens.length > 0 ? tokens : null;
+        }
+
+        const normalized = stripWrapperTokens(trimmed);
+        return normalized ? [normalized] : null;
+    }
+
+    if (typeof schema === 'object') {
+        const values = Object.values(schema as Record<string, unknown>);
+        const normalized = flattenValues(values);
+        return normalized.length > 0 ? normalized : null;
+    }
+
+    return null;
 };
 
 interface DeleteState {
@@ -72,6 +160,7 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
 
     const [models, setModels] = useState<RegisteredModel[]>([]);
     const [selectedModelId, setSelectedModelId] = useState<number | null>(null);
+    const selectedModelIdRef = useRef<number | null>(null);
     const [isLoadingList, setIsLoadingList] = useState(false);
     const [listError, setListError] = useState<string | null>(null);
     const [modelDetail, setModelDetail] = useState<ModelDetailResponse | null>(null);
@@ -91,6 +180,7 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
         input_schema: null,
         output_schema: null,
         metadata: null,
+        mlflow_metadata: item.mlflow_metadata ?? null,
         file_path: item.file_path ?? null,
         file_size: item.file_size ?? null,
         file_checksum: item.file_checksum ?? null,
@@ -101,23 +191,16 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
     }), []);
 
     const handleModelInserted = useCallback((response: UploadSuccessResponse) => {
-        const normalizeSchema = (schema: unknown): string[] | null => {
-            if (!schema) return null;
-            if (Array.isArray(schema)) {
-                return schema.map(item => String(item));
-            }
-            return null;
-        };
-
         const normalized: RegisteredModel = {
             model_id: response.model_id,
             model_name: response.model_name,
             model_version: response.model_version ?? null,
             framework: response.framework ?? null,
             description: response.description ?? null,
-            input_schema: normalizeSchema(response.input_schema),
-            output_schema: normalizeSchema(response.output_schema),
+            input_schema: normalizeSchema(response.input_schema ?? null),
+            output_schema: normalizeSchema(response.output_schema ?? null),
             metadata: response.metadata ?? null,
+            mlflow_metadata: response.mlflow_metadata ?? null,
             file_path: response.file_path ?? null,
             file_size: response.file_size ?? null,
             file_checksum: response.file_checksum ?? null,
@@ -161,10 +244,12 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
 
             setModels(updatedModels);
 
+            const currentSelectedId = selectedModelIdRef.current;
+
             if (updatedModels.length === 0) {
                 setSelectedModelId(null);
                 setModelDetail(null);
-            } else if (selectedModelId && !updatedModels.some(model => model.model_id === selectedModelId)) {
+            } else if (currentSelectedId && !updatedModels.some(model => model.model_id === currentSelectedId)) {
                 setSelectedModelId(null);
                 setModelDetail(null);
             }
@@ -177,7 +262,7 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
         } finally {
             setIsLoadingList(false);
         }
-    }, [baseUrl, mapListItemToRegisteredModel, selectedModelId]);
+    }, [baseUrl, mapListItemToRegisteredModel]);
 
     const fetchModelDetail = useCallback(async (modelId: number, options?: { silent?: boolean }) => {
         if (!options?.silent) {
@@ -201,7 +286,12 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
             }
 
             const detailPayload = payload as ModelDetailResponse;
-            setModelDetail(detailPayload);
+            const normalizedDetail: ModelDetailResponse = {
+                ...detailPayload,
+                input_schema: normalizeSchema(detailPayload.input_schema ?? null),
+                output_schema: normalizeSchema(detailPayload.output_schema ?? null),
+            };
+            setModelDetail(normalizedDetail);
 
             setModels(prev => {
                 const exists = prev.some(model => model.model_id === detailPayload.model_id);
@@ -212,13 +302,13 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
                     model.model_id === detailPayload.model_id
                         ? {
                             ...model,
-                            ...detailPayload,
+                            ...normalizedDetail,
                         }
                         : model
                 );
             });
 
-            return detailPayload;
+            return normalizedDetail;
         } catch (error) {
             const apiError: ApiError =
                 error instanceof Error
@@ -382,6 +472,10 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
     ]);
 
     useEffect(() => {
+        selectedModelIdRef.current = selectedModelId;
+    }, [selectedModelId]);
+
+    useEffect(() => {
         fetchModels().catch(() => {
             // 오류는 이미 상태로 관리됨
         });
@@ -394,4 +488,4 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
     );
 };
 
-export { joinUrl };
+export { joinUrl, normalizeSchema };
