@@ -148,7 +148,7 @@ const ManagerWorkflowLogTab: React.FC<ManagerWorkflowLogTabProps> = ({ workflowI
         try {
             setLoading(true);
             setError(null);
-            const response = await getAllIOLogs(page, PAGE_SIZE, userId, workflowId) as any;
+            const response = await getAllIOLogs(page, PAGE_SIZE, userId, workflowId, workflowName) as any;
             const newLogs = response.io_logs || [];
 
             if (resetLogs) {
@@ -193,7 +193,7 @@ const ManagerWorkflowLogTab: React.FC<ManagerWorkflowLogTabProps> = ({ workflowI
             let lastPagination: any = null;
 
             for (let page = startPage; page <= endPage; page++) {
-                const response = await getAllIOLogs(page, PAGE_SIZE, userId, workflowId) as any;
+                const response = await getAllIOLogs(page, PAGE_SIZE, userId, workflowId, workflowName) as any;
                 const pageLogs = response.io_logs || [];
                 allLogs = [...allLogs, ...pageLogs];
                 lastPagination = response.pagination;

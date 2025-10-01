@@ -21,7 +21,7 @@ import AdminWorkflowControll from '@/app/admin/components/workflows/AdminWorkflo
 import AdminBackendLogs from '@/app/admin/components/sysmonitor/AdminBackendLogs';
 import MCPMarketContent from '@/app/admin/components/mcp/MCPMarketContent';
 import AdminNodeManage from '@/app/admin/components/workflows/AdminNodeManage';
-import AdminPromptStore from '@/app/admin/components/workflows/AdminPromptStore';
+import AdminPromptStore from '@/app/admin/components/workflows/AdminPromptStore/AdminPromptStore';
 import {
     getUserSidebarItems,
     getWorkflowSidebarItems,

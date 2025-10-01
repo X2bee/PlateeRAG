@@ -9,9 +9,10 @@ import { apiClient } from '@/app/_common/api/helper/apiClient';
  * @param {number} pageSize - 페이지 크기 (기본값: 250)
  * @param {number|null} userId - 필터링할 사용자 ID (선택사항)
  * @param {string|null} workflowId - 필터링할 워크플로우 ID (선택사항)
+ * @param {string|null} workflowName - 필터링할 워크플로우 이름 (선택사항)
  * @returns {Promise<Object>} IO 로그 목록 및 페이지네이션 정보
  */
-export const getAllIOLogs = async (page = 1, pageSize = 250, userId = null, workflowId = null) => {
+export const getAllIOLogs = async (page = 1, pageSize = 250, userId = null, workflowId = null, workflowName = null) => {
     try {
         const params = new URLSearchParams({
             page: page.toString(),
@@ -24,6 +25,10 @@ export const getAllIOLogs = async (page = 1, pageSize = 250, userId = null, work
 
         if (workflowId) {
             params.append('workflow_id', workflowId);
+        }
+
+        if (workflowName) {
+            params.append('workflow_name', workflowName);
         }
 
         const response = await apiClient(

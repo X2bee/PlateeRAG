@@ -249,7 +249,7 @@ const AdminPromptStore: React.FC<AdminPromptStoreProps> = ({ onPromptSelect, cla
     };
 
     // 텍스트 자르기 함수
-    const truncateText = (text: string, maxLength: number = 150) => {
+    const truncateText = (text: string, maxLength: number = 50) => {
         if (text.length <= maxLength) return text;
         return text.substring(0, maxLength) + '...';
     };
