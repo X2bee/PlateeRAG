@@ -490,6 +490,243 @@
     margin-bottom: 0.35rem;
 }
 
+.versionSummaryCard {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 12px;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+}
+
+.versionSummaryBody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.versionSummaryActions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.versionManageButton {
+    border: 1px solid rgba(59, 130, 246, 0.45);
+    background: rgba(59, 130, 246, 0.12);
+    color: #1d4ed8;
+    border-radius: 999px;
+    padding: 0.18rem 0.6rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.versionManageButton:hover {
+    background: rgba(59, 130, 246, 0.22);
+    transform: translateY(-1px);
+}
+
+.versionManageButton:focus-visible {
+    outline: 2px solid rgba(59, 130, 246, 0.45);
+    outline-offset: 2px;
+}
+
+.versionChangeButton {
+    border: none;
+    border-radius: 999px;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: rgba(59, 130, 246, 0.15);
+    color: #1d4ed8;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.versionChangeButton:hover {
+    background: rgba(59, 130, 246, 0.25);
+}
+
+.versionChangeButton:focus-visible {
+    outline: 2px solid rgba(59, 130, 246, 0.45);
+    outline-offset: 2px;
+}
+
+.versionModalBackdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.3);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 150;
+}
+
+.versionModal {
+    width: min(520px, 100%);
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    box-shadow: 0 28px 70px rgba(15, 23, 42, 0.2);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 1.75rem 1.75rem;
+    color: #1f2937;
+}
+
+.versionModalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.85rem;
+}
+
+.versionModalHeader h2 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.versionModalHeader button {
+    border: none;
+    background: transparent;
+    font-size: 1.1rem;
+    color: #6b7280;
+    cursor: pointer;
+}
+
+.versionModalHeader button:hover {
+    color: #ef4444;
+}
+
+.versionModalDescription {
+    margin: 0 0 1rem;
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+.versionModalList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: clamp(240px, 50vh, 420px);
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+
+.versionCard,
+.versionCardActive {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: left;
+    border-radius: 14px;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    padding: 0.85rem 1rem;
+    cursor: pointer;
+    transition: border-color 0.2s ease, transform 0.1s ease;
+}
+
+.versionCard:hover,
+.versionCardActive:hover {
+    transform: translateY(-1px);
+}
+
+.versionCardActive {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.12);
+}
+
+.versionCardHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.versionCardTitle {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #1f2937;
+}
+
+.versionCardStage {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    background: rgba(148, 163, 184, 0.2);
+    color: #475569;
+}
+
+.versionCardStageProduction {
+    background: rgba(239, 68, 68, 0.16);
+    color: #b91c1c;
+}
+
+.versionCardStageStaging {
+    background: rgba(59, 130, 246, 0.16);
+    color: #1d4ed8;
+}
+
+.versionCardStageArchived {
+    background: rgba(107, 114, 128, 0.2);
+    color: #374151;
+}
+
+.versionCardStageNone {
+    background: rgba(148, 163, 184, 0.2);
+    color: #475569;
+}
+
+.versionCardMeta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    color: #6b7280;
+}
+
+.versionCardMetaLabel {
+    font-weight: 600;
+}
+
+.versionCardMetaValue {
+    font-family: 'Roboto Mono', 'SFMono-Regular', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-size: 0.78rem;
+    color: #334155;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.versionCardTimestamp {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.versionCardHint {
+    font-size: 0.75rem;
+    color: #1d4ed8;
+    font-weight: 600;
+}
+
+@media (max-width: 520px) {
+    .versionModal {
+        padding: 1.2rem 1.3rem 1.4rem;
+    }
+}
+
 .versionSummaryMeta {
     display: flex;
     flex-wrap: wrap;
@@ -570,7 +807,6 @@
     background: #f9fafb;
     color: #1f2937;
     font-size: 0.8rem;
-    cursor: pointer;
     transition: border-color 0.2s ease, transform 0.1s ease;
 }
 
@@ -582,6 +818,34 @@
 .versionButtonActive {
     border-color: #3b82f6;
     background: rgba(59, 130, 246, 0.12);
+}
+
+.versionCardHeaderRow {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.versionSelectButton {
+    border-radius: 999px;
+    border: 1px solid rgba(59, 130, 246, 0.45);
+    padding: 0.35rem 0.9rem;
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.12), rgba(59, 130, 246, 0.2));
+    color: #1d4ed8;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.versionSelectButton:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(59, 130, 246, 0.18);
+}
+
+.versionSelectButton:focus-visible {
+    outline: 2px solid rgba(59, 130, 246, 0.45);
+    outline-offset: 2px;
 }
 
 .versionLabel {

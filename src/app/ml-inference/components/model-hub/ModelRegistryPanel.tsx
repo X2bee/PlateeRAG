@@ -5,6 +5,7 @@ import type { CSSProperties } from 'react';
 import styles from './ModelRegistryPanel.module.scss';
 import type { ModelDetailResponse, RegisteredModel } from '../../types';
 import ModelDetailModal from './ModelDetailModal';
+import ModelVersionDialog from './ModelVersionDialog';
 import { useMlModelWorkspace, normalizeSchema } from '../MlModelWorkspaceContext';
 import { formatStageDisplay, normalizeMlflowStage } from '../../utils/stageUtils';
 
@@ -69,8 +70,8 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
     const [columnCount, setColumnCount] = useState(2);
     const [viewMode, setViewMode] = useState<ViewMode>('grouped');
     const [searchTerm, setSearchTerm] = useState('');
-    const [openVersionPickerFor, setOpenVersionPickerFor] = useState<string | null>(null);
     const registryRef = React.useRef<HTMLElement | null>(null);
+    const [versionDialogGroup, setVersionDialogGroup] = useState<{ groupLabel: string; versions: RegisteredModel[] } | null>(null);
 
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
@@ -218,7 +219,7 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
             });
         }
         setDetailModalOpen(true);
-        setOpenVersionPickerFor(null);
+        setVersionDialogGroup(null);
     };
 
     useEffect(() => {
@@ -238,12 +239,21 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
     }, [isDetailModalOpen, modelDetail, selectedModelId]);
 
     useEffect(() => {
-        setOpenVersionPickerFor(null);
+        setVersionDialogGroup(null);
     }, [viewMode, normalizedSearch]);
 
     const handleCloseDetailModal = () => {
         setDetailModalOpen(false);
         setModalSelectedModel(null);
+    };
+
+    const handleCloseVersionDialog = () => {
+        setVersionDialogGroup(null);
+    };
+
+    const handleVersionDialogSelect = (modelId: number) => {
+        onSelect(modelId);
+        setVersionDialogGroup(null);
     };
 
     const findActiveModel = (groupItems: RegisteredModel[]) => {
@@ -280,11 +290,6 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
     }
 
     const listStyle: CSSProperties = { '--registry-columns': String(columnCount) } as CSSProperties;
-
-    const toggleVersionPicker = (groupKey: string) => {
-        setOpenVersionPickerFor(prev => (prev === groupKey ? null : groupKey));
-    };
-
     const registryClassName = className ? `${styles.registry} ${className}` : styles.registry;
 
     return (
@@ -379,9 +384,6 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
                         const deleteDisabled = !activeModel || normalizedStage === 'Production';
                         const createdAt = formatTimestamp(activeModel?.created_at);
                         const updatedAt = formatTimestamp(activeModel?.updated_at);
-                        const showVersionPicker = group.variant === 'grouped'
-                            && hasMultipleVersions
-                            && openVersionPickerFor === group.groupKey;
 
                         return (
                             <li
@@ -469,15 +471,20 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
 
                                     <div className={styles.versionSection}>
                                         {group.variant === 'grouped' ? (
-                                            <button
-                                                type="button"
-                                                className={styles.versionSummary}
-                                                onClick={() => onSelect(activeModel!.model_id)}
-                                            >
-                                                <div>
+                                            <div className={styles.versionSummaryCard}>
+                                                <div className={styles.versionSummaryBody}>
                                                     <div className={styles.versionSummaryHeader}>
                                                         <span className={styles.versionLabel}>버전 {version}</span>
                                                         {stageLabel ? <span className={styles.versionStage} data-stage={normalizedStage}>{stageLabel}</span> : null}
+                                                        {hasMultipleVersions ? (
+                                                            <button
+                                                                type="button"
+                                                                className={styles.versionChangeButton}
+                                                                onClick={() => setVersionDialogGroup({ groupLabel: group.groupLabel, versions: group.items.slice() })}
+                                                            >
+                                                                버전 변경
+                                                            </button>
+                                                        ) : null}
                                                     </div>
                                                     <div className={styles.versionSummaryMeta}>
                                                         <span className={styles.versionMetaLabel}>Run</span>
@@ -490,55 +497,19 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
                                                         </div>
                                                     ) : null}
                                                 </div>
-                                                <span className={styles.versionToggleLabel}>선택</span>
-                                            </button>
+                                                <div className={styles.versionSummaryActions}>
+                                                    <button
+                                                        type="button"
+                                                        className={styles.versionSelectButton}
+                                                        onClick={() => onSelect(activeModel!.model_id)}
+                                                    >
+                                                        선택
+                                                    </button>
+                                                </div>
+                                            </div>
                                         ) : null}
 
-                                        {group.variant === 'grouped' && hasMultipleVersions ? (
-                                            <>
-                                                <button
-                                                    type="button"
-                                                    className={styles.versionToggleSecondary}
-                                                    onClick={() => toggleVersionPicker(group.groupKey)}
-                                                    aria-expanded={showVersionPicker}
-                                                >
-                                                    버전 변경
-                                                </button>
-                                                {showVersionPicker ? (
-                                                    <div className={styles.versionPicker}>
-                                                        {group.items.map(item => {
-                                                            const itemVersion = item.mlflow_metadata?.model_version ?? item.model_version ?? 'latest';
-                                                            const versionStage = item.mlflow_metadata?.additional_metadata?.stage ?? null;
-                                                            const normalizedVersionStage = normalizeMlflowStage(versionStage);
-                                                            const versionStageLabel = versionStage ? formatStageDisplay(normalizedVersionStage) : null;
-                                                            const runIdentifier = String(item.mlflow_metadata?.run_id ?? item.model_id);
-                                                            return (
-                                                                <button
-                                                                    key={item.model_id}
-                                                                    type="button"
-                                                                    onClick={() => {
-                                                                        onSelect(item.model_id);
-                                                                        setOpenVersionPickerFor(null);
-                                                                    }}
-                                                                    className={item.model_id === selectedModelId ? styles.versionButtonActive : styles.versionButton}
-                                                                >
-                                                                    <span className={styles.versionLabel}>버전 {itemVersion}</span>
-                                                                    {versionStageLabel ? (
-                                                                        <span className={styles.versionStage} data-stage={normalizedVersionStage}>
-                                                                            {versionStageLabel}
-                                                                        </span>
-                                                                    ) : null}
-                                                                    <span className={styles.versionMeta} title={`Run ${runIdentifier}`}>
-                                                                        <span className={styles.versionMetaLabel}>Run</span>
-                                                                        <span className={styles.versionMetaValue}>{runIdentifier}</span>
-                                                                    </span>
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                ) : null}
-                                            </>
-                                        ) : group.variant === 'grouped' ? null : (
+                                        {group.variant === 'flat' ? (
                                             <div className={styles.versionList}>
                                                 {group.items.map(item => {
                                                     const itemVersion = item.mlflow_metadata?.model_version ?? item.model_version ?? 'latest';
@@ -548,27 +519,35 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
                                                     const runIdentifier = String(item.mlflow_metadata?.run_id ?? item.model_id);
                                                     const isActiveVersion = item.model_id === selectedModelId;
                                                     return (
-                                                        <button
+                                                        <div
                                                             key={item.model_id}
-                                                            type="button"
-                                                            onClick={() => onSelect(item.model_id)}
+                                                            role="group"
                                                             className={isActiveVersion ? styles.versionButtonActive : styles.versionButton}
                                                         >
-                                                            <span className={styles.versionLabel}>버전 {itemVersion}</span>
-                                                            {versionStageLabel ? (
-                                                                <span className={styles.versionStage} data-stage={normalizedVersionStage}>
-                                                                    {versionStageLabel}
-                                                                </span>
-                                                            ) : null}
-                                                            <span className={styles.versionMeta} title={`Run ${runIdentifier}`}>
+                                                            <div className={styles.versionCardHeaderRow}>
+                                                                <span className={styles.versionLabel}>버전 {itemVersion}</span>
+                                                                {versionStageLabel ? (
+                                                                    <span className={styles.versionStage} data-stage={normalizedVersionStage}>
+                                                                        {versionStageLabel}
+                                                                    </span>
+                                                                ) : null}
+                                                            </div>
+                                                            <div className={styles.versionMeta} title={`Run ${runIdentifier}`}>
                                                                 <span className={styles.versionMetaLabel}>Run</span>
                                                                 <span className={styles.versionMetaValue}>{runIdentifier}</span>
-                                                            </span>
-                                                        </button>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => onSelect(item.model_id)}
+                                                                className={styles.versionSelectButton}
+                                                            >
+                                                                선택
+                                                            </button>
+                                                        </div>
                                                     );
                                                 })}
                                             </div>
-                                        )}
+                                        ) : null}
                                     </div>
                                 </div>
                             </li>
@@ -585,6 +564,15 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
                 onClose={handleCloseDetailModal}
                 onRefetch={selectedModelId ? () => fetchModelDetail(selectedModelId) : undefined}
             />
+            {versionDialogGroup ? (
+                <ModelVersionDialog
+                    groupLabel={versionDialogGroup.groupLabel}
+                    versions={versionDialogGroup.versions}
+                    selectedModelId={selectedModelId}
+                    onSelect={handleVersionDialogSelect}
+                    onClose={handleCloseVersionDialog}
+                />
+            ) : null}
         </section>
     );
 };
