@@ -1,7 +1,7 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, createContext, useContext } from 'react';
 import { useRouter } from 'next/navigation';
-import { validateToken, refreshToken } from '@/app/_common/api/authAPI';
+import { validateToken, refreshToken, getAdminAvailableSections } from '@/app/_common/api/authAPI';
 import { checkSuperuser, validateSuperuser } from '@/app/admin/api/admin';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { useSessionExpiredLogout } from '@/app/_common/utils/logoutUtils';
@@ -23,6 +23,18 @@ interface TokenValidationResult {
     message?: string;
 }
 
+interface AdminAuthContextType {
+    availableSections: string[];
+    hasAccessToSection: (section: string) => boolean;
+}
+
+const AdminAuthContext = createContext<AdminAuthContextType>({
+    availableSections: [],
+    hasAccessToSection: () => false,
+});
+
+export const useAdminAuth = () => useContext(AdminAuthContext);
+
 /**
  * Admin 전용 인증 가드 컴포넌트
  * 1. 슈퍼유저 존재 여부 확인
@@ -32,10 +44,16 @@ const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({ children, fallback }) =
     const router = useRouter();
     const [authStatus, setAuthStatus] = useState<'loading' | 'no-superuser' | 'need-login' | 'authenticated' | 'unauthorized'>('loading');
     const [isLoading, setIsLoading] = useState(true);
+    const [availableSections, setAvailableSections] = useState<string[]>([]);
 
     // CookieProvider의 useAuth 훅 사용
     const { user, clearAuth, refreshAuth, isInitialized, isLoggingOut } = useAuth();
     const { sessionExpiredLogout } = useSessionExpiredLogout();
+
+    // 섹션 접근 권한 확인 함수
+    const hasAccessToSection = (section: string): boolean => {
+        return availableSections.includes(section);
+    };
 
     useEffect(() => {
         const checkAdminAccess = async () => {
@@ -126,6 +144,19 @@ const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({ children, fallback }) =
 
                     if (isSuperuser) {
                         devLog.log('AdminAuthGuard: Admin access granted');
+
+                        // 6단계: 관리자 섹션 권한 조회
+                        try {
+                            const sectionsResult = await getAdminAvailableSections(user.user_id) as any;
+                            const sections = sectionsResult.available_admin_sections || [];
+                            devLog.log('AdminAuthGuard: Available sections:', sections);
+                            setAvailableSections(sections);
+                        } catch (sectionError) {
+                            devLog.error('AdminAuthGuard: Failed to fetch available sections:', sectionError);
+                            // 섹션 조회 실패 시 빈 배열로 설정 (아무것도 접근 불가)
+                            setAvailableSections([]);
+                        }
+
                         setAuthStatus('authenticated');
                     } else {
                         devLog.log('AdminAuthGuard: User is not a superuser, access denied');
@@ -247,8 +278,12 @@ const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({ children, fallback }) =
         );
     }
 
-    // 인증 완료 시 자식 컴포넌트 렌더링
-    return <>{children}</>;
+    // 인증 완료 시 자식 컴포넌트를 Context Provider로 감싸서 렌더링
+    return (
+        <AdminAuthContext.Provider value={{ availableSections, hasAccessToSection }}>
+            {children}
+        </AdminAuthContext.Provider>
+    );
 };
 
 /**
@@ -277,7 +312,7 @@ export const withAdminAuthGuard = <P extends object>(
  * 클라이언트 사이드에서만 Admin 권한 체크를 하는 훅
  * 서버 사이드 렌더링 시에는 항상 false 반환
  */
-export const useAdminAuth = () => {
+export const useClientAdminAuth = () => {
     const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
