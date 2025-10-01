@@ -290,13 +290,6 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
     return (
         <section ref={registryRef} className={registryClassName}>
             <header className={styles.header}>
-                <div className={styles.headerRow}>
-                    <div className={styles.headerTitles}>
-                        <h3>모델 레지스트리</h3>
-                        <p>등록된 모델과 버전을 빠르게 찾고 비교할 수 있습니다.</p>
-                    </div>
-                    <span className={styles.totalBadge}>총 {totalModelCount}개</span>
-                </div>
                 <div className={styles.controls}>
                     <div className={styles.viewToggle} role="tablist" aria-label="모델 보기 방식">
                         <button
@@ -374,6 +367,7 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
                         const stage = activeModel?.mlflow_metadata?.additional_metadata?.stage ?? null;
                         const normalizedStage = normalizeMlflowStage(stage);
                         const stageLabel = formatStageDisplay(normalizedStage);
+                        const hasMultipleVersions = group.items.length > 1;
                         const flavor = activeModel?.mlflow_metadata?.load_flavor ?? null;
                         const version = activeModel?.mlflow_metadata?.model_version ?? activeModel?.model_version ?? 'latest';
                         const deleteHandler = () => {
@@ -385,7 +379,9 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
                         const deleteDisabled = !activeModel || normalizedStage === 'Production';
                         const createdAt = formatTimestamp(activeModel?.created_at);
                         const updatedAt = formatTimestamp(activeModel?.updated_at);
-                        const showVersionPicker = group.variant === 'grouped' && openVersionPickerFor === group.groupKey;
+                        const showVersionPicker = group.variant === 'grouped'
+                            && hasMultipleVersions
+                            && openVersionPickerFor === group.groupKey;
 
                         return (
                             <li
@@ -498,7 +494,7 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
                                             </button>
                                         ) : null}
 
-                                        {group.variant === 'grouped' ? (
+                                        {group.variant === 'grouped' && hasMultipleVersions ? (
                                             <>
                                                 <button
                                                     type="button"
@@ -542,7 +538,7 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
                                                     </div>
                                                 ) : null}
                                             </>
-                                        ) : (
+                                        ) : group.variant === 'grouped' ? null : (
                                             <div className={styles.versionList}>
                                                 {group.items.map(item => {
                                                     const itemVersion = item.mlflow_metadata?.model_version ?? item.model_version ?? 'latest';

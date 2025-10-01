@@ -549,11 +549,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    padding: 0.75rem;
-    border-radius: 12px;
-    border: 1px solid #d1d5db;
-    background: #ffffff;
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+    padding: 0.25rem 0;
 }
 
 .versionList {
@@ -575,7 +571,7 @@
     color: #1f2937;
     font-size: 0.8rem;
     cursor: pointer;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+    transition: border-color 0.2s ease, transform 0.1s ease;
 }
 
 .versionButton:hover,
@@ -585,7 +581,6 @@
 
 .versionButtonActive {
     border-color: #3b82f6;
-    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.18);
     background: rgba(59, 130, 246, 0.12);
 }
 

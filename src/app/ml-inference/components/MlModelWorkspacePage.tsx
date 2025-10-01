@@ -36,7 +36,7 @@ interface MlModelWorkspacePageProps {
 
 const MlModelWorkspacePage: React.FC<MlModelWorkspacePageProps> = ({ view }) => {
     const { title, description } = VIEW_CONFIG[view];
-    const headerButtons = view === 'hub' ? null : <MlModelHeaderActions />;
+    const headerButtons = (view === 'hub' || view === 'inference') ? null : <MlModelHeaderActions />;
 
     const renderView = () => {
         switch (view) {
