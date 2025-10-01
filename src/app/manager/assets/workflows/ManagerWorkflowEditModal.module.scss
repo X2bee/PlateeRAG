@@ -1,0 +1,182 @@
+@use "sass:color";
+@use "@/app/_common/_variables" as *;
+
+// Modal Styles
+.modalBackdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: $white;
+    padding: 2rem;
+    border-radius: 0.75rem;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+
+    h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: $gray-800;
+        margin: 0 0 1.5rem 0;
+    }
+}
+
+.formGroup {
+    margin-bottom: 1.5rem;
+
+    label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: $gray-700;
+        margin-bottom: 0.5rem;
+
+        // 체크박스 라벨 스타일
+        input[type="checkbox"] {
+            margin-right: 0.5rem;
+        }
+    }
+
+    .toggleButton {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid $gray-300;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        background: $white;
+        color: $gray-700;
+
+        &:hover:not(:disabled) {
+            border-color: $primary-blue;
+            background: $gray-50;
+        }
+
+        &.active {
+            border-color: $primary-blue;
+            background: $primary-blue;
+            color: $white;
+
+            &:hover:not(:disabled) {
+                background: color.adjust($primary-blue, $lightness: -7%);
+            }
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+    }
+
+    input,
+    textarea,
+    select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid $gray-300;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        transition: border-color 0.2s ease-in-out;
+
+        &:focus {
+            outline: none;
+            border-color: $primary-blue;
+            box-shadow: 0 0 0 3px rgba($primary-blue, 0.1);
+        }
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    small {
+        display: block;
+        font-size: 0.75rem;
+        color: $gray-500;
+        margin-top: 0.25rem;
+    }
+}
+
+// 비활성화된 입력 필드 스타일
+.disabledInput {
+    background: $gray-100 !important;
+    color: $gray-500 !important;
+    cursor: not-allowed !important;
+
+    &:focus {
+        box-shadow: none !important;
+        border-color: $gray-300 !important;
+    }
+}
+
+.error {
+    background-color: color.adjust($primary-red, $alpha: -0.9);
+    color: $primary-red;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 2rem;
+}
+
+.button {
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    &.primary {
+        background-color: $primary-blue;
+        color: $white;
+        &:hover:not(:disabled) {
+            background-color: color.adjust($primary-blue, $lightness: -7%);
+        }
+    }
+
+    &.secondary {
+        background-color: $white;
+        color: $gray-700;
+        border-color: $gray-300;
+        &:hover:not(:disabled) {
+            background-color: $gray-50;
+        }
+    }
+}
+
+// 모바일 대응
+@media (max-width: 768px) {
+    .modalContent {
+        width: 95%;
+        padding: 1.5rem;
+    }
+}
