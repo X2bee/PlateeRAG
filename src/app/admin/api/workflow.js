@@ -137,6 +137,80 @@ export const deleteWorkflowAdmin = async (userId, workflowName) => {
 };
 
 /**
+ * 사용자별 토큰 사용량 통계를 가져오는 함수 (슈퍼유저 권한 필요)
+ * @param {number} page - 페이지 번호 (1부터 시작)
+ * @param {number} pageSize - 페이지당 항목 수 (기본값: 50)
+ * @param {string|null} startDate - 시작 날짜 (YYYY-MM-DD 형식, 선택사항)
+ * @param {string|null} endDate - 종료 날짜 (YYYY-MM-DD 형식, 선택사항)
+ * @returns {Promise<Object>} 사용자별 토큰 사용량 통계와 페이지네이션 정보가 포함된 객체
+ */
+export const getUserTokenUsage = async (page = 1, pageSize = 50, startDate = null, endDate = null) => {
+    try {
+        let url = `${API_BASE_URL}/api/admin/user-token/usage?page=${page}&page_size=${pageSize}`;
+
+        if (startDate) {
+            url += `&start_date=${startDate}`;
+        }
+        if (endDate) {
+            url += `&end_date=${endDate}`;
+        }
+
+        const response = await apiClient(url);
+        const data = await response.json();
+
+        if (!response.ok) {
+            devLog.error('Failed to get user token usage:', data);
+            throw new Error(data.detail || 'Failed to get user token usage');
+        }
+
+        devLog.log('Get user token usage result:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to get user token usage:', error);
+        throw error;
+    }
+};
+
+
+/**
+ * 토큰 사용량 요약 통계를 가져오는 함수 (슈퍼유저 권한 필요)
+ * @param {string|null} startDate - 시작 날짜 (YYYY-MM-DD 형식, 선택사항)
+ * @param {string|null} endDate - 종료 날짜 (YYYY-MM-DD 형식, 선택사항)
+ * @returns {Promise<Object>} 전체 토큰 사용량 요약 통계
+ */
+export const getTokenUsageSummary = async (startDate = null, endDate = null) => {
+    try {
+        let url = `${API_BASE_URL}/api/admin/user-token/summary`;
+        const params = [];
+
+        if (startDate) {
+            params.push(`start_date=${startDate}`);
+        }
+        if (endDate) {
+            params.push(`end_date=${endDate}`);
+        }
+
+        if (params.length > 0) {
+            url += `?${params.join('&')}`;
+        }
+
+        const response = await apiClient(url);
+        const data = await response.json();
+
+        if (!response.ok) {
+            devLog.error('Failed to get token usage summary:', data);
+            throw new Error(data.detail || 'Failed to get token usage summary');
+        }
+
+        devLog.log('Get token usage summary result:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to get token usage summary:', error);
+        throw error;
+    }
+};
+
+/**
  * 백엔드에서 특정 워크플로우의 공유 설정을 업데이트합니다.
  * @param {string} workflowName - 업데이트할 워크플로우 이름
  * @param {Object} updateDict - 업데이트할 설정 딕셔너리

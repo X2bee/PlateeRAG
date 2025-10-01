@@ -14,6 +14,7 @@ import AdminConfigViewer from '@/app/admin/components/config/AdminConfigViewer';
 import AdminSettings from '@/app/admin/components/config/AdminSettings';
 import AdminWorkflowChatLogsContent from '@/app/admin/components/workflows/AdminWorkflowChatLogsContent';
 import AdminGroupContent from '@/app/admin/components/group/AdminGroupContent';
+import AdminUserTokenDashboard from '@/app/admin/components/workflows/AdminUserTokenDashboard';
 import AdminPlayground from '@/app/admin/components/workflows/playground/AdminPlayground';
 import AdminSystemMonitor from '@/app/admin/components/sysmonitor/AdminSystemMonitor';
 import AdminDatabase from '@/app/admin/components/database/AdminDatabase';
@@ -132,7 +133,7 @@ const AdminPageContent: React.FC = () => {
             // User Items
             'users', 'user-create', 'group-permissions',
             // Workflow Items
-            'workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'prompt-store',
+            'workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'user-token-dashboard', 'prompt-store',
             // Setting Items
             'system-config', 'system-settings',
             // System Items
@@ -247,6 +248,15 @@ const AdminPageContent: React.FC = () => {
                         description="프롬프트를 관리하고 템플릿을 설정할 수 있습니다."
                     >
                         <AdminPromptStore />
+                    </AdminContentArea>
+                );
+            case 'user-token-dashboard':
+                return (
+                    <AdminContentArea
+                        title="유저별 채팅 대시보드"
+                        description="사용자별 토큰 사용량 및 채팅 통계를 확인하세요."
+                    >
+                        <AdminUserTokenDashboard />
                     </AdminContentArea>
                 );
             case 'system-monitor':
@@ -368,7 +378,7 @@ const AdminPageContent: React.FC = () => {
                     activeItem={activeSection}
                     onItemClick={(itemId: string) => setActiveSection(itemId)}
                     initialUserExpanded={['users', 'user-create', 'group-permissions'].includes(activeSection)}
-                    initialWorkflowExpanded={['workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'prompt-store'].includes(activeSection)}
+                    initialWorkflowExpanded={['workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'user-token-dashboard', 'prompt-store'].includes(activeSection)}
                     initialSettingExpanded={['system-config', 'system-settings'].includes(activeSection)}
                     initialSystemExpanded={['system-monitor', 'system-health'].includes(activeSection)}
                     initialDataExpanded={['database', 'storage', 'backup'].includes(activeSection)}
