@@ -5,6 +5,7 @@ import styles from '../MlModelWorkspace.module.scss';
 import ModelRegistryPanel from '../model-hub/ModelRegistryPanel';
 import InferenceConsole from './InferenceConsole';
 import MlModelDeleteDialogContainer from '../model-hub/MlModelDeleteDialogContainer';
+import ModelStageDialogContainer from '../model-hub/ModelStageDialogContainer';
 import { useMlModelWorkspace } from '../MlModelWorkspaceContext';
 
 const MlModelInferenceView: React.FC = () => {
@@ -94,6 +95,7 @@ const MlModelInferenceView: React.FC = () => {
                 </section>
             </div>
             <MlModelDeleteDialogContainer />
+            <ModelStageDialogContainer />
             {hasSelectedModel ? (
                 <button
                     type="button"

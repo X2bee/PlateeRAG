@@ -24,6 +24,8 @@ export interface MlflowMetadata {
     [key: string]: unknown;
 }
 
+export type MlflowStage = 'None' | 'Staging' | 'Production' | 'Archived';
+
 export interface RegisteredModel {
     model_id: number;
     model_name: string;
@@ -70,6 +72,7 @@ export interface InferenceResultPayload {
 export interface ApiError {
     status: number;
     message: string;
+    code?: string;
     details?: unknown;
 }
 
@@ -116,4 +119,18 @@ export interface SyncResponse {
     checked: number;
     removed: number;
     removed_ids?: number[];
+}
+
+export interface StageUpdateRequest {
+    stage: MlflowStage;
+    archive_existing_versions?: boolean;
+}
+
+export type StageUpdateResponse = ModelDetailResponse & {
+    previous_stage?: MlflowStage | null;
+};
+
+export interface StageChangeResult {
+    detail: ModelDetailResponse;
+    previousStage: MlflowStage | null;
 }

@@ -388,13 +388,50 @@
 }
 
 .stageTag {
-    padding: 0.15rem 0.55rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.18rem 0.6rem;
     border-radius: 999px;
-    background: rgba(16, 185, 129, 0.12);
+    border: none;
+    background: rgba(16, 185, 129, 0.16);
     color: #047857;
     font-size: 0.7rem;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.stageTag:hover {
+    background: rgba(16, 185, 129, 0.22);
+    transform: translateY(-1px);
+}
+
+.stageTag:focus-visible {
+    outline: 2px solid rgba(59, 130, 246, 0.45);
+    outline-offset: 2px;
+}
+
+.stageTag[data-stage='Production'] {
+    background: rgba(239, 68, 68, 0.16);
+    color: #b91c1c;
+}
+
+.stageTag[data-stage='Staging'] {
+    background: rgba(59, 130, 246, 0.16);
+    color: #1d4ed8;
+}
+
+.stageTag[data-stage='Archived'] {
+    background: rgba(107, 114, 128, 0.18);
+    color: #374151;
+}
+
+.stageTag[data-stage='None'] {
+    background: rgba(148, 163, 184, 0.2);
+    color: #475569;
 }
 
 .timestampRow {
@@ -565,6 +602,26 @@
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+}
+
+.versionStage[data-stage='Production'] {
+    background: rgba(239, 68, 68, 0.16);
+    color: #b91c1c;
+}
+
+.versionStage[data-stage='Staging'] {
+    background: rgba(59, 130, 246, 0.16);
+    color: #1d4ed8;
+}
+
+.versionStage[data-stage='Archived'] {
+    background: rgba(107, 114, 128, 0.18);
+    color: #374151;
+}
+
+.versionStage[data-stage='None'] {
+    background: rgba(148, 163, 184, 0.2);
+    color: #475569;
 }
 
 .versionMeta {

@@ -5,6 +5,7 @@ import { FiDownloadCloud, FiRefreshCw } from 'react-icons/fi';
 import styles from '../MlModelWorkspace.module.scss';
 import ModelRegistryPanel from './ModelRegistryPanel';
 import MlModelDeleteDialogContainer from './MlModelDeleteDialogContainer';
+import ModelStageDialogContainer from './ModelStageDialogContainer';
 import { useMlModelWorkspace } from '../MlModelWorkspaceContext';
 
 const MlModelHubView: React.FC = () => {
@@ -136,6 +137,7 @@ const MlModelHubView: React.FC = () => {
                 className={styles.hubRegistry}
             />
             <MlModelDeleteDialogContainer />
+            <ModelStageDialogContainer />
         </div>
     );
 };

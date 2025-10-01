@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { showSuccessToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { apiClient } from '@/app/_common/api/helper/apiClient';
 import { API_BASE_URL } from '@/app/config.js';
 import type {
@@ -9,9 +10,12 @@ import type {
     ListModelsResponse,
     ModelDetailResponse,
     RegisteredModel,
+    StageChangeResult,
+    StageUpdateRequest,
     SyncResponse,
     UploadSuccessResponse,
 } from '../types';
+import { normalizeMlflowStage } from '../utils/stageUtils';
 
 const joinUrl = (baseUrl: string, path: string) => {
     const trimmed = baseUrl.trim();
@@ -116,6 +120,7 @@ interface DeleteState {
     model: RegisteredModel | null;
     isDeleting: boolean;
     error: string | null;
+    errorCode: string | null;
 }
 
 interface MlModelWorkspaceContextValue {
@@ -133,7 +138,11 @@ interface MlModelWorkspaceContextValue {
     detailLoading: boolean;
     detailError: string | null;
     fetchModelDetail: (modelId: number, options?: { silent?: boolean }) => Promise<ModelDetailResponse | null>;
+    changeModelStage: (modelId: number, request: StageUpdateRequest) => Promise<StageChangeResult>;
     openDeleteDialog: (model: RegisteredModel) => void;
+    stageDialogModel: RegisteredModel | null;
+    openStageDialog: (model: RegisteredModel) => void;
+    closeStageDialog: () => void;
     cancelDelete: () => void;
     confirmDelete: () => Promise<void>;
     deleteState: DeleteState;
@@ -166,10 +175,19 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
     const [modelDetail, setModelDetail] = useState<ModelDetailResponse | null>(null);
     const [detailLoading, setDetailLoading] = useState(false);
     const [detailError, setDetailError] = useState<string | null>(null);
-    const [deleteState, setDeleteState] = useState<DeleteState>({ model: null, isDeleting: false, error: null });
+    const [deleteState, setDeleteState] = useState<DeleteState>({ model: null, isDeleting: false, error: null, errorCode: null });
     const [isSyncing, setIsSyncing] = useState(false);
     const [syncMessage, setSyncMessage] = useState<string | null>(null);
     const [syncError, setSyncError] = useState<string | null>(null);
+    const [stageDialogModel, setStageDialogModel] = useState<RegisteredModel | null>(null);
+
+    const openStageDialog = useCallback((model: RegisteredModel) => {
+        setStageDialogModel(model);
+    }, []);
+
+    const closeStageDialog = useCallback(() => {
+        setStageDialogModel(null);
+    }, []);
 
     const mapListItemToRegisteredModel = useCallback((item: ListModelsResponse['items'][number]): RegisteredModel => ({
         model_id: item.id,
@@ -323,6 +341,68 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
         }
     }, [baseUrl]);
 
+    const changeModelStage = useCallback(async (modelId: number, requestBody: StageUpdateRequest): Promise<StageChangeResult> => {
+        try {
+            const response = await apiClient(joinUrl(baseUrl, `/api/models/${modelId}/stage`), {
+                method: 'POST',
+                body: JSON.stringify(requestBody),
+            });
+
+            const payload = await response.json().catch(() => null);
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: (payload as ApiError | null)?.message || '스테이지를 변경하지 못했습니다.',
+                    details: payload,
+                } as ApiError;
+            }
+
+            const detailPayload = (payload ?? null) as ModelDetailResponse & { previous_stage?: string | null } | null;
+            if (!detailPayload) {
+                throw {
+                    status: response.status,
+                    message: '스테이지 변경 응답이 올바르지 않습니다.',
+                } as ApiError;
+            }
+
+            const normalizedDetail: ModelDetailResponse = {
+                ...detailPayload,
+                input_schema: normalizeSchema(detailPayload.input_schema ?? null),
+                output_schema: normalizeSchema(detailPayload.output_schema ?? null),
+            };
+
+            setModelDetail(prev => (prev && prev.model_id === normalizedDetail.model_id ? normalizedDetail : prev));
+
+            setModels(prev => {
+                const exists = prev.some(model => model.model_id === normalizedDetail.model_id);
+                if (!exists) {
+                    return prev;
+                }
+                return prev.map(model => (model.model_id === normalizedDetail.model_id ? {
+                    ...model,
+                    ...normalizedDetail,
+                } : model));
+            });
+
+            const previousStageRaw = (detailPayload as { previous_stage?: string | null }).previous_stage ?? null;
+            const previousStage = previousStageRaw == null ? null : normalizeMlflowStage(previousStageRaw);
+
+            return {
+                detail: normalizedDetail,
+                previousStage,
+            };
+        } catch (error) {
+            const apiError: ApiError =
+                error instanceof Error && 'status' in error
+                    ? (error as ApiError)
+                    : error instanceof Error
+                        ? { status: 0, message: error.message }
+                        : (error as ApiError);
+            throw apiError;
+        }
+    }, [baseUrl]);
+
     const performDelete = useCallback(async (modelId: number) => {
         const response = await apiClient(joinUrl(baseUrl, `/api/models/${modelId}`), {
             method: 'DELETE',
@@ -333,7 +413,10 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
         if (!response.ok) {
             throw {
                 status: response.status,
-                message: (payload as ApiError | null)?.message || '모델 삭제에 실패했습니다.',
+                message: (payload as { message?: string } | null)?.message || '모델 삭제에 실패했습니다.',
+                code: (payload as { message?: string; code?: string } | null)?.message
+                    ?? (payload as { code?: string } | null)?.code
+                    ?? undefined,
                 details: payload,
             } as ApiError;
         }
@@ -345,32 +428,56 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
         if (!deleteState.model) {
             return;
         }
-        setDeleteState(prev => ({ ...prev, isDeleting: true, error: null }));
+        const targetModel = deleteState.model;
+        setDeleteState(prev => ({ ...prev, isDeleting: true, error: null, errorCode: null }));
         try {
-            await performDelete(deleteState.model.model_id);
-            setModels(prev => prev.filter(model => model.model_id !== deleteState.model!.model_id));
-            setDeleteState({ model: null, isDeleting: false, error: null });
-            setSelectedModelId(prev => (prev === deleteState.model!.model_id ? null : prev));
-            setModelDetail(prev => (prev && prev.model_id === deleteState.model!.model_id ? null : prev));
+            await performDelete(targetModel.model_id);
+            setModels(prev => prev.filter(model => model.model_id !== targetModel.model_id));
+            setDeleteState({ model: null, isDeleting: false, error: null, errorCode: null });
+            setSelectedModelId(prev => (prev === targetModel.model_id ? null : prev));
+            setModelDetail(prev => (prev && prev.model_id === targetModel.model_id ? null : prev));
+            showSuccessToastKo('모델이 삭제되었습니다.');
             await fetchModels();
         } catch (error) {
             const apiError: ApiError =
-                error instanceof Error
-                    ? { status: 0, message: error.message }
-                    : (error as ApiError);
-            setDeleteState(prev => ({ ...prev, isDeleting: false, error: apiError.message }));
+                error && typeof error === 'object' && 'status' in (error as Record<string, unknown>)
+                    ? (error as ApiError)
+                    : { status: 0, message: (error as Error | null)?.message ?? '모델 삭제에 실패했습니다.' };
+
+            const code = apiError.code ?? apiError.message ?? '';
+            const normalizedCode = typeof code === 'string' ? code.toUpperCase() : '';
+
+            if (apiError.status === 404) {
+                showSuccessToastKo('이미 삭제된 모델입니다. 목록을 새로고칩니다.');
+                setDeleteState({ model: null, isDeleting: false, error: null, errorCode: null });
+                setModels(prev => prev.filter(model => model.model_id !== targetModel.model_id));
+                setSelectedModelId(prev => (prev === targetModel.model_id ? null : prev));
+                setModelDetail(prev => (prev && prev.model_id === targetModel.model_id ? null : prev));
+                await fetchModels();
+                return;
+            }
+
+            let message = apiError.message || '모델 삭제에 실패했습니다.';
+
+            if (apiError.status === 400 && normalizedCode === 'MODEL_STAGE_DELETE_BLOCKED') {
+                message = '현재 모델은 Production 스테이지입니다. 스테이지를 변경한 후 삭제할 수 있습니다.';
+            } else if (apiError.status === 502) {
+                message = 'MLflow 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.';
+            }
+
+            setDeleteState(prev => ({ ...prev, isDeleting: false, error: message, errorCode: normalizedCode || null }));
         }
     }, [deleteState.model, performDelete, fetchModels]);
 
     const openDeleteDialog = useCallback((model: RegisteredModel) => {
-        setDeleteState({ model, isDeleting: false, error: null });
+        setDeleteState({ model, isDeleting: false, error: null, errorCode: null });
     }, []);
 
     const cancelDelete = useCallback(() => {
         if (deleteState.isDeleting) {
             return;
         }
-        setDeleteState({ model: null, isDeleting: false, error: null });
+        setDeleteState({ model: null, isDeleting: false, error: null, errorCode: null });
     }, [deleteState.isDeleting]);
 
     const syncArtifacts = useCallback(async () => {
@@ -439,10 +546,14 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
         detailLoading,
         detailError,
         fetchModelDetail,
+        changeModelStage,
         openDeleteDialog,
         cancelDelete,
         confirmDelete,
         deleteState,
+        stageDialogModel,
+        openStageDialog,
+        closeStageDialog,
         syncArtifacts,
         isSyncing,
         syncMessage,
@@ -461,10 +572,14 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
         detailLoading,
         detailError,
         fetchModelDetail,
+        changeModelStage,
         openDeleteDialog,
         cancelDelete,
         confirmDelete,
         deleteState,
+        stageDialogModel,
+        openStageDialog,
+        closeStageDialog,
         syncArtifacts,
         isSyncing,
         syncMessage,

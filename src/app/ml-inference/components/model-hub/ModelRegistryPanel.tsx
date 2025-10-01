@@ -6,6 +6,7 @@ import styles from './ModelRegistryPanel.module.scss';
 import type { ModelDetailResponse, RegisteredModel } from '../../types';
 import ModelDetailModal from './ModelDetailModal';
 import { useMlModelWorkspace, normalizeSchema } from '../MlModelWorkspaceContext';
+import { formatStageDisplay, normalizeMlflowStage } from '../../utils/stageUtils';
 
 interface ModelRegistryPanelProps {
     models: RegisteredModel[];
@@ -60,6 +61,7 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
         detailLoading,
         detailError,
         fetchModelDetail,
+        openStageDialog,
     } = useMlModelWorkspace();
 
     const [isDetailModalOpen, setDetailModalOpen] = useState(false);
@@ -370,6 +372,8 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
                         const activeModel = findActiveModel(group.items);
                         const isActiveGroup = group.items.some(item => item.model_id === selectedModelId);
                         const stage = activeModel?.mlflow_metadata?.additional_metadata?.stage ?? null;
+                        const normalizedStage = normalizeMlflowStage(stage);
+                        const stageLabel = formatStageDisplay(normalizedStage);
                         const flavor = activeModel?.mlflow_metadata?.load_flavor ?? null;
                         const version = activeModel?.mlflow_metadata?.model_version ?? activeModel?.model_version ?? 'latest';
                         const deleteHandler = () => {
@@ -378,6 +382,7 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
                             }
                             onDelete(activeModel);
                         };
+                        const deleteDisabled = !activeModel || normalizedStage === 'Production';
                         const createdAt = formatTimestamp(activeModel?.created_at);
                         const updatedAt = formatTimestamp(activeModel?.updated_at);
                         const showVersionPicker = group.variant === 'grouped' && openVersionPickerFor === group.groupKey;
@@ -410,7 +415,15 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
                                                 <span>{activeModel?.framework ?? '-'}</span>
                                                 <span>{formatBytes(activeModel?.file_size ?? null)}</span>
                                                 {activeModel?.status ? <span className={styles.statusTag}>{activeModel.status}</span> : null}
-                                                {stage ? <span className={styles.stageTag}>{stage}</span> : null}
+                                                <button
+                                                    type="button"
+                                                    className={styles.stageTag}
+                                                    data-stage={normalizedStage}
+                                                    onClick={() => activeModel ? openStageDialog(activeModel) : undefined}
+                                                    aria-label="MLflow 스테이지 변경"
+                                                >
+                                                    {stageLabel}
+                                                </button>
                                             </div>
                                             {(group.groupLabel !== activeModel?.model_name || flavor) ? (
                                                 <div className={styles.mlflowMeta}>
@@ -449,6 +462,8 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
                                                     onClick={deleteHandler}
                                                     className={styles.deleteButton}
                                                     aria-label={`${group.groupLabel} 모델 삭제`}
+                                                    disabled={deleteDisabled}
+                                                    title={deleteDisabled ? 'Production 스테이지에서는 삭제 전에 스테이지를 변경해야 합니다.' : undefined}
                                                 >
                                                     선택 삭제
                                                 </button>
@@ -466,7 +481,7 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
                                                 <div>
                                                     <div className={styles.versionSummaryHeader}>
                                                         <span className={styles.versionLabel}>버전 {version}</span>
-                                                        {stage ? <span className={styles.versionStage}>{stage}</span> : null}
+                                                        {stageLabel ? <span className={styles.versionStage} data-stage={normalizedStage}>{stageLabel}</span> : null}
                                                     </div>
                                                     <div className={styles.versionSummaryMeta}>
                                                         <span className={styles.versionMetaLabel}>Run</span>
@@ -498,6 +513,8 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
                                                         {group.items.map(item => {
                                                             const itemVersion = item.mlflow_metadata?.model_version ?? item.model_version ?? 'latest';
                                                             const versionStage = item.mlflow_metadata?.additional_metadata?.stage ?? null;
+                                                            const normalizedVersionStage = normalizeMlflowStage(versionStage);
+                                                            const versionStageLabel = versionStage ? formatStageDisplay(normalizedVersionStage) : null;
                                                             const runIdentifier = String(item.mlflow_metadata?.run_id ?? item.model_id);
                                                             return (
                                                                 <button
@@ -510,7 +527,11 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
                                                                     className={item.model_id === selectedModelId ? styles.versionButtonActive : styles.versionButton}
                                                                 >
                                                                     <span className={styles.versionLabel}>버전 {itemVersion}</span>
-                                                                    {versionStage ? <span className={styles.versionStage}>{versionStage}</span> : null}
+                                                                    {versionStageLabel ? (
+                                                                        <span className={styles.versionStage} data-stage={normalizedVersionStage}>
+                                                                            {versionStageLabel}
+                                                                        </span>
+                                                                    ) : null}
                                                                     <span className={styles.versionMeta} title={`Run ${runIdentifier}`}>
                                                                         <span className={styles.versionMetaLabel}>Run</span>
                                                                         <span className={styles.versionMetaValue}>{runIdentifier}</span>
@@ -526,6 +547,8 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
                                                 {group.items.map(item => {
                                                     const itemVersion = item.mlflow_metadata?.model_version ?? item.model_version ?? 'latest';
                                                     const versionStage = item.mlflow_metadata?.additional_metadata?.stage ?? null;
+                                                    const normalizedVersionStage = normalizeMlflowStage(versionStage);
+                                                    const versionStageLabel = versionStage ? formatStageDisplay(normalizedVersionStage) : null;
                                                     const runIdentifier = String(item.mlflow_metadata?.run_id ?? item.model_id);
                                                     const isActiveVersion = item.model_id === selectedModelId;
                                                     return (
@@ -536,7 +559,11 @@ const ModelRegistryPanel: React.FC<ModelRegistryPanelProps> = ({ models, selecte
                                                             className={isActiveVersion ? styles.versionButtonActive : styles.versionButton}
                                                         >
                                                             <span className={styles.versionLabel}>버전 {itemVersion}</span>
-                                                            {versionStage ? <span className={styles.versionStage}>{versionStage}</span> : null}
+                                                            {versionStageLabel ? (
+                                                                <span className={styles.versionStage} data-stage={normalizedVersionStage}>
+                                                                    {versionStageLabel}
+                                                                </span>
+                                                            ) : null}
                                                             <span className={styles.versionMeta} title={`Run ${runIdentifier}`}>
                                                                 <span className={styles.versionMetaLabel}>Run</span>
                                                                 <span className={styles.versionMetaValue}>{runIdentifier}</span>
