@@ -14,6 +14,7 @@ import AdminConfigViewer from '@/app/admin/components/config/AdminConfigViewer';
 import AdminSettings from '@/app/admin/components/config/AdminSettings';
 import AdminWorkflowChatLogsContent from '@/app/admin/components/workflows/AdminWorkflowChatLogsContent';
 import AdminGroupContent from '@/app/admin/components/group/AdminGroupContent';
+import AdminUserTokenDashboard from '@/app/admin/components/workflows/AdminUserTokenDashboard';
 import AdminPlayground from '@/app/admin/components/workflows/playground/AdminPlayground';
 import AdminSystemMonitor from '@/app/admin/components/sysmonitor/AdminSystemMonitor';
 import AdminDatabase from '@/app/admin/components/database/AdminDatabase';
@@ -21,6 +22,7 @@ import AdminWorkflowControll from '@/app/admin/components/workflows/AdminWorkflo
 import AdminBackendLogs from '@/app/admin/components/sysmonitor/AdminBackendLogs';
 import MCPMarketContent from '@/app/admin/components/mcp/MCPMarketContent';
 import AdminNodeManage from '@/app/admin/components/workflows/AdminNodeManage';
+import AdminPromptStore from '@/app/admin/components/workflows/AdminPromptStore/AdminPromptStore';
 import {
     getUserSidebarItems,
     getWorkflowSidebarItems,
@@ -131,7 +133,7 @@ const AdminPageContent: React.FC = () => {
             // User Items
             'users', 'user-create', 'group-permissions',
             // Workflow Items
-            'workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring',
+            'workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'user-token-dashboard', 'prompt-store',
             // Setting Items
             'system-config', 'system-settings',
             // System Items
@@ -237,6 +239,24 @@ const AdminPageContent: React.FC = () => {
                         description="시스템에서 사용 가능한 모든 노드를 확인하고 관리할 수 있습니다."
                     >
                         <AdminNodeManage />
+                    </AdminContentArea>
+                );
+            case 'prompt-store':
+                return (
+                    <AdminContentArea
+                        title="프롬프트 스토어"
+                        description="프롬프트를 관리하고 템플릿을 설정할 수 있습니다."
+                    >
+                        <AdminPromptStore />
+                    </AdminContentArea>
+                );
+            case 'user-token-dashboard':
+                return (
+                    <AdminContentArea
+                        title="유저별 채팅 대시보드"
+                        description="사용자별 토큰 사용량 및 채팅 통계를 확인하세요."
+                    >
+                        <AdminUserTokenDashboard />
                     </AdminContentArea>
                 );
             case 'system-monitor':
@@ -358,7 +378,7 @@ const AdminPageContent: React.FC = () => {
                     activeItem={activeSection}
                     onItemClick={(itemId: string) => setActiveSection(itemId)}
                     initialUserExpanded={['users', 'user-create', 'group-permissions'].includes(activeSection)}
-                    initialWorkflowExpanded={['workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring'].includes(activeSection)}
+                    initialWorkflowExpanded={['workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'user-token-dashboard', 'prompt-store'].includes(activeSection)}
                     initialSettingExpanded={['system-config', 'system-settings'].includes(activeSection)}
                     initialSystemExpanded={['system-monitor', 'system-health'].includes(activeSection)}
                     initialDataExpanded={['database', 'storage', 'backup'].includes(activeSection)}

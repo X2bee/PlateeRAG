@@ -9,6 +9,7 @@ import ManagerAuthGuard from '@/app/manager/components/helper/ManagerAuthGuard';
 import ManagerSidebar from '@/app/manager/components/ManagerSidebar';
 import ManagerContentArea from '@/app/manager/components/helper/ManagerContentArea';
 import ManagerGroupContent from '@/app/manager/components/group/ManagerGroupContent';
+import ManagerWorkflowControll from '@/app/manager/components/workflows/ManagerWorkflowControll';
 import ManagerWorkflowChatLogsContent from '@/app/manager/components/workflows/ManagerWorkflowChatLogsContent';
 import {
     getGroupSidebarItems,
@@ -53,7 +54,7 @@ const ManagerPageContent: React.FC = () => {
     // 유효한 섹션인지 확인하는 함수
     const isValidSection = (section: string): boolean => {
         const validSections = [
-            'dashboard', 'group-permissions', 'workflow-chat-logs'
+            'dashboard', 'group-permissions', 'workflow-management', 'workflow-chat-logs'
         ];
         return validSections.includes(section);
     };
@@ -75,10 +76,19 @@ const ManagerPageContent: React.FC = () => {
             case 'group-permissions':
                 return (
                     <ManagerContentArea
-                        title="조직 권한 관리"
-                        description="조직을 생성하고 사용자를 조직에 할당하여 권한을 관리하세요."
+                        title="조직 관리"
+                        description="조직의 사용자를 확인하고 관리합니다."
                     >
                         <ManagerGroupContent />
+                    </ManagerContentArea>
+                );
+            case 'workflow-management':
+                return (
+                    <ManagerContentArea
+                        title="워크플로우 관리"
+                        description="워크플로우를 생성, 편집, 삭제 및 관리하세요."
+                    >
+                        <ManagerWorkflowControll />
                     </ManagerContentArea>
                 );
             case 'workflow-chat-logs':
@@ -115,7 +125,7 @@ const ManagerPageContent: React.FC = () => {
                         activeItem={activeSection}
                         onItemClick={(itemId: string) => setActiveSection(itemId)}
                         initialGroupExpanded={['group-permissions'].includes(activeSection)}
-                        initialWorkflowExpanded={['workflow-chat-logs'].includes(activeSection)}
+                        initialWorkflowExpanded={['workflow-management', 'workflow-chat-logs'].includes(activeSection)}
                     />
                     {!isSidebarOpen && (
                         <motion.button

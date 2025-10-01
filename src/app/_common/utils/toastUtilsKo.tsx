@@ -301,7 +301,42 @@ export const showWarningConfirmToastKo = ({
     confirmText = '계속',
     cancelText = '취소',
     duration = Infinity,
-}: WarningConfirmOptions) => {
+    enableEnterKey = false,
+}: WarningConfirmOptions & { enableEnterKey?: boolean }) => {
+    // 기존 핸들러가 있으면 제거
+    if (currentKeyHandler) {
+        document.removeEventListener('keydown', currentKeyHandler);
+        currentKeyHandler = null;
+    }
+
+    if (enableEnterKey) {
+        currentKeyHandler = (e: KeyboardEvent) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                // 핸들러 정리
+                if (currentKeyHandler) {
+                    document.removeEventListener('keydown', currentKeyHandler);
+                    currentKeyHandler = null;
+                }
+                toast.dismiss();
+                onConfirm();
+            }
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                // 핸들러 정리
+                if (currentKeyHandler) {
+                    document.removeEventListener('keydown', currentKeyHandler);
+                    currentKeyHandler = null;
+                }
+                toast.dismiss();
+                onCancel?.();
+            }
+        };
+        document.addEventListener('keydown', currentKeyHandler);
+    }
+
     const confirmToast = toast(
         (t) => (
             <div
@@ -329,6 +364,17 @@ export const showWarningConfirmToastKo = ({
                 >
                     {message}
                 </div>
+                {enableEnterKey && (
+                    <div
+                        style={{
+                            fontSize: '0.8rem',
+                            color: '#6b7280',
+                            fontStyle: 'italic',
+                        }}
+                    >
+                        💡 Enter키를 누르면 계속됩니다 | ESC로 취소
+                    </div>
+                )}
                 <div
                     style={{
                         display: 'flex',
@@ -340,6 +386,10 @@ export const showWarningConfirmToastKo = ({
                     <button
                         onClick={() => {
                             toast.dismiss(t.id);
+                            if (currentKeyHandler) {
+                                document.removeEventListener('keydown', currentKeyHandler);
+                                currentKeyHandler = null;
+                            }
                             onCancel?.();
                         }}
                         style={{
@@ -362,6 +412,10 @@ export const showWarningConfirmToastKo = ({
                     <button
                         onClick={async () => {
                             toast.dismiss(t.id);
+                            if (currentKeyHandler) {
+                                document.removeEventListener('keydown', currentKeyHandler);
+                                currentKeyHandler = null;
+                            }
                             try {
                                 await onConfirm();
                             } catch (error) {
@@ -438,7 +492,8 @@ export const showWarningToastKo = ({
 export const showWorkflowOverwriteConfirmKo = (
     workflowName: string,
     onConfirm: () => void | Promise<void>,
-    onCancel?: () => void
+    onCancel?: () => void,
+    enableEnterKey: boolean = false
 ) => {
     return showWarningConfirmToastKo({
         title: '워크플로우가 이미 존재합니다',
@@ -447,6 +502,7 @@ export const showWorkflowOverwriteConfirmKo = (
         onCancel,
         confirmText: '덮어쓰기',
         cancelText: '취소',
+        enableEnterKey,
     });
 };
 
@@ -456,7 +512,8 @@ export const showWorkflowOverwriteConfirmKo = (
 export const showWorkflowVersionChangeConfirmKo = (
     versionLabel: string,
     onConfirm: () => void | Promise<void>,
-    onCancel?: () => void
+    onCancel?: () => void,
+    enableEnterKey: boolean = false
 ) => {
     return showWarningConfirmToastKo({
         title: '워크플로우 버전 변경',
@@ -465,6 +522,7 @@ export const showWorkflowVersionChangeConfirmKo = (
         onCancel,
         confirmText: '변경',
         cancelText: '취소',
+        enableEnterKey,
     });
 };
 
@@ -473,7 +531,8 @@ export const showWorkflowVersionChangeConfirmKo = (
  */
 export const showNewWorkflowConfirmKo = (
     onConfirm: () => void | Promise<void>,
-    onCancel?: () => void
+    onCancel?: () => void,
+    enableEnterKey: boolean = false
 ) => {
     return showWarningConfirmToastKo({
         title: '새 워크플로우를 시작하시겠습니까?',
@@ -482,6 +541,7 @@ export const showNewWorkflowConfirmKo = (
         onCancel,
         confirmText: '새로 시작',
         cancelText: '취소',
+        enableEnterKey,
     });
 };
 
@@ -490,7 +550,8 @@ export const showNewWorkflowConfirmKo = (
  */
 export const showHistoryClearWarningKo = (
     onConfirm: () => void | Promise<void>,
-    onCancel?: () => void
+    onCancel?: () => void,
+    enableEnterKey: boolean = false
 ) => {
     return showWarningConfirmToastKo({
         title: '작업 히스토리가 초기화됩니다',
@@ -499,6 +560,7 @@ export const showHistoryClearWarningKo = (
         onCancel,
         confirmText: '계속',
         cancelText: '취소',
+        enableEnterKey,
     });
 };
 
@@ -508,7 +570,8 @@ export const showHistoryClearWarningKo = (
 export const showWorkflowDeleteConfirmKo = (
     workflowName: string,
     onConfirm: () => void | Promise<void>,
-    onCancel?: () => void
+    onCancel?: () => void,
+    enableEnterKey: boolean = false
 ) => {
     return showDeleteConfirmToastKo({
         title: '워크플로우 삭제',
@@ -518,6 +581,7 @@ export const showWorkflowDeleteConfirmKo = (
         onCancel,
         confirmText: '삭제',
         cancelText: '취소',
+        enableEnterKey,
     });
 };
 
@@ -528,7 +592,8 @@ export const showLogDeleteConfirmKo = (
     logType: string,
     workflowName: string,
     onConfirm: () => void | Promise<void>,
-    onCancel?: () => void
+    onCancel?: () => void,
+    enableEnterKey: boolean = false
 ) => {
     return showDeleteConfirmToastKo({
         title: `${logType} 삭제`,
@@ -538,6 +603,7 @@ export const showLogDeleteConfirmKo = (
         onCancel,
         confirmText: '삭제',
         cancelText: '취소',
+        enableEnterKey,
     });
 };
 
@@ -567,7 +633,8 @@ export const showChatDeleteConfirmKo = (
 export const showPerformanceDataDeleteConfirmKo = (
     workflowName: string,
     onConfirm: () => void | Promise<void>,
-    onCancel?: () => void
+    onCancel?: () => void,
+    enableEnterKey: boolean = false
 ) => {
     return showDeleteConfirmToastKo({
         title: '성능 데이터 삭제',
@@ -577,6 +644,7 @@ export const showPerformanceDataDeleteConfirmKo = (
         onCancel,
         confirmText: '삭제',
         cancelText: '취소',
+        enableEnterKey,
     });
 };
 
@@ -587,7 +655,8 @@ export const showLLMProviderChangeConfirmKo = (
     currentProvider: string,
     newProvider: string,
     onConfirm: () => void | Promise<void>,
-    onCancel?: () => void
+    onCancel?: () => void,
+    enableEnterKey: boolean = false
 ) => {
     return showWarningConfirmToastKo({
         title: 'LLM 제공자 변경',
@@ -596,6 +665,7 @@ export const showLLMProviderChangeConfirmKo = (
         onCancel,
         confirmText: '변경',
         cancelText: '취소',
+        enableEnterKey,
     });
 };
 
@@ -675,7 +745,8 @@ export const showEmbeddingProviderChangeConfirmKo = (
     currentProvider: string,
     newProvider: string,
     onConfirm: () => void | Promise<void>,
-    onCancel?: () => void
+    onCancel?: () => void,
+    enableEnterKey: boolean = false
 ) => {
     return showWarningConfirmToastKo({
         title: '임베딩 제공자 변경',
@@ -684,6 +755,7 @@ export const showEmbeddingProviderChangeConfirmKo = (
         onCancel,
         confirmText: '변경',
         cancelText: '취소',
+        enableEnterKey,
     });
 };
 
@@ -773,7 +845,8 @@ export const showInstanceCreationErrorToastKo = (instanceId: string, error: stri
  */
 export const showLogDeleteConfirmToastKo = (
     onConfirm: () => void | Promise<void>,
-    onCancel?: () => void
+    onCancel?: () => void,
+    enableEnterKey: boolean = false
 ) => {
     return showWarningConfirmToastKo({
         title: '로그 삭제',
@@ -782,6 +855,7 @@ export const showLogDeleteConfirmToastKo = (
         onCancel,
         confirmText: '삭제',
         cancelText: '취소',
+        enableEnterKey,
     });
 };
 

@@ -1,0 +1,329 @@
+@use "sass:color";
+@use "@/app/_common/_variables" as *;
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modalContent {
+    background: $white;
+    border-radius: 12px;
+    width: 95%;
+    max-width: 1000px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 28px;
+    border-bottom: 1px solid $gray-200;
+    flex-shrink: 0;
+}
+
+.modalTitle {
+    margin: 0;
+    color: $gray-900;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.closeButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 6px;
+    background: $gray-100;
+    color: $gray-600;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background: $gray-200;
+        color: $gray-900;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.modalBody {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.formGroup {
+    margin-bottom: 0;
+
+    &.fullWidth {
+        grid-column: 1 / -1;
+    }
+}
+
+.label {
+    display: block;
+    margin-bottom: 6px;
+    color: $gray-900;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.required {
+    color: $primary-red;
+}
+
+.input,
+.textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    background: $white;
+    color: $gray-900;
+    font-size: 13px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+
+    &:focus {
+        outline: none;
+        border-color: $primary-blue;
+        box-shadow: 0 0 0 3px rgba($primary-blue, 0.1);
+    }
+
+    &.error {
+        border-color: $primary-red;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background: $gray-50;
+    }
+
+    &::placeholder {
+        color: $gray-400;
+    }
+}
+
+.textarea {
+    resize: vertical;
+    min-height: 200px;
+    line-height: 1.6;
+}
+
+.errorMessage {
+    margin-top: 6px;
+    color: $primary-red;
+    font-size: 12px;
+}
+
+.charCount {
+    margin-top: 4px;
+    color: $gray-500;
+    font-size: 11px;
+    text-align: right;
+}
+
+.languageButtons {
+    display: flex;
+    gap: 12px;
+}
+
+.languageButton {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    background: $white;
+    color: $gray-700;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background: $gray-50;
+        border-color: $gray-400;
+    }
+
+    &.active {
+        background: $primary-blue;
+        border-color: $primary-blue;
+        color: $white;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    color: $gray-900;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.checkbox {
+    display: none;
+}
+
+.checkboxText {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: 2px solid $gray-300;
+    border-radius: 4px;
+    background: $white;
+    transition: all 0.2s ease;
+
+    .checkIcon {
+        color: $white;
+        font-size: 16px;
+    }
+}
+
+.checkbox:checked + .checkboxText {
+    background: $primary-blue;
+    border-color: $primary-blue;
+}
+
+.helpText {
+    margin-top: 4px;
+    margin-left: 30px;
+    color: $gray-500;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.infoBox {
+    padding: 14px 16px;
+    background: $gray-50;
+    border: 1px solid $gray-200;
+    border-radius: 8px;
+}
+
+.infoTitle {
+    margin-bottom: 10px;
+    color: $gray-900;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.infoContent {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.infoItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.infoLabel {
+    min-width: 90px;
+    color: $gray-600;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.infoValue {
+    color: $gray-900;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.modalFooter {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 28px;
+    border-top: 1px solid $gray-200;
+    flex-shrink: 0;
+}
+
+.cancelButton {
+    min-width: 100px;
+    padding: 11px 24px;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    background: $white;
+    color: $gray-700;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background: $gray-50;
+        border-color: $gray-400;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.submitButton {
+    min-width: 100px;
+    padding: 11px 24px;
+    border: none;
+    border-radius: 6px;
+    background: $primary-blue;
+    color: $white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background: color.adjust($primary-blue, $lightness: -5%);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}

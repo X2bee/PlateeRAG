@@ -313,6 +313,7 @@
     box-shadow: $admin-shadow;
     padding: 2rem;
     min-height: calc(100vh - 4rem);
+    // max-height: 100vh;
     transition: margin-left 0.3s ease-in-out;
     overflow: hidden;
 }

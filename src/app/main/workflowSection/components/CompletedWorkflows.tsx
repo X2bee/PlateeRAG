@@ -65,8 +65,9 @@ const CompletedWorkflows: React.FC = () => {
                         status = 'draft';
                     }
 
+                    // 배포 상태 설정 (자신의 워크플로우인 경우에만)
                     if (user && detail.user_id === user.user_id) {
-                        const deployStatus = (detail as any).inquire_deploy ? 'pending' : (detail as any).is_deployed;
+                        const deployStatus = detail.inquire_deploy ? 'pending' : (detail.is_deployed || false);
                         setDeployed_list(prev => ({...prev, [detail.workflow_name]: deployStatus}));
                     }
 
@@ -84,9 +85,9 @@ const CompletedWorkflows: React.FC = () => {
                         is_shared: detail.is_shared,
                         share_group: detail.share_group,
                         share_permissions: detail.share_permissions,
-                        inquire_deploy: (detail as any).inquire_deploy,
-                        is_accepted: (detail as any).is_accepted,
-                        is_deployed: (detail as any).is_deployed,
+                        inquire_deploy: detail.inquire_deploy,
+                        is_accepted: detail.is_accepted,
+                        is_deployed: detail.is_deployed,
                     };
                 },
             );

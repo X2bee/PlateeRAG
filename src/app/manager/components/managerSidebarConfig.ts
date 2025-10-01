@@ -2,6 +2,7 @@ import React from 'react';
 import {
     FiShield,
     FiMessageSquare,
+    FiSettings,
 } from 'react-icons/fi';
 import { ManagerSidebarItem } from '@/app/manager/components/types';
 
@@ -10,15 +11,21 @@ export const getGroupItems = ['group-permissions'];
 export const getGroupSidebarItems = (): ManagerSidebarItem[] => [
     {
         id: 'group-permissions',
-        title: '조직 권한 관리',
-        description: '조직을 생성하고 사용자를 조직에 할당하여 권한을 관리하세요',
+        title: '조직 관리',
+        description: '조직의 사용자를 확인하고 관리합니다.',
         icon: React.createElement(FiShield),
     },
 ];
 
-export const getWorkflowItems = ['workflow-chat-logs'];
+export const getWorkflowItems = ['workflow-management', 'workflow-chat-logs'];
 
 export const getWorkflowSidebarItems = (): ManagerSidebarItem[] => [
+    {
+        id: 'workflow-management',
+        title: '워크플로우 관리',
+        description: '워크플로우 생성, 편집, 삭제 및 관리',
+        icon: React.createElement(FiSettings),
+    },
     {
         id: 'workflow-chat-logs',
         title: '워크플로우 채팅 로그',
@@ -27,10 +34,8 @@ export const getWorkflowSidebarItems = (): ManagerSidebarItem[] => [
     },
 ];
 
-// 공통 아이템 클릭 핸들러 (localStorage 사용)
 export const createManagerItemClickHandler = (router: any) => {
     return (itemId: string) => {
-        // 클릭한 섹션을 localStorage에 저장하고 /manager로 이동
         localStorage.setItem('managerActiveSection', itemId);
         router.push('/manager');
     };

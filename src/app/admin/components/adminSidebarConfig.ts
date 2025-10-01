@@ -17,6 +17,7 @@ import {
     FiMessageSquare,
     FiBarChart,
     FiPackage,
+    FiPieChart,
     FiGrid,
     FiLayers,
 } from 'react-icons/fi';
@@ -45,7 +46,7 @@ export const getUserSidebarItems = (): AdminSidebarItem[] => [
     },
 ];
 
-export const getWorkflowItems = ['workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring'];
+export const getWorkflowItems = ['workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'user-token-dashboard', 'prompt-store'];
 
 export const getWorkflowSidebarItems = (): AdminSidebarItem[] => [
     {
@@ -67,10 +68,22 @@ export const getWorkflowSidebarItems = (): AdminSidebarItem[] => [
         icon: React.createElement(FiMessageSquare),
     },
     {
+        id: 'user-token-dashboard',
+        title: '유저별 채팅 대시보드',
+        description: '사용자별 토큰 사용량 및 채팅 통계',
+        icon: React.createElement(FiPieChart),
+    },
+    {
         id: 'node-management',
         title: '노드 관리',
         description: '시스템 노드 목록 및 상세 정보 관리',
         icon: React.createElement(FiLayers),
+    },
+    {
+        id: 'prompt-store',
+        title: '프롬프트 스토어',
+        description: '프롬프트 관리 및 템플릿 설정',
+        icon: React.createElement(FiFileText),
     },
 ];
 

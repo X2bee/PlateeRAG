@@ -1,12 +1,11 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
-import styles from '../assets/PromptStore.module.scss';
-import { getPromptsByLanguage, deletePrompt } from '@/app/_common/api/promptAPI';
+import styles from './AdminPromptStore.module.scss';
+import { getAllPrompts, deletePrompt } from '@/app/admin/api/prompt';
 import { devLog } from '@/app/_common/utils/logger';
-import PromptExpandModal from './PromptExpandModal';
-import PromptCreateModal from './PromptCreateModal';
-import PromptEditModal from './PromptEditModal';
-import { useAuth } from '@/app/_common/components/CookieProvider';
+import AdminPromptExpandModal from './AdminPromptExpandModal';
+import AdminPromptCreateModal from './AdminPromptCreateModal';
+import AdminPromptEditModal from './AdminPromptEditModal';
 import {
     showDeleteConfirmToastKo,
     showDeleteSuccessToastKo,
@@ -41,14 +40,14 @@ interface Prompt {
     metadata?: any;
 }
 
-interface PromptStoreProps {
+interface AdminPromptStoreProps {
     onPromptSelect?: (prompt: Prompt) => void;
     className?: string;
 }
 
-const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) => {
+const AdminPromptStore: React.FC<AdminPromptStoreProps> = ({ onPromptSelect, className }) => {
     // 상태 관리
-    const [selectedLanguage, setSelectedLanguage] = useState<'ko' | 'en'>('ko');
+    const [selectedLanguage, setSelectedLanguage] = useState<'ko' | 'en' | 'all'>('all');
     const [prompts, setPrompts] = useState<Prompt[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -58,32 +57,38 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
-    const [filterMode, setFilterMode] = useState<'all' | 'my' | 'template' | 'shared'>('my');
-
-    // 현재 로그인한 사용자 정보 가져오기
-    const { user } = useAuth();
+    const [filterMode, setFilterMode] = useState<'all' | 'template' | 'shared' | 'private'>('all');
 
     // 프롬프트 데이터 로딩
-    const loadPrompts = async (language: 'ko' | 'en') => {
+    const loadPrompts = async (language: 'ko' | 'en' | 'all') => {
         try {
             setLoading(true);
             setError(null);
 
-            devLog.info(`Loading prompts for language: ${language}`);
+            devLog.info(`Loading all prompts (admin) for language: ${language}`);
 
-            const response = await getPromptsByLanguage(language, 300);
+            const options: any = {
+                limit: 1000,
+                offset: 0
+            };
 
-            if (response && (response as any).prompts) {
-                setPrompts((response as any).prompts);
-                devLog.info(`Loaded ${(response as any).prompts.length} prompts for ${language}`);
+            if (language !== 'all') {
+                options.language = language;
+            }
+
+            const response = await getAllPrompts(options) as any;
+
+            if (response && response.prompts) {
+                setPrompts(response.prompts);
+                devLog.info(`Loaded ${response.prompts.length} prompts (admin)`);
             } else {
                 setPrompts([]);
-                devLog.warn(`No prompts found for language: ${language}`);
+                devLog.warn(`No prompts found (admin)`);
             }
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : '프롬프트를 불러오는데 실패했습니다.';
             setError(errorMessage);
-            devLog.error('Failed to load prompts:', err);
+            devLog.error('Failed to load prompts (admin):', err);
             setPrompts([]);
         } finally {
             setLoading(false);
@@ -101,29 +106,30 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
             // 검색어 필터
             const matchesSearch = !searchTerm ||
                 prompt.prompt_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                prompt.prompt_content.toLowerCase().includes(searchTerm.toLowerCase());
+                prompt.prompt_content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (prompt.username && prompt.username.toLowerCase().includes(searchTerm.toLowerCase()));
 
             // 필터 모드에 따른 필터링
             let matchesFilter = true;
 
-            if (filterMode === 'my') {
-                // My: 자신의 것만 표시
-                matchesFilter = !!(user && prompt.user_id && String(prompt.user_id) === String(user.user_id));
-            } else if (filterMode === 'template') {
+            if (filterMode === 'template') {
                 // 템플릿: is_template이 true인 것만 표시
                 matchesFilter = prompt.is_template === true;
             } else if (filterMode === 'shared') {
                 // 공유: public_available이 true이면서 is_template가 false인 것만 표시
                 matchesFilter = prompt.public_available === true && prompt.is_template === false;
+            } else if (filterMode === 'private') {
+                // 비공개: public_available이 false이고 is_template가 false인 것만 표시
+                matchesFilter = prompt.public_available === false && prompt.is_template === false;
             }
             // filterMode === 'all'인 경우 matchesFilter는 true 유지
 
             return matchesSearch && matchesFilter;
         });
-    }, [prompts, searchTerm, filterMode, user]);
+    }, [prompts, searchTerm, filterMode]);
 
     // 언어 탭 변경 핸들러
-    const handleLanguageChange = (language: 'ko' | 'en') => {
+    const handleLanguageChange = (language: 'ko' | 'en' | 'all') => {
         setSelectedLanguage(language);
         setSearchTerm(''); // 언어 변경 시 검색어 초기화
     };
@@ -145,9 +151,9 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
         try {
             await navigator.clipboard.writeText(prompt.prompt_content);
             showCopySuccessToastKo('클립보드에 복사되었습니다!');
-            devLog.info(`Copied prompt: ${prompt.prompt_title}`);
+            devLog.info(`Copied prompt (admin): ${prompt.prompt_title}`);
         } catch (err) {
-            devLog.error('Failed to copy prompt:', err);
+            devLog.error('Failed to copy prompt (admin):', err);
         }
     };
 
@@ -172,7 +178,7 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
                     // 프롬프트 목록 새로고침
                     await loadPrompts(selectedLanguage);
                 } catch (error) {
-                    devLog.error('Failed to delete prompt:', error);
+                    devLog.error('Failed to delete prompt (admin):', error);
                     showDeleteErrorToastKo({
                         itemName: prompt.prompt_title,
                         itemType: '프롬프트',
@@ -243,7 +249,7 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
     };
 
     // 텍스트 자르기 함수
-    const truncateText = (text: string, maxLength: number = 150) => {
+    const truncateText = (text: string, maxLength: number = 50) => {
         if (text.length <= maxLength) return text;
         return text.substring(0, maxLength) + '...';
     };
@@ -258,7 +264,7 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
                         <div className={styles.searchContainer}>
                             <input
                                 type="text"
-                                placeholder="프롬프트 검색..."
+                                placeholder="프롬프트 검색... (제목, 내용, 사용자명)"
                                 value={searchTerm}
                                 onChange={handleSearchChange}
                                 className={styles.searchInput}
@@ -268,6 +274,13 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
 
                         {/* 언어 탭 */}
                         <div className={styles.languageTabs}>
+                            <button
+                                className={`${styles.languageTab} ${selectedLanguage === 'all' ? styles.active : ''}`}
+                                onClick={() => handleLanguageChange('all')}
+                            >
+                                <span className={styles.tabIcon}>🌐</span>
+                                전체
+                            </button>
                             <button
                                 className={`${styles.languageTab} ${selectedLanguage === 'ko' ? styles.active : ''}`}
                                 onClick={() => handleLanguageChange('ko')}
@@ -293,12 +306,6 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
                                 모두
                             </button>
                             <button
-                                className={`${styles.filterTab} ${filterMode === 'my' ? styles.active : ''}`}
-                                onClick={() => setFilterMode('my')}
-                            >
-                                My
-                            </button>
-                            <button
                                 className={`${styles.filterTab} ${filterMode === 'template' ? styles.active : ''}`}
                                 onClick={() => setFilterMode('template')}
                             >
@@ -309,6 +316,12 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
                                 onClick={() => setFilterMode('shared')}
                             >
                                 공유
+                            </button>
+                            <button
+                                className={`${styles.filterTab} ${filterMode === 'private' ? styles.active : ''}`}
+                                onClick={() => setFilterMode('private')}
+                            >
+                                비공개
                             </button>
                         </div>
 
@@ -349,98 +362,108 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
                     </div>
                 ) : (
                     <div className={styles.promptGrid}>
-                        {/* 나만의 프롬프트 추가 카드 */}
+                        {/* 프롬프트 추가 카드 */}
                         <div className={styles.addPromptCard} onClick={handleCreatePromptClick}>
                             <div className={styles.addPromptContent}>
                                 <div className={styles.addPromptIcon}>
                                     <IoAdd />
                                 </div>
-                                <h3 className={styles.addPromptTitle}>나만의 프롬프트를 추가해 보세요!</h3>
+                                <h3 className={styles.addPromptTitle}>새 프롬프트 추가</h3>
                                 <p className={styles.addPromptDescription}>
-                                    새로운 프롬프트를 생성하여 다른 사용자들과 공유하거나 개인용으로 사용하세요.
+                                    관리자 권한으로 새로운 프롬프트를 생성할 수 있습니다.
                                 </p>
                             </div>
                         </div>
 
                         {filteredPrompts.map((prompt) => (
-                                <div
-                                    key={prompt.id}
-                                    className={styles.promptCard}
-                                    onClick={() => handlePromptClick(prompt)}
-                                >
-                                    <div className={styles.cardHeader}>
-                                        <h3 className={styles.cardTitle}>{prompt.prompt_title}</h3>
-                                        <div className={styles.cardBadges}>
-                                            <span className={`${styles.badge} ${styles.language}`}>
-                                                {prompt.language.toUpperCase()}
+                            <div
+                                key={prompt.id}
+                                className={styles.promptCard}
+                                onClick={() => handlePromptClick(prompt)}
+                            >
+                                <div className={styles.cardHeader}>
+                                    <h3 className={styles.cardTitle}>{prompt.prompt_title}</h3>
+                                    <div className={styles.cardBadges}>
+                                        <span className={`${styles.badge} ${styles.language}`}>
+                                            {prompt.language.toUpperCase()}
+                                        </span>
+                                        {prompt.is_template && (
+                                            <span className={`${styles.badge} ${styles.template}`}>
+                                                템플릿
                                             </span>
-                                        </div>
-                                    </div>
-
-                                    <div className={styles.cardContent}>
-                                        <div className={styles.contentPreview}>
-                                            {truncateText(prompt.prompt_content)}
-                                        </div>
-                                        <div className={styles.contentMeta}>
-                                            <div className={styles.metaItem}>
-                                                <IoCalendar className={styles.metaIcon} />
-                                                {formatDate(prompt.created_at)}
-                                            </div>
-                                            {prompt.user_id && prompt.username && (
-                                                <div className={styles.metaItem}>
-                                                    <IoPerson className={styles.metaIcon} />
-                                                    {prompt.username || ''} ({prompt.user_id || ''})
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className={styles.cardFooter}>
-                                        <div className={styles.cardInfo}>
-                                            <div className={styles.infoItem}>
-                                                <span>문자수: {prompt.prompt_content.length}</span>
-                                            </div>
-                                        </div>
-                                        <div className={styles.cardActions}>
-                                            <button
-                                                className={styles.actionButton}
-                                                onClick={(e) => handleCopyPrompt(prompt, e)}
-                                                title="프롬프트 복사"
-                                            >
-                                                <IoCopy className={styles.actionIcon} />
-                                                복사
-                                            </button>
-                                            {user && prompt.user_id && String(prompt.user_id) === String(user.user_id) && (
-                                                <>
-                                                    <button
-                                                        className={`${styles.actionButton} ${styles.editButton}`}
-                                                        onClick={(e) => handleEditPromptClick(prompt, e)}
-                                                        title="프롬프트 편집"
-                                                    >
-                                                        <IoPencil className={styles.actionIcon} />
-                                                        편집
-                                                    </button>
-                                                    <button
-                                                        className={`${styles.actionButton} ${styles.deleteButton}`}
-                                                        onClick={(e) => handleDeletePrompt(prompt, e)}
-                                                        title="프롬프트 삭제"
-                                                    >
-                                                        <IoTrash className={styles.actionIcon} />
-                                                        삭제
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
+                                        )}
+                                        {prompt.public_available ? (
+                                            <span className={`${styles.badge} ${styles.public}`}>
+                                                공개
+                                            </span>
+                                        ) : (
+                                            <span className={`${styles.badge} ${styles.private}`}>
+                                                비공개
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
-                            ))}
+
+                                <div className={styles.cardContent}>
+                                    <div className={styles.contentPreview}>
+                                        {truncateText(prompt.prompt_content)}
+                                    </div>
+                                    <div className={styles.contentMeta}>
+                                        <div className={styles.metaItem}>
+                                            <IoCalendar className={styles.metaIcon} />
+                                            {formatDate(prompt.created_at)}
+                                        </div>
+                                        {prompt.user_id && prompt.username && (
+                                            <div className={styles.metaItem}>
+                                                <IoPerson className={styles.metaIcon} />
+                                                {prompt.username} ({prompt.user_id})
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className={styles.cardFooter}>
+                                    <div className={styles.cardInfo}>
+                                        <div className={styles.infoItem}>
+                                            <span>문자수: {prompt.prompt_content.length}</span>
+                                        </div>
+                                    </div>
+                                    <div className={styles.cardActions}>
+                                        <button
+                                            className={styles.actionButton}
+                                            onClick={(e) => handleCopyPrompt(prompt, e)}
+                                            title="프롬프트 복사"
+                                        >
+                                            <IoCopy className={styles.actionIcon} />
+                                            복사
+                                        </button>
+                                        <button
+                                            className={`${styles.actionButton} ${styles.editButton}`}
+                                            onClick={(e) => handleEditPromptClick(prompt, e)}
+                                            title="프롬프트 편집"
+                                        >
+                                            <IoPencil className={styles.actionIcon} />
+                                            편집
+                                        </button>
+                                        <button
+                                            className={`${styles.actionButton} ${styles.deleteButton}`}
+                                            onClick={(e) => handleDeletePrompt(prompt, e)}
+                                            title="프롬프트 삭제"
+                                        >
+                                            <IoTrash className={styles.actionIcon} />
+                                            삭제
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>
 
             {/* 프롬프트 확장 모달 */}
             {selectedPrompt && (
-                <PromptExpandModal
+                <AdminPromptExpandModal
                     prompt={selectedPrompt}
                     isOpen={isModalOpen}
                     onClose={handleCloseModal}
@@ -448,7 +471,7 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
             )}
 
             {/* 프롬프트 생성 모달 */}
-            <PromptCreateModal
+            <AdminPromptCreateModal
                 isOpen={isCreateModalOpen}
                 onClose={handleCloseCreateModal}
                 onSuccess={handleCreateSuccess}
@@ -456,7 +479,7 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
 
             {/* 프롬프트 편집 모달 */}
             {editingPrompt && (
-                <PromptEditModal
+                <AdminPromptEditModal
                     isOpen={isEditModalOpen}
                     onClose={handleCloseEditModal}
                     onSuccess={handleEditSuccess}
@@ -467,4 +490,4 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
     );
 };
 
-export default PromptStore;
+export default AdminPromptStore;
