@@ -8,18 +8,30 @@ import { apiClient } from '@/app/_common/api/helper/apiClient';
  * @param {number} page - 페이지 번호 (1부터 시작)
  * @param {number} pageSize - 페이지당 항목 수 (기본값: 250)
  * @param {number|null} userId - 특정 사용자 ID (선택사항, null이면 전체 조회)
+ * @param {string|null} workflowId - 필터링할 워크플로우 ID (선택사항)
+ * @param {string|null} workflowName - 필터링할 워크플로우 이름 (선택사항)
  * @returns {Promise<Object>} IO 로그 목록과 페이지네이션 정보가 포함된 객체
  */
-export const getAllIOLogs = async (page = 1, pageSize = 250, userId = null) => {
+export const getAllIOLogs = async (page = 1, pageSize = 250, userId = null, workflowId = null, workflowName = null) => {
     try {
-        let url = `${API_BASE_URL}/api/admin/workflow/all-io-logs?page=${page}&page_size=${pageSize}`;
+        const params = new URLSearchParams({
+            page: page.toString(),
+            page_size: pageSize.toString()
+        });
 
-        // user_id가 제공된 경우에만 쿼리 파라미터에 추가
         if (userId !== null && userId !== undefined) {
-            url += `&user_id=${userId}`;
+            params.append('user_id', userId.toString());
         }
 
-        const response = await apiClient(url);
+        if (workflowId) {
+            params.append('workflow_id', workflowId);
+        }
+
+        if (workflowName) {
+            params.append('workflow_name', workflowName);
+        }
+
+        const response = await apiClient(`${API_BASE_URL}/api/admin/workflow/all-io-logs?${params.toString()}`);
         const data = await response.json();
 
         if (!response.ok) {
