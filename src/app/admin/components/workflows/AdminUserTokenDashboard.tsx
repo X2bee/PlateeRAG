@@ -1,10 +1,19 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { getUserTokenUsage } from '@/app/admin/api/workflow';
 import { devLog } from '@/app/_common/utils/logger';
 import { showValidationErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/admin/assets/workflows/AdminUserTokenDashboard.module.scss';
+
+interface WorkflowUsageDetail {
+    usage_count: number;
+    total_tokens: number;
+    interactions: number;
+    input_tokens: number;
+    output_tokens: number;
+}
 
 interface UserTokenUsage {
     user_id: number;
@@ -19,6 +28,7 @@ interface UserTokenUsage {
     last_interaction: string;
     most_used_workflow: string | null;
     workflow_usage_count: number;
+    workflow_usage?: Record<string, WorkflowUsageDetail>;
 }
 
 interface PaginationInfo {
@@ -42,6 +52,13 @@ const AdminUserTokenDashboard: React.FC = () => {
         start: '',
         end: '',
     });
+    const [selectedUserWorkflows, setSelectedUserWorkflows] = useState<{
+        userId: number;
+        username: string | null;
+        workflows: Record<string, WorkflowUsageDetail>;
+    } | null>(null);
+    const [modalSortField, setModalSortField] = useState<'usage_count' | 'interactions' | 'total_tokens' | 'input_tokens' | 'output_tokens' | 'avg_tokens'>('total_tokens');
+    const [modalSortDirection, setModalSortDirection] = useState<'asc' | 'desc'>('desc');
 
     const PAGE_SIZE = 50;
 
@@ -171,6 +188,117 @@ const AdminUserTokenDashboard: React.FC = () => {
         if (username) return `${username} (${userId})`;
         return userId.toString();
     };
+
+    // 가장 많이 사용된 워크플로우 찾기
+    const getMostUsedWorkflow = (
+        workflowUsage?: Record<string, WorkflowUsageDetail>,
+    ): { name: string; count: number } | null => {
+        if (!workflowUsage || Object.keys(workflowUsage).length === 0) {
+            return null;
+        }
+
+        const workflows = Object.entries(workflowUsage);
+        const mostUsed = workflows.reduce((max, [name, data]) => {
+            return data.usage_count > max.data.usage_count
+                ? { name, data }
+                : max;
+        }, { name: workflows[0][0], data: workflows[0][1] });
+
+        return {
+            name: mostUsed.name,
+            count: mostUsed.data.usage_count,
+        };
+    };
+
+    // 워크플로우 상세 모달 열기
+    const handleOpenWorkflowDetails = (user: UserTokenUsage) => {
+        if (user.workflow_usage) {
+            setSelectedUserWorkflows({
+                userId: user.user_id,
+                username: user.username,
+                workflows: user.workflow_usage,
+            });
+            // 모달 정렬 초기화 - 총 토큰 내림차순
+            setModalSortField('total_tokens');
+            setModalSortDirection('desc');
+        }
+    };
+
+    // 워크플로우 상세 모달 닫기
+    const handleCloseWorkflowDetails = () => {
+        setSelectedUserWorkflows(null);
+    };
+
+    // 모달 정렬 핸들러
+    const handleModalSort = (field: typeof modalSortField) => {
+        if (modalSortField === field) {
+            setModalSortDirection(modalSortDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+            setModalSortField(field);
+            setModalSortDirection('desc');
+        }
+    };
+
+    // 모달 테이블 데이터 정렬
+    const getSortedModalWorkflows = () => {
+        if (!selectedUserWorkflows) return [];
+
+        const entries = Object.entries(selectedUserWorkflows.workflows);
+
+        return entries.sort((a, b) => {
+            const [, dataA] = a;
+            const [, dataB] = b;
+
+            let aValue: number;
+            let bValue: number;
+
+            switch (modalSortField) {
+                case 'usage_count':
+                    aValue = dataA.usage_count;
+                    bValue = dataB.usage_count;
+                    break;
+                case 'interactions':
+                    aValue = dataA.interactions;
+                    bValue = dataB.interactions;
+                    break;
+                case 'total_tokens':
+                    aValue = dataA.total_tokens;
+                    bValue = dataB.total_tokens;
+                    break;
+                case 'input_tokens':
+                    aValue = dataA.input_tokens;
+                    bValue = dataB.input_tokens;
+                    break;
+                case 'output_tokens':
+                    aValue = dataA.output_tokens;
+                    bValue = dataB.output_tokens;
+                    break;
+                case 'avg_tokens':
+                    aValue = dataA.interactions > 0 ? dataA.total_tokens / dataA.interactions : 0;
+                    bValue = dataB.interactions > 0 ? dataB.total_tokens / dataB.interactions : 0;
+                    break;
+                default:
+                    aValue = dataA.usage_count;
+                    bValue = dataB.usage_count;
+            }
+
+            const comparison = aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+            return modalSortDirection === 'asc' ? comparison : -comparison;
+        });
+    };
+
+    // 모달 열림/닫힘에 따라 body 스크롤 제어
+    useEffect(() => {
+        if (selectedUserWorkflows) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [selectedUserWorkflows]);
 
     // 토큰 사용량 바 차트 컴포넌트
     const TokenUsageBar = ({
@@ -510,30 +638,59 @@ const AdminUserTokenDashboard: React.FC = () => {
                                         />
                                     </td>
                                     <td className={styles.workflowCell}>
-                                        {user.most_used_workflow ? (
-                                            <div>
+                                        {(() => {
+                                            const mostUsed = getMostUsedWorkflow(
+                                                user.workflow_usage,
+                                            );
+                                            return mostUsed ? (
                                                 <div
                                                     className={
-                                                        styles.workflowName
+                                                        styles.workflowWrapper
                                                     }
                                                 >
-                                                    {user.most_used_workflow}
+                                                    <div>
+                                                        <div
+                                                            className={
+                                                                styles.workflowName
+                                                            }
+                                                        >
+                                                            {mostUsed.name}
+                                                        </div>
+                                                        <div
+                                                            className={
+                                                                styles.workflowCount
+                                                            }
+                                                        >
+                                                            (
+                                                            {formatNumber(
+                                                                mostUsed.count,
+                                                            )}
+                                                            회)
+                                                        </div>
+                                                    </div>
+                                                    {user.workflow_usage &&
+                                                        Object.keys(
+                                                            user.workflow_usage,
+                                                        ).length > 1 && (
+                                                            <button
+                                                                className={
+                                                                    styles.detailsButton
+                                                                }
+                                                                onClick={() =>
+                                                                    handleOpenWorkflowDetails(
+                                                                        user,
+                                                                    )
+                                                                }
+                                                                title="워크플로우 상세 보기"
+                                                            >
+                                                                ...
+                                                            </button>
+                                                        )}
                                                 </div>
-                                                <div
-                                                    className={
-                                                        styles.workflowCount
-                                                    }
-                                                >
-                                                    (
-                                                    {formatNumber(
-                                                        user.workflow_usage_count,
-                                                    )}
-                                                    회)
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            '-'
-                                        )}
+                                            ) : (
+                                                '-'
+                                            );
+                                        })()}
                                     </td>
                                     <td className={styles.dateCell}>
                                         {formatDate(user.last_interaction)}
@@ -599,6 +756,235 @@ const AdminUserTokenDashboard: React.FC = () => {
                         다음
                     </button>
                 </div>
+            )}
+
+            {/* 워크플로우 상세 모달 */}
+            {selectedUserWorkflows && createPortal(
+                <div
+                    className={styles.modalOverlay}
+                    onClick={handleCloseWorkflowDetails}
+                >
+                    <div
+                        className={styles.modalContent}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className={styles.modalHeader}>
+                            <h2>
+                                워크플로우 사용 상세 -{' '}
+                                {formatUserInfo(
+                                    selectedUserWorkflows.username,
+                                    selectedUserWorkflows.userId,
+                                )}
+                            </h2>
+                            <button
+                                className={styles.closeButton}
+                                onClick={handleCloseWorkflowDetails}
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className={styles.modalBody}>
+                            <table className={styles.workflowTable}>
+                                <thead>
+                                    <tr>
+                                        <th>워크플로우명</th>
+                                        <th
+                                            className={styles.sortable}
+                                            onClick={() => handleModalSort('usage_count')}
+                                        >
+                                            사용 횟수
+                                            {modalSortField === 'usage_count' && (
+                                                <span className={styles.sortIcon}>
+                                                    {modalSortDirection === 'asc' ? '↑' : '↓'}
+                                                </span>
+                                            )}
+                                        </th>
+                                        <th
+                                            className={styles.sortable}
+                                            onClick={() => handleModalSort('interactions')}
+                                        >
+                                            총 상호작용
+                                            {modalSortField === 'interactions' && (
+                                                <span className={styles.sortIcon}>
+                                                    {modalSortDirection === 'asc' ? '↑' : '↓'}
+                                                </span>
+                                            )}
+                                        </th>
+                                        <th
+                                            className={styles.sortable}
+                                            onClick={() => handleModalSort('total_tokens')}
+                                        >
+                                            총 토큰
+                                            {modalSortField === 'total_tokens' && (
+                                                <span className={styles.sortIcon}>
+                                                    {modalSortDirection === 'asc' ? '↑' : '↓'}
+                                                </span>
+                                            )}
+                                        </th>
+                                        <th
+                                            className={styles.sortable}
+                                            onClick={() => handleModalSort('input_tokens')}
+                                        >
+                                            입력 토큰
+                                            {modalSortField === 'input_tokens' && (
+                                                <span className={styles.sortIcon}>
+                                                    {modalSortDirection === 'asc' ? '↑' : '↓'}
+                                                </span>
+                                            )}
+                                        </th>
+                                        <th
+                                            className={styles.sortable}
+                                            onClick={() => handleModalSort('output_tokens')}
+                                        >
+                                            출력 토큰
+                                            {modalSortField === 'output_tokens' && (
+                                                <span className={styles.sortIcon}>
+                                                    {modalSortDirection === 'asc' ? '↑' : '↓'}
+                                                </span>
+                                            )}
+                                        </th>
+                                        <th
+                                            className={styles.sortable}
+                                            onClick={() => handleModalSort('avg_tokens')}
+                                        >
+                                            평균 토큰/상호작용
+                                            {modalSortField === 'avg_tokens' && (
+                                                <span className={styles.sortIcon}>
+                                                    {modalSortDirection === 'asc' ? '↑' : '↓'}
+                                                </span>
+                                            )}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {getSortedModalWorkflows().map(([workflowName, data]) => (
+                                            <tr key={workflowName}>
+                                                <td
+                                                    className={
+                                                        styles.workflowNameCell
+                                                    }
+                                                >
+                                                    {workflowName}
+                                                </td>
+                                                <td
+                                                    className={
+                                                        styles.numberCell
+                                                    }
+                                                >
+                                                    {formatNumber(
+                                                        data.usage_count,
+                                                    )}
+                                                </td>
+                                                <td
+                                                    className={
+                                                        styles.numberCell
+                                                    }
+                                                >
+                                                    {formatNumber(
+                                                        data.interactions,
+                                                    )}
+                                                </td>
+                                                <td
+                                                    className={
+                                                        styles.numberCell
+                                                    }
+                                                >
+                                                    <strong>
+                                                        {formatNumber(
+                                                            data.total_tokens,
+                                                        )}
+                                                    </strong>
+                                                </td>
+                                                <td
+                                                    className={
+                                                        styles.numberCell
+                                                    }
+                                                >
+                                                    {formatNumber(
+                                                        data.input_tokens,
+                                                    )}
+                                                </td>
+                                                <td
+                                                    className={
+                                                        styles.numberCell
+                                                    }
+                                                >
+                                                    {formatNumber(
+                                                        data.output_tokens,
+                                                    )}
+                                                </td>
+                                                <td
+                                                    className={
+                                                        styles.numberCell
+                                                    }
+                                                >
+                                                    {data.interactions > 0
+                                                        ? formatNumber(
+                                                              Math.round(
+                                                                  data.total_tokens /
+                                                                      data.interactions,
+                                                              ),
+                                                          )
+                                                        : '-'}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                </tbody>
+                            </table>
+
+                            <div className={styles.modalSummary}>
+                                <div className={styles.summaryItem}>
+                                    <span className={styles.summaryLabel}>
+                                        총 워크플로우 수:
+                                    </span>
+                                    <span className={styles.summaryValue}>
+                                        {
+                                            Object.keys(
+                                                selectedUserWorkflows.workflows,
+                                            ).length
+                                        }
+                                        개
+                                    </span>
+                                </div>
+                                <div className={styles.summaryItem}>
+                                    <span className={styles.summaryLabel}>
+                                        총 사용 횟수:
+                                    </span>
+                                    <span className={styles.summaryValue}>
+                                        {formatNumber(
+                                            Object.values(
+                                                selectedUserWorkflows.workflows,
+                                            ).reduce(
+                                                (sum, data) =>
+                                                    sum + data.usage_count,
+                                                0,
+                                            ),
+                                        )}
+                                        회
+                                    </span>
+                                </div>
+                                <div className={styles.summaryItem}>
+                                    <span className={styles.summaryLabel}>
+                                        총 토큰:
+                                    </span>
+                                    <span className={styles.summaryValue}>
+                                        {formatNumber(
+                                            Object.values(
+                                                selectedUserWorkflows.workflows,
+                                            ).reduce(
+                                                (sum, data) =>
+                                                    sum + data.total_tokens,
+                                                0,
+                                            ),
+                                        )}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>,
+                document.body
             )}
         </div>
     );
