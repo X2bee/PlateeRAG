@@ -57,7 +57,7 @@
             }
         }
 
-        .myFilterContainer {
+        .filterTabs {
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -65,7 +65,7 @@
             padding: 0.25rem;
             border-radius: 0.5rem;
 
-            .myFilterButton {
+            .filterTab {
                 padding: 0.5rem 1rem;
                 border: none;
                 background: transparent;
@@ -454,6 +454,22 @@
                     border-color: $primary-blue;
                     color: $primary-blue;
                     background: rgba($primary-blue, 0.05);
+                }
+
+                &.editButton {
+                    &:hover {
+                        border-color: #f59e0b;
+                        color: #f59e0b;
+                        background: rgba(#f59e0b, 0.05);
+                    }
+                }
+
+                &.deleteButton {
+                    &:hover {
+                        border-color: #dc2626;
+                        color: #dc2626;
+                        background: rgba(#dc2626, 0.05);
+                    }
                 }
 
                 .actionIcon {

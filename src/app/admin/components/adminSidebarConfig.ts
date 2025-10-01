@@ -45,7 +45,7 @@ export const getUserSidebarItems = (): AdminSidebarItem[] => [
     },
 ];
 
-export const getWorkflowItems = ['workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring'];
+export const getWorkflowItems = ['workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'prompt-store'];
 
 export const getWorkflowSidebarItems = (): AdminSidebarItem[] => [
     {
@@ -71,6 +71,12 @@ export const getWorkflowSidebarItems = (): AdminSidebarItem[] => [
         title: '노드 관리',
         description: '시스템 노드 목록 및 상세 정보 관리',
         icon: React.createElement(FiLayers),
+    },
+    {
+        id: 'prompt-store',
+        title: '프롬프트 스토어',
+        description: '프롬프트 관리 및 템플릿 설정',
+        icon: React.createElement(FiFileText),
     },
 ];
 

@@ -228,4 +228,7 @@ export interface WorkflowDetailResponse {
     share_permissions: string;
     metadata: any;
     error?: string;
+    inquire_deploy?: boolean;
+    is_accepted?: boolean;
+    is_deployed?: boolean;
 }
