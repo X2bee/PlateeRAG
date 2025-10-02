@@ -12,6 +12,7 @@ import {
     FiSettings,
     FiCheck,
     FiXCircle,
+    FiFileText,
 } from 'react-icons/fi';
 import styles from '@/app/admin/assets/workflows/AdminWorkflowControll.module.scss';
 import { getAllWorkflowMeta, deleteWorkflowAdmin, updateWorkflow } from '@/app/admin/api/workflow';
@@ -22,6 +23,7 @@ import {
 } from '@/app/_common/utils/toastUtilsKo';
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import AdminWorkflowEditModal from './AdminWorkflowEditModal';
+import AdminWorkflowLogTab from './AdminWorkflowLogTab';
 
 interface AdminWorkflow {
     key_value: number;
@@ -52,6 +54,7 @@ const AdminWorkflowControll: React.FC = () => {
     const [deployed_list, setDeployed_list] = useState<{[key: string]: boolean | 'pending' | null}>({});
     const [editingWorkflow, setEditingWorkflow] = useState<AdminWorkflow | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedWorkflowForLog, setSelectedWorkflowForLog] = useState<AdminWorkflow | null>(null);
 
     const fetchWorkflows = async () => {
         try {
@@ -249,9 +252,42 @@ const AdminWorkflowControll: React.FC = () => {
         );
     };
 
+    const handleViewLogs = (workflow: AdminWorkflow) => {
+        setSelectedWorkflowForLog(workflow);
+    };
+
+    const handleBackToGrid = () => {
+        setSelectedWorkflowForLog(null);
+    };
+
     const clearSearch = () => {
         setSearchQuery('');
     };
+
+    // 로그 보기 화면인 경우
+    if (selectedWorkflowForLog) {
+        return (
+            <div className={styles.container}>
+                <div className={styles.header}>
+                    <div className={styles.headerActions}>
+                        <button
+                            className={styles.backButton}
+                            onClick={handleBackToGrid}
+                        >
+                            ← 워크플로우 목록으로 돌아가기
+                        </button>
+                        <h2 className={styles.logViewTitle}>
+                            {selectedWorkflowForLog.name} - 로그 보기
+                        </h2>
+                    </div>
+                </div>
+                <AdminWorkflowLogTab
+                    workflowId={selectedWorkflowForLog.id}
+                    workflowName={selectedWorkflowForLog.name}
+                />
+            </div>
+        );
+    }
 
     return (
         <div className={styles.container}>
@@ -406,6 +442,16 @@ const AdminWorkflowControll: React.FC = () => {
                             </div>
 
                             <div className={styles.cardActions}>
+                                <button
+                                    className={styles.actionButton}
+                                    title="로그 보기"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleViewLogs(workflow);
+                                    }}
+                                >
+                                    <FiFileText />
+                                </button>
                                 <button
                                     className={styles.actionButton}
                                     title="설정"

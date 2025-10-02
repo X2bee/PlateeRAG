@@ -12,6 +12,7 @@ import {
     showSuccessToastKo,
     showErrorToastKo
 } from '@/app/_common/utils/toastUtilsKo';
+import { useAdminAuth } from '@/app/admin/components/helper/AdminAuthGuard';
 
 interface User {
     id: number;
@@ -37,6 +38,7 @@ interface PaginationInfo {
 }
 
 const AdminUserContent: React.FC = () => {
+    const { userType } = useAdminAuth();
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -51,6 +53,15 @@ const AdminUserContent: React.FC = () => {
     const [hasNextPage, setHasNextPage] = useState(false);
 
     const PAGE_SIZE = 100;
+
+    // admin 타입인 경우 삭제 버튼을 숨김
+    const canDeleteUsers = userType === 'superuser';
+
+    // 로그 출력: 사용자 타입 및 삭제 권한 확인
+    useEffect(() => {
+        devLog.log('AdminUserContent: User type:', userType);
+        devLog.log('AdminUserContent: Can delete users:', canDeleteUsers);
+    }, [userType, canDeleteUsers]);
 
     // 사용자 데이터 로드
     const loadUsers = async (page: number = 1, resetUsers: boolean = true) => {
@@ -572,13 +583,15 @@ const AdminUserContent: React.FC = () => {
                                             >
                                                 편집
                                             </button>
-                                            <button
-                                                className={`${styles.actionButton} ${styles.dangerButton}`}
-                                                onClick={() => handleDeleteUser(user)}
-                                                disabled={deleteLoading === user.id}
-                                            >
-                                                {deleteLoading === user.id ? '삭제 중...' : '삭제'}
-                                            </button>
+                                            {canDeleteUsers && (
+                                                <button
+                                                    className={`${styles.actionButton} ${styles.dangerButton}`}
+                                                    onClick={() => handleDeleteUser(user)}
+                                                    disabled={deleteLoading === user.id}
+                                                >
+                                                    {deleteLoading === user.id ? '삭제 중...' : '삭제'}
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
                                 );
@@ -647,13 +660,15 @@ const AdminUserContent: React.FC = () => {
                                     >
                                         편집
                                     </button>
-                                    <button
-                                        className={`${styles.actionButton} ${styles.dangerButton}`}
-                                        onClick={() => handleDeleteUser(user)}
-                                        disabled={deleteLoading === user.id}
-                                    >
-                                        {deleteLoading === user.id ? '삭제 중...' : '삭제'}
-                                    </button>
+                                    {canDeleteUsers && (
+                                        <button
+                                            className={`${styles.actionButton} ${styles.dangerButton}`}
+                                            onClick={() => handleDeleteUser(user)}
+                                            disabled={deleteLoading === user.id}
+                                        >
+                                            {deleteLoading === user.id ? '삭제 중...' : '삭제'}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         );

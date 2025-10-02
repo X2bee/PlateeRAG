@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FiChevronRight } from 'react-icons/fi';
+import { useAdminAuth } from '@/app/admin/components/helper/AdminAuthGuard';
 import AdminSidebar from '@/app/admin/components/AdminSidebar';
 import AdminContentArea from '@/app/admin/components/helper/AdminContentArea';
 import AdminIntroduction from '@/app/admin/components/AdminIntroduction';
@@ -14,6 +15,7 @@ import AdminConfigViewer from '@/app/admin/components/config/AdminConfigViewer';
 import AdminSettings from '@/app/admin/components/config/AdminSettings';
 import AdminWorkflowChatLogsContent from '@/app/admin/components/workflows/AdminWorkflowChatLogsContent';
 import AdminGroupContent from '@/app/admin/components/group/AdminGroupContent';
+import AdminUserTokenDashboard from '@/app/admin/components/workflows/AdminUserTokenDashboard';
 import AdminPlayground from '@/app/admin/components/workflows/playground/AdminPlayground';
 import AdminSystemMonitor from '@/app/admin/components/sysmonitor/AdminSystemMonitor';
 import AdminDatabase from '@/app/admin/components/database/AdminDatabase';
@@ -39,6 +41,9 @@ const AdminPageContent: React.FC = () => {
     const searchParams = useSearchParams();
     const [activeSection, setActiveSection] = useState<string>('dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+    // Admin 권한 정보 가져오기
+    const { availableSections, hasAccessToSection } = useAdminAuth();
 
     // 워크플로우 모니터링용 탭 상태
     const [workflowTab, setWorkflowTab] = useState<'executor' | 'monitoring' | 'batchtester' | 'test-logs'>('executor');
@@ -97,14 +102,18 @@ const AdminPageContent: React.FC = () => {
         setIsSidebarOpen(!isSidebarOpen);
     };
 
-    // 사이드바 아이템들
-    const userItems = getUserSidebarItems();
-    const workflowItems = getWorkflowSidebarItems();
-    const settingItems = getSettingSidebarItems();
-    const systemItems = getSystemSidebarItems();
-    const dataItems = getDataSidebarItems();
-    const securityItems = getSecuritySidebarItems();
-    const mcpItems = getMCPSidebarItems();
+    // 사이드바 아이템들 (권한에 따라 필터링)
+    const filterItemsByPermission = (items: any[]) => {
+        return items.filter(item => hasAccessToSection(item.id));
+    };
+
+    const userItems = filterItemsByPermission(getUserSidebarItems());
+    const workflowItems = filterItemsByPermission(getWorkflowSidebarItems());
+    const settingItems = filterItemsByPermission(getSettingSidebarItems());
+    const systemItems = filterItemsByPermission(getSystemSidebarItems());
+    const dataItems = filterItemsByPermission(getDataSidebarItems());
+    const securityItems = filterItemsByPermission(getSecuritySidebarItems());
+    const mcpItems = filterItemsByPermission(getMCPSidebarItems());
 
     // 아이템 클릭 핸들러
     const handleItemClick = createAdminItemClickHandler(router);
@@ -132,7 +141,7 @@ const AdminPageContent: React.FC = () => {
             // User Items
             'users', 'user-create', 'group-permissions',
             // Workflow Items
-            'workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'prompt-store',
+            'workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'user-token-dashboard', 'prompt-store',
             // Setting Items
             'system-config', 'system-settings',
             // System Items
@@ -148,6 +157,28 @@ const AdminPageContent: React.FC = () => {
     };
 
     const renderContent = () => {
+        // 섹션 접근 권한 확인
+        if (activeSection !== 'dashboard' && !hasAccessToSection(activeSection)) {
+            return (
+                <AdminContentArea
+                    title="접근 권한 없음"
+                    description="이 섹션에 대한 접근 권한이 없습니다."
+                >
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '4rem',
+                        color: '#64748b'
+                    }}>
+                        <p>이 섹션에 접근할 수 있는 권한이 없습니다.</p>
+                        <p>관리자에게 문의하세요.</p>
+                    </div>
+                </AdminContentArea>
+            );
+        }
+
         switch (activeSection) {
             case 'dashboard':
                 return (
@@ -247,6 +278,15 @@ const AdminPageContent: React.FC = () => {
                         description="프롬프트를 관리하고 템플릿을 설정할 수 있습니다."
                     >
                         <AdminPromptStore />
+                    </AdminContentArea>
+                );
+            case 'user-token-dashboard':
+                return (
+                    <AdminContentArea
+                        title="유저별 채팅 대시보드"
+                        description="사용자별 토큰 사용량 및 채팅 통계를 확인하세요."
+                    >
+                        <AdminUserTokenDashboard />
                     </AdminContentArea>
                 );
             case 'system-monitor':
@@ -368,7 +408,7 @@ const AdminPageContent: React.FC = () => {
                     activeItem={activeSection}
                     onItemClick={(itemId: string) => setActiveSection(itemId)}
                     initialUserExpanded={['users', 'user-create', 'group-permissions'].includes(activeSection)}
-                    initialWorkflowExpanded={['workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'prompt-store'].includes(activeSection)}
+                    initialWorkflowExpanded={['workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'user-token-dashboard', 'prompt-store'].includes(activeSection)}
                     initialSettingExpanded={['system-config', 'system-settings'].includes(activeSection)}
                     initialSystemExpanded={['system-monitor', 'system-health'].includes(activeSection)}
                     initialDataExpanded={['database', 'storage', 'backup'].includes(activeSection)}

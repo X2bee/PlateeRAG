@@ -17,6 +17,7 @@ import {
     FiMessageSquare,
     FiBarChart,
     FiPackage,
+    FiPieChart,
     FiGrid,
     FiLayers,
 } from 'react-icons/fi';
@@ -45,7 +46,7 @@ export const getUserSidebarItems = (): AdminSidebarItem[] => [
     },
 ];
 
-export const getWorkflowItems = ['workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'prompt-store'];
+export const getWorkflowItems = ['workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'user-token-dashboard', 'prompt-store'];
 
 export const getWorkflowSidebarItems = (): AdminSidebarItem[] => [
     {
@@ -65,6 +66,12 @@ export const getWorkflowSidebarItems = (): AdminSidebarItem[] => [
         title: '채팅 모니터링',
         description: '실시간 채팅 활동 및 상태 모니터링',
         icon: React.createElement(FiMessageSquare),
+    },
+    {
+        id: 'user-token-dashboard',
+        title: '유저별 채팅 대시보드',
+        description: '사용자별 토큰 사용량 및 채팅 통계',
+        icon: React.createElement(FiPieChart),
     },
     {
         id: 'node-management',

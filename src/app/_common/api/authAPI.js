@@ -450,3 +450,33 @@ export const getGroupAvailableSections = async (user_id) => {
         throw error;
     }
 };
+
+/**
+ * 관리자의 사용 가능한 섹션 조회 API
+ * @param {number} user_id - 사용자 ID
+ * @returns {Promise<Object>} 사용 가능한 관리자 섹션 목록
+ */
+export const getAdminAvailableSections = async (user_id) => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/auth/admin/available-section?user_id=${user_id}`,
+            {
+                method: 'GET',
+            }
+        );
+
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        const result = await response.json();
+        devLog.log('Admin available sections fetched successfully:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to fetch admin available sections:', error);
+        throw error;
+    }
+};

@@ -22,7 +22,10 @@ export const checkSuperuser = async () => {
 
 /**
  * 현재 로그인한 사용자가 슈퍼유저인지 검증하는 함수 (인증 헤더 필요)
- * @returns {Promise<boolean>} 현재 사용자의 슈퍼유저 여부 (true/false)
+ * @returns {Promise<{ superuser: boolean }>} 현재 사용자의 슈퍼유저 여부 (true/false)
+ * @returns {Promise<{ user_id: number || null }>} 현재 사용자의 ID
+ * @returns {Promise<{ available_admin_sections: string[] }>} 현재 사용자의 이름
+ * @returns {Promise<{ user_type: string }>} 현재 사용자의 타입 ( "standard" | "admin" | "superuser" )
  */
 export const validateSuperuser = async () => {
     try {
@@ -30,7 +33,7 @@ export const validateSuperuser = async () => {
         const data = await response.json();
         devLog.log('Superuser validation result:', data);
 
-        return data.superuser;
+        return data;
     } catch (error) {
         devLog.error('Failed to validate superuser:', error);
         throw error;

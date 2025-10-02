@@ -274,3 +274,35 @@ export const removeUserGroup = async (userData) => {
         throw error;
     }
 };
+
+/**
+ * 사용자의 사용 가능한 관리자 섹션을 수정하는 함수 (슈퍼유저 권한 필요)
+ * @param {Object} userData - 수정할 사용자 정보
+ * @param {number} userData.id - 사용자 ID
+ * @param {Array<string>} userData.available_admin_sections - 사용 가능한 관리자 섹션 목록
+ * @returns {Promise<Object>} 수정 결과
+ */
+export const updateUserAvailableAdminSections = async (userData) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/admin/user/update-user/available-admin-sections`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData)
+        });
+
+        const data = await response.json();
+        devLog.log('Update user available admin sections result:', data);
+
+        if (!response.ok) {
+            devLog.error('Failed to update user available admin sections:', data);
+            throw new Error(data.detail || 'Failed to update user available admin sections');
+        }
+
+        return data;
+    } catch (error) {
+        devLog.error('Failed to update user available admin sections:', error);
+        throw error;
+    }
+};
