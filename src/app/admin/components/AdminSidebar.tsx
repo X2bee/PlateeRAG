@@ -122,202 +122,230 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     )}
                 </div>
 
-                <button
-                    className={styles.sidebarToggle}
-                    onClick={toggleUserExpanded}
-                >
-                    <span>사용자 관리</span>
-                    <span className={`${styles.toggleIcon} ${isUserExpanded ? styles.expanded : ''}`}>
-                        ▼
-                    </span>
-                </button>
-
-                <nav className={`${styles.sidebarNav} ${isUserExpanded ? styles.expanded : ''}`}>
-                    {userItems.map((item: any) => (
+                {userItems.length > 0 && (
+                    <>
                         <button
-                            key={item.id}
-                            onClick={() => onItemClick(item.id)}
-                            className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                            className={styles.sidebarToggle}
+                            onClick={toggleUserExpanded}
                         >
-                            {item.icon}
-                            <div className={styles.navText}>
-                                <div className={styles.navTitle}>{item.title}</div>
-                                <div className={styles.navDescription}>
-                                    {item.description}
-                                </div>
-                            </div>
+                            <span>사용자 관리</span>
+                            <span className={`${styles.toggleIcon} ${isUserExpanded ? styles.expanded : ''}`}>
+                                ▼
+                            </span>
                         </button>
-                    ))}
-                </nav>
 
-                <button
-                    className={styles.sidebarToggle}
-                    onClick={toggleWorkflowExpanded}
-                >
-                    <span>워크플로우 관리</span>
-                    <span className={`${styles.toggleIcon} ${isWorkflowExpanded ? styles.expanded : ''}`}>
-                        ▼
-                    </span>
-                </button>
+                        <nav className={`${styles.sidebarNav} ${isUserExpanded ? styles.expanded : ''}`}>
+                            {userItems.map((item: any) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => onItemClick(item.id)}
+                                    className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                                >
+                                    {item.icon}
+                                    <div className={styles.navText}>
+                                        <div className={styles.navTitle}>{item.title}</div>
+                                        <div className={styles.navDescription}>
+                                            {item.description}
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </nav>
+                    </>
+                )}
 
-                <nav className={`${styles.sidebarNav} ${isWorkflowExpanded ? styles.expanded : ''}`}>
-                    {workflowItems.map((item: any) => (
+                {workflowItems.length > 0 && (
+                    <>
                         <button
-                            key={item.id}
-                            onClick={() => onItemClick(item.id)}
-                            className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                            className={styles.sidebarToggle}
+                            onClick={toggleWorkflowExpanded}
                         >
-                            {item.icon}
-                            <div className={styles.navText}>
-                                <div className={styles.navTitle}>{item.title}</div>
-                                <div className={styles.navDescription}>
-                                    {item.description}
-                                </div>
-                            </div>
+                            <span>워크플로우 관리</span>
+                            <span className={`${styles.toggleIcon} ${isWorkflowExpanded ? styles.expanded : ''}`}>
+                                ▼
+                            </span>
                         </button>
-                    ))}
-                </nav>
 
-                <button
-                    className={styles.sidebarToggle}
-                    onClick={toggleSettingExpanded}
-                >
-                    <span>환경 설정</span>
-                    <span className={`${styles.toggleIcon} ${isSettingExpanded ? styles.expanded : ''}`}>
-                        ▼
-                    </span>
-                </button>
+                        <nav className={`${styles.sidebarNav} ${isWorkflowExpanded ? styles.expanded : ''}`}>
+                            {workflowItems.map((item: any) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => onItemClick(item.id)}
+                                    className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                                >
+                                    {item.icon}
+                                    <div className={styles.navText}>
+                                        <div className={styles.navTitle}>{item.title}</div>
+                                        <div className={styles.navDescription}>
+                                            {item.description}
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </nav>
+                    </>
+                )}
 
-                <nav className={`${styles.sidebarNav} ${isSettingExpanded ? styles.expanded : ''}`}>
-                    {settingItems.map((item: any) => (
+                {settingItems.length > 0 && (
+                    <>
                         <button
-                            key={item.id}
-                            onClick={() => onItemClick(item.id)}
-                            className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                            className={styles.sidebarToggle}
+                            onClick={toggleSettingExpanded}
                         >
-                            {item.icon}
-                            <div className={styles.navText}>
-                                <div className={styles.navTitle}>{item.title}</div>
-                                <div className={styles.navDescription}>
-                                    {item.description}
-                                </div>
-                            </div>
+                            <span>환경 설정</span>
+                            <span className={`${styles.toggleIcon} ${isSettingExpanded ? styles.expanded : ''}`}>
+                                ▼
+                            </span>
                         </button>
-                    ))}
-                </nav>
 
-                <button
-                    className={styles.sidebarToggle}
-                    onClick={toggleSystemExpanded}
-                >
-                    <span>시스템 모니터링</span>
-                    <span className={`${styles.toggleIcon} ${isSystemExpanded ? styles.expanded : ''}`}>
-                        ▼
-                    </span>
-                </button>
+                        <nav className={`${styles.sidebarNav} ${isSettingExpanded ? styles.expanded : ''}`}>
+                            {settingItems.map((item: any) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => onItemClick(item.id)}
+                                    className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                                >
+                                    {item.icon}
+                                    <div className={styles.navText}>
+                                        <div className={styles.navTitle}>{item.title}</div>
+                                        <div className={styles.navDescription}>
+                                            {item.description}
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </nav>
+                    </>
+                )}
 
-                <nav className={`${styles.sidebarNav} ${isSystemExpanded ? styles.expanded : ''}`}>
-                    {systemItems.map((item: any) => (
+                {systemItems.length > 0 && (
+                    <>
                         <button
-                            key={item.id}
-                            onClick={() => onItemClick(item.id)}
-                            className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                            className={styles.sidebarToggle}
+                            onClick={toggleSystemExpanded}
                         >
-                            {item.icon}
-                            <div className={styles.navText}>
-                                <div className={styles.navTitle}>{item.title}</div>
-                                <div className={styles.navDescription}>
-                                    {item.description}
-                                </div>
-                            </div>
+                            <span>시스템 모니터링</span>
+                            <span className={`${styles.toggleIcon} ${isSystemExpanded ? styles.expanded : ''}`}>
+                                ▼
+                            </span>
                         </button>
-                    ))}
-                </nav>
 
-                <button
-                    className={styles.sidebarToggle}
-                    onClick={toggleDataExpanded}
-                >
-                    <span>데이터 관리</span>
-                    <span className={`${styles.toggleIcon} ${isDataExpanded ? styles.expanded : ''}`}>
-                        ▼
-                    </span>
-                </button>
+                        <nav className={`${styles.sidebarNav} ${isSystemExpanded ? styles.expanded : ''}`}>
+                            {systemItems.map((item: any) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => onItemClick(item.id)}
+                                    className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                                >
+                                    {item.icon}
+                                    <div className={styles.navText}>
+                                        <div className={styles.navTitle}>{item.title}</div>
+                                        <div className={styles.navDescription}>
+                                            {item.description}
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </nav>
+                    </>
+                )}
 
-                <nav className={`${styles.sidebarNav} ${isDataExpanded ? styles.expanded : ''}`}>
-                    {dataItems.map((item: any) => (
+                {dataItems.length > 0 && (
+                    <>
                         <button
-                            key={item.id}
-                            onClick={() => onItemClick(item.id)}
-                            className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                            className={styles.sidebarToggle}
+                            onClick={toggleDataExpanded}
                         >
-                            {item.icon}
-                            <div className={styles.navText}>
-                                <div className={styles.navTitle}>{item.title}</div>
-                                <div className={styles.navDescription}>
-                                    {item.description}
-                                </div>
-                            </div>
+                            <span>데이터 관리</span>
+                            <span className={`${styles.toggleIcon} ${isDataExpanded ? styles.expanded : ''}`}>
+                                ▼
+                            </span>
                         </button>
-                    ))}
-                </nav>
 
-                <button
-                    className={styles.sidebarToggle}
-                    onClick={toggleSecurityExpanded}
-                >
-                    <span>보안 관리</span>
-                    <span className={`${styles.toggleIcon} ${isSecurityExpanded ? styles.expanded : ''}`}>
-                        ▼
-                    </span>
-                </button>
+                        <nav className={`${styles.sidebarNav} ${isDataExpanded ? styles.expanded : ''}`}>
+                            {dataItems.map((item: any) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => onItemClick(item.id)}
+                                    className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                                >
+                                    {item.icon}
+                                    <div className={styles.navText}>
+                                        <div className={styles.navTitle}>{item.title}</div>
+                                        <div className={styles.navDescription}>
+                                            {item.description}
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </nav>
+                    </>
+                )}
 
-                <nav className={`${styles.sidebarNav} ${isSecurityExpanded ? styles.expanded : ''}`}>
-                    {securityItems.map((item: any) => (
+                {securityItems.length > 0 && (
+                    <>
                         <button
-                            key={item.id}
-                            onClick={() => onItemClick(item.id)}
-                            className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                            className={styles.sidebarToggle}
+                            onClick={toggleSecurityExpanded}
                         >
-                            {item.icon}
-                            <div className={styles.navText}>
-                                <div className={styles.navTitle}>{item.title}</div>
-                                <div className={styles.navDescription}>
-                                    {item.description}
-                                </div>
-                            </div>
+                            <span>보안 관리</span>
+                            <span className={`${styles.toggleIcon} ${isSecurityExpanded ? styles.expanded : ''}`}>
+                                ▼
+                            </span>
                         </button>
-                    ))}
-                </nav>
+
+                        <nav className={`${styles.sidebarNav} ${isSecurityExpanded ? styles.expanded : ''}`}>
+                            {securityItems.map((item: any) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => onItemClick(item.id)}
+                                    className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                                >
+                                    {item.icon}
+                                    <div className={styles.navText}>
+                                        <div className={styles.navTitle}>{item.title}</div>
+                                        <div className={styles.navDescription}>
+                                            {item.description}
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </nav>
+                    </>
+                )}
 
                 {/* MCP 섹션 */}
-                <button
-                    className={styles.sidebarToggle}
-                    onClick={toggleMCPExpanded}
-                >
-                    <span>MCP</span>
-                    <span className={`${styles.toggleIcon} ${isMCPExpanded ? styles.expanded : ''}`}>
-                        ▼
-                    </span>
-                </button>
-
-                <nav className={`${styles.sidebarNav} ${isMCPExpanded ? styles.expanded : ''}`}>
-                    {mcpItems && mcpItems.map((item: any) => (
+                {mcpItems && mcpItems.length > 0 && (
+                    <>
                         <button
-                            key={item.id}
-                            onClick={() => onItemClick(item.id)}
-                            className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                            className={styles.sidebarToggle}
+                            onClick={toggleMCPExpanded}
                         >
-                            {item.icon}
-                            <div className={styles.navText}>
-                                <div className={styles.navTitle}>{item.title}</div>
-                                <div className={styles.navDescription}>
-                                    {item.description}
-                                </div>
-                            </div>
+                            <span>MCP</span>
+                            <span className={`${styles.toggleIcon} ${isMCPExpanded ? styles.expanded : ''}`}>
+                                ▼
+                            </span>
                         </button>
-                    ))}
-                </nav>
+
+                        <nav className={`${styles.sidebarNav} ${isMCPExpanded ? styles.expanded : ''}`}>
+                            {mcpItems.map((item: any) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => onItemClick(item.id)}
+                                    className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                                >
+                                    {item.icon}
+                                    <div className={styles.navText}>
+                                        <div className={styles.navTitle}>{item.title}</div>
+                                        <div className={styles.navDescription}>
+                                            {item.description}
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </nav>
+                    </>
+                )}
             </div>
         </motion.aside>
     );

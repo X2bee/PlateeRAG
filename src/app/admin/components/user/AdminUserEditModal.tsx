@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { devLog } from '@/app/_common/utils/logger';
 import { getAllGroupsList } from '@/app/admin/api/group';
-import { addUserGroup, removeUserGroup } from '@/app/admin/api/users';
+import { addUserGroup, removeUserGroup, updateUserAvailableAdminSections } from '@/app/admin/api/users';
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/admin/assets/AdminUserEditModal.module.scss';
 
@@ -22,6 +22,7 @@ interface User {
     last_login?: string | null;
     password_hash: string;
     preferences?: any;
+    available_admin_sections?: string[];
 }
 
 interface AdminUserEditModalProps {
@@ -55,6 +56,28 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
     const [loadingGroups, setLoadingGroups] = useState(false);
     const [adminGroups, setAdminGroups] = useState<Set<string>>(new Set());
 
+    // Admin Section 관련 상태
+    const [availableAdminSections, setAvailableAdminSections] = useState<string[]>([]);
+    const [isGroupAdminExpanded, setIsGroupAdminExpanded] = useState(false);
+    const [isAdminSectionExpanded, setIsAdminSectionExpanded] = useState(false);
+    const availableSectionOptions = [
+        // User Management
+        "users", "user-create", "group-permissions",
+        // Workflow Management
+        "workflow-management", "workflow-monitoring", "node-management",
+        "chat-monitoring", "user-token-dashboard", "prompt-store",
+        // System Settings
+        "system-config", "system-settings",
+        // System Monitoring
+        "system-monitor", "system-health", "backend-logs",
+        // Data Management
+        "database", "storage", "backup",
+        // Security
+        "security-settings", "audit-logs", "error-logs",
+        // MCP
+        "mcp-market",
+    ];
+
     // 사용자 데이터가 변경될 때 폼 데이터 업데이트
     useEffect(() => {
         if (user) {
@@ -83,6 +106,9 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
             } else {
                 setAdminGroups(new Set());
             }
+
+            // 사용자의 available admin sections 설정
+            setAvailableAdminSections(user.available_admin_sections || []);
         }
     }, [user]);
 
@@ -205,6 +231,36 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
         } catch (error) {
             devLog.error('Failed to toggle group admin permission:', error);
             showErrorToastKo('그룹 권한 변경에 실패했습니다.');
+        }
+    };
+
+    // Admin Section 토글 핸들러
+    const handleToggleAdminSection = (section: string) => {
+        setAvailableAdminSections(prev => {
+            if (prev.includes(section)) {
+                return prev.filter(s => s !== section);
+            } else {
+                return [...prev, section];
+            }
+        });
+    };
+
+    // Admin Section 저장 핸들러
+    const handleSaveAdminSections = async () => {
+        if (!user) return;
+
+        try {
+            setLoading(true);
+            await updateUserAvailableAdminSections({
+                id: user.id,
+                available_admin_sections: availableAdminSections
+            });
+            showSuccessToastKo('관리자 섹션 접근 권한이 저장되었습니다.');
+        } catch (error) {
+            devLog.error('Failed to update admin sections:', error);
+            showErrorToastKo('관리자 섹션 권한 변경에 실패했습니다.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -405,62 +461,134 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
 
                     {/* 그룹 관리자 권한 설정 (admin 사용자만) */}
                     {formData.user_type === 'admin' && (
-                        <div className={styles.groupAdminSection}>
-                            <div className={styles.sectionHeader}>
-                                <label>그룹 관리자 권한 설정</label>
-                                <span className={styles.sectionDescription}>
-                                    각 조직의 관리자 권한을 설정할 수 있습니다.
-                                </span>
+                        <>
+                            <div className={styles.groupAdminSection}>
+                                <div
+                                    className={styles.sectionHeader}
+                                    onClick={() => setIsGroupAdminExpanded(!isGroupAdminExpanded)}
+                                >
+                                    <div className={styles.sectionHeaderContent}>
+                                        <label>그룹 관리자 권한 설정</label>
+                                        <span className={styles.sectionDescription}>
+                                            각 조직의 관리자 권한을 설정할 수 있습니다.
+                                        </span>
+                                    </div>
+                                    <span className={`${styles.toggleIcon} ${isGroupAdminExpanded ? styles.expanded : ''}`}>
+                                        ▼
+                                    </span>
+                                </div>
+
+                                <div className={`${styles.sectionContent} ${isGroupAdminExpanded ? styles.expanded : ''}`}>
+                                    {loadingGroups ? (
+                                        <div className={styles.loadingGroups}>
+                                            <div className={styles.spinner}></div>
+                                            <span>그룹 목록을 불러오는 중...</span>
+                                        </div>
+                                    ) : allGroups.length === 0 ? (
+                                        <div className={styles.noGroups}>
+                                            등록된 조직이 없습니다.
+                                        </div>
+                                    ) : (
+                                        <div className={styles.groupGrid}>
+                                            {allGroups.map((group) => {
+                                                const isAdmin = adminGroups.has(group);
+                                                const isUserInGroup = user?.groups?.includes(group);
+
+                                                return (
+                                                    <div key={group} className={styles.groupItem}>
+                                                        <span className={styles.groupName}>
+                                                            {group}
+                                                            {!isUserInGroup && (
+                                                                <span className={styles.notMemberBadge}>
+                                                                    미소속
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            className={`${styles.groupAdminButton} ${
+                                                                isAdmin ? styles.groupAdminButtonActive : styles.groupAdminButtonInactive
+                                                            }`}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleToggleGroupAdmin(group);
+                                                            }}
+                                                            disabled={loading || !isUserInGroup}
+                                                            title={
+                                                                !isUserInGroup
+                                                                    ? '먼저 해당 조직에 사용자를 추가해주세요'
+                                                                    : isAdmin
+                                                                    ? '클릭하여 관리자 권한 제거'
+                                                                    : '클릭하여 관리자 권한 부여'
+                                                            }
+                                                        >
+                                                            {isAdmin ? 'ADMIN' : 'USER'}
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
-                            {loadingGroups ? (
-                                <div className={styles.loadingGroups}>
-                                    <div className={styles.spinner}></div>
-                                    <span>그룹 목록을 불러오는 중...</span>
+                            {/* 관리자 섹션 접근 권한 설정 */}
+                            <div className={styles.groupAdminSection}>
+                                <div
+                                    className={styles.sectionHeader}
+                                    onClick={() => setIsAdminSectionExpanded(!isAdminSectionExpanded)}
+                                >
+                                    <div className={styles.sectionHeaderContent}>
+                                        <label>관리자 섹션 접근 권한 설정</label>
+                                        <span className={styles.sectionDescription}>
+                                            관리자 페이지에서 접근 가능한 섹션을 설정할 수 있습니다.
+                                        </span>
+                                    </div>
+                                    <span className={`${styles.toggleIcon} ${isAdminSectionExpanded ? styles.expanded : ''}`}>
+                                        ▼
+                                    </span>
                                 </div>
-                            ) : allGroups.length === 0 ? (
-                                <div className={styles.noGroups}>
-                                    등록된 조직이 없습니다.
-                                </div>
-                            ) : (
-                                <div className={styles.groupGrid}>
-                                    {allGroups.map((group) => {
-                                        const isAdmin = adminGroups.has(group);
-                                        const isUserInGroup = user?.groups?.includes(group);
 
-                                        return (
-                                            <div key={group} className={styles.groupItem}>
-                                                <span className={styles.groupName}>
-                                                    {group}
-                                                    {!isUserInGroup && (
-                                                        <span className={styles.notMemberBadge}>
-                                                            미소속
-                                                        </span>
-                                                    )}
-                                                </span>
+                                <div className={`${styles.sectionContent} ${isAdminSectionExpanded ? styles.expanded : ''}`}>
+                                    <div className={styles.sectionGrid}>
+                                        {availableSectionOptions.map((section) => {
+                                            const isActive = availableAdminSections.includes(section);
+
+                                            return (
                                                 <button
+                                                    key={section}
                                                     type="button"
-                                                    className={`${styles.groupAdminButton} ${
-                                                        isAdmin ? styles.groupAdminButtonActive : styles.groupAdminButtonInactive
+                                                    className={`${styles.sectionButton} ${
+                                                        isActive ? styles.sectionButtonActive : styles.sectionButtonInactive
                                                     }`}
-                                                    onClick={() => handleToggleGroupAdmin(group)}
-                                                    disabled={loading || !isUserInGroup}
-                                                    title={
-                                                        !isUserInGroup
-                                                            ? '먼저 해당 조직에 사용자를 추가해주세요'
-                                                            : isAdmin
-                                                            ? '클릭하여 관리자 권한 제거'
-                                                            : '클릭하여 관리자 권한 부여'
-                                                    }
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleToggleAdminSection(section);
+                                                    }}
+                                                    disabled={loading}
                                                 >
-                                                    {isAdmin ? 'ADMIN' : 'USER'}
+                                                    {section}
                                                 </button>
-                                            </div>
-                                        );
-                                    })}
+                                            );
+                                        })}
+                                    </div>
+
+                                    <div className={styles.saveAdminSectionsButton}>
+                                        <button
+                                            type="button"
+                                            className={styles.saveButton}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleSaveAdminSections();
+                                            }}
+                                            disabled={loading}
+                                        >
+                                            {loading ? '저장 중...' : '섹션 권한 저장'}
+                                        </button>
+                                    </div>
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        </>
                     )}
 
                     <div className={styles.formGroup}>
