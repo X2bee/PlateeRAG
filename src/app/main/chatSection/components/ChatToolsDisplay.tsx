@@ -102,7 +102,7 @@ const ChatToolsDisplay: React.FC<ChatToolsDisplayProps> = ({
         return workflowContentDetail.nodes
             .filter((node: CanvasNode) => {
                 const { data } = node;
-                const isValidFunctionId = data.functionId === 'api_loader' || data.functionId === 'document_loaders' || data.functionId === 'startnode';
+                const isValidFunctionId = data.functionId === 'api_loader' || data.functionId === 'document_loaders' || data.functionId === 'startnode' || data.functionId === 'ml';
                 const hasToolInId = data.id.toLowerCase().includes('tool') || data.id.toLowerCase().includes('input') ;
 
                 // startnode인 경우 args_schema로 연결된 edge가 있는지 확인
