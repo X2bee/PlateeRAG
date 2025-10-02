@@ -671,7 +671,7 @@ const AdminUserTokenDashboard: React.FC = () => {
                                                     {user.workflow_usage &&
                                                         Object.keys(
                                                             user.workflow_usage,
-                                                        ).length > 1 && (
+                                                        ).length >= 1 && (
                                                             <button
                                                                 className={
                                                                     styles.detailsButton
