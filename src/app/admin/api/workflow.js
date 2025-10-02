@@ -24,7 +24,8 @@ export const getAllIOLogs = async (page = 1, pageSize = 250, userId = null, work
         }
 
         if (workflowId) {
-            params.append('workflow_id', workflowId);
+            // params.append('workflow_id', workflowId);
+            devLog.warn('workflowId parameter is currently not used in getAllIOLogs API call.');
         }
 
         if (workflowName) {
