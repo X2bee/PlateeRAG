@@ -28,6 +28,6 @@
         "**/*.tsx",
         ".next/types/**/*.ts",
         "src"
-    ],
+, "backup/manager"    ],
     "exclude": ["node_modules", "backup"]
 }
