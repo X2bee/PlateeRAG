@@ -27,7 +27,8 @@
         "**/*.ts",
         "**/*.tsx",
         ".next/types/**/*.ts",
-        "src"
-, "backup/manager"    ],
+        "src",
+        "backup/manager"
+    ],
     "exclude": ["node_modules", "backup"]
 }
