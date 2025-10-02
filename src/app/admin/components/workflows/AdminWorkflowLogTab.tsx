@@ -34,9 +34,10 @@ interface PaginationInfo {
 interface AdminWorkflowLogTabProps {
     workflowId: string;
     workflowName: string;
+    userId: number;
 }
 
-const AdminWorkflowLogTab: React.FC<AdminWorkflowLogTabProps> = ({ workflowId, workflowName }) => {
+const AdminWorkflowLogTab: React.FC<AdminWorkflowLogTabProps> = ({ workflowId, workflowName, userId }) => {
     const [logs, setLogs] = useState<WorkflowLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -130,11 +131,13 @@ const AdminWorkflowLogTab: React.FC<AdminWorkflowLogTabProps> = ({ workflowId, w
         }
     };
 
-    const loadLogs = async (page: number = 1, resetLogs: boolean = true, userId: number | null = null) => {
+    const loadLogs = async (page: number = 1, resetLogs: boolean = true, searchUserId: number | null = null) => {
         try {
             setLoading(true);
             setError(null);
-            const response = await getAllIOLogs(page, PAGE_SIZE, userId, workflowId, workflowName) as any;
+            // searchUserId가 있으면 그것을 사용, 없으면 props로 받은 userId 사용
+            const targetUserId = searchUserId !== null ? searchUserId : userId;
+            const response = await getAllIOLogs(page, PAGE_SIZE, targetUserId, null, workflowName) as any;
             const newLogs = response.io_logs || [];
 
             if (resetLogs) {
@@ -167,7 +170,7 @@ const AdminWorkflowLogTab: React.FC<AdminWorkflowLogTabProps> = ({ workflowId, w
         }
     };
 
-    const loadLogsRange = async (startPage: number, endPage: number, userId: number | null = null) => {
+    const loadLogsRange = async (startPage: number, endPage: number, searchUserId: number | null = null) => {
         try {
             setLoading(true);
             setError(null);
@@ -175,7 +178,9 @@ const AdminWorkflowLogTab: React.FC<AdminWorkflowLogTabProps> = ({ workflowId, w
             let lastPagination: any = null;
 
             for (let page = startPage; page <= endPage; page++) {
-                const response = await getAllIOLogs(page, PAGE_SIZE, userId, workflowId, workflowName) as any;
+                // searchUserId가 있으면 그것을 사용, 없으면 props로 받은 userId 사용
+                const targetUserId = searchUserId !== null ? searchUserId : userId;
+                const response = await getAllIOLogs(page, PAGE_SIZE, targetUserId, null, workflowName) as any;
                 const pageLogs = response.io_logs || [];
                 allLogs = [...allLogs, ...pageLogs];
                 lastPagination = response.pagination;

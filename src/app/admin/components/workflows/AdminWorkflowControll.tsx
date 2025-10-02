@@ -284,6 +284,7 @@ const AdminWorkflowControll: React.FC = () => {
                 <AdminWorkflowLogTab
                     workflowId={selectedWorkflowForLog.id}
                     workflowName={selectedWorkflowForLog.name}
+                    userId={selectedWorkflowForLog.user_id}
                 />
             </div>
         );
