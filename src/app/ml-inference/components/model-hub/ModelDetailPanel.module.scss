@@ -17,6 +17,12 @@
     gap: 1rem;
 }
 
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
 .header h2 {
     margin: 0;
     font-size: 1.2rem;
@@ -145,4 +151,85 @@
     max-height: 260px;
     overflow: auto;
     border: 1px solid #e5e7eb;
+}
+
+.mlflowSection {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.mlflowSection h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    color: #111827;
+}
+
+.additionalBox {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
+    border: 1px solid #e5e7eb;
+}
+
+.additionalBox h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #1f2937;
+}
+
+.kvList,
+.tagsList {
+    margin: 0;
+    display: grid;
+    gap: 0.8rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.kvList dt,
+.tagsList dt {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+}
+
+.kvList dd,
+.tagsList dd {
+    margin: 0.35rem 0 0;
+    font-size: 0.9rem;
+    color: #1f2937;
+    overflow-wrap: anywhere;
+}
+
+.timestampValue {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.timestampValue time {
+    font-family: 'Roboto Mono', 'SFMono-Regular', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #111827;
+}
+
+.timestampRaw {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.codeBlock {
+    margin: 0;
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid #e5e7eb;
+    font-size: 0.8rem;
+    font-family: 'Roboto Mono', 'SFMono-Regular', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
 }

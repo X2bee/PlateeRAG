@@ -2,7 +2,7 @@
 
 import React, { useMemo, useRef, useState } from 'react';
 import styles from './UploadModelSection.module.scss';
-import type { ApiError, RequestContext, UploadSuccessResponse } from '../types';
+import type { ApiError, RequestContext, UploadSuccessResponse } from '../../types';
 import { apiClient } from '@/app/_common/api/helper/apiClient';
 
 interface UploadModelSectionProps {
@@ -40,6 +40,8 @@ const UploadModelSection: React.FC<UploadModelSectionProps> = ({ request, onUplo
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [lastResponse, setLastResponse] = useState<UploadSuccessResponse | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    const lastResponseMlflow = lastResponse?.mlflow_metadata ?? null;
 
     const filePreview = useMemo(() => {
         if (!selectedFile) {
@@ -312,6 +314,29 @@ const UploadModelSection: React.FC<UploadModelSectionProps> = ({ request, onUplo
                             <dd>{lastResponse.file_path ?? '-'}</dd>
                         </div>
                     </dl>
+                    {lastResponseMlflow ? (
+                        <div className={styles.responseMlflow}>
+                            <h4>MLflow 메타데이터</h4>
+                            <dl>
+                                <div>
+                                    <dt>추적 URI</dt>
+                                    <dd>{lastResponseMlflow.tracking_uri ?? '-'}</dd>
+                                </div>
+                                <div>
+                                    <dt>모델 URI</dt>
+                                    <dd>{lastResponseMlflow.model_uri ?? '-'}</dd>
+                                </div>
+                                <div>
+                                    <dt>Run ID</dt>
+                                    <dd>{lastResponseMlflow.run_id ?? '-'}</dd>
+                                </div>
+                                <div>
+                                    <dt>Stage</dt>
+                                    <dd>{lastResponseMlflow.additional_metadata?.stage ?? '-'}</dd>
+                                </div>
+                            </dl>
+                        </div>
+                    ) : null}
                 </div>
             )}
         </section>

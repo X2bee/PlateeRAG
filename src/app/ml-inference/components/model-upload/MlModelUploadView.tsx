@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import styles from './MlModelWorkspace.module.scss';
+import styles from '../MlModelWorkspace.module.scss';
 import UploadModelSection from './UploadModelSection';
-import ModelRegistryPanel from './ModelRegistryPanel';
-import ModelDetailPanel from './ModelDetailPanel';
-import MlModelDeleteDialogContainer from './MlModelDeleteDialogContainer';
-import { useMlModelWorkspace } from './MlModelWorkspaceContext';
+import ModelRegistryPanel from '../model-hub/ModelRegistryPanel';
+import ModelDetailPanel from '../model-hub/ModelDetailPanel';
+import MlModelDeleteDialogContainer from '../model-hub/MlModelDeleteDialogContainer';
+import { useMlModelWorkspace } from '../MlModelWorkspaceContext';
 
 const MlModelUploadView: React.FC = () => {
     const {
