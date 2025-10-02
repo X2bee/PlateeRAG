@@ -26,11 +26,13 @@ interface TokenValidationResult {
 interface AdminAuthContextType {
     availableSections: string[];
     hasAccessToSection: (section: string) => boolean;
+    userType: 'superuser' | 'admin' | 'standard' | null;
 }
 
 const AdminAuthContext = createContext<AdminAuthContextType>({
     availableSections: [],
     hasAccessToSection: () => false,
+    userType: null,
 });
 
 export const useAdminAuth = () => useContext(AdminAuthContext);
@@ -45,6 +47,7 @@ const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({ children, fallback }) =
     const [authStatus, setAuthStatus] = useState<'loading' | 'no-superuser' | 'need-login' | 'authenticated' | 'unauthorized'>('loading');
     const [isLoading, setIsLoading] = useState(true);
     const [availableSections, setAvailableSections] = useState<string[]>([]);
+    const [userType, setUserType] = useState<'superuser' | 'admin' | 'standard' | null>(null);
 
     // CookieProvider의 useAuth 훅 사용
     const { user, clearAuth, refreshAuth, isInitialized, isLoggingOut } = useAuth();
@@ -54,6 +57,22 @@ const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({ children, fallback }) =
     const hasAccessToSection = (section: string): boolean => {
         return availableSections.includes(section);
     };
+
+    // Admin 인증 데이터 초기화 함수
+    const clearAdminAuthData = () => {
+        localStorage.removeItem('admin_user_type');
+        setUserType(null);
+        devLog.log('AdminAuthGuard: Cleared admin auth data from localStorage');
+    };
+
+    // 컴포넌트 마운트 시 localStorage에서 userType 로드
+    useEffect(() => {
+        const storedUserType = localStorage.getItem('admin_user_type');
+        if (storedUserType && (storedUserType === 'superuser' || storedUserType === 'admin' || storedUserType === 'standard')) {
+            setUserType(storedUserType as 'superuser' | 'admin' | 'standard');
+            devLog.log('AdminAuthGuard: Loaded user type from localStorage:', storedUserType);
+        }
+    }, []);
 
     useEffect(() => {
         const checkAdminAccess = async () => {
@@ -130,6 +149,7 @@ const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({ children, fallback }) =
                     // 토큰 갱신 실패 시 로그인 필요
                     devLog.log('AdminAuthGuard: All tokens invalid, need admin login');
                     setAuthStatus('need-login');
+                    clearAdminAuthData();
                     clearAuth(true);
                     setIsLoading(false);
                     return;
@@ -139,11 +159,21 @@ const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({ children, fallback }) =
                 devLog.log('AdminAuthGuard: Step 3 - Validating superuser privileges...');
 
                 try {
-                    const isSuperuser = await validateSuperuser();
+                    const validateResponse = await validateSuperuser() as any;
+                    const isSuperuser = validateResponse.superuser;
+                    const responseUserType = validateResponse.user_type;
                     devLog.log('AdminAuthGuard: Superuser validation result:', isSuperuser);
+                    devLog.log('AdminAuthGuard: User type:', responseUserType);
 
                     if (isSuperuser) {
                         devLog.log('AdminAuthGuard: Admin access granted');
+
+                        // user_type을 localStorage에 저장
+                        if (responseUserType) {
+                            localStorage.setItem('admin_user_type', responseUserType);
+                            setUserType(responseUserType);
+                            devLog.log('AdminAuthGuard: User type stored in localStorage:', responseUserType);
+                        }
 
                         // 6단계: 관리자 섹션 권한 조회
                         try {
@@ -170,6 +200,7 @@ const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({ children, fallback }) =
             } catch (error) {
                 devLog.error('AdminAuthGuard: Error during admin access check:', error);
                 setAuthStatus('need-login');
+                clearAdminAuthData();
                 clearAuth(true);
             } finally {
                 setIsLoading(false);
@@ -280,7 +311,7 @@ const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({ children, fallback }) =
 
     // 인증 완료 시 자식 컴포넌트를 Context Provider로 감싸서 렌더링
     return (
-        <AdminAuthContext.Provider value={{ availableSections, hasAccessToSection }}>
+        <AdminAuthContext.Provider value={{ availableSections, hasAccessToSection, userType }}>
             {children}
         </AdminAuthContext.Provider>
     );
@@ -346,7 +377,8 @@ export const useClientAdminAuth = () => {
                 }
 
                 // 4단계: 슈퍼유저 권한 검증
-                const isSuperuser = await validateSuperuser();
+                const validateResponse = await validateSuperuser();
+                const isSuperuser = validateResponse.superuser;
                 setIsAdminAuthenticated(isSuperuser);
             } catch (error) {
                 setIsAdminAuthenticated(false);

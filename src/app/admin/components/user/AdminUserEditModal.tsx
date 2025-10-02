@@ -6,6 +6,7 @@ import { devLog } from '@/app/_common/utils/logger';
 import { getAllGroupsList } from '@/app/admin/api/group';
 import { addUserGroup, removeUserGroup, updateUserAvailableAdminSections } from '@/app/admin/api/users';
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
+import { useAdminAuth } from '@/app/admin/components/helper/AdminAuthGuard';
 import styles from '@/app/admin/assets/AdminUserEditModal.module.scss';
 
 interface User {
@@ -38,6 +39,7 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
     onClose,
     onSave
 }) => {
+    const { userType } = useAdminAuth();
     const [formData, setFormData] = useState({
         email: '',
         username: '',
@@ -58,6 +60,9 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
 
     // Admin Section 관련 상태
     const [availableAdminSections, setAvailableAdminSections] = useState<string[]>([]);
+
+    // superuser인 경우에만 사용자 유형 편집 가능
+    const canEditUserType = userType === 'superuser';
     const [isGroupAdminExpanded, setIsGroupAdminExpanded] = useState(false);
     const [isAdminSectionExpanded, setIsAdminSectionExpanded] = useState(false);
     const availableSectionOptions = [
@@ -77,6 +82,38 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
         // MCP
         "mcp-market",
     ];
+
+    // 섹션 이름 한국어 매핑
+    const sectionNameMapping: { [key: string]: string } = {
+        // User Management
+        "users": "사용자 목록",
+        "user-create": "사용자 등록",
+        "group-permissions": "조직 및 권한 관리",
+        // Workflow Management
+        "workflow-management": "워크플로우 관리",
+        "workflow-monitoring": "워크플로우 모니터링",
+        "node-management": "노드 관리",
+        "chat-monitoring": "채팅 모니터링",
+        "user-token-dashboard": "유저별 채팅 대시보드",
+        "prompt-store": "프롬프트 스토어",
+        // System Settings
+        "system-config": "시스템 설정",
+        "system-settings": "시스템 세부 설정",
+        // System Monitoring
+        "system-monitor": "시스템 모니터링",
+        "system-health": "시스템 상태",
+        "backend-logs": "접근 로그",
+        // Data Management
+        "database": "데이터베이스",
+        "storage": "스토리지 관리",
+        "backup": "백업 관리",
+        // Security
+        "security-settings": "보안 설정",
+        "audit-logs": "감사 로그",
+        "error-logs": "에러 로그",
+        // MCP
+        "mcp-market": "MCP마켓",
+    };
 
     // 사용자 데이터가 변경될 때 폼 데이터 업데이트
     useEffect(() => {
@@ -397,20 +434,22 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
                     </div>
 
                     <div className={styles.formRow}>
-                        <div className={styles.formGroup}>
-                            <label htmlFor="user_type">사용자 유형</label>
-                            <select
-                                id="user_type"
-                                name="user_type"
-                                value={formData.user_type}
-                                onChange={handleInputChange}
-                                disabled={loading}
-                            >
-                                <option value="standard">일반 사용자</option>
-                                <option value="admin">관리자</option>
-                                <option value="superuser">최고 관리자</option>
-                            </select>
-                        </div>
+                        {canEditUserType && (
+                            <div className={styles.formGroup}>
+                                <label htmlFor="user_type">사용자 유형</label>
+                                <select
+                                    id="user_type"
+                                    name="user_type"
+                                    value={formData.user_type}
+                                    onChange={handleInputChange}
+                                    disabled={loading}
+                                >
+                                    <option value="standard">일반 사용자</option>
+                                    <option value="admin">관리자</option>
+                                    <option value="superuser">최고 관리자</option>
+                                </select>
+                            </div>
+                        )}
 
                         <div className={styles.passwordButtonGroup}>
                             <button
@@ -459,8 +498,8 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
                         </div>
                     )}
 
-                    {/* 그룹 관리자 권한 설정 (admin 사용자만) */}
-                    {formData.user_type === 'admin' && (
+                    {/* 그룹 관리자 권한 설정 (superuser만 접근 가능) */}
+                    {canEditUserType && formData.user_type === 'admin' && (
                         <>
                             <div className={styles.groupAdminSection}>
                                 <div
@@ -553,6 +592,7 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
                                     <div className={styles.sectionGrid}>
                                         {availableSectionOptions.map((section) => {
                                             const isActive = availableAdminSections.includes(section);
+                                            const displayName = sectionNameMapping[section] || section;
 
                                             return (
                                                 <button
@@ -567,7 +607,7 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
                                                     }}
                                                     disabled={loading}
                                                 >
-                                                    {section}
+                                                    {displayName}
                                                 </button>
                                             );
                                         })}

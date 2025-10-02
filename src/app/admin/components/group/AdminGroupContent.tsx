@@ -5,6 +5,7 @@ import { getAllGroups, updateGroupPermissions, deleteGroup, createGroup, getGrou
 import { removeUserGroup, addUserGroup } from '@/app/admin/api/users';
 import { devLog } from '@/app/_common/utils/logger';
 import { showSuccessToastKo, showErrorToastKo, showValidationErrorToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
+import { useAdminAuth } from '@/app/admin/components/helper/AdminAuthGuard';
 import styles from '@/app/admin/assets/AdminGroupContent.module.scss';
 import AdminGroupAddModal from '@/app/admin/components/group/modals/AdminGroupAddModal';
 import AdminGroupCreateModal from '@/app/admin/components/group/modals/AdminGroupCreateModal';
@@ -34,6 +35,7 @@ interface User {
 }
 
 const AdminGroupContent: React.FC = () => {
+    const { userType } = useAdminAuth();
     const [groups, setGroups] = useState<Group[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -41,6 +43,9 @@ const AdminGroupContent: React.FC = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showPermissionModal, setShowPermissionModal] = useState(false);
     const [editingGroup, setEditingGroup] = useState<Group | null>(null);
+
+    // superuser만 권한 편집 및 삭제 가능
+    const canManageGroupPermissions = userType === 'superuser';
 
     // 탭 상태 관리
     const [activeTab, setActiveTab] = useState<'groups' | 'users'>('groups');
@@ -426,12 +431,14 @@ const AdminGroupContent: React.FC = () => {
                     </div>
 
                     <div className={styles.actionButtons}>
-                        <button
-                            onClick={() => setShowCreateModal(true)}
-                            className={styles.refreshButton}
-                        >
-                            새 조직 생성
-                        </button>
+                        {canManageGroupPermissions && (
+                            <button
+                                onClick={() => setShowCreateModal(true)}
+                                className={styles.refreshButton}
+                            >
+                                새 조직 생성
+                            </button>
+                        )}
                         <button onClick={loadGroups} className={styles.refreshButton}>
                             새로고침
                         </button>
@@ -509,18 +516,22 @@ const AdminGroupContent: React.FC = () => {
                                             >
                                                 사용자 보기
                                             </button>
-                                            <button
-                                                className={styles.actionButton}
-                                                onClick={() => handleEditPermissions(group)}
-                                            >
-                                                권한 편집
-                                            </button>
-                                            <button
-                                                className={`${styles.actionButton} ${styles.dangerButton}`}
-                                                onClick={() => handleDeleteGroup(group.group_name)}
-                                            >
-                                                삭제
-                                            </button>
+                                            {canManageGroupPermissions && (
+                                                <>
+                                                    <button
+                                                        className={styles.actionButton}
+                                                        onClick={() => handleEditPermissions(group)}
+                                                    >
+                                                        권한 편집
+                                                    </button>
+                                                    <button
+                                                        className={`${styles.actionButton} ${styles.dangerButton}`}
+                                                        onClick={() => handleDeleteGroup(group.group_name)}
+                                                    >
+                                                        삭제
+                                                    </button>
+                                                </>
+                                            )}
                                         </td>
                                     </tr>
                                 ))
@@ -582,8 +593,11 @@ const AdminGroupContent: React.FC = () => {
                                                             : styles.roleButtonUser
                                                     }`}
                                                     onClick={() => handleToggleAdminPermission(user)}
+                                                    disabled={!canManageGroupPermissions}
                                                     title={
-                                                        selectedGroup && isGroupAdmin(user, selectedGroup)
+                                                        !canManageGroupPermissions
+                                                            ? '권한이 없습니다'
+                                                            : selectedGroup && isGroupAdmin(user, selectedGroup)
                                                             ? '클릭하여 일반 사용자로 변경'
                                                             : '클릭하여 관리자로 변경'
                                                     }
@@ -596,6 +610,12 @@ const AdminGroupContent: React.FC = () => {
                                             <button
                                                 className={`${styles.actionButton} ${styles.dangerButton}`}
                                                 onClick={() => handleRemoveUser(user)}
+                                                disabled={user.user_type === 'superuser'}
+                                                title={
+                                                    user.user_type === 'superuser'
+                                                        ? 'Superuser는 제외할 수 없습니다'
+                                                        : '조직에서 제외'
+                                                }
                                             >
                                                 제외
                                             </button>

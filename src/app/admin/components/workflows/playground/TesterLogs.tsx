@@ -2,11 +2,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from '@/app/admin/assets/playground/TesterLogs.module.scss';
 import { FiRefreshCw, FiDownload, FiTrash2, FiBarChart, FiCheckCircle, FiXCircle } from 'react-icons/fi';
-import { getWorkflowTesterIOLogs, deleteWorkflowTesterIOLogs } from '@/app/_common/api/workflow/workflowAPI';
+import { deleteWorkflowTesterIOLogs } from '@/app/_common/api/workflow/workflowAPI';
+import { getWorkflowIOLogsForTester } from '@/app/admin/api/workflow';
 import { devLog } from '@/app/_common/utils/logger';
 import { showSuccessToastKo, showErrorToastKo, showLogDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
 import TesterChartDashboard from './charts/TesterChartDashboard';
 import { useXgenLayout } from '@/app/main/components/XgenLayoutContent';
+import { useAuth } from '@/app/_common/components/CookieProvider';
 
 interface Workflow {
     id: number;
@@ -16,6 +18,7 @@ interface Workflow {
     updated_at: string;
     has_startnode: boolean;
     has_endnode: boolean;
+    user_id: number;
 }
 
 interface LogEntry {
@@ -39,9 +42,11 @@ interface BatchGroup {
 
 interface TesterLogsProps {
     workflow: Workflow | null;
+    userId?: number;
 }
 
-const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
+const TesterLogs: React.FC<TesterLogsProps> = ({ workflow, userId }) => {
+    const { user } = useAuth();
     const layoutContext = useXgenLayout();
     const sidebarWasOpenRef = useRef<boolean | null>(null);
     const [batchGroups, setBatchGroups] = useState<BatchGroup[]>([]);
@@ -86,7 +91,8 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow }) => {
             setError(null);
 
             const workflowName = workflow.workflow_name.replace('.json', '');
-            const result = await getWorkflowTesterIOLogs(workflowName) as any;
+            const workflowUserId = (workflow as any).user_id || userId;
+            const result = await getWorkflowIOLogsForTester(workflowUserId, workflowName) as any;
 
             setBatchGroups(result.response_data_list || []);
             devLog.log('Batch logs loaded:', result.response_data_list?.length || 0, 'batch groups');
