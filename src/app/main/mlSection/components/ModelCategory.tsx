@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { mlAPI } from '@/app/_common/api/mlAPI';
 import styles from '@/app/main/mlSection/assets/MLTrain.module.scss';
+import UserScriptWorkbench from './UserScriptWorkbench';
 
 interface HyperparameterConfig {
     enable_hpo: boolean;
@@ -29,7 +30,20 @@ interface Model {
     label?: string;
     description?: string;
     cls: string;
+    script_path?: string;
+    version?: string;
+    task?: string;
     default?: Record<string, any>;
+    tags?: string[];
+}
+
+interface CatalogEntry {
+    name: string;
+    display_name?: string;
+    description?: string;
+    script_path?: string;
+    version?: string;
+    task?: string;
     tags?: string[];
 }
 
@@ -106,6 +120,34 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
         });
     };
 
+    const handleCatalogEntry = (entry?: CatalogEntry | null) => {
+        if (!entry?.name) {
+            return;
+        }
+
+        setAvailableModels((prev) => {
+            const normalizedModel: Model = {
+                name: entry.name,
+                label: entry.display_name || entry.name,
+                description:
+                    entry.description ||
+                    '등록된 사용자 스크립트입니다. 학습에 사용하려면 선택하세요.',
+                cls: 'user_script',
+                script_path: entry.script_path,
+                version: entry.version,
+                task: entry.task,
+                default: {},
+                tags: entry.tags?.length ? entry.tags : ['user_script'],
+            };
+
+            const exists = prev.some((model) => model.name === entry.name);
+            if (exists) {
+                return prev.map((model) => (model.name === entry.name ? normalizedModel : model));
+            }
+            return [...prev, normalizedModel];
+        });
+    };
+
     return (
         <div className={styles.configSection}>
             <div className={styles.configForm}>
@@ -177,6 +219,18 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                                                         borderRadius: '0.25rem'
                                                     }}>
                                                         고성능
+                                                    </span>
+                                                )}
+                                                {model.tags?.includes('user_script') && (
+                                                    <span style={{ 
+                                                        marginLeft: '0.5rem',
+                                                        padding: '0.125rem 0.25rem',
+                                                        background: '#0f172a',
+                                                        color: 'white',
+                                                        fontSize: '0.625rem',
+                                                        borderRadius: '0.25rem'
+                                                    }}>
+                                                        사용자
                                                     </span>
                                                 )}
                                             </div>
@@ -334,6 +388,18 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                         )}
                     </div>
                 )}
+            </div>
+            <div className={styles.formGroup}>
+                <div className={styles.configHeader}>
+                    <label>사용자 스크립트 작업 공간</label>
+                </div>
+                <div style={{ marginTop: '0.75rem' }}>
+                    <UserScriptWorkbench
+                        task={config.task}
+                        onCatalogEntry={handleCatalogEntry}
+                        onRefreshCatalog={loadModelsForTask}
+                    />
+                </div>
             </div>
         </div>
     );

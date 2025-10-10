@@ -150,6 +150,39 @@ export const mlAPI = {
             method: 'DELETE',
         });
     },
+
+    // 사용자 스크립트 검증
+    validateUserScript: async (data) => {
+        return apiCall('/api/scripts/validate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+    },
+
+    // 사용자 스크립트 실행
+    executeUserScript: async (data) => {
+        return apiCall('/api/scripts/execute', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+    },
+
+    // 사용자 스크립트 등록
+    registerUserScript: async (data) => {
+        return apiCall('/api/scripts/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+    },
 };
 
 export const mlUtils = {
