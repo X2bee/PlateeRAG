@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { FiTrash2, FiRefreshCw, FiBarChart } from 'react-icons/fi';
-import { getWorkflowPerformance, deleteWorkflowPerformance } from '@/app/_common/api/workflow/workflowAPI';
+import { getWorkflowPerformanceAdmin, deleteWorkflowPerformanceAdmin } from '@/app/admin/api/workflow';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/playground/Monitor.module.scss';
 import ChartDashboard from '@/app/admin/components/workflows/playground/charts/ChartDashboard';
@@ -19,6 +19,7 @@ interface Workflow {
     updated_at: string;
     has_startnode: boolean;
     has_endnode: boolean;
+    user_id: number;
 }
 
 interface PerformanceStats {
@@ -99,7 +100,8 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                 setError(null);
                 setNoPerformanceData(false);
                 const workflowName = workflow.workflow_name.replace('.json', '');
-                const data = (await getWorkflowPerformance(
+                const data = (await getWorkflowPerformanceAdmin(
+                    workflow.user_id,
                     workflowName,
                     workflow.workflow_id,
                 )) as WorkflowPerformance;
@@ -158,7 +160,8 @@ const Monitor: React.FC<WorkflowPartsProps> = ({ workflow }) => {
                     setDeletingPerformance(true);
                     setError(null);
 
-                    const result = await deleteWorkflowPerformance(
+                    const result = await deleteWorkflowPerformanceAdmin(
+                        selectedWorkflow.user_id,
                         workflowName,
                         selectedWorkflow.workflow_id
                     );

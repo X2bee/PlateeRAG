@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { FiRefreshCw } from 'react-icons/fi';
-import { listWorkflowsDetail } from '@/app/_common/api/workflow/workflowAPI';
 import { getAllWorkflowMeta } from '@/app/admin/api/workflow';
 
 import styles from '@/app/admin/assets/playground/AdminPlayground.module.scss';
@@ -25,6 +24,7 @@ interface Workflow {
     has_endnode: boolean;
     username: string;
     full_name: string;
+    user_id: number;
 }
 
 interface Pagination {

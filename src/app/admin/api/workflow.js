@@ -24,7 +24,8 @@ export const getAllIOLogs = async (page = 1, pageSize = 250, userId = null, work
         }
 
         if (workflowId) {
-            params.append('workflow_id', workflowId);
+            // params.append('workflow_id', workflowId);
+            devLog.warn('workflowId parameter is currently not used in getAllIOLogs API call.');
         }
 
         if (workflowName) {
@@ -267,6 +268,108 @@ export const updateWorkflow = async (workflowName, updateDict) => {
     } catch (error) {
         devLog.error('Failed to update workflow:', error);
         devLog.error('Workflow name that failed:', workflowName);
+        throw error;
+    }
+};
+
+/**
+ * 워크플로우 테스터 IO 로그를 interaction_batch_id별로 그룹화하여 가져오는 함수 (슈퍼유저 권한 필요)
+ * @param {number|null} userId - 사용자 ID (선택사항)
+ * @param {string|null} workflowName - 워크플로우 이름 (선택사항)
+ * @returns {Promise<Object>} 테스터 IO 로그 목록이 포함된 객체
+ */
+export const getWorkflowIOLogsForTester = async (userId = null, workflowName = null) => {
+    try {
+        let url = `${API_BASE_URL}/api/admin/workflow/all-io-logs/tester`;
+        const queryParams = [];
+
+        if (userId !== null && userId !== undefined) {
+            queryParams.push(`user_id=${userId}`);
+        }
+        if (workflowName !== null && workflowName !== undefined) {
+            queryParams.push(`workflow_name=${encodeURIComponent(workflowName)}`);
+        }
+
+        if (queryParams.length > 0) {
+            url += `?${queryParams.join('&')}`;
+        }
+
+        const response = await apiClient(url);
+        const data = await response.json();
+
+        if (!response.ok) {
+            devLog.error('Failed to get workflow tester IO logs:', data);
+            throw new Error(data.detail || 'Failed to get workflow tester IO logs');
+        }
+
+        devLog.log('Get workflow tester IO logs result:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to get workflow tester IO logs:', error);
+        throw error;
+    }
+};
+
+/**
+ * 특정 워크플로우의 성능 통계를 가져오는 함수 (슈퍼유저 권한 필요)
+ * @param {number} userId - 워크플로우 소유자의 사용자 ID
+ * @param {string} workflowName - 워크플로우 이름
+ * @param {string} workflowId - 워크플로우 ID
+ * @returns {Promise<Object>} 성능 통계 데이터가 포함된 객체
+ */
+export const getWorkflowPerformanceAdmin = async (userId, workflowName, workflowId) => {
+    try {
+        const params = new URLSearchParams({
+            user_id: userId.toString(),
+            workflow_name: workflowName,
+            workflow_id: workflowId
+        });
+
+        const response = await apiClient(`${API_BASE_URL}/api/admin/workflow/performance?${params.toString()}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+            devLog.error('Failed to get workflow performance:', data);
+            throw new Error(data.detail || 'Failed to get workflow performance');
+        }
+
+        devLog.log('Get workflow performance result:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to get workflow performance:', error);
+        throw error;
+    }
+};
+
+/**
+ * 특정 워크플로우의 성능 데이터를 삭제하는 함수 (슈퍼유저 권한 필요)
+ * @param {number} userId - 워크플로우 소유자의 사용자 ID
+ * @param {string} workflowName - 워크플로우 이름
+ * @param {string} workflowId - 워크플로우 ID
+ * @returns {Promise<Object>} 삭제 결과가 포함된 객체
+ */
+export const deleteWorkflowPerformanceAdmin = async (userId, workflowName, workflowId) => {
+    try {
+        const params = new URLSearchParams({
+            user_id: userId.toString(),
+            workflow_name: workflowName,
+            workflow_id: workflowId
+        });
+
+        const response = await apiClient(`${API_BASE_URL}/api/admin/workflow/performance?${params.toString()}`, {
+            method: 'DELETE',
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+            devLog.error('Failed to delete workflow performance:', data);
+            throw new Error(data.detail || 'Failed to delete workflow performance');
+        }
+
+        devLog.log('Delete workflow performance result:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to delete workflow performance:', error);
         throw error;
     }
 };

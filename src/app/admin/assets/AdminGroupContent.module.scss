@@ -412,13 +412,17 @@
     background: transparent;
     min-width: 60px;
 
-    &:hover {
+    &:hover:not(:disabled) {
         transform: translateY(-1px);
         box-shadow: $admin-shadow-sm;
     }
 
-    &:active {
+    &:active:not(:disabled) {
         transform: translateY(0);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
     }
 }
 
@@ -427,7 +431,7 @@
     color: $admin-info-hover;
     border-color: $admin-info;
 
-    &:hover {
+    &:hover:not(:disabled) {
         background: $admin-info;
         color: white;
         border-color: $admin-info-hover;
@@ -439,7 +443,7 @@
     color: $admin-primary-hover;
     border-color: $admin-primary;
 
-    &:hover {
+    &:hover:not(:disabled) {
         background: $admin-primary;
         color: white;
         border-color: $admin-primary-hover;
