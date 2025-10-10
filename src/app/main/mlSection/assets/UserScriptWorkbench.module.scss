@@ -1,3 +1,4 @@
+@use "sass:color";
 @use "@/app/_common/_variables" as *;
 
 .workbench {
@@ -213,7 +214,7 @@
     border-color: $primary-blue;
 
     &:hover {
-        background: darken($primary-blue, 5%);
+        background: color.adjust($primary-blue, $lightness: -5%);
     }
 
     &:disabled {
@@ -229,7 +230,7 @@
     border-color: $gray-900;
 
     &:hover {
-        background: lighten($gray-900, 10%);
+        background: color.adjust($gray-900, $lightness: 10%);
     }
 
     &:disabled {
