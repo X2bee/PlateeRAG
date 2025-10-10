@@ -213,3 +213,23 @@
     font-size: 0.95rem;
     color: #374151;
 }
+
+.responseMlflow {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.responseMlflow h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #1f2937;
+}
+
+.responseMlflow dl {
+    display: grid;
+    gap: 0.5rem;
+}

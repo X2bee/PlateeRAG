@@ -2,11 +2,12 @@
 
 import React from 'react';
 import styles from './MlModelWorkspace.module.scss';
-import UploadModelSection from './UploadModelSection';
-import ModelRegistryPanel from './ModelRegistryPanel';
-import ModelDetailPanel from './ModelDetailPanel';
-import InferenceConsole from './InferenceConsole';
-import MlModelDeleteDialogContainer from './MlModelDeleteDialogContainer';
+import UploadModelSection from './model-upload/UploadModelSection';
+import ModelRegistryPanel from './model-hub/ModelRegistryPanel';
+import ModelDetailPanel from './model-hub/ModelDetailPanel';
+import InferenceConsole from './model-infer/InferenceConsole';
+import MlModelDeleteDialogContainer from './model-hub/MlModelDeleteDialogContainer';
+import ModelStageDialogContainer from './model-hub/ModelStageDialogContainer';
 import { useMlModelWorkspace } from './MlModelWorkspaceContext';
 
 const MlModelFullView: React.FC = () => {
@@ -71,6 +72,7 @@ const MlModelFullView: React.FC = () => {
                 />
             </section>
             <MlModelDeleteDialogContainer />
+            <ModelStageDialogContainer />
         </div>
     );
 };

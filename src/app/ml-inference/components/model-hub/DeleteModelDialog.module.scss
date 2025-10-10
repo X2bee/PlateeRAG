@@ -76,6 +76,38 @@
     font-size: 0.75rem;
 }
 
+.stageBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    background: rgba(148, 163, 184, 0.18);
+    color: #475569;
+}
+
+.stage-production {
+    background: rgba(239, 68, 68, 0.16);
+    color: #b91c1c;
+}
+
+.stage-staging {
+    background: rgba(59, 130, 246, 0.18);
+    color: #1d4ed8;
+}
+
+.stage-archived {
+    background: rgba(107, 114, 128, 0.2);
+    color: #374151;
+}
+
+.stage-none {
+    background: rgba(148, 163, 184, 0.18);
+    color: #475569;
+}
+
 .subText {
     color: #6b7280;
 }
@@ -107,6 +139,70 @@
     border: 1px solid rgba(248, 113, 113, 0.35);
     color: #b91c1c;
     font-size: 0.9rem;
+}
+
+.stageWarning {
+    margin: 0.9rem 0 0;
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    color: #b91c1c;
+    font-size: 0.87rem;
+}
+
+.stageChangeButton {
+    align-self: flex-start;
+    border-radius: 999px;
+    border: none;
+    padding: 0.5rem 1.1rem;
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
+    box-shadow: 0 12px 24px rgba(37, 99, 235, 0.25);
+}
+
+.stageChangeButton:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 32px rgba(37, 99, 235, 0.3);
+}
+
+.stageChangeButton:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.stageWarningSecondary {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    color: #475569;
+}
+
+.stageChangeInline {
+    border: none;
+    background: transparent;
+    color: #2563eb;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: underline;
+    cursor: pointer;
+    align-self: flex-start;
+}
+
+.stageChangeInline:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 
 .actions {

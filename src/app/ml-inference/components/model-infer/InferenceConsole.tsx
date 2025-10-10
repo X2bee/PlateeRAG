@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styles from './InferenceConsole.module.scss';
-import type { ApiError, InferenceResultPayload, RegisteredModel, RequestContext, ModelDetailResponse } from '../types';
+import type { ApiError, InferenceResultPayload, RegisteredModel, RequestContext, ModelDetailResponse } from '../../types';
 import { apiClient } from '@/app/_common/api/helper/apiClient';
 
 interface InferenceConsoleProps {
