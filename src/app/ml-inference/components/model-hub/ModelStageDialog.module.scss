@@ -1,0 +1,244 @@
+@use "sass:color";
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.3);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 140;
+}
+
+.dialog {
+    width: min(520px, 100%);
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 30px 80px rgba(15, 23, 42, 0.22);
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.75rem 1rem;
+}
+
+.header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #0f172a;
+}
+
+.header button {
+    border: none;
+    background: transparent;
+    font-size: 1.1rem;
+    color: #6b7280;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.header button:hover:not(:disabled) {
+    color: #ef4444;
+}
+
+.header button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.formArea {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    padding: 0 1.75rem 1.75rem;
+}
+
+.modelSummary {
+    background: #f9fafb;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.modelSummary h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #1f2937;
+}
+
+.modelSummary dl {
+    margin: 0;
+    display: grid;
+    gap: 0.4rem;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.modelSummary dt {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+}
+
+.modelSummary dd {
+    margin: 0.15rem 0 0;
+    font-size: 0.92rem;
+    color: #1f2937;
+}
+
+.stageFieldset {
+    border: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.stageFieldset legend {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.stageOptions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.stageOption,
+.stageOptionActive {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 0.75rem 0.9rem;
+    border-radius: 14px;
+    border: 1px solid rgba(203, 213, 225, 0.9);
+    background: #ffffff;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.stageOptionActive {
+    border-color: #3b82f6;
+    box-shadow: 0 12px 28px rgba(59, 130, 246, 0.18);
+    transform: translateY(-1px);
+}
+
+.stageOption input,
+.stageOptionActive input {
+    margin-top: 0.2rem;
+}
+
+.optionLabel {
+    display: block;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.optionDescription {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.82rem;
+    color: #4b5563;
+    line-height: 1.4;
+}
+
+.archiveRow {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.85rem 1rem;
+    border-radius: 14px;
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.18);
+}
+
+.archiveRow label {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    color: #1f2937;
+}
+
+.archiveHelper {
+    margin: 0;
+    font-size: 0.78rem;
+    color: #475569;
+    line-height: 1.5;
+}
+
+.errorMessage {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    background: rgba(248, 113, 113, 0.16);
+    border: 1px solid rgba(248, 113, 113, 0.35);
+    color: #b91c1c;
+    font-size: 0.88rem;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.actions button {
+    border-radius: 999px;
+    padding: 0.65rem 1.45rem;
+    font-size: 0.9rem;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.cancelButton {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #4b5563;
+}
+
+.cancelButton:hover:not(:disabled) {
+    background: #f3f4f6;
+}
+
+.confirmButton {
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+    color: #ffffff;
+    box-shadow: 0 14px 28px rgba(37, 99, 235, 0.25);
+}
+
+.confirmButton:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 36px rgba(37, 99, 235, 0.3);
+}
+
+.actions button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+@media (max-width: 520px) {
+    .formArea {
+        padding: 0 1.2rem 1.2rem;
+    }
+
+    .modelSummary dl {
+        grid-template-columns: 1fr;
+    }
+}

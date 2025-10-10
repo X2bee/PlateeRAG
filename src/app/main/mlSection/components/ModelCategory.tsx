@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { mlAPI } from '@/app/_common/api/mlAPI';
 import styles from '@/app/main/mlSection/assets/MLTrain.module.scss';
+import UserScriptWorkbench from './UserScriptWorkbench';
 
 interface HyperparameterConfig {
     enable_hpo: boolean;
@@ -29,7 +30,20 @@ interface Model {
     label?: string;
     description?: string;
     cls: string;
+    script_path?: string;
+    version?: string;
+    task?: string;
     default?: Record<string, any>;
+    tags?: string[];
+}
+
+interface CatalogEntry {
+    name: string;
+    display_name?: string;
+    description?: string;
+    script_path?: string;
+    version?: string;
+    task?: string;
     tags?: string[];
 }
 
@@ -38,6 +52,7 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
     handleConfigChange
 }) => {
     const [showAdvanced, setShowAdvanced] = useState(false);
+    const [showUserScriptWorkspace, setShowUserScriptWorkspace] = useState(false);
     const [selectedModel, setSelectedModel] = useState<string>('');
     const [availableModels, setAvailableModels] = useState<Model[]>([]);
     const [loading, setLoading] = useState(false);
@@ -103,6 +118,34 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
         handleConfigChange('hpo_config', {
             ...currentHPOConfig,
             [key]: value
+        });
+    };
+
+    const handleCatalogEntry = (entry?: CatalogEntry | null) => {
+        if (!entry?.name) {
+            return;
+        }
+
+        setAvailableModels((prev) => {
+            const normalizedModel: Model = {
+                name: entry.name,
+                label: entry.display_name || entry.name,
+                description:
+                    entry.description ||
+                    '등록된 사용자 스크립트입니다. 학습에 사용하려면 선택하세요.',
+                cls: 'user_script',
+                script_path: entry.script_path,
+                version: entry.version,
+                task: entry.task,
+                default: {},
+                tags: entry.tags?.length ? entry.tags : ['user_script'],
+            };
+
+            const exists = prev.some((model) => model.name === entry.name);
+            if (exists) {
+                return prev.map((model) => (model.name === entry.name ? normalizedModel : model));
+            }
+            return [...prev, normalizedModel];
         });
     };
 
@@ -179,6 +222,18 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                                                         고성능
                                                     </span>
                                                 )}
+                                                {model.tags?.includes('user_script') && (
+                                                    <span style={{ 
+                                                        marginLeft: '0.5rem',
+                                                        padding: '0.125rem 0.25rem',
+                                                        background: '#0f172a',
+                                                        color: 'white',
+                                                        fontSize: '0.625rem',
+                                                        borderRadius: '0.25rem'
+                                                    }}>
+                                                        사용자
+                                                    </span>
+                                                )}
                                             </div>
                                             <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
                                                 {model.description}
@@ -190,7 +245,23 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                         </>
                     )}
                 </div>
-    
+
+                <div className={styles.userScriptCTA}>
+                    <div className={styles.userScriptCTAContent}>
+                        <span className={styles.userScriptCTATitle}>사용자 지정 모델</span>
+                        <span className={styles.userScriptCTADescription}>
+                            🚧(현재 개발 진행중)자체 스크립트를 작성·검증·등록하여 카탈로그에 추가할 수 있습니다.
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setShowUserScriptWorkspace(prev => !prev)}
+                        className={`${styles.button} ${styles.secondary}`}
+                    >
+                        {showUserScriptWorkspace ? '작업 공간 닫기' : '작업 공간 열기'}
+                    </button>
+                </div>
+
                 {/* 하이퍼파라미터 최적화 (HPO) 설정 */}
                 {config.model_names.length > 0 && (
                     <div className={styles.formGroup}>
@@ -335,6 +406,15 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                     </div>
                 )}
             </div>
+            {showUserScriptWorkspace && (
+                <div className={styles.userScriptWorkspace}>
+                    <UserScriptWorkbench
+                        task={config.task}
+                        onCatalogEntry={handleCatalogEntry}
+                        onRefreshCatalog={loadModelsForTask}
+                    />
+                </div>
+            )}
         </div>
     );
 };
