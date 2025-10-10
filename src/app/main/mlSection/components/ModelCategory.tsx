@@ -52,6 +52,7 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
     handleConfigChange
 }) => {
     const [showAdvanced, setShowAdvanced] = useState(false);
+    const [showUserScriptWorkspace, setShowUserScriptWorkspace] = useState(false);
     const [selectedModel, setSelectedModel] = useState<string>('');
     const [availableModels, setAvailableModels] = useState<Model[]>([]);
     const [loading, setLoading] = useState(false);
@@ -392,14 +393,24 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
             <div className={styles.formGroup}>
                 <div className={styles.configHeader}>
                     <label>사용자 스크립트 작업 공간</label>
+                    <button
+                        type="button"
+                        onClick={() => setShowUserScriptWorkspace(prev => !prev)}
+                        className={`${styles.button} ${styles.secondary}`}
+                        style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}
+                    >
+                        {showUserScriptWorkspace ? '닫기' : '열기'}
+                    </button>
                 </div>
-                <div style={{ marginTop: '0.75rem' }}>
-                    <UserScriptWorkbench
-                        task={config.task}
-                        onCatalogEntry={handleCatalogEntry}
-                        onRefreshCatalog={loadModelsForTask}
-                    />
-                </div>
+                {showUserScriptWorkspace && (
+                    <div style={{ marginTop: '0.75rem' }}>
+                        <UserScriptWorkbench
+                            task={config.task}
+                            onCatalogEntry={handleCatalogEntry}
+                            onRefreshCatalog={loadModelsForTask}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );

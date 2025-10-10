@@ -85,8 +85,8 @@ interface ValidationCache {
 
 interface ClientScriptAnalysis {
     errors: string[];
-    warnings: string[];
-    restrictedImports: string[];
+   warnings: string[];
+   restrictedImports: string[];
 }
 
 interface UserScriptWorkbenchProps {
@@ -94,6 +94,8 @@ interface UserScriptWorkbenchProps {
     onCatalogEntry?: (entry: ScriptRegisterResponse['catalog_entry']) => void;
     onRefreshCatalog?: () => Promise<void> | void;
 }
+
+type StepStatus = 'idle' | 'done' | 'warning' | 'error';
 
 const DRAFTS_KEY = 'plateerag:user-script-drafts';
 const AUTOSAVE_KEY = 'plateerag:user-script-autosave';
@@ -744,9 +746,85 @@ const UserScriptWorkbench: React.FC<UserScriptWorkbenchProps> = ({
     const stdoutText = normalizeStream(executeResult?.stdout);
     const stderrText = normalizeStream(executeResult?.stderr);
 
+    const localStatus: StepStatus = hasClientErrors
+        ? 'error'
+        : scriptContent.trim().length > 0
+            ? hasClientWarnings
+                ? 'warning'
+                : 'done'
+            : 'idle';
+    const backendStatus: StepStatus = !validationResult
+        ? 'idle'
+        : hasValidationErrors
+            ? 'error'
+            : validationStale || hasValidationWarnings
+                ? 'warning'
+                : 'done';
+    const testStatus: StepStatus = !executeResult
+        ? 'idle'
+        : executeErrors.length > 0
+            ? 'error'
+            : executeWarnings.length > 0
+                ? 'warning'
+                : 'done';
+    const registerStatus: StepStatus = catalogEntry
+        ? 'done'
+        : hasClientErrors || hasValidationErrors
+            ? 'error'
+            : requiresWarningAck && !ackWarnings
+                ? 'warning'
+                : validationResult?.is_valid
+                    ? 'idle'
+                    : 'idle';
+
+    const progressSteps: Array<{
+        key: string;
+        title: string;
+        description: string;
+        status: StepStatus;
+    }> = [
+        {
+            key: 'author',
+            title: '작성 · 로컬 검사',
+            description: '템플릿 편집, 메타데이터 & import 규칙 확인',
+            status: localStatus,
+        },
+        {
+            key: 'validate',
+            title: '백엔드 검증',
+            description: '/api/scripts/validate 호출로 계약 확인',
+            status: backendStatus,
+        },
+        {
+            key: 'test',
+            title: '샌드박스 테스트',
+            description: '/api/scripts/execute 로 출력·지표 확인',
+            status: testStatus,
+        },
+        {
+            key: 'register',
+            title: '카탈로그 등록',
+            description: '/api/scripts/register 로 배포',
+            status: registerStatus,
+        },
+    ];
+
+    const getStepStatusClass = (status: StepStatus) => {
+        switch (status) {
+            case 'done':
+                return styles.stepDone;
+            case 'warning':
+                return styles.stepWarning;
+            case 'error':
+                return styles.stepError;
+            default:
+                return styles.stepIdle;
+        }
+    };
+
     return (
         <div className={styles.workbench}>
-            <div className={styles.header}>
+            <header className={styles.header}>
                 <div>
                     <h3 className={styles.title}>사용자 정의 스크립트</h3>
                     <p className={styles.description}>
@@ -754,102 +832,102 @@ const UserScriptWorkbench: React.FC<UserScriptWorkbenchProps> = ({
                         아래 편집기는 백엔드의 사용자 스크립트 계약을 반영한 템플릿을 제공합니다.
                     </p>
                 </div>
-                <div className={styles.actionRow}>
-                    <button
-                        type="button"
-                        className={`${styles.button} ${styles.ghostButton}`}
-                        onClick={handleDownloadScript}
+            </header>
+
+            <div className={styles.progressTrack}>
+                {progressSteps.map((step, index) => (
+                    <div
+                        key={step.key}
+                        className={`${styles.progressStep} ${getStepStatusClass(step.status)}`}
                     >
-                        <FiDownload />
-                        다운로드
-                    </button>
-                    <label className={`${styles.button} ${styles.ghostButton}`}>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept=".py,text/x-python"
-                            hidden
-                            onChange={handleUploadScript}
-                        />
-                        <FiUploadCloud />
-                        업로드
-                    </label>
-                    <button
-                        type="button"
-                        className={`${styles.button} ${styles.ghostButton}`}
-                        onClick={handleResetTemplate}
-                    >
-                        <FiRotateCcw />
-                        템플릿 초기화
-                    </button>
-                </div>
+                        <div className={styles.stepIndex}>{index + 1}</div>
+                        <div className={styles.stepBody}>
+                            <span className={styles.stepTitle}>{step.title}</span>
+                            <span className={styles.stepDescription}>{step.description}</span>
+                        </div>
+                    </div>
+                ))}
             </div>
 
-            <div className={styles.draftToolbar}>
-                <div className={styles.draftSelector}>
-                    <label>저장된 드래프트</label>
-                    <select value={activeDraftId || ''} onChange={handleDraftSelect}>
-                        <option value="">드래프트 선택</option>
-                        {drafts.map((draft) => (
-                            <option key={draft.id} value={draft.id}>
-                                {draft.name} · {formatTimestamp(draft.updatedAt)}
-                            </option>
-                        ))}
-                    </select>
+            <div className={styles.pathSection}>
+                <div className={styles.pathHeader}>
+                    <label htmlFor="user-script-path">스크립트 경로</label>
+                    <span className={styles.pathHint}>
+                        저장 위치를 확인하고 검증·테스트를 순서대로 실행하세요.
+                    </span>
                 </div>
-                <div className={styles.draftName}>
-                    <label>드래프트 이름</label>
-                    <input
-                        type="text"
-                        value={draftName}
-                        onChange={(event) => setDraftName(event.target.value)}
-                        placeholder="예: my-forecasting-script"
-                    />
+                <input
+                    id="user-script-path"
+                    type="text"
+                    value={scriptPath}
+                    onChange={(event) => setScriptPath(event.target.value)}
+                    placeholder={defaultPath}
+                    className={styles.inputControl}
+                />
+                <div className={styles.pathMeta}>
+                    <span>파일명: {scriptFilename}</span>
+                    {lastValidationCache?.timestamp && (
+                        <span>마지막 성공 검증 {formatTimestamp(lastValidationCache.timestamp)}</span>
+                    )}
                 </div>
-                <div className={styles.draftButtons}>
+                <div className={styles.primaryActions}>
+                    <button
+                        type="button"
+                        className={`${styles.button} ${styles.primaryButton}`}
+                        onClick={handleValidateScript}
+                        disabled={isValidating || hasClientErrors}
+                    >
+                        {isValidating ? '검증 중...' : '백엔드 검증'}
+                    </button>
                     <button
                         type="button"
                         className={`${styles.button} ${styles.secondaryButton}`}
-                        onClick={handleSaveDraft}
+                        onClick={handleExecuteScript}
+                        disabled={isExecuting || hasClientErrors}
                     >
-                        <FiSave />
-                        드래프트 저장
-                    </button>
-                    <button
-                        type="button"
-                        className={`${styles.button} ${styles.ghostButton}`}
-                        onClick={handleDraftDelete}
-                    >
-                        삭제
+                        <FiPlay />
+                        {isExecuting ? '테스트 실행 중...' : '테스트 실행'}
                     </button>
                 </div>
             </div>
 
-            <div className={styles.pathRow}>
-                <div className={styles.pathInput}>
-                    <label htmlFor="user-script-path">스크립트 경로</label>
+            <div className={styles.utilityRow}>
+                <button
+                    type="button"
+                    className={`${styles.button} ${styles.ghostButton}`}
+                    onClick={handleDownloadScript}
+                >
+                    <FiDownload />
+                    다운로드
+                </button>
+                <label className={`${styles.button} ${styles.ghostButton}`}>
                     <input
-                        id="user-script-path"
-                        type="text"
-                        value={scriptPath}
-                        onChange={(event) => setScriptPath(event.target.value)}
-                        placeholder={defaultPath}
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".py,text/x-python"
+                        hidden
+                        onChange={handleUploadScript}
                     />
-                </div>
-                <div className={styles.validationStatus}>
-                    <span className={`${styles.statusBadge} ${validationToneClass}`}>
-                        <FiCheckCircle />
-                        {validationStatusLabel}
-                    </span>
-                    {lastValidationCache?.timestamp && (
-                        <span className={styles.statusMeta}>
-                            마지막 성공 검증: {formatTimestamp(lastValidationCache.timestamp)}
-                        </span>
-                    )}
-                </div>
+                    <FiUploadCloud />
+                    업로드
+                </label>
+                <button
+                    type="button"
+                    className={`${styles.button} ${styles.ghostButton}`}
+                    onClick={handleResetTemplate}
+                >
+                    <FiRotateCcw />
+                    템플릿 초기화
+                </button>
             </div>
 
-            <div className={styles.editorWrapper}>
+            <section className={`${styles.card} ${styles.editorCard}`}>
+                <div className={styles.cardHeader}>
+                    <div>
+                        <h4>스크립트 편집기</h4>
+                        <p>base.py와 user_script 계약에 맞춰 필수 구조를 유지하세요.</p>
+                    </div>
+                </div>
                 <textarea
                     className={styles.editor}
                     value={scriptContent}
@@ -857,100 +935,304 @@ const UserScriptWorkbench: React.FC<UserScriptWorkbenchProps> = ({
                     spellCheck={false}
                 />
                 <div className={styles.editorFooter}>
-                    <div className={styles.editorMeta}>
-                        <span>파일명: {scriptFilename}</span>
+                    <div className={styles.editorMetaRow}>
                         <span>
                             길이: {scriptContent.length.toLocaleString()} chars ·{' '}
                             {scriptContent.split('\n').length.toLocaleString()} lines
                         </span>
                     </div>
-                    <div className={styles.validationTone}>
-                        {clientAnalysis.restrictedImports.length > 0 && (
-                            <span className={styles.restricted}>
-                                제한 모듈: {clientAnalysis.restrictedImports.join(', ')}
-                            </span>
-                        )}
-                    </div>
+                    {clientAnalysis.restrictedImports.length > 0 && (
+                        <span className={styles.restricted}>
+                            제한 모듈: {clientAnalysis.restrictedImports.join(', ')}
+                        </span>
+                    )}
                 </div>
-            </div>
+            </section>
 
-            <div className={styles.panels}>
-                <div className={styles.leftPanel}>
-                    <section className={styles.section}>
-                        <header>
-                            <h4>검증 & 테스트</h4>
-                            <p>로컬 규칙을 통과한 뒤 백엔드 검증과 샌드박스 테스트 실행을 수행하세요.</p>
-                        </header>
-                        <div className={styles.buttonRow}>
-                            <button
-                                type="button"
-                                className={`${styles.button} ${styles.primaryButton}`}
-                                onClick={handleValidateScript}
-                                disabled={isValidating || hasClientErrors}
-                            >
-                                {isValidating ? '검증 중...' : '백엔드 검증'}
-                            </button>
+            <div className={styles.workspaceGrid}>
+                <div className={styles.mainColumn}>
+                    <section className={`${styles.card} ${styles.draftCard}`}>
+                        <div className={styles.cardHeader}>
+                            <div>
+                                <h4>드래프트 관리</h4>
+                                <p>로컬 저장소에 초안을 저장하고 필요할 때 불러옵니다.</p>
+                            </div>
+                            <span className={styles.cardHint}>변경 사항은 자동으로 임시 저장됩니다.</span>
+                        </div>
+                        <div className={styles.draftGrid}>
+                            <label>
+                                <span>저장된 드래프트</span>
+                                <select
+                                    value={activeDraftId || ''}
+                                    onChange={handleDraftSelect}
+                                    className={styles.inputControl}
+                                >
+                                    <option value="">드래프트 선택</option>
+                                    {drafts.map((draft) => (
+                                        <option key={draft.id} value={draft.id}>
+                                            {draft.name} · {formatTimestamp(draft.updatedAt)}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label>
+                                <span>드래프트 이름</span>
+                                <input
+                                    type="text"
+                                    value={draftName}
+                                    onChange={(event) => setDraftName(event.target.value)}
+                                    placeholder="예: my-forecasting-script"
+                                    className={styles.inputControl}
+                                />
+                            </label>
+                        </div>
+                        <div className={styles.cardActions}>
                             <button
                                 type="button"
                                 className={`${styles.button} ${styles.secondaryButton}`}
-                                onClick={handleExecuteScript}
-                                disabled={isExecuting || hasClientErrors}
+                                onClick={handleSaveDraft}
                             >
-                                <FiPlay />
-                                {isExecuting ? '테스트 실행 중...' : '테스트 실행'}
+                                <FiSave />
+                                드래프트 저장
+                            </button>
+                            <button
+                                type="button"
+                                className={`${styles.button} ${styles.ghostButton}`}
+                                onClick={handleDraftDelete}
+                            >
+                                삭제
                             </button>
                         </div>
+                    </section>
 
-                        {clientAnalysis.errors.length > 0 && (
-                            <div className={`${styles.messageGroup} ${styles.error}`}>
-                                <div className={styles.messageGroupHeader}>
-                                    <FiAlertTriangle />
-                                    <span>로컬 검증 오류</span>
-                                </div>
-                                <ul>
-                                    {clientAnalysis.errors.map((message) => (
-                                        <li key={message}>{message}</li>
-                                    ))}
-                                </ul>
+                    <section className={`${styles.card} ${styles.messageCard}`}>
+                        <div className={styles.cardHeader}>
+                            <div>
+                                <h4>검증 메시지</h4>
+                                <p>로컬 분석과 백엔드 응답을 종합적으로 확인하세요.</p>
                             </div>
+                            <span className={`${styles.validationBadge} ${validationToneClass}`}>
+                                <FiCheckCircle />
+                                {validationStatusLabel}
+                            </span>
+                        </div>
+                        {validationResult?.is_valid && validationStale && (
+                            <p className={styles.note}>
+                                최근에 스크립트를 수정했습니다. 등록 전에 검증을 다시 실행하세요.
+                            </p>
                         )}
+                        {clientAnalysis.errors.length === 0 &&
+                        clientAnalysis.warnings.length === 0 &&
+                        groupedMessages.error.length === 0 &&
+                        groupedMessages.warning.length === 0 &&
+                        groupedMessages.info.length === 0 ? (
+                            <p className={styles.emptyState}>
+                                아직 표기할 메시지가 없습니다. 검증을 수행하거나 템플릿을 수정하세요.
+                            </p>
+                        ) : (
+                            <>
+                                {clientAnalysis.errors.length > 0 && (
+                                    <div className={`${styles.messageGroup} ${styles.error}`}>
+                                        <div className={styles.messageGroupHeader}>
+                                            <FiAlertTriangle />
+                                            <span>로컬 검증 오류</span>
+                                        </div>
+                                        <ul>
+                                            {clientAnalysis.errors.map((message) => (
+                                                <li key={message}>{message}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {clientAnalysis.warnings.length > 0 && (
+                                    <div className={`${styles.messageGroup} ${styles.warning}`}>
+                                        <div className={styles.messageGroupHeader}>
+                                            <FiAlertTriangle />
+                                            <span>로컬 경고</span>
+                                        </div>
+                                        <ul>
+                                            {clientAnalysis.warnings.map((warning) => (
+                                                <li key={warning}>{warning}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {renderMessages(groupedMessages.error, 'error')}
+                                {renderMessages(groupedMessages.warning, 'warning')}
+                                {renderMessages(groupedMessages.info, 'info')}
+                            </>
+                        )}
+                    </section>
+                </div>
 
-                        {clientAnalysis.warnings.length > 0 && (
-                            <div className={`${styles.messageGroup} ${styles.warning}`}>
-                                <div className={styles.messageGroupHeader}>
-                                    <FiAlertTriangle />
-                                    <span>로컬 경고 및 보안 안내</span>
-                                </div>
-                                <ul>
-                                    {clientAnalysis.warnings.map((warning) => (
-                                        <li key={warning}>{warning}</li>
-                                    ))}
-                                </ul>
+                <div className={styles.sideColumn}>
+                    <section className={styles.card}>
+                        <div className={styles.cardHeader}>
+                            <div>
+                                <h4>테스트 실행 설정</h4>
+                                <p>샌드박스 실행에 사용할 config를 채우고 재사용하세요.</p>
                             </div>
-                        )}
-
-                        {renderMessages(groupedMessages.error, 'error')}
-                        {renderMessages(groupedMessages.warning, 'warning')}
-                        {renderMessages(groupedMessages.info, 'info')}
-
-                        <div className={styles.warningAck}>
+                        </div>
+                        <div className={styles.formGrid}>
                             <label>
+                                <span>데이터셋 URI</span>
                                 <input
-                                    type="checkbox"
-                                    checked={ackWarnings}
-                                    onChange={(event) => setAckWarnings(event.target.checked)}
-                                    disabled={!requiresWarningAck}
+                                    type="text"
+                                    value={runConfig.dataset_uri}
+                                    onChange={(event) =>
+                                        setRunConfig((prev) => ({
+                                            ...prev,
+                                            dataset_uri: event.target.value,
+                                        }))
+                                    }
+                                    placeholder="s3://, mlflow:// 형식 등"
+                                    className={styles.inputControl}
                                 />
-                                경고 사항을 확인했고 등록을 진행합니다.
+                            </label>
+                            <label>
+                                <span>타깃 컬럼</span>
+                                <input
+                                    type="text"
+                                    value={runConfig.target_column}
+                                    onChange={(event) =>
+                                        setRunConfig((prev) => ({
+                                            ...prev,
+                                            target_column: event.target.value,
+                                        }))
+                                    }
+                                    placeholder="예: label"
+                                    className={styles.inputControl}
+                                />
+                            </label>
+                            <label className={styles.featureInput}>
+                                <span>피처 컬럼 (쉼표 구분)</span>
+                                <input
+                                    type="text"
+                                    value={featureColumnsText}
+                                    onChange={(event) => setFeatureColumnsText(event.target.value)}
+                                    onBlur={handleFeatureColumnsBlur}
+                                    placeholder="예: feature_1, feature_2"
+                                    className={styles.inputControl}
+                                />
+                            </label>
+                            <label>
+                                <span>아티팩트 디렉터리</span>
+                                <input
+                                    type="text"
+                                    value={runConfig.artifact_dir}
+                                    onChange={(event) =>
+                                        setRunConfig((prev) => ({
+                                            ...prev,
+                                            artifact_dir: event.target.value,
+                                        }))
+                                    }
+                                    placeholder="/tmp/user-scripts/artifacts"
+                                    className={styles.inputControl}
+                                />
+                            </label>
+                            <label>
+                                <span>랜덤 시드</span>
+                                <input
+                                    type="number"
+                                    value={runConfig.random_seed}
+                                    onChange={(event) =>
+                                        setRunConfig((prev) => ({
+                                            ...prev,
+                                            random_seed: Number(event.target.value) || 0,
+                                        }))
+                                    }
+                                    className={styles.inputControl}
+                                />
                             </label>
                         </div>
                     </section>
 
-                    <section className={styles.section}>
-                        <header>
-                            <h4>버전 관리</h4>
-                            <p>스크립트 변경 범위를 선택하면 권장되는 SemVer 버전을 제안합니다.</p>
-                        </header>
+                    <section className={styles.card}>
+                        <div className={styles.cardHeader}>
+                            <div>
+                                <h4>샌드박스 결과</h4>
+                                <p>stdout/stderr와 정규화 metrics를 확인하세요.</p>
+                            </div>
+                        </div>
+                        {executeResult ? (
+                            <div className={styles.resultBody}>
+                                {executeResult.duration_seconds !== undefined && (
+                                    <p className={styles.resultMeta}>
+                                        실행 시간{' '}
+                                        {executeResult.duration_seconds
+                                            ? `${executeResult.duration_seconds.toFixed(2)}초`
+                                            : '측정되지 않음'}
+                                    </p>
+                                )}
+                                {executeWarnings.length > 0 && (
+                                    <div className={`${styles.messageGroup} ${styles.warning}`}>
+                                        <div className={styles.messageGroupHeader}>
+                                            <FiAlertTriangle />
+                                            <span>실행 경고</span>
+                                        </div>
+                                        <ul>
+                                            {executeWarnings.map((warning) => (
+                                                <li key={warning}>{warning}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {executeErrors.length > 0 && (
+                                    <div className={`${styles.messageGroup} ${styles.error}`}>
+                                        <div className={styles.messageGroupHeader}>
+                                            <FiAlertTriangle />
+                                            <span>실행 오류</span>
+                                        </div>
+                                        <ul>
+                                            {executeErrors.map((error) => (
+                                                <li key={error}>{error}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {executeResult.result?.metrics && (
+                                    <div className={styles.metricsBlock}>
+                                        <table>
+                                            <tbody>
+                                                {Object.entries(executeResult.result.metrics).map(
+                                                    ([key, value]) => (
+                                                        <tr key={key}>
+                                                            <th>{key}</th>
+                                                            <td>{Number(value).toFixed(4)}</td>
+                                                        </tr>
+                                                    ),
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                                {stdoutText && (
+                                    <div className={styles.consoleBlock}>
+                                        <h6>stdout</h6>
+                                        <pre>{stdoutText}</pre>
+                                    </div>
+                                )}
+                                {stderrText && (
+                                    <div className={styles.consoleBlock}>
+                                        <h6>stderr</h6>
+                                        <pre>{stderrText}</pre>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className={styles.emptyState}>
+                                아직 테스트 실행 기록이 없습니다. config를 채우고 실행해보세요.
+                            </div>
+                        )}
+                    </section>
+
+                    <section className={styles.card}>
+                        <div className={styles.cardHeader}>
+                            <div>
+                                <h4>버전 제안</h4>
+                                <p>변경 범위를 선택해 SemVer 버전을 추천합니다.</p>
+                            </div>
+                        </div>
                         <div className={styles.versionControls}>
                             <div className={styles.versionOptions}>
                                 <label>
@@ -991,31 +1273,58 @@ const UserScriptWorkbench: React.FC<UserScriptWorkbenchProps> = ({
                         </div>
                     </section>
 
-                    <section className={styles.section}>
-                        <header>
-                            <h4>등록</h4>
-                            <p>
-                                검증과 테스트를 마치면 모델 카탈로그에 등록하세요. 등록 후 기존 모델 선택
-                                목록에서 확인할 수 있습니다.
-                            </p>
-                        </header>
-                        <button
-                            type="button"
-                            className={`${styles.button} ${styles.primaryButton}`}
-                            onClick={handleRegisterScript}
-                            disabled={
-                                isRegistering ||
-                                !validationResult ||
-                                !validationResult.is_valid ||
-                                hasValidationErrors ||
-                                hasClientErrors ||
-                                (requiresWarningAck && !ackWarnings)
-                            }
-                        >
-                            {isRegistering ? '등록 중...' : '스크립트 등록'}
-                        </button>
+                    <section className={styles.card}>
+                        <div className={styles.cardHeader}>
+                            <div>
+                                <h4>등록</h4>
+                                <p>검증과 테스트를 마치고 모델 카탈로그를 갱신하세요.</p>
+                            </div>
+                        </div>
+                        <div className={styles.registerBody}>
+                            {requiresWarningAck && (
+                                <label className={styles.checkboxLine}>
+                                    <input
+                                        type="checkbox"
+                                        checked={ackWarnings}
+                                        onChange={(event) => setAckWarnings(event.target.checked)}
+                                    />
+                                    경고 사항을 확인했고 등록에 동의합니다.
+                                </label>
+                            )}
+                            <button
+                                type="button"
+                                className={`${styles.button} ${styles.primaryButton}`}
+                                onClick={handleRegisterScript}
+                                disabled={
+                                    isRegistering ||
+                                    !validationResult ||
+                                    !validationResult.is_valid ||
+                                    hasValidationErrors ||
+                                    hasClientErrors ||
+                                    (requiresWarningAck && !ackWarnings)
+                                }
+                            >
+                                {isRegistering ? '등록 중...' : '스크립트 등록'}
+                            </button>
+                            {!catalogEntry && (
+                                <ul className={styles.registerChecklist}>
+                                    <li>
+                                        {validationResult?.is_valid
+                                            ? '✅ 백엔드 검증 통과'
+                                            : '⏳ 백엔드 검증 필요'}
+                                    </li>
+                                    <li>
+                                        {executeResult
+                                            ? executeErrors.length > 0
+                                                ? '⚠️ 실행 오류 해결 필요'
+                                                : '✅ 최신 테스트 실행 완료'
+                                            : '⏳ 테스트 실행 (선택)'}
+                                    </li>
+                                </ul>
+                            )}
+                        </div>
                         {catalogEntry && (
-                            <div className={styles.catalogCard}>
+                            <div className={styles.catalogSummary}>
                                 <h5>등록된 스크립트</h5>
                                 <dl>
                                     <dt>이름</dt>
@@ -1034,160 +1343,18 @@ const UserScriptWorkbench: React.FC<UserScriptWorkbenchProps> = ({
                             </div>
                         )}
                     </section>
-                </div>
 
-                <div className={styles.rightPanel}>
-                    <section className={styles.section}>
-                        <header>
-                            <h4>테스트 실행 설정</h4>
-                            <p>샌드박스 실행에 사용할 config를 채우면 즉시 재사용됩니다.</p>
-                        </header>
-                        <div className={styles.formGrid}>
-                            <label>
-                                <span>데이터셋 URI</span>
-                                <input
-                                    type="text"
-                                    value={runConfig.dataset_uri}
-                                    onChange={(event) =>
-                                        setRunConfig((prev) => ({
-                                            ...prev,
-                                            dataset_uri: event.target.value,
-                                        }))
-                                    }
-                                    placeholder="s3://, mlflow:// 형식 등"
-                                />
-                            </label>
-                            <label>
-                                <span>타깃 컬럼</span>
-                                <input
-                                    type="text"
-                                    value={runConfig.target_column}
-                                    onChange={(event) =>
-                                        setRunConfig((prev) => ({
-                                            ...prev,
-                                            target_column: event.target.value,
-                                        }))
-                                    }
-                                    placeholder="예: label"
-                                />
-                            </label>
-                            <label className={styles.featureInput}>
-                                <span>피처 컬럼 (쉼표 구분)</span>
-                                <input
-                                    type="text"
-                                    value={featureColumnsText}
-                                    onChange={(event) => setFeatureColumnsText(event.target.value)}
-                                    onBlur={handleFeatureColumnsBlur}
-                                    placeholder="예: feature_1, feature_2"
-                                />
-                            </label>
-                            <label>
-                                <span>아티팩트 디렉터리</span>
-                                <input
-                                    type="text"
-                                    value={runConfig.artifact_dir}
-                                    onChange={(event) =>
-                                        setRunConfig((prev) => ({
-                                            ...prev,
-                                            artifact_dir: event.target.value,
-                                        }))
-                                    }
-                                    placeholder="/tmp/user-scripts/artifacts"
-                                />
-                            </label>
-                            <label>
-                                <span>랜덤 시드</span>
-                                <input
-                                    type="number"
-                                    value={runConfig.random_seed}
-                                    onChange={(event) =>
-                                        setRunConfig((prev) => ({
-                                            ...prev,
-                                            random_seed: Number(event.target.value) || 0,
-                                        }))
-                                    }
-                                />
-                            </label>
-                        </div>
-
-                        {executeResult && (
-                            <div className={styles.runOutput}>
-                                <h5>테스트 실행 결과</h5>
-                                {executeResult.duration_seconds !== undefined && (
-                                    <p>
-                                        실행 시간:{' '}
-                                        {executeResult.duration_seconds
-                                            ? `${executeResult.duration_seconds.toFixed(2)}초`
-                                            : '측정되지 않음'}
-                                    </p>
-                                )}
-                                {executeWarnings.length > 0 && (
-                                    <div className={`${styles.messageGroup} ${styles.warning}`}>
-                                        <div className={styles.messageGroupHeader}>
-                                            <FiAlertTriangle />
-                                            <span>실행 경고</span>
-                                        </div>
-                                        <ul>
-                                            {executeWarnings.map((warning) => (
-                                                <li key={warning}>{warning}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                                {executeErrors.length > 0 && (
-                                    <div className={`${styles.messageGroup} ${styles.error}`}>
-                                        <div className={styles.messageGroupHeader}>
-                                            <FiAlertTriangle />
-                                            <span>실행 오류</span>
-                                        </div>
-                                        <ul>
-                                            {executeErrors.map((error) => (
-                                                <li key={error}>{error}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                                {executeResult.result?.metrics && (
-                                    <div className={styles.metricsBlock}>
-                                        <h6>Normalized Metrics</h6>
-                                        <table>
-                                            <tbody>
-                                                {Object.entries(executeResult.result.metrics).map(
-                                                    ([key, value]) => (
-                                                        <tr key={key}>
-                                                            <th>{key}</th>
-                                                            <td>{Number(value).toFixed(4)}</td>
-                                                        </tr>
-                                                    ),
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
-                                {stdoutText && (
-                                    <div className={styles.consoleBlock}>
-                                        <h6>stdout</h6>
-                                        <pre>{stdoutText}</pre>
-                                    </div>
-                                )}
-                                {stderrText && (
-                                    <div className={styles.consoleBlock}>
-                                        <h6>stderr</h6>
-                                        <pre>{stderrText}</pre>
-                                    </div>
-                                )}
+                    <section className={styles.card}>
+                        <div className={styles.cardHeader}>
+                            <div>
+                                <h4>스키마 참고</h4>
+                                <p>필수 객체 구조를 빠르게 확인하세요.</p>
                             </div>
-                        )}
-                    </section>
-
-                    <section className={styles.section}>
-                        <header>
-                            <h4>Schema 참조</h4>
-                            <p>필수 객체의 JSON 스키마를 참고하세요.</p>
-                        </header>
-                        <details>
-                            <summary>UserScriptMetadata</summary>
-                            <pre className={styles.schema}>
+                        </div>
+                        <div className={styles.schemaList}>
+                            <details>
+                                <summary>UserScriptMetadata</summary>
+                                <pre className={styles.schema}>
 {`{
   "name": "my_script",
   "display_name": "My Custom Script",
@@ -1196,11 +1363,11 @@ const UserScriptWorkbench: React.FC<UserScriptWorkbenchProps> = ({
   "tags": ["user_script"],
   "task": "${task}"
 }`}
-                            </pre>
-                        </details>
-                        <details>
-                            <summary>UserScriptRunConfig</summary>
-                            <pre className={styles.schema}>
+                                </pre>
+                            </details>
+                            <details>
+                                <summary>UserScriptRunConfig</summary>
+                                <pre className={styles.schema}>
 {`{
   "dataset_uri": "mlflow://runs/12345",
   "target_column": "label",
@@ -1208,11 +1375,11 @@ const UserScriptWorkbench: React.FC<UserScriptWorkbenchProps> = ({
   "artifact_dir": "/tmp/user-scripts/artifacts",
   "random_seed": 42
 }`}
-                            </pre>
-                        </details>
-                        <details>
-                            <summary>UserScriptResult</summary>
-                            <pre className={styles.schema}>
+                                </pre>
+                            </details>
+                            <details>
+                                <summary>UserScriptResult</summary>
+                                <pre className={styles.schema}>
 {`{
   "stdout": ["Training completed"],
   "stderr": [],
@@ -1221,8 +1388,9 @@ const UserScriptWorkbench: React.FC<UserScriptWorkbenchProps> = ({
   "errors": [],
   "artifacts": []
 }`}
-                            </pre>
-                        </details>
+                                </pre>
+                            </details>
+                        </div>
                     </section>
                 </div>
             </div>
