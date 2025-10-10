@@ -245,7 +245,23 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                         </>
                     )}
                 </div>
-    
+
+                <div className={styles.userScriptCTA}>
+                    <div className={styles.userScriptCTAContent}>
+                        <span className={styles.userScriptCTATitle}>사용자 지정 모델</span>
+                        <span className={styles.userScriptCTADescription}>
+                            🚧(현재 개발 진행중)자체 스크립트를 작성·검증·등록하여 카탈로그에 추가할 수 있습니다.
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setShowUserScriptWorkspace(prev => !prev)}
+                        className={`${styles.button} ${styles.secondary}`}
+                    >
+                        {showUserScriptWorkspace ? '작업 공간 닫기' : '작업 공간 열기'}
+                    </button>
+                </div>
+
                 {/* 하이퍼파라미터 최적화 (HPO) 설정 */}
                 {config.model_names.length > 0 && (
                     <div className={styles.formGroup}>
@@ -390,28 +406,15 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                     </div>
                 )}
             </div>
-            <div className={styles.formGroup}>
-                <div className={styles.configHeader}>
-                    <label>사용자 스크립트 작업 공간</label>
-                    <button
-                        type="button"
-                        onClick={() => setShowUserScriptWorkspace(prev => !prev)}
-                        className={`${styles.button} ${styles.secondary}`}
-                        style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}
-                    >
-                        {showUserScriptWorkspace ? '닫기' : '열기'}
-                    </button>
+            {showUserScriptWorkspace && (
+                <div className={styles.userScriptWorkspace}>
+                    <UserScriptWorkbench
+                        task={config.task}
+                        onCatalogEntry={handleCatalogEntry}
+                        onRefreshCatalog={loadModelsForTask}
+                    />
                 </div>
-                {showUserScriptWorkspace && (
-                    <div style={{ marginTop: '0.75rem' }}>
-                        <UserScriptWorkbench
-                            task={config.task}
-                            onCatalogEntry={handleCatalogEntry}
-                            onRefreshCatalog={loadModelsForTask}
-                        />
-                    </div>
-                )}
-            </div>
+            )}
         </div>
     );
 };
