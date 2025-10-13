@@ -922,6 +922,8 @@ function CanvasPageContent() {
                 historyCount={history.length}
                 isHistoryPanelOpen={isHistoryPanelOpen}
                 isOwner={isOwner}
+                userId={workflowOriginUserId || undefined}
+                onLoadWorkflow={handleLoadWorkflow}
             />
             <main className={styles.mainContent}>
                 <Canvas

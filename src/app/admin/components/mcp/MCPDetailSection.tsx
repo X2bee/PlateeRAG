@@ -18,7 +18,9 @@ import {
     FiServer,
     FiClock,
     FiTrash2,
-    FiRefreshCw
+    FiRefreshCw,
+    FiPlus,
+    FiX
 } from 'react-icons/fi';
 import { MCPItem } from './types';
 import styles from '@/app/admin/assets/MCPDetailSection.module.scss';
@@ -48,10 +50,29 @@ interface MCPSession {
     error_message?: string;
 }
 
+interface EnvVarEntry {
+    id: string;
+    key: string;
+    value: string;
+    isFromTemplate: boolean;
+}
+
 const MCPDetailSection: React.FC<MCPDetailSectionProps> = ({ item, onBack }) => {
     const [isCreatingSession, setIsCreatingSession] = useState(false);
     const [activeSessions, setActiveSessions] = useState<MCPSession[]>([]);
     const [isLoadingSessions, setIsLoadingSessions] = useState(false);
+    const [envVarEntries, setEnvVarEntries] = useState<EnvVarEntry[]>(() => {
+        // item.envVars를 초기값으로 설정
+        if (item.envVars && Object.keys(item.envVars).length > 0) {
+            return Object.entries(item.envVars).map(([key, value], index) => ({
+                id: `env-${index}`,
+                key,
+                value: typeof value === 'string' ? value : '',
+                isFromTemplate: true
+            }));
+        }
+        return [];
+    });
 
     // 세션 목록 로드
     const loadSessions = async () => {
@@ -77,6 +98,32 @@ const MCPDetailSection: React.FC<MCPDetailSectionProps> = ({ item, onBack }) => 
         loadSessions();
     }, [item]);
 
+    const handleAddEnvVar = () => {
+        const newId = `env-${Date.now()}`;
+        setEnvVarEntries(prev => [...prev, {
+            id: newId,
+            key: '',
+            value: '',
+            isFromTemplate: false
+        }]);
+    };
+
+    const handleRemoveEnvVar = (id: string) => {
+        setEnvVarEntries(prev => prev.filter(entry => entry.id !== id));
+    };
+
+    const handleEnvVarKeyChange = (id: string, newKey: string) => {
+        setEnvVarEntries(prev => prev.map(entry =>
+            entry.id === id ? { ...entry, key: newKey } : entry
+        ));
+    };
+
+    const handleEnvVarValueChange = (id: string, newValue: string) => {
+        setEnvVarEntries(prev => prev.map(entry =>
+            entry.id === id ? { ...entry, value: newValue } : entry
+        ));
+    };
+
     const handleCreateSession = async () => {
         try {
             setIsCreatingSession(true);
@@ -86,8 +133,29 @@ const MCPDetailSection: React.FC<MCPDetailSectionProps> = ({ item, onBack }) => 
             const serverType = item.serverType || 'node';
             const serverCommand = item.serverCommand || 'npx';
             const serverArgs = item.serverArgs || [];
-            const envVars = item.envVars || {};
             const workingDir = item.workingDir || undefined;
+
+            // envVarEntries를 객체로 변환
+            const envVars: Record<string, string> = {};
+            const invalidEntries: string[] = [];
+
+            envVarEntries.forEach(entry => {
+                if (!entry.key.trim()) {
+                    invalidEntries.push('빈 키');
+                    return;
+                }
+                if (entry.isFromTemplate && (!entry.value || entry.value.startsWith('<') && entry.value.endsWith('>'))) {
+                    invalidEntries.push(entry.key);
+                    return;
+                }
+                envVars[entry.key] = entry.value;
+            });
+
+            if (invalidEntries.length > 0) {
+                toast.dismiss();
+                toast.error(`필수 환경변수를 입력해주세요: ${invalidEntries.join(', ')}`);
+                return;
+            }
 
             let session: any;
             if (serverType === 'python') {
@@ -230,6 +298,80 @@ const MCPDetailSection: React.FC<MCPDetailSectionProps> = ({ item, onBack }) => 
                     </div>
                 </div>
 
+                {/* 환경 변수 설정 */}
+                <div className={styles.section}>
+                    <div className={styles.sectionHeader}>
+                        <h2 className={styles.sectionTitle}>
+                            <FiCode />
+                            <span>환경 변수 설정</span>
+                        </h2>
+                        <button
+                            className={styles.addButton}
+                            onClick={handleAddEnvVar}
+                        >
+                            <FiPlus />
+                            <span>환경 변수 추가</span>
+                        </button>
+                    </div>
+                    {item.envVars && Object.keys(item.envVars).length > 0 && (
+                        <p className={styles.sectionDescription}>
+                            이 MCP 서버를 실행하려면 다음 환경 변수를 설정해야 합니다.
+                        </p>
+                    )}
+                    {envVarEntries.length > 0 ? (
+                        <div className={styles.envVarsTable}>
+                            <div className={styles.tableHeader}>
+                                <div className={styles.headerCell}>Key</div>
+                                <div className={styles.headerCell}>Value</div>
+                                <div className={styles.headerCellAction}></div>
+                            </div>
+                            <div className={styles.tableBody}>
+                                {envVarEntries.map((entry) => (
+                                    <div key={entry.id} className={styles.tableRow}>
+                                        <div className={styles.tableCell}>
+                                            <input
+                                                type="text"
+                                                className={`${styles.envVarInput} ${entry.isFromTemplate ? styles.disabled : ''}`}
+                                                value={entry.key}
+                                                onChange={(e) => handleEnvVarKeyChange(entry.id, e.target.value)}
+                                                placeholder="환경 변수 이름"
+                                                disabled={entry.isFromTemplate}
+                                            />
+                                            {entry.isFromTemplate && <span className={styles.requiredBadge}>필수</span>}
+                                        </div>
+                                        <div className={styles.tableCell}>
+                                            <input
+                                                type="text"
+                                                className={styles.envVarInput}
+                                                value={entry.value}
+                                                onChange={(e) => handleEnvVarValueChange(entry.id, e.target.value)}
+                                                placeholder="값을 입력하세요"
+                                            />
+                                        </div>
+                                        <div className={styles.tableCellAction}>
+                                            {!entry.isFromTemplate && (
+                                                <button
+                                                    className={styles.removeButton}
+                                                    onClick={() => handleRemoveEnvVar(entry.id)}
+                                                    title="환경 변수 삭제"
+                                                >
+                                                    <FiX />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className={styles.emptyState}>
+                            <FiCode className={styles.emptyIcon} />
+                            <p>환경 변수가 없습니다.</p>
+                            <p className={styles.emptyHint}>+ 버튼을 눌러 환경 변수를 추가하세요.</p>
+                        </div>
+                    )}
+                </div>
+
                 {/* 액션 버튼 */}
                 <div className={styles.actions}>
                     <button
@@ -304,33 +446,52 @@ const MCPDetailSection: React.FC<MCPDetailSectionProps> = ({ item, onBack }) => 
                         <div className={styles.sessionsList}>
                             {activeSessions.map((session) => (
                                 <div key={session.session_id} className={styles.sessionCard}>
-                                    <div className={styles.sessionInfo}>
-                                        <div className={styles.sessionId}>
-                                            <FiServer />
-                                            <code>{session.session_id}</code>
-                                        </div>
-                                        <div className={styles.sessionMeta}>
-                                            <span className={`${styles.statusBadge} ${styles[`status${session.status}`]}`}>
-                                                {session.status}
-                                            </span>
-                                            <span className={styles.sessionTime}>
-                                                <FiClock />
-                                                {formatRelativeTime(session.created_at)}
-                                            </span>
-                                            {session.pid && (
-                                                <span className={styles.sessionPid}>
-                                                    PID: {session.pid}
+                                    <div className={styles.sessionHeader}>
+                                        <div className={styles.sessionInfo}>
+                                            <div className={styles.sessionTitle}>
+                                                <FiServer />
+                                                <span className={styles.sessionName}>
+                                                    {session.session_name || 'Unnamed Session'}
                                                 </span>
-                                            )}
+                                                <span className={`${styles.statusBadge} ${styles[`status${session.status}`]}`}>
+                                                    {session.status}
+                                                </span>
+                                            </div>
+                                            <div className={styles.sessionIdRow}>
+                                                <strong>Session ID:</strong>
+                                                <code className={styles.sessionId}>{session.session_id}</code>
+                                            </div>
+                                            <div className={styles.sessionCommandRow}>
+                                                <strong>Command:</strong>
+                                                <code>{session.server_command} {session.server_args?.join(' ')}</code>
+                                            </div>
+                                            <div className={styles.sessionMeta}>
+                                                <span className={styles.metaItem}>
+                                                    <FiServer />
+                                                    {session.server_type}
+                                                </span>
+                                                <span className={styles.metaItem}>
+                                                    <FiClock />
+                                                    {formatRelativeTime(session.created_at)}
+                                                </span>
+                                                {session.pid && (
+                                                    <span className={styles.metaItem}>
+                                                        PID: {session.pid}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className={styles.sessionActions}>
+                                            <button
+                                                onClick={() => handleDeleteSession(session.session_id)}
+                                                className={`${styles.actionButton} ${styles.danger}`}
+                                                title="세션 삭제"
+                                            >
+                                                <FiTrash2 />
+                                                삭제
+                                            </button>
                                         </div>
                                     </div>
-                                    <button
-                                        className={styles.deleteButton}
-                                        onClick={() => handleDeleteSession(session.session_id)}
-                                        title="세션 삭제"
-                                    >
-                                        <FiTrash2 />
-                                    </button>
                                 </div>
                             ))}
                         </div>

@@ -290,11 +290,22 @@ const MCPStation: React.FC = () => {
                                 <div className={styles.sessionHeader}>
                                     <div className={styles.sessionInfo}>
                                         <div className={styles.sessionTitle}>
+                                            <FiServer />
+                                            <span className={styles.sessionName}>
+                                                {session.session_name || 'Unnamed Session'}
+                                            </span>
                                             <span className={`${styles.statusBadge} ${getStatusColor(session.status)}`}>
                                                 {getStatusIcon(session.status)}
                                                 {session.status}
                                             </span>
+                                        </div>
+                                        <div className={styles.sessionIdRow}>
+                                            <strong>Session ID:</strong>
                                             <code className={styles.sessionId}>{session.session_id}</code>
+                                        </div>
+                                        <div className={styles.sessionCommandRow}>
+                                            <strong>Command:</strong>
+                                            <code>{session.server_command} {session.server_args?.join(' ')}</code>
                                         </div>
                                         <div className={styles.sessionMeta}>
                                             <span className={styles.metaItem}>

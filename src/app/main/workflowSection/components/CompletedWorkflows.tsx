@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect, use, useRef } from 'react';
 import {
     FiFolder,
     FiPlay,
@@ -12,6 +12,7 @@ import {
     FiSettings,
     FiCopy,
     FiGitBranch,
+    FiMoreVertical,
 } from 'react-icons/fi';
 import styles from '@/app/main/workflowSection/assets/CompletedWorkflows.module.scss';
 import { listWorkflowsDetail, deleteWorkflow, duplicateWorkflow } from '@/app/_common/api/workflow/workflowAPI';
@@ -45,6 +46,7 @@ const CompletedWorkflows: React.FC = () => {
     const [showVersionModal, setShowVersionModal] = useState(false);
     const [workflowToShowVersion, setWorkflowToShowVersion] = useState<Workflow | null>(null);
     const [deployed_list, setDeployed_list] = useState<{[key: string]: boolean | 'pending' | null}>({});
+    const [openDropdown, setOpenDropdown] = useState<number | null>(null);
 
     const fetchWorkflows = async () => {
         try {
@@ -106,6 +108,27 @@ const CompletedWorkflows: React.FC = () => {
     useEffect(() => {
         fetchWorkflows();
     }, []);
+
+    // 드롭다운 외부 클릭 감지
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            if (!target.closest(`.${styles.dropdownContainer}`)) {
+                setOpenDropdown(null);
+            }
+        };
+
+        if (openDropdown !== null) {
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => {
+                document.removeEventListener('mousedown', handleClickOutside);
+            };
+        }
+    }, [openDropdown]);
+
+    const toggleDropdown = (workflowKey: number) => {
+        setOpenDropdown(openDropdown === workflowKey ? null : workflowKey);
+    };
 
     // 워크플로우 필터링
     const getFilteredWorkflows = () => {
@@ -348,7 +371,7 @@ const CompletedWorkflows: React.FC = () => {
                     {filteredWorkflows.map((workflow) => (
                         <div
                             key={workflow.key_value}
-                            className={styles.workflowCard}
+                            className={`${styles.workflowCard} ${openDropdown === workflow.key_value ? styles.cardActive : ''}`}
                         >
                             <div className={styles.cardHeader}>
                                 <div className={styles.workflowIcon}>
@@ -439,105 +462,148 @@ const CompletedWorkflows: React.FC = () => {
                                     </div>
                                 ) : (
                                     <>
-                                        <button
-                                            className={styles.actionButton}
-                                            title="실행"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleExecute(workflow);
-                                            }}
-                                        >
-                                            <FiPlay />
-                                        </button>
-                                        {user && workflow.user_id === user.user_id ? (
-                                            <>
-                                                <button
-                                                    className={styles.actionButton}
-                                                    title="편집"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleEdit(workflow);
-                                                    }}
-                                                >
-                                                    <FiEdit />
-                                                </button>
-                                                <button
-                                                    className={styles.actionButton}
-                                                    title="설정"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleEditSettings(workflow);
-                                                    }}
-                                                >
-                                                    <FiSettings />
-                                                </button>
-                                                <button
-                                                    className={styles.actionButton}
-                                                    title="버전 히스토리"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleShowVersions(workflow);
-                                                    }}
-                                                >
-                                                    <FiGitBranch />
-                                                </button>
-                                                <button
-                                                    className={`${styles.actionButton} ${styles.danger}`}
-                                                    title="삭제"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDelete(workflow);
-                                                    }}
-                                                >
-                                                    <FiTrash2 />
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                {/* 다른 사용자의 워크플로우 - 권한에 따라 편집 버튼 제어 */}
-                                                <button
-                                                    className={`${styles.actionButton} ${
-                                                        workflow.share_permissions !== 'read_write'
-                                                            ? styles.disabled
-                                                            : ''
-                                                    }`}
-                                                    title={
-                                                        workflow.share_permissions !== 'read_write'
-                                                            ? "읽기 전용으로 공유되었습니다"
-                                                            : "편집"
-                                                    }
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (workflow.share_permissions === 'read_write') {
+                                        <div className={styles.actionsLeft}>
+                                            <button
+                                                className={styles.actionButton}
+                                                title="실행"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleExecute(workflow);
+                                                }}
+                                            >
+                                                <FiPlay />
+                                            </button>
+                                            {user && workflow.user_id === user.user_id ? (
+                                                <>
+                                                    <button
+                                                        className={styles.actionButton}
+                                                        title="편집"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             handleEdit(workflow);
+                                                        }}
+                                                    >
+                                                        <FiEdit />
+                                                    </button>
+                                                    <button
+                                                        className={styles.actionButton}
+                                                        title="복사"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDuplicate(workflow);
+                                                        }}
+                                                    >
+                                                        <FiCopy />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        className={`${styles.actionButton} ${
+                                                            workflow.share_permissions !== 'read_write'
+                                                                ? styles.disabled
+                                                                : ''
+                                                        }`}
+                                                        title={
+                                                            workflow.share_permissions !== 'read_write'
+                                                                ? "읽기 전용으로 공유되었습니다"
+                                                                : "편집"
+                                                        }
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (workflow.share_permissions === 'read_write') {
+                                                                handleEdit(workflow);
+                                                            }
+                                                        }}
+                                                        disabled={workflow.share_permissions !== 'read_write'}
+                                                    >
+                                                        <FiEdit />
+                                                    </button>
+                                                    <button
+                                                        className={styles.actionButton}
+                                                        title="복사"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDuplicate(workflow);
+                                                        }}
+                                                    >
+                                                        <FiCopy />
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                        <div className={styles.actionsRight}>
+                                            <div className={`${styles.dropdownContainer} ${openDropdown === workflow.key_value ? styles.dropdownActive : ''}`}>
+                                                <button
+                                                    className={styles.actionButton}
+                                                    title="더보기"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (workflow.key_value !== undefined) {
+                                                            toggleDropdown(workflow.key_value);
                                                         }
                                                     }}
-                                                    disabled={workflow.share_permissions !== 'read_write'}
                                                 >
-                                                    <FiEdit />
+                                                    <FiMoreVertical />
                                                 </button>
-                                                <button
-                                                    className={styles.actionButton}
-                                                    title="버전 히스토리"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleShowVersions(workflow);
-                                                    }}
-                                                >
-                                                    <FiGitBranch />
-                                                </button>
-                                                <button
-                                                    className={styles.actionButton}
-                                                    title="복사"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDuplicate(workflow);
-                                                    }}
-                                                >
-                                                    <FiCopy />
-                                                </button>
-                                            </>
-                                        )}
+                                                {user && workflow.user_id === user.user_id ? (
+                                                    workflow.key_value !== undefined && openDropdown === workflow.key_value && (
+                                                        <div className={styles.dropdownMenu}>
+                                                            <button
+                                                                className={styles.dropdownItem}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleEditSettings(workflow);
+                                                                    setOpenDropdown(null);
+                                                                }}
+                                                            >
+                                                                <FiSettings />
+                                                                <span>설정</span>
+                                                            </button>
+                                                            <button
+                                                                className={styles.dropdownItem}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleShowVersions(workflow);
+                                                                    setOpenDropdown(null);
+                                                                }}
+                                                            >
+                                                                <FiGitBranch />
+                                                                <span>버전 히스토리</span>
+                                                            </button>
+                                                            <div className={styles.dropdownDivider} />
+                                                            <button
+                                                                className={`${styles.dropdownItem} ${styles.danger}`}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDelete(workflow);
+                                                                    setOpenDropdown(null);
+                                                                }}
+                                                            >
+                                                                <FiTrash2 />
+                                                                <span>삭제</span>
+                                                            </button>
+                                                        </div>
+                                                    )
+                                                ) : (
+                                                    workflow.key_value !== undefined && openDropdown === workflow.key_value && (
+                                                        <div className={styles.dropdownMenu}>
+                                                            <button
+                                                                className={styles.dropdownItem}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleShowVersions(workflow);
+                                                                    setOpenDropdown(null);
+                                                                }}
+                                                            >
+                                                                <FiGitBranch />
+                                                                <span>버전 히스토리</span>
+                                                            </button>
+                                                        </div>
+                                                    )
+                                                )}
+                                            </div>
+                                        </div>
                                     </>
                                 )}
                             </div>
