@@ -341,7 +341,30 @@
     }
 }
 
-.editor {
+.editorContainer {
+    width: 100%;
+    min-height: 380px;
+    display: grid;
+    position: relative;
+}
+
+.editorHighlight {
+    grid-area: 1 / 1;
+    min-height: 380px;
+    padding: 1rem;
+    border-radius: 0.55rem;
+    overflow: auto;
+    pointer-events: none;
+    color: #f8fafc;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+.editorInput {
+    grid-area: 1 / 1;
     width: 100%;
     min-height: 380px;
     border: none;
@@ -350,11 +373,29 @@
     font-size: 0.875rem;
     line-height: 1.55;
     background: transparent;
-    color: #f8fafc;
+    color: transparent;
+    caret-color: #f8fafc;
     resize: vertical;
+    overflow: auto;
+    white-space: pre;
+    z-index: 1;
 
     &:focus {
         outline: none;
+    }
+
+    &::selection {
+        background: rgba(59, 130, 246, 0.35);
+    }
+
+    &::-webkit-scrollbar {
+        width: 10px;
+        background: rgba(15, 23, 42, 0.45);
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.55);
+        border-radius: 999px;
     }
 }
 
