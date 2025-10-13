@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiChevronDown, FiChevronRight, FiInfo, FiGrid, FiList } from 'react-icons/fi';
 import { getNodes, refreshNodes } from '@/app/_common/api/nodeAPI';
 import { NodeCategory, Node, TreeNode } from './types';
-import styles from './AdminNodeManage.module.scss';
+import styles from '@/app/admin/assets/workflows/AdminNodeManage.module.scss';
 
 const AdminNodeManage: React.FC = () => {
     const [nodes, setNodes] = useState<NodeCategory[]>([]);
@@ -20,6 +20,8 @@ const AdminNodeManage: React.FC = () => {
         try {
             setLoading(true);
             setError(null);
+            // refresh를 먼저 호출하고, 완료되면 getNodes 수행
+            await refreshNodes();
             const nodeData = await getNodes();
             setNodes(nodeData as NodeCategory[]);
         } catch (err) {
@@ -35,7 +37,9 @@ const AdminNodeManage: React.FC = () => {
         try {
             setRefreshing(true);
             setError(null);
-            const refreshedNodes = await refreshNodes();
+            // refresh를 먼저 호출하고, 완료되면 getNodes 수행
+            await refreshNodes();
+            const refreshedNodes = await getNodes();
             setNodes(refreshedNodes as NodeCategory[]);
         } catch (err) {
             console.error('Failed to refresh nodes:', err);
