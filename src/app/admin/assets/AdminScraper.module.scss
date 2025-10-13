@@ -1,0 +1,484 @@
+@use "@/app/_common/_variables" as *;
+
+.container {
+    display: flex;
+    flex-direction: column;
+    background: $admin-bg-primary;
+    border-radius: $admin-radius-md;
+    box-shadow: $admin-shadow;
+    border: 1px solid $admin-border;
+    font-family: $admin-font-family;
+    overflow: hidden;
+    max-height: 80vh;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $admin-spacing-lg $admin-spacing-xl;
+    background: $admin-bg-secondary;
+    border-bottom: 1px solid $admin-border;
+}
+
+.headerTitle {
+    display: flex;
+    align-items: center;
+    gap: $admin-spacing-md;
+    flex: 1;
+
+    h2 {
+        margin: 0;
+        font-size: $admin-font-size-2xl;
+        font-weight: 600;
+        color: $admin-text-primary;
+    }
+}
+
+.backButton {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: $admin-spacing-xs;
+    padding: $admin-spacing-xs $admin-spacing-md;
+    background: $admin-bg-tertiary;
+    color: $admin-text-primary;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    cursor: pointer;
+    font-size: $admin-font-size-sm;
+    font-weight: 500;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+
+    svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+
+    &:hover {
+        background: $admin-bg-hover;
+        transform: translateX(-2px);
+    }
+
+    &:active {
+        transform: translateX(0);
+    }
+}
+
+.headerActions {
+    display: flex;
+    gap: $admin-spacing-sm;
+}
+
+.primaryButton {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: $admin-spacing-xs;
+    padding: $admin-spacing-sm $admin-spacing-xl;
+    background: $admin-primary;
+    color: $admin-text-inverse;
+    border: none;
+    border-radius: $admin-radius-md;
+    cursor: pointer;
+    font-size: $admin-font-size-sm;
+    font-weight: 600;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+
+    svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+
+    &:hover:not(:disabled) {
+        background: $admin-primary-hover;
+        transform: translateY(-1px);
+        box-shadow: $admin-shadow-md;
+    }
+
+    &:disabled {
+        background: $admin-bg-disabled;
+        color: $admin-text-disabled;
+        cursor: not-allowed;
+    }
+
+    &:active:not(:disabled) {
+        transform: translateY(0);
+    }
+}
+
+.secondaryButton {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: $admin-spacing-xs;
+    padding: $admin-spacing-sm $admin-spacing-lg;
+    background: $admin-bg-tertiary;
+    color: $admin-text-primary;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    cursor: pointer;
+    font-size: $admin-font-size-sm;
+    font-weight: 500;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+
+    svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+
+    &:hover {
+        background: $admin-bg-hover;
+        border-color: $admin-primary;
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+}
+
+.formContainer {
+    flex: 1;
+    overflow-y: auto;
+    padding: $admin-spacing-xl;
+}
+
+.formSection {
+    background: $admin-bg-secondary;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    padding: $admin-spacing-lg;
+    margin-bottom: $admin-spacing-lg;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.sectionTitle {
+    margin: 0 0 $admin-spacing-lg 0;
+    font-size: $admin-font-size-lg;
+    font-weight: 600;
+    color: $admin-text-primary;
+    padding-bottom: $admin-spacing-sm;
+    border-bottom: 2px solid $admin-border;
+}
+
+.formGroup {
+    margin-bottom: $admin-spacing-lg;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.formRow {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $admin-spacing-md;
+    margin-bottom: $admin-spacing-lg;
+}
+
+.label {
+    display: block;
+    margin-bottom: $admin-spacing-xs;
+    font-size: $admin-font-size-sm;
+    font-weight: 500;
+    color: $admin-text-primary;
+
+    .required {
+        color: $admin-danger;
+        margin-left: $admin-spacing-xs;
+    }
+}
+
+.input,
+.select {
+    width: 100%;
+    padding: $admin-spacing-sm $admin-spacing-md;
+    background: $admin-bg-primary;
+    color: $admin-text-primary;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    font-size: $admin-font-size-sm;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+
+    &:focus {
+        outline: none;
+        border-color: $admin-primary;
+        box-shadow: 0 0 0 3px rgba($admin-primary, 0.1);
+    }
+
+    &::placeholder {
+        color: $admin-text-muted;
+    }
+}
+
+.select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right $admin-spacing-sm center;
+    padding-right: $admin-spacing-xl;
+}
+
+.hint {
+    margin: $admin-spacing-xs 0 0 0;
+    font-size: $admin-font-size-xs;
+    color: $admin-text-muted;
+    font-style: italic;
+}
+
+.checkboxGroup {
+    display: flex;
+    flex-direction: column;
+    gap: $admin-spacing-sm;
+}
+
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: $admin-spacing-sm;
+    cursor: pointer;
+    font-size: $admin-font-size-sm;
+    color: $admin-text-primary;
+
+    input[type="checkbox"] {
+        cursor: pointer;
+        width: 18px;
+        height: 18px;
+        accent-color: $admin-primary;
+    }
+
+    &:hover {
+        color: $admin-primary;
+    }
+}
+
+.robotsCheckContainer {
+    display: flex;
+    flex-direction: column;
+    gap: $admin-spacing-md;
+}
+
+.checkButton {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: $admin-spacing-xs;
+    align-self: flex-start;
+    padding: $admin-spacing-sm $admin-spacing-lg;
+    background: $admin-primary;
+    color: $admin-text-inverse;
+    border: none;
+    border-radius: $admin-radius-md;
+    cursor: pointer;
+    font-size: $admin-font-size-sm;
+    font-weight: 500;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+
+    svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+
+    &:hover:not(:disabled) {
+        background: $admin-primary-hover;
+        transform: translateY(-1px);
+        box-shadow: $admin-shadow-md;
+    }
+
+    &:disabled {
+        background: $admin-bg-disabled;
+        color: $admin-text-disabled;
+        cursor: not-allowed;
+    }
+
+    &:active:not(:disabled) {
+        transform: translateY(0);
+    }
+}
+
+.robotsResult {
+    padding: $admin-spacing-lg;
+    border-radius: $admin-radius-md;
+    border: 2px solid;
+
+    &.allowed {
+        background: $admin-success-light;
+        border-color: $admin-success;
+    }
+
+    &.disallowed {
+        background: $admin-danger-light;
+        border-color: $admin-danger;
+    }
+}
+
+.resultHeader {
+    display: flex;
+    align-items: center;
+    gap: $admin-spacing-sm;
+    margin-bottom: $admin-spacing-sm;
+}
+
+.resultIcon {
+    font-size: $admin-font-size-xl;
+    line-height: 1;
+}
+
+.resultTitle {
+    font-size: $admin-font-size-base;
+    font-weight: 600;
+    color: $admin-text-primary;
+}
+
+.resultMessage {
+    margin: 0 0 $admin-spacing-sm 0;
+    font-size: $admin-font-size-sm;
+    color: $admin-text-primary;
+    line-height: 1.5;
+}
+
+.resultDetail {
+    margin: $admin-spacing-sm 0 0 0;
+    font-size: $admin-font-size-sm;
+    color: $admin-text-secondary;
+
+    strong {
+        color: $admin-text-primary;
+        font-weight: 600;
+    }
+}
+
+.pathList {
+    margin: $admin-spacing-xs 0 0 0;
+    padding-left: $admin-spacing-lg;
+    list-style-type: disc;
+
+    li {
+        margin: $admin-spacing-xs 0;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: $admin-font-size-xs;
+    }
+}
+
+.testButton {
+    padding: $admin-spacing-sm $admin-spacing-lg;
+    background: $admin-success;
+    color: $admin-text-inverse;
+    border: none;
+    border-radius: $admin-radius-md;
+    cursor: pointer;
+    font-size: $admin-font-size-sm;
+    font-weight: 500;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+
+    &:hover:not(:disabled) {
+        background: $admin-success-hover;
+        transform: translateY(-1px);
+        box-shadow: $admin-shadow-md;
+    }
+
+    &:disabled {
+        background: $admin-bg-disabled;
+        color: $admin-text-disabled;
+        cursor: not-allowed;
+    }
+
+    &:active:not(:disabled) {
+        transform: translateY(0);
+    }
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: $admin-spacing-2xl;
+    min-height: 400px;
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid $admin-border-light;
+        border-top: 4px solid $admin-primary;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: $admin-spacing-lg;
+    }
+
+    p {
+        margin: 0;
+        font-size: $admin-font-size-sm;
+        color: $admin-text-secondary;
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+// 반응형
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: $admin-spacing-md;
+        align-items: stretch;
+    }
+
+    .headerTitle {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: $admin-spacing-sm;
+    }
+
+    .formContainer {
+        padding: $admin-spacing-md;
+    }
+
+    .formRow {
+        grid-template-columns: 1fr;
+    }
+
+    .formSection {
+        padding: $admin-spacing-md;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        padding: $admin-spacing-md;
+    }
+
+    .formContainer {
+        padding: $admin-spacing-sm;
+    }
+
+    .formSection {
+        padding: $admin-spacing-sm;
+        margin-bottom: $admin-spacing-md;
+    }
+}

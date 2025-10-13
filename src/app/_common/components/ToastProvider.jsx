@@ -12,6 +12,9 @@ const ToastProvider = () => {
                     color: '#fff',
                     borderRadius: '10px',
                     fontFamily: 'system-ui, -apple-system, sans-serif',
+                    maxWidth: '500px',
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
                 },
                 success: {
                     duration: 3000,
@@ -28,6 +31,9 @@ const ToastProvider = () => {
                         borderRadius: '10px',
                         fontWeight: '500',
                         boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)',
+                        maxWidth: '500px',
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word',
                     },
                 },
                 error: {
@@ -41,6 +47,9 @@ const ToastProvider = () => {
                         fontWeight: '500',
                         fontFamily: 'system-ui, -apple-system, sans-serif',
                         boxShadow: '0 4px 12px rgba(239, 68, 68, 0.15)',
+                        maxWidth: '500px',
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word',
                     },
                     iconTheme: {
                         primary: '#ef4444',
@@ -52,6 +61,9 @@ const ToastProvider = () => {
                         background: '#6b7280',
                         color: '#fff',
                         fontWeight: '500',
+                        maxWidth: '500px',
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word',
                     },
                 },
                 // 경고 토스트용 스타일
@@ -60,6 +72,9 @@ const ToastProvider = () => {
                         background: '#f59e0b',
                         color: '#fff',
                         fontWeight: '500',
+                        maxWidth: '500px',
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word',
                     },
                 },
                 // 커스텀 삭제 확인 토스트용 스타일
@@ -72,8 +87,10 @@ const ToastProvider = () => {
                         borderColor: '#374151',
                         borderRadius: '12px',
                         boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
-                        maxWidth: '420px',
+                        maxWidth: '500px',
                         padding: '20px',
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word',
                     },
                 },
             }}

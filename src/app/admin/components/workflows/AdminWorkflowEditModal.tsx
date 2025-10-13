@@ -42,6 +42,7 @@ const AdminWorkflowEditModal: React.FC<AdminWorkflowEditModalProps> = ({
     const [toggleDeploy, setToggleDeploy] = useState<boolean>(false);
     const [isAccepted, setIsAccepted] = useState<boolean>(true);
     const [shareGroup, setShareGroup] = useState<string>('');
+    const [sharePermissions, setSharePermissions] = useState<string>('read');
     const [availableGroups, setAvailableGroups] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -53,6 +54,7 @@ const AdminWorkflowEditModal: React.FC<AdminWorkflowEditModalProps> = ({
             setToggleDeploy(workflow.is_deployed === true);
             setIsAccepted(workflow.is_accepted !== false); // undefined인 경우 true로 처리
             setShareGroup(workflow.share_group || '');
+            setSharePermissions(workflow.share_permissions || 'read');
         }
     }, [workflow]);
 
@@ -85,6 +87,7 @@ const AdminWorkflowEditModal: React.FC<AdminWorkflowEditModalProps> = ({
             const updateDict = {
                 is_shared: isShared,
                 share_group: isShared ? shareGroup || null : null,
+                share_permissions: isShared ? sharePermissions : null,
                 enable_deploy: toggleDeploy,
                 inquire_deploy: Boolean(workflow.inquire_deploy),
                 is_accepted: isAccepted,
@@ -98,6 +101,7 @@ const AdminWorkflowEditModal: React.FC<AdminWorkflowEditModalProps> = ({
                 ...workflow,
                 is_shared: isShared,
                 share_group: isShared ? shareGroup || undefined : undefined,
+                share_permissions: isShared ? sharePermissions : undefined,
                 is_deployed: toggleDeploy,
                 is_accepted: isAccepted
             };
@@ -176,7 +180,7 @@ const AdminWorkflowEditModal: React.FC<AdminWorkflowEditModalProps> = ({
                             <select
                                 value={shareGroup}
                                 onChange={(e) => setShareGroup(e.target.value)}
-                                disabled={false}
+                                disabled={loading}
                             >
                                 <option value="">그룹을 선택하세요</option>
                                 {availableGroups.map((group, index) => (
@@ -195,6 +199,23 @@ const AdminWorkflowEditModal: React.FC<AdminWorkflowEditModalProps> = ({
                                 ? "공유 그룹을 지정하지 않으면 공유되지 않습니다."
                                 : "그룹에 소속되어야 특정 그룹과 공유할 수 있습니다."
                             }
+                        </small>
+                    </div>
+                )}
+
+                {isShared && (
+                    <div className={styles.formGroup}>
+                        <label>권한</label>
+                        <select
+                            value={sharePermissions}
+                            onChange={(e) => setSharePermissions(e.target.value)}
+                            disabled={loading}
+                        >
+                            <option value="read">Read Only</option>
+                            <option value="read_write">Read and Write</option>
+                        </select>
+                        <small>
+                            공유된 워크플로우에 대한 접근 권한을 설정합니다.
                         </small>
                     </div>
                 )}

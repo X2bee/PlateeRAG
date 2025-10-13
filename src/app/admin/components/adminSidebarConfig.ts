@@ -127,7 +127,7 @@ export const getSystemSidebarItems = (): AdminSidebarItem[] => [
     },
 ];
 
-export const getDataItems = ['database', 'storage', 'backup'];
+export const getDataItems = ['database', 'data-scraper', 'storage', 'backup'];
 
 export const getDataSidebarItems = (): AdminSidebarItem[] => [
     {
@@ -135,6 +135,12 @@ export const getDataSidebarItems = (): AdminSidebarItem[] => [
         title: '데이터베이스 관리',
         description: '데이터베이스 상태 및 최적화',
         icon: React.createElement(FiDatabase),
+    },
+    {
+        id: 'data-scraper',
+        title: '데이터 스크래퍼',
+        description: '다양한 소스에서 데이터 수집 및 통합 처리',
+        icon: React.createElement(FiGrid),
     },
     {
         id: 'storage',
@@ -173,7 +179,7 @@ export const getSecuritySidebarItems = (): AdminSidebarItem[] => [
     },
 ];
 
-export const getMCPItems = ['mcp-market'];
+export const getMCPItems = ['mcp-market', 'mcp-station'];
 
 export const getMCPSidebarItems = (): AdminSidebarItem[] => [
     {
@@ -181,6 +187,12 @@ export const getMCPSidebarItems = (): AdminSidebarItem[] => [
         title: 'MCP 마켓',
         description: 'Model Context Protocol 확장 프로그램 검색 및 관리',
         icon: React.createElement(FiPackage),
+    },
+    {
+        id: 'mcp-station',
+        title: 'MCP Station',
+        description: '활성화된 MCP 세션 관리 및 모니터링',
+        icon: React.createElement(FiServer),
     },
 ];
 

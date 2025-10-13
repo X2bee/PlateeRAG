@@ -2,94 +2,83 @@
 import { MCPItem, MCPCategory } from './types';
 
 export const mockMCPCategories: MCPCategory[] = [
-    { id: 'all', name: '전체', count: 662 },
-    { id: 'dev-tools', name: '개발 도구', count: 7657 },
-    { id: 'productivity', name: '생산성 도구', count: 1382 },
-    { id: 'ai', name: 'AI', count: 290 },
-    { id: 'data-analysis', name: '데이터 분석', count: 662 },
-    { id: 'business', name: '비즈니스 서비스', count: 817 },
-    { id: 'media', name: '미디어 생성', count: 626 },
-    { id: 'integration', name: '통합 도구', count: 476 },
-    { id: 'other', name: '기타', count: 64 },
+    { id: 'all', name: '전체', count: 2 },
+    { id: 'dev-tools', name: '개발 도구', count: 2 },
+    { id: 'productivity', name: '생산성 도구', count: 0 },
+    { id: 'ai', name: 'AI', count: 0 },
+    { id: 'data-analysis', name: '데이터 분석', count: 0 },
+    { id: 'business', name: '비즈니스 서비스', count: 0 },
+    { id: 'media', name: '미디어 생성', count: 0 },
+    { id: 'integration', name: '통합 도구', count: 0 },
+    { id: 'other', name: '기타', count: 0 },
 ];
 
 export const mockMCPItems: MCPItem[] = [
     {
-        id: '1',
-        name: 'Tavily MCP',
-        author: 'tavily-ai',
-        description: 'Tavily를 활용한 고급 웹 검색 MCP 서버로, 검색, 추출, 웹페이지 스크래핑 기능을 제공합니다. 이외 추출 기능을 갖추고 있습니다.',
+        id: 'mcpcentral-io-mcp-time',
+        name: 'MCP Time Server',
+        author: 'mcpcentral-io',
+        description: 'MCP 시간 서버는 로컬 및 원격 액세스를 위한 이중 모드 지원을 갖춘 포괄적인 시간 관련 도구를 제공하는 프로토콜 서버입니다. 현재 시간 조회, 상대 시간 계산, 날짜 및 시간 변환, 시간대 관리, 달력 정보 등의 기능을 제공합니다.',
         iconUrl: undefined,
-        downloads: 1041,
-        stars: 434,
-        category: 'ai',
-        status: '우수',
-        lastUpdated: '2025-09-24',
-        version: '4'
-    },
-    {
-        id: '2',
-        name: 'Playwright MCP',
-        author: 'Microsoft Corporation',
-        description: 'Playwright를 사용하는 구조화된 접근적 스크립트 및 웹 페이지 데이터를 통해 웹 사이트를 검색할 수 있는 MCP 서버입니다. 바로 모달 창에도 구조화된 접근성 스크립트를 웹사이트로 배치할 수 있습니다.',
-        iconUrl: undefined,
-        downloads: 2366,
-        stars: 11971,
+        downloads: 9,
+        stars: 6,
         category: 'dev-tools',
-        status: '우수',
-        lastUpdated: '2025-09-21',
-        version: '21'
+        status: '양호',
+        lastUpdated: '2025-10-13',
+        version: '0.0.2',
+        // MCP 세션 생성에 필요한 정보
+        serverType: 'node',
+        serverCommand: 'npx',
+        serverArgs: ['@mcpcentral/mcp-time'],
+        envVars: undefined,
+        workingDir: undefined,
+        // 추가 정보
+        language: 'JavaScript',
+        features: [
+            'current_time: 지정된 형식과 시간대의 현재 날짜 및 시간 가져오기',
+            'relative_time: 사람이 읽을 수 있는 상대 시간 문자열 가져오기',
+            'days_in_month: 특정 월의 일수 가져오기',
+            'get_timestamp: 주어진 시간의 Unix 타임스탬프 가져오기',
+            'convert_time: 서로 다른 IANA 시간대 간 시간 변환',
+            'get_week_year: 주어진 날짜의 주 번호 및 ISO 주 번호 가져오기'
+        ],
+        repository: 'https://github.com/mcpcentral-io/mcp-time',
+        documentation: 'https://guide-gen.mcpcentral.io/servers/io-github-mcpcentral-io-mcp-time'
     },
     {
-        id: '3',
-        name: 'BlenderMCP - Blender Model Context Protocol',
-        author: 'ahujasid',
-        description: 'BlenderMCP는 Blender와 Claude AI를 Model Context Protocol (MCP)로 통합하는 서버입니다. Blender를 직접 제어하고 상호작용할 수 있도록 합니다.',
+        id: 'aashari-mcp-server-atlassian-jira',
+        name: 'Atlassian Jira MCP Server',
+        author: 'aashari',
+        description: 'Atlassian Jira MCP 서버는 AI 통합을 통해 Jira 프로젝트와 이슈를 관리하는 도구 세트입니다. 프로젝트 관리, 이슈 관리, 개발 인사이트, 댓글 및 작업 로그 처리, 워크플로우 탐색 등의 기능을 제공합니다.',
         iconUrl: undefined,
-        downloads: 564,
-        stars: 11579,
-        category: 'media',
-        status: '우수',
-        lastUpdated: '2025-09-15',
-        version: '17'
-    },
-    {
-        id: '4',
-        name: 'Firecrawl MCP Server',
-        author: 'mendableau',
-        description: 'Firecrawl 웹 스크래핑 도구을 위한 MCP 서버입니다. 실시간으로 및 자체 호스팅 인스턴스를 모두 지원하며, 웹 스크래핑, 페이지 처리, 구조화된 데이터 추출 나LLM대화 위한 도구를 제공합니다.',
-        iconUrl: undefined,
-        downloads: 1041,
-        stars: 434,
-        category: 'integration',
-        status: '우수',
-        lastUpdated: '2025-09-24',
-        version: '6'
-    },
-    {
-        id: '5',
-        name: 'Context7 MCP - 최신 코드 이해',
-        author: 'apsrch',
-        description: 'Context7용 MCP 서버, 라이브러리의 최신 버전과 로깅 코드 예제를 바로 제공하며, Node.js >= v18.0.0 필요타이인 필요합니다.',
-        iconUrl: undefined,
-        downloads: 1041,
-        stars: 434,
+        downloads: 11,
+        stars: 10,
         category: 'dev-tools',
-        status: '우수',
-        lastUpdated: '2025-09-21',
-        version: '2'
-    },
-    {
-        id: '6',
-        name: 'Postgres MCP Pro',
-        author: 'crystaldba',
-        description: 'Postgres MCP Pro는 PostgreSQL 데이터베이스를 위한 인덱스 튜닝, 실행 계획 (Explain Plans), 상태 검증 (Health Checks), 고급된 SQL 실행을 제공하는 오픈 소스 도구입니다.',
-        iconUrl: undefined,
-        downloads: 564,
-        stars: 11579,
-        category: 'data-analysis',
-        status: '우수',
-        lastUpdated: '2025-09-15',
-        version: '9'
+        status: '양호',
+        lastUpdated: '2025-10-04',
+        version: '1.37.1',
+        // MCP 세션 생성에 필요한 정보
+        serverType: 'node',
+        serverCommand: 'npx',
+        serverArgs: ['-y', '@aashari/mcp-server-atlassian-jira'],
+        envVars: {
+            'ATLASSIAN_SITE_NAME': '<YOUR_SITE_NAME>',
+            'ATLASSIAN_USER_EMAIL': '<YOUR_EMAIL>',
+            'ATLASSIAN_API_TOKEN': '<YOUR_API_TOKEN>'
+        },
+        workingDir: undefined,
+        // 추가 정보
+        language: 'TypeScript',
+        features: [
+            'jira_ls_projects: 접근 가능한 Jira 프로젝트 목록 조회',
+            'jira_get_project: 프로젝트의 상세 정보 및 메타데이터 조회',
+            'jira_ls_issues: JQL을 이용한 이슈 검색 및 필터링',
+            'jira_get_issue: 댓글 및 개발 정보를 포함한 이슈 상세 조회',
+            'jira_ls_comments: 이슈의 댓글 목록 조회',
+            'jira_add_comment: 이슈에 댓글 추가',
+            'jira_ls_statuses: 워크플로우 상태 목록 조회'
+        ],
+        repository: 'https://github.com/aashari/mcp-server-atlassian-jira',
+        documentation: 'https://github.com/aashari/mcp-server-atlassian-jira#readme'
     }
 ];

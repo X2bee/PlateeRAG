@@ -1,0 +1,574 @@
+@use "@/app/_common/_variables" as *;
+
+.container {
+    padding: $spacing-lg;
+}
+
+// 헤더
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $spacing-xl;
+    padding-bottom: $spacing-lg;
+    border-bottom: 2px solid $gray-200;
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+}
+
+.headerIcon {
+    width: 40px;
+    height: 40px;
+    color: $blue-500;
+}
+
+.title {
+    font-size: 28px;
+    font-weight: 700;
+    color: $gray-900;
+    margin: 0;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: $gray-600;
+    margin: 4px 0 0 0;
+}
+
+.headerRight {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+}
+
+.statusIndicator {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: $spacing-xs $spacing-sm;
+    background: $gray-50;
+    border-radius: $radius-md;
+}
+
+.statusDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+
+    &.healthy {
+        background: $green-500;
+        box-shadow: 0 0 8px rgba($green-500, 0.5);
+    }
+
+    &.unhealthy {
+        background: $admin-danger;
+        box-shadow: 0 0 8px rgba($admin-danger, 0.5);
+    }
+}
+
+.statusText {
+    font-size: 13px;
+    font-weight: 500;
+    color: $gray-700;
+}
+
+.refreshButton {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: $spacing-sm $spacing-md;
+    background: $blue-500;
+    color: $white;
+    border: none;
+    border-radius: $radius-md;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    &:hover:not(:disabled) {
+        background: $blue-600;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba($blue-500, 0.3);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// 통계 카드
+.statsContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: $spacing-lg;
+    margin-bottom: $spacing-xl;
+}
+
+.statCard {
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: $radius-lg;
+    padding: $spacing-lg;
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        border-color: $blue-300;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+}
+
+.statIcon {
+    width: 48px;
+    height: 48px;
+    background: $blue-50;
+    border-radius: $radius-md;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $blue-500;
+
+    svg {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+.statInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.statLabel {
+    font-size: 13px;
+    color: $gray-600;
+    font-weight: 500;
+}
+
+.statValue {
+    font-size: 24px;
+    font-weight: 700;
+    color: $gray-900;
+}
+
+// 세션 컨테이너
+.sessionsContainer {
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: $radius-lg;
+    padding: $spacing-lg;
+    min-height: 400px;
+}
+
+.sessionsList {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-lg;
+}
+
+// 세션 카드
+.sessionCard {
+    background: $gray-50;
+    border: 1px solid $gray-200;
+    border-radius: $radius-lg;
+    padding: $spacing-lg;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        border-color: $blue-300;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+}
+
+.sessionHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: $spacing-md;
+}
+
+.sessionInfo {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+}
+
+.sessionTitle {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    flex-wrap: wrap;
+
+    svg {
+        width: 16px;
+        height: 16px;
+        color: $blue-500;
+        flex-shrink: 0;
+    }
+}
+
+.sessionName {
+    font-size: 16px;
+    font-weight: 600;
+    color: $gray-900;
+}
+
+.sessionIdRow {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    font-size: 13px;
+
+    strong {
+        font-weight: 600;
+        color: $gray-700;
+        flex-shrink: 0;
+    }
+}
+
+.sessionCommandRow {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    font-size: 13px;
+
+    strong {
+        font-weight: 600;
+        color: $gray-700;
+        flex-shrink: 0;
+    }
+
+    code {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 12px;
+        color: $gray-700;
+        background: $gray-100;
+        padding: 2px $spacing-xs;
+        border-radius: $radius-sm;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.statusBadge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px $spacing-sm;
+    border-radius: $radius-sm;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+
+    svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    &.statusRunning {
+        background: rgba($admin-success, 0.1);
+        color: $green-700;
+        border: 1px solid $admin-success;
+    }
+
+    &.statusStarting {
+        background: $blue-100;
+        color: $blue-700;
+        border: 1px solid $blue-300;
+    }
+
+    &.statusError {
+        background: $admin-danger-light;
+        color: $red-700;
+        border: 1px solid $admin-danger;
+    }
+
+    &.statusDefault {
+        background: $gray-100;
+        color: $gray-700;
+        border: 1px solid $gray-300;
+    }
+}
+
+.sessionId {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 12px;
+    color: $gray-700;
+    background: $gray-100;
+    padding: 2px $spacing-xs;
+    border-radius: $radius-sm;
+}
+
+.sessionMeta {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    flex-wrap: wrap;
+}
+
+.metaItem {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: $gray-600;
+
+    svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+.sessionActions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    flex-shrink: 0;
+}
+
+.actionButton {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: $spacing-xs $spacing-sm;
+    background: $white;
+    border: 1px solid $gray-300;
+    border-radius: $radius-sm;
+    font-size: 13px;
+    font-weight: 500;
+    color: $gray-700;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    &:hover {
+        border-color: $blue-400;
+        background: $blue-50;
+        color: $blue-700;
+    }
+
+    &.danger {
+        &:hover {
+            border-color: $admin-danger;
+            background: $admin-danger-light;
+            color: $red-700;
+        }
+    }
+}
+
+// 에러 메시지
+.errorMessage {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    margin-top: $spacing-md;
+    padding: $spacing-sm $spacing-md;
+    background: $admin-danger-light;
+    border: 1px solid $admin-danger;
+    border-radius: $radius-md;
+    font-size: 13px;
+    color: $red-700;
+
+    svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+}
+
+// 도구 컨테이너
+.toolsContainer {
+    margin-top: $spacing-md;
+    padding-top: $spacing-md;
+    border-top: 1px solid $gray-200;
+}
+
+.toolsLoading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $spacing-xs;
+    padding: $spacing-lg;
+    font-size: 14px;
+    color: $gray-600;
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.toolsTitle {
+    font-size: 15px;
+    font-weight: 600;
+    color: $gray-800;
+    margin: 0 0 $spacing-md 0;
+}
+
+.toolsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: $spacing-sm;
+}
+
+.toolCard {
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: $radius-md;
+    padding: $spacing-sm;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        border-color: $blue-300;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+}
+
+.toolHeader {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    margin-bottom: 4px;
+}
+
+.toolIcon {
+    width: 14px;
+    height: 14px;
+    color: $blue-500;
+    flex-shrink: 0;
+}
+
+.toolName {
+    font-size: 13px;
+    font-weight: 600;
+    color: $gray-800;
+    font-family: monospace;
+}
+
+.toolDescription {
+    font-size: 12px;
+    color: $gray-600;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.noTools {
+    text-align: center;
+    padding: $spacing-lg;
+    font-size: 14px;
+    color: $gray-500;
+}
+
+// 빈 상태
+.emptyState {
+    text-align: center;
+    padding: $spacing-xl * 2;
+    color: $gray-500;
+}
+
+.emptyIcon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto $spacing-md;
+    color: $gray-400;
+}
+
+.emptyState h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: $gray-700;
+    margin: 0 0 $spacing-xs 0;
+}
+
+.emptyState p {
+    font-size: 14px;
+    color: $gray-600;
+    margin: 0;
+}
+
+// 로딩 상태
+.loadingState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: $spacing-xl * 2;
+    color: $gray-500;
+
+    svg {
+        width: 48px;
+        height: 48px;
+        margin-bottom: $spacing-md;
+    }
+
+    p {
+        font-size: 14px;
+        margin: 0;
+    }
+}
+
+// 반응형
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: $spacing-md;
+    }
+
+    .headerRight {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .statsContainer {
+        grid-template-columns: 1fr;
+    }
+
+    .sessionHeader {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .sessionActions {
+        justify-content: flex-end;
+    }
+
+    .toolsGrid {
+        grid-template-columns: 1fr;
+    }
+}

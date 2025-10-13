@@ -1,0 +1,626 @@
+@use "@/app/_common/_variables" as *;
+
+.container {
+    display: flex;
+    flex-direction: column;
+    background: $admin-bg-primary;
+    border-radius: $admin-radius-md;
+    box-shadow: $admin-shadow;
+    border: 1px solid $admin-border;
+    font-family: $admin-font-family;
+    overflow: hidden;
+    max-height: 80vh;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $admin-spacing-lg $admin-spacing-xl;
+    background: $admin-bg-secondary;
+    border-bottom: 1px solid $admin-border;
+}
+
+.headerTitle {
+    display: flex;
+    align-items: center;
+    gap: $admin-spacing-md;
+    flex: 1;
+
+    h2 {
+        margin: 0;
+        font-size: $admin-font-size-2xl;
+        font-weight: 600;
+        color: $admin-text-primary;
+    }
+}
+
+.backButton {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: $admin-spacing-xs;
+    padding: $admin-spacing-xs $admin-spacing-md;
+    background: $admin-bg-tertiary;
+    color: $admin-text-primary;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    cursor: pointer;
+    font-size: $admin-font-size-sm;
+    font-weight: 500;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+
+    svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+
+    &:hover {
+        background: $admin-bg-hover;
+        transform: translateX(-2px);
+    }
+
+    &:active {
+        transform: translateX(0);
+    }
+}
+
+.closeButton {
+    padding: $admin-spacing-xs $admin-spacing-sm;
+    background: transparent;
+    color: $admin-text-secondary;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    cursor: pointer;
+    font-size: $admin-font-size-lg;
+    font-weight: 700;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+
+    &:hover {
+        background: $admin-danger-light;
+        color: $admin-danger;
+        border-color: $admin-danger;
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: $admin-spacing-md;
+    padding: $admin-spacing-lg $admin-spacing-xl;
+    background: $admin-bg-primary;
+    border-bottom: 1px solid $admin-border;
+}
+
+.statCard {
+    display: flex;
+    align-items: center;
+    gap: $admin-spacing-md;
+    padding: $admin-spacing-md;
+    background: $admin-bg-secondary;
+    border-radius: $admin-radius-md;
+    border: 1px solid $admin-border;
+}
+
+.statIcon {
+    font-size: 1.75rem;
+    line-height: 1;
+}
+
+.statContent {
+    flex: 1;
+}
+
+.statValue {
+    display: block;
+    font-size: $admin-font-size-lg;
+    font-weight: 700;
+    color: $admin-text-primary;
+    line-height: 1.2;
+}
+
+.statLabel {
+    display: block;
+    font-size: $admin-font-size-xs;
+    color: $admin-text-secondary;
+    margin-top: $admin-spacing-xs;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.dataListContainer {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 $admin-spacing-xl $admin-spacing-xl;
+}
+
+.listHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $admin-spacing-lg;
+    padding-top: $admin-spacing-lg;
+
+    h3 {
+        margin: 0;
+        font-size: $admin-font-size-lg;
+        font-weight: 600;
+        color: $admin-text-primary;
+    }
+
+    .count {
+        font-size: $admin-font-size-sm;
+        color: $admin-text-secondary;
+        background: $admin-bg-tertiary;
+        padding: $admin-spacing-xs $admin-spacing-sm;
+        border-radius: $admin-radius-full;
+        border: 1px solid $admin-border;
+    }
+}
+
+.dataList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: $admin-spacing-md;
+}
+
+.dataCard {
+    background: $admin-bg-secondary;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    padding: $admin-spacing-md;
+    cursor: pointer;
+    transition: $admin-transition;
+    display: flex;
+    flex-direction: column;
+    gap: $admin-spacing-sm;
+
+    &:hover {
+        box-shadow: $admin-shadow-md;
+        border-color: $admin-primary;
+        transform: translateY(-2px);
+    }
+}
+
+.dataCardHeader {
+    display: flex;
+    align-items: center;
+    gap: $admin-spacing-sm;
+}
+
+.dataIcon {
+    font-size: $admin-font-size-xl;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.dataTitle {
+    margin: 0;
+    font-size: $admin-font-size-base;
+    font-weight: 600;
+    color: $admin-text-primary;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dataInfo {
+    display: flex;
+    flex-direction: column;
+    gap: $admin-spacing-xs;
+}
+
+.dataInfoRow {
+    display: flex;
+    gap: $admin-spacing-xs;
+    font-size: $admin-font-size-xs;
+
+    .infoLabel {
+        color: $admin-text-secondary;
+        font-weight: 500;
+        flex-shrink: 0;
+    }
+
+    .infoValue {
+        color: $admin-text-primary;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.dataTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $admin-spacing-xs;
+    margin-top: $admin-spacing-xs;
+}
+
+.dataTag {
+    padding: 2px $admin-spacing-xs;
+    background: $admin-primary-light;
+    color: $admin-primary;
+    border-radius: $admin-radius-sm;
+    font-size: $admin-font-size-xs;
+    font-weight: 500;
+}
+
+.emptyState {
+    text-align: center;
+    padding: $admin-spacing-2xl;
+    background: $admin-bg-secondary;
+    border-radius: $admin-radius-md;
+    border: 2px dashed $admin-border;
+    margin-top: $admin-spacing-lg;
+
+    .emptyIcon {
+        font-size: 4rem;
+        margin-bottom: $admin-spacing-lg;
+        opacity: 0.5;
+    }
+
+    h4 {
+        margin: 0 0 $admin-spacing-sm 0;
+        font-size: $admin-font-size-xl;
+        color: $admin-text-primary;
+    }
+
+    p {
+        margin: 0;
+        font-size: $admin-font-size-sm;
+        color: $admin-text-secondary;
+    }
+}
+
+// 상세 뷰
+.detailContainer {
+    flex: 1;
+    overflow-y: auto;
+    padding: $admin-spacing-xl;
+}
+
+.detailSection {
+    background: $admin-bg-secondary;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    padding: $admin-spacing-lg;
+    margin-bottom: $admin-spacing-lg;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.sectionTitle {
+    margin: 0 0 $admin-spacing-lg 0;
+    font-size: $admin-font-size-lg;
+    font-weight: 600;
+    color: $admin-text-primary;
+    padding-bottom: $admin-spacing-sm;
+    border-bottom: 2px solid $admin-border;
+}
+
+.metadataGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: $admin-spacing-md;
+}
+
+.metadataItem {
+    display: flex;
+    flex-direction: column;
+    gap: $admin-spacing-xs;
+}
+
+.metadataLabel {
+    font-size: $admin-font-size-xs;
+    font-weight: 600;
+    color: $admin-text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metadataValue {
+    font-size: $admin-font-size-sm;
+    color: $admin-text-primary;
+    word-break: break-all;
+}
+
+.tagsContainer {
+    margin-top: $admin-spacing-lg;
+    padding-top: $admin-spacing-lg;
+    border-top: 1px solid $admin-border;
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $admin-spacing-xs;
+    margin-top: $admin-spacing-sm;
+}
+
+.tag {
+    padding: $admin-spacing-xs $admin-spacing-sm;
+    background: $admin-primary-light;
+    color: $admin-primary;
+    border-radius: $admin-radius-sm;
+    font-size: $admin-font-size-xs;
+    font-weight: 600;
+}
+
+.parsingButtons {
+    display: flex;
+    gap: $admin-spacing-sm;
+    flex-wrap: wrap;
+}
+
+.parseButton {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: $admin-spacing-xs;
+    padding: $admin-spacing-sm $admin-spacing-lg;
+    background: $admin-primary;
+    color: $admin-text-inverse;
+    border: none;
+    border-radius: $admin-radius-md;
+    cursor: pointer;
+    font-size: $admin-font-size-sm;
+    font-weight: 500;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+
+    svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+
+    &:hover:not(:disabled) {
+        background: $admin-primary-hover;
+        transform: translateY(-1px);
+        box-shadow: $admin-shadow-md;
+    }
+
+    &:disabled {
+        background: $admin-bg-disabled;
+        color: $admin-text-disabled;
+        cursor: not-allowed;
+    }
+
+    &:active:not(:disabled) {
+        transform: translateY(0);
+    }
+}
+
+.parsingStatus {
+    display: flex;
+    align-items: center;
+    gap: $admin-spacing-sm;
+    margin-top: $admin-spacing-md;
+    padding: $admin-spacing-sm;
+    background: $admin-primary-light;
+    border-radius: $admin-radius-sm;
+    color: $admin-primary;
+    font-size: $admin-font-size-sm;
+    font-weight: 500;
+}
+
+.miniSpinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba($admin-primary, 0.3);
+    border-top: 2px solid $admin-primary;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.parsingResult {
+    margin-top: $admin-spacing-md;
+    padding: $admin-spacing-md;
+    border-radius: $admin-radius-md;
+    border: 2px solid;
+
+    &.success {
+        background: $admin-success-light;
+        border-color: $admin-success;
+    }
+
+    &.error {
+        background: $admin-danger-light;
+        border-color: $admin-danger;
+    }
+}
+
+.resultHeader {
+    display: flex;
+    align-items: center;
+    gap: $admin-spacing-sm;
+    margin-bottom: $admin-spacing-md;
+}
+
+.resultIcon {
+    font-size: $admin-font-size-lg;
+    line-height: 1;
+}
+
+.resultTitle {
+    font-size: $admin-font-size-base;
+    font-weight: 600;
+    color: $admin-text-primary;
+    flex: 1;
+}
+
+.resultTime {
+    font-size: $admin-font-size-xs;
+    color: $admin-text-muted;
+}
+
+.resultContent {
+    display: flex;
+    flex-direction: column;
+    gap: $admin-spacing-md;
+}
+
+.resultStats {
+    display: flex;
+    gap: $admin-spacing-lg;
+    font-size: $admin-font-size-xs;
+    color: $admin-text-secondary;
+    padding-bottom: $admin-spacing-sm;
+    border-bottom: 1px solid $admin-border;
+
+    span {
+        font-weight: 500;
+    }
+}
+
+.resultData {
+    background: $admin-bg-primary;
+    padding: $admin-spacing-md;
+    border-radius: $admin-radius-sm;
+    border: 1px solid $admin-border;
+    max-height: 400px;
+    overflow: auto;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: $admin-font-size-xs;
+    line-height: 1.6;
+    color: $admin-text-primary;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.resultError {
+    padding: $admin-spacing-md;
+    background: rgba($admin-danger, 0.1);
+    border-radius: $admin-radius-sm;
+    font-size: $admin-font-size-sm;
+    color: $admin-danger;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.rawDataContainer {
+    max-height: 500px;
+    overflow: auto;
+}
+
+.rawData {
+    background: $admin-bg-primary;
+    padding: $admin-spacing-md;
+    border-radius: $admin-radius-sm;
+    border: 1px solid $admin-border;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: $admin-font-size-xs;
+    line-height: 1.6;
+    color: $admin-text-primary;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: $admin-spacing-2xl;
+    min-height: 400px;
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid $admin-border-light;
+        border-top: 4px solid $admin-primary;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: $admin-spacing-lg;
+    }
+
+    p {
+        margin: 0;
+        font-size: $admin-font-size-sm;
+        color: $admin-text-secondary;
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+// 반응형
+@media (max-width: 768px) {
+    .header {
+        flex-direction: row;
+        gap: $admin-spacing-sm;
+        padding: $admin-spacing-md;
+    }
+
+    .statsGrid {
+        grid-template-columns: 1fr;
+        padding: $admin-spacing-md;
+    }
+
+    .dataListContainer {
+        padding: 0 $admin-spacing-md $admin-spacing-md;
+    }
+
+    .dataList {
+        grid-template-columns: 1fr;
+    }
+
+    .detailContainer {
+        padding: $admin-spacing-md;
+    }
+
+    .detailSection {
+        padding: $admin-spacing-md;
+    }
+
+    .metadataGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        padding: $admin-spacing-sm;
+    }
+
+    .statsGrid {
+        padding: $admin-spacing-sm;
+    }
+
+    .dataListContainer {
+        padding: 0 $admin-spacing-sm $admin-spacing-sm;
+    }
+
+    .detailContainer {
+        padding: $admin-spacing-sm;
+    }
+
+    .detailSection {
+        padding: $admin-spacing-sm;
+        margin-bottom: $admin-spacing-md;
+    }
+}

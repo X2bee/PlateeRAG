@@ -5,6 +5,7 @@ import { FiPackage } from 'react-icons/fi';
 import MCPCard from './MCPCard';
 import MCPSearchBar from './MCPSearchBar';
 import MCPCategoryTabs from './MCPCategoryTabs';
+import MCPDetailSection from './MCPDetailSection';
 import { MCPItem } from './types';
 import { mockMCPItems, mockMCPCategories } from './mockData';
 import styles from '@/app/admin/assets/MCPMarket.module.scss';
@@ -17,6 +18,9 @@ const MCPMarketContent: React.FC<MCPMarketContentProps> = () => {
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [activeCategory, setActiveCategory] = useState<string>('all');
     const [sortBy, setSortBy] = useState<'downloads' | 'stars' | 'updated' | 'name'>('downloads');
+    const [selectedItem, setSelectedItem] = useState<MCPItem | null>(null);
+
+
 
     // 필터링 및 정렬된 MCP 아이템들
     const filteredAndSortedItems = useMemo(() => {
@@ -57,8 +61,11 @@ const MCPMarketContent: React.FC<MCPMarketContentProps> = () => {
     }, [searchQuery, activeCategory, sortBy]);
 
     const handleCardClick = (item: MCPItem) => {
-        // 추후 상세 페이지 이동 또는 모달 표시 구현
-        console.log('MCP Card clicked:', item);
+        setSelectedItem(item);
+    };
+
+    const handleBackToList = () => {
+        setSelectedItem(null);
     };
 
     const handleSearchChange = (query: string) => {
@@ -72,6 +79,11 @@ const MCPMarketContent: React.FC<MCPMarketContentProps> = () => {
     const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSortBy(event.target.value as 'downloads' | 'stars' | 'updated' | 'name');
     };
+
+    // 선택된 아이템이 있으면 상세 화면 표시
+    if (selectedItem) {
+        return <MCPDetailSection item={selectedItem} onBack={handleBackToList} />;
+    }
 
     return (
         <div>

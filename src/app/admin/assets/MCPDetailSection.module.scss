@@ -1,0 +1,947 @@
+@use "@/app/_common/_variables" as *;
+
+.container {
+    padding: 0;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// 헤더
+.header {
+    margin-bottom: $spacing-lg;
+}
+
+.backButton {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: $spacing-sm $spacing-md;
+    background: $white;
+    border: 1px solid $gray-300;
+    border-radius: $radius-md;
+    font-size: 14px;
+    font-weight: 500;
+    color: $gray-700;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    &:hover {
+        background: $gray-50;
+        border-color: $blue-400;
+        color: $blue-600;
+    }
+}
+
+// 메인 콘텐츠
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-lg;
+}
+
+// 정보 카드
+.infoCard {
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: $radius-lg;
+    padding: $spacing-xl;
+    display: flex;
+    gap: $spacing-lg;
+    box-shadow: $shadow-sm;
+}
+
+.iconWrapper {
+    flex-shrink: 0;
+}
+
+.icon {
+    width: 80px;
+    height: 80px;
+    border-radius: $radius-lg;
+    object-fit: cover;
+}
+
+.iconPlaceholder {
+    width: 80px;
+    height: 80px;
+    background: $blue-50;
+    border-radius: $radius-lg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $blue-500;
+
+    svg {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+.mainInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.title {
+    font-size: 28px;
+    font-weight: 700;
+    color: $gray-900;
+    margin: 0 0 $spacing-xs 0;
+}
+
+.author {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    font-size: 14px;
+    color: $gray-600;
+    margin-bottom: $spacing-md;
+
+    svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+.description {
+    font-size: 15px;
+    line-height: 1.6;
+    color: $gray-700;
+    margin: 0 0 $spacing-md 0;
+}
+
+.metaRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-md;
+    margin-bottom: $spacing-md;
+}
+
+.metaItem {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: $gray-600;
+
+    svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-xs;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px $spacing-sm;
+    border-radius: $radius-sm;
+    font-size: 12px;
+    font-weight: 600;
+    background: $gray-100;
+    color: $gray-700;
+    border: 1px solid $gray-300;
+
+    &.badge우수 {
+        background: rgba($admin-success, 0.1);
+        color: $green-700;
+        border-color: $admin-success;
+    }
+
+    &.badge양호 {
+        background: $blue-100;
+        color: $blue-700;
+        border-color: $blue-300;
+    }
+
+    &.badge일반 {
+        background: $gray-100;
+        color: $gray-700;
+        border-color: $gray-300;
+    }
+}
+
+// 액션 버튼
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-md;
+}
+
+.primaryButton {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: $spacing-md $spacing-lg;
+    background: $blue-500;
+    color: $white;
+    border: none;
+    border-radius: $radius-md;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: $shadow-sm;
+
+    svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    &:hover:not(:disabled) {
+        background: $blue-600;
+        transform: translateY(-1px);
+        box-shadow: $shadow-md;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.secondaryButton {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: $spacing-md $spacing-lg;
+    background: $white;
+    color: $gray-700;
+    border: 1px solid $gray-300;
+    border-radius: $radius-md;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    &:hover {
+        background: $gray-50;
+        border-color: $blue-400;
+        color: $blue-600;
+    }
+}
+
+// 섹션
+.section {
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: $radius-lg;
+    padding: $spacing-lg;
+    box-shadow: $shadow-sm;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $spacing-md;
+}
+
+.sectionTitle {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    font-size: 18px;
+    font-weight: 600;
+    color: $gray-900;
+    margin: 0;
+
+    svg {
+        width: 20px;
+        height: 20px;
+        color: $blue-500;
+    }
+}
+
+.sectionDescription {
+    font-size: 14px;
+    line-height: 1.6;
+    color: $gray-600;
+    margin: $spacing-sm 0 $spacing-md 0;
+}
+
+.addButton {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: $spacing-xs $spacing-md;
+    background: $blue-500;
+    color: $white;
+    border: none;
+    border-radius: $radius-md;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    &:hover {
+        background: $blue-600;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba($blue-500, 0.3);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+.refreshButton {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: $spacing-xs $spacing-sm;
+    background: $white;
+    border: 1px solid $gray-300;
+    border-radius: $radius-sm;
+    font-size: 13px;
+    font-weight: 500;
+    color: $gray-700;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    &:hover:not(:disabled) {
+        background: $gray-50;
+        border-color: $blue-400;
+        color: $blue-600;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// 기능 목록
+.featuresList {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+}
+
+.featureItem {
+    display: flex;
+    align-items: flex-start;
+    gap: $spacing-sm;
+    padding: $spacing-sm;
+    background: $gray-50;
+    border-radius: $radius-md;
+    font-size: 14px;
+    line-height: 1.5;
+    color: $gray-700;
+}
+
+.featureIcon {
+    width: 16px;
+    height: 16px;
+    color: $green-500;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+// 세션 목록
+.sessionsList {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-lg;
+}
+
+.sessionCard {
+    background: $gray-50;
+    border: 1px solid $gray-200;
+    border-radius: $radius-lg;
+    padding: $spacing-lg;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        border-color: $blue-300;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+}
+
+.sessionHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: $spacing-md;
+}
+
+.sessionInfo {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+}
+
+.sessionTitle {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    flex-wrap: wrap;
+
+    svg {
+        width: 16px;
+        height: 16px;
+        color: $blue-500;
+        flex-shrink: 0;
+    }
+}
+
+.sessionName {
+    font-size: 16px;
+    font-weight: 600;
+    color: $gray-900;
+}
+
+.sessionIdRow {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    font-size: 13px;
+
+    strong {
+        font-weight: 600;
+        color: $gray-700;
+        flex-shrink: 0;
+    }
+}
+
+.sessionId {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 12px;
+    color: $gray-700;
+    background: $gray-100;
+    padding: 2px $spacing-xs;
+    border-radius: $radius-sm;
+}
+
+.sessionCommandRow {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    font-size: 13px;
+
+    strong {
+        font-weight: 600;
+        color: $gray-700;
+        flex-shrink: 0;
+    }
+
+    code {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 12px;
+        color: $gray-700;
+        background: $gray-100;
+        padding: 2px $spacing-xs;
+        border-radius: $radius-sm;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.sessionMeta {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    flex-wrap: wrap;
+}
+
+.metaItem {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: $gray-600;
+
+    svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+.statusBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px $spacing-sm;
+    border-radius: $radius-sm;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+
+    svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    &.statusrunning {
+        background: rgba($admin-success, 0.1);
+        color: $green-700;
+        border: 1px solid $admin-success;
+    }
+
+    &.statusstarting {
+        background: $blue-100;
+        color: $blue-700;
+        border: 1px solid $blue-300;
+    }
+
+    &.statuserror {
+        background: $admin-danger-light;
+        color: $red-700;
+        border: 1px solid $admin-danger;
+    }
+
+    &.statusDefault {
+        background: $gray-100;
+        color: $gray-700;
+        border: 1px solid $gray-300;
+    }
+}
+
+.sessionActions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    flex-shrink: 0;
+}
+
+.actionButton {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: $spacing-xs $spacing-sm;
+    background: $white;
+    border: 1px solid $gray-300;
+    border-radius: $radius-sm;
+    font-size: 13px;
+    font-weight: 500;
+    color: $gray-700;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    &:hover {
+        border-color: $blue-400;
+        background: $blue-50;
+        color: $blue-700;
+    }
+
+    &.danger {
+        &:hover {
+            border-color: $admin-danger;
+            background: $admin-danger-light;
+            color: $red-700;
+        }
+    }
+}
+
+.sessionTime {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-xs;
+    font-size: 13px;
+    color: $gray-600;
+    background: $white;
+    padding: $spacing-xs $spacing-sm;
+    border-radius: $radius-sm;
+    border: 1px solid $gray-200;
+
+    svg {
+        width: 14px;
+        height: 14px;
+        color: $gray-500;
+    }
+}
+
+.sessionPid {
+    display: inline-flex;
+    font-size: 13px;
+    color: $gray-600;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    background: $white;
+    padding: $spacing-xs $spacing-sm;
+    border-radius: $radius-sm;
+    border: 1px solid $gray-200;
+}
+
+.deleteButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: $white;
+    border: 1px solid $gray-300;
+    border-radius: $radius-md;
+    color: $gray-600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    flex-shrink: 0;
+
+    svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    &:hover {
+        background: $admin-danger-light;
+        border-color: $admin-danger;
+        color: $admin-danger;
+        transform: scale(1.05);
+    }
+}
+
+// 환경 변수 테이블
+.envVarsTable {
+    border: 1px solid $gray-200;
+    border-radius: $radius-md;
+    overflow: hidden;
+}
+
+.tableHeader {
+    display: grid;
+    grid-template-columns: 1fr 1fr 50px;
+    background: $gray-100;
+    border-bottom: 2px solid $gray-300;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr 1fr 40px;
+    }
+}
+
+.headerCell {
+    padding: $spacing-md $spacing-lg;
+    font-size: 14px;
+    font-weight: 700;
+    color: $gray-900;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    @media (max-width: 768px) {
+        padding: $spacing-sm $spacing-md;
+        font-size: 13px;
+    }
+}
+
+.headerCellAction {
+    padding: $spacing-md;
+
+    @media (max-width: 768px) {
+        padding: $spacing-sm;
+    }
+}
+
+.tableBody {
+    background: $white;
+}
+
+.tableRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr 50px;
+    border-bottom: 1px solid $gray-200;
+    transition: background-color 0.2s ease-in-out;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background: $gray-50;
+    }
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr 1fr 40px;
+    }
+}
+
+.tableCell {
+    padding: $spacing-md $spacing-lg;
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    position: relative;
+
+    @media (max-width: 768px) {
+        padding: $spacing-sm $spacing-md;
+    }
+}
+
+.tableCellAction {
+    padding: $spacing-md;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    @media (max-width: 768px) {
+        padding: $spacing-sm;
+    }
+}
+
+.envVarInput {
+    flex: 1;
+    padding: $spacing-sm $spacing-md;
+    border: 1px solid $gray-300;
+    border-radius: $radius-sm;
+    font-size: 14px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    color: $gray-900;
+    background: $white;
+    transition: all 0.2s ease-in-out;
+
+    &::placeholder {
+        color: $gray-400;
+        font-style: italic;
+        font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    &:focus {
+        outline: none;
+        border-color: $blue-400;
+        box-shadow: 0 0 0 3px rgba($blue-500, 0.1);
+    }
+
+    &:hover:not(:focus):not(:disabled) {
+        border-color: $gray-400;
+    }
+
+    &.disabled,
+    &:disabled {
+        background: $gray-50;
+        color: $gray-700;
+        cursor: not-allowed;
+        font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+        font-size: 13px;
+        padding: $spacing-xs $spacing-sm;
+    }
+}
+
+.requiredBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px $spacing-xs;
+    background: rgba($admin-danger, 0.1);
+    color: $admin-danger;
+    border: 1px solid $admin-danger;
+    border-radius: $radius-sm;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+
+    @media (max-width: 768px) {
+        font-size: 10px;
+        padding: 1px 4px;
+    }
+}
+
+.removeButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: $white;
+    border: 1px solid $gray-300;
+    border-radius: $radius-sm;
+    color: $gray-600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    flex-shrink: 0;
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    &:hover {
+        background: $admin-danger-light;
+        border-color: $admin-danger;
+        color: $admin-danger;
+        transform: scale(1.1);
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+
+    @media (max-width: 768px) {
+        width: 28px;
+        height: 28px;
+
+        svg {
+            width: 14px;
+            height: 14px;
+        }
+    }
+}
+
+// Empty State
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: $spacing-xl * 2;
+    text-align: center;
+    color: $gray-500;
+
+    p {
+        margin: $spacing-xs 0;
+        font-size: 14px;
+
+        &:first-of-type {
+            font-weight: 600;
+            color: $gray-700;
+            font-size: 15px;
+        }
+    }
+}
+
+.emptyIcon {
+    width: 48px;
+    height: 48px;
+    color: $gray-300;
+    margin-bottom: $spacing-md;
+}
+
+.emptyHint {
+    color: $gray-500;
+    font-size: 13px !important;
+}
+
+// 설치 정보
+.installInfo {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+}
+
+.installItem {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    strong {
+        font-size: 13px;
+        font-weight: 600;
+        color: $gray-700;
+    }
+
+    code {
+        display: inline-block;
+        padding: $spacing-xs $spacing-sm;
+        background: $gray-100;
+        border: 1px solid $gray-200;
+        border-radius: $radius-sm;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 13px;
+        color: $gray-800;
+    }
+}
+
+// 반응형
+@media (max-width: 768px) {
+    .infoCard {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .mainInfo {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .metaRow {
+        justify-content: center;
+    }
+
+    .badges {
+        justify-content: center;
+    }
+
+    .actions {
+        width: 100%;
+        flex-direction: column;
+
+        button, a {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    .sectionHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: $spacing-sm;
+    }
+
+    .sessionCard {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .sessionMeta {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
