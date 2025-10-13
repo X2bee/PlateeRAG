@@ -13,6 +13,8 @@ import {
 import styles from '@/app/main/mlSection/assets/UserScriptWorkbench.module.scss';
 import { mlAPI } from '@/app/_common/api/mlAPI';
 import { showErrorToastKo, showSuccessToastKo, showWarningToastKo } from '@/app/_common/utils/toastUtilsKo';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark as syntaxTheme } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 type MessageLevel = 'info' | 'warning' | 'error';
 
@@ -293,6 +295,16 @@ const UserScriptWorkbench: React.FC<UserScriptWorkbenchProps> = ({
 
     const autosaveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const editorRef = useRef<HTMLTextAreaElement | null>(null);
+    const editorHighlightRef = useRef<HTMLDivElement | null>(null);
+
+    const syncEditorScroll = useCallback(() => {
+        if (!editorRef.current || !editorHighlightRef.current) {
+            return;
+        }
+        editorHighlightRef.current.scrollTop = editorRef.current.scrollTop;
+        editorHighlightRef.current.scrollLeft = editorRef.current.scrollLeft;
+    }, []);
 
     const defaultTemplate = useMemo(() => getDefaultScriptTemplate(task), [task]);
     const defaultPath = useMemo(() => computeDefaultScriptPath(task), [task]);
@@ -386,8 +398,17 @@ const UserScriptWorkbench: React.FC<UserScriptWorkbenchProps> = ({
         setAckWarnings(false);
     }, [scriptContent]);
 
+    useEffect(() => {
+        syncEditorScroll();
+    }, [scriptContent, syncEditorScroll]);
+
     const handleScriptChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
         setScriptContent(event.target.value);
+        syncEditorScroll();
+    };
+
+    const handleEditorScroll = () => {
+        syncEditorScroll();
     };
 
     const handleFeatureColumnsBlur = () => {
@@ -928,12 +949,47 @@ const UserScriptWorkbench: React.FC<UserScriptWorkbenchProps> = ({
                         <p>base.py와 user_script 계약에 맞춰 필수 구조를 유지하세요.</p>
                     </div>
                 </div>
-                <textarea
-                    className={styles.editor}
-                    value={scriptContent}
-                    onChange={handleScriptChange}
-                    spellCheck={false}
-                />
+                <div className={styles.editorContainer}>
+                    <div
+                        ref={editorHighlightRef}
+                        className={styles.editorHighlight}
+                        aria-hidden="true"
+                    >
+                        <SyntaxHighlighter
+                            language="python"
+                            style={syntaxTheme}
+                            customStyle={{
+                                margin: 0,
+                                background: 'transparent',
+                                padding: 0,
+                                minHeight: '100%',
+                                fontFamily:
+                                    '\'JetBrains Mono\', Consolas, Monaco, \'Courier New\', monospace',
+                                fontSize: '0.875rem',
+                                lineHeight: '1.55',
+                            }}
+                            codeTagProps={{
+                                style: {
+                                    fontFamily:
+                                        '\'JetBrains Mono\', Consolas, Monaco, \'Courier New\', monospace',
+                                    fontSize: '0.875rem',
+                                    lineHeight: '1.55',
+                                },
+                            }}
+                        >
+                            {scriptContent || ' '}
+                        </SyntaxHighlighter>
+                    </div>
+                    <textarea
+                        ref={editorRef}
+                        className={styles.editorInput}
+                        value={scriptContent}
+                        onChange={handleScriptChange}
+                        onScroll={handleEditorScroll}
+                        spellCheck={false}
+                        wrap="off"
+                    />
+                </div>
                 <div className={styles.editorFooter}>
                     <div className={styles.editorMetaRow}>
                         <span>
