@@ -109,7 +109,16 @@ const Documents: React.FC = () => {
     const [embeddingConfig, setEmbeddingConfig] = useState<EmbeddingConfig | null>(null);
     const [embeddingLoading, setEmbeddingLoading] = useState(false);
 
+    // 임베딩 불일치 여부 확인 함수
+    const checkEmbeddingMismatch = (): boolean => {
+        if (!selectedCollection || !embeddingConfig) return false;
 
+        const collectionModel = selectedCollection.init_embedding_model;
+        const currentModel = embeddingConfig.provider_info.model;
+
+        // 컬렉션의 임베딩 모델과 현재 시스템의 임베딩 모델이 다르면 true
+        return collectionModel !== null && collectionModel !== currentModel;
+    };
 
     // 컬렉션 목록 로드
     useEffect(() => {
@@ -761,8 +770,15 @@ const Documents: React.FC = () => {
                     isSearching={isSearching}
                     documentDetails={documentDetails}
                     loading={loading}
+                    collectionName={selectedCollection?.collection_name || ''}
+                    needsRemake={checkEmbeddingMismatch()}
                     onSearchQueryChange={setSearchQuery}
                     onSearch={handleDocumentSearch}
+                    onRefreshDocument={async () => {
+                        if (selectedCollection && selectedDocument) {
+                            await loadDocumentDetails(selectedCollection.collection_name, selectedDocument.document_id);
+                        }
+                    }}
                 />
             )}
 
