@@ -1,0 +1,504 @@
+@use "@/app/_common/_variables" as *;
+
+.container {
+    display: flex;
+    flex-direction: column;
+    background: $admin-bg-primary;
+    border-radius: $admin-radius-md;
+    box-shadow: $admin-shadow;
+    border: 1px solid $admin-border;
+    font-family: $admin-font-family;
+    overflow: hidden;
+    max-height: 80vh;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $admin-spacing-md $admin-spacing-xl;
+    background: $admin-bg-secondary;
+    border-bottom: 1px solid $admin-border;
+}
+
+.headerActions {
+    display: flex;
+    gap: $admin-spacing-sm;
+    align-items: center;
+}
+
+.primaryButton {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: $admin-spacing-xs;
+    padding: $admin-spacing-sm $admin-spacing-lg;
+    background: $admin-primary;
+    color: $admin-text-inverse;
+    border: none;
+    border-radius: $admin-radius-md;
+    cursor: pointer;
+    font-size: $admin-font-size-sm;
+    font-weight: 500;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+    white-space: nowrap;
+
+    svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+
+    &:hover {
+        background: $admin-primary-hover;
+        transform: translateY(-1px);
+        box-shadow: $admin-shadow-md;
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+.secondaryButton {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: $admin-spacing-xs;
+    padding: $admin-spacing-sm $admin-spacing-lg;
+    background: $admin-bg-tertiary;
+    color: $admin-text-primary;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    cursor: pointer;
+    font-size: $admin-font-size-sm;
+    font-weight: 500;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+    white-space: nowrap;
+
+    svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+
+    &:hover {
+        background: $admin-bg-hover;
+        border-color: $admin-primary;
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+.refreshButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: $admin-spacing-sm;
+    background: $admin-bg-tertiary;
+    color: $admin-text-primary;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    cursor: pointer;
+    font-size: $admin-font-size-lg;
+    font-weight: 500;
+    font-family: $admin-font-family;
+    transition: $admin-transition;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+
+    &:hover {
+        background: $admin-bg-hover;
+        border-color: $admin-primary;
+        transform: rotate(90deg);
+    }
+
+    &:active {
+        transform: rotate(180deg);
+    }
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: $admin-spacing-md;
+    padding: $admin-spacing-xl;
+    background: $admin-bg-primary;
+}
+
+.statCard {
+    display: flex;
+    align-items: center;
+    gap: $admin-spacing-md;
+    padding: $admin-spacing-lg;
+    background: $admin-bg-secondary;
+    border-radius: $admin-radius-md;
+    border: 1px solid $admin-border;
+    transition: $admin-transition;
+
+    &:hover {
+        box-shadow: $admin-shadow-md;
+        transform: translateY(-2px);
+    }
+}
+
+.statIcon {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.statContent {
+    flex: 1;
+}
+
+.statValue {
+    display: block;
+    font-size: $admin-font-size-xl;
+    font-weight: 700;
+    color: $admin-text-primary;
+    line-height: 1.2;
+}
+
+.statLabel {
+    display: block;
+    font-size: $admin-font-size-xs;
+    color: $admin-text-secondary;
+    margin-top: $admin-spacing-xs;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.scrapersSection {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 $admin-spacing-xl $admin-spacing-xl;
+}
+
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $admin-spacing-lg;
+
+    h3 {
+        margin: 0;
+        font-size: $admin-font-size-lg;
+        font-weight: 600;
+        color: $admin-text-primary;
+    }
+
+    .count {
+        font-size: $admin-font-size-sm;
+        color: $admin-text-secondary;
+        background: $admin-bg-tertiary;
+        padding: $admin-spacing-xs $admin-spacing-sm;
+        border-radius: $admin-radius-full;
+        border: 1px solid $admin-border;
+    }
+}
+
+.scraperGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: $admin-spacing-lg;
+}
+
+.scraperCard {
+    background: $admin-bg-secondary;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    padding: $admin-spacing-lg;
+    transition: $admin-transition;
+    display: flex;
+    flex-direction: column;
+    gap: $admin-spacing-md;
+
+    &:hover {
+        box-shadow: $admin-shadow-md;
+        border-color: $admin-primary;
+    }
+}
+
+.scraperHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: $admin-spacing-sm;
+}
+
+.scraperTitle {
+    display: flex;
+    align-items: center;
+    gap: $admin-spacing-sm;
+    flex: 1;
+    min-width: 0;
+
+    h4 {
+        margin: 0;
+        font-size: $admin-font-size-base;
+        font-weight: 600;
+        color: $admin-text-primary;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.scraperIcon {
+    font-size: $admin-font-size-xl;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.statusBadge_idle,
+.statusBadge_running,
+.statusBadge_success,
+.statusBadge_warning {
+    padding: $admin-spacing-xs $admin-spacing-sm;
+    border-radius: $admin-radius-full;
+    font-size: $admin-font-size-xs;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.statusBadge_idle {
+    background: $admin-bg-tertiary;
+    color: $admin-text-secondary;
+}
+
+.statusBadge_running {
+    background: $admin-primary-light;
+    color: $admin-primary;
+}
+
+.statusBadge_success {
+    background: $admin-success-light;
+    color: $admin-success;
+}
+
+.statusBadge_warning {
+    background: rgba(255, 193, 7, 0.15);
+    color: #f57c00;
+}
+
+.scraperInfo {
+    display: flex;
+    flex-direction: column;
+    gap: $admin-spacing-xs;
+}
+
+.infoRow {
+    display: flex;
+    gap: $admin-spacing-sm;
+    font-size: $admin-font-size-sm;
+
+    .infoLabel {
+        color: $admin-text-secondary;
+        font-weight: 500;
+        flex-shrink: 0;
+    }
+
+    .infoValue {
+        color: $admin-text-primary;
+        word-break: break-all;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.scraperStats {
+    display: flex;
+    justify-content: space-around;
+    padding: $admin-spacing-md 0;
+    border-top: 1px solid $admin-border;
+    border-bottom: 1px solid $admin-border;
+}
+
+.statItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $admin-spacing-xs;
+
+    .statNumber {
+        font-size: $admin-font-size-lg;
+        font-weight: 700;
+        color: $admin-primary;
+    }
+
+    .statText {
+        font-size: $admin-font-size-xs;
+        color: $admin-text-secondary;
+    }
+}
+
+.scraperFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: $admin-spacing-sm;
+}
+
+.lastRun {
+    font-size: $admin-font-size-xs;
+    color: $admin-text-muted;
+}
+
+.scraperActions {
+    display: flex;
+    gap: $admin-spacing-xs;
+}
+
+.actionButton,
+.actionButton_danger {
+    padding: $admin-spacing-xs $admin-spacing-sm;
+    background: $admin-bg-tertiary;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-sm;
+    cursor: pointer;
+    font-size: $admin-font-size-sm;
+    transition: $admin-transition;
+
+    &:hover {
+        transform: scale(1.1);
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+}
+
+.actionButton_danger {
+    &:hover {
+        background: $admin-danger-light;
+        border-color: $admin-danger;
+    }
+}
+
+.emptyState {
+    text-align: center;
+    padding: $admin-spacing-2xl $admin-spacing-xl;
+    background: $admin-bg-secondary;
+    border-radius: $admin-radius-md;
+    border: 2px dashed $admin-border;
+
+    .emptyIcon {
+        font-size: 4rem;
+        margin-bottom: $admin-spacing-lg;
+        opacity: 0.5;
+    }
+
+    h4 {
+        margin: 0 0 $admin-spacing-sm 0;
+        font-size: $admin-font-size-xl;
+        color: $admin-text-primary;
+    }
+
+    p {
+        margin: 0 0 $admin-spacing-lg 0;
+        font-size: $admin-font-size-sm;
+        color: $admin-text-secondary;
+    }
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: $admin-spacing-2xl;
+    min-height: 400px;
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid $admin-border-light;
+        border-top: 4px solid $admin-primary;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: $admin-spacing-lg;
+    }
+
+    p {
+        margin: 0;
+        font-size: $admin-font-size-sm;
+        color: $admin-text-secondary;
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+// 반응형
+@media (max-width: 1024px) {
+    .statsGrid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    .scraperGrid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: $admin-spacing-md;
+        align-items: stretch;
+    }
+
+    .headerActions {
+        justify-content: flex-end;
+    }
+
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr);
+        padding: $admin-spacing-md;
+    }
+
+    .scrapersSection {
+        padding: 0 $admin-spacing-md $admin-spacing-md;
+    }
+
+    .scraperGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .statsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .statCard {
+        padding: $admin-spacing-md;
+    }
+
+    .scraperCard {
+        padding: $admin-spacing-md;
+    }
+
+    .headerActions {
+        flex-wrap: wrap;
+    }
+}

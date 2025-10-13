@@ -76,11 +76,11 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
         // System Monitoring
         "system-monitor", "system-health", "backend-logs",
         // Data Management
-        "database", "storage", "backup",
+        "database", "storage", "backup", "data-scraper",
         // Security
         "security-settings", "audit-logs", "error-logs",
         // MCP
-        "mcp-market",
+        "mcp-market", "mcp-station",
     ];
 
     // 섹션 이름 한국어 매핑
@@ -107,12 +107,14 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
         "database": "데이터베이스",
         "storage": "스토리지 관리",
         "backup": "백업 관리",
+        "data-scraper": "데이터 스크랩",
         // Security
         "security-settings": "보안 설정",
         "audit-logs": "감사 로그",
         "error-logs": "에러 로그",
         // MCP
         "mcp-market": "MCP마켓",
+        "mcp-station": "MCP스테이션",
     };
 
     // 사용자 데이터가 변경될 때 폼 데이터 업데이트

@@ -19,6 +19,7 @@ import AdminUserTokenDashboard from '@/app/admin/components/workflows/AdminUserT
 import AdminPlayground from '@/app/admin/components/workflows/playground/AdminPlayground';
 import AdminSystemMonitor from '@/app/admin/components/sysmonitor/AdminSystemMonitor';
 import AdminDatabase from '@/app/admin/components/database/AdminDatabase';
+import AdminDataScraper from '@/app/admin/components/database/AdminDataScraper';
 import AdminWorkflowControll from '@/app/admin/components/workflows/AdminWorkflowControll';
 import AdminBackendLogs from '@/app/admin/components/sysmonitor/AdminBackendLogs';
 import MCPMarketContent from '@/app/admin/components/mcp/MCPMarketContent';
@@ -148,7 +149,7 @@ const AdminPageContent: React.FC = () => {
             // System Items
             'system-monitor', 'system-health', 'backend-logs',
             // Data Items
-            'database', 'storage', 'backup',
+            'database', 'data-scraper', 'storage', 'backup',
             // Security Items
             'security-settings', 'audit-logs', 'error-logs',
             // MCP Items
@@ -326,6 +327,15 @@ const AdminPageContent: React.FC = () => {
                         <AdminDatabase />
                     </AdminContentArea>
                 );
+            case 'data-scraper':
+                return (
+                    <AdminContentArea
+                        title="데이터 스크래퍼"
+                        description="문서, 이미지, 데이터베이스, 이메일, 웹 스크래핑 등 다양한 원본 데이터를 수집하여 통합 처리합니다."
+                    >
+                        <AdminDataScraper />
+                    </AdminContentArea>
+                );
             case 'storage':
                 return (
                     <AdminContentArea
@@ -421,7 +431,7 @@ const AdminPageContent: React.FC = () => {
                     initialWorkflowExpanded={['workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'user-token-dashboard', 'prompt-store'].includes(activeSection)}
                     initialSettingExpanded={['system-config', 'system-settings'].includes(activeSection)}
                     initialSystemExpanded={['system-monitor', 'system-health'].includes(activeSection)}
-                    initialDataExpanded={['database', 'storage', 'backup'].includes(activeSection)}
+                    initialDataExpanded={['database', 'data-scraper', 'storage', 'backup'].includes(activeSection)}
                     initialSecurityExpanded={['security-settings', 'audit-logs', 'error-logs', 'access-logs'].includes(activeSection)}
                     initialMCPExpanded={['mcp-market', 'mcp-station'].includes(activeSection)}
                 />
