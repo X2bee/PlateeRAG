@@ -173,7 +173,7 @@ export const getSecuritySidebarItems = (): AdminSidebarItem[] => [
     },
 ];
 
-export const getMCPItems = ['mcp-market'];
+export const getMCPItems = ['mcp-market', 'mcp-station'];
 
 export const getMCPSidebarItems = (): AdminSidebarItem[] => [
     {
@@ -181,6 +181,12 @@ export const getMCPSidebarItems = (): AdminSidebarItem[] => [
         title: 'MCP 마켓',
         description: 'Model Context Protocol 확장 프로그램 검색 및 관리',
         icon: React.createElement(FiPackage),
+    },
+    {
+        id: 'mcp-station',
+        title: 'MCP Station',
+        description: '활성화된 MCP 세션 관리 및 모니터링',
+        icon: React.createElement(FiServer),
     },
 ];
 

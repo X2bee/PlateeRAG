@@ -22,6 +22,7 @@ import AdminDatabase from '@/app/admin/components/database/AdminDatabase';
 import AdminWorkflowControll from '@/app/admin/components/workflows/AdminWorkflowControll';
 import AdminBackendLogs from '@/app/admin/components/sysmonitor/AdminBackendLogs';
 import MCPMarketContent from '@/app/admin/components/mcp/MCPMarketContent';
+import MCPStation from '@/app/admin/components/mcp/MCPStation';
 import AdminNodeManage from '@/app/admin/components/workflows/AdminNodeManage';
 import AdminPromptStore from '@/app/admin/components/workflows/AdminPromptStore/AdminPromptStore';
 import {
@@ -151,7 +152,7 @@ const AdminPageContent: React.FC = () => {
             // Security Items
             'security-settings', 'audit-logs', 'error-logs',
             // MCP Items
-            'mcp-market',
+            'mcp-market', 'mcp-station',
         ];
         return validSections.includes(section);
     };
@@ -379,6 +380,15 @@ const AdminPageContent: React.FC = () => {
                         <MCPMarketContent />
                     </AdminContentArea>
                 );
+            case 'mcp-station':
+                return (
+                    <AdminContentArea
+                        title="MCP Station"
+                        description="활성화된 MCP 세션들을 모니터링하고 관리합니다."
+                    >
+                        <MCPStation />
+                    </AdminContentArea>
+                );
             default:
                 return (
                     <AdminContentArea
@@ -413,7 +423,7 @@ const AdminPageContent: React.FC = () => {
                     initialSystemExpanded={['system-monitor', 'system-health'].includes(activeSection)}
                     initialDataExpanded={['database', 'storage', 'backup'].includes(activeSection)}
                     initialSecurityExpanded={['security-settings', 'audit-logs', 'error-logs', 'access-logs'].includes(activeSection)}
-                    initialMCPExpanded={['mcp-market'].includes(activeSection)}
+                    initialMCPExpanded={['mcp-market', 'mcp-station'].includes(activeSection)}
                 />
                 {!isSidebarOpen && (
                     <motion.button
