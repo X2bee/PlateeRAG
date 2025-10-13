@@ -792,3 +792,57 @@ export const refreshRetrievalConfig = async () => {
         throw error;
     }
 };
+
+/**
+ * 특정 청크의 내용을 업데이트하는 함수
+ * @param {string} collectionName - 컬렉션 이름
+ * @param {string} documentId - 문서 ID
+ * @param {string} chunkId - 청크 ID
+ * @param {string} newContent - 새로운 청크 내용
+ * @param {Object} metadata - 업데이트할 메타데이터 (선택사항)
+ * @returns {Promise<Object>} 업데이트 결과
+ */
+export const updateChunkContent = async (
+    collectionName,
+    documentId,
+    chunkId,
+    newContent,
+    metadata = null,
+) => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/collections/${collectionName}/documents/${documentId}/${chunkId}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    new_content: newContent,
+                    metadata: metadata,
+                }),
+            },
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Chunk content updated:', {
+            collectionName,
+            documentId,
+            chunkId,
+            response: data,
+        });
+        return data;
+    } catch (error) {
+        devLog.error('Failed to update chunk content:', {
+            collectionName,
+            documentId,
+            chunkId,
+            error: error.message,
+        });
+        throw error;
+    }
+};
