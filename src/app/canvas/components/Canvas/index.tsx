@@ -112,8 +112,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
     const [portPositions, setPortPositions] = useState<Record<string, Position>>({});
     const [snappedPortKey, setSnappedPortKey] = useState<string | null>(null);
 
-    // State for node expanded/collapsed
-    const [nodeExpandedState, setNodeExpandedState] = useState<Record<string, boolean>>({});
+    // State for snap target validation
     const [isSnapTargetValid, setIsSnapTargetValid] = useState<boolean>(true);
     const [availableNodeSpecs, setAvailableNodeSpecs] = useState<NodeData[]>([]);
     const [, forceUpdate] = useState({});
@@ -404,10 +403,25 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
 
     // Handle node expand/collapse toggle
     const handleToggleExpanded = useCallback((nodeId: string): void => {
-        setNodeExpandedState(prev => ({
-            ...prev,
-            [nodeId]: !prev[nodeId]
-        }));
+        // Update node's isExpanded property in nodes array
+        setNodes(prevNodes => {
+            const targetNodeIndex = prevNodes.findIndex(node => node.id === nodeId);
+            if (targetNodeIndex === -1) return prevNodes;
+
+            const targetNode = prevNodes[targetNodeIndex];
+            const currentExpanded = targetNode.isExpanded !== undefined ? targetNode.isExpanded : true;
+
+            const newNodes = [
+                ...prevNodes.slice(0, targetNodeIndex),
+                {
+                    ...targetNode,
+                    isExpanded: !currentExpanded
+                },
+                ...prevNodes.slice(targetNodeIndex + 1)
+            ];
+
+            return newNodes;
+        });
 
         // 포트 위치 업데이트를 위해 다음 프레임에서 강제 재계산
         requestAnimationFrame(() => {
@@ -431,7 +445,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
                 ...newPortPositions
             }));
         });
-    }, [view.scale]);
+    }, [view.scale, setNodes]);
 
     // Event Handlers using custom hooks
     const canvasHandlers = useCanvasEventHandlers({
@@ -550,6 +564,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
                 id: `${nodeData.id}-${Date.now()}`,
                 data: nodeData,
                 position: { x: worldX, y: worldY },
+                isExpanded: true, // Default to expanded
             };
             addNode(newNode);
         },
@@ -564,8 +579,13 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
                 });
 
                 if (state.nodes) {
-                    // 노드 상태 복원 시 유효성 검사
-                    const validNodes = state.nodes.filter(node => node && node.id && node.data);
+                    // 노드 상태 복원 시 유효성 검사 및 isExpanded 기본값 설정
+                    const validNodes = state.nodes
+                        .filter(node => node && node.id && node.data)
+                        .map(node => ({
+                            ...node,
+                            isExpanded: node.isExpanded !== undefined ? node.isExpanded : true, // Default to true
+                        }));
                     if (validNodes.length !== state.nodes.length) {
                         devLog.warn('Some nodes filtered out due to invalid data:',
                             state.nodes.length - validNodes.length);
@@ -605,8 +625,13 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
                 });
 
                 if (state.nodes) {
-                    // 노드 상태 복원 시 유효성 검사
-                    const validNodes = state.nodes.filter(node => node && node.id && node.data);
+                    // 노드 상태 복원 시 유효성 검사 및 isExpanded 기본값 설정
+                    const validNodes = state.nodes
+                        .filter(node => node && node.id && node.data)
+                        .map(node => ({
+                            ...node,
+                            isExpanded: node.isExpanded !== undefined ? node.isExpanded : true, // Default to true
+                        }));
                     if (validNodes.length !== state.nodes.length) {
                         devLog.warn('Some nodes filtered out due to invalid data:',
                             state.nodes.length - validNodes.length);
@@ -633,7 +658,14 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
             }
         },
         loadWorkflowState: (state: Partial<CanvasState>): void => {
-            if (state.nodes) setNodes(state.nodes);
+            if (state.nodes) {
+                // isExpanded 기본값 설정
+                const nodesWithExpanded = state.nodes.map(node => ({
+                    ...node,
+                    isExpanded: node.isExpanded !== undefined ? node.isExpanded : true, // Default to true
+                }));
+                setNodes(nodesWithExpanded);
+            }
             if (state.edges) setEdges(state.edges);
             if (state.view) setView(state.view);
         },
@@ -728,7 +760,6 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
                     onOpenNodeModal={onOpenNodeModal}
                     onSynchronizeSchema={handleSynchronizeSchema}
                     currentEdges={edges}
-                    nodeExpandedState={nodeExpandedState}
                     onToggleExpanded={handleToggleExpanded}
                 />
 
@@ -757,7 +788,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
                     selectedEdgeId={selectedEdgeId}
                     edgePreview={edgePreview}
                     portPositions={portPositions}
-                    nodeExpandedState={nodeExpandedState}
+                    nodes={nodes}
                     onEdgeClick={handleEdgeClick}
                 />
             </div>
