@@ -662,7 +662,7 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
                                         <label htmlFor="download-start-date">시작 날짜 (선택)</label>
                                         <input
                                             id="download-start-date"
-                                            type="datetime-local"
+                                            type="date"
                                             value={downloadParams.startDate}
                                             onChange={(e) => handleDownloadParamChange('startDate', e.target.value)}
                                             className={styles.formInput}
@@ -672,7 +672,7 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
                                         <label htmlFor="download-end-date">종료 날짜 (선택)</label>
                                         <input
                                             id="download-end-date"
-                                            type="datetime-local"
+                                            type="date"
                                             value={downloadParams.endDate}
                                             onChange={(e) => handleDownloadParamChange('endDate', e.target.value)}
                                             className={styles.formInput}
