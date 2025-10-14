@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { FiRefreshCw } from 'react-icons/fi';
 import { getAllGroups, updateGroupPermissions, deleteGroup, createGroup, getGroupUsers } from '@/app/admin/api/group';
 import { removeUserGroup, addUserGroup } from '@/app/admin/api/users';
 import { devLog } from '@/app/_common/utils/logger';
@@ -441,8 +442,13 @@ const AdminGroupContent: React.FC = () => {
                                 새 조직 생성
                             </button>
                         )}
-                        <button onClick={loadGroups} className={styles.refreshButton}>
-                            새로고침
+                        <button
+                            className={`${styles.iconButton} ${loading ? styles.spinning : ''}`}
+                            onClick={loadGroups}
+                            disabled={loading}
+                            title="새로고침"
+                        >
+                            <FiRefreshCw />
                         </button>
                     </div>
                 </div>
@@ -472,10 +478,12 @@ const AdminGroupContent: React.FC = () => {
                             조직원 추가
                         </button>
                         <button
+                            className={`${styles.iconButton} ${loadingUsers ? styles.spinning : ''}`}
                             onClick={() => selectedGroup && loadGroupUsers(selectedGroup)}
-                            className={styles.refreshButton}
+                            disabled={loadingUsers}
+                            title="새로고침"
                         >
-                            새로고침
+                            <FiRefreshCw />
                         </button>
                     </div>
                 </div>

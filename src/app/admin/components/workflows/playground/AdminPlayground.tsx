@@ -158,7 +158,10 @@ const AdminPlayground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) 
                                     role="button"
                                     tabIndex={0}
                                 >
-                                    <div className={styles.workflowName}>
+                                    <div
+                                        className={styles.workflowName}
+                                        title={workflow.workflow_name.replace('.json', '')}
+                                    >
                                         {workflow.workflow_name.replace('.json', '')}
                                     </div>
                                     <div className={styles.workflowInfo}>

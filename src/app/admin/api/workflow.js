@@ -1,7 +1,7 @@
 // Workflow 관리 API 호출 함수들을 관리하는 파일
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config.js';
-import { apiClient } from '@/app/_common/api/helper/apiClient';
+import { apiClient, apiClientV2 } from '@/app/_common/api/helper/apiClient';
 
 /**
  * 모든 IO 로그를 가져오는 함수 (슈퍼유저 권한 필요)
@@ -370,6 +370,59 @@ export const deleteWorkflowPerformanceAdmin = async (userId, workflowName, workf
         return data;
     } catch (error) {
         devLog.error('Failed to delete workflow performance:', error);
+        throw error;
+    }
+};
+
+/**
+ * IO 로그를 Excel 파일로 다운로드하는 함수 (슈퍼유저 권한 필요)
+ * @param {number|null} userId - 사용자 ID (선택사항)
+ * @param {string|null} workflowId - 워크플로우 ID (선택사항)
+ * @param {string|null} workflowName - 워크플로우 이름 (선택사항)
+ * @param {string|null} startDate - 시작 날짜 (ISO 8601 형식, 선택사항)
+ * @param {string|null} endDate - 종료 날짜 (ISO 8601 형식, 선택사항)
+ * @param {boolean} data_processing - 다운로드 데이터 가공 여부 (기본값: true)
+ * @returns {Promise<Blob>} Excel 파일 Blob
+ */
+export const downloadAllIOLogsExcel = async (userId = null, workflowId = null, workflowName = null, startDate = null, endDate = null, dataProcessing = true) => {
+    try {
+        const params = new URLSearchParams();
+
+        if (userId !== null && userId !== undefined) {
+            params.append('user_id', userId.toString());
+        }
+        if (workflowId) {
+            params.append('workflow_id', workflowId);
+        }
+        if (workflowName) {
+            params.append('workflow_name', workflowName);
+        }
+        if (startDate) {
+            params.append('start_date', startDate);
+        }
+        if (endDate) {
+            params.append('end_date', endDate);
+        }
+        params.append('data_processing', dataProcessing.toString());
+
+        devLog.log('Downloading Excel file with params:', Object.fromEntries(params));
+
+        // apiClientV2를 사용하여 파일 다운로드 (Content-Type 문제 방지)
+        const response = await apiClientV2(`${API_BASE_URL}/api/admin/workflow/download/excel/all-io-logs?${params.toString()}`);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ detail: 'Failed to download Excel file' }));
+            devLog.error('Failed to download Excel file:', errorData);
+            throw new Error(errorData.detail || 'Failed to download Excel file');
+        }
+
+        // Blob으로 변환
+        const blob = await response.blob();
+        devLog.log('Excel file downloaded successfully, size:', blob.size);
+
+        return blob;
+    } catch (error) {
+        devLog.error('Failed to download Excel file:', error);
         throw error;
     }
 };

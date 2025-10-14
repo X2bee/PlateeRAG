@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { devLog } from '@/app/_common/utils/logger';
 import { getAllGroupsList } from '@/app/admin/api/group';
-import { addUserGroup, removeUserGroup, updateUserAvailableAdminSections } from '@/app/admin/api/users';
+import { addUserGroup, removeUserGroup, updateUserAvailableAdminSections, updateUserAvailableUserSections } from '@/app/admin/api/users';
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { useAdminAuth } from '@/app/admin/components/helper/AdminAuthGuard';
 import styles from '@/app/admin/assets/AdminUserEditModal.module.scss';
@@ -24,6 +24,7 @@ interface User {
     password_hash: string;
     preferences?: any;
     available_admin_sections?: string[];
+    available_user_sections?: string[];
 }
 
 interface AdminUserEditModalProps {
@@ -61,11 +62,15 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
     // Admin Section 관련 상태
     const [availableAdminSections, setAvailableAdminSections] = useState<string[]>([]);
 
+    // User Section 관련 상태
+    const [availableUserSections, setAvailableUserSections] = useState<string[]>([]);
+
     // superuser인 경우에만 사용자 유형 편집 가능
     const canEditUserType = userType === 'superuser';
     const [isGroupAdminExpanded, setIsGroupAdminExpanded] = useState(false);
     const [isAdminSectionExpanded, setIsAdminSectionExpanded] = useState(false);
-    const availableSectionOptions = [
+    const [isUserSectionExpanded, setIsUserSectionExpanded] = useState(false);
+    const availableAdminSectionOptions = [
         // User Management
         "users", "user-create", "group-permissions",
         // Workflow Management
@@ -83,8 +88,19 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
         "mcp-market", "mcp-station",
     ];
 
-    // 섹션 이름 한국어 매핑
-    const sectionNameMapping: { [key: string]: string } = {
+    const availableUserSectionOptions = [
+        // Workflow
+        "canvas", "workflows", "documents", "prompt-store", "workflow-store",
+        // Data Management
+        "data-station", "data-storage",
+        // LLM-Models
+        "train", "train-monitor", "eval", "model-storage",
+        // ML-Models
+        "model-upload", "model-hub", "model-inference", "ml-train", "ml-train-monitor",
+    ];
+
+    // 관리자 섹션 이름 한국어 매핑
+    const adminSectionNameMapping: { [key: string]: string } = {
         // User Management
         "users": "사용자 목록",
         "user-create": "사용자 등록",
@@ -115,6 +131,30 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
         // MCP
         "mcp-market": "MCP마켓",
         "mcp-station": "MCP스테이션",
+    };
+
+    // 유저 섹션 이름 한국어 매핑
+    const userSectionNameMapping: { [key: string]: string } = {
+        // Workflow
+        "canvas": "워크플로우 캔버스",
+        "workflows": "완성된 워크플로우",
+        "documents": "문서 관리",
+        "prompt-store": "Prompt 스토어",
+        "workflow-store": "Workflow 스토어",
+        // Data Management
+        "data-station": "데이터 스테이션",
+        "data-storage": "데이터셋 허브",
+        // LLM-Models
+        "train": "모델 훈련",
+        "train-monitor": "모델 훈련 모니터",
+        "eval": "모델 평가",
+        "model-storage": "모델 허브",
+        // ML-Models
+        "model-upload": "모델 업로드",
+        "model-hub": "모델 허브",
+        "model-inference": "모델 추론",
+        "ml-train": "ML 모델 훈련",
+        "ml-train-monitor": "ML 모델 훈련 모니터",
     };
 
     // 사용자 데이터가 변경될 때 폼 데이터 업데이트
@@ -148,6 +188,9 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
 
             // 사용자의 available admin sections 설정
             setAvailableAdminSections(user.available_admin_sections || []);
+
+            // 사용자의 available user sections 설정
+            setAvailableUserSections(user.available_user_sections || []);
         }
     }, [user]);
 
@@ -303,6 +346,36 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
         }
     };
 
+    // User Section 토글 핸들러
+    const handleToggleUserSection = (section: string) => {
+        setAvailableUserSections(prev => {
+            if (prev.includes(section)) {
+                return prev.filter(s => s !== section);
+            } else {
+                return [...prev, section];
+            }
+        });
+    };
+
+    // User Section 저장 핸들러
+    const handleSaveUserSections = async () => {
+        if (!user) return;
+
+        try {
+            setLoading(true);
+            await updateUserAvailableUserSections({
+                id: user.id,
+                available_user_sections: availableUserSections
+            });
+            showSuccessToastKo('유저 섹션 접근 권한이 저장되었습니다.');
+        } catch (error) {
+            devLog.error('Failed to update user sections:', error);
+            showErrorToastKo('유저 섹션 권한 변경에 실패했습니다.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // 폼 유효성 검사
     const validateForm = () => {
         const newErrors: {[key: string]: string} = {};
@@ -352,6 +425,47 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
 
         try {
             setLoading(true);
+
+            // 관리자 섹션 권한이 변경되었는지 확인
+            const adminSectionsChanged = user &&
+                JSON.stringify([...(user.available_admin_sections || [])].sort()) !==
+                JSON.stringify([...availableAdminSections].sort());
+
+            // 유저 섹션 권한이 변경되었는지 확인
+            const userSectionsChanged = user &&
+                JSON.stringify([...(user.available_user_sections || [])].sort()) !==
+                JSON.stringify([...availableUserSections].sort());
+
+            // 변경된 섹션 권한이 있으면 먼저 저장
+            if (adminSectionsChanged && user) {
+                try {
+                    await updateUserAvailableAdminSections({
+                        id: user.id,
+                        available_admin_sections: availableAdminSections
+                    });
+                    devLog.info('Admin sections updated automatically');
+                } catch (error) {
+                    devLog.error('Failed to auto-update admin sections:', error);
+                    showErrorToastKo('관리자 섹션 권한 자동 저장에 실패했습니다.');
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            if (userSectionsChanged && user) {
+                try {
+                    await updateUserAvailableUserSections({
+                        id: user.id,
+                        available_user_sections: availableUserSections
+                    });
+                    devLog.info('User sections updated automatically');
+                } catch (error) {
+                    devLog.error('Failed to auto-update user sections:', error);
+                    showErrorToastKo('유저 섹션 권한 자동 저장에 실패했습니다.');
+                    setLoading(false);
+                    return;
+                }
+            }
 
             // user_type에 따라 is_admin 자동 설정
             const isAdmin = formData.user_type === 'superuser' || formData.user_type === 'admin';
@@ -592,9 +706,9 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
 
                                 <div className={`${styles.sectionContent} ${isAdminSectionExpanded ? styles.expanded : ''}`}>
                                     <div className={styles.sectionGrid}>
-                                        {availableSectionOptions.map((section) => {
+                                        {availableAdminSectionOptions.map((section) => {
                                             const isActive = availableAdminSections.includes(section);
-                                            const displayName = sectionNameMapping[section] || section;
+                                            const displayName = adminSectionNameMapping[section] || section;
 
                                             return (
                                                 <button
@@ -625,12 +739,72 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
                                             }}
                                             disabled={loading}
                                         >
-                                            {loading ? '저장 중...' : '섹션 권한 저장'}
+                                            {loading ? '저장 중...' : '관리자 섹션 권한 저장'}
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         </>
+                    )}
+
+                    {/* 유저 섹션 접근 권한 설정 (superuser만 접근 가능) */}
+                    {userType === 'superuser' && (
+                        <div className={styles.groupAdminSection}>
+                            <div
+                                className={styles.sectionHeader}
+                                onClick={() => setIsUserSectionExpanded(!isUserSectionExpanded)}
+                            >
+                                <div className={styles.sectionHeaderContent}>
+                                    <label>개별 접근 권한</label>
+                                    <span className={styles.sectionDescription}>
+                                        접근 가능한 섹션을 설정할 수 있습니다(그룹 권한과 별개이며 최종 권한은 둘의 합집합임).
+                                    </span>
+                                </div>
+                                <span className={`${styles.toggleIcon} ${isUserSectionExpanded ? styles.expanded : ''}`}>
+                                    ▼
+                                </span>
+                            </div>
+
+                            <div className={`${styles.sectionContent} ${isUserSectionExpanded ? styles.expanded : ''}`}>
+                                <div className={styles.sectionGrid}>
+                                    {availableUserSectionOptions.map((section) => {
+                                        const isActive = availableUserSections.includes(section);
+                                        const displayName = userSectionNameMapping[section] || section;
+
+                                        return (
+                                            <button
+                                                key={section}
+                                                type="button"
+                                                className={`${styles.sectionButton} ${
+                                                    isActive ? styles.sectionButtonActive : styles.sectionButtonInactive
+                                                }`}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleToggleUserSection(section);
+                                                }}
+                                                disabled={loading}
+                                            >
+                                                {displayName}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className={styles.saveAdminSectionsButton}>
+                                    <button
+                                        type="button"
+                                        className={styles.saveButton}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleSaveUserSections();
+                                        }}
+                                        disabled={loading}
+                                    >
+                                        {loading ? '저장 중...' : '유저 섹션 권한 저장'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     )}
 
                     <div className={styles.formGroup}>
