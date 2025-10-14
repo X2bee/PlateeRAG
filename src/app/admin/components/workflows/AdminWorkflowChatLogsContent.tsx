@@ -630,7 +630,7 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
                                         <input
                                             id="download-user-id"
                                             type="text"
-                                            placeholder="비워두면 전체"
+                                            placeholder="전체 검색 (값이 없는 경우)"
                                             value={downloadParams.userId}
                                             onChange={(e) => handleDownloadParamChange('userId', e.target.value)}
                                             className={styles.formInput}
@@ -641,7 +641,7 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
                                         <input
                                             id="download-workflow-id"
                                             type="text"
-                                            placeholder="비워두면 전체"
+                                            placeholder="전체 검색 (값이 없는 경우)"
                                             value={downloadParams.workflowId}
                                             onChange={(e) => handleDownloadParamChange('workflowId', e.target.value)}
                                             className={styles.formInput}
@@ -652,7 +652,7 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
                                         <input
                                             id="download-workflow-name"
                                             type="text"
-                                            placeholder="비워두면 전체"
+                                            placeholder="전체 검색 (값이 없는 경우)"
                                             value={downloadParams.workflowName}
                                             onChange={(e) => handleDownloadParamChange('workflowName', e.target.value)}
                                             className={styles.formInput}
