@@ -69,7 +69,7 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
 
             // TODO: API 호출 구현 필요
             // const response = await getWorkflowsByLanguage(language, 300);
-            
+
             // 임시 데이터
             setWorkflows([]);
             devLog.info(`Loaded 0 workflows for ${language}`);

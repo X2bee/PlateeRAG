@@ -215,4 +215,3 @@ export const getFilteredMlModelSidebarItems = (hasAccessToSection: (sectionId: s
     devLog.log('SidebarConfig: Filtered ML model items:', filteredItems.map(item => item.id));
     return filteredItems;
 };
-
