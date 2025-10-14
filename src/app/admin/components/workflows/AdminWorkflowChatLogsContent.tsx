@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getAllIOLogs, downloadAllIOLogsExcel } from '@/app/admin/api/workflow';
 import { devLog } from '@/app/_common/utils/logger';
 import { showValidationErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
+import { parseActualOutput, convertOutputToString } from '@/app/_common/utils/stringParser';
 import RefreshButton from '@/app/_common/icons/refresh';
 import DownloadButton from '@/app/_common/icons/download';
 import styles from '@/app/admin/assets/AdminWorkflowLogsContent.module.scss';
@@ -67,91 +68,7 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
 
     const PAGE_SIZE = 250;
 
-    const parseActualOutput = (output: string | null | undefined): string => {
-        if (!output) return '';
-
-        // output을 적절한 형태로 변환
-        let processedOutput = convertOutputToString(output);
-
-        // 이미 문자열로 변환된 결과에서 태그 제거
-        processedOutput = processedOutput.replace(/<think>[\s\S]*?<\/think>/gi, '');
-
-        if (processedOutput.includes('<TOOLUSELOG>') && processedOutput.includes('</TOOLUSELOG>')) {
-            processedOutput = processedOutput.replace(/<TOOLUSELOG>[\s\S]*?<\/TOOLUSELOG>/g, '');
-        }
-
-        if (processedOutput.includes('<TOOLOUTPUTLOG>') && processedOutput.includes('</TOOLOUTPUTLOG>')) {
-            processedOutput = processedOutput.replace(/<TOOLOUTPUTLOG>[\s\S]*?<\/TOOLOUTPUTLOG>/g, '');
-        }
-
-        if (processedOutput.includes('<at>') && processedOutput.includes('</at>')) {
-            processedOutput = processedOutput.replace(/<at>[\s\S]*?<\/at>/gi, '');
-        }
-
-        if (processedOutput.includes('[Cite.') && processedOutput.includes('}]')) {
-            processedOutput = processedOutput.replace(/\[Cite\.\s*\{[\s\S]*?\}\]/g, '');
-        }
-
-        return processedOutput.trim();
-    };
-
-    // ChatParserNonStr 로직을 적용한 변환 함수
-    const convertOutputToString = (data: any): string => {
-        // null이나 undefined인 경우
-        if (data === null || data === undefined) {
-            return '';
-        }
-
-        // 이미 문자열인 경우
-        if (typeof data === 'string') {
-            // JSON 문자열인지 확인 (객체나 배열 형태)
-            if (isJsonString(data)) {
-                try {
-                    // JSON 파싱 후 다시 보기 좋게 포맷팅
-                    const parsed = JSON.parse(data);
-                    return JSON.stringify(parsed, null, 2);
-                } catch (error) {
-                    return data;
-                }
-            }
-            return data;
-        }
-
-        // 숫자나 불린값인 경우
-        if (typeof data === 'number' || typeof data === 'boolean') {
-            return String(data);
-        }
-
-        // 배열이나 객체인 경우 JSON 형태로 변환
-        if (Array.isArray(data) || (typeof data === 'object' && data !== null)) {
-            try {
-                return JSON.stringify(data, null, 2);
-            } catch (error) {
-                return String(data);
-            }
-        }
-
-        // 기타 경우 문자열로 변환
-        return String(data);
-    };
-
-    // 문자열이 JSON 형태인지 확인
-    const isJsonString = (str: string): boolean => {
-        try {
-            const trimmed = str.trim();
-            if (!trimmed) return false;
-
-            // JSON 객체나 배열로 시작하는지 확인
-            if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
-                (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
-                JSON.parse(trimmed);
-                return true;
-            }
-            return false;
-        } catch (error) {
-            return false;
-        }
-    };
+    // parseActualOutput과 convertOutputToString은 stringParser에서 import하여 사용
 
     // 로그 데이터 로드
     const loadLogs = async (page: number = 1, resetLogs: boolean = true, userId: number | null = null) => {
@@ -312,6 +229,20 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
             // API 호출
             const blob = await downloadAllIOLogsExcel(userId, workflowId, workflowName, startDate, endDate, dataProcessing);
 
+            // Blob 유효성 검증
+            if (!blob || blob.size === 0) {
+                throw new Error('다운로드된 파일이 비어있습니다.');
+            }
+
+            // Blob 타입 확인 (에러 응답인지 체크)
+            if (blob.type === 'application/json') {
+                const text = await blob.text();
+                const errorData = JSON.parse(text);
+                throw new Error(errorData.detail || '서버에서 에러가 발생했습니다.');
+            }
+
+            devLog.log('Excel blob received:', { size: blob.size, type: blob.type });
+
             // 파일 다운로드
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -323,8 +254,12 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
 
             document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
+
+            // 약간의 딜레이 후 정리
+            setTimeout(() => {
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            }, 100);
 
             devLog.log('Excel file downloaded successfully');
 
@@ -334,7 +269,8 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
             // 폼 리셋은 하지 않음 (재사용을 위해)
         } catch (error) {
             devLog.error('Failed to download Excel file:', error);
-            showValidationErrorToastKo('Excel 파일 다운로드에 실패했습니다.');
+            const errorMessage = error instanceof Error ? error.message : 'Excel 파일 다운로드에 실패했습니다.';
+            showValidationErrorToastKo(errorMessage);
         } finally {
             setIsDownloading(false);
         }

@@ -4,6 +4,7 @@ import styles from '@/app/admin/assets/playground/Tester.module.scss';
 import { FiUpload, FiDownload, FiPlay, FiTable, FiCheckCircle, FiXCircle, FiClock, FiRefreshCw, FiTrash2, FiAlertCircle } from 'react-icons/fi';
 import { executeWorkflowTesterStream } from '@/app/_common/api/workflow/workflowAPI';
 import { devLog } from '@/app/_common/utils/logger';
+import { parseActualOutput } from '@/app/_common/utils/stringParser';
 import { useWorkflowBatchTester } from '@/app/_common/hooks/useWorkflowBatchTester';
 import { TestData } from '@/app/_common/contexts/BatchTesterContext';
 import { SSEMessage } from '@/app/_common/utils/sseManager';
@@ -678,28 +679,7 @@ const Tester: React.FC<TesterProps> = ({ workflow }) => {
         return `${(ms / 1000).toFixed(2)}s`;
     };
 
-    // 실제 결과에서 <think> 태그와 [Cite.{...}] 패턴을 제거하는 helper 함수
-    const parseActualOutput = (output: string | null | undefined): string => {
-        if (!output) return '';
-
-        let cleanedOutput = output;
-
-        cleanedOutput = cleanedOutput.replace(/<think>[\s\S]*?<\/think>/gi, '');
-
-        if (cleanedOutput.includes('<TOOLUSELOG>') && cleanedOutput.includes('</TOOLUSELOG>')) {
-            cleanedOutput = cleanedOutput.replace(/<TOOLUSELOG>[\s\S]*?<\/TOOLUSELOG>/g, '');
-        }
-
-        if (cleanedOutput.includes('<TOOLOUTPUTLOG>') && cleanedOutput.includes('</TOOLOUTPUTLOG>')) {
-            cleanedOutput = cleanedOutput.replace(/<TOOLOUTPUTLOG>[\s\S]*?<\/TOOLOUTPUTLOG>/g, '');
-        }
-
-        if (cleanedOutput.includes('[Cite.') && cleanedOutput.includes('}]')) {
-            cleanedOutput = cleanedOutput.replace(/\[Cite\.\s*\{[\s\S]*?\}\]/g, '');
-        }
-
-        return cleanedOutput.trim();
-    };
+    // parseActualOutput은 stringParser에서 import하여 사용
 
     const downloadResults = () => {
         if (testData.length === 0) return;

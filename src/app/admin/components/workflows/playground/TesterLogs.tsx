@@ -5,6 +5,7 @@ import { FiRefreshCw, FiDownload, FiTrash2, FiBarChart, FiCheckCircle, FiXCircle
 import { deleteWorkflowTesterIOLogs } from '@/app/_common/api/workflow/workflowAPI';
 import { getWorkflowIOLogsForTester } from '@/app/admin/api/workflow';
 import { devLog } from '@/app/_common/utils/logger';
+import { parseActualOutput } from '@/app/_common/utils/stringParser';
 import { showSuccessToastKo, showErrorToastKo, showLogDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
 import TesterChartDashboard from './charts/TesterChartDashboard';
 import { useXgenLayout } from '@/app/main/components/XgenLayoutContent';
@@ -120,27 +121,7 @@ const TesterLogs: React.FC<TesterLogsProps> = ({ workflow, userId }) => {
             : JSON.stringify(data);
     };
 
-    const parseActualOutput = (output: string | null | undefined): string => {
-        if (!output) return '';
-
-        let cleanedOutput = output;
-
-        cleanedOutput = cleanedOutput.replace(/<think>[\s\S]*?<\/think>/gi, '');
-
-        if (cleanedOutput.includes('<TOOLUSELOG>') && cleanedOutput.includes('</TOOLUSELOG>')) {
-            cleanedOutput = cleanedOutput.replace(/<TOOLUSELOG>[\s\S]*?<\/TOOLUSELOG>/g, '');
-        }
-
-        if (cleanedOutput.includes('<TOOLOUTPUTLOG>') && cleanedOutput.includes('</TOOLOUTPUTLOG>')) {
-            cleanedOutput = cleanedOutput.replace(/<TOOLOUTPUTLOG>[\s\S]*?<\/TOOLOUTPUTLOG>/g, '');
-        }
-
-        if (cleanedOutput.includes('[Cite.') && cleanedOutput.includes('}]')) {
-            cleanedOutput = cleanedOutput.replace(/\[Cite\.\s*\{[\s\S]*?\}\]/g, '');
-        }
-
-        return cleanedOutput.trim();
-    };
+    // parseActualOutput은 stringParser에서 import하여 사용
 
     const getEarliestExecutionTime = (logs: LogEntry[]) => {
         if (logs.length === 0) return '-';

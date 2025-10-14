@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { getAllIOLogs } from '@/app/admin/api/workflow';
 import { devLog } from '@/app/_common/utils/logger';
+import { parseActualOutput, convertOutputToString } from '@/app/_common/utils/stringParser';
 import { showValidationErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/admin/assets/workflows/AdminWorkflowLogTab.module.scss';
 import AdminWorkflowChatLogsDetailModal from './AdminWorkflowChatLogsDetailModal';
@@ -57,79 +58,7 @@ const AdminWorkflowLogTab: React.FC<AdminWorkflowLogTabProps> = ({ workflowId, w
 
     const PAGE_SIZE = 250;
 
-    const parseActualOutput = (output: string | null | undefined): string => {
-        if (!output) return '';
-
-        let processedOutput = convertOutputToString(output);
-
-        processedOutput = processedOutput.replace(/<think>[\s\S]*?<\/think>/gi, '');
-
-        if (processedOutput.includes('<TOOLUSELOG>') && processedOutput.includes('</TOOLUSELOG>')) {
-            processedOutput = processedOutput.replace(/<TOOLUSELOG>[\s\S]*?<\/TOOLUSELOG>/g, '');
-        }
-
-        if (processedOutput.includes('<TOOLOUTPUTLOG>') && processedOutput.includes('</TOOLOUTPUTLOG>')) {
-            processedOutput = processedOutput.replace(/<TOOLOUTPUTLOG>[\s\S]*?<\/TOOLOUTPUTLOG>/g, '');
-        }
-
-        if (processedOutput.includes('<at>') && processedOutput.includes('</at>')) {
-            processedOutput = processedOutput.replace(/<at>[\s\S]*?<\/at>/gi, '');
-        }
-
-        if (processedOutput.includes('[Cite.') && processedOutput.includes('}]')) {
-            processedOutput = processedOutput.replace(/\[Cite\.\s*\{[\s\S]*?\}\]/g, '');
-        }
-
-        return processedOutput.trim();
-    };
-
-    const convertOutputToString = (data: any): string => {
-        if (data === null || data === undefined) {
-            return '';
-        }
-
-        if (typeof data === 'string') {
-            if (isJsonString(data)) {
-                try {
-                    const parsed = JSON.parse(data);
-                    return JSON.stringify(parsed, null, 2);
-                } catch (error) {
-                    return data;
-                }
-            }
-            return data;
-        }
-
-        if (typeof data === 'number' || typeof data === 'boolean') {
-            return String(data);
-        }
-
-        if (Array.isArray(data) || (typeof data === 'object' && data !== null)) {
-            try {
-                return JSON.stringify(data, null, 2);
-            } catch (error) {
-                return String(data);
-            }
-        }
-
-        return String(data);
-    };
-
-    const isJsonString = (str: string): boolean => {
-        try {
-            const trimmed = str.trim();
-            if (!trimmed) return false;
-
-            if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
-                (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
-                JSON.parse(trimmed);
-                return true;
-            }
-            return false;
-        } catch (error) {
-            return false;
-        }
-    };
+    // parseActualOutput과 convertOutputToString은 stringParser에서 import하여 사용
 
     const loadLogs = async (page: number = 1, resetLogs: boolean = true, searchUserId: number | null = null) => {
         try {
