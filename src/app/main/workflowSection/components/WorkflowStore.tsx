@@ -20,6 +20,8 @@ import {
     IoPencil
 } from 'react-icons/io5';
 import RefreshButton from '@/app/_common/icons/refresh';
+import UploadButton from '@/app/_common/icons/upload';
+import WorkflowStoreUploadModal from './workflows/WorkflowStoreUploadModal';
 
 interface Workflow {
     id: number;
@@ -44,7 +46,6 @@ interface WorkflowStoreProps {
 
 const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, className }) => {
     // 상태 관리
-    const [selectedLanguage, setSelectedLanguage] = useState<'ko' | 'en'>('ko');
     const [workflows, setWorkflows] = useState<Workflow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -53,6 +54,7 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null);
     const [filterMode, setFilterMode] = useState<'all' | 'my' | 'template' | 'shared'>('my');
 
@@ -60,19 +62,19 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
     const { user } = useAuth();
 
     // 워크플로우 데이터 로딩
-    const loadWorkflows = async (language: 'ko' | 'en') => {
+    const loadWorkflows = async () => {
         try {
             setLoading(true);
             setError(null);
 
-            devLog.info(`Loading workflows for language: ${language}`);
+            devLog.info('Loading workflows');
 
             // TODO: API 호출 구현 필요
-            // const response = await getWorkflowsByLanguage(language, 300);
+            // const response = await getWorkflows(300);
 
             // 임시 데이터
             setWorkflows([]);
-            devLog.info(`Loaded 0 workflows for ${language}`);
+            devLog.info('Loaded 0 workflows');
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : '워크플로우를 불러오는데 실패했습니다.';
             setError(errorMessage);
@@ -83,10 +85,10 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
         }
     };
 
-    // 언어 변경 시 워크플로우 다시 로딩
+    // 초기 로딩
     useEffect(() => {
-        loadWorkflows(selectedLanguage);
-    }, [selectedLanguage]);
+        loadWorkflows();
+    }, []);
 
     // 필터링된 워크플로우 계산
     const filteredWorkflows = useMemo(() => {
@@ -114,12 +116,6 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
             return matchesSearch && matchesFilter;
         });
     }, [workflows, searchTerm, filterMode, user]);
-
-    // 언어 탭 변경 핸들러
-    const handleLanguageChange = (language: 'ko' | 'en') => {
-        setSelectedLanguage(language);
-        setSearchTerm(''); // 언어 변경 시 검색어 초기화
-    };
 
     // 검색어 변경 핸들러
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -164,7 +160,7 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                     });
 
                     // 워크플로우 목록 새로고침
-                    await loadWorkflows(selectedLanguage);
+                    await loadWorkflows();
                 } catch (error) {
                     devLog.error('Failed to delete workflow:', error);
                     showDeleteErrorToastKo({
@@ -183,7 +179,7 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
 
     // 새로고침 핸들러
     const handleRefresh = () => {
-        loadWorkflows(selectedLanguage);
+        loadWorkflows();
     };
 
     // 모달 닫기 핸들러
@@ -205,7 +201,7 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
     // 워크플로우 생성 성공 핸들러
     const handleCreateSuccess = () => {
         // 워크플로우 목록 새로고침
-        loadWorkflows(selectedLanguage);
+        loadWorkflows();
     };
 
     // 워크플로우 편집 모달 열기 핸들러
@@ -224,7 +220,23 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
     // 워크플로우 편집 성공 핸들러
     const handleEditSuccess = () => {
         // 워크플로우 목록 새로고침
-        loadWorkflows(selectedLanguage);
+        loadWorkflows();
+    };
+
+    // 워크플로우 업로드 모달 열기 핸들러
+    const handleUploadClick = () => {
+        setIsUploadModalOpen(true);
+    };
+
+    // 워크플로우 업로드 모달 닫기 핸들러
+    const handleCloseUploadModal = () => {
+        setIsUploadModalOpen(false);
+    };
+
+    // 워크플로우 업로드 성공 핸들러
+    const handleUploadSuccess = () => {
+        // 워크플로우 목록 새로고침
+        loadWorkflows();
     };
 
     // 날짜 포맷팅 함수
@@ -260,24 +272,6 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                             <IoSearch className={styles.searchIcon} />
                         </div>
 
-                        {/* 언어 탭 */}
-                        <div className={styles.languageTabs}>
-                            <button
-                                className={`${styles.languageTab} ${selectedLanguage === 'ko' ? styles.active : ''}`}
-                                onClick={() => handleLanguageChange('ko')}
-                            >
-                                <span className={styles.tabIcon}>🇰🇷</span>
-                                한국어
-                            </button>
-                            <button
-                                className={`${styles.languageTab} ${selectedLanguage === 'en' ? styles.active : ''}`}
-                                onClick={() => handleLanguageChange('en')}
-                            >
-                                <span className={styles.tabIcon}>🇺🇸</span>
-                                English
-                            </button>
-                        </div>
-
                         {/* 필터 탭 */}
                         <div className={styles.filterTabs}>
                             <button
@@ -305,6 +299,12 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                                 공유
                             </button>
                         </div>
+
+                        <UploadButton
+                            onClick={handleUploadClick}
+                            disabled={loading}
+                            title="워크플로우 업로드"
+                        />
 
                         <RefreshButton
                             onClick={handleRefresh}
@@ -456,6 +456,13 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                     workflow={editingWorkflow}
                 />
             )} */}
+
+            {/* 워크플로우 업로드 모달 */}
+            <WorkflowStoreUploadModal
+                isOpen={isUploadModalOpen}
+                onClose={handleCloseUploadModal}
+                onSuccess={handleUploadSuccess}
+            />
         </div>
     );
 };
