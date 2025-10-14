@@ -370,6 +370,43 @@ function CanvasPageContent() {
         // localStorage 저장은 Header에서 이미 처리하므로 중복 저장 방지
     };
 
+    // 기존 워크플로우 목록에서 고유한 이름 생성
+    const generateUniqueWorkflowName = (existingWorkflows: string[]): string => {
+        const baseName = 'Workflow';
+
+        // .json 확장자 제거한 이름 목록 생성
+        const workflowNames = existingWorkflows.map(filename =>
+            filename.replace('.json', '')
+        );
+
+        // 'Workflow'가 없으면 그대로 반환
+        if (!workflowNames.includes(baseName)) {
+            return baseName;
+        }
+
+        // 'Workflow (n)' 형식의 숫자 찾기
+        const pattern = /^Workflow \((\d+)\)$/;
+        const existingNumbers: number[] = [];
+
+        workflowNames.forEach(name => {
+            const match = name.match(pattern);
+            if (match) {
+                existingNumbers.push(parseInt(match[1], 10));
+            }
+        });
+
+        // 다음 사용 가능한 번호 찾기
+        let nextNumber = 1;
+        while (
+            workflowNames.includes(`${baseName} (${nextNumber})`) ||
+            existingNumbers.includes(nextNumber)
+        ) {
+            nextNumber++;
+        }
+
+        return `${baseName} (${nextNumber})`;
+    };
+
     // 새로운 워크플로우 시작 핸들러
     const handleNewWorkflow = () => {
         // 현재 작업이 있는지 확인
@@ -382,18 +419,18 @@ function CanvasPageContent() {
         if (hasCurrentWork) {
             // 새로운 유틸리티 사용
             showNewWorkflowConfirmKo(
-                () => {
-                    performNewWorkflow();
+                async () => {
+                    await performNewWorkflow();
                 }
             );
         } else {
             // 작업이 없으면 바로 시작
-            performNewWorkflow();
+            void performNewWorkflow();
         }
     };
 
     // 실제 새로운 워크플로우 시작 로직
-    const performNewWorkflow = () => {
+    const performNewWorkflow = async () => {
         try {
             devLog.log('Starting new workflow...');
 
@@ -419,8 +456,19 @@ function CanvasPageContent() {
                 devLog.log('Canvas state reset to initial values');
             }
 
-            // 현재 워크플로우 이름을 기본값으로 재설정
-            setCurrentWorkflowName('Workflow');
+            // 기존 워크플로우 목록 조회하여 고유한 이름 생성
+            let newWorkflowName = 'Workflow';
+            try {
+                const existingWorkflows = await listWorkflows();
+                newWorkflowName = generateUniqueWorkflowName(existingWorkflows);
+                devLog.log('Generated unique workflow name:', newWorkflowName);
+            } catch (error) {
+                devLog.warn('Failed to fetch workflows for name generation, using default:', error);
+            }
+
+            // 현재 워크플로우 이름을 고유한 이름으로 설정
+            setCurrentWorkflowName(newWorkflowName);
+            saveWorkflowName(newWorkflowName);
 
             // 새 워크플로우이므로 소유자로 설정
             setWorkflowOriginUserId(null);

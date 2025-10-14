@@ -1,10 +1,69 @@
 'use client';
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FiPlay, FiGrid, FiArrowRight, FiZap } from 'react-icons/fi';
 import styles from '@/app/main/workflowSection/assets/CanvasIntro.module.scss';
+import { startNewWorkflow, saveWorkflowName } from '@/app/_common/utils/workflowStorage';
+import { listWorkflows } from '@/app/_common/api/workflow/workflowAPI';
 
 const CanvasIntroduction: React.FC = () => {
+    const router = useRouter();
+
+    // 기존 워크플로우 목록에서 고유한 이름 생성
+    const generateUniqueWorkflowName = (existingWorkflows: string[]): string => {
+        const baseName = 'Workflow';
+
+        // .json 확장자 제거한 이름 목록 생성
+        const workflowNames = existingWorkflows.map(filename =>
+            filename.replace('.json', '')
+        );
+
+        // 'Workflow'가 없으면 그대로 반환
+        if (!workflowNames.includes(baseName)) {
+            return baseName;
+        }
+
+        // 'Workflow (n)' 형식의 숫자 찾기
+        const pattern = /^Workflow \((\d+)\)$/;
+        const existingNumbers: number[] = [];
+
+        workflowNames.forEach(name => {
+            const match = name.match(pattern);
+            if (match) {
+                existingNumbers.push(parseInt(match[1], 10));
+            }
+        });
+
+        // 다음 사용 가능한 번호 찾기
+        let nextNumber = 1;
+        while (
+            workflowNames.includes(`${baseName} (${nextNumber})`) ||
+            existingNumbers.includes(nextNumber)
+        ) {
+            nextNumber++;
+        }
+
+        return `${baseName} (${nextNumber})`;
+    };
+
+    const handleCreateWorkflow = async () => {
+        // 새로운 워크플로우 시작 (localStorage 초기화)
+        startNewWorkflow();
+
+        // 기존 워크플로우 목록 조회하여 고유한 이름 생성
+        try {
+            const existingWorkflows = await listWorkflows();
+            const newWorkflowName = generateUniqueWorkflowName(existingWorkflows);
+            saveWorkflowName(newWorkflowName);
+        } catch (error) {
+            console.warn('Failed to fetch workflows for name generation, using default');
+        }
+
+        // 캔버스 페이지로 이동
+        router.push('/canvas');
+    };
+
     return (
         <div className={styles.container}>
             {/* Hero Section */}
@@ -19,11 +78,11 @@ const CanvasIntroduction: React.FC = () => {
                     테스트할 수 있습니다.
                 </p>
 
-                <Link href="/canvas" className={styles.primaryButton}>
+                <button onClick={handleCreateWorkflow} className={styles.primaryButton}>
                     <FiPlay />
                     워크플로우 만들기
                     <FiArrowRight />
-                </Link>
+                </button>
             </div>
 
             {/* Features Grid */}
