@@ -1,7 +1,8 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FiX, FiFolder, FiFileText, FiChevronRight, FiRefreshCw } from 'react-icons/fi';
+import { FiX, FiFolder, FiFileText, FiChevronRight } from 'react-icons/fi';
+import RefreshButton from '@/app/_common/icons/refresh';
 import styles from '@/app/main/chatSection/assets/CollectionModal.module.scss';
 import { listCollections, listDocumentsInCollection } from '@/app/_common/api/rag/retrievalAPI';
 import { devLog } from '@/app/_common/utils/logger';
@@ -183,13 +184,12 @@ const CollectionModal: React.FC<CollectionModalProps> = ({
                             {view === 'list' ? '컬렉션' : selectedCollection?.collection_make_name}
                         </h3>
                         {view === 'list' && (
-                            <button
-                                className={styles.refreshButton}
+                            <RefreshButton
                                 onClick={fetchCollections}
+                                loading={loading}
                                 disabled={loading}
-                            >
-                                <FiRefreshCw className={loading ? styles.spinning : ''} />
-                            </button>
+                                title="새로고침"
+                            />
                         )}
                     </div>
                     <button className={styles.closeButton} onClick={onClose}>

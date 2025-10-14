@@ -2,10 +2,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
     FiMessageSquare,
-    FiRefreshCw,
     FiUser,
     FiPlay,
 } from 'react-icons/fi';
+import RefreshButton from '@/app/_common/icons/refresh';
 import { listInteractions } from '@/app/_common/api/interactionAPI';
 import { deleteWorkflowIOLogs, listWorkflowsDetail } from '@/app/_common/api/workflow/workflowAPI';
 import { devLog } from '@/app/_common/utils/logger';
@@ -274,15 +274,12 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
                                     </button>
                                 </div>
 
-                                <button
+                                <RefreshButton
                                     onClick={loadChatHistory}
-                                    className={`${styles.refreshButton} ${loading ? styles.loading : ''}`}
+                                    loading={loading}
                                     disabled={loading}
                                     title="새로고침"
-                                >
-                                    <FiRefreshCw />
-                                    {loading ? '로딩 중...' : '새로고침'}
-                                </button>
+                                />
                             </div>
                         </div>
 

@@ -5,13 +5,13 @@ import {
     FiPlay,
     FiClock,
     FiCheckCircle,
-    FiRefreshCw,
     FiSearch,
     FiFilter,
     FiUser,
     FiUsers,
     FiFolder
 } from 'react-icons/fi';
+import RefreshButton from '@/app/_common/icons/refresh';
 import styles from '@/app/main/chatSection/assets/WorkflowSelection.module.scss';
 import { listWorkflowsDetail } from '@/app/_common/api/workflow/workflowAPI';
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
@@ -216,14 +216,12 @@ const WorkflowSelection: React.FC<WorkflowSelectionProps> = ({ onBack, onSelectW
                         </div>
                     </div>
 
-                    <button
-                        className={`${styles.refreshButton} ${loading ? styles.spinning : ''}`}
+                    <RefreshButton
                         onClick={fetchWorkflows}
+                        loading={loading}
                         disabled={loading}
                         title="새로고침"
-                    >
-                        <FiRefreshCw />
-                    </button>
+                    />
                 </div>
             </div>
 

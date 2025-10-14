@@ -1,4 +1,5 @@
-import { FiArrowLeft, FiMessageSquare, FiUpload } from 'react-icons/fi';
+import { FiArrowLeft, FiMessageSquare } from 'react-icons/fi';
+import UploadButton from '@/app/_common/icons/upload';
 import styles from '@/app/main/chatSection/assets/ChatInterface.module.scss';
 import { ChatHeaderProps } from './types';
 
@@ -49,10 +50,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ mode, workflow, ioLogs, onBack,
                 { mode === 'deploy' || mode === 'new-default' || workflow.name === 'default_mode' ? (
                     <span></span>
                 ) : (
-                    <button className={styles.deployButton} onClick={onDeploy}>
-                        <FiUpload />
-                        <span>배포</span>
-                    </button>
+                    <UploadButton onClick={() => onDeploy?.()} title="배포" />
                 )}
 
             </div>
