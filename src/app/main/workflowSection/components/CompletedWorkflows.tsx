@@ -7,7 +7,6 @@ import {
     FiTrash2,
     FiUser,
     FiClock,
-    FiRefreshCw,
     FiUsers,
     FiSettings,
     FiCopy,
@@ -15,6 +14,7 @@ import {
     FiMoreVertical,
 } from 'react-icons/fi';
 import styles from '@/app/main/workflowSection/assets/CompletedWorkflows.module.scss';
+import RefreshButton from '@/app/_common/icons/refresh';
 import { listWorkflowsDetail, deleteWorkflow, duplicateWorkflow } from '@/app/_common/api/workflow/workflowAPI';
 import { useRouter } from 'next/navigation';
 import { Workflow, WorkflowDetailResponse } from '@/app/main/workflowSection/types/index';
@@ -339,14 +339,12 @@ const CompletedWorkflows: React.FC = () => {
                         </div>
                     </div>
 
-                    <button
-                        className={`${styles.refreshButton} ${loading ? styles.spinning : ''}`}
+                    <RefreshButton
                         onClick={fetchWorkflows}
+                        loading={loading}
                         disabled={loading}
                         title="새로고침"
-                    >
-                        <FiRefreshCw />
-                    </button>
+                    />
                 </div>
             </div>
 

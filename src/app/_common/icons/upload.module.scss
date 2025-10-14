@@ -1,0 +1,54 @@
+.uploadButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 0.75rem;
+    border: none;
+    border-radius: 6px;
+    background-color: #e8f5e9;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #2e7d32;
+    font-size: 14px;
+    font-weight: 500;
+
+    &:hover:not(:disabled) {
+        background-color: #c8e6c9;
+        transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+    }
+}
+
+.buttonText {
+    white-space: nowrap;
+}
+
+.uploading {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}

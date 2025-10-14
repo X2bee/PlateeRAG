@@ -6,6 +6,7 @@ import {
     FiSidebar,
 } from 'react-icons/fi';
 import styles from '@/app/main/workflowSection/assets/Documents.module.scss';
+import RefreshButton from '@/app/_common/icons/refresh';
 import { Collection, DocumentInCollection, ViewMode, CollectionFilter } from '@/app/main/workflowSection/types/index';
 
 interface EmbeddingConfig {
@@ -108,9 +109,12 @@ const DocumentHeader: React.FC<DocumentHeaderProps> = ({
                         <button onClick={onShowCreateModal} className={`${styles.button} ${styles.primary}`}>
                             새 컬렉션 생성
                         </button>
-                        <button onClick={onRefresh} className={`${styles.button} ${styles.iconOnly}`} disabled={loading} title="새로고침">
-                            <FiRefreshCw />
-                        </button>
+                        <RefreshButton
+                            onClick={onRefresh}
+                            loading={loading}
+                            disabled={loading}
+                            title="새로고침"
+                        />
                     </>
                 )}
                 {viewMode === 'documents' && (
@@ -130,16 +134,22 @@ const DocumentHeader: React.FC<DocumentHeaderProps> = ({
                         <button onClick={onToggleDirectorySidebar} className={`${styles.button} ${styles.iconOnly}`} title={showDirectorySidebar ? '디렉토리 숨기기' : '디렉토리 보이기'}>
                             <FiSidebar />
                         </button>
-                        <button onClick={onRefresh} className={`${styles.button} ${styles.iconOnly}`} disabled={loading} title="새로고침">
-                            <FiRefreshCw />
-                        </button>
+                        <RefreshButton
+                            onClick={onRefresh}
+                            loading={loading}
+                            disabled={loading}
+                            title="새로고침"
+                        />
                     </>
                 )}
                 {viewMode === 'documents-graph' && (
                     <>
-                        <button onClick={onRefresh} className={`${styles.button} ${styles.iconOnly}`} disabled={loading} title="새로고침">
-                            <FiRefreshCw />
-                        </button>
+                        <RefreshButton
+                            onClick={onRefresh}
+                            loading={loading}
+                            disabled={loading}
+                            title="새로고침"
+                        />
                     </>
                 )}
 
