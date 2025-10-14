@@ -764,6 +764,15 @@
         color: $admin-text-primary;
         font-family: $admin-font-family;
     }
+
+    .toggleButtons {
+        width: 100%;
+
+        .toggleButton {
+            flex: 1;
+            text-align: center;
+        }
+    }
 }
 
 .formInput {

@@ -5,6 +5,7 @@ import { getAllIOLogs, downloadAllIOLogsExcel } from '@/app/admin/api/workflow';
 import { devLog } from '@/app/_common/utils/logger';
 import { showValidationErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import RefreshButton from '@/app/_common/icons/refresh';
+import DownloadButton from '@/app/_common/icons/download';
 import styles from '@/app/admin/assets/AdminWorkflowLogsContent.module.scss';
 import AdminWorkflowChatLogsDetailModal from './AdminWorkflowChatLogsDetailModal';
 
@@ -345,7 +346,7 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
     };
 
     // 다운로드 파라미터 변경 핸들러
-    const handleDownloadParamChange = (field: string, value: string) => {
+    const handleDownloadParamChange = (field: string, value: string | boolean) => {
         setDownloadParams(prev => ({
             ...prev,
             [field]: value
@@ -676,13 +677,11 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
 
                     {/* Excel 다운로드 드롭다운 */}
                     <div className={styles.downloadContainer} ref={downloadDropdownRef}>
-                        <button
+                        <DownloadButton
                             onClick={toggleDownloadDropdown}
-                            className={styles.downloadButton}
-                            disabled={isDownloading}
-                        >
-                            {isDownloading ? '다운로드 중...' : 'Excel 다운로드'}
-                        </button>
+                            loading={isDownloading}
+                            title="Excel 다운로드"
+                        />
 
                         {isDownloadDropdownOpen && (
                             <div className={styles.downloadDropdown}>
@@ -743,14 +742,24 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
                                             className={styles.formInput}
                                         />
                                     </div>
-                                    <div className={styles.formGroupCheckbox}>
-                                        <input
-                                            id="download-data-processing"
-                                            type="checkbox"
-                                            checked={downloadParams.dataProcessing}
-                                            onChange={(e) => handleDownloadParamChange('dataProcessing', e.target.checked.toString())}
-                                        />
-                                        <label htmlFor="download-data-processing">출력 데이터 가공 적용</label>
+                                    <div className={styles.formGroup}>
+                                        <label>출력 데이터 가공 적용</label>
+                                        <div className={styles.toggleButtons}>
+                                            <button
+                                                onClick={() => handleDownloadParamChange('dataProcessing', false)}
+                                                className={`${styles.toggleButton} ${!downloadParams.dataProcessing ? styles.active : ''}`}
+                                                type="button"
+                                            >
+                                                원본
+                                            </button>
+                                            <button
+                                                onClick={() => handleDownloadParamChange('dataProcessing', true)}
+                                                className={`${styles.toggleButton} ${downloadParams.dataProcessing ? styles.active : ''}`}
+                                                type="button"
+                                            >
+                                                가공
+                                            </button>
+                                        </div>
                                     </div>
                                     <div className={styles.downloadDropdownFooter}>
                                         <button
