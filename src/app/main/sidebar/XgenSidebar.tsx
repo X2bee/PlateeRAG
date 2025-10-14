@@ -48,7 +48,7 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
         const view = searchParams.get('view');
         if (view) {
             const chatItems = ['new-chat', 'current-chat', 'chat-history'];
-            const workflowItems = ['canvas', 'workflows', 'documents'];
+            const workflowItems = ['canvas', 'workflows', 'documents', 'prompt-store', 'workflow-store'];
             const dataItems = ['data-station', 'data-storage'];
             const trainItems = ['train', 'train-monitor', 'eval', 'model-storage'];
             const mlModelItems = ['model-upload', 'model-hub', 'model-inference','ml-train', 'ml-train-monitor'];
@@ -350,7 +350,7 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
                                 ▼
                             </span>
                         </button>
-                        
+
                         <nav className={`${styles.sidebarNav} ${isMlModelExpanded ? styles.expanded : ''}`}>
                             {filteredItems.mlModelItems.map((item) => (
                                 <button
