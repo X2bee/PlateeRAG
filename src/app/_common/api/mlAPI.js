@@ -183,6 +183,65 @@ export const mlAPI = {
             body: JSON.stringify(data),
         });
     },
+
+    // 드래프트 관리
+    // 드래프트 생성
+    createDraft: async (data) => {
+        return apiCall('/api/scripts/drafts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+    },
+
+    // 드래프트 목록 조회
+    listDrafts: async (params = {}) => {
+        const queryParams = new URLSearchParams();
+        if (params.task) queryParams.append('task', params.task);
+        if (params.limit !== undefined) queryParams.append('limit', params.limit);
+        if (params.offset !== undefined) queryParams.append('offset', params.offset);
+        if (params.sort) queryParams.append('sort', params.sort);
+        if (params.order) queryParams.append('order', params.order);
+
+        const queryString = queryParams.toString();
+        return apiCall(`/api/scripts/drafts${queryString ? `?${queryString}` : ''}`);
+    },
+
+    // 드래프트 상세 조회
+    getDraft: async (draftId) => {
+        return apiCall(`/api/scripts/drafts/${draftId}`);
+    },
+
+    // 드래프트 수정
+    updateDraft: async (draftId, data) => {
+        return apiCall(`/api/scripts/drafts/${draftId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+    },
+
+    // 드래프트 삭제
+    deleteDraft: async (draftId) => {
+        return apiCall(`/api/scripts/drafts/${draftId}`, {
+            method: 'DELETE',
+        });
+    },
+
+    // 드래프트 복제
+    cloneDraft: async (draftId, name = null) => {
+        return apiCall(`/api/scripts/drafts/${draftId}/clone`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(name ? { name } : {}),
+        });
+    },
 };
 
 export const mlUtils = {
