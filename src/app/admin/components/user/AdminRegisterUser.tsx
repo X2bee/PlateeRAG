@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { FiRefreshCw } from 'react-icons/fi';
 import { getStandbyUsers, approveUser, deleteUser } from '@/app/admin/api/users';
 import { devLog } from '@/app/_common/utils/logger';
 import styles from '@/app/admin/assets/AdminRegisterUser.module.scss';
@@ -227,8 +228,13 @@ const AdminRegisterUser: React.FC = () => {
                         <span>({filteredUsers.length}명 검색됨)</span>
                     )}
                 </div>
-                <button onClick={loadStandbyUsers} className={styles.refreshButton}>
-                    새로고침
+                <button
+                    className={`${styles.iconButton} ${loading ? styles.spinning : ''}`}
+                    onClick={loadStandbyUsers}
+                    disabled={loading}
+                    title="새로고침"
+                >
+                    <FiRefreshCw />
                 </button>
             </div>
 

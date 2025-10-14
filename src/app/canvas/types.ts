@@ -64,6 +64,7 @@ export interface CanvasNode {
     id: string;
     data: NodeData;
     position: Position;
+    isExpanded?: boolean; // Default: true (expanded)
 }
 
 // ========== Edge Types ==========

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { getAllUsers, deleteUser, editUser } from '@/app/admin/api/users';
 import { devLog } from '@/app/_common/utils/logger';
+import RefreshButton from '@/app/_common/icons/refresh';
 import styles from '@/app/admin/assets/AdminUserContent.module.scss';
 import AdminUserEditModal from './AdminUserEditModal';
 import {
@@ -438,9 +439,10 @@ const AdminUserContent: React.FC = () => {
                             </button>
                         </div>
                     )}
-                    <button onClick={handleRefresh} className={styles.refreshButton}>
-                        새로고침
-                    </button>
+                    <RefreshButton
+                        onClick={handleRefresh}
+                        loading={loading}
+                    />
                 </div>
             </div>
 

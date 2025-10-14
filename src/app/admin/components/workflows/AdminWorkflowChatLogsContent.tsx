@@ -1,9 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { getAllIOLogs } from '@/app/admin/api/workflow';
+import React, { useState, useEffect, useRef } from 'react';
+import { getAllIOLogs, downloadAllIOLogsExcel } from '@/app/admin/api/workflow';
 import { devLog } from '@/app/_common/utils/logger';
 import { showValidationErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
+import { parseActualOutput, convertOutputToString } from '@/app/_common/utils/stringParser';
+import RefreshButton from '@/app/_common/icons/refresh';
+import DownloadButton from '@/app/_common/icons/download';
 import styles from '@/app/admin/assets/AdminWorkflowLogsContent.module.scss';
 import AdminWorkflowChatLogsDetailModal from './AdminWorkflowChatLogsDetailModal';
 
@@ -50,93 +53,22 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalContent, setModalContent] = useState<string | null>(null);
 
+    // 다운로드 드롭다운 관련 상태
+    const [isDownloadDropdownOpen, setIsDownloadDropdownOpen] = useState(false);
+    const [downloadParams, setDownloadParams] = useState({
+        userId: '',
+        workflowId: '',
+        workflowName: '',
+        startDate: '',
+        endDate: '',
+        dataProcessing: true
+    });
+    const [isDownloading, setIsDownloading] = useState(false);
+    const downloadDropdownRef = useRef<HTMLDivElement>(null);
+
     const PAGE_SIZE = 250;
 
-    const parseActualOutput = (output: string | null | undefined): string => {
-        if (!output) return '';
-
-        // output을 적절한 형태로 변환
-        let processedOutput = convertOutputToString(output);
-
-        // 이미 문자열로 변환된 결과에서 태그 제거
-        processedOutput = processedOutput.replace(/<think>[\s\S]*?<\/think>/gi, '');
-
-        if (processedOutput.includes('<TOOLUSELOG>') && processedOutput.includes('</TOOLUSELOG>')) {
-            processedOutput = processedOutput.replace(/<TOOLUSELOG>[\s\S]*?<\/TOOLUSELOG>/g, '');
-        }
-
-        if (processedOutput.includes('<TOOLOUTPUTLOG>') && processedOutput.includes('</TOOLOUTPUTLOG>')) {
-            processedOutput = processedOutput.replace(/<TOOLOUTPUTLOG>[\s\S]*?<\/TOOLOUTPUTLOG>/g, '');
-        }
-
-        if (processedOutput.includes('<at>') && processedOutput.includes('</at>')) {
-            processedOutput = processedOutput.replace(/<at>[\s\S]*?<\/at>/gi, '');
-        }
-
-        if (processedOutput.includes('[Cite.') && processedOutput.includes('}]')) {
-            processedOutput = processedOutput.replace(/\[Cite\.\s*\{[\s\S]*?\}\]/g, '');
-        }
-
-        return processedOutput.trim();
-    };
-
-    // ChatParserNonStr 로직을 적용한 변환 함수
-    const convertOutputToString = (data: any): string => {
-        // null이나 undefined인 경우
-        if (data === null || data === undefined) {
-            return '';
-        }
-
-        // 이미 문자열인 경우
-        if (typeof data === 'string') {
-            // JSON 문자열인지 확인 (객체나 배열 형태)
-            if (isJsonString(data)) {
-                try {
-                    // JSON 파싱 후 다시 보기 좋게 포맷팅
-                    const parsed = JSON.parse(data);
-                    return JSON.stringify(parsed, null, 2);
-                } catch (error) {
-                    return data;
-                }
-            }
-            return data;
-        }
-
-        // 숫자나 불린값인 경우
-        if (typeof data === 'number' || typeof data === 'boolean') {
-            return String(data);
-        }
-
-        // 배열이나 객체인 경우 JSON 형태로 변환
-        if (Array.isArray(data) || (typeof data === 'object' && data !== null)) {
-            try {
-                return JSON.stringify(data, null, 2);
-            } catch (error) {
-                return String(data);
-            }
-        }
-
-        // 기타 경우 문자열로 변환
-        return String(data);
-    };
-
-    // 문자열이 JSON 형태인지 확인
-    const isJsonString = (str: string): boolean => {
-        try {
-            const trimmed = str.trim();
-            if (!trimmed) return false;
-
-            // JSON 객체나 배열로 시작하는지 확인
-            if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
-                (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
-                JSON.parse(trimmed);
-                return true;
-            }
-            return false;
-        } catch (error) {
-            return false;
-        }
-    };
+    // parseActualOutput과 convertOutputToString은 stringParser에서 import하여 사용
 
     // 로그 데이터 로드
     const loadLogs = async (page: number = 1, resetLogs: boolean = true, userId: number | null = null) => {
@@ -255,6 +187,107 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
     useEffect(() => {
         loadLogs(1, true, null);
     }, []);
+
+    // 드롭다운 외부 클릭 시 닫기
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (downloadDropdownRef.current && !downloadDropdownRef.current.contains(event.target as Node)) {
+                setIsDownloadDropdownOpen(false);
+            }
+        };
+
+        if (isDownloadDropdownOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isDownloadDropdownOpen]);
+
+    // Excel 다운로드 핸들러
+    const handleDownloadExcel = async () => {
+        try {
+            setIsDownloading(true);
+
+            // 파라미터 준비
+            const userId = downloadParams.userId.trim() !== '' ? parseInt(downloadParams.userId.trim()) : null;
+            const workflowId = downloadParams.workflowId.trim() || null;
+            const workflowName = downloadParams.workflowName.trim() || null;
+            const startDate = downloadParams.startDate.trim() || null;
+            const endDate = downloadParams.endDate.trim() || null;
+            const dataProcessing = downloadParams.dataProcessing ?? true;
+
+            // userId가 숫자가 아닌 경우 에러
+            if (downloadParams.userId.trim() !== '' && isNaN(userId as number)) {
+                showValidationErrorToastKo('유효한 사용자 ID를 입력해주세요.');
+                return;
+            }
+
+            devLog.log('Downloading Excel with params:', { userId, workflowId, workflowName, startDate, endDate, dataProcessing });
+
+            // API 호출
+            const blob = await downloadAllIOLogsExcel(userId, workflowId, workflowName, startDate, endDate, dataProcessing);
+
+            // Blob 유효성 검증
+            if (!blob || blob.size === 0) {
+                throw new Error('다운로드된 파일이 비어있습니다.');
+            }
+
+            // Blob 타입 확인 (에러 응답인지 체크)
+            if (blob.type === 'application/json') {
+                const text = await blob.text();
+                const errorData = JSON.parse(text);
+                throw new Error(errorData.detail || '서버에서 에러가 발생했습니다.');
+            }
+
+            devLog.log('Excel blob received:', { size: blob.size, type: blob.type });
+
+            // 파일 다운로드
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+
+            // 파일명 생성
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            link.download = `workflow_chat_log__${timestamp}.xlsx`;
+
+            document.body.appendChild(link);
+            link.click();
+
+            // 약간의 딜레이 후 정리
+            setTimeout(() => {
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            devLog.log('Excel file downloaded successfully');
+
+            // 드롭다운 닫기
+            setIsDownloadDropdownOpen(false);
+
+            // 폼 리셋은 하지 않음 (재사용을 위해)
+        } catch (error) {
+            devLog.error('Failed to download Excel file:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Excel 파일 다운로드에 실패했습니다.';
+            showValidationErrorToastKo(errorMessage);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
+    // 드롭다운 토글
+    const toggleDownloadDropdown = () => {
+        setIsDownloadDropdownOpen(!isDownloadDropdownOpen);
+    };
+
+    // 다운로드 파라미터 변경 핸들러
+    const handleDownloadParamChange = (field: string, value: string | boolean) => {
+        setDownloadParams(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
 
     // 검색 필터링
     const filteredLogs = logs.filter(log => {
@@ -578,9 +611,110 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
                         </button>
                     </div>
 
-                    <button onClick={handleRefresh} className={styles.refreshButton}>
-                        새로고침
-                    </button>
+                    {/* Excel 다운로드 드롭다운 */}
+                    <div className={styles.downloadContainer} ref={downloadDropdownRef}>
+                        <DownloadButton
+                            onClick={toggleDownloadDropdown}
+                            loading={isDownloading}
+                            title="Excel 다운로드"
+                        />
+
+                        {isDownloadDropdownOpen && (
+                            <div className={styles.downloadDropdown}>
+                                <div className={styles.downloadDropdownHeader}>
+                                    <h4>Excel 다운로드 옵션</h4>
+                                </div>
+                                <div className={styles.downloadDropdownBody}>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="download-user-id">사용자 ID (선택)</label>
+                                        <input
+                                            id="download-user-id"
+                                            type="text"
+                                            placeholder="비워두면 전체"
+                                            value={downloadParams.userId}
+                                            onChange={(e) => handleDownloadParamChange('userId', e.target.value)}
+                                            className={styles.formInput}
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="download-workflow-id">워크플로우 ID (선택)</label>
+                                        <input
+                                            id="download-workflow-id"
+                                            type="text"
+                                            placeholder="비워두면 전체"
+                                            value={downloadParams.workflowId}
+                                            onChange={(e) => handleDownloadParamChange('workflowId', e.target.value)}
+                                            className={styles.formInput}
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="download-workflow-name">워크플로우 이름 (선택)</label>
+                                        <input
+                                            id="download-workflow-name"
+                                            type="text"
+                                            placeholder="비워두면 전체"
+                                            value={downloadParams.workflowName}
+                                            onChange={(e) => handleDownloadParamChange('workflowName', e.target.value)}
+                                            className={styles.formInput}
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="download-start-date">시작 날짜 (선택)</label>
+                                        <input
+                                            id="download-start-date"
+                                            type="datetime-local"
+                                            value={downloadParams.startDate}
+                                            onChange={(e) => handleDownloadParamChange('startDate', e.target.value)}
+                                            className={styles.formInput}
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="download-end-date">종료 날짜 (선택)</label>
+                                        <input
+                                            id="download-end-date"
+                                            type="datetime-local"
+                                            value={downloadParams.endDate}
+                                            onChange={(e) => handleDownloadParamChange('endDate', e.target.value)}
+                                            className={styles.formInput}
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label>출력 데이터 가공 적용</label>
+                                        <div className={styles.toggleButtons}>
+                                            <button
+                                                onClick={() => handleDownloadParamChange('dataProcessing', false)}
+                                                className={`${styles.toggleButton} ${!downloadParams.dataProcessing ? styles.active : ''}`}
+                                                type="button"
+                                            >
+                                                원본
+                                            </button>
+                                            <button
+                                                onClick={() => handleDownloadParamChange('dataProcessing', true)}
+                                                className={`${styles.toggleButton} ${downloadParams.dataProcessing ? styles.active : ''}`}
+                                                type="button"
+                                            >
+                                                가공
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className={styles.downloadDropdownFooter}>
+                                        <button
+                                            onClick={handleDownloadExcel}
+                                            className={styles.downloadExecuteButton}
+                                            disabled={isDownloading}
+                                        >
+                                            {isDownloading ? '다운로드 중...' : '다운로드 시작'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <RefreshButton
+                        onClick={handleRefresh}
+                        loading={loading}
+                    />
                 </div>
             </div>
 

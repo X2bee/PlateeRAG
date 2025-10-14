@@ -73,7 +73,8 @@ export const useNodeManagement = ({ historyHelpers }: UseNodeManagementProps = {
                 position: {
                     x: copiedNode.position.x + 50,
                     y: copiedNode.position.y + 50
-                }
+                },
+                isExpanded: copiedNode.isExpanded !== undefined ? copiedNode.isExpanded : true, // Preserve or default to true
             };
 
             setNodes(prev => [...prev, newNode]);

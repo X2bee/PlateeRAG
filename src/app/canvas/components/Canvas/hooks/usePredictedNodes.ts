@@ -166,7 +166,8 @@ export const usePredictedNodes = ({
         const newNode: CanvasNode = {
             id: `${nodeData.id}-${Date.now()}`,
             data: nodeData,
-            position: position
+            position: position,
+            isExpanded: true, // Default to expanded
         };
 
         // Clear predicted nodes state

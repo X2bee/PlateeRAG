@@ -42,7 +42,7 @@ export const getChatSidebarItems = (): SidebarItem[] => [
     },
 ];
 
-export const getWorkflowItems = ['canvas', 'workflows', 'documents', 'prompt-store'];
+export const getWorkflowItems = ['canvas', 'workflows', 'documents', 'prompt-store', 'workflow-store'];
 
 export const getWorkflowSidebarItems = (): SidebarItem[] => [
     {
@@ -68,6 +68,12 @@ export const getWorkflowSidebarItems = (): SidebarItem[] => [
         title: '프롬프트 스토어',
         description: '프롬프트 템플릿을 탐색하고 관리',
         icon: React.createElement(IoDocumentTextOutline),
+    },
+    {
+        id: 'workflow-store',
+        title: '워크플로우 스토어',
+        description: '워크플로우 템플릿을 탐색하고 관리',
+        icon: React.createElement(FiLayers),
     },
 ];
 
@@ -209,4 +215,3 @@ export const getFilteredMlModelSidebarItems = (hasAccessToSection: (sectionId: s
     devLog.log('SidebarConfig: Filtered ML model items:', filteredItems.map(item => item.id));
     return filteredItems;
 };
-

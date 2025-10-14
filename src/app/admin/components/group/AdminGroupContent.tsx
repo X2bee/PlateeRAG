@@ -6,6 +6,7 @@ import { removeUserGroup, addUserGroup } from '@/app/admin/api/users';
 import { devLog } from '@/app/_common/utils/logger';
 import { showSuccessToastKo, showErrorToastKo, showValidationErrorToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { useAdminAuth } from '@/app/admin/components/helper/AdminAuthGuard';
+import RefreshButton from '@/app/_common/icons/refresh';
 import styles from '@/app/admin/assets/AdminGroupContent.module.scss';
 import AdminGroupAddModal from '@/app/admin/components/group/modals/AdminGroupAddModal';
 import AdminGroupCreateModal from '@/app/admin/components/group/modals/AdminGroupCreateModal';
@@ -67,14 +68,16 @@ const AdminGroupContent: React.FC = () => {
     // 사용 가능한 섹션 목록
     const availableSectionOptions = [
         'canvas',
-        'documents',
-        'train',
         'workflows',
-        'eval',
-        'train-monitor',
-        'model-storage',
+        'documents',
+        'prompt-store',
+        'workflow-store',
         'data-station',
         'data-storage',
+        'train',
+        'train-monitor',
+        'eval',
+        'model-storage',
         'model-upload',
         'model-hub',
         'model-inference',
@@ -439,9 +442,10 @@ const AdminGroupContent: React.FC = () => {
                                 새 조직 생성
                             </button>
                         )}
-                        <button onClick={loadGroups} className={styles.refreshButton}>
-                            새로고침
-                        </button>
+                        <RefreshButton
+                            onClick={loadGroups}
+                            loading={loading}
+                        />
                     </div>
                 </div>
             )}
@@ -469,12 +473,10 @@ const AdminGroupContent: React.FC = () => {
                         >
                             조직원 추가
                         </button>
-                        <button
+                        <RefreshButton
                             onClick={() => selectedGroup && loadGroupUsers(selectedGroup)}
-                            className={styles.refreshButton}
-                        >
-                            새로고침
-                        </button>
+                            loading={loadingUsers}
+                        />
                     </div>
                 </div>
             )}

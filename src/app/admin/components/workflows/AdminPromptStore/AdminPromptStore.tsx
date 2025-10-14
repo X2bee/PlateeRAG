@@ -12,9 +12,9 @@ import {
     showDeleteErrorToastKo,
     showCopySuccessToastKo
 } from '@/app/_common/utils/toastUtilsKo';
+import RefreshButton from '@/app/_common/icons/refresh';
 import {
     IoSearch,
-    IoRefresh,
     IoPerson,
     IoCalendar,
     IoCopy,
@@ -325,13 +325,10 @@ const AdminPromptStore: React.FC<AdminPromptStoreProps> = ({ onPromptSelect, cla
                             </button>
                         </div>
 
-                        <button
-                            className={styles.refreshButton}
+                        <RefreshButton
                             onClick={handleRefresh}
-                            disabled={loading}
-                        >
-                            <IoRefresh className={styles.refreshIcon} />
-                        </button>
+                            loading={loading}
+                        />
                     </div>
                 </div>
             </div>

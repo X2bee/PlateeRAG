@@ -253,7 +253,8 @@ export const usePortHandlers = ({
                 const newNode: CanvasNode = {
                     id: `${predictedNode.nodeData.id}-${Date.now()}`,
                     data: predictedNode.nodeData,
-                    position: predictedNode.position
+                    position: predictedNode.position,
+                    isExpanded: true, // Default to expanded
                 };
 
                 addNode(newNode);

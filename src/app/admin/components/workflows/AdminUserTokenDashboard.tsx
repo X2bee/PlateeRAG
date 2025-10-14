@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { getUserTokenUsage } from '@/app/admin/api/workflow';
 import { devLog } from '@/app/_common/utils/logger';
 import { showValidationErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
+import RefreshButton from '@/app/_common/icons/refresh';
 import styles from '@/app/admin/assets/workflows/AdminUserTokenDashboard.module.scss';
 
 interface WorkflowUsageDetail {
@@ -441,12 +442,10 @@ const AdminUserTokenDashboard: React.FC = () => {
                     )}
                 </div>
 
-                <button
+                <RefreshButton
                     onClick={handleRefresh}
-                    className={styles.refreshButton}
-                >
-                    새로고침
-                </button>
+                    loading={loading}
+                />
             </div>
 
             {/* 요약 통계 */}

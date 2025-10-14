@@ -16,6 +16,7 @@ import {
 import { BsDatabaseUp } from 'react-icons/bs';
 import { SiOpenai } from 'react-icons/si';
 import { RiAnthropicFill, RiGeminiFill } from "react-icons/ri";
+import RefreshButton from '@/app/_common/icons/refresh';
 import { fetchAllConfigs, updateConfig } from '@/app/_common/api/configAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import { showValidationErrorToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
@@ -423,13 +424,7 @@ const AdminConfigViewer: React.FC<AdminConfigViewerProps> = ({
             {/* Header - simplified for component use */}
             <div className={styles.header}>
                 <div className={styles.headerActions}>
-                    <button
-                        onClick={fetchConfigs}
-                        className={styles.refreshButton}
-                    >
-                        <FiRefreshCw />
-                        새로고침
-                    </button>
+                    <RefreshButton onClick={fetchConfigs} loading={loading} />
                     {onNavigateToSettings && (
                         <button
                             onClick={onNavigateToSettings}

@@ -166,45 +166,6 @@
                     transition: transform 0.3s ease;
                 }
             }
-
-            // 아이콘 전용 버튼 스타일 (새로고침 등)
-            .iconButton {
-                background: transparent;
-                border: 1px solid $gray-300;
-                border-radius: 6px;
-                padding: 0.5rem;
-                cursor: pointer;
-                color: $gray-600;
-                transition: all 0.2s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 36px;
-                height: 36px;
-
-                &:hover:not(:disabled) {
-                    background: $gray-50;
-                    border-color: $primary-blue;
-                    color: $primary-blue;
-                }
-
-                &:disabled {
-                    cursor: not-allowed;
-                    opacity: 0.6;
-                }
-
-                svg {
-                    width: 16px;
-                    height: 16px;
-                }
-            }
-
-            // 스피닝 애니메이션
-            .spinning {
-                svg {
-                    animation: spin 1s linear infinite;
-                }
-            }
         }
     }
 }
@@ -215,7 +176,7 @@
     overflow-y: auto;
     padding: 1.5rem 2rem 2rem;
 
-    .promptGrid {
+    .workflowGrid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
         gap: 1.5rem;
@@ -278,8 +239,8 @@
     }
 }
 
-// 프롬프트 추가 카드 스타일
-.addPromptCard {
+// 워크플로우 추가 카드 스타일
+.addWorkflowCard {
     background: linear-gradient(135deg, rgba($primary-blue, 0.05) 0%, rgba($primary-blue, 0.1) 100%);
     border: 2px dashed $primary-blue;
     border-radius: 0.75rem;
@@ -320,11 +281,11 @@
         transform: rotate(45deg) translate(50%, 50%);
     }
 
-    .addPromptContent {
+    .addWorkflowContent {
         position: relative;
         z-index: 2;
 
-        .addPromptIcon {
+        .addWorkflowIcon {
             width: 4rem;
             height: 4rem;
             background: $primary-blue;
@@ -341,7 +302,7 @@
             }
         }
 
-        .addPromptTitle {
+        .addWorkflowTitle {
             font-size: 1.25rem;
             font-weight: 700;
             color: $gray-800;
@@ -349,7 +310,7 @@
             line-height: 1.4;
         }
 
-        .addPromptDescription {
+        .addWorkflowDescription {
             font-size: 0.875rem;
             color: $gray-600;
             margin: 0;
@@ -358,7 +319,7 @@
         }
     }
 
-    &:hover .addPromptContent .addPromptIcon {
+    &:hover .addWorkflowContent .addWorkflowIcon {
         background: $white;
         box-shadow: 0 4px 12px rgba($primary-blue, 0.3);
         transform: scale(1.1);
@@ -369,8 +330,8 @@
     }
 }
 
-// 프롬프트 카드 스타일
-.promptCard {
+// 워크플로우 카드 스타일
+.workflowCard {
     background: $white;
     border: 1px solid $gray-200;
     border-radius: 0.75rem;
@@ -390,8 +351,8 @@
 
     .cardHeader {
         display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
+        justify-content: space-between;
+        align-items: flex-start;
         margin-bottom: 1rem;
 
         .cardTitle {
@@ -400,6 +361,8 @@
             color: $gray-900;
             margin: 0;
             line-height: 1.4;
+            flex: 1;
+            margin-right: 1rem;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -408,8 +371,9 @@
 
         .cardBadges {
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
+            flex-direction: column;
+            gap: 0.25rem;
+            flex-shrink: 0;
 
             .badge {
                 padding: 0.25rem 0.5rem;
@@ -421,21 +385,6 @@
                 &.language {
                     background: rgba($primary-orange, 0.1);
                     color: $primary-orange;
-                }
-
-                &.template {
-                    background: rgba(168, 85, 247, 0.1);
-                    color: #a855f7;
-                }
-
-                &.public {
-                    background: rgba(34, 197, 94, 0.1);
-                    color: #22c55e;
-                }
-
-                &.private {
-                    background: rgba(239, 68, 68, 0.1);
-                    color: #ef4444;
                 }
             }
         }
@@ -578,18 +527,18 @@
     .content {
         padding: 1rem;
 
-        .promptGrid {
+        .workflowGrid {
             grid-template-columns: 1fr;
             gap: 1rem;
         }
     }
 
-    .addPromptCard {
+    .addWorkflowCard {
         padding: 1.5rem;
         min-height: 200px;
 
-        .addPromptContent {
-            .addPromptIcon {
+        .addWorkflowContent {
+            .addWorkflowIcon {
                 width: 3rem;
                 height: 3rem;
                 margin-bottom: 1rem;
@@ -599,30 +548,26 @@
                 }
             }
 
-            .addPromptTitle {
+            .addWorkflowTitle {
                 font-size: 1.125rem;
             }
 
-            .addPromptDescription {
+            .addWorkflowDescription {
                 font-size: 0.8125rem;
             }
         }
     }
 
-    .promptCard {
+    .workflowCard {
         padding: 1rem;
         min-height: 180px;
 
         .cardHeader {
-            gap: 0.5rem;
-
             .cardTitle {
                 font-size: 1rem;
             }
 
             .cardBadges {
-                gap: 0.375rem;
-
                 .badge {
                     font-size: 0.625rem;
                     padding: 0.1875rem 0.375rem;
@@ -663,12 +608,12 @@
         }
     }
 
-    .addPromptCard {
+    .addWorkflowCard {
         padding: 1rem;
         min-height: 180px;
 
-        .addPromptContent {
-            .addPromptIcon {
+        .addWorkflowContent {
+            .addWorkflowIcon {
                 width: 2.5rem;
                 height: 2.5rem;
                 margin-bottom: 0.75rem;
@@ -678,23 +623,30 @@
                 }
             }
 
-            .addPromptTitle {
+            .addWorkflowTitle {
                 font-size: 1rem;
                 margin-bottom: 0.5rem;
             }
 
-            .addPromptDescription {
+            .addWorkflowDescription {
                 font-size: 0.75rem;
             }
         }
     }
 
-    .promptCard {
+    .workflowCard {
         .cardHeader {
-            gap: 0.5rem;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+
+            .cardTitle {
+                margin-right: 0;
+            }
 
             .cardBadges {
-                gap: 0.375rem;
+                flex-direction: row;
+                flex-wrap: wrap;
             }
         }
     }

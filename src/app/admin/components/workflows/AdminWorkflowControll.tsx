@@ -5,7 +5,6 @@ import {
     FiTrash2,
     FiUser,
     FiClock,
-    FiRefreshCw,
     FiUsers,
     FiSearch,
     FiX,
@@ -14,6 +13,7 @@ import {
     FiXCircle,
     FiFileText,
 } from 'react-icons/fi';
+import RefreshButton from '@/app/_common/icons/refresh';
 import styles from '@/app/admin/assets/workflows/AdminWorkflowControll.module.scss';
 import { getAllWorkflowMeta, deleteWorkflowAdmin, updateWorkflow } from '@/app/admin/api/workflow';
 import {
@@ -338,14 +338,10 @@ const AdminWorkflowControll: React.FC = () => {
 
                     </div>
 
-                    <button
-                        className={`${styles.refreshButton} ${loading ? styles.spinning : ''}`}
+                    <RefreshButton
                         onClick={fetchWorkflows}
-                        disabled={loading}
-                        title="새로고침"
-                    >
-                        <FiRefreshCw />
-                    </button>
+                        loading={loading}
+                    />
                 </div>
             </div>
 
@@ -401,7 +397,7 @@ const AdminWorkflowControll: React.FC = () => {
                             </div>
 
                             <div className={styles.cardContent}>
-                                <h3 className={styles.workflowName}>
+                                <h3 className={styles.workflowName} title={workflow.name}>
                                     {workflow.name}
                                 </h3>
                                 {workflow.description && (
@@ -418,12 +414,12 @@ const AdminWorkflowControll: React.FC = () => {
                                 <div className={styles.workflowMeta}>
                                     <div className={styles.metaItem}>
                                         <FiUser />
-                                        <span>{workflow.author}</span>
+                                        <span title={workflow.author}>{workflow.author}</span>
                                     </div>
                                     {workflow.lastModified && (
                                         <div className={styles.metaItem}>
                                             <FiClock />
-                                            <span>
+                                            <span title={new Date(workflow.lastModified).toLocaleDateString('ko-KR')}>
                                                 {new Date(
                                                     workflow.lastModified,
                                                 ).toLocaleDateString('ko-KR')}
@@ -431,12 +427,12 @@ const AdminWorkflowControll: React.FC = () => {
                                         </div>
                                     )}
                                     <div className={styles.metaItem}>
-                                        <span>{workflow.nodeCount}개 노드</span>
+                                        <span title={`${workflow.nodeCount}개 노드`}>{workflow.nodeCount}개 노드</span>
                                     </div>
                                     {workflow.share_group && (
                                         <div className={styles.metaItem}>
                                             <FiUsers />
-                                            <span>조직: {workflow.share_group}</span>
+                                            <span title={`조직: ${workflow.share_group}`}>조직: {workflow.share_group}</span>
                                         </div>
                                     )}
                                 </div>

@@ -28,7 +28,6 @@ interface CanvasNodesProps {
     onOutputDelete?: (nodeId: string, outputId: string) => void;
     onOutputNameChange?: (nodeId: string, outputId: string, newName: string) => void;
     currentEdges: any[];
-    nodeExpandedState: Record<string, boolean>;
     onToggleExpanded: (nodeId: string) => void;
 }
 
@@ -53,7 +52,6 @@ export const CanvasNodes: React.FC<CanvasNodesProps> = ({
     onOutputDelete,
     onOutputNameChange,
     currentEdges,
-    nodeExpandedState,
     onToggleExpanded
 }) => {
     return (
@@ -89,7 +87,7 @@ export const CanvasNodes: React.FC<CanvasNodesProps> = ({
                             onSynchronizeSchema={onSynchronizeSchema && ((portId: string) => onSynchronizeSchema(node.id, portId))}
                             currentNodes={nodes}
                             currentEdges={currentEdges}
-                            isExpanded={nodeExpandedState[node.id] ?? true}
+                            isExpanded={node.isExpanded !== undefined ? node.isExpanded : true}
                             onToggleExpanded={onToggleExpanded}
                         />
                     );
@@ -123,7 +121,7 @@ export const CanvasNodes: React.FC<CanvasNodesProps> = ({
                             onOutputAdd={onOutputAdd}
                             onOutputDelete={onOutputDelete}
                             onOutputNameChange={onOutputNameChange}
-                            isExpanded={nodeExpandedState[node.id] ?? true}
+                            isExpanded={node.isExpanded !== undefined ? node.isExpanded : true}
                             onToggleExpanded={onToggleExpanded}
                         />
                     );
@@ -152,7 +150,7 @@ export const CanvasNodes: React.FC<CanvasNodesProps> = ({
                         onSynchronizeSchema={onSynchronizeSchema && ((portId: string) => onSynchronizeSchema(node.id, portId))}
                         currentNodes={nodes}
                         currentEdges={currentEdges}
-                        isExpanded={nodeExpandedState[node.id] ?? false}
+                        isExpanded={node.isExpanded !== undefined ? node.isExpanded : true}
                         onToggleExpanded={onToggleExpanded}
                     />
                 );

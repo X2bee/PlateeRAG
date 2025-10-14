@@ -9,6 +9,7 @@ import {
     checkDatabaseConnection
 } from '@/app/admin/api/db';
 import { devLog } from '@/app/_common/utils/logger';
+import RefreshButton from '@/app/_common/icons/refresh';
 import styles from '@/app/admin/assets/AdminDatabase.module.scss';
 import {
     showSuccessToastKo,
@@ -329,9 +330,7 @@ const AdminDatabase: React.FC = () => {
                 <div className={styles.error}>
                     <h3>오류 발생</h3>
                     <p>{error}</p>
-                    <button onClick={handleRefresh} className={styles.retryButton}>
-                        다시 시도
-                    </button>
+                    <RefreshButton onClick={handleRefresh} loading={loading} title="다시 시도" />
                 </div>
             </div>
         );
@@ -367,9 +366,7 @@ const AdminDatabase: React.FC = () => {
                         <span className={styles.infoValue}>{tables.length}</span>
                     </div>
                 </div>
-                <button onClick={handleRefresh} className={styles.refreshButton}>
-                    새로고침
-                </button>
+                <RefreshButton onClick={handleRefresh} loading={loading} />
             </div>
 
             {/* 메인 컨텐츠 */}

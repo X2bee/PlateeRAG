@@ -187,6 +187,43 @@
     }
 }
 
+// 아이콘 전용 버튼 스타일 (새로고침 등)
+.iconButton {
+    background: transparent;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: $gray-600;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+
+    &:hover:not(:disabled) {
+        background: $gray-50;
+        border-color: $primary-blue;
+        color: $primary-blue;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+// 스피닝 애니메이션
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
 .tableContainer {
     overflow-x: auto;
     max-height: 600px;
@@ -638,4 +675,139 @@
     white-space: pre-wrap;
     word-break: break-word;
     margin: 0;
+}
+
+// Excel 다운로드 관련 스타일
+.downloadContainer {
+    position: relative;
+    display: inline-block;
+}
+
+.downloadButton {
+    @extend %button-base;
+    padding: $admin-spacing-sm $admin-spacing-lg;
+    background: $admin-success;
+    color: $admin-text-inverse;
+    font-size: $admin-font-size-sm;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: $admin-spacing-xs;
+
+    &:hover:not(:disabled) {
+        background: $admin-success-hover;
+        transform: translateY(-1px);
+        box-shadow: $admin-shadow-md;
+    }
+
+    &:disabled {
+        background: $admin-bg-disabled;
+        color: $admin-text-disabled;
+        cursor: not-allowed;
+    }
+}
+
+.downloadDropdown {
+    position: absolute;
+    top: calc(100% + $admin-spacing-xs);
+    right: 0;
+    background: $admin-bg-primary;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius-md;
+    box-shadow: $admin-shadow-xl;
+    z-index: 1000;
+    min-width: 320px;
+    max-width: 400px;
+    animation: dropdownFadeIn 0.2s ease;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.downloadDropdownHeader {
+    padding: $admin-spacing-md $admin-spacing-lg;
+    border-bottom: 1px solid $admin-border;
+    background: $admin-bg-secondary;
+    border-radius: $admin-radius-md $admin-radius-md 0 0;
+
+    h4 {
+        margin: 0;
+        font-size: $admin-font-size-base;
+        font-weight: 600;
+        color: $admin-text-primary;
+    }
+}
+
+.downloadDropdownBody {
+    padding: $admin-spacing-lg;
+    display: flex;
+    flex-direction: column;
+    gap: $admin-spacing-md;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: $admin-spacing-xs;
+
+    label {
+        font-size: $admin-font-size-sm;
+        font-weight: 500;
+        color: $admin-text-primary;
+        font-family: $admin-font-family;
+    }
+
+    .toggleButtons {
+        width: 100%;
+
+        .toggleButton {
+            flex: 1;
+            text-align: center;
+        }
+    }
+}
+
+.formInput {
+    @extend %input-base;
+    padding: $admin-spacing-sm $admin-spacing-md;
+    width: 100%;
+    font-size: $admin-font-size-sm;
+}
+
+.downloadDropdownFooter {
+    padding-top: $admin-spacing-md;
+    border-top: 1px solid $admin-border;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.downloadExecuteButton {
+    @extend %button-base;
+    padding: $admin-spacing-sm $admin-spacing-xl;
+    background: $admin-success;
+    color: $admin-text-inverse;
+    font-size: $admin-font-size-sm;
+    font-weight: 600;
+    width: 100%;
+
+    &:hover:not(:disabled) {
+        background: $admin-success-hover;
+        transform: translateY(-1px);
+        box-shadow: $admin-shadow-md;
+    }
+
+    &:disabled {
+        background: $admin-bg-disabled;
+        color: $admin-text-disabled;
+        cursor: not-allowed;
+        transform: none;
+    }
 }

@@ -2,10 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import styles from '@/app/main/workflowSection/assets/CollectionEditModal.module.scss';
-import { updateWorkflow } from '@/app/_common/api/workflow/workflowAPI';
+import { updateWorkflow, renameWorkflow } from '@/app/_common/api/workflow/workflowAPI';
 import { getGroupAvailableGroups } from '@/app/_common/api/authAPI';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import { Workflow } from '@/app/main/workflowSection/types/index';
+import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
+import { devLog } from '@/app/_common/utils/logger';
 
 interface WorkflowEditModalProps {
     workflow: Workflow;
@@ -21,6 +23,8 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
     onUpdate
 }) => {
     const { user } = useAuth();
+    const [workflowName, setWorkflowName] = useState<string>('');
+    const [isEditingName, setIsEditingName] = useState<boolean>(false);
     const [isShared, setIsShared] = useState<boolean>(false);
     const [toggleDeploy, setToggleDeploy] = useState<boolean>(false);
     const [shareGroup, setShareGroup] = useState<string>('');
@@ -28,13 +32,19 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
     const [availableGroups, setAvailableGroups] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isOwner, setIsOwner] = useState<boolean>(false);
 
     // 워크플로우 정보로 폼 초기화
     useEffect(() => {
         if (workflow) {
+            setWorkflowName(workflow.name);
             setIsShared(workflow.is_shared === true);
             setShareGroup(workflow.share_group || '');
             setSharePermissions(workflow.share_permissions || 'read');
+
+            // 소유권 확인
+            const isWorkflowOwner = user ? workflow.user_id === user.user_id : false;
+            setIsOwner(isWorkflowOwner);
 
             const workflowDetail = workflow as any;
             if (workflowDetail.inquire_deploy) {
@@ -45,7 +55,7 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
                 setToggleDeploy(false);
             }
         }
-    }, [workflow]);
+    }, [workflow, user]);
 
     // 사용 가능한 그룹 목록 로드
     useEffect(() => {
@@ -73,6 +83,35 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
             setLoading(true);
             setError(null);
 
+            const trimmedName = workflowName.trim();
+            const finalName = trimmedName || workflow.name;
+            let currentWorkflowName = workflow.name;
+
+            // 1. 이름이 변경된 경우 먼저 이름 변경
+            if (finalName !== workflow.name && isOwner) {
+                try {
+                    await renameWorkflow(workflow.name, finalName);
+                    devLog.log('Workflow name changed from:', workflow.name, 'to:', finalName);
+                    currentWorkflowName = finalName; // 이름 변경 성공 시 업데이트
+                } catch (error) {
+                    devLog.error('Failed to rename workflow:', error);
+
+                    // 에러 메시지 파싱
+                    const errorMessage = error instanceof Error ? error.message : String(error);
+
+                    if (errorMessage.includes('already exists')) {
+                        setError('이미 존재하는 이름입니다. 다른 이름으로 시도하세요.');
+                    } else {
+                        setError('워크플로우 이름 변경에 실패했습니다.');
+                    }
+
+                    // 사용자가 입력한 값은 유지 (초기화하지 않음)
+                    setLoading(false);
+                    return; // 이름 변경 실패 시 중단
+                }
+            }
+
+            // 2. 다른 설정 업데이트 (변경된 이름 사용)
             const updateDict = {
                 is_shared: isShared,
                 share_group: isShared ? shareGroup || null : null,
@@ -80,10 +119,13 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
                 enable_deploy: toggleDeploy  // 백엔드에서 관리자 권한에 따라 처리
             };
 
-            await updateWorkflow(workflow.name, updateDict);
+            await updateWorkflow(currentWorkflowName, updateDict);
 
+            // 3. 업데이트된 정보를 부모에게 전달
             const updatedWorkflow = {
                 ...workflow,
+                name: currentWorkflowName,
+                filename: `${currentWorkflowName}.json`,
                 is_shared: isShared,
                 share_group: isShared ? shareGroup || null : null,
                 share_permissions: isShared ? sharePermissions : null,
@@ -91,8 +133,15 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
 
             // 배포 상태: toggleDeploy가 true이면 'pending' (일반 사용자) 또는 true (관리자)
             const updatedDeploy: {[key: string]: boolean | 'pending' | null} = {
-                [workflow.name]: toggleDeploy ? 'pending' : false
+                [currentWorkflowName]: toggleDeploy ? 'pending' : false
             };
+
+            // 성공 메시지
+            if (finalName !== workflow.name && isOwner) {
+                showSuccessToastKo('워크플로우 이름 및 설정이 업데이트되었습니다.');
+            } else {
+                showSuccessToastKo('워크플로우 설정이 업데이트되었습니다.');
+            }
 
             onUpdate(updatedWorkflow as any, updatedDeploy);
             onClose();
@@ -113,13 +162,30 @@ const WorkflowEditModal: React.FC<WorkflowEditModalProps> = ({
 
                 <div className={styles.formGroup}>
                     <label>워크플로우 이름</label>
-                    <input
-                        type="text"
-                        value={workflow.name}
-                        disabled
-                        className={styles.disabledInput}
-                    />
-                    <small>워크플로우 이름은 변경할 수 없습니다.</small>
+                    {isOwner ? (
+                        <>
+                            <input
+                                type="text"
+                                value={workflowName}
+                                onChange={(e) => setWorkflowName(e.target.value)}
+                                onBlur={() => setIsEditingName(false)}
+                                onFocus={() => setIsEditingName(true)}
+                                disabled={loading}
+                                className={isEditingName ? styles.editingInput : ''}
+                            />
+                            <small>워크플로우 이름을 변경한 후 아래 업데이트 버튼을 클릭하세요.</small>
+                        </>
+                    ) : (
+                        <>
+                            <input
+                                type="text"
+                                value={workflow.name}
+                                disabled
+                                className={styles.disabledInput}
+                            />
+                            <small>공유받은 워크플로우는 이름을 변경할 수 없습니다.</small>
+                        </>
+                    )}
                 </div>
 
                 <div className={styles.formGroup}>
