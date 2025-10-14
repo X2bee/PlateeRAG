@@ -5,6 +5,7 @@ import { getBackendLogs } from '@/app/admin/api/admin';
 import { devLog } from '@/app/_common/utils/logger';
 import { showValidationErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import AdminBackendLogDetailModal from '@/app/admin/components/sysmonitor/AdminBackendLogDetailModal';
+import RefreshButton from '@/app/_common/icons/refresh';
 import styles from '@/app/admin/assets/AdminBackendLogs.module.scss';
 
 interface BackendLog {
@@ -544,9 +545,7 @@ const AdminBackendLogs: React.FC = () => {
                         )}
                     </div>
 
-                    <button onClick={handleRefresh} className={styles.refreshButton}>
-                        새로고침
-                    </button>
+                    <RefreshButton onClick={handleRefresh} loading={loading} />
                 </div>
             </div>
 

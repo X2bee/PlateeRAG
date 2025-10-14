@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FiRefreshCw, FiChevronDown, FiChevronRight, FiInfo, FiGrid, FiList } from 'react-icons/fi';
+import { FiChevronDown, FiChevronRight, FiInfo, FiGrid, FiList } from 'react-icons/fi';
 import { getNodes, refreshNodes } from '@/app/_common/api/nodeAPI';
 import { NodeCategory, Node, TreeNode } from './types';
+import RefreshButton from '@/app/_common/icons/refresh';
 import styles from '@/app/admin/assets/workflows/AdminNodeManage.module.scss';
 
 const AdminNodeManage: React.FC = () => {
@@ -109,14 +110,10 @@ const AdminNodeManage: React.FC = () => {
                         트리 뷰
                     </button>
                 </div>
-                <button
+                <RefreshButton
                     onClick={handleRefresh}
-                    disabled={refreshing}
-                    className={`${styles.refreshButton} ${refreshing ? styles.refreshing : ''}`}
-                >
-                    <FiRefreshCw className={refreshing ? styles.spinning : ''} />
-                    {refreshing ? '새로고침 중...' : '새로고침'}
-                </button>
+                    loading={refreshing}
+                />
             </div>
 
             {activeView === 'table' ? (

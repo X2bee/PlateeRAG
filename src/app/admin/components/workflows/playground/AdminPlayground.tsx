@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { FiRefreshCw } from 'react-icons/fi';
 import { getAllWorkflowMeta } from '@/app/admin/api/workflow';
+import RefreshButton from '@/app/_common/icons/refresh';
 
 import styles from '@/app/admin/assets/playground/AdminPlayground.module.scss';
 import Executor from '@/app/admin/components/workflows/playground/Executor';
@@ -124,13 +124,10 @@ const AdminPlayground: React.FC<PlaygroundProps> = ({ activeTab, onTabChange }) 
                 <div className={styles.workflowList}>
                     <div className={styles.workflowListHeader}>
                         <h3>워크플로우 목록</h3>
-                        <button
-                            className={`${styles.workflowRefreshButton} ${workflowListLoading ? styles.spinning : ''}`}
+                        <RefreshButton
                             onClick={loadWorkflowList}
-                            disabled={workflowListLoading}
-                        >
-                            <FiRefreshCw />
-                        </button>
+                            loading={workflowListLoading}
+                        />
                     </div>
 
                     {workflowListLoading ? (

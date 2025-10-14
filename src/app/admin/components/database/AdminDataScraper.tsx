@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-    FiRefreshCw,
     FiPlus,
     FiDatabase,
     FiGlobe,
@@ -21,6 +20,7 @@ import {
     FiCheckCircle,
     FiBarChart2
 } from 'react-icons/fi';
+import RefreshButton from '@/app/_common/icons/refresh';
 import styles from '@/app/admin/assets/AdminDataScraper.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
 import {
@@ -257,12 +257,10 @@ const AdminDataScraper: React.FC = () => {
                         New Scraper
                     </button>
                 </div>
-                <button
-                    className={styles.refreshButton}
+                <RefreshButton
                     onClick={() => setRefreshTrigger(prev => prev + 1)}
-                >
-                    <FiRefreshCw />
-                </button>
+                    loading={loading}
+                />
             </div>
 
             {/* 통계 카드 */}

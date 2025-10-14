@@ -11,6 +11,7 @@ import {
     FiPlay,
     FiAlertCircle
 } from 'react-icons/fi';
+import RefreshButton from '@/app/_common/icons/refresh';
 import styles from '@/app/admin/assets/MCPStation.module.scss';
 import {
     checkMCPHealth,
@@ -222,15 +223,12 @@ const MCPStation: React.FC = () => {
                             {mcpHealthy ? 'MCP Station 연결됨' : 'MCP Station 연결 안됨'}
                         </span>
                     </div>
-                    <button
+                    <RefreshButton
                         onClick={loadSessions}
-                        disabled={!mcpHealthy || isLoadingSessions}
-                        className={styles.refreshButton}
+                        disabled={!mcpHealthy}
+                        loading={isLoadingSessions}
                         title="세션 목록 새로고침"
-                    >
-                        <FiRefreshCw className={isLoadingSessions ? styles.spinning : ''} />
-                        새로고침
-                    </button>
+                    />
                 </div>
             </div>
 

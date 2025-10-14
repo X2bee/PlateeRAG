@@ -5,7 +5,6 @@ import {
     FiTrash2,
     FiUser,
     FiClock,
-    FiRefreshCw,
     FiUsers,
     FiSearch,
     FiX,
@@ -14,6 +13,7 @@ import {
     FiXCircle,
     FiFileText,
 } from 'react-icons/fi';
+import RefreshButton from '@/app/_common/icons/refresh';
 import styles from '@/app/admin/assets/workflows/AdminWorkflowControll.module.scss';
 import { getAllWorkflowMeta, deleteWorkflowAdmin, updateWorkflow } from '@/app/admin/api/workflow';
 import {
@@ -338,14 +338,10 @@ const AdminWorkflowControll: React.FC = () => {
 
                     </div>
 
-                    <button
-                        className={`${styles.refreshButton} ${loading ? styles.spinning : ''}`}
+                    <RefreshButton
                         onClick={fetchWorkflows}
-                        disabled={loading}
-                        title="새로고침"
-                    >
-                        <FiRefreshCw />
-                    </button>
+                        loading={loading}
+                    />
                 </div>
             </div>
 

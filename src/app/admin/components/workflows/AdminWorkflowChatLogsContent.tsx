@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { FiRefreshCw } from 'react-icons/fi';
 import { getAllIOLogs, downloadAllIOLogsExcel } from '@/app/admin/api/workflow';
 import { devLog } from '@/app/_common/utils/logger';
 import { showValidationErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
+import RefreshButton from '@/app/_common/icons/refresh';
 import styles from '@/app/admin/assets/AdminWorkflowLogsContent.module.scss';
 import AdminWorkflowChatLogsDetailModal from './AdminWorkflowChatLogsDetailModal';
 
@@ -766,14 +766,10 @@ const AdminWorkflowChatLogsContent: React.FC = () => {
                         )}
                     </div>
 
-                    <button
-                        className={`${styles.iconButton} ${loading ? styles.spinning : ''}`}
+                    <RefreshButton
                         onClick={handleRefresh}
-                        disabled={loading}
-                        title="새로고침"
-                    >
-                        <FiRefreshCw />
-                    </button>
+                        loading={loading}
+                    />
                 </div>
             </div>
 

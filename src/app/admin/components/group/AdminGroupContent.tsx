@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FiRefreshCw } from 'react-icons/fi';
 import { getAllGroups, updateGroupPermissions, deleteGroup, createGroup, getGroupUsers } from '@/app/admin/api/group';
 import { removeUserGroup, addUserGroup } from '@/app/admin/api/users';
 import { devLog } from '@/app/_common/utils/logger';
 import { showSuccessToastKo, showErrorToastKo, showValidationErrorToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { useAdminAuth } from '@/app/admin/components/helper/AdminAuthGuard';
+import RefreshButton from '@/app/_common/icons/refresh';
 import styles from '@/app/admin/assets/AdminGroupContent.module.scss';
 import AdminGroupAddModal from '@/app/admin/components/group/modals/AdminGroupAddModal';
 import AdminGroupCreateModal from '@/app/admin/components/group/modals/AdminGroupCreateModal';
@@ -442,14 +442,10 @@ const AdminGroupContent: React.FC = () => {
                                 새 조직 생성
                             </button>
                         )}
-                        <button
-                            className={`${styles.iconButton} ${loading ? styles.spinning : ''}`}
+                        <RefreshButton
                             onClick={loadGroups}
-                            disabled={loading}
-                            title="새로고침"
-                        >
-                            <FiRefreshCw />
-                        </button>
+                            loading={loading}
+                        />
                     </div>
                 </div>
             )}
@@ -477,14 +473,10 @@ const AdminGroupContent: React.FC = () => {
                         >
                             조직원 추가
                         </button>
-                        <button
-                            className={`${styles.iconButton} ${loadingUsers ? styles.spinning : ''}`}
+                        <RefreshButton
                             onClick={() => selectedGroup && loadGroupUsers(selectedGroup)}
-                            disabled={loadingUsers}
-                            title="새로고침"
-                        >
-                            <FiRefreshCw />
-                        </button>
+                            loading={loadingUsers}
+                        />
                     </div>
                 </div>
             )}

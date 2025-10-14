@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FiRefreshCw } from 'react-icons/fi';
 import { getAllUsers, deleteUser, editUser } from '@/app/admin/api/users';
 import { devLog } from '@/app/_common/utils/logger';
+import RefreshButton from '@/app/_common/icons/refresh';
 import styles from '@/app/admin/assets/AdminUserContent.module.scss';
 import AdminUserEditModal from './AdminUserEditModal';
 import {
@@ -439,14 +439,10 @@ const AdminUserContent: React.FC = () => {
                             </button>
                         </div>
                     )}
-                    <button
-                        className={`${styles.iconButton} ${loading ? styles.spinning : ''}`}
+                    <RefreshButton
                         onClick={handleRefresh}
-                        disabled={loading}
-                        title="새로고침"
-                    >
-                        <FiRefreshCw />
-                    </button>
+                        loading={loading}
+                    />
                 </div>
             </div>
 
