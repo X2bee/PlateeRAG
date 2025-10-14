@@ -83,7 +83,7 @@ export const getDataSidebarItems = (): SidebarItem[] => [
     {
         id: 'data-station',
         title: '데이터 스테이션',
-        description: '데이터 매니저를 생성하고 관리합니다',
+        description: '데이터를 처리합니다.',
         icon: React.createElement(FiDatabase),
     },
     {

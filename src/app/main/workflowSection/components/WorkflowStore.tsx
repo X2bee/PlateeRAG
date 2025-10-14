@@ -11,7 +11,6 @@ import {
 } from '@/app/_common/utils/toastUtilsKo';
 import {
     IoSearch,
-    IoRefresh,
     IoPerson,
     IoCalendar,
     IoCopy,
@@ -20,6 +19,7 @@ import {
     IoTrash,
     IoPencil
 } from 'react-icons/io5';
+import RefreshButton from '@/app/_common/icons/refresh';
 
 interface Workflow {
     id: number;
@@ -306,13 +306,12 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                             </button>
                         </div>
 
-                        <button
-                            className={styles.refreshButton}
+                        <RefreshButton
                             onClick={handleRefresh}
+                            loading={loading}
                             disabled={loading}
-                        >
-                            <IoRefresh className={styles.refreshIcon} />
-                        </button>
+                            title="새로고침"
+                        />
                     </div>
                 </div>
             </div>
