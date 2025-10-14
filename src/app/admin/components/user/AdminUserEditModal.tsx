@@ -96,7 +96,7 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
         // LLM-Models
         "train", "train-monitor", "eval", "model-storage",
         // ML-Models
-        "model-upload", "model-hub", "model-inference", "ml-train", "ml-train-monitor",
+        "model-hub", "model-inference", "ml-train", "ml-train-monitor",
     ];
 
     // 관리자 섹션 이름 한국어 매핑
@@ -150,7 +150,7 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
         "eval": "모델 평가",
         "model-storage": "모델 허브",
         // ML-Models
-        "model-upload": "모델 업로드",
+        // "model-upload": "모델 업로드",
         "model-hub": "모델 허브",
         "model-inference": "모델 추론",
         "ml-train": "ML 모델 훈련",
