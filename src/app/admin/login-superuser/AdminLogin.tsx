@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/admin/login-superuser/AdminLogin.module.scss';
 import { superuserLogin } from '@/app/admin/api/users';
@@ -111,7 +112,9 @@ const AdminLogin: React.FC = () => {
             {/* 우측 비주얼 패널 */}
             <div className={styles.visualPanel}>
                 <div className={styles.visualContent}>
-                    <h2 className={styles.visualTitle}>XGEN</h2>
+                    <Link href="/" className={styles.logoLink}>
+                        <h2 className={styles.visualTitle}>XGEN</h2>
+                    </Link>
                     <p className={styles.visualSubtitle}>
                         Only One LLM Platform.<br />
                         XGEN Is All You Need.
