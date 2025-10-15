@@ -97,6 +97,21 @@ $admin-error-border: #f5c6cb;
     z-index: 1;
     color: white;
 
+    .logoLink {
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-block;
+
+        &:hover {
+            transform: scale(1.05);
+        }
+
+        &:active {
+            transform: scale(0.98);
+        }
+    }
+
     .visualTitle {
         font-size: 3rem;
         font-weight: 800;
@@ -106,10 +121,18 @@ $admin-error-border: #f5c6cb;
         -webkit-text-fill-color: transparent;
         background-clip: text;
         text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
 
         @media (max-width: 768px) {
             font-size: 2rem;
         }
+    }
+
+    .logoLink:hover .visualTitle {
+        background: linear-gradient(135deg, #ffffff, #f8f9fa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
     .visualSubtitle {
