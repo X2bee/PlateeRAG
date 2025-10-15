@@ -406,6 +406,50 @@
             margin-bottom: 0.75rem;
         }
 
+        .ratingContainer {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+
+            .stars {
+                display: flex;
+                gap: 0.125rem;
+
+                .star {
+                    cursor: pointer;
+                    font-size: 1.125rem;
+                    color: $gray-300;
+                    transition: all 0.2s ease;
+                    display: inline-flex;
+                    align-items: center;
+
+                    &.filled {
+                        color: #fbbf24;
+                    }
+
+                    &:hover {
+                        transform: scale(1.15);
+                    }
+                }
+            }
+
+            .ratingText {
+                font-size: 0.75rem;
+                color: $gray-600;
+                font-weight: 500;
+                white-space: nowrap;
+            }
+
+            .noRatingText {
+                font-size: 0.6875rem;
+                color: $gray-400;
+                font-weight: 400;
+                font-style: italic;
+                white-space: nowrap;
+            }
+        }
+
         .contentMeta {
             display: flex;
             align-items: center;

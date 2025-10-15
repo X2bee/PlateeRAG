@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
-import styles from '../assets/WorkflowStore.module.scss';
+import styles from '@/app/admin/assets/workflows/AdminWorkflowStore.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import {
@@ -20,15 +20,13 @@ import {
     IoSearchOutline,
     IoAdd,
     IoTrash,
-    IoPencil,
-    IoStar,
-    IoStarOutline
+    IoPencil
 } from 'react-icons/io5';
 import RefreshButton from '@/app/_common/icons/refresh';
 import UploadButton from '@/app/_common/icons/upload';
-import WorkflowStoreUploadModal from './workflows/WorkflowStoreUploadModal';
-import WorkflowStoreDetailModal from './workflows/WorkflowStoreDetailModal';
-import { listWorkflowStore, deleteWorkflowFromStore, duplicateWorkflowFromStore, rateWorkflow } from '@/app/_common/api/workflow/workflowStoreAPI';
+import WorkflowStoreUploadModal from '@/app/main/workflowSection/components/workflows/WorkflowStoreUploadModal';
+import WorkflowStoreDetailModal from '@/app/main/workflowSection/components/workflows/WorkflowStoreDetailModal';
+import { listWorkflowStore, deleteWorkflowFromStore, duplicateWorkflowFromStore } from '@/app/_common/api/workflow/workflowStoreAPI';
 
 interface Workflow {
     id: number;
@@ -44,7 +42,7 @@ interface Workflow {
     is_template: boolean;
     latest_version: number;
     metadata?: any;
-    workflow_data?: any; // API에서 제공하는 워크플로우 전체 데이터 (nodes, edges, view 포함)
+    workflow_data?: any;
     node_count: number;
     tags?: string[] | null;
     user_id?: number;
@@ -52,16 +50,14 @@ interface Workflow {
     workflow_id: string;
     workflow_name: string;
     workflow_upload_name: string;
-    rating_count?: number;
-    rating_sum?: number;
 }
 
-interface WorkflowStoreProps {
+interface AdminWorkflowStoreProps {
     onWorkflowSelect?: (workflow: Workflow) => void;
     className?: string;
 }
 
-const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, className }) => {
+const AdminWorkflowStore: React.FC<AdminWorkflowStoreProps> = ({ onWorkflowSelect, className }) => {
     // 상태 관리
     const [workflows, setWorkflows] = useState<Workflow[]>([]);
     const [loading, setLoading] = useState(true);
@@ -69,12 +65,8 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-    const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null);
-    const [filterMode, setFilterMode] = useState<'all' | 'my' | 'template' | 'shared'>('all');
-    const [hoveredRating, setHoveredRating] = useState<{ workflowId: number; rating: number } | null>(null);
+    const [filterMode, setFilterMode] = useState<'all' | 'template' | 'shared'>('all');
 
     // 현재 로그인한 사용자 정보 가져오기
     const { user } = useAuth();
@@ -85,15 +77,15 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
             setLoading(true);
             setError(null);
 
-            devLog.info('Loading workflows from store');
+            devLog.info('Loading workflows from store (Admin)');
 
             const workflowList = await listWorkflowStore();
             setWorkflows(workflowList as Workflow[]);
-            devLog.info(`Loaded ${workflowList.length} workflows from store`);
+            devLog.info(`Loaded ${workflowList.length} workflows from store (Admin)`);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : '워크플로우를 불러오는데 실패했습니다.';
             setError(errorMessage);
-            devLog.error('Failed to load workflows:', err);
+            devLog.error('Failed to load workflows (Admin):', err);
             setWorkflows([]);
         } finally {
             setLoading(false);
@@ -118,22 +110,18 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
             // 필터 모드에 따른 필터링
             let matchesFilter = true;
 
-            if (filterMode === 'my') {
-                // My: 자신의 것만 표시
-                matchesFilter = !!(user && workflow.user_id && workflow.user_id === user.user_id);
-            } else if (filterMode === 'template') {
+            if (filterMode === 'template') {
                 // 템플릿: is_template이 true인 것만 표시
                 matchesFilter = workflow.is_template === true;
             } else if (filterMode === 'shared') {
-                // 공유: is_template가 false인 것만 표시 (다른 사용자의 것)
-                matchesFilter = workflow.is_template === false &&
-                                (!user || !workflow.user_id || workflow.user_id !== user.user_id);
+                // 공유: is_template가 false인 것만 표시
+                matchesFilter = workflow.is_template === false;
             }
             // filterMode === 'all'인 경우 matchesFilter는 true 유지
 
             return matchesSearch && matchesFilter;
         });
-    }, [workflows, searchTerm, filterMode, user]);
+    }, [workflows, searchTerm, filterMode]);
 
     // 검색어 변경 핸들러
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -166,7 +154,7 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
             );
 
             showSuccessToastKo('워크플로우가 성공적으로 복제되었습니다!');
-            devLog.info(`Duplicated workflow from modal: ${workflow.workflow_upload_name}`);
+            devLog.info(`Duplicated workflow from modal (Admin): ${workflow.workflow_upload_name}`);
 
             await loadWorkflows();
 
@@ -174,7 +162,7 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
             setSelectedWorkflow(null);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : '워크플로우 복제에 실패했습니다.';
-            devLog.error('Failed to duplicate workflow from modal:', err);
+            devLog.error('Failed to duplicate workflow from modal (Admin):', err);
             showErrorToastKo(errorMessage);
         } finally {
             setLoading(false);
@@ -185,7 +173,6 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
     const handleCopyWorkflow = async (workflow: Workflow, e: React.MouseEvent) => {
         e.stopPropagation();
 
-        // is_template가 true가 아닌 경우에만 user_id 체크
         if (!workflow.is_template && !workflow.user_id) {
             showErrorToastKo('워크플로우 소유자 정보를 찾을 수 없습니다.');
             return;
@@ -198,7 +185,6 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                 try {
                     setLoading(true);
 
-                    // is_template가 true이고 user_id가 없으면 undefined, 아니면 user_id 사용
                     const userId = (workflow.is_template && !workflow.user_id) ? undefined : workflow.user_id;
 
                     await duplicateWorkflowFromStore(
@@ -209,13 +195,12 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                     );
 
                     showSuccessToastKo('워크플로우가 성공적으로 복제되었습니다!');
-                    devLog.info(`Duplicated workflow: ${workflow.workflow_upload_name}`);
+                    devLog.info(`Duplicated workflow (Admin): ${workflow.workflow_upload_name}`);
 
-                    // 워크플로우 목록 새로고침
                     await loadWorkflows();
                 } catch (err) {
                     const errorMessage = err instanceof Error ? err.message : '워크플로우 복제에 실패했습니다.';
-                    devLog.error('Failed to duplicate workflow:', err);
+                    devLog.error('Failed to duplicate workflow (Admin):', err);
                     showErrorToastKo(errorMessage);
                 } finally {
                     setLoading(false);
@@ -226,7 +211,7 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
         });
     };
 
-    // 워크플로우 삭제 핸들러
+    // 워크플로우 삭제 핸들러 (Admin 전용)
     const handleDeleteWorkflow = async (workflow: Workflow, e: React.MouseEvent) => {
         e.stopPropagation();
 
@@ -238,10 +223,12 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                 try {
                     setLoading(true);
 
+                    // 템플릿인 경우 is_template를 true로 전달
                     await deleteWorkflowFromStore(
                         workflow.workflow_name,
                         workflow.workflow_upload_name,
-                        workflow.current_version
+                        workflow.current_version,
+                        workflow.is_template
                     );
 
                     showDeleteSuccessToastKo({
@@ -249,10 +236,9 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                         itemType: '워크플로우',
                     });
 
-                    // 워크플로우 목록 새로고침
                     await loadWorkflows();
                 } catch (error) {
-                    devLog.error('Failed to delete workflow:', error);
+                    devLog.error('Failed to delete workflow (Admin):', error);
                     showDeleteErrorToastKo({
                         itemName: workflow.workflow_upload_name,
                         itemType: '워크플로우',
@@ -278,41 +264,6 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
         setSelectedWorkflow(null);
     };
 
-    // 워크플로우 생성 모달 열기 핸들러
-    const handleCreateWorkflowClick = () => {
-        setIsCreateModalOpen(true);
-    };
-
-    // 워크플로우 생성 모달 닫기 핸들러
-    const handleCloseCreateModal = () => {
-        setIsCreateModalOpen(false);
-    };
-
-    // 워크플로우 생성 성공 핸들러
-    const handleCreateSuccess = () => {
-        // 워크플로우 목록 새로고침
-        loadWorkflows();
-    };
-
-    // 워크플로우 편집 모달 열기 핸들러
-    const handleEditWorkflowClick = (workflow: Workflow, e: React.MouseEvent) => {
-        e.stopPropagation();
-        setEditingWorkflow(workflow);
-        setIsEditModalOpen(true);
-    };
-
-    // 워크플로우 편집 모달 닫기 핸들러
-    const handleCloseEditModal = () => {
-        setIsEditModalOpen(false);
-        setEditingWorkflow(null);
-    };
-
-    // 워크플로우 편집 성공 핸들러
-    const handleEditSuccess = () => {
-        // 워크플로우 목록 새로고침
-        loadWorkflows();
-    };
-
     // 워크플로우 업로드 모달 열기 핸들러
     const handleUploadClick = () => {
         setIsUploadModalOpen(true);
@@ -325,7 +276,6 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
 
     // 워크플로우 업로드 성공 핸들러
     const handleUploadSuccess = () => {
-        // 워크플로우 목록 새로고침
         loadWorkflows();
     };
 
@@ -342,87 +292,6 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
     const truncateText = (text: string, maxLength: number = 150) => {
         if (text.length <= maxLength) return text;
         return text.substring(0, maxLength) + '...';
-    };
-
-    // 평균 평점 계산 함수
-    const calculateAverageRating = (workflow: Workflow) => {
-        if (!workflow.rating_count || workflow.rating_count === 0) return 0;
-        return workflow.rating_sum! / workflow.rating_count;
-    };
-
-    // 워크플로우 평가 핸들러
-    const handleRateWorkflow = async (workflow: Workflow, rating: number, e: React.MouseEvent) => {
-        e.stopPropagation();
-
-        if (!user) {
-            showErrorToastKo('평가하려면 로그인이 필요합니다.');
-            return;
-        }
-
-        try {
-            setLoading(true);
-
-            await rateWorkflow(
-                workflow.workflow_name,
-                workflow.workflow_upload_name,
-                workflow.user_id || 0,
-                workflow.is_template,
-                workflow.current_version,
-                rating
-            );
-
-            showSuccessToastKo(`${rating}점으로 평가되었습니다!`);
-            devLog.info(`Rated workflow: ${workflow.workflow_upload_name} with ${rating} stars`);
-
-            // 워크플로우 목록 새로고침
-            await loadWorkflows();
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : '워크플로우 평가에 실패했습니다.';
-            devLog.error('Failed to rate workflow:', err);
-            showErrorToastKo(errorMessage);
-        } finally {
-            setLoading(false);
-            setHoveredRating(null);
-        }
-    };
-
-    // 별 렌더링 함수
-    const renderStars = (workflow: Workflow) => {
-        const avgRating = calculateAverageRating(workflow);
-        const stars = [];
-        const currentHovered = hoveredRating?.workflowId === workflow.id ? hoveredRating.rating : 0;
-
-        for (let i = 1; i <= 5; i++) {
-            const isFilled = currentHovered > 0 ? i <= currentHovered : i <= Math.round(avgRating);
-            stars.push(
-                <span
-                    key={i}
-                    className={`${styles.star} ${isFilled ? styles.filled : ''}`}
-                    onMouseEnter={() => setHoveredRating({ workflowId: workflow.id, rating: i })}
-                    onMouseLeave={() => setHoveredRating(null)}
-                    onClick={(e) => handleRateWorkflow(workflow, i, e)}
-                >
-                    {isFilled ? <IoStar /> : <IoStarOutline />}
-                </span>
-            );
-        }
-
-        return (
-            <div className={styles.ratingContainer}>
-                <div className={styles.stars}>
-                    {stars}
-                </div>
-                {workflow.rating_count && workflow.rating_count > 0 ? (
-                    <span className={styles.ratingText}>
-                        {avgRating.toFixed(1)} ({workflow.rating_count})
-                    </span>
-                ) : (
-                    <span className={styles.noRatingText}>
-                        평가 없음
-                    </span>
-                )}
-            </div>
-        );
     };
 
     return (
@@ -450,12 +319,6 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                                 onClick={() => setFilterMode('all')}
                             >
                                 모두
-                            </button>
-                            <button
-                                className={`${styles.filterTab} ${filterMode === 'my' ? styles.active : ''}`}
-                                onClick={() => setFilterMode('my')}
-                            >
-                                My
                             </button>
                             <button
                                 className={`${styles.filterTab} ${filterMode === 'template' ? styles.active : ''}`}
@@ -519,93 +382,88 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                                 <div className={styles.addWorkflowIcon}>
                                     <IoAdd />
                                 </div>
-                                <h3 className={styles.addWorkflowTitle}>나만의 워크플로우를 추가해 보세요!</h3>
+                                <h3 className={styles.addWorkflowTitle}>워크플로우를 추가해 보세요!</h3>
                                 <p className={styles.addWorkflowDescription}>
-                                    내가 만든 워크플로우를 사용자들과 공유해보세요!
+                                    새로운 워크플로우를 업로드하고 관리하세요.
                                 </p>
                             </div>
                         </div>
 
                         {filteredWorkflows.map((workflow) => (
-                                <div
-                                    key={workflow.id}
-                                    className={styles.workflowCard}
-                                    onClick={() => handleWorkflowClick(workflow)}
-                                >
-                                    <div className={styles.cardHeader}>
-                                        <h3 className={styles.cardTitle}>{workflow.workflow_upload_name}</h3>
-                                        <div className={styles.cardBadges}>
-                                            <span className={`${styles.badge} ${styles.version}`}>
-                                                v{workflow.current_version}
-                                            </span>
-                                        </div>
+                            <div
+                                key={workflow.id}
+                                className={styles.workflowCard}
+                                onClick={() => handleWorkflowClick(workflow)}
+                            >
+                                <div className={styles.cardHeader}>
+                                    <h3 className={styles.cardTitle}>{workflow.workflow_upload_name}</h3>
+                                    <div className={styles.cardBadges}>
+                                        <span className={`${styles.badge} ${styles.version}`}>
+                                            v{workflow.current_version}
+                                        </span>
                                     </div>
+                                </div>
 
-                                    <div className={styles.cardContent}>
-                                        <div className={styles.contentPreview}>
-                                            {truncateText(workflow.description || '설명 없음')}
+                                <div className={styles.cardContent}>
+                                    <div className={styles.contentPreview}>
+                                        {truncateText(workflow.description || '설명 없음')}
+                                    </div>
+                                    <div className={styles.contentMeta}>
+                                        <div className={styles.metaItem}>
+                                            <IoCalendar className={styles.metaIcon} />
+                                            {formatDate(workflow.created_at)}
                                         </div>
-
-                                        {/* 평점 표시 */}
-                                        {renderStars(workflow)}
-
-                                        <div className={styles.contentMeta}>
+                                        {workflow.is_template && (
+                                            <span className={styles.templateBadge}>
+                                                템플릿
+                                            </span>
+                                        )}
+                                        {workflow.user_id && workflow.username && (
                                             <div className={styles.metaItem}>
-                                                <IoCalendar className={styles.metaIcon} />
-                                                {formatDate(workflow.created_at)}
-                                            </div>
-                                            {workflow.is_template && (
-                                                <span className={styles.templateBadge}>
-                                                    템플릿
-                                                </span>
-                                            )}
-                                            {workflow.user_id && workflow.username && (
-                                                <div className={styles.metaItem}>
-                                                    <IoPerson className={styles.metaIcon} />
-                                                    {workflow.full_name || workflow.username}
-                                                </div>
-                                            )}
-                                        </div>
-                                        {workflow.tags && workflow.tags.length > 0 && (
-                                            <div className={styles.tags}>
-                                                {workflow.tags.map((tag, index) => (
-                                                    <span key={index} className={styles.tag}>
-                                                        {tag}
-                                                    </span>
-                                                ))}
+                                                <IoPerson className={styles.metaIcon} />
+                                                {workflow.full_name || workflow.username}
                                             </div>
                                         )}
                                     </div>
-
-                                    <div className={styles.cardFooter}>
-                                        <div className={styles.cardInfo}>
-                                            <div className={styles.infoItem}>
-                                                <span>노드: {workflow.node_count} | 엣지: {workflow.edge_count}</span>
-                                            </div>
+                                    {workflow.tags && workflow.tags.length > 0 && (
+                                        <div className={styles.tags}>
+                                            {workflow.tags.map((tag, index) => (
+                                                <span key={index} className={styles.tag}>
+                                                    {tag}
+                                                </span>
+                                            ))}
                                         </div>
-                                        <div className={styles.cardActions}>
-                                            <button
-                                                className={styles.actionButton}
-                                                onClick={(e) => handleCopyWorkflow(workflow, e)}
-                                                title="워크플로우 복사"
-                                            >
-                                                <IoCopy className={styles.actionIcon} />
-                                                복사
-                                            </button>
-                                            {user && workflow.user_id && String(workflow.user_id) === String(user.user_id) && (
-                                                <button
-                                                    className={`${styles.actionButton} ${styles.deleteButton}`}
-                                                    onClick={(e) => handleDeleteWorkflow(workflow, e)}
-                                                    title="워크플로우 삭제"
-                                                >
-                                                    <IoTrash className={styles.actionIcon} />
-                                                    삭제
-                                                </button>
-                                            )}
+                                    )}
+                                </div>
+
+                                <div className={styles.cardFooter}>
+                                    <div className={styles.cardInfo}>
+                                        <div className={styles.infoItem}>
+                                            <span>노드: {workflow.node_count} | 엣지: {workflow.edge_count}</span>
                                         </div>
                                     </div>
+                                    <div className={styles.cardActions}>
+                                        <button
+                                            className={styles.actionButton}
+                                            onClick={(e) => handleCopyWorkflow(workflow, e)}
+                                            title="워크플로우 복사"
+                                        >
+                                            <IoCopy className={styles.actionIcon} />
+                                            복사
+                                        </button>
+                                        {/* Admin은 모든 워크플로우를 삭제할 수 있음 */}
+                                        <button
+                                            className={`${styles.actionButton} ${styles.deleteButton}`}
+                                            onClick={(e) => handleDeleteWorkflow(workflow, e)}
+                                            title="워크플로우 삭제"
+                                        >
+                                            <IoTrash className={styles.actionIcon} />
+                                            삭제
+                                        </button>
+                                    </div>
                                 </div>
-                            ))}
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>
@@ -620,23 +478,6 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                 />
             )}
 
-            {/* TODO: 워크플로우 생성 모달 컴포넌트 추가 필요 */}
-            {/* <WorkflowCreateModal
-                isOpen={isCreateModalOpen}
-                onClose={handleCloseCreateModal}
-                onSuccess={handleCreateSuccess}
-            /> */}
-
-            {/* TODO: 워크플로우 편집 모달 컴포넌트 추가 필요 */}
-            {/* {editingWorkflow && (
-                <WorkflowEditModal
-                    isOpen={isEditModalOpen}
-                    onClose={handleCloseEditModal}
-                    onSuccess={handleEditSuccess}
-                    workflow={editingWorkflow}
-                />
-            )} */}
-
             {/* 워크플로우 업로드 모달 */}
             <WorkflowStoreUploadModal
                 isOpen={isUploadModalOpen}
@@ -647,4 +488,4 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
     );
 };
 
-export default WorkflowStore;
+export default AdminWorkflowStore;
