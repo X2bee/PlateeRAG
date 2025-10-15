@@ -185,6 +185,10 @@ export const ensureValidWorkflowState = (state) => {
 
     const defaultView = { x: 0, y: 0, scale: 1 };
 
+    // Handle both new format (with workflow_name, workflow_id, etc.) and old format (nodes, edges, view only)
+    // New format has workflow_name or workflow_id fields
+    const isNewFormat = state.workflow_name || state.workflow_id;
+
     return {
         nodes: Array.isArray(state.nodes) ? state.nodes : [],
         edges: Array.isArray(state.edges) ? state.edges : [],

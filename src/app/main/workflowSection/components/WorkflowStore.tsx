@@ -67,7 +67,7 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null);
-    const [filterMode, setFilterMode] = useState<'all' | 'my' | 'template' | 'shared'>('my');
+    const [filterMode, setFilterMode] = useState<'all' | 'my' | 'template' | 'shared'>('all');
 
     // 현재 로그인한 사용자 정보 가져오기
     const { user } = useAuth();
@@ -143,7 +143,8 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
     const handleCopyWorkflow = async (workflow: Workflow, e: React.MouseEvent) => {
         e.stopPropagation();
 
-        if (!workflow.user_id) {
+        // is_template가 true가 아닌 경우에만 user_id 체크
+        if (!workflow.is_template && !workflow.user_id) {
             showErrorToastKo('워크플로우 소유자 정보를 찾을 수 없습니다.');
             return;
         }
@@ -155,10 +156,13 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                 try {
                     setLoading(true);
 
+                    // is_template가 true이고 user_id가 없으면 undefined, 아니면 user_id 사용
+                    const userId = (workflow.is_template && !workflow.user_id) ? undefined : workflow.user_id;
+
                     await duplicateWorkflowFromStore(
                         workflow.workflow_name,
                         workflow.workflow_upload_name,
-                        workflow.user_id!,
+                        userId as any,
                         workflow.current_version
                     );
 
@@ -408,11 +412,6 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                                     <div className={styles.cardHeader}>
                                         <h3 className={styles.cardTitle}>{workflow.workflow_upload_name}</h3>
                                         <div className={styles.cardBadges}>
-                                            {workflow.is_template && (
-                                                <span className={`${styles.badge} ${styles.template}`}>
-                                                    템플릿
-                                                </span>
-                                            )}
                                             <span className={`${styles.badge} ${styles.version}`}>
                                                 v{workflow.current_version}
                                             </span>
@@ -428,6 +427,11 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                                                 <IoCalendar className={styles.metaIcon} />
                                                 {formatDate(workflow.created_at)}
                                             </div>
+                                            {workflow.is_template && (
+                                                <span className={styles.templateBadge}>
+                                                    템플릿
+                                                </span>
+                                            )}
                                             {workflow.user_id && workflow.username && (
                                                 <div className={styles.metaItem}>
                                                     <IoPerson className={styles.metaIcon} />

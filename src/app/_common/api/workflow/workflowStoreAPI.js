@@ -148,9 +148,13 @@ export const duplicateWorkflowFromStore = async (workflowName, workflowUploadNam
     try {
         const params = new URLSearchParams({
             workflow_upload_name: workflowUploadName,
-            user_id: userId,
             current_version: currentVersion
         });
+
+        // userId가 있는 경우에만 파라미터에 추가
+        if (userId !== null && userId !== undefined) {
+            params.append('user_id', userId);
+        }
 
         const response = await apiClient(
             `${API_BASE_URL}/api/workflow/store/duplicate/${encodeURIComponent(workflowName)}?${params}`,
