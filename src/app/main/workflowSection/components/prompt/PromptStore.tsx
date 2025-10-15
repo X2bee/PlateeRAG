@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
-import styles from '@/app/main/workflowSection/assets/PromptStore.module.scss';
+import styles from '../assets/PromptStore.module.scss';
 import { getPromptsByLanguage, deletePrompt, ratePrompt } from '@/app/_common/api/promptAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import PromptExpandModal from './PromptExpandModal';
