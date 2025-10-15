@@ -25,6 +25,7 @@ import {
 import RefreshButton from '@/app/_common/icons/refresh';
 import UploadButton from '@/app/_common/icons/upload';
 import WorkflowStoreUploadModal from './workflows/WorkflowStoreUploadModal';
+import WorkflowStoreDetailModal from './workflows/WorkflowStoreDetailModal';
 import { listWorkflowStore, deleteWorkflowFromStore, duplicateWorkflowFromStore } from '@/app/_common/api/workflow/workflowStoreAPI';
 
 interface Workflow {
@@ -41,6 +42,7 @@ interface Workflow {
     is_template: boolean;
     latest_version: number;
     metadata?: any;
+    workflow_data?: any; // API에서 제공하는 워크플로우 전체 데이터 (nodes, edges, view 포함)
     node_count: number;
     tags?: string[] | null;
     user_id?: number;
@@ -67,7 +69,7 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null);
-    const [filterMode, setFilterMode] = useState<'all' | 'my' | 'template' | 'shared'>('my');
+    const [filterMode, setFilterMode] = useState<'all' | 'my' | 'template' | 'shared'>('all');
 
     // 현재 로그인한 사용자 정보 가져오기
     const { user } = useAuth();
@@ -139,11 +141,47 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
         setIsModalOpen(true);
     };
 
+    // 모달에서 워크플로우 복사 핸들러
+    const handleCopyWorkflowFromModal = async (workflow: Workflow) => {
+        if (!workflow.is_template && !workflow.user_id) {
+            showErrorToastKo('워크플로우 소유자 정보를 찾을 수 없습니다.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+
+            const userId = (workflow.is_template && !workflow.user_id) ? undefined : workflow.user_id;
+
+            await duplicateWorkflowFromStore(
+                workflow.workflow_name,
+                workflow.workflow_upload_name,
+                userId as any,
+                workflow.current_version
+            );
+
+            showSuccessToastKo('워크플로우가 성공적으로 복제되었습니다!');
+            devLog.info(`Duplicated workflow from modal: ${workflow.workflow_upload_name}`);
+
+            await loadWorkflows();
+
+            setIsModalOpen(false);
+            setSelectedWorkflow(null);
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : '워크플로우 복제에 실패했습니다.';
+            devLog.error('Failed to duplicate workflow from modal:', err);
+            showErrorToastKo(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // 워크플로우 복사 핸들러
     const handleCopyWorkflow = async (workflow: Workflow, e: React.MouseEvent) => {
         e.stopPropagation();
 
-        if (!workflow.user_id) {
+        // is_template가 true가 아닌 경우에만 user_id 체크
+        if (!workflow.is_template && !workflow.user_id) {
             showErrorToastKo('워크플로우 소유자 정보를 찾을 수 없습니다.');
             return;
         }
@@ -155,10 +193,13 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                 try {
                     setLoading(true);
 
+                    // is_template가 true이고 user_id가 없으면 undefined, 아니면 user_id 사용
+                    const userId = (workflow.is_template && !workflow.user_id) ? undefined : workflow.user_id;
+
                     await duplicateWorkflowFromStore(
                         workflow.workflow_name,
                         workflow.workflow_upload_name,
-                        workflow.user_id!,
+                        userId as any,
                         workflow.current_version
                     );
 
@@ -408,11 +449,6 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                                     <div className={styles.cardHeader}>
                                         <h3 className={styles.cardTitle}>{workflow.workflow_upload_name}</h3>
                                         <div className={styles.cardBadges}>
-                                            {workflow.is_template && (
-                                                <span className={`${styles.badge} ${styles.template}`}>
-                                                    템플릿
-                                                </span>
-                                            )}
                                             <span className={`${styles.badge} ${styles.version}`}>
                                                 v{workflow.current_version}
                                             </span>
@@ -428,6 +464,11 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                                                 <IoCalendar className={styles.metaIcon} />
                                                 {formatDate(workflow.created_at)}
                                             </div>
+                                            {workflow.is_template && (
+                                                <span className={styles.templateBadge}>
+                                                    템플릿
+                                                </span>
+                                            )}
                                             {workflow.user_id && workflow.username && (
                                                 <div className={styles.metaItem}>
                                                     <IoPerson className={styles.metaIcon} />
@@ -479,14 +520,15 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                 )}
             </div>
 
-            {/* TODO: 워크플로우 확장 모달 컴포넌트 추가 필요 */}
-            {/* {selectedWorkflow && (
-                <WorkflowExpandModal
+            {/* 워크플로우 상세보기 모달 */}
+            {selectedWorkflow && (
+                <WorkflowStoreDetailModal
                     workflow={selectedWorkflow}
                     isOpen={isModalOpen}
                     onClose={handleCloseModal}
+                    onCopy={handleCopyWorkflowFromModal}
                 />
-            )} */}
+            )}
 
             {/* TODO: 워크플로우 생성 모달 컴포넌트 추가 필요 */}
             {/* <WorkflowCreateModal

@@ -36,7 +36,8 @@ import { isStreamingWorkflowFromWorkflow } from '../_common/utils/isStreamingWor
 import {
     showNewWorkflowConfirmKo,
     showWorkflowOverwriteConfirmKo,
-    showWarningToastKo
+    showWarningToastKo,
+    showWarningConfirmToastKo
 } from '@/app/_common/utils/toastUtilsKo';
 
 function CanvasPageContent() {
@@ -585,7 +586,22 @@ function CanvasPageContent() {
         if (canvasRef.current) {
             const canvasState = (canvasRef.current as any).getCanvasState();
             const workflowName = getWorkflowName();
-            const jsonString = JSON.stringify(canvasState, null, 2);
+
+            // Generate workflow_id from workflow name and timestamp
+            const timestamp = Date.now();
+            const workflowId = `workflow_${workflowName.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${timestamp}`;
+
+            // Create full workflow format
+            const fullWorkflowData = {
+                workflow_name: workflowName,
+                workflow_id: workflowId,
+                view: canvasState.view || { x: 0, y: 0, scale: 1 },
+                nodes: canvasState.nodes || [],
+                edges: canvasState.edges || [],
+                interaction_id: "default"
+            };
+
+            const jsonString = JSON.stringify(fullWorkflowData, null, 2);
             const blob = new Blob([jsonString], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -646,8 +662,8 @@ function CanvasPageContent() {
                     (canvasRef.current as any).loadCanvasState(validState);
                     saveWorkflowState(validState);
 
-                    // 파일명에서 워크플로우 이름 추출 (.json 확장자 제거)
-                    const workflowName = file.name.replace(/\.json$/i, '');
+                    // 워크플로우 이름 설정 (새 형식의 workflow_name 우선, 없으면 파일명 사용)
+                    const workflowName = savedState.workflow_name || file.name.replace(/\.json$/i, '');
                     updateWorkflowName(workflowName);
                 }
             } catch (error) {
@@ -662,11 +678,15 @@ function CanvasPageContent() {
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
 
+        const hasFiles = e.dataTransfer.types.includes('Files');
         const hasValidData = e.dataTransfer.types.includes('application/json');
         const hasOnlyText = e.dataTransfer.types.includes('text/plain') &&
             !e.dataTransfer.types.includes('application/json');
 
-        if (hasValidData) {
+        if (hasFiles) {
+            // 파일 시스템에서 드래그하는 경우 허용
+            e.dataTransfer.dropEffect = 'copy';
+        } else if (hasValidData) {
             // 유효한 JSON 데이터 타입인 경우 드롭을 허용
             e.dataTransfer.dropEffect = 'copy';
         } else if (hasOnlyText) {
@@ -682,6 +702,66 @@ function CanvasPageContent() {
         e.preventDefault();
         if (canvasRef.current) {
             try {
+                // 파일 시스템에서 드래그된 파일 확인
+                const files = e.dataTransfer.files;
+                if (files && files.length > 0) {
+                    const file = files[0];
+                    // JSON 파일인지 확인
+                    if (file.name.toLowerCase().endsWith('.json')) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            try {
+                                const json = event.target?.result as string;
+                                const savedState = JSON.parse(json);
+
+                                // 워크플로우 파일인지 확인 (nodes 배열이 있으면 워크플로우)
+                                if (savedState && Array.isArray(savedState.nodes)) {
+                                    // 기존 워크플로우 확인
+                                    const currentState: any = getWorkflowState();
+                                    const hasCurrentWorkflow = currentState && ((currentState.nodes?.length || 0) > 0 || (currentState.edges?.length || 0) > 0);
+
+                                    const loadWorkflowAction = () => {
+                                        // History 초기화
+                                        clearHistory();
+                                        devLog.log('History cleared for drag & drop workflow load');
+
+                                        const validState = ensureValidWorkflowState(savedState);
+                                        (canvasRef.current as any).loadCanvasState(validState);
+                                        saveWorkflowState(validState);
+
+                                        // 워크플로우 이름 설정 (새 형식의 workflow_name 우선, 없으면 파일명 사용)
+                                        const workflowName = savedState.workflow_name || file.name.replace(/\.json$/i, '');
+                                        updateWorkflowName(workflowName);
+
+                                        showSuccessToastKo('워크플로우가 성공적으로 로드되었습니다!');
+                                    };
+
+                                    if (hasCurrentWorkflow) {
+                                        const newWorkflowName = savedState.workflow_name || file.name.replace(/\.json$/i, '');
+
+                                        showWarningConfirmToastKo({
+                                            title: '워크플로우 로드',
+                                            message: `현재 저장되지 않은 변경사항이 있는 워크플로우가 있습니다.\n"${newWorkflowName}" 로드 시 현재 작업이 대체됩니다.`,
+                                            onConfirm: loadWorkflowAction,
+                                            confirmText: '로드',
+                                            cancelText: '취소',
+                                        });
+                                    } else {
+                                        loadWorkflowAction();
+                                    }
+                                    return;
+                                }
+                            } catch (error) {
+                                devLog.error('Error parsing dropped JSON file:', error);
+                                showErrorToastKo('유효하지 않은 워크플로우 파일입니다.');
+                            }
+                        };
+                        reader.readAsText(file);
+                        return;
+                    }
+                }
+
+                // 파일이 아닌 경우, 기존 노드 드래그 로직 처리
                 // 먼저 application/json 데이터를 시도
                 let nodeData = null;
                 const jsonData = e.dataTransfer.getData('application/json');

@@ -387,6 +387,11 @@
                     background: rgba($primary-orange, 0.1);
                     color: $primary-orange;
                 }
+
+                &.version {
+                    background: rgba($primary-blue, 0.1);
+                    color: $primary-blue;
+                }
             }
         }
     }
@@ -399,10 +404,9 @@
             color: $gray-600;
             font-size: 0.875rem;
             line-height: 1.6;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
+            white-space: nowrap;
             overflow: hidden;
+            text-overflow: ellipsis;
             margin-bottom: 0.75rem;
         }
 
@@ -412,6 +416,7 @@
             gap: 1rem;
             font-size: 0.75rem;
             color: $gray-500;
+            flex-wrap: wrap;
 
             .metaItem {
                 display: flex;
@@ -421,6 +426,18 @@
                 .metaIcon {
                     font-size: 0.875rem;
                 }
+            }
+
+            .templateBadge {
+                padding: 0.25rem 0.5rem;
+                border-radius: 0.375rem;
+                font-size: 0.75rem;
+                font-weight: 600;
+                background: rgba($primary-orange, 0.1);
+                color: $primary-orange;
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
             }
         }
     }

@@ -288,7 +288,7 @@
 
 .templateHeader {
     display: flex;
-    align-items: flex-start;
+    align-items: center; // flex-start에서 center로 변경 (수직 중앙 정렬)
     gap: 12px;
     flex: 1;
 }
@@ -331,17 +331,16 @@
 
 .templateMeta {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column; // 세로 방향으로 변경
+    align-items: flex-start; // 좌측 정렬
+    gap: 6px;
 }
 
 .templateTags {
     display: flex;
     gap: 4px;
     align-items: center;
-    flex-wrap: nowrap; // 한 줄에 유지
-    overflow: hidden; // 넘치는 부분 숨김
+    flex-wrap: wrap; // 태그가 많을 경우 줄바꿈 허용
 }
 
 .templateCategory {
@@ -352,8 +351,8 @@
     padding: 2px 6px;
     border-radius: 6px;
     border: 1px solid rgba(59, 130, 246, 0.15);
-    white-space: nowrap; // 텍스트 줄바꿈 방지
-    flex-shrink: 0; // 태그가 축소되지 않도록
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .templateNodes {

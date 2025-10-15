@@ -89,15 +89,21 @@ export interface EdgePreview {
 
 // ========== Workflow Types ==========
 export interface WorkflowData {
+    workflow_name?: string;
+    workflow_id?: string;
     nodes?: CanvasNode[];
     edges?: CanvasEdge[];
     view?: View;
+    interaction_id?: string;
 }
 
 export interface WorkflowState {
+    workflow_name?: string;
+    workflow_id?: string;
     nodes?: CanvasNode[];
     edges?: CanvasEdge[];
     view?: View;
+    interaction_id?: string;
 }
 
 // ========== Template Types ==========
