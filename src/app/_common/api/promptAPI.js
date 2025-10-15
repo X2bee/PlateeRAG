@@ -242,3 +242,55 @@ export const updatePrompt = async (promptData) => {
         throw error;
     }
 };
+
+/**
+ * 프롬프트에 평점을 부여합니다.
+ * @param {string} promptUid - 평가할 프롬프트 UID
+ * @param {number} userId - 원본 프롬프트의 사용자 ID
+ * @param {boolean} isTemplate - 템플릿 프롬프트 여부
+ * @param {number} rating - 평점 (1-5)
+ * @returns {Promise<Object>} 평가 결과를 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const ratePrompt = async (promptUid, userId, isTemplate, rating) => {
+    try {
+        if (rating < 1 || rating > 5) {
+            throw new Error('Rating must be between 1 and 5');
+        }
+
+        const params = new URLSearchParams({
+            user_id: userId,
+            is_template: isTemplate,
+            rating: rating
+        });
+
+        const response = await apiClient(
+            `${API_BASE_URL}/api/prompt/rating/${encodeURIComponent(promptUid)}?${params}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        devLog.log('Prompt rating response status:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            devLog.error('Prompt rating error data:', errorData);
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
+        }
+
+        const result = await response.json();
+        devLog.log('Successfully rated prompt:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to rate prompt:', error);
+        devLog.error('Prompt UID that failed:', promptUid);
+        devLog.error('Rating that failed:', rating);
+        throw error;
+    }
+};

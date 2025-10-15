@@ -14,9 +14,6 @@ export const listWorkflowStore = async () => {
             `${API_BASE_URL}/api/workflow/store/list`,
             {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
             }
         );
 
@@ -62,9 +59,6 @@ export const uploadWorkflowToStore = async (workflowName, workflowUploadName, de
             `${API_BASE_URL}/api/workflow/store/upload/${encodeURIComponent(workflowName)}?${params}`,
             {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
             }
         );
 
@@ -94,23 +88,26 @@ export const uploadWorkflowToStore = async (workflowName, workflowUploadName, de
  * @param {string} workflowName - 삭제할 워크플로우 이름
  * @param {string} workflowUploadName - 업로드된 워크플로우 이름
  * @param {number} currentVersion - 현재 버전
+ * @param {boolean} isTemplate - 템플릿 워크플로우 여부 (관리자 전용)
  * @returns {Promise<Object>} 삭제 결과를 포함하는 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
-export const deleteWorkflowFromStore = async (workflowName, workflowUploadName, currentVersion) => {
+export const deleteWorkflowFromStore = async (workflowName, workflowUploadName, currentVersion, isTemplate = false) => {
     try {
         const params = new URLSearchParams({
             workflow_upload_name: workflowUploadName,
             current_version: currentVersion
         });
 
+        // 템플릿인 경우에만 is_template 파라미터 추가
+        if (isTemplate) {
+            params.append('is_template', 'true');
+        }
+
         const response = await apiClient(
             `${API_BASE_URL}/api/workflow/store/delete/${encodeURIComponent(workflowName)}?${params}`,
             {
                 method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
             }
         );
 
@@ -160,9 +157,6 @@ export const duplicateWorkflowFromStore = async (workflowName, workflowUploadNam
             `${API_BASE_URL}/api/workflow/store/duplicate/${encodeURIComponent(workflowName)}?${params}`,
             {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
             }
         );
 
@@ -183,6 +177,59 @@ export const duplicateWorkflowFromStore = async (workflowName, workflowUploadNam
         devLog.error('Failed to duplicate workflow from store:', error);
         devLog.error('Workflow name that failed:', workflowName);
         devLog.error('Upload name that failed:', workflowUploadName);
+        throw error;
+    }
+};
+
+/**
+ * 워크플로우에 평점을 부여합니다.
+ * @param {string} workflowName - 평가할 워크플로우 이름
+ * @param {string} workflowUploadName - 업로드된 워크플로우 이름
+ * @param {number} userId - 원본 워크플로우의 사용자 ID
+ * @param {boolean} isTemplate - 템플릿 워크플로우 여부
+ * @param {number} currentVersion - 현재 버전
+ * @param {number} rating - 평점 (1-5)
+ * @returns {Promise<Object>} 평가 결과를 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const rateWorkflow = async (workflowName, workflowUploadName, userId, isTemplate, currentVersion, rating) => {
+    try {
+        if (rating < 1 || rating > 5) {
+            throw new Error('Rating must be between 1 and 5');
+        }
+
+        const params = new URLSearchParams({
+            workflow_upload_name: workflowUploadName,
+            user_id: userId,
+            is_template: isTemplate,
+            current_version: currentVersion,
+            rating: rating
+        });
+
+        const response = await apiClient(
+            `${API_BASE_URL}/api/workflow/store/rating/${encodeURIComponent(workflowName)}?${params}`,
+            {
+                method: 'POST',
+            }
+        );
+
+        devLog.log('Workflow rating response status:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            devLog.error('Workflow rating error data:', errorData);
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
+        }
+
+        const result = await response.json();
+        devLog.log('Successfully rated workflow:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to rate workflow:', error);
+        devLog.error('Workflow name that failed:', workflowName);
+        devLog.error('Rating that failed:', rating);
         throw error;
     }
 };
