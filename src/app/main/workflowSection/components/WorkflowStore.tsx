@@ -25,6 +25,7 @@ import {
 import RefreshButton from '@/app/_common/icons/refresh';
 import UploadButton from '@/app/_common/icons/upload';
 import WorkflowStoreUploadModal from './workflows/WorkflowStoreUploadModal';
+import WorkflowStoreDetailModal from './workflows/WorkflowStoreDetailModal';
 import { listWorkflowStore, deleteWorkflowFromStore, duplicateWorkflowFromStore } from '@/app/_common/api/workflow/workflowStoreAPI';
 
 interface Workflow {
@@ -41,6 +42,7 @@ interface Workflow {
     is_template: boolean;
     latest_version: number;
     metadata?: any;
+    workflow_data?: any; // API에서 제공하는 워크플로우 전체 데이터 (nodes, edges, view 포함)
     node_count: number;
     tags?: string[] | null;
     user_id?: number;
@@ -137,6 +139,41 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
     const handleWorkflowClick = (workflow: Workflow) => {
         setSelectedWorkflow(workflow);
         setIsModalOpen(true);
+    };
+
+    // 모달에서 워크플로우 복사 핸들러
+    const handleCopyWorkflowFromModal = async (workflow: Workflow) => {
+        if (!workflow.is_template && !workflow.user_id) {
+            showErrorToastKo('워크플로우 소유자 정보를 찾을 수 없습니다.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+
+            const userId = (workflow.is_template && !workflow.user_id) ? undefined : workflow.user_id;
+
+            await duplicateWorkflowFromStore(
+                workflow.workflow_name,
+                workflow.workflow_upload_name,
+                userId as any,
+                workflow.current_version
+            );
+
+            showSuccessToastKo('워크플로우가 성공적으로 복제되었습니다!');
+            devLog.info(`Duplicated workflow from modal: ${workflow.workflow_upload_name}`);
+
+            await loadWorkflows();
+
+            setIsModalOpen(false);
+            setSelectedWorkflow(null);
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : '워크플로우 복제에 실패했습니다.';
+            devLog.error('Failed to duplicate workflow from modal:', err);
+            showErrorToastKo(errorMessage);
+        } finally {
+            setLoading(false);
+        }
     };
 
     // 워크플로우 복사 핸들러
@@ -483,14 +520,15 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                 )}
             </div>
 
-            {/* TODO: 워크플로우 확장 모달 컴포넌트 추가 필요 */}
-            {/* {selectedWorkflow && (
-                <WorkflowExpandModal
+            {/* 워크플로우 상세보기 모달 */}
+            {selectedWorkflow && (
+                <WorkflowStoreDetailModal
                     workflow={selectedWorkflow}
                     isOpen={isModalOpen}
                     onClose={handleCloseModal}
+                    onCopy={handleCopyWorkflowFromModal}
                 />
-            )} */}
+            )}
 
             {/* TODO: 워크플로우 생성 모달 컴포넌트 추가 필요 */}
             {/* <WorkflowCreateModal
