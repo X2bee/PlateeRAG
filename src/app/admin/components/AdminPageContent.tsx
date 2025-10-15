@@ -26,6 +26,7 @@ import MCPMarketContent from '@/app/admin/components/mcp/MCPMarketContent';
 import MCPStation from '@/app/admin/components/mcp/MCPStation';
 import AdminNodeManage from '@/app/admin/components/workflows/AdminNodeManage';
 import AdminPromptStore from '@/app/admin/components/workflows/AdminPromptStore/AdminPromptStore';
+import AdminWorkflowStore from '@/app/admin/components/workflows/AdminWorkflowStore';
 import {
     getUserSidebarItems,
     getWorkflowSidebarItems,
@@ -143,7 +144,7 @@ const AdminPageContent: React.FC = () => {
             // User Items
             'users', 'user-create', 'group-permissions',
             // Workflow Items
-            'workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'user-token-dashboard', 'prompt-store',
+            'workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'user-token-dashboard', 'workflow-store', 'prompt-store',
             // Setting Items
             'system-config', 'system-settings',
             // System Items
@@ -271,6 +272,15 @@ const AdminPageContent: React.FC = () => {
                         description="시스템에서 사용 가능한 모든 노드를 확인하고 관리할 수 있습니다."
                     >
                         <AdminNodeManage />
+                    </AdminContentArea>
+                );
+            case 'workflow-store':
+                return (
+                    <AdminContentArea
+                        title="워크플로우 스토어"
+                        description="워크플로우 템플릿 및 공유 워크플로우를 관리하세요."
+                    >
+                        <AdminWorkflowStore />
                     </AdminContentArea>
                 );
             case 'prompt-store':
@@ -428,7 +438,7 @@ const AdminPageContent: React.FC = () => {
                     activeItem={activeSection}
                     onItemClick={(itemId: string) => setActiveSection(itemId)}
                     initialUserExpanded={['users', 'user-create', 'group-permissions'].includes(activeSection)}
-                    initialWorkflowExpanded={['workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'user-token-dashboard', 'prompt-store'].includes(activeSection)}
+                    initialWorkflowExpanded={['workflow-management', 'workflow-monitoring', 'node-management', 'chat-monitoring', 'user-token-dashboard', 'workflow-store', 'prompt-store'].includes(activeSection)}
                     initialSettingExpanded={['system-config', 'system-settings'].includes(activeSection)}
                     initialSystemExpanded={['system-monitor', 'system-health'].includes(activeSection)}
                     initialDataExpanded={['database', 'data-scraper', 'storage', 'backup'].includes(activeSection)}

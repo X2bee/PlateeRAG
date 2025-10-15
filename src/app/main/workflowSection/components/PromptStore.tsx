@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 import styles from '../assets/PromptStore.module.scss';
-import { getPromptsByLanguage, deletePrompt } from '@/app/_common/api/promptAPI';
+import { getPromptsByLanguage, deletePrompt, ratePrompt } from '@/app/_common/api/promptAPI';
 import { devLog } from '@/app/_common/utils/logger';
 import PromptExpandModal from './PromptExpandModal';
 import PromptCreateModal from './PromptCreateModal';
@@ -11,7 +11,9 @@ import {
     showDeleteConfirmToastKo,
     showDeleteSuccessToastKo,
     showDeleteErrorToastKo,
-    showCopySuccessToastKo
+    showCopySuccessToastKo,
+    showSuccessToastKo,
+    showErrorToastKo
 } from '@/app/_common/utils/toastUtilsKo';
 import {
     IoSearch,
@@ -21,7 +23,9 @@ import {
     IoSearchOutline,
     IoAdd,
     IoTrash,
-    IoPencil
+    IoPencil,
+    IoStar,
+    IoStarOutline
 } from 'react-icons/io5';
 import RefreshButton from '@/app/_common/icons/refresh';
 
@@ -39,6 +43,8 @@ interface Prompt {
     created_at: string;
     updated_at: string;
     metadata?: any;
+    rating_count?: number;
+    rating_sum?: number;
 }
 
 interface PromptStoreProps {
@@ -59,6 +65,7 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
     const [filterMode, setFilterMode] = useState<'all' | 'my' | 'template' | 'shared'>('my');
+    const [hoveredRating, setHoveredRating] = useState<{ promptId: number; rating: number } | null>(null);
 
     // 현재 로그인한 사용자 정보 가져오기
     const { user } = useAuth();
@@ -248,6 +255,85 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
         return text.substring(0, maxLength) + '...';
     };
 
+    // 평균 평점 계산 함수
+    const calculateAverageRating = (prompt: Prompt) => {
+        if (!prompt.rating_count || prompt.rating_count === 0) return 0;
+        return prompt.rating_sum! / prompt.rating_count;
+    };
+
+    // 프롬프트 평가 핸들러
+    const handleRatePrompt = async (prompt: Prompt, rating: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        if (!user) {
+            showErrorToastKo('평가하려면 로그인이 필요합니다.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+
+            await ratePrompt(
+                prompt.prompt_uid,
+                prompt.user_id ? parseInt(prompt.user_id) : 0,
+                prompt.is_template,
+                rating
+            );
+
+            showSuccessToastKo(`${rating}점으로 평가되었습니다!`);
+            devLog.info(`Rated prompt: ${prompt.prompt_title} with ${rating} stars`);
+
+            // 프롬프트 목록 새로고침
+            await loadPrompts(selectedLanguage);
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : '프롬프트 평가에 실패했습니다.';
+            devLog.error('Failed to rate prompt:', err);
+            showErrorToastKo(errorMessage);
+        } finally {
+            setLoading(false);
+            setHoveredRating(null);
+        }
+    };
+
+    // 별 렌더링 함수
+    const renderStars = (prompt: Prompt) => {
+        const avgRating = calculateAverageRating(prompt);
+        const stars = [];
+        const currentHovered = hoveredRating?.promptId === prompt.id ? hoveredRating.rating : 0;
+
+        for (let i = 1; i <= 5; i++) {
+            const isFilled = currentHovered > 0 ? i <= currentHovered : i <= Math.round(avgRating);
+            stars.push(
+                <span
+                    key={i}
+                    className={`${styles.star} ${isFilled ? styles.filled : ''}`}
+                    onMouseEnter={() => setHoveredRating({ promptId: prompt.id, rating: i })}
+                    onMouseLeave={() => setHoveredRating(null)}
+                    onClick={(e) => handleRatePrompt(prompt, i, e)}
+                >
+                    {isFilled ? <IoStar /> : <IoStarOutline />}
+                </span>
+            );
+        }
+
+        return (
+            <div className={styles.ratingContainer}>
+                <div className={styles.stars}>
+                    {stars}
+                </div>
+                {prompt.rating_count && prompt.rating_count > 0 ? (
+                    <span className={styles.ratingText}>
+                        {avgRating.toFixed(1)} ({prompt.rating_count})
+                    </span>
+                ) : (
+                    <span className={styles.noRatingText}>
+                        평가 없음
+                    </span>
+                )}
+            </div>
+        );
+    };
+
     return (
         <div className={`${styles.container} ${className || ''}`}>
             {/* 헤더 섹션 */}
@@ -380,6 +466,10 @@ const PromptStore: React.FC<PromptStoreProps> = ({ onPromptSelect, className }) 
                                         <div className={styles.contentPreview}>
                                             {truncateText(prompt.prompt_content)}
                                         </div>
+
+                                        {/* 평점 표시 */}
+                                        {renderStars(prompt)}
+
                                         <div className={styles.contentMeta}>
                                             <div className={styles.metaItem}>
                                                 <IoCalendar className={styles.metaIcon} />
