@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import {
     FiDatabase,
     FiPackage,
-    FiRefreshCw,
     FiUser,
     FiClock,
     FiDownload,
@@ -17,6 +16,7 @@ import ContentArea from '@/app/main/workflowSection/components/ContentArea';
 import styles from '@/app/main/modelSection/assets/StoragePage.module.scss';
 import { getAllHuggingFaceResources } from '@/app/_common/api/huggingfaceAPI';
 import StorageModelInfoModal from './Storage/StorageModelInfoModal';
+import RefreshButton from '@/app/_common/icons/refresh';
 
 interface HuggingFaceModel {
     id: string;
@@ -174,14 +174,12 @@ const StoragePageContent: React.FC = () => {
                 </div>
 
                 <div className={styles.headerActions}>
-                    <button
-                        className={`${styles.refreshButton} ${loading ? styles.spinning : ''}`}
+                    <RefreshButton
                         onClick={fetchResources}
+                        loading={loading}
                         disabled={loading}
                         title="새로고침"
-                    >
-                        <FiRefreshCw />
-                    </button>
+                    />
                 </div>
             </div>
 

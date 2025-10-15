@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import {
     FiDatabase,
-    FiRefreshCw,
     FiUser,
     FiClock,
     FiDownload,
@@ -15,6 +14,7 @@ import ContentArea from '@/app/main/workflowSection/components/ContentArea';
 import styles from '@/app/main/dataSection/assets/DataStoragePage.module.scss';
 import { getAllHuggingFaceResources } from '@/app/_common/api/huggingfaceAPI';
 import DataStorageInfoModal from './DataStorageInfoModal';
+import RefreshButton from '@/app/_common/icons/refresh';
 
 interface HuggingFaceDataset {
     id: string;
@@ -172,14 +172,12 @@ const DataStorage: React.FC = () => {
                 </div>
 
                 <div className={styles.headerActions}>
-                    <button
-                        className={`${styles.refreshButton} ${loading ? styles.spinning : ''}`}
+                    <RefreshButton
                         onClick={fetchResources}
+                        loading={loading}
                         disabled={loading}
                         title="새로고침"
-                    >
-                        <FiRefreshCw />
-                    </button>
+                    />
                 </div>
             </div>
 

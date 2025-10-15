@@ -7,11 +7,13 @@ import {
     showDeleteConfirmToastKo,
     showDeleteSuccessToastKo,
     showDeleteErrorToastKo,
-    showCopySuccessToastKo
+    showCopySuccessToastKo,
+    showWarningConfirmToastKo,
+    showSuccessToastKo,
+    showErrorToastKo
 } from '@/app/_common/utils/toastUtilsKo';
 import {
     IoSearch,
-    IoRefresh,
     IoPerson,
     IoCalendar,
     IoCopy,
@@ -20,21 +22,32 @@ import {
     IoTrash,
     IoPencil
 } from 'react-icons/io5';
+import RefreshButton from '@/app/_common/icons/refresh';
+import UploadButton from '@/app/_common/icons/upload';
+import WorkflowStoreUploadModal from './workflows/WorkflowStoreUploadModal';
+import { listWorkflowStore, deleteWorkflowFromStore, duplicateWorkflowFromStore } from '@/app/_common/api/workflow/workflowStoreAPI';
 
 interface Workflow {
     id: number;
-    workflow_uid: string;
-    workflow_title: string;
-    workflow_content: string;
-    public_available: boolean;
-    is_template: boolean;
-    language: string;
-    user_id?: string;
-    username?: string;
-    full_name?: string;
     created_at: string;
     updated_at: string;
+    current_version: number;
+    description: string;
+    edge_count: number;
+    full_name?: string;
+    has_endnode: boolean;
+    has_startnode: boolean;
+    is_completed: boolean;
+    is_template: boolean;
+    latest_version: number;
     metadata?: any;
+    node_count: number;
+    tags?: string[] | null;
+    user_id?: number;
+    username?: string;
+    workflow_id: string;
+    workflow_name: string;
+    workflow_upload_name: string;
 }
 
 interface WorkflowStoreProps {
@@ -44,7 +57,6 @@ interface WorkflowStoreProps {
 
 const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, className }) => {
     // 상태 관리
-    const [selectedLanguage, setSelectedLanguage] = useState<'ko' | 'en'>('ko');
     const [workflows, setWorkflows] = useState<Workflow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -53,6 +65,7 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null);
     const [filterMode, setFilterMode] = useState<'all' | 'my' | 'template' | 'shared'>('my');
 
@@ -60,19 +73,16 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
     const { user } = useAuth();
 
     // 워크플로우 데이터 로딩
-    const loadWorkflows = async (language: 'ko' | 'en') => {
+    const loadWorkflows = async () => {
         try {
             setLoading(true);
             setError(null);
 
-            devLog.info(`Loading workflows for language: ${language}`);
+            devLog.info('Loading workflows from store');
 
-            // TODO: API 호출 구현 필요
-            // const response = await getWorkflowsByLanguage(language, 300);
-
-            // 임시 데이터
-            setWorkflows([]);
-            devLog.info(`Loaded 0 workflows for ${language}`);
+            const workflowList = await listWorkflowStore();
+            setWorkflows(workflowList as Workflow[]);
+            devLog.info(`Loaded ${workflowList.length} workflows from store`);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : '워크플로우를 불러오는데 실패했습니다.';
             setError(errorMessage);
@@ -83,43 +93,40 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
         }
     };
 
-    // 언어 변경 시 워크플로우 다시 로딩
+    // 초기 로딩
     useEffect(() => {
-        loadWorkflows(selectedLanguage);
-    }, [selectedLanguage]);
+        loadWorkflows();
+    }, []);
 
     // 필터링된 워크플로우 계산
     const filteredWorkflows = useMemo(() => {
         return workflows.filter(workflow => {
             // 검색어 필터
             const matchesSearch = !searchTerm ||
-                workflow.workflow_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                workflow.workflow_content.toLowerCase().includes(searchTerm.toLowerCase());
+                workflow.workflow_upload_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                workflow.workflow_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                workflow.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (workflow.tags && workflow.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
 
             // 필터 모드에 따른 필터링
             let matchesFilter = true;
 
             if (filterMode === 'my') {
                 // My: 자신의 것만 표시
-                matchesFilter = !!(user && workflow.user_id && String(workflow.user_id) === String(user.user_id));
+                matchesFilter = !!(user && workflow.user_id && workflow.user_id === user.user_id);
             } else if (filterMode === 'template') {
                 // 템플릿: is_template이 true인 것만 표시
                 matchesFilter = workflow.is_template === true;
             } else if (filterMode === 'shared') {
-                // 공유: public_available이 true이면서 is_template가 false인 것만 표시
-                matchesFilter = workflow.public_available === true && workflow.is_template === false;
+                // 공유: is_template가 false인 것만 표시 (다른 사용자의 것)
+                matchesFilter = workflow.is_template === false &&
+                                (!user || !workflow.user_id || workflow.user_id !== user.user_id);
             }
             // filterMode === 'all'인 경우 matchesFilter는 true 유지
 
             return matchesSearch && matchesFilter;
         });
     }, [workflows, searchTerm, filterMode, user]);
-
-    // 언어 탭 변경 핸들러
-    const handleLanguageChange = (language: 'ko' | 'en') => {
-        setSelectedLanguage(language);
-        setSearchTerm(''); // 언어 변경 시 검색어 초기화
-    };
 
     // 검색어 변경 핸들러
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,13 +142,42 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
     // 워크플로우 복사 핸들러
     const handleCopyWorkflow = async (workflow: Workflow, e: React.MouseEvent) => {
         e.stopPropagation();
-        try {
-            await navigator.clipboard.writeText(workflow.workflow_content);
-            showCopySuccessToastKo('클립보드에 복사되었습니다!');
-            devLog.info(`Copied workflow: ${workflow.workflow_title}`);
-        } catch (err) {
-            devLog.error('Failed to copy workflow:', err);
+
+        if (!workflow.user_id) {
+            showErrorToastKo('워크플로우 소유자 정보를 찾을 수 없습니다.');
+            return;
         }
+
+        showWarningConfirmToastKo({
+            title: '워크플로우 복제 확인',
+            message: `'${workflow.workflow_upload_name}' 워크플로우를 내 워크플로우로 복제하시겠습니까?\n복제된 워크플로우는 내 워크플로우 목록에 추가됩니다.`,
+            onConfirm: async () => {
+                try {
+                    setLoading(true);
+
+                    await duplicateWorkflowFromStore(
+                        workflow.workflow_name,
+                        workflow.workflow_upload_name,
+                        workflow.user_id!,
+                        workflow.current_version
+                    );
+
+                    showSuccessToastKo('워크플로우가 성공적으로 복제되었습니다!');
+                    devLog.info(`Duplicated workflow: ${workflow.workflow_upload_name}`);
+
+                    // 워크플로우 목록 새로고침
+                    await loadWorkflows();
+                } catch (err) {
+                    const errorMessage = err instanceof Error ? err.message : '워크플로우 복제에 실패했습니다.';
+                    devLog.error('Failed to duplicate workflow:', err);
+                    showErrorToastKo(errorMessage);
+                } finally {
+                    setLoading(false);
+                }
+            },
+            confirmText: '복제',
+            cancelText: '취소',
+        });
     };
 
     // 워크플로우 삭제 핸들러
@@ -150,25 +186,29 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
 
         showDeleteConfirmToastKo({
             title: '워크플로우 삭제 확인',
-            message: `'${workflow.workflow_title}' 워크플로우를 정말로 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`,
-            itemName: workflow.workflow_title,
+            message: `'${workflow.workflow_upload_name}' 워크플로우를 정말로 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`,
+            itemName: workflow.workflow_upload_name,
             onConfirm: async () => {
                 try {
                     setLoading(true);
-                    // TODO: API 호출 구현 필요
-                    // await deleteWorkflow({ workflow_uid: workflow.workflow_uid });
+
+                    await deleteWorkflowFromStore(
+                        workflow.workflow_name,
+                        workflow.workflow_upload_name,
+                        workflow.current_version
+                    );
 
                     showDeleteSuccessToastKo({
-                        itemName: workflow.workflow_title,
+                        itemName: workflow.workflow_upload_name,
                         itemType: '워크플로우',
                     });
 
                     // 워크플로우 목록 새로고침
-                    await loadWorkflows(selectedLanguage);
+                    await loadWorkflows();
                 } catch (error) {
                     devLog.error('Failed to delete workflow:', error);
                     showDeleteErrorToastKo({
-                        itemName: workflow.workflow_title,
+                        itemName: workflow.workflow_upload_name,
                         itemType: '워크플로우',
                         error: error instanceof Error ? error : 'Unknown error',
                     });
@@ -183,7 +223,7 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
 
     // 새로고침 핸들러
     const handleRefresh = () => {
-        loadWorkflows(selectedLanguage);
+        loadWorkflows();
     };
 
     // 모달 닫기 핸들러
@@ -205,7 +245,7 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
     // 워크플로우 생성 성공 핸들러
     const handleCreateSuccess = () => {
         // 워크플로우 목록 새로고침
-        loadWorkflows(selectedLanguage);
+        loadWorkflows();
     };
 
     // 워크플로우 편집 모달 열기 핸들러
@@ -224,7 +264,23 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
     // 워크플로우 편집 성공 핸들러
     const handleEditSuccess = () => {
         // 워크플로우 목록 새로고침
-        loadWorkflows(selectedLanguage);
+        loadWorkflows();
+    };
+
+    // 워크플로우 업로드 모달 열기 핸들러
+    const handleUploadClick = () => {
+        setIsUploadModalOpen(true);
+    };
+
+    // 워크플로우 업로드 모달 닫기 핸들러
+    const handleCloseUploadModal = () => {
+        setIsUploadModalOpen(false);
+    };
+
+    // 워크플로우 업로드 성공 핸들러
+    const handleUploadSuccess = () => {
+        // 워크플로우 목록 새로고침
+        loadWorkflows();
     };
 
     // 날짜 포맷팅 함수
@@ -260,24 +316,6 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                             <IoSearch className={styles.searchIcon} />
                         </div>
 
-                        {/* 언어 탭 */}
-                        <div className={styles.languageTabs}>
-                            <button
-                                className={`${styles.languageTab} ${selectedLanguage === 'ko' ? styles.active : ''}`}
-                                onClick={() => handleLanguageChange('ko')}
-                            >
-                                <span className={styles.tabIcon}>🇰🇷</span>
-                                한국어
-                            </button>
-                            <button
-                                className={`${styles.languageTab} ${selectedLanguage === 'en' ? styles.active : ''}`}
-                                onClick={() => handleLanguageChange('en')}
-                            >
-                                <span className={styles.tabIcon}>🇺🇸</span>
-                                English
-                            </button>
-                        </div>
-
                         {/* 필터 탭 */}
                         <div className={styles.filterTabs}>
                             <button
@@ -306,13 +344,18 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                             </button>
                         </div>
 
-                        <button
-                            className={styles.refreshButton}
-                            onClick={handleRefresh}
+                        <UploadButton
+                            onClick={handleUploadClick}
                             disabled={loading}
-                        >
-                            <IoRefresh className={styles.refreshIcon} />
-                        </button>
+                            title="워크플로우 업로드"
+                        />
+
+                        <RefreshButton
+                            onClick={handleRefresh}
+                            loading={loading}
+                            disabled={loading}
+                            title="새로고침"
+                        />
                     </div>
                 </div>
             </div>
@@ -344,14 +387,14 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                 ) : (
                     <div className={styles.workflowGrid}>
                         {/* 나만의 워크플로우 추가 카드 */}
-                        <div className={styles.addWorkflowCard} onClick={handleCreateWorkflowClick}>
+                        <div className={styles.addWorkflowCard} onClick={handleUploadClick}>
                             <div className={styles.addWorkflowContent}>
                                 <div className={styles.addWorkflowIcon}>
                                     <IoAdd />
                                 </div>
                                 <h3 className={styles.addWorkflowTitle}>나만의 워크플로우를 추가해 보세요!</h3>
                                 <p className={styles.addWorkflowDescription}>
-                                    새로운 워크플로우를 생성하여 다른 사용자들과 공유하거나 개인용으로 사용하세요.
+                                    내가 만든 워크플로우를 사용자들과 공유해보세요!
                                 </p>
                             </div>
                         </div>
@@ -363,17 +406,22 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                                     onClick={() => handleWorkflowClick(workflow)}
                                 >
                                     <div className={styles.cardHeader}>
-                                        <h3 className={styles.cardTitle}>{workflow.workflow_title}</h3>
+                                        <h3 className={styles.cardTitle}>{workflow.workflow_upload_name}</h3>
                                         <div className={styles.cardBadges}>
-                                            <span className={`${styles.badge} ${styles.language}`}>
-                                                {workflow.language.toUpperCase()}
+                                            {workflow.is_template && (
+                                                <span className={`${styles.badge} ${styles.template}`}>
+                                                    템플릿
+                                                </span>
+                                            )}
+                                            <span className={`${styles.badge} ${styles.version}`}>
+                                                v{workflow.current_version}
                                             </span>
                                         </div>
                                     </div>
 
                                     <div className={styles.cardContent}>
                                         <div className={styles.contentPreview}>
-                                            {truncateText(workflow.workflow_content)}
+                                            {truncateText(workflow.description || '설명 없음')}
                                         </div>
                                         <div className={styles.contentMeta}>
                                             <div className={styles.metaItem}>
@@ -383,16 +431,25 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                                             {workflow.user_id && workflow.username && (
                                                 <div className={styles.metaItem}>
                                                     <IoPerson className={styles.metaIcon} />
-                                                    {workflow.username || ''} ({workflow.user_id || ''})
+                                                    {workflow.full_name || workflow.username}
                                                 </div>
                                             )}
                                         </div>
+                                        {workflow.tags && workflow.tags.length > 0 && (
+                                            <div className={styles.tags}>
+                                                {workflow.tags.map((tag, index) => (
+                                                    <span key={index} className={styles.tag}>
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className={styles.cardFooter}>
                                         <div className={styles.cardInfo}>
                                             <div className={styles.infoItem}>
-                                                <span>문자수: {workflow.workflow_content.length}</span>
+                                                <span>노드: {workflow.node_count} | 엣지: {workflow.edge_count}</span>
                                             </div>
                                         </div>
                                         <div className={styles.cardActions}>
@@ -405,24 +462,14 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                                                 복사
                                             </button>
                                             {user && workflow.user_id && String(workflow.user_id) === String(user.user_id) && (
-                                                <>
-                                                    <button
-                                                        className={`${styles.actionButton} ${styles.editButton}`}
-                                                        onClick={(e) => handleEditWorkflowClick(workflow, e)}
-                                                        title="워크플로우 편집"
-                                                    >
-                                                        <IoPencil className={styles.actionIcon} />
-                                                        편집
-                                                    </button>
-                                                    <button
-                                                        className={`${styles.actionButton} ${styles.deleteButton}`}
-                                                        onClick={(e) => handleDeleteWorkflow(workflow, e)}
-                                                        title="워크플로우 삭제"
-                                                    >
-                                                        <IoTrash className={styles.actionIcon} />
-                                                        삭제
-                                                    </button>
-                                                </>
+                                                <button
+                                                    className={`${styles.actionButton} ${styles.deleteButton}`}
+                                                    onClick={(e) => handleDeleteWorkflow(workflow, e)}
+                                                    title="워크플로우 삭제"
+                                                >
+                                                    <IoTrash className={styles.actionIcon} />
+                                                    삭제
+                                                </button>
                                             )}
                                         </div>
                                     </div>
@@ -457,6 +504,13 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                     workflow={editingWorkflow}
                 />
             )} */}
+
+            {/* 워크플로우 업로드 모달 */}
+            <WorkflowStoreUploadModal
+                isOpen={isUploadModalOpen}
+                onClose={handleCloseUploadModal}
+                onSuccess={handleUploadSuccess}
+            />
         </div>
     );
 };

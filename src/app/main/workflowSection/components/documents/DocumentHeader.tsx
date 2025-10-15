@@ -199,8 +199,9 @@ const DocumentHeader: React.FC<DocumentHeaderProps> = ({
                                             onClick={onRemakeCollection}
                                             className={`${styles.button} ${styles.remakeButton}`}
                                             title="현재 임베딩 설정으로 컬렉션을 다시 생성합니다"
+                                            disabled={loading}
                                         >
-                                            <FiRefreshCw /> 컬렉션 리메이크
+                                            <FiRefreshCw className={loading ? styles.spinning : ''} /> 컬렉션 리메이크
                                         </button>
                                     </div>
                                 </div>

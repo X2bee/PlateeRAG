@@ -6,7 +6,6 @@ import { useAuth } from '@/app/_common/components/CookieProvider';
 import {
     FiDatabase,
     FiPlus,
-    FiRefreshCw,
     FiTrash2,
     FiPlay,
     FiUser,
@@ -15,6 +14,7 @@ import {
     FiClock,
     FiFolder,
 } from 'react-icons/fi';
+import RefreshButton from '@/app/_common/icons/refresh';
 import {
     createDataManager,
     listDataManagers,
@@ -213,15 +213,6 @@ const DataStation: React.FC = () => {
             <div className={styles.header}>
                 <div className={styles.headerActions}>
                     <button
-                        className={styles.refreshButton}
-                        onClick={handleRefresh}
-                        disabled={refreshing}
-                        title="새로고침"
-                    >
-                        <FiRefreshCw className={refreshing ? styles.spinning : ''} />
-                    </button>
-
-                    <button
                         className={styles.createButton}
                         onClick={handleCreateManager}
                         disabled={isCreating}
@@ -229,6 +220,13 @@ const DataStation: React.FC = () => {
                         <FiPlus />
                         {isCreating ? '생성 중...' : '새 데이터 매니저'}
                     </button>
+
+                    <RefreshButton
+                        onClick={handleRefresh}
+                        loading={refreshing}
+                        disabled={refreshing}
+                        title="새로고침"
+                    />
                 </div>
             </div>
 

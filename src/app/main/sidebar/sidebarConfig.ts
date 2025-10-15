@@ -58,6 +58,12 @@ export const getWorkflowSidebarItems = (): SidebarItem[] => [
         icon: React.createElement(FiFolder),
     },
     {
+        id: 'workflow-store',
+        title: '워크플로우 스토어',
+        description: '워크플로우 템플릿을 탐색하고 관리',
+        icon: React.createElement(FiLayers),
+    },
+    {
         id: 'documents',
         title: '문서',
         description: '문서 저장소',
@@ -69,12 +75,6 @@ export const getWorkflowSidebarItems = (): SidebarItem[] => [
         description: '프롬프트 템플릿을 탐색하고 관리',
         icon: React.createElement(IoDocumentTextOutline),
     },
-    {
-        id: 'workflow-store',
-        title: '워크플로우 스토어',
-        description: '워크플로우 템플릿을 탐색하고 관리',
-        icon: React.createElement(FiLayers),
-    },
 ];
 
 
@@ -83,7 +83,7 @@ export const getDataSidebarItems = (): SidebarItem[] => [
     {
         id: 'data-station',
         title: '데이터 스테이션',
-        description: '데이터 매니저를 생성하고 관리합니다',
+        description: '데이터를 처리합니다.',
         icon: React.createElement(FiDatabase),
     },
     {

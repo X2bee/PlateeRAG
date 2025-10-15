@@ -1205,3 +1205,51 @@ export const renameWorkflow = async (oldName, newName) => {
         throw error;
     }
 };
+
+/**
+ * 워크플로우를 스토어에 업로드합니다.
+ * @param {string} workflowName - 업로드할 워크플로우 이름
+ * @param {string} workflowUploadName - 업로드될 워크플로우 이름
+ * @param {string} description - 워크플로우 설명
+ * @param {Array<string>} tags - 워크플로우 태그 배열
+ * @returns {Promise<Object>} 업로드 결과를 포함하는 프로미스
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const uploadWorkflowToStore = async (workflowName, workflowUploadName, description, tags) => {
+    try {
+        const params = new URLSearchParams({
+            workflow_upload_name: workflowUploadName,
+            description: description || '',
+            tags: JSON.stringify(tags || [])
+        });
+
+        const response = await apiClient(
+            `${API_BASE_URL}/api/workflow/store/upload/${encodeURIComponent(workflowName)}?${params}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        devLog.log('Workflow upload response status:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            devLog.error('Workflow upload error data:', errorData);
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
+        }
+
+        const result = await response.json();
+        devLog.log('Successfully uploaded workflow to store:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to upload workflow to store:', error);
+        devLog.error('Workflow name that failed:', workflowName);
+        devLog.error('Upload name that failed:', workflowUploadName);
+        throw error;
+    }
+};
