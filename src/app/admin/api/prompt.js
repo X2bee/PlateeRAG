@@ -36,9 +36,6 @@ export const getAllPrompts = async (options = {}) => {
 
         const response = await apiClient(`${API_BASE_URL}/api/admin/prompt/list?${params.toString()}`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
         });
 
         if (!response.ok) {
@@ -87,9 +84,6 @@ export const createPrompt = async (promptData) => {
 
         const response = await apiClient(`${API_BASE_URL}/api/admin/prompt/create`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify(promptData)
         });
 
@@ -193,9 +187,6 @@ export const deletePrompt = async (promptData) => {
 
         const response = await apiClient(`${API_BASE_URL}/api/admin/prompt/delete`, {
             method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify(promptData)
         });
 
@@ -230,6 +221,71 @@ export const deletePrompt = async (promptData) => {
         return data;
     } catch (error) {
         devLog.error('Failed to delete prompt (admin):', error);
+        throw error;
+    }
+};
+
+/**
+ * 관리자용: 모든 프롬프트를 Excel 또는 CSV 파일로 다운로드하는 함수
+ * @param {Object} options - 다운로드 옵션
+ * @param {string} options.format - 다운로드 형식 ('excel' 또는 'csv', 기본값: 'excel')
+ * @param {number} options.userId - 특정 사용자의 프롬프트만 필터링 (선택)
+ * @param {string} options.language - 특정 언어로 필터링 (선택)
+ * @param {boolean} options.publicAvailable - 공개 여부로 필터링 (선택)
+ * @param {boolean} options.isTemplate - 템플릿 여부로 필터링 (선택)
+ * @returns {Promise<Blob>} 다운로드할 파일 데이터
+ */
+export const downloadAllPrompts = async (options = {}) => {
+    try {
+        const {
+            format = 'excel',
+            userId = null,
+            language = null,
+            publicAvailable = null,
+            isTemplate = null
+        } = options;
+
+        devLog.info('Downloading all prompts (admin) with options:', options);
+
+        // URL 파라미터 구성
+        const params = new URLSearchParams();
+        params.append('format', format);
+
+        if (userId !== null) params.append('user_id', userId.toString());
+        if (language !== null) params.append('language', language);
+        if (publicAvailable !== null) params.append('public_available', publicAvailable.toString());
+        if (isTemplate !== null) params.append('is_template', isTemplate.toString());
+
+        const response = await apiClient(`${API_BASE_URL}/api/admin/prompt/download/all-prompts?${params.toString()}`, {
+            method: 'GET',
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+
+            // 403 에러 처리 (관리자 권한 필요)
+            if (response.status === 403) {
+                throw new Error('관리자 권한이 필요합니다.');
+            }
+
+            // 404 에러 처리 (데이터 없음)
+            if (response.status === 404) {
+                throw new Error('다운로드할 프롬프트가 없습니다.');
+            }
+
+            // 500 에러 처리
+            if (response.status === 500) {
+                throw new Error('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+            }
+
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        devLog.info('Prompts downloaded successfully (admin)');
+        return blob;
+    } catch (error) {
+        devLog.error('Failed to download prompts (admin):', error);
         throw error;
     }
 };

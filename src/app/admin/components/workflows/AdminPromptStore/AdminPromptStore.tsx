@@ -1,7 +1,7 @@
 'use client';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import styles from './AdminPromptStore.module.scss';
-import { getAllPrompts, deletePrompt } from '@/app/admin/api/prompt';
+import { getAllPrompts, deletePrompt, downloadAllPrompts } from '@/app/admin/api/prompt';
 import { devLog } from '@/app/_common/utils/logger';
 import AdminPromptExpandModal from './AdminPromptExpandModal';
 import AdminPromptCreateModal from './AdminPromptCreateModal';
@@ -10,9 +10,11 @@ import {
     showDeleteConfirmToastKo,
     showDeleteSuccessToastKo,
     showDeleteErrorToastKo,
-    showCopySuccessToastKo
+    showCopySuccessToastKo,
+    showValidationErrorToastKo
 } from '@/app/_common/utils/toastUtilsKo';
 import RefreshButton from '@/app/_common/icons/refresh';
+import DownloadButton from '@/app/_common/icons/download';
 import {
     IoSearch,
     IoPerson,
@@ -59,6 +61,18 @@ const AdminPromptStore: React.FC<AdminPromptStoreProps> = ({ onPromptSelect, cla
     const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
     const [filterMode, setFilterMode] = useState<'all' | 'template' | 'shared' | 'private'>('all');
 
+    // 다운로드 드롭다운 관련 상태
+    const [isDownloadDropdownOpen, setIsDownloadDropdownOpen] = useState(false);
+    const [downloadParams, setDownloadParams] = useState({
+        format: 'excel',
+        userId: '',
+        language: '',
+        publicAvailable: '',
+        isTemplate: ''
+    });
+    const [isDownloading, setIsDownloading] = useState(false);
+    const downloadDropdownRef = useRef<HTMLDivElement>(null);
+
     // 프롬프트 데이터 로딩
     const loadPrompts = async (language: 'ko' | 'en' | 'all') => {
         try {
@@ -99,6 +113,23 @@ const AdminPromptStore: React.FC<AdminPromptStoreProps> = ({ onPromptSelect, cla
     useEffect(() => {
         loadPrompts(selectedLanguage);
     }, [selectedLanguage]);
+
+    // 드롭다운 외부 클릭 시 닫기
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (downloadDropdownRef.current && !downloadDropdownRef.current.contains(event.target as Node)) {
+                setIsDownloadDropdownOpen(false);
+            }
+        };
+
+        if (isDownloadDropdownOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isDownloadDropdownOpen]);
 
     // 필터링된 프롬프트 계산
     const filteredPrompts = useMemo(() => {
@@ -254,6 +285,101 @@ const AdminPromptStore: React.FC<AdminPromptStoreProps> = ({ onPromptSelect, cla
         return text.substring(0, maxLength) + '...';
     };
 
+    // 다운로드 드롭다운 토글
+    const toggleDownloadDropdown = () => {
+        setIsDownloadDropdownOpen(!isDownloadDropdownOpen);
+    };
+
+    // 다운로드 파라미터 변경 핸들러
+    const handleDownloadParamChange = (field: string, value: string) => {
+        setDownloadParams(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    // 다운로드 핸들러
+    const handleDownload = async () => {
+        try {
+            setIsDownloading(true);
+
+            // 파라미터 준비
+            const userId = downloadParams.userId.trim() !== '' ? parseInt(downloadParams.userId.trim()) : null;
+            const language = downloadParams.language.trim() || null;
+            const publicAvailable = downloadParams.publicAvailable.trim() !== '' ? downloadParams.publicAvailable === 'true' : null;
+            const isTemplate = downloadParams.isTemplate.trim() !== '' ? downloadParams.isTemplate === 'true' : null;
+            const format = downloadParams.format || 'excel';
+
+            // userId가 숫자가 아닌 경우 에러
+            if (downloadParams.userId.trim() !== '' && isNaN(userId as number)) {
+                showValidationErrorToastKo('유효한 사용자 ID를 입력해주세요.');
+                return;
+            }
+
+            devLog.info('Downloading prompts (admin) with params:', {
+                format,
+                userId,
+                language,
+                publicAvailable,
+                isTemplate
+            });
+
+            // API 호출 옵션 준비
+            const options: any = { format };
+            if (userId !== null) options.userId = userId;
+            if (language !== null) options.language = language;
+            if (publicAvailable !== null) options.publicAvailable = publicAvailable;
+            if (isTemplate !== null) options.isTemplate = isTemplate;
+
+            const blob = await downloadAllPrompts(options);
+
+            // Blob 유효성 검증
+            if (!blob || blob.size === 0) {
+                throw new Error('다운로드된 파일이 비어있습니다.');
+            }
+
+            // Blob 타입 확인 (에러 응답인지 체크)
+            if (blob.type === 'application/json') {
+                const text = await blob.text();
+                const errorData = JSON.parse(text);
+                throw new Error(errorData.detail || '서버에서 에러가 발생했습니다.');
+            }
+
+            devLog.info('Prompts file blob received (admin):', { size: blob.size, type: blob.type });
+
+            // 파일 다운로드
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+
+            // 파일명 생성
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            const extension = format === 'csv' ? 'csv' : 'xlsx';
+            link.download = `prompts_admin_${timestamp}.${extension}`;
+
+            document.body.appendChild(link);
+            link.click();
+
+            // 약간의 딜레이 후 정리
+            setTimeout(() => {
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            devLog.info('Prompts file downloaded successfully (admin)');
+
+            // 드롭다운 닫기
+            setIsDownloadDropdownOpen(false);
+
+        } catch (error) {
+            devLog.error('Failed to download prompts file (admin):', error);
+            const errorMessage = error instanceof Error ? error.message : '파일 다운로드에 실패했습니다.';
+            showValidationErrorToastKo(errorMessage);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
     return (
         <div className={`${styles.container} ${className || ''}`}>
             {/* 헤더 섹션 */}
@@ -323,6 +449,103 @@ const AdminPromptStore: React.FC<AdminPromptStoreProps> = ({ onPromptSelect, cla
                             >
                                 비공개
                             </button>
+                        </div>
+
+                        {/* 다운로드 드롭다운 */}
+                        <div className={styles.downloadContainer} ref={downloadDropdownRef}>
+                            <DownloadButton
+                                onClick={toggleDownloadDropdown}
+                                loading={isDownloading}
+                                title="프롬프트 다운로드 (관리자)"
+                            />
+
+                            {isDownloadDropdownOpen && (
+                                <div className={styles.downloadDropdown}>
+                                    <h3 className={styles.dropdownTitle}>프롬프트 다운로드 (관리자)</h3>
+
+                                    <div className={styles.dropdownFormGroup}>
+                                        <label htmlFor="download-format">파일 형식</label>
+                                        <select
+                                            id="download-format"
+                                            value={downloadParams.format}
+                                            onChange={(e) => handleDownloadParamChange('format', e.target.value)}
+                                        >
+                                            <option value="excel">Excel (.xlsx)</option>
+                                            <option value="csv">CSV (.csv)</option>
+                                        </select>
+                                    </div>
+
+                                    <div className={styles.dropdownFormGroup}>
+                                        <label htmlFor="download-userId">사용자 ID (선택)</label>
+                                        <input
+                                            id="download-userId"
+                                            type="text"
+                                            placeholder="특정 사용자의 프롬프트만"
+                                            value={downloadParams.userId}
+                                            onChange={(e) => handleDownloadParamChange('userId', e.target.value)}
+                                        />
+                                        <span className={styles.helpText}>
+                                            비워두면 모든 사용자의 프롬프트를 다운로드합니다
+                                        </span>
+                                    </div>
+
+                                    <div className={styles.dropdownFormGroup}>
+                                        <label htmlFor="download-language">언어 (선택)</label>
+                                        <select
+                                            id="download-language"
+                                            value={downloadParams.language}
+                                            onChange={(e) => handleDownloadParamChange('language', e.target.value)}
+                                        >
+                                            <option value="">모든 언어</option>
+                                            <option value="ko">한국어</option>
+                                            <option value="en">English</option>
+                                        </select>
+                                    </div>
+
+                                    <div className={styles.dropdownFormGroup}>
+                                        <label htmlFor="download-public">공개 여부 (선택)</label>
+                                        <select
+                                            id="download-public"
+                                            value={downloadParams.publicAvailable}
+                                            onChange={(e) => handleDownloadParamChange('publicAvailable', e.target.value)}
+                                        >
+                                            <option value="">전체</option>
+                                            <option value="true">공개</option>
+                                            <option value="false">비공개</option>
+                                        </select>
+                                    </div>
+
+                                    <div className={styles.dropdownFormGroup}>
+                                        <label htmlFor="download-template">템플릿 여부 (선택)</label>
+                                        <select
+                                            id="download-template"
+                                            value={downloadParams.isTemplate}
+                                            onChange={(e) => handleDownloadParamChange('isTemplate', e.target.value)}
+                                        >
+                                            <option value="">전체</option>
+                                            <option value="true">템플릿</option>
+                                            <option value="false">일반</option>
+                                        </select>
+                                    </div>
+
+                                    <div className={styles.dropdownActions}>
+                                        <button
+                                            className={styles.cancelButton}
+                                            onClick={() => setIsDownloadDropdownOpen(false)}
+                                            disabled={isDownloading}
+                                        >
+                                            취소
+                                        </button>
+                                        <button
+                                            className={styles.downloadButton}
+                                            onClick={handleDownload}
+                                            disabled={isDownloading}
+                                        >
+                                            {isDownloading ? '다운로드 중...' : '다운로드'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <RefreshButton
