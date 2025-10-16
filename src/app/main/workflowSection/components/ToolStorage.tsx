@@ -16,6 +16,7 @@ import {
 import styles from '@/app/main/workflowSection/assets/ToolStorage.module.scss';
 import RefreshButton from '@/app/_common/icons/refresh';
 import UploadButton from '@/app/_common/icons/upload';
+import ToolStorageUpload from '@/app/main/workflowSection/components/ToolStorageUpload';
 
 const ToolStorage: React.FC = () => {
     const [tools, setTools] = useState<any[]>([]);
@@ -25,7 +26,7 @@ const ToolStorage: React.FC = () => {
         'all' | 'active' | 'unactive'
     >('all');
     const [openDropdown, setOpenDropdown] = useState<number | null>(null);
-    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [viewMode, setViewMode] = useState<'storage' | 'upload'>('storage');
 
     const fetchTools = async () => {
         try {
@@ -70,19 +71,14 @@ const ToolStorage: React.FC = () => {
         setOpenDropdown(openDropdown === toolKey ? null : toolKey);
     };
 
-    // 도구 업로드 모달 열기 핸들러
+    // 도구 업로드 페이지로 전환
     const handleUploadClick = () => {
-        setIsUploadModalOpen(true);
+        setViewMode('upload');
     };
 
-    // 도구 업로드 모달 닫기 핸들러
-    const handleCloseUploadModal = () => {
-        setIsUploadModalOpen(false);
-    };
-
-    // 도구 업로드 성공 핸들러
-    const handleUploadSuccess = () => {
-        // 도구 목록 새로고침
+    // 도구 저장소 페이지로 돌아가기
+    const handleBackToStorage = () => {
+        setViewMode('storage');
         fetchTools();
     };
 
@@ -129,6 +125,11 @@ const ToolStorage: React.FC = () => {
                 return '활성';
         }
     };
+
+    // 업로드 모드일 때 업로드 컴포넌트 렌더링
+    if (viewMode === 'upload') {
+        return <ToolStorageUpload onBack={handleBackToStorage} />;
+    }
 
     return (
         <div className={styles.container}>
@@ -360,13 +361,6 @@ const ToolStorage: React.FC = () => {
                     </p>
                 </div>
             )}
-
-            {/* TODO: 도구 업로드 모달 */}
-            {/* <ToolStorageUploadModal
-                isOpen={isUploadModalOpen}
-                onClose={handleCloseUploadModal}
-                onSuccess={handleUploadSuccess}
-            /> */}
         </div>
     );
 };

@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { mlAPI } from '@/app/_common/api/mlAPI';
 import styles from '@/app/main/mlSection/assets/MLTrain.module.scss';
 import UserScriptWorkbench from './UserScriptWorkbench';
+import UserScriptCatalog from './UserScriptCatalog';
 
 interface HyperparameterConfig {
     enable_hpo: boolean;
@@ -86,9 +87,10 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
 
     const handleModelSelection = (modelName: string, selected: boolean) => {
         if (selected) {
-            handleConfigChange('model_names', [...config.model_names, modelName]);
+            // 단일 선택: 새로운 모델만 선택
+            handleConfigChange('model_names', [modelName]);
         } else {
-            handleConfigChange('model_names', config.model_names.filter(name => name !== modelName));
+            handleConfigChange('model_names', []);
         }
     };
 
@@ -160,7 +162,7 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                             <div className={styles.spinner} style={{ width: '16px', height: '16px' }} />
                         )}
                         {error && (
-                            <button 
+                            <button
                                 onClick={loadModelsForTask}
                                 className={`${styles.button} ${styles.secondary}`}
                                 style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
@@ -169,11 +171,11 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                             </button>
                         )}
                     </div>
-                    
+
                     {error ? (
-                        <div style={{ 
-                            color: '#dc2626', 
-                            fontSize: '0.875rem', 
+                        <div style={{
+                            color: '#dc2626',
+                            fontSize: '0.875rem',
                             padding: '1rem',
                             textAlign: 'center'
                         }}>
@@ -182,9 +184,9 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                     ) : (
                         <>
                             <div style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '1rem' }}>
-                                학습할 모델을 선택하세요. 여러 모델을 선택하여 성능을 비교할 수 있습니다.
+                                학습할 모델을 선택하세요. 하나의 모델만 선택할 수 있습니다.
                             </div>
-                            
+
                             <div className={styles.checkboxGroup} style={{ flexDirection: 'column', gap: '0.75rem' }}>
                                 {availableModels.map((model) => (
                                     <label
@@ -192,8 +194,8 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                                         className={`${styles.checkboxLabel} ${
                                             config.model_names.includes(model.name) ? styles.highlighted : ''
                                         }`}
-                                        style={{ 
-                                            padding: '0.75rem', 
+                                        style={{
+                                            padding: '0.75rem',
                                             border: '1px solid #e5e7eb',
                                             borderRadius: '0.5rem',
                                             alignItems: 'flex-start',
@@ -211,7 +213,7 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                                             <div style={{ fontWeight: 500, color: '#374151' }}>
                                                 {model.label || model.name}
                                                 {model.tags?.includes('high_performance') && (
-                                                    <span style={{ 
+                                                    <span style={{
                                                         marginLeft: '0.5rem',
                                                         padding: '0.125rem 0.25rem',
                                                         background: '#3b82f6',
@@ -223,7 +225,7 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                                                     </span>
                                                 )}
                                                 {model.tags?.includes('user_script') && (
-                                                    <span style={{ 
+                                                    <span style={{
                                                         marginLeft: '0.5rem',
                                                         padding: '0.125rem 0.25rem',
                                                         background: '#0f172a',
@@ -246,20 +248,24 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                     )}
                 </div>
 
-                <div className={styles.userScriptCTA}>
-                    <div className={styles.userScriptCTAContent}>
-                        <span className={styles.userScriptCTATitle}>사용자 지정 모델</span>
-                        <span className={styles.userScriptCTADescription}>
-                            🚧(현재 개발 진행중)자체 스크립트를 작성·검증·등록하여 카탈로그에 추가할 수 있습니다.
-                        </span>
+                {/* 사용자 스크립트 카탈로그 */}
+                <div className={styles.formGroup}>
+                    <div className={styles.configHeader}>
+                        <div>사용자 스크립트</div>
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => setShowUserScriptWorkspace(prev => !prev)}
-                        className={`${styles.button} ${styles.secondary}`}
-                    >
-                        {showUserScriptWorkspace ? '작업 공간 닫기' : '작업 공간 열기'}
-                    </button>
+                    <UserScriptCatalog
+                        task={config.task}
+                        selectedScripts={config.model_names}
+                        onScriptSelect={(scriptName, version, selected) => {
+                            const scriptIdentifier = `${scriptName}@${version}`;
+                            if (selected) {
+                                // 단일 선택: 새로운 스크립트만 선택
+                                handleConfigChange('model_names', [scriptIdentifier]);
+                            } else {
+                                handleConfigChange('model_names', []);
+                            }
+                        }}
+                    />
                 </div>
 
                 {/* 하이퍼파라미터 최적화 (HPO) 설정 */}
@@ -405,7 +411,23 @@ const ModelCategory: React.FC<ModelCategoryProps> = ({
                         )}
                     </div>
                 )}
+                <div className={styles.userScriptCTA}>
+                    <div className={styles.userScriptCTAContent}>
+                        <span className={styles.userScriptCTATitle}>사용자 지정 모델</span>
+                        <span className={styles.userScriptCTADescription}>
+                            🚧(현재 개발 진행중)자체 스크립트를 작성·검증·등록하여 카탈로그에 추가할 수 있습니다.
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setShowUserScriptWorkspace(prev => !prev)}
+                        className={`${styles.button} ${styles.secondary}`}
+                    >
+                        {showUserScriptWorkspace ? '작업 공간 닫기' : '작업 공간 열기'}
+                    </button>
+                </div>
             </div>
+            
             {showUserScriptWorkspace && (
                 <div className={styles.userScriptWorkspace}>
                     <UserScriptWorkbench

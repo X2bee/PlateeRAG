@@ -1,0 +1,754 @@
+@use "sass:color";
+@use "@/app/_common/_variables" as *;
+
+// Container
+.container {
+    margin: 0 auto;
+}
+
+// Header
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    gap: 2rem;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1rem;
+    }
+}
+
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.backButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: $white;
+    border: 1px solid $gray-300;
+    border-radius: 0.375rem;
+    color: $gray-700;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background: $gray-50;
+        border-color: $primary-blue;
+        color: $primary-blue;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    svg {
+        width: 1rem;
+        height: 1rem;
+    }
+}
+
+.title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: $gray-900;
+    margin: 0 0 0.5rem 0;
+}
+
+.saveButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid transparent;
+    background-color: $primary-blue;
+    color: $white;
+
+    &:hover:not(:disabled) {
+        background-color: color.adjust($primary-blue, $lightness: -7%);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    svg {
+        font-size: 1rem;
+    }
+}
+
+.testButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid transparent;
+    background-color: #d1fae5;
+    color: #065f46;
+
+    &:hover:not(:disabled) {
+        background-color: #a7f3d0;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    svg {
+        font-size: 1rem;
+    }
+}
+
+// Tab Navigation
+.tabNavigation {
+    display: flex;
+    background: $gray-50;
+    border: 1px solid $gray-200;
+    border-radius: 0.75rem 0.75rem 0 0;
+    overflow: hidden;
+}
+
+.tabButton {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: none;
+    color: $gray-600;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.1s ease-in-out;
+    border-bottom: 2px solid transparent;
+
+    &:hover {
+        background: $gray-100;
+        color: $gray-800;
+    }
+
+    &.active {
+        background: $white;
+        color: $primary-blue;
+        border-bottom-color: $primary-blue;
+    }
+
+    svg {
+        font-size: 1rem;
+    }
+}
+
+// Config wrapper
+.configWrapper {
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 0 0 0.75rem 0.75rem;
+    border-top: none;
+}
+
+// Config Section
+.configSection {
+    padding: 2rem;
+}
+
+// Form styles
+.configForm {
+    display: flex;
+    flex-direction: column;
+}
+
+.formGroup {
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: $gray-50;
+    border-radius: 0.75rem;
+    border: 1px solid $gray-200;
+    transition: all 0.1s ease-in-out;
+
+    &:hover {
+        border-color: $gray-300;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.configHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid $gray-300;
+
+    label {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: $gray-800;
+        margin: 0;
+    }
+
+    .required {
+        color: $primary-red;
+        font-weight: 700;
+    }
+}
+
+// Form Grid
+.formGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.formRow {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 2rem;
+    align-items: start;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid $gray-200;
+
+    &:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+}
+
+.formField {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.fieldLabel {
+    font-weight: 600;
+    color: $gray-900;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+
+    .required {
+        color: $primary-red;
+        margin-left: 0.25rem;
+    }
+}
+
+.fieldDescription {
+    font-size: 0.8125rem;
+    color: $gray-600;
+    line-height: 1.5;
+}
+
+.fieldInput {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+// 공통 입력 필드 스타일
+%formInputBase {
+    padding: 0.75rem;
+    border: 1px solid $gray-300;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    background: $white;
+    color: $gray-900;
+    font-family: inherit;
+    line-height: 1.5;
+    transition: all 0.2s ease-in-out;
+
+    &:focus {
+        outline: none;
+        border-color: $primary-blue;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    &:disabled {
+        background: $gray-50;
+        color: $gray-500;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    &:hover:not(:disabled):not(:focus) {
+        border-color: $gray-400;
+    }
+}
+
+.input {
+    @extend %formInputBase;
+    width: 100%;
+
+    &::placeholder {
+        color: $gray-400;
+    }
+}
+
+.select {
+    @extend %formInputBase;
+    width: 100%;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1rem;
+    padding-right: 2.5rem;
+
+    option {
+        padding: 0.5rem 0.75rem;
+        background: $white;
+        color: $gray-900;
+        font-size: 0.875rem;
+
+        &:hover {
+            background: $gray-50;
+        }
+
+        &:disabled {
+            color: $gray-400;
+            background: $gray-100;
+        }
+    }
+
+    &:focus {
+        background-image: url("data:image/svg+xml;charset=utf-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%233b82f6' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    }
+}
+
+.textarea {
+    @extend %formInputBase;
+    width: 100%;
+    resize: vertical;
+    min-height: 100px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+}
+
+.checkbox {
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid $gray-300;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    &:checked {
+        background: $primary-blue;
+        border-color: $primary-blue;
+    }
+
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+}
+
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: $gray-700;
+    cursor: pointer;
+    user-select: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        color: $gray-900;
+        background: $gray-100;
+    }
+
+    input[type="checkbox"] {
+        margin-right: 0.25rem;
+    }
+}
+
+// API Parameters Section
+.apiParamsSection {
+    margin-bottom: 2rem;
+}
+
+.apiParamsHeader {
+    margin-bottom: 1rem;
+}
+
+.apiParamsContainer {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 1.5rem;
+    background: $gray-50;
+    border: 1px solid $gray-200;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+
+    @media (max-width: 1024px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.apiParamsInput {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.paramsList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.paramItem {
+    display: grid;
+    grid-template-columns: 140px 1fr 1fr 32px;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.75rem;
+    background: $white;
+    border: 1px solid $gray-300;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        border-color: $gray-400;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+}
+
+.paramTypeSelect {
+    @extend %formInputBase;
+    padding: 0.5rem 0.5rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 0.75rem;
+    padding-right: 1.75rem;
+}
+
+.paramKeyDisplay {
+    padding: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: $gray-800;
+    background: $gray-100;
+    border: 1px solid $gray-300;
+    border-radius: 0.5rem;
+}
+
+.paramKeyInput {
+    @extend %formInputBase;
+    padding: 0.5rem;
+    font-size: 0.8125rem;
+
+    &::placeholder {
+        color: $gray-400;
+    }
+}
+
+.paramValueInput {
+    @extend %formInputBase;
+    padding: 0.5rem;
+    font-size: 0.8125rem;
+
+    &::placeholder {
+        color: $gray-400;
+    }
+}
+
+.paramDescInput {
+    @extend %formInputBase;
+    padding: 0.5rem;
+    font-size: 0.8125rem;
+    grid-column: 2 / 4;
+
+    &::placeholder {
+        color: $gray-400;
+        font-style: italic;
+    }
+}
+
+.paramRemoveButton {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $white;
+    border: 1px solid $gray-300;
+    border-radius: 0.375rem;
+    color: $gray-500;
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    &:hover:not(:disabled) {
+        background: #fee2e2;
+        border-color: #fca5a5;
+        color: #dc2626;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+// Body 파라미터용 특수 레이아웃
+.paramItem:has(.paramDescInput) {
+    grid-template-columns: 150px 120px 1fr 32px;
+    grid-template-rows: auto auto;
+
+    .paramKeyInput {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .paramKeyWrapper + select {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .paramValueInput {
+        grid-column: 3;
+        grid-row: 1;
+    }
+
+    .paramRemoveButton {
+        grid-column: 4;
+        grid-row: 1 / 3;
+    }
+
+    .paramDescInput {
+        grid-column: 1 / 4;
+        grid-row: 2;
+    }
+}
+
+.addParamButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1rem;
+    background: $white;
+    border: 1px dashed $gray-400;
+    border-radius: 0.5rem;
+    color: $gray-700;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    &:hover:not(:disabled) {
+        background: $gray-50;
+        border-color: $primary-blue;
+        border-style: solid;
+        color: $primary-blue;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.apiParamsPreview {
+    display: flex;
+    flex-direction: column;
+    background: $white;
+    border: 1px solid $gray-300;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.previewTitle {
+    padding: 0.75rem 1rem;
+    background: $gray-100;
+    border-bottom: 1px solid $gray-300;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $gray-800;
+}
+
+.previewCode {
+    flex: 1;
+    padding: 1rem;
+    margin: 0;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: $gray-900;
+    background: $white;
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 400px;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: $gray-100;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: $gray-400;
+        border-radius: 3px;
+
+        &:hover {
+            background: $gray-500;
+        }
+    }
+}
+
+// Test Result Section
+.testResultSection {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: $gray-50;
+    border: 1px solid $gray-200;
+    border-radius: 0.75rem;
+}
+
+.testResultHeader {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid $gray-300;
+}
+
+.successBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    background: #d1fae5;
+    color: #065f46;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+}
+
+.errorBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    background: #fee2e2;
+    color: #dc2626;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+}
+
+.statusCode {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: $gray-700;
+}
+
+.testResultContent {
+    background: $white;
+    border: 1px solid $gray-300;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.testResultCode {
+    padding: 1rem;
+    margin: 0;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: $gray-900;
+    background: $white;
+    overflow-x: auto;
+    max-height: 400px;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: $gray-100;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: $gray-400;
+        border-radius: 3px;
+
+        &:hover {
+            background: $gray-500;
+        }
+    }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+    .container {
+        margin: 0;
+        padding: 1rem;
+    }
+
+    .configSection {
+        padding: 1rem;
+    }
+
+    .formGrid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .tabButton {
+        padding: 0.75rem 1rem;
+        font-size: 0.75rem;
+    }
+}
