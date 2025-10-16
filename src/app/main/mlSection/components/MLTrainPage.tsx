@@ -245,7 +245,6 @@ const MLTrainPage: React.FC = () => {
             console.log('Training completed:', result);
 
             setTrainResult(result);
-            setActiveTab('results');
         } catch (err: unknown) {
             const errorMessage = mlUtils.formatError(err);
             console.error('Training failed:', err);
@@ -285,7 +284,6 @@ const MLTrainPage: React.FC = () => {
                     
                     if (status.status === 'completed' && status.result) {
                         setTrainResult(status.result);
-                        setActiveTab('results');
                         setIsTraining(false);
                         setCurrentTaskId(null);
                         return;

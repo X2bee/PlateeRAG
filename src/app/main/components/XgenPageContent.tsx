@@ -8,7 +8,8 @@ import ContentArea from '@/app/main/workflowSection/components/ContentArea';
 import CanvasIntroduction from '@/app/main/workflowSection/components/CanvasIntroduction';
 import CompletedWorkflows from '@/app/main/workflowSection/components/CompletedWorkflows';
 import Documents from '@/app/main/workflowSection/components/Documents';
-import PromptStore from '@/app/main/workflowSection/components/PromptStore';
+import ToolStorage from '@/app/main/workflowSection/components/ToolStorage';
+import PromptStore from '@/app/main/workflowSection/components/prompt/PromptStore';
 import WorkflowStore from '@/app/main/workflowSection/components/WorkflowStore';
 
 // Model Page Components
@@ -168,6 +169,15 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
                         description="문서 저장소"
                     >
                         <Documents />
+                    </ContentArea>
+                );
+            case 'tool-storage':
+                return (
+                    <ContentArea
+                        title="도구 저장소"
+                        description="도구를 탐색하고 관리하세요."
+                    >
+                        <ToolStorage />
                     </ContentArea>
                 );
             case 'prompt-store':

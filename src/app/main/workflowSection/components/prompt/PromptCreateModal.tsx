@@ -1,38 +1,22 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import styles from '../assets/PromptCreateModal.module.scss';
+import styles from '@/app/main/workflowSection/assets/PromptCreateModal.module.scss';
 import {
     IoClose,
+    IoAdd,
     IoCheckmark,
     IoLanguage,
     IoLockClosed,
     IoGlobe
 } from 'react-icons/io5';
-import { updatePrompt } from '@/app/_common/api/promptAPI';
+import { createPrompt } from '@/app/_common/api/promptAPI';
 import { devLog } from '@/app/_common/utils/logger';
 
-interface Prompt {
-    id: number;
-    prompt_uid: string;
-    prompt_title: string;
-    prompt_content: string;
-    public_available: boolean;
-    is_template: boolean;
-    language: string;
-    user_id?: string;
-    username?: string;
-    full_name?: string;
-    created_at: string;
-    updated_at: string;
-    metadata?: any;
-}
-
-interface PromptEditModalProps {
+interface PromptCreateModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSuccess?: () => void; // 프롬프트 수정 성공 후 콜백
-    prompt: Prompt; // 수정할 프롬프트 데이터
+    onSuccess?: () => void; // 프롬프트 생성 성공 후 콜백
 }
 
 interface FormData {
@@ -42,7 +26,7 @@ interface FormData {
     language: 'ko' | 'en';
 }
 
-const PromptEditModal: React.FC<PromptEditModalProps> = ({ isOpen, onClose, onSuccess, prompt }) => {
+const PromptCreateModal: React.FC<PromptCreateModalProps> = ({ isOpen, onClose, onSuccess }) => {
     const [isAnimating, setIsAnimating] = useState(false);
     const [formData, setFormData] = useState<FormData>({
         prompt_title: '',
@@ -80,18 +64,18 @@ const PromptEditModal: React.FC<PromptEditModalProps> = ({ isOpen, onClose, onSu
         };
     }, [isOpen, onClose, isSubmitting]);
 
-    // 프롬프트 데이터로 폼 초기화
+    // 폼 초기화
     useEffect(() => {
-        if (isOpen && prompt) {
+        if (isOpen) {
             setFormData({
-                prompt_title: prompt.prompt_title || '',
-                prompt_content: prompt.prompt_content || '',
-                public_available: prompt.public_available || false,
-                language: (prompt.language as 'ko' | 'en') || 'ko'
+                prompt_title: '',
+                prompt_content: '',
+                public_available: false,
+                language: 'ko'
             });
             setErrors({});
         }
-    }, [isOpen, prompt]);
+    }, [isOpen]);
 
     // 입력 값 변경 핸들러
     const handleInputChange = (field: keyof FormData, value: string | boolean) => {
@@ -129,7 +113,7 @@ const PromptEditModal: React.FC<PromptEditModalProps> = ({ isOpen, onClose, onSu
         return Object.keys(newErrors).length === 0;
     };
 
-    // 프롬프트 수정 핸들러
+    // 프롬프트 생성 핸들러
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -140,26 +124,21 @@ const PromptEditModal: React.FC<PromptEditModalProps> = ({ isOpen, onClose, onSu
         setIsSubmitting(true);
 
         try {
-            const updateData = {
-                prompt_uid: prompt.prompt_uid,
-                ...formData
-            };
-
-            devLog.info('Updating prompt with data:', updateData);
-            const response = await updatePrompt(updateData);
+            devLog.info('Creating new prompt with data:', formData);
+            const response = await createPrompt(formData);
 
             if ((response as any).success) {
-                devLog.info('Prompt updated successfully:', response);
+                devLog.info('Prompt created successfully:', response);
                 onClose();
                 if (onSuccess) {
                     onSuccess();
                 }
             } else {
-                throw new Error((response as any).message || '프롬프트 수정에 실패했습니다.');
+                throw new Error((response as any).message || '프롬프트 생성에 실패했습니다.');
             }
         } catch (error) {
-            devLog.error('Failed to update prompt:', error);
-            const errorMessage = error instanceof Error ? error.message : '프롬프트 수정에 실패했습니다.';
+            devLog.error('Failed to create prompt:', error);
+            const errorMessage = error instanceof Error ? error.message : '프롬프트 생성에 실패했습니다.';
 
             // 에러에 따른 처리
             if (errorMessage.includes('로그인')) {
@@ -189,9 +168,9 @@ const PromptEditModal: React.FC<PromptEditModalProps> = ({ isOpen, onClose, onSu
                 {/* 모달 헤더 */}
                 <div className={styles.modalHeader}>
                     <div className={styles.headerInfo}>
-                        <h2 className={styles.modalTitle}>프롬프트 편집</h2>
+                        <h2 className={styles.modalTitle}>나만의 프롬프트 추가</h2>
                         <p className={styles.modalDescription}>
-                            프롬프트의 내용을 수정하고 설정을 변경할 수 있습니다.
+                            새로운 프롬프트를 생성하여 다른 사용자들과 공유하거나 개인용으로 사용하세요.
                         </p>
                     </div>
                     <button
@@ -329,12 +308,12 @@ const PromptEditModal: React.FC<PromptEditModalProps> = ({ isOpen, onClose, onSu
                             {isSubmitting ? (
                                 <>
                                     <div className={styles.spinner}></div>
-                                    수정 중...
+                                    생성 중...
                                 </>
                             ) : (
                                 <>
-                                    <IoCheckmark className={styles.submitIcon} />
-                                    프롬프트 수정
+                                    <IoAdd className={styles.submitIcon} />
+                                    프롬프트 생성
                                 </>
                             )}
                         </button>
@@ -347,4 +326,4 @@ const PromptEditModal: React.FC<PromptEditModalProps> = ({ isOpen, onClose, onSu
     return createPortal(modalContent, document.body);
 };
 
-export default PromptEditModal;
+export default PromptCreateModal;
