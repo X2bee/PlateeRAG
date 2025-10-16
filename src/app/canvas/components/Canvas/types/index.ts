@@ -63,6 +63,7 @@ export interface CanvasImperativeHandle extends CanvasRef {
     clearSelectedNode: () => void;
     updateNodeParameter: (nodeId: string, paramId: string, value: string | number | boolean, skipHistory?: boolean) => void;
     setAvailableNodeSpecs: (nodeSpecs: NodeData[]) => void;
+    getCurrentViewportCenter: () => { x: number; y: number };
 }
 
 // Event handler types

@@ -10,6 +10,7 @@ import ExecutionPanel from '@/app/canvas/components/ExecutionPanel';
 import NodeModal from '@/app/canvas/components/NodeModal';
 import AuthGuard from '@/app/_common/components/authGuard/AuthGuard';
 import HistoryPanel from '@/app/canvas/components/HistoryPanel';
+import AutoWorkflowSidebar from '@/app/canvas/components/AutoWorkflowSidebar';
 import { DeploymentModal } from '@/app/main/chatSection/components/DeploymentModal';
 import { useNodes } from '@/app/_common/utils/nodeHook';
 import { useHistoryManagement, createHistoryHelpers } from '@/app/canvas/components/Canvas/hooks/useHistoryManagement';
@@ -47,7 +48,7 @@ function CanvasPageContent() {
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLElement | null>(null);
-    const canvasRef = useRef(null);
+    const canvasRef = useRef<any>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [workflowId, setWorkflowId] = useState('None')
     const [hasError, setHasError] = useState(false);
@@ -96,6 +97,7 @@ function CanvasPageContent() {
     ), [addHistoryEntry, historyManagement]); // 의존성 최소화
 
     const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
+    const [isAutoWorkflowSidebarOpen, setIsAutoWorkflowSidebarOpen] = useState(false);
 
     // NodeModal 관련 상태
     const [nodeModalState, setNodeModalState] = useState<{
@@ -581,6 +583,40 @@ function CanvasPageContent() {
         }
     };
 
+    // 자동생성된 워크플로우를 Canvas에 로드
+    const handleLoadGeneratedWorkflow = useCallback((workflowData: any) => {
+        if (!canvasRef.current) {
+            showErrorToastKo('Canvas가 준비되지 않았습니다.');
+            return;
+        }
+
+        try {
+            // 현재 뷰포트 위치 저장
+            const currentViewport = (canvasRef.current as any).getCurrentViewportCenter?.();
+            devLog.log('워크플로우 로드 전 뷰포트 위치:', currentViewport);
+            
+            // Canvas에 워크플로우 데이터 로드 (뷰포트 위치 유지)
+            (canvasRef.current as any).loadCanvasStateWithoutView(workflowData);
+            
+            // 워크플로우 이름 설정
+            setCurrentWorkflowName(workflowData.workflow_name || 'Generated_Workflow');
+            saveWorkflowName(workflowData.workflow_name || 'Generated_Workflow');
+            
+            // 워크플로우 ID 설정
+            setWorkflowId(workflowData.workflow_id || 'None');
+            
+            // 히스토리 초기화
+            clearHistory();
+            
+            devLog.log('자동생성된 워크플로우 로드 완료:', workflowData.workflow_name);
+            devLog.log('뷰포트 위치 유지됨:', (canvasRef.current as any).getCurrentViewportCenter?.());
+            
+        } catch (error) {
+            devLog.error('워크플로우 로드 실패:', error);
+            showErrorToastKo('워크플로우 로드에 실패했습니다.');
+        }
+    }, [clearHistory]);
+
     const handleExport = () => {
         if (canvasRef.current) {
             const canvasState = (canvasRef.current as any).getCanvasState();
@@ -972,6 +1008,7 @@ function CanvasPageContent() {
                 isOwner={isOwner}
                 userId={workflowOriginUserId || undefined}
                 onLoadWorkflow={handleLoadWorkflow}
+                onAutoWorkflowClick={() => setIsAutoWorkflowSidebarOpen(true)}
             />
             <main className={styles.mainContent}>
                 <Canvas
@@ -1013,6 +1050,12 @@ function CanvasPageContent() {
                 onSave={handleSaveNodeModal}
                 parameterName={nodeModalState.paramName}
                 initialValue={nodeModalState.currentValue}
+            />
+            <AutoWorkflowSidebar
+                isOpen={isAutoWorkflowSidebarOpen}
+                onClose={() => setIsAutoWorkflowSidebarOpen(false)}
+                onLoadWorkflow={handleLoadGeneratedWorkflow}
+                getCurrentViewportCenter={() => canvasRef.current?.getCurrentViewportCenter?.() || { x: 0, y: 0 }}
             />
             <HistoryPanel
                 history={history}
