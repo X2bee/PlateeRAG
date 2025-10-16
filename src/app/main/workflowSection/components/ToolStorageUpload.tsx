@@ -231,8 +231,8 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
             setLoading(true);
 
             // JSON 파싱
-            let parsedApiHeader = buildHeaderJSON();
-            let parsedApiBody = buildBodyJSON();
+            const parsedApiHeader = buildHeaderJSON();
+            const parsedApiBody = buildBodyJSON();
             let parsedMetadata = {};
 
             try {
