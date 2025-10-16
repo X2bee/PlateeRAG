@@ -242,6 +242,32 @@ export const mlAPI = {
             body: JSON.stringify(name ? { name } : {}),
         });
     },
+
+    // 사용자 스크립트 카탈로그 관리
+    // 카탈로그 요약 정보 조회
+    getScriptCatalogSummary: async () => {
+        return apiCall('/api/scripts/catalog/summary');
+    },
+
+    // 전체 카탈로그 조회
+    getScriptCatalog: async () => {
+        return apiCall('/api/scripts/catalog');
+    },
+
+    // 특정 스크립트의 모든 버전 조회
+    getScriptVersions: async (scriptName) => {
+        return apiCall(`/api/scripts/catalog/${scriptName}`);
+    },
+
+    // 특정 스크립트의 특정 버전 상세 조회
+    getScriptVersion: async (scriptName, version) => {
+        return apiCall(`/api/scripts/catalog/${scriptName}/${version}`);
+    },
+
+    // 특정 스크립트 버전의 내용 조회
+    getScriptContent: async (scriptName, version) => {
+        return apiCall(`/api/scripts/catalog/${scriptName}/${version}/content`);
+    },
 };
 
 export const mlUtils = {
