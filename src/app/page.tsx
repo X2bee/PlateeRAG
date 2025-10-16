@@ -87,12 +87,12 @@ export default function HomePage() {
                 <div className={styles.heroSection}>
                     <div className={styles.heroContent}>
                         <div className={styles.heroLabel}>
-                            <span>Next-Gen AI Platform</span>
+                            <span>Hybrid AI Platform</span>
                         </div>
                         <h1 className={styles.heroTitle}>
-                            Intelligent <br /><i>AI Platform</i>
+                            기업의 AX 혁신을 돕는 <br /><i>하이브리드 AI Platform</i>
                             <span className={styles.highlight}>
-                                with Visual Simplicity
+                                with XGEN
                             </span>
                         </h1>
                         <p className={styles.heroDescription}>
