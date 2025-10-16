@@ -1,3 +1,4 @@
+@use "sass:color";
 @use "@/app/_common/_variables" as *;
 
 .modalOverlay {
@@ -228,7 +229,7 @@
         gap: 0.5rem;
 
         &:hover {
-            background: darken($primary-blue, 5%);
+            background: color.adjust($primary-blue, $lightness: 5%);
             transform: translateY(-1px);
             box-shadow: 0 4px 6px rgba($primary-blue, 0.2);
         }
@@ -237,7 +238,7 @@
             background: #10b981;
 
             &:hover {
-                background: darken(#10b981, 5%);
+                background: color.adjust(#10b981, $lightness: 5%);
             }
         }
 
