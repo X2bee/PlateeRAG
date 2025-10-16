@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import styles from '../assets/PromptExpandModal.module.scss';
+import styles from '@/app/main/workflowSection/assets/PromptExpandModal.module.scss';
 import {
     IoClose,
     IoCopy,
