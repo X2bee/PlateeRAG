@@ -13,6 +13,8 @@ import {
     FiHardDrive,
     FiClock,
     FiFolder,
+    FiGitBranch,
+    FiLayers,
 } from 'react-icons/fi';
 import RefreshButton from '@/app/_common/icons/refresh';
 import {
@@ -48,32 +50,17 @@ interface DataManager {
         dataset_percent: number;
         other_percent: number;
     };
-    // 추가 필드들 (UI에서 계산될 수 있음)
+    // 버전 관리 필드
+    current_version?: number;
+    dataset_id?: string;
+    dataset_load_count?: number;  // 추가
+    version_management_enabled?: boolean;
     status?: 'active' | 'inactive' | 'error';
 }
 
 interface DataManagerResponse {
     managers: { [key: string]: DataManager };
     total: number;
-}
-
-interface DataManagerStatus {
-    status?: string;
-    memory_usage?: number;
-    cpu_usage?: number;
-    last_activity?: string;
-}
-
-interface ResourceUsage {
-    memory: {
-        mb: number;
-        gb: number;
-        formatted: string;
-    };
-    cpu: {
-        percent: number;
-        formatted: string;
-    };
 }
 
 const DataStation: React.FC = () => {
@@ -92,10 +79,8 @@ const DataStation: React.FC = () => {
             setError(null);
             const managersData = await listDataManagers() as DataManagerResponse;
 
-            // managers 객체를 배열로 변환
             let managersArray: DataManager[] = [];
             if (managersData.managers && typeof managersData.managers === 'object') {
-                // 객체의 값들을 배열로 변환 (manager_id는 이미 각 객체에 포함되어 있음)
                 managersArray = Object.values(managersData.managers).map(manager => ({
                     ...manager,
                     status: manager.is_active ? 'active' : 'inactive'
@@ -109,7 +94,9 @@ const DataStation: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };    const handleRefresh = async () => {
+    };
+
+    const handleRefresh = async () => {
         setRefreshing(true);
         await fetchDataManagers();
         setRefreshing(false);
@@ -120,7 +107,7 @@ const DataStation: React.FC = () => {
             setIsCreating(true);
             const newManager = await createDataManager();
             showSuccessToastKo('새로운 데이터 매니저가 생성되었습니다!');
-            await fetchDataManagers(); // 목록 새로고침
+            await fetchDataManagers();
         } catch (error) {
             console.error('Failed to create data manager:', error);
             showErrorToastKo(`데이터 매니저 생성에 실패했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -141,7 +128,7 @@ const DataStation: React.FC = () => {
                         itemName: manager.manager_id.slice(0, 8) + '...',
                         itemType: '데이터 매니저',
                     });
-                    fetchDataManagers(); // 목록 새로고침
+                    fetchDataManagers();
                 } catch (error) {
                     console.error('Failed to delete data manager:', error);
                     showDeleteErrorToastKo({
@@ -160,6 +147,7 @@ const DataStation: React.FC = () => {
 
     const handleBackToStation = () => {
         setSelectedManager(null);
+        fetchDataManagers();
     };
 
     const getStatusColor = (status: string) => {
@@ -192,11 +180,17 @@ const DataStation: React.FC = () => {
         return new Date(dateString).toLocaleString('ko-KR');
     };
 
+    // 데이터셋 버전 표시 헬퍼 함수
+    const getDatasetVersionLabel = (loadCount?: number) => {
+        if (!loadCount || loadCount === 0) return null;
+        if (loadCount === 1) return 'v1 (초기)';
+        return `v${loadCount}`;
+    };
+
     useEffect(() => {
         fetchDataManagers();
     }, []);
 
-    // DataProcessor가 선택된 경우 렌더링
     if (selectedManager && user) {
         return (
             <DataProcessor
@@ -209,7 +203,6 @@ const DataStation: React.FC = () => {
 
     return (
         <div className={styles.container}>
-            {/* Header with Actions */}
             <div className={styles.header}>
                 <div className={styles.headerActions}>
                     <button
@@ -230,14 +223,12 @@ const DataStation: React.FC = () => {
                 </div>
             </div>
 
-            {/* Loading State */}
             {loading && (
                 <div className={styles.loadingState}>
                     <p>데이터 매니저를 불러오는 중...</p>
                 </div>
             )}
 
-            {/* Error State */}
             {error && (
                 <div className={styles.errorState}>
                     <p>{error}</p>
@@ -245,7 +236,6 @@ const DataStation: React.FC = () => {
                 </div>
             )}
 
-            {/* Data Managers Grid */}
             {!loading && !error && (
                 <div className={styles.managersGrid}>
                     {dataManagers.map((manager) => (
@@ -266,8 +256,40 @@ const DataStation: React.FC = () => {
 
                             <div className={styles.cardContent}>
                                 <div className={styles.managerDescription}>
-                                    <strong>ID:</strong> {manager.manager_id}...
+                                    <strong>ID:</strong> {manager.manager_id.slice(0, 20)}...
                                 </div>
+
+                                {/* 데이터셋 로드 버전 정보 */}
+                                {manager.has_dataset && manager.dataset_load_count && manager.dataset_load_count > 0 && (
+                                    <div className={styles.datasetVersionInfo}>
+                                        <div className={styles.versionBadgeRow}>
+                                            <span className={styles.datasetVersionBadge}>
+                                                <FiLayers />
+                                                {getDatasetVersionLabel(manager.dataset_load_count)}
+                                            </span>
+                                            {manager.dataset_load_count > 1 && (
+                                                <span className={styles.reloadedBadge}>
+                                                    재업로드됨
+                                                </span>
+                                            )}
+                                        </div>
+                                        {manager.dataset_id && (
+                                            <span className={styles.datasetId}>
+                                                {manager.dataset_id.substring(0, 30)}...
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* 버전 관리 정보 */}
+                                {manager.version_management_enabled && (
+                                    <div className={styles.versionInfo}>
+                                        <span className={styles.versionBadge}>
+                                            <FiGitBranch />
+                                            변경 이력: v{manager.current_version || 0}
+                                        </span>
+                                    </div>
+                                )}
 
                                 {/* 메모리 성장 정보 */}
                                 {manager.memory_growth_mb > 0.001 && (
@@ -306,19 +328,22 @@ const DataStation: React.FC = () => {
                             </div>
 
                             <div className={styles.cardActions}>
-                                {manager.is_active ? (
-                                    <button
-                                        className={styles.actionButton}
-                                        onClick={() => handleUseManager(manager)}
-                                        title="데이터 매니저 사용"
-                                    >
-                                        <FiPlay />
-                                    </button>
-                                ) : (
-                                    <div className={styles.inactiveMessage}>
-                                        사용 불가
-                                    </div>
-                                )}
+                            {(manager.is_active || manager.has_dataset) ? (
+                                <button
+                                    className={styles.actionButton}
+                                    onClick={() => handleUseManager(manager)}
+                                    title={manager.is_active ? "데이터 매니저 사용" : "저장소에서 로드 후 사용"}
+                                >
+                                    <FiPlay />
+                                    {!manager.is_active && manager.has_dataset && (
+                                        <span className={styles.loadIndicator}>📦</span>
+                                    )}
+                                </button>
+                            ) : (
+                                <div className={styles.inactiveMessage}>
+                                    사용 불가
+                                </div>
+                                    )}
 
                                 {user && String(manager.user_id) === String(user.user_id) && (
                                     <button

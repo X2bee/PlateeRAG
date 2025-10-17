@@ -27,6 +27,7 @@ import { showSuccessToastKo, showErrorToastKo } from '@/app/_common/utils/toastU
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import WorkflowEditModal from '@/app/main/workflowSection/components/workflows/WorkflowEditModal';
 import WorkflowVersionModal from '@/app/main/workflowSection/components/workflows/WorkflowVersionModal';
+import WorkflowStore from '@/app/main/workflowSection/components/workflows/WorkflowStore';
 import { devLog } from '@/app/_common/utils/logger';
 
 const CompletedWorkflows: React.FC = () => {
@@ -47,6 +48,7 @@ const CompletedWorkflows: React.FC = () => {
     const [workflowToShowVersion, setWorkflowToShowVersion] = useState<Workflow | null>(null);
     const [deployed_list, setDeployed_list] = useState<{[key: string]: boolean | 'pending' | null}>({});
     const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+    const [activeTab, setActiveTab] = useState<'storage' | 'store'>('storage');
 
     const fetchWorkflows = async () => {
         try {
@@ -291,6 +293,20 @@ const CompletedWorkflows: React.FC = () => {
         );
     };
 
+    // 스토어 탭이 활성화된 경우 WorkflowStore 컴포넌트 렌더링
+    if (activeTab === 'store') {
+        return (
+            <div className={styles.container}>
+                <WorkflowStore
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                    onStorageRefresh={fetchWorkflows}
+                />
+            </div>
+        );
+    }
+
+    // 저장소 탭 (기본)
     return (
         <div className={styles.container}>
             {/* Header with Filters */}
@@ -298,6 +314,22 @@ const CompletedWorkflows: React.FC = () => {
 
                 <div className={styles.headerActions}>
                     <div className={styles.filters}>
+                        {/* 저장소/스토어 탭 */}
+                        <div className={styles.filterGroup}>
+                            <button
+                                onClick={() => setActiveTab('storage')}
+                                className={`${styles.filterButton} ${activeTab === 'storage' ? styles.active : ''}`}
+                            >
+                                저장소
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('store' as 'storage' | 'store')}
+                                className={`${styles.filterButton} ${(activeTab as 'storage' | 'store') === 'store' ? styles.active : ''}`}
+                            >
+                                스토어
+                            </button>
+                        </div>
+
                         <div className={styles.filterGroup}>
                             {['all', 'active', 'draft', 'archived', 'unactive'].map(
                                 (filterType) => (

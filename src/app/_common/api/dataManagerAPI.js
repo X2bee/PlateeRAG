@@ -1423,3 +1423,386 @@ export const getMLflowDatasetColumns = async (runId, options = {}) => {
         throw error;
     }
 };
+
+// 기존 dataManagerAPI.js 파일 끝에 추가
+
+/**
+ * ============================================
+ * 버전 관리 API 함수들
+ * ============================================
+ */
+
+/**
+ * 매니저의 버전 이력 조회
+ * @param {string} managerId - 매니저 ID
+ * @returns {Promise<Object>} 버전 이력 정보
+ */
+export const getVersionHistory = async (managerId) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID가 필요합니다.');
+        }
+
+        const requestBody = {
+            manager_id: managerId
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/managers/versions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `버전 이력 조회 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info(`Version history fetched for manager ${managerId}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to fetch version history for manager ${managerId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * 특정 버전으로 롤백
+ * @param {string} managerId - 매니저 ID
+ * @param {number} version - 롤백할 버전 번호
+ * @returns {Promise<Object>} 롤백 결과
+ */
+export const rollbackToVersion = async (managerId, version) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID가 필요합니다.');
+        }
+        if (typeof version !== 'number' || version < 0) {
+            throw new Error('유효한 버전 번호가 필요합니다.');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+            version: version
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/managers/rollback`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `버전 롤백 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info(`Rolled back to version ${version} for manager ${managerId}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to rollback to version ${version} for manager ${managerId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * 두 버전 간 비교
+ * @param {string} managerId - 매니저 ID
+ * @param {number} version1 - 첫 번째 버전
+ * @param {number} version2 - 두 번째 버전
+ * @returns {Promise<Object>} 비교 결과
+ */
+export const compareVersions = async (managerId, version1, version2) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID가 필요합니다.');
+        }
+        if (typeof version1 !== 'number' || typeof version2 !== 'number') {
+            throw new Error('유효한 버전 번호가 필요합니다.');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+            version1: version1,
+            version2: version2
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/managers/compare-versions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `버전 비교 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info(`Compared versions ${version1} and ${version2} for manager ${managerId}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to compare versions for manager ${managerId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * MinIO에 저장된 버전 목록 조회
+ * @param {string} managerId - 매니저 ID
+ * @returns {Promise<Object>} MinIO 버전 목록
+ */
+export const listMinioVersions = async (managerId) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID가 필요합니다.');
+        }
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/managers/${managerId}/minio-versions`, {
+            method: 'GET',
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `MinIO 버전 목록 조회 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info(`MinIO versions fetched for manager ${managerId}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to fetch MinIO versions for manager ${managerId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * 버전 정보 포맷팅 유틸리티
+ * @param {Object} versionInfo - 버전 정보 객체
+ * @returns {Object} 포맷팅된 버전 정보
+ */
+export const formatVersionInfo = (versionInfo) => {
+    return {
+        version: versionInfo.version,
+        operation: versionInfo.operation,
+        timestamp: new Date(versionInfo.timestamp).toLocaleString('ko-KR'),
+        rows: versionInfo.num_rows?.toLocaleString() || 'N/A',
+        columns: versionInfo.num_columns || 'N/A',
+        checksum: versionInfo.checksum?.substring(0, 8) + '...' || 'N/A',
+        metadata: versionInfo.metadata
+    };
+};
+
+/**
+ * 버전 이력을 시각화하기 위한 데이터 포맷팅
+ * @param {Array} versionHistory - 버전 이력 배열
+ * @returns {Array} 시각화용 데이터
+ */
+export const formatVersionHistoryForTimeline = (versionHistory) => {
+    return versionHistory.map((version, index) => ({
+        id: version.version,
+        label: `v${version.version}`,
+        operation: version.operation,
+        timestamp: new Date(version.timestamp),
+        description: `${version.operation} - ${version.num_rows.toLocaleString()} 행, ${version.num_columns} 컬럼`,
+        isCurrent: index === versionHistory.length - 1,
+        metadata: version.metadata
+    })).reverse(); // 최신 버전이 위로 오도록
+};
+
+/**
+ * MLflow 업로드 결과 포맷팅
+ * @param {Object} uploadResult - 업로드 결과
+ * @returns {Object} 포맷팅된 결과
+ */
+export const formatMLflowUploadResult = (uploadResult) => {
+    if (!uploadResult.success) {
+        return uploadResult;
+    }
+
+    const mlflowInfo = uploadResult.mlflow_info;
+    
+    return {
+        ...uploadResult,
+        formatted: {
+            experimentName: mlflowInfo.experiment_name,
+            runId: mlflowInfo.run_id,
+            runUrl: `${mlflowInfo.artifact_uri}/#/experiments/${mlflowInfo.run_id}`,
+            version: mlflowInfo.version,
+            totalOperations: mlflowInfo.total_operations,
+            lineageSaved: mlflowInfo.lineage_saved,
+            uploadTime: new Date().toLocaleString('ko-KR')
+        }
+    };
+};
+
+/**
+ * 데이터셋 계보(Lineage) 정보 요약
+ * @param {Object} lineage - 계보 정보
+ * @returns {Object} 요약된 계보 정보
+ */
+export const summarizeLineage = (lineage) => {
+    if (!lineage) return null;
+
+    return {
+        hasLineage: true,
+        originalSource: lineage.original_source?.type || 'unknown',
+        totalTransformations: lineage.transformations?.length || 0,
+        mlflowRuns: lineage.mlflow_runs?.length || 0,
+        operations: lineage.transformations || [],
+        lastUpdated: lineage.uploaded_at ? new Date(lineage.uploaded_at).toLocaleString('ko-KR') : 'N/A'
+    };
+};
+
+/**
+ * MLflow에 등록된 고유한 실험 이름 목록을 조회
+ * @returns {Promise<string[]>} 고유한 실험 이름 배열
+ */
+export const getUniqueMLflowExperimentNames = async () => {
+    try {
+        // 모든 데이터셋 목록을 가져옵니다 (결과 개수를 충분히 크게 설정).
+        const result = await listMLflowDatasets({ maxResults: 1000 });
+        if (!result.success || !result.datasets) {
+            return [];
+        }
+
+        // Set을 사용하여 고유한 실험 이름만 추출합니다.
+        const experimentNames = new Set(result.datasets.map(d => d.experiment_name));
+        
+        const uniqueNames = Array.from(experimentNames);
+        devLog.info('Fetched unique MLflow experiment names:', uniqueNames);
+        return uniqueNames;
+
+    } catch (error) {
+        devLog.error('Failed to fetch unique MLflow experiment names:', error);
+        // 에러가 발생해도 빈 배열을 반환하여 UI 중단을 방지합니다.
+        return [];
+    }
+};
+
+// dataManagerAPI.js에 추가
+
+/**
+ * 데이터셋 로드 이력 조회
+ * @param {string} managerId - 매니저 ID
+ * @returns {Promise<Object>} 로드 이력 정보
+ */
+export const getDatasetLoadHistory = async (managerId) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID가 필요합니다.');
+        }
+
+        const requestBody = {
+            manager_id: managerId
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/managers/dataset-history`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `이력 조회 실패: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info(`Dataset load history fetched for manager ${managerId}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to fetch dataset load history for manager ${managerId}:`, error);
+        throw error;
+    }
+};
+
+
+/**
+ * 사용 가능한 데이터셋 버전 목록 조회
+ * @param {string} managerId - 매니저 ID
+ * @returns {Promise<Object>} 버전 목록
+ */
+export const getAvailableDatasetVersions = async (managerId) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID가 필요합니다.');
+        }
+
+        const requestBody = {
+            manager_id: managerId
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/managers/available-versions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `버전 목록 조회 실패: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info(`Available dataset versions fetched for manager ${managerId}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to fetch available dataset versions for manager ${managerId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * 데이터셋 버전 전환
+ * @param {string} managerId - 매니저 ID
+ * @param {number} versionNumber - 전환할 버전 번호
+ * @returns {Promise<Object>} 전환 결과
+ */
+export const switchDatasetVersion = async (managerId, versionNumber) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID가 필요합니다.');
+        }
+        if (typeof versionNumber !== 'number' || versionNumber < 1) {
+            throw new Error('유효한 버전 번호가 필요합니다.');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+            version_number: versionNumber
+        };
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/managers/switch-dataset-version`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `버전 전환 실패: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info(`Switched to dataset version ${versionNumber} for manager ${managerId}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to switch dataset version for manager ${managerId}:`, error);
+        throw error;
+    }
+};

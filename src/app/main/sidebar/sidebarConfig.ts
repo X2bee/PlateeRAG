@@ -42,7 +42,7 @@ export const getChatSidebarItems = (): SidebarItem[] => [
     },
 ];
 
-export const getWorkflowItems = ['canvas', 'workflows', 'documents', 'tool-storage', 'prompt-store', 'workflow-store'];
+export const getWorkflowItems = ['canvas', 'workflows', 'documents', 'tool-storage', 'prompt-store'];
 
 export const getWorkflowSidebarItems = (): SidebarItem[] => [
     {
@@ -53,32 +53,26 @@ export const getWorkflowSidebarItems = (): SidebarItem[] => [
     },
     {
         id: 'workflows',
-        title: '완성된 워크플로우',
-        description: '저장된 워크플로우 관리',
+        title: '워크플로우 관리',
+        description: '워크플로우 관리 및 스토어',
         icon: React.createElement(FiFolder),
     },
     {
         id: 'documents',
-        title: '문서',
+        title: '문서 관리',
         description: '문서 저장소',
         icon: React.createElement(FiFile),
     },
     {
         id: 'tool-storage',
-        title: '도구 저장소',
-        description: '도구를 탐색하고 관리',
+        title: '도구 관리',
+        description: '도구 관리 및 스토어',
         icon: React.createElement(FiZap),
-    },
-    {
-        id: 'workflow-store',
-        title: '워크플로우 스토어',
-        description: '워크플로우 템플릿을 탐색하고 관리',
-        icon: React.createElement(FiLayers),
     },
     {
         id: 'prompt-store',
         title: '프롬프트 스토어',
-        description: '프롬프트 템플릿을 탐색하고 관리',
+        description: '프롬프트 탐색하고 관리',
         icon: React.createElement(IoDocumentTextOutline),
     },
 ];

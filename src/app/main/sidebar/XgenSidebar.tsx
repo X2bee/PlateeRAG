@@ -48,7 +48,7 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
         const view = searchParams.get('view');
         if (view) {
             const chatItems = ['new-chat', 'current-chat', 'chat-history'];
-            const workflowItems = ['canvas', 'workflows', 'documents', 'prompt-store', 'workflow-store'];
+            const workflowItems = ['canvas', 'workflows', 'tool-storage', 'documents', 'prompt-store'];
             const dataItems = ['data-station', 'data-storage'];
             const trainItems = ['train', 'train-monitor', 'eval', 'model-storage'];
             const mlModelItems = ['model-upload', 'model-hub', 'model-inference','ml-train', 'ml-train-monitor'];

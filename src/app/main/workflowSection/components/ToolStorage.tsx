@@ -17,6 +17,17 @@ import styles from '@/app/main/workflowSection/assets/ToolStorage.module.scss';
 import RefreshButton from '@/app/_common/icons/refresh';
 import UploadButton from '@/app/_common/icons/upload';
 import ToolStorageUpload from '@/app/main/workflowSection/components/ToolStorageUpload';
+import ToolStorageDetailModal from '@/app/main/workflowSection/components/ToolStorageDetailModal';
+import ToolStore from '@/app/main/workflowSection/components/ToolStore';
+import { listTools, testTool } from '@/app/_common/api/toolsAPI';
+import {
+    showErrorToastKo,
+    showSuccessToastKo,
+    showDeleteConfirmToastKo,
+    showDeleteSuccessToastKo,
+    showDeleteErrorToastKo
+} from '@/app/_common/utils/toastUtilsKo';
+import { devLog } from '@/app/_common/utils/logger';
 
 const ToolStorage: React.FC = () => {
     const [tools, setTools] = useState<any[]>([]);
@@ -26,21 +37,28 @@ const ToolStorage: React.FC = () => {
         'all' | 'active' | 'unactive'
     >('all');
     const [openDropdown, setOpenDropdown] = useState<number | null>(null);
-    const [viewMode, setViewMode] = useState<'storage' | 'upload'>('storage');
+    const [viewMode, setViewMode] = useState<'storage' | 'upload' | 'edit'>('storage');
+    const [selectedTool, setSelectedTool] = useState<any | null>(null);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [testingToolId, setTestingToolId] = useState<number | null>(null);
+    const [editingTool, setEditingTool] = useState<any | null>(null);
+    const [activeTab, setActiveTab] = useState<'storage' | 'store'>('storage' as 'storage' | 'store');
 
     const fetchTools = async () => {
         try {
             setLoading(true);
             setError(null);
-            // TODO: API 호출 구현
-            // const toolsData = await fetchToolsAPI();
-            // setTools(toolsData);
 
-            // 임시 데이터
-            setTools([]);
+            devLog.log('Fetching tools from API...');
+            const toolsData = await listTools();
+            devLog.log('Tools fetched successfully:', toolsData);
+
+            setTools(toolsData);
         } catch (error) {
-            console.error('Failed to fetch tools:', error);
-            setError('도구를 불러오는데 실패했습니다.');
+            devLog.error('Failed to fetch tools:', error);
+            const errorMessage = error instanceof Error ? error.message : '도구를 불러오는데 실패했습니다.';
+            setError(errorMessage);
+            showErrorToastKo(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -79,7 +97,108 @@ const ToolStorage: React.FC = () => {
     // 도구 저장소 페이지로 돌아가기
     const handleBackToStorage = () => {
         setViewMode('storage');
+        setEditingTool(null);
         fetchTools();
+    };
+
+    // 도구 수정 페이지로 전환
+    const handleEditTool = (tool: any, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setEditingTool(tool);
+        setViewMode('edit');
+        setOpenDropdown(null);
+    };
+
+    // 도구 상세 모달 열기
+    const handleToolClick = (tool: any) => {
+        setSelectedTool(tool);
+        setIsDetailModalOpen(true);
+    };
+
+    // 도구 상세 모달 닫기
+    const handleCloseDetailModal = () => {
+        setIsDetailModalOpen(false);
+        setSelectedTool(null);
+    };
+
+    // 도구 테스트
+    const handleTestTool = async (tool: any, e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        if (!tool.id || !tool.function_id) {
+            showErrorToastKo('도구 정보가 올바르지 않습니다.');
+            return;
+        }
+
+        setTestingToolId(tool.id);
+
+        try {
+            devLog.log('Testing tool:', { id: tool.id, function_id: tool.function_id });
+
+            const result: any = await testTool(tool.id, tool.function_id);
+
+            devLog.log('Tool test result:', result);
+
+            if (result.success) {
+                showSuccessToastKo(`도구 테스트 성공! 상태: ${result.tool_status === 'active' ? '활성' : '비활성'}`);
+            } else {
+                showErrorToastKo(`도구 테스트 실패! 상태: ${result.tool_status === 'active' ? '활성' : '비활성'}`);
+            }
+
+            // 테스트 후 도구 목록 새로고침
+            await fetchTools();
+        } catch (error) {
+            devLog.error('Failed to test tool:', error);
+            showErrorToastKo(
+                `도구 테스트 실패: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
+        } finally {
+            setTestingToolId(null);
+        }
+    };
+
+    // 도구 삭제
+    const handleDeleteTool = async (tool: any, e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        if (!tool.function_id) {
+            showErrorToastKo('도구 정보가 올바르지 않습니다.');
+            return;
+        }
+
+        // Toast를 통한 삭제 확인
+        showDeleteConfirmToastKo({
+            title: '도구 삭제 확인',
+            message: `'${tool.function_name}' 도구를 정말로 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`,
+            itemName: tool.function_name,
+            onConfirm: async () => {
+                try {
+                    devLog.log('Deleting tool:', { function_id: tool.function_id });
+
+                    const { deleteTool } = await import('@/app/_common/api/toolsAPI');
+                    await deleteTool(tool.function_id);
+
+                    showDeleteSuccessToastKo({
+                        itemName: tool.function_name,
+                        itemType: '도구',
+                    });
+
+                    // 삭제 후 도구 목록 새로고침
+                    await fetchTools();
+                } catch (error) {
+                    devLog.error('Failed to delete tool:', error);
+                    showDeleteErrorToastKo({
+                        itemName: tool.function_name,
+                        itemType: '도구',
+                        error: error instanceof Error ? error : 'Unknown error',
+                    });
+                } finally {
+                    setOpenDropdown(null);
+                }
+            },
+            confirmText: '삭제',
+            cancelText: '취소',
+        });
     };
 
     // 도구 필터링
@@ -89,7 +208,7 @@ const ToolStorage: React.FC = () => {
         } else if (filter === 'active') {
             return tools.filter(tool => tool.status === 'active');
         } else if (filter === 'unactive') {
-            return tools.filter(tool => tool.status === 'unactive');
+            return tools.filter(tool => tool.status === 'inactive');
         }
         return tools;
     };
@@ -104,7 +223,7 @@ const ToolStorage: React.FC = () => {
                 return styles.statusDraft;
             case 'archived':
                 return styles.statusArchived;
-            case 'unactive':
+            case 'inactive':
                 return styles.statusUnactive;
             default:
                 return styles.statusActive;
@@ -119,8 +238,8 @@ const ToolStorage: React.FC = () => {
                 return '초안';
             case 'archived':
                 return '보관됨';
-            case 'unactive':
-                return '관리자 비활성';
+            case 'inactive':
+                return '비활성';
             default:
                 return '활성';
         }
@@ -131,12 +250,54 @@ const ToolStorage: React.FC = () => {
         return <ToolStorageUpload onBack={handleBackToStorage} />;
     }
 
+    // 편집 모드일 때 업로드 컴포넌트 렌더링 (편집 모드)
+    if (viewMode === 'edit' && editingTool) {
+        return (
+            <ToolStorageUpload
+                onBack={handleBackToStorage}
+                editMode={true}
+                initialData={editingTool}
+            />
+        );
+    }
+
+    // 스토어 탭이 활성화된 경우 ToolStore 컴포넌트 렌더링
+    if (activeTab === 'store') {
+        return (
+            <div className={styles.container}>
+                <ToolStore
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                    onStorageRefresh={fetchTools}
+                />
+            </div>
+        );
+    }
+
+    // 저장소 탭 (기본)
     return (
         <div className={styles.container}>
             {/* Header with Filters */}
             <div className={styles.header}>
                 <div className={styles.headerActions}>
                     <div className={styles.filters}>
+                        {/* 저장소/스토어 탭 */}
+                        <div className={styles.filterGroup}>
+                            <button
+                                onClick={() => setActiveTab('storage')}
+                                className={`${styles.filterButton} ${activeTab === 'storage' ? styles.active : ''}`}
+                            >
+                                저장소
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('store' as 'storage' | 'store')}
+                                className={`${styles.filterButton} ${(activeTab as 'storage' | 'store') === 'store' ? styles.active : ''}`}
+                            >
+                                스토어
+                            </button>
+                        </div>
+
+                        {/* 활성/비활성 필터 */}
                         <div className={styles.filterGroup}>
                             {['all', 'active', 'unactive'].map(
                                 (filterType) => (
@@ -171,28 +332,31 @@ const ToolStorage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Loading State */}
-            {loading && (
-                <div className={styles.loadingState}>
-                    <p>도구를 불러오는 중...</p>
-                </div>
-            )}
+            {/* 저장소 콘텐츠 */}
+                    {/* Loading State */}
+                    {loading && (
+                        <div className={styles.loadingState}>
+                            <p>도구를 불러오는 중...</p>
+                        </div>
+                    )}
 
-            {/* Error State */}
-            {error && (
-                <div className={styles.errorState}>
-                    <p>{error}</p>
-                    <button onClick={fetchTools}>다시 시도</button>
-                </div>
-            )}
+                    {/* Error State */}
+                    {error && (
+                        <div className={styles.errorState}>
+                            <p>{error}</p>
+                            <button onClick={fetchTools}>다시 시도</button>
+                        </div>
+                    )}
 
             {/* Tools Grid */}
             {!loading && !error && (
                 <div className={styles.workflowsGrid}>
                     {filteredTools.map((tool) => (
                         <div
-                            key={tool.key_value}
-                            className={`${styles.workflowCard} ${openDropdown === tool.key_value ? styles.cardActive : ''}`}
+                            key={tool.id}
+                            className={`${styles.workflowCard} ${openDropdown === tool.id ? styles.cardActive : ''}`}
+                            onClick={() => handleToolClick(tool)}
+                            style={{ cursor: 'pointer' }}
                         >
                             <div className={styles.cardHeader}>
                                 <div className={styles.workflowIcon}>
@@ -213,32 +377,25 @@ const ToolStorage: React.FC = () => {
                             </div>
 
                             <div className={styles.cardContent}>
-                                <h3 className={styles.workflowName} title={tool.name}>
-                                    {tool.name}
+                                <h3 className={styles.workflowName} title={tool.function_name}>
+                                    {tool.function_name}
                                 </h3>
                                 {tool.description && (
                                     <p className={styles.workflowDescription}>
                                         {tool.description}
                                     </p>
                                 )}
-                                {tool.error && (
-                                    <p className={styles.workflowError}>
-                                        오류: {tool.error}
-                                    </p>
-                                )}
 
                                 <div className={styles.workflowMeta}>
                                     <div className={styles.metaItem}>
                                         <FiUser />
-                                        <span title={tool.author}>{tool.author}</span>
+                                        <span title={tool.full_name || tool.username}>{tool.full_name || tool.username}</span>
                                     </div>
-                                    {tool.lastModified && (
+                                    {tool.updated_at && (
                                         <div className={styles.metaItem}>
                                             <FiClock />
-                                            <span title={new Date(tool.lastModified).toLocaleDateString('ko-KR')}>
-                                                {new Date(
-                                                    tool.lastModified,
-                                                ).toLocaleDateString('ko-KR')}
+                                            <span title={new Date(tool.updated_at).toLocaleString('ko-KR')}>
+                                                {new Date(tool.updated_at).toLocaleDateString('ko-KR')}
                                             </span>
                                         </div>
                                     )}
@@ -252,90 +409,52 @@ const ToolStorage: React.FC = () => {
                             </div>
 
                             <div className={styles.cardActions}>
-                                {tool.status === 'unactive' ? (
+                                {tool.status === 'inactive' ? (
                                     <div className={styles.unactiveMessage}>
-                                        관리자가 비활성화한 도구입니다. 사용할 수 없습니다.
+                                        비활성화된 도구입니다. 사용할 수 없습니다.
                                     </div>
                                 ) : (
                                     <>
                                         <div className={styles.actionsLeft}>
                                             <button
                                                 className={styles.actionButton}
-                                                title="사용"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    // TODO: 도구 사용 구현
-                                                }}
+                                                title="테스트"
+                                                onClick={(e) => handleTestTool(tool, e)}
+                                                disabled={testingToolId === tool.id}
                                             >
-                                                <FiPlay />
-                                            </button>
-                                            <button
-                                                className={styles.actionButton}
-                                                title="편집"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    // TODO: 도구 편집 구현
-                                                }}
-                                            >
-                                                <FiEdit />
-                                            </button>
-                                            <button
-                                                className={styles.actionButton}
-                                                title="복사"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    // TODO: 도구 복사 구현
-                                                }}
-                                            >
-                                                <FiCopy />
+                                                {testingToolId === tool.id ? (
+                                                    <FiClock className={styles.spinning} />
+                                                ) : (
+                                                    <FiPlay />
+                                                )}
                                             </button>
                                         </div>
                                         <div className={styles.actionsRight}>
-                                            <div className={`${styles.dropdownContainer} ${openDropdown === tool.key_value ? styles.dropdownActive : ''}`}>
+                                            <div className={`${styles.dropdownContainer} ${openDropdown === tool.id ? styles.dropdownActive : ''}`}>
                                                 <button
                                                     className={styles.actionButton}
                                                     title="더보기"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        if (tool.key_value !== undefined) {
-                                                            toggleDropdown(tool.key_value);
+                                                        if (tool.id !== undefined) {
+                                                            toggleDropdown(tool.id);
                                                         }
                                                     }}
                                                 >
                                                     <FiMoreVertical />
                                                 </button>
-                                                {tool.key_value !== undefined && openDropdown === tool.key_value && (
+                                                {tool.id !== undefined && openDropdown === tool.id && (
                                                     <div className={styles.dropdownMenu}>
                                                         <button
                                                             className={styles.dropdownItem}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                // TODO: 설정 구현
-                                                                setOpenDropdown(null);
-                                                            }}
+                                                            onClick={(e) => handleEditTool(tool, e)}
                                                         >
-                                                            <FiSettings />
-                                                            <span>설정</span>
+                                                            <FiEdit />
+                                                            <span>수정</span>
                                                         </button>
-                                                        <button
-                                                            className={styles.dropdownItem}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                // TODO: 버전 히스토리 구현
-                                                                setOpenDropdown(null);
-                                                            }}
-                                                        >
-                                                            <FiGitBranch />
-                                                            <span>버전 히스토리</span>
-                                                        </button>
-                                                        <div className={styles.dropdownDivider} />
                                                         <button
                                                             className={`${styles.dropdownItem} ${styles.danger}`}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                // TODO: 삭제 구현
-                                                                setOpenDropdown(null);
-                                                            }}
+                                                            onClick={(e) => handleDeleteTool(tool, e)}
                                                         >
                                                             <FiTrash2 />
                                                             <span>삭제</span>
@@ -352,7 +471,7 @@ const ToolStorage: React.FC = () => {
                 </div>
             )}
 
-            {!loading && !error && filteredTools.length === 0 && (
+                        {!loading && !error && filteredTools.length === 0 && (
                 <div className={styles.emptyState}>
                     <FiFolder className={styles.emptyIcon} />
                     <h3>도구가 없습니다</h3>
@@ -361,6 +480,13 @@ const ToolStorage: React.FC = () => {
                     </p>
                 </div>
             )}
+
+            {/* Detail Modal */}
+            <ToolStorageDetailModal
+                tool={selectedTool}
+                isOpen={isDetailModalOpen}
+                onClose={handleCloseDetailModal}
+            />
         </div>
     );
 };

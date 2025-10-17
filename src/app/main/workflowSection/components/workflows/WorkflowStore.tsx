@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
-import styles from '../assets/WorkflowStore.module.scss';
+import styles from '@/app/main/workflowSection/assets/WorkflowStore.module.scss';
 import { devLog } from '@/app/_common/utils/logger';
 import { useAuth } from '@/app/_common/components/CookieProvider';
 import {
@@ -26,8 +26,8 @@ import {
 } from 'react-icons/io5';
 import RefreshButton from '@/app/_common/icons/refresh';
 import UploadButton from '@/app/_common/icons/upload';
-import WorkflowStoreUploadModal from './workflows/WorkflowStoreUploadModal';
-import WorkflowStoreDetailModal from './workflows/WorkflowStoreDetailModal';
+import WorkflowStoreUploadModal from './WorkflowStoreUploadModal';
+import WorkflowStoreDetailModal from './WorkflowStoreDetailModal';
 import { listWorkflowStore, deleteWorkflowFromStore, duplicateWorkflowFromStore, rateWorkflow } from '@/app/_common/api/workflow/workflowStoreAPI';
 
 interface Workflow {
@@ -59,9 +59,12 @@ interface Workflow {
 interface WorkflowStoreProps {
     onWorkflowSelect?: (workflow: Workflow) => void;
     className?: string;
+    activeTab: 'storage' | 'store';
+    onTabChange: (tab: 'storage' | 'store') => void;
+    onStorageRefresh?: () => void | Promise<void>;
 }
 
-const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, className }) => {
+const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, className, activeTab, onTabChange, onStorageRefresh }) => {
     // 상태 관리
     const [workflows, setWorkflows] = useState<Workflow[]>([]);
     const [loading, setLoading] = useState(true);
@@ -170,6 +173,12 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
 
             await loadWorkflows();
 
+            // CompletedWorkflows 목록도 새로고침
+            if (onStorageRefresh) {
+                await onStorageRefresh();
+                devLog.info('CompletedWorkflows refreshed after workflow copy');
+            }
+
             setIsModalOpen(false);
             setSelectedWorkflow(null);
         } catch (err) {
@@ -213,6 +222,12 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
 
                     // 워크플로우 목록 새로고침
                     await loadWorkflows();
+
+                    // CompletedWorkflows 목록도 새로고침
+                    if (onStorageRefresh) {
+                        await onStorageRefresh();
+                        devLog.info('CompletedWorkflows refreshed after workflow copy');
+                    }
                 } catch (err) {
                     const errorMessage = err instanceof Error ? err.message : '워크플로우 복제에 실패했습니다.';
                     devLog.error('Failed to duplicate workflow:', err);
@@ -441,6 +456,22 @@ const WorkflowStore: React.FC<WorkflowStoreProps> = ({ onWorkflowSelect, classNa
                                 className={styles.searchInput}
                             />
                             <IoSearch className={styles.searchIcon} />
+                        </div>
+
+                        {/* 저장소/스토어 탭 */}
+                        <div className={styles.languageTabs}>
+                            <button
+                                onClick={() => onTabChange('storage')}
+                                className={`${styles.languageTab} ${activeTab === 'storage' ? styles.active : ''}`}
+                            >
+                                저장소
+                            </button>
+                            <button
+                                onClick={() => onTabChange('store')}
+                                className={`${styles.languageTab} ${activeTab === 'store' ? styles.active : ''}`}
+                            >
+                                스토어
+                            </button>
                         </div>
 
                         {/* 필터 탭 */}

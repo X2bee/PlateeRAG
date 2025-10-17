@@ -15,8 +15,8 @@ const MlModelInferenceView: React.FC = () => {
         setSelectedModelId,
         openDeleteDialog,
         modelDetail,
-        detailLoading,
-        detailError,
+        // detailLoading,
+        // detailError,
         fetchModelDetail,
         inferenceEndpoint,
     } = useMlModelWorkspace();

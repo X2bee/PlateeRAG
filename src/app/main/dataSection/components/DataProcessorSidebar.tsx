@@ -10,6 +10,7 @@ import {
     IoSave,
     IoChevronBack,
     IoWaterOutline,
+    IoGitBranch,
 } from 'react-icons/io5';
 import { MdDataset } from 'react-icons/md';
 import { showErrorToastKo, showSuccessToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
@@ -53,10 +54,11 @@ interface DataProcessorSidebarProps {
     onColumnFormatModal?: () => void;
     onColumnCalculationModal?: () => void;
     onDatasetCallbackModal?: () => void;
+    onVersionHistoryModal?: () => void;  // 추가
 }
 
 type CategoryType = 'load' | 'analyze' | 'edit' | 'save';
-type ActionType = 'huggingface' | 'file-upload' | 'basic-stats' | 'edit-columns' | 'add-columns' | 'drop-columns' | 'clean-data' | 'export-csv' | 'export-parquet' | 'change-column-data' | 'column-operation' | 'remove-all-null-rows' | 'remove-specific-column-null-rows' | 'copy-specific-column' | 'column-format-string' | 'column-calculation' | 'upload-to-huggingface' | 'upload-to-mlflow' | 'rename-column' | 'dataset-callback' | null;
+type ActionType = 'huggingface' | 'file-upload' | 'basic-stats' | 'edit-columns' | 'add-columns' | 'drop-columns' | 'clean-data' | 'export-csv' | 'export-parquet' | 'change-column-data' | 'column-operation' | 'remove-all-null-rows' | 'remove-specific-column-null-rows' | 'copy-specific-column' | 'column-format-string' | 'column-calculation' | 'upload-to-huggingface' | 'upload-to-mlflow' | 'rename-column' | 'dataset-callback' | 'version-history' | null;
 
 const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
     managerId,
@@ -77,6 +79,7 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
     onColumnFormatModal,
     onColumnCalculationModal,
     onDatasetCallbackModal,
+    onVersionHistoryModal,  // 추가
 }) => {
     const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null);
     const [selectedAction, setSelectedAction] = useState<ActionType>(null);
@@ -134,6 +137,12 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
                         title: '기본 통계',
                         icon: IoAnalytics,
                         description: '데이터셋 기본 통계 정보'
+                    },
+                    {
+                        id: 'version-history' as ActionType,  // 추가
+                        title: '버전 이력',
+                        icon: IoGitBranch,
+                        description: '데이터셋 변경 이력 및 버전 관리'
                     }
                 ];
             case 'edit':
@@ -650,6 +659,11 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
                 break;
             case 'dataset-callback':
                 handleDatasetCallback();
+                break;
+            case 'version-history':
+                if (onVersionHistoryModal) {
+                    onVersionHistoryModal();
+                }
                 break;
             default:
                 showErrorToastKo('해당 기능은 추후 구현 예정입니다.');

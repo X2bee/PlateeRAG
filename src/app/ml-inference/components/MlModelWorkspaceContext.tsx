@@ -31,7 +31,9 @@ const joinUrl = (baseUrl: string, path: string) => {
 const stripWrapperTokens = (value: string) => {
     return value
         .replace(/^\s+|\s+$/g, '')
+        // eslint-disable-next-line no-useless-escape
         .replace(/^[`"'\[{\(]+/, '')
+        // eslint-disable-next-line no-useless-escape
         .replace(/[`"'\]}\),]+$/g, '')
         .replace(/^,+|,+$/g, '')
         .replace(/\\"/g, '"');

@@ -10,7 +10,6 @@ import CompletedWorkflows from '@/app/main/workflowSection/components/CompletedW
 import Documents from '@/app/main/workflowSection/components/Documents';
 import ToolStorage from '@/app/main/workflowSection/components/ToolStorage';
 import PromptStore from '@/app/main/workflowSection/components/prompt/PromptStore';
-import WorkflowStore from '@/app/main/workflowSection/components/WorkflowStore';
 
 // Model Page Components
 import MetricsPageContent from '@/app/main/modelSection/components/MetricsPageContent';
@@ -187,15 +186,6 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
                         description="다양한 프롬프트 템플릿을 탐색하고 활용하세요."
                     >
                         <PromptStore />
-                    </ContentArea>
-                );
-            case 'workflow-store':
-                return (
-                    <ContentArea
-                        title="워크플로우 스토어"
-                        description="다양한 워크플로우 템플릿을 탐색하고 활용하세요."
-                    >
-                        <WorkflowStore />
                     </ContentArea>
                 );
 

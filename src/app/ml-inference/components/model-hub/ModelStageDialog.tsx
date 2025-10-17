@@ -125,8 +125,10 @@ const ModelStageDialog: React.FC<ModelStageDialogProps> = ({ model, onClose }) =
                                     <label
                                         key={option.value}
                                         className={isActive ? styles.stageOptionActive : styles.stageOption}
+                                        htmlFor={`stage-${option.value}`}
                                     >
                                         <input
+                                            id={`stage-${option.value}`}
                                             type="radio"
                                             name="mlflow-stage"
                                             value={option.value}

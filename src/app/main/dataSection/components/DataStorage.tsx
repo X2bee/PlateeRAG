@@ -13,8 +13,9 @@ import {
 import ContentArea from '@/app/main/workflowSection/components/ContentArea';
 import styles from '@/app/main/dataSection/assets/DataStoragePage.module.scss';
 import { getAllHuggingFaceResources } from '@/app/_common/api/huggingfaceAPI';
-import DataStorageInfoModal from './DataStorageInfoModal';
+import DataStorageInfoModal from './modals/DataStorageInfoModal';
 import RefreshButton from '@/app/_common/icons/refresh';
+
 
 interface HuggingFaceDataset {
     id: string;
@@ -36,6 +37,14 @@ interface HuggingFaceResourcesData {
         success: boolean;
         data: { datasets: HuggingFaceDataset[] } | null;
         error: string | null;
+    };
+}
+
+interface ExtendedDataset extends HuggingFaceDataset {
+    version_info?: {
+        current_version: number;
+        has_lineage: boolean;
+        mlflow_runs: string[];
     };
 }
 
@@ -128,6 +137,12 @@ const DataStorage: React.FC = () => {
     const handleDatasetClick = (dataset: HuggingFaceDataset) => {
         setSelectedDataset(dataset);
         setIsModalOpen(true);
+        setSelectedDataset({
+            ...dataset,
+            // version_info: versionInfo
+        } as ExtendedDataset);
+        setIsModalOpen(true);
+    
     };
 
     const handleCloseModal = () => {

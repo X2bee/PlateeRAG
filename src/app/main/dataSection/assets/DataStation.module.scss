@@ -412,3 +412,130 @@
         gap: 0.5rem;
     }
 }
+
+// /assets/DataStation.module.scss에 추가
+.versionInfo {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .versionBadge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        width: fit-content;
+
+        svg {
+            font-size: 14px;
+        }
+    }
+
+    .datasetId {
+        font-size: 11px;
+        color: #888;
+        font-family: 'Courier New', monospace;
+    }
+}
+
+.datasetVersionInfo {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(52, 152, 219, 0.1);
+    border-left: 3px solid #3498db;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .versionBadgeRow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .datasetVersionBadge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 700;
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        transition: all 0.3s;
+
+        &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        }
+
+        svg {
+            font-size: 14px;
+        }
+    }
+
+    .reloadedBadge {
+        display: inline-flex;
+        align-items: center;
+        background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        box-shadow: 0 2px 6px rgba(243, 156, 18, 0.3);
+    }
+
+    .datasetId {
+        font-size: 11px;
+        color: #7f8c8d;
+        font-family: 'Courier New', monospace;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 4px 8px;
+        border-radius: 4px;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: block;
+    }
+}
+
+.versionInfo {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    .versionBadge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        width: fit-content;
+        box-shadow: 0 2px 6px rgba(155, 89, 182, 0.3);
+
+        svg {
+            font-size: 12px;
+        }
+    }
+}
