@@ -8,6 +8,8 @@ import { devLog } from '@/app/_common/utils/logger';
 
 interface ToolStorageUploadProps {
     onBack: () => void;
+    editMode?: boolean;
+    initialData?: any;
 }
 
 interface HeaderParam {
@@ -25,28 +27,90 @@ interface BodyParam {
     description?: string;
 }
 
-const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
+const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode = false, initialData = null }) => {
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<'basic' | 'api' | 'additional'>('basic');
+
+    // 편집 모드일 경우 initialData로 초기화
     const [formData, setFormData] = useState({
-        function_name: '',
-        function_id: '',
-        description: '',
-        api_url: '',
-        api_method: 'GET',
-        api_timeout: 30,
-        response_filter: false,
-        response_filter_path: '',
-        response_filter_field: '',
+        function_name: initialData?.function_name || '',
+        function_id: initialData?.function_id || '',
+        description: initialData?.description || '',
+        api_url: initialData?.api_endpoint || '',
+        api_method: initialData?.api_method || 'GET',
+        api_timeout: initialData?.api_timeout || 30,
+        response_filter: initialData?.response_filter || false,
+        response_filter_path: initialData?.response_filter_path || '',
+        response_filter_field: initialData?.response_filter_field || '',
     });
 
-    const [headerParams, setHeaderParams] = useState<HeaderParam[]>([]);
-    const [bodyParams, setBodyParams] = useState<BodyParam[]>([]);
-    const [metadata, setMetadata] = useState('{}');
-    const [testResult, setTestResult] = useState<{ success: boolean; data: any; error?: string } | null>(null);
+    // Header 파라미터 초기화
+    const initializeHeaderParams = (): HeaderParam[] => {
+        if (!initialData?.api_headers) return [];
+
+        try {
+            const headers = typeof initialData.api_headers === 'string'
+                ? JSON.parse(initialData.api_headers)
+                : initialData.api_headers;
+
+            return Object.entries(headers).map(([key, value], index) => ({
+                id: `header_${Date.now()}_${index}`,
+                key,
+                value: String(value),
+                isPreset: false
+            }));
+        } catch (error) {
+            devLog.error('Failed to parse api_headers:', error);
+            return [];
+        }
+    };
+
+    // Body 파라미터 초기화
+    const initializeBodyParams = (): BodyParam[] => {
+        if (!initialData?.api_body) return [];
+
+        try {
+            const body = typeof initialData.api_body === 'string'
+                ? JSON.parse(initialData.api_body)
+                : initialData.api_body;
+
+            return Object.entries(body).map(([key, value], index) => {
+                const valueType = typeof value;
+                let paramType: 'string' | 'number' | 'boolean' | 'object' | 'array' = 'string';
+
+                if (Array.isArray(value)) {
+                    paramType = 'array';
+                } else if (valueType === 'object' && value !== null) {
+                    paramType = 'object';
+                } else if (valueType === 'number') {
+                    paramType = 'number';
+                } else if (valueType === 'boolean') {
+                    paramType = 'boolean';
+                }
+
+                return {
+                    id: `body_${Date.now()}_${index}`,
+                    key,
+                    value: typeof value === 'object' ? JSON.stringify(value) : String(value),
+                    type: paramType,
+                    description: ''
+                };
+            });
+        } catch (error) {
+            devLog.error('Failed to parse api_body:', error);
+            return [];
+        }
+    };
+
+    const [headerParams, setHeaderParams] = useState<HeaderParam[]>(initializeHeaderParams());
+    const [bodyParams, setBodyParams] = useState<BodyParam[]>(initializeBodyParams());
+    const [metadata, setMetadata] = useState(initialData?.metadata ? JSON.stringify(initialData.metadata, null, 2) : '{}');
+    const [testResult, setTestResult] = useState<{ success: boolean; data: any; error?: string } | null>(
+        initialData?.test_result || null
+    );
     const [testing, setTesting] = useState(false);
-    const [apiTested, setApiTested] = useState(false); // API 테스트 여부
-    const [apiTestSuccess, setApiTestSuccess] = useState(false); // API 테스트 성공 여부
+    const [apiTested, setApiTested] = useState(editMode && initialData?.test_result ? true : false);
+    const [apiTestSuccess, setApiTestSuccess] = useState(editMode && initialData?.test_result?.success ? true : false);
 
     // Header 관리 함수
     const addHeaderParam = () => {
@@ -373,17 +437,23 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
 
             devLog.log('Saving tool:', toolData);
 
-            // API 호출
-            await saveTool(formData.function_name, toolData);
-
-            showSuccessToastKo('도구가 성공적으로 저장되었습니다!');
+            if (editMode && initialData) {
+                // 편집 모드: updateTool 호출
+                const { updateTool } = await import('@/app/_common/api/toolsAPI');
+                await updateTool(initialData.id, formData.function_id, toolData);
+                showSuccessToastKo('도구가 성공적으로 수정되었습니다!');
+            } else {
+                // 생성 모드: saveTool 호출
+                await saveTool(formData.function_name, toolData);
+                showSuccessToastKo('도구가 성공적으로 저장되었습니다!');
+            }
 
             // 저장소로 돌아가기
             onBack();
         } catch (error) {
             devLog.error('Failed to save tool:', error);
             showErrorToastKo(
-                `도구 저장에 실패했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`
+                `도구 ${editMode ? '수정' : '저장'}에 실패했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`
             );
         } finally {
             setLoading(false);
@@ -402,7 +472,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
                     <FiArrowLeft />
                     <span>돌아가기</span>
                 </button>
-                <h2 className={styles.title}>새 도구 만들기</h2>
+                <h2 className={styles.title}>{editMode ? '도구 수정' : '새 도구 만들기'}</h2>
                 <div className={styles.headerActions}>
                     <div className={styles.saveButtonWrapper}>
                         <button

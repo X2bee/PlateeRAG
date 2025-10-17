@@ -143,18 +143,23 @@ export const loadTool = async (functionId) => {
 
 /**
  * 도구 정보를 업데이트합니다.
- * @param {string} functionId - 도구 ID
+ * @param {number} toolId - 도구 DB ID
+ * @param {string} functionId - 도구 function ID
  * @param {Object} updateData - 업데이트할 데이터
  * @returns {Promise<Object>} API 응답 객체를 포함하는 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
-export const updateTool = async (functionId, updateData) => {
+export const updateTool = async (toolId, functionId, updateData) => {
     try {
         devLog.log('UpdateTool called with:');
+        devLog.log('- toolId:', toolId);
         devLog.log('- functionId:', functionId);
         devLog.log('- updateData:', updateData);
 
-        const response = await apiClient(`${API_BASE_URL}/api/tools/storage/update/${encodeURIComponent(functionId)}`, {
+        const url = new URL(`${API_BASE_URL}/api/tools/storage/update/${encodeURIComponent(functionId)}`);
+        url.searchParams.append('tool_id', toolId.toString());
+
+        const response = await apiClient(url.toString(), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -174,6 +179,7 @@ export const updateTool = async (functionId, updateData) => {
         return result;
     } catch (error) {
         devLog.error('Failed to update tool:', error);
+        devLog.error('ToolId that caused error:', toolId);
         devLog.error('FunctionId that caused error:', functionId);
         throw error;
     }

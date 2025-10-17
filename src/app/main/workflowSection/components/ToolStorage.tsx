@@ -30,10 +30,11 @@ const ToolStorage: React.FC = () => {
         'all' | 'active' | 'unactive'
     >('all');
     const [openDropdown, setOpenDropdown] = useState<number | null>(null);
-    const [viewMode, setViewMode] = useState<'storage' | 'upload'>('storage');
+    const [viewMode, setViewMode] = useState<'storage' | 'upload' | 'edit'>('storage');
     const [selectedTool, setSelectedTool] = useState<any | null>(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [testingToolId, setTestingToolId] = useState<number | null>(null);
+    const [editingTool, setEditingTool] = useState<any | null>(null);
 
     const fetchTools = async () => {
         try {
@@ -88,7 +89,16 @@ const ToolStorage: React.FC = () => {
     // 도구 저장소 페이지로 돌아가기
     const handleBackToStorage = () => {
         setViewMode('storage');
+        setEditingTool(null);
         fetchTools();
+    };
+
+    // 도구 수정 페이지로 전환
+    const handleEditTool = (tool: any, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setEditingTool(tool);
+        setViewMode('edit');
+        setOpenDropdown(null);
     };
 
     // 도구 상세 모달 열기
@@ -139,6 +149,40 @@ const ToolStorage: React.FC = () => {
         }
     };
 
+    // 도구 삭제
+    const handleDeleteTool = async (tool: any, e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        if (!tool.function_id) {
+            showErrorToastKo('도구 정보가 올바르지 않습니다.');
+            return;
+        }
+
+        // 삭제 확인
+        if (!confirm(`정말로 "${tool.function_name}" 도구를 삭제하시겠습니까?`)) {
+            return;
+        }
+
+        try {
+            devLog.log('Deleting tool:', { function_id: tool.function_id });
+
+            const { deleteTool } = await import('@/app/_common/api/toolsAPI');
+            await deleteTool(tool.function_id);
+
+            showSuccessToastKo('도구가 성공적으로 삭제되었습니다.');
+
+            // 삭제 후 도구 목록 새로고침
+            await fetchTools();
+        } catch (error) {
+            devLog.error('Failed to delete tool:', error);
+            showErrorToastKo(
+                `도구 삭제 실패: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
+        } finally {
+            setOpenDropdown(null);
+        }
+    };
+
     // 도구 필터링
     const getFilteredTools = () => {
         if (filter === 'all') {
@@ -186,6 +230,17 @@ const ToolStorage: React.FC = () => {
     // 업로드 모드일 때 업로드 컴포넌트 렌더링
     if (viewMode === 'upload') {
         return <ToolStorageUpload onBack={handleBackToStorage} />;
+    }
+
+    // 편집 모드일 때 업로드 컴포넌트 렌더링 (편집 모드)
+    if (viewMode === 'edit' && editingTool) {
+        return (
+            <ToolStorageUpload
+                onBack={handleBackToStorage}
+                editMode={true}
+                initialData={editingTool}
+            />
+        );
     }
 
     return (
@@ -340,6 +395,13 @@ const ToolStorage: React.FC = () => {
                                                 </button>
                                                 {tool.id !== undefined && openDropdown === tool.id && (
                                                     <div className={styles.dropdownMenu}>
+                                                        <button
+                                                            className={styles.dropdownItem}
+                                                            onClick={(e) => handleEditTool(tool, e)}
+                                                        >
+                                                            <FiEdit />
+                                                            <span>수정</span>
+                                                        </button>
                                                         <button
                                                             className={`${styles.dropdownItem} ${styles.danger}`}
                                                             onClick={(e) => {
