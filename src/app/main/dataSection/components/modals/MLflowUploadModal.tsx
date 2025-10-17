@@ -48,7 +48,10 @@ export const MLflowUploadModal: React.FC<MLflowUploadModalProps> = ({
 
         try {
             // --- 데이터셋 이름 자동 생성 로직 ---
-            const experimentDatasets = await listMLflowDatasetsByExperiment(experimentName.trim());
+            const experimentDatasets = await listMLflowDatasetsByExperiment(experimentName.trim()) as {
+                success?: boolean;
+                datasets?: Array<{ dataset_name: string }>;
+            };
             const prefix = `${experimentName.trim()}_v`;
             
             let latestVersion = 0;
