@@ -500,6 +500,44 @@
     }
 }
 
+// Modal Footer
+.modalFooter {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-top: 1px solid $gray-200;
+    background: $gray-50;
+    flex-shrink: 0;
+
+    .downloadButton {
+        padding: 0.75rem 2rem;
+        background: $primary-blue;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: $white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover:not(:disabled) {
+            background: darken($primary-blue, 5%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba($primary-blue, 0.3);
+        }
+
+        &:active {
+            transform: translateY(0);
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+}
+
 // Responsive Design
 @media (max-width: 768px) {
     .modalHeader {

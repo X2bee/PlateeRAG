@@ -109,34 +109,6 @@ export const saveTool = async (functionName, content, userId = null) => {
     }
 };
 
-/**
- * 특정 도구를 로드합니다.
- * @param {string} functionId - 도구 ID
- * @returns {Promise<Object>} 도구 데이터를 포함하는 프로미스
- * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
- */
-export const loadTool = async (functionId) => {
-    try {
-        devLog.log('LoadTool called with functionId:', functionId);
-
-        const response = await apiClient(`${API_BASE_URL}/api/tools/storage/load/${encodeURIComponent(functionId)}`);
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(
-                errorData.detail || `HTTP error! status: ${response.status}`,
-            );
-        }
-
-        const result = await response.json();
-        devLog.log('Tool loaded successfully:', functionId);
-        return result;
-    } catch (error) {
-        devLog.error('Failed to load tool:', error);
-        devLog.error('FunctionId that caused error:', functionId);
-        throw error;
-    }
-};
 
 /**
  * 도구 정보를 업데이트합니다.
@@ -303,35 +275,6 @@ export const uploadToolToStore = async (toolId, uploadData) => {
 };
 
 /**
- * Tool Store에서 특정 도구를 로드합니다.
- * @param {string} functionUploadId - 도구 업로드 ID
- * @returns {Promise<Object>} 도구 데이터를 포함하는 프로미스
- * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
- */
-export const loadToolFromStore = async (functionUploadId) => {
-    try {
-        devLog.log('LoadToolFromStore called with functionUploadId:', functionUploadId);
-
-        const response = await apiClient(`${API_BASE_URL}/api/tools/store/load/${encodeURIComponent(functionUploadId)}`);
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(
-                errorData.detail || `HTTP error! status: ${response.status}`,
-            );
-        }
-
-        const result = await response.json();
-        devLog.log('Tool loaded from store successfully:', functionUploadId);
-        return result;
-    } catch (error) {
-        devLog.error('Failed to load tool from store:', error);
-        devLog.error('FunctionUploadId that caused error:', functionUploadId);
-        throw error;
-    }
-};
-
-/**
  * Tool Store의 도구 정보를 업데이트합니다.
  * @param {string} functionUploadId - 도구 업로드 ID
  * @param {Object} updateData - 업데이트할 데이터
@@ -399,21 +342,23 @@ export const deleteToolFromStore = async (functionUploadId) => {
 
 /**
  * Tool Store에서 도구를 다운로드하여 사용자의 도구 목록에 추가합니다.
- * @param {string} functionUploadId - 도구 업로드 ID
- * @param {string|null} newFunctionName - 새로운 도구 이름 (옵션)
+ * @param {string} storeToolId - 스토어 도구 ID (store_tool_id)
+ * @param {string} functionUploadId - 도구 업로드 ID (function_upload_id)
  * @returns {Promise<Object>} API 응답 객체를 포함하는 프로미스
+ * @returns {boolean} result.success - 다운로드 성공 여부
+ * @returns {string} result.message - 성공 메시지
+ * @returns {string} result.function_id - 새로 생성된 function ID
+ * @returns {string} result.function_name - 도구 이름
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
-export const downloadToolFromStore = async (functionUploadId, newFunctionName = null) => {
+export const downloadToolFromStore = async (storeToolId, functionUploadId) => {
     try {
         devLog.log('DownloadToolFromStore called with:');
+        devLog.log('- storeToolId:', storeToolId);
         devLog.log('- functionUploadId:', functionUploadId);
-        devLog.log('- newFunctionName:', newFunctionName);
 
-        const url = new URL(`${API_BASE_URL}/api/tools/store/download/${encodeURIComponent(functionUploadId)}`);
-        if (newFunctionName) {
-            url.searchParams.append('new_function_name', newFunctionName);
-        }
+        const url = new URL(`${API_BASE_URL}/api/tools/store/download/${encodeURIComponent(storeToolId)}`);
+        url.searchParams.append('function_upload_id', functionUploadId);
 
         const response = await apiClient(url.toString(), {
             method: 'POST',
@@ -431,6 +376,7 @@ export const downloadToolFromStore = async (functionUploadId, newFunctionName = 
         return result;
     } catch (error) {
         devLog.error('Failed to download tool from store:', error);
+        devLog.error('Store tool ID that caused error:', storeToolId);
         devLog.error('FunctionUploadId that caused error:', functionUploadId);
         throw error;
     }

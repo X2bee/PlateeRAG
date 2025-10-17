@@ -35,22 +35,42 @@ import ToolStoreUploadModal from './tools/ToolStoreUploadModal';
 
 interface Tool {
     id: number;
-    function_id: string;
-    function_upload_id: string;
-    function_name: string;
-    description: string;
     created_at: string;
     updated_at: string;
-    user_id?: number;
-    username?: string;
-    full_name?: string;
-    is_template: boolean;
-    is_shared: boolean;
-    tags?: string[] | null;
-    metadata?: any;
-    rating_count?: number;
-    rating_sum?: number;
-    parameter_count?: number;
+    user_id: number;
+    function_upload_id: string;
+    function_data: {
+        function_name: string;
+        function_id: string;
+        description: string;
+        api_header: any;
+        api_body: {
+            properties: any;
+        };
+        api_url: string;
+        api_method: string;
+        api_timeout: number;
+        response_filter: boolean;
+        response_filter_path: string;
+        response_filter_field: string;
+        status: string;
+    };
+    metadata: {
+        description: string;
+        tags: string[];
+        original_function_id: string;
+    };
+    rating_count: number;
+    rating_sum: number;
+    username: string;
+    full_name: string;
+}
+
+interface DownloadToolResult {
+    success: boolean;
+    message: string;
+    function_id: string;
+    function_name: string;
 }
 
 interface ToolStoreProps {
@@ -69,7 +89,7 @@ const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTa
     const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-    const [filterMode, setFilterMode] = useState<'all' | 'my' | 'template' | 'shared'>('all');
+    const [filterMode, setFilterMode] = useState<'all' | 'my'>('all');
     const [hoveredRating, setHoveredRating] = useState<{ toolId: number; rating: number } | null>(null);
 
     // 현재 로그인한 사용자 정보 가져오기
@@ -107,9 +127,9 @@ const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTa
             // 검색어 필터
             const matchesSearch = !searchTerm ||
                 tool.function_upload_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                tool.function_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                tool.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (tool.tags && tool.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
+                tool.function_data.function_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                tool.function_data.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (tool.metadata.tags && tool.metadata.tags.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase())));
 
             // 필터 모드에 따른 필터링
             let matchesFilter = true;
@@ -117,13 +137,6 @@ const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTa
             if (filterMode === 'my') {
                 // My: 자신의 것만 표시
                 matchesFilter = !!(user && tool.user_id && tool.user_id === user.user_id);
-            } else if (filterMode === 'template') {
-                // 템플릿: is_template이 true인 것만 표시
-                matchesFilter = tool.is_template === true;
-            } else if (filterMode === 'shared') {
-                // 공유: is_template가 false인 것만 표시 (다른 사용자의 것)
-                matchesFilter = tool.is_template === false &&
-                                (!user || !tool.user_id || tool.user_id !== user.user_id);
             }
             // filterMode === 'all'인 경우 matchesFilter는 true 유지
 
@@ -147,10 +160,11 @@ const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTa
         try {
             setLoading(true);
 
-            await downloadToolFromStore(tool.function_upload_id);
+            // storeToolId (tool.id를 문자열로), functionUploadId 전달
+            const result = await downloadToolFromStore(String(tool.id), tool.function_upload_id) as DownloadToolResult;
 
-            showSuccessToastKo('도구가 성공적으로 다운로드되었습니다!');
-            devLog.info(`Downloaded tool from modal: ${tool.function_upload_id}`);
+            showSuccessToastKo(`'${result.function_name}' 도구가 성공적으로 다운로드되었습니다!`);
+            devLog.info(`Downloaded tool from modal: ${result.function_name} (${result.function_id})`);
 
             await loadTools();
 
@@ -171,15 +185,16 @@ const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTa
 
         showWarningConfirmToastKo({
             title: '도구 다운로드 확인',
-            message: `'${tool.function_upload_id}' 도구를 내 도구로 다운로드하시겠습니까?\n다운로드된 도구는 내 도구 목록에 추가됩니다.`,
+            message: `'${tool.function_data.function_name}' 도구를 내 도구로 다운로드하시겠습니까?\n다운로드된 도구는 내 도구 목록에 추가됩니다.`,
             onConfirm: async () => {
                 try {
                     setLoading(true);
 
-                    await downloadToolFromStore(tool.function_upload_id);
+                    // storeToolId (tool.id를 문자열로), functionUploadId 전달
+                    const result = await downloadToolFromStore(String(tool.id), tool.function_upload_id) as DownloadToolResult;
 
-                    showSuccessToastKo('도구가 성공적으로 다운로드되었습니다!');
-                    devLog.info(`Downloaded tool: ${tool.function_upload_id}`);
+                    showSuccessToastKo(`'${result.function_name}' 도구가 성공적으로 다운로드되었습니다!`);
+                    devLog.info(`Downloaded tool: ${result.function_name} (${result.function_id})`);
 
                     // 도구 목록 새로고침
                     await loadTools();
@@ -202,8 +217,8 @@ const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTa
 
         showDeleteConfirmToastKo({
             title: '도구 삭제 확인',
-            message: `'${tool.function_upload_id}' 도구를 정말로 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`,
-            itemName: tool.function_upload_id,
+            message: `'${tool.function_data.function_name}' 도구를 정말로 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`,
+            itemName: tool.function_data.function_name,
             onConfirm: async () => {
                 try {
                     setLoading(true);
@@ -211,7 +226,7 @@ const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTa
                     await deleteToolFromStore(tool.function_upload_id);
 
                     showDeleteSuccessToastKo({
-                        itemName: tool.function_upload_id,
+                        itemName: tool.function_data.function_name,
                         itemType: '도구',
                     });
 
@@ -220,7 +235,7 @@ const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTa
                 } catch (error) {
                     devLog.error('Failed to delete tool:', error);
                     showDeleteErrorToastKo({
-                        itemName: tool.function_upload_id,
+                        itemName: tool.function_data.function_name,
                         itemType: '도구',
                         error: error instanceof Error ? error : 'Unknown error',
                     });
@@ -393,18 +408,6 @@ const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTa
                             >
                                 My
                             </button>
-                            <button
-                                className={`${styles.filterButton} ${filterMode === 'template' ? styles.active : ''}`}
-                                onClick={() => setFilterMode('template')}
-                            >
-                                템플릿
-                            </button>
-                            <button
-                                className={`${styles.filterButton} ${filterMode === 'shared' ? styles.active : ''}`}
-                                onClick={() => setFilterMode('shared')}
-                            >
-                                공유
-                            </button>
                         </div>
                     </div>
 
@@ -469,17 +472,12 @@ const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTa
                                 onClick={() => handleToolClick(tool)}
                             >
                                 <div className={styles.cardHeader}>
-                                    <h3 className={styles.cardTitle}>{tool.function_upload_id}</h3>
-                                    <div className={styles.cardBadges}>
-                                        <span className={`${styles.badge} ${styles.version}`}>
-                                            {tool.function_name}
-                                        </span>
-                                    </div>
+                                    <h3 className={styles.cardTitle}>{tool.function_data.function_name}</h3>
                                 </div>
 
                                 <div className={styles.cardContent}>
                                     <div className={styles.contentPreview}>
-                                        {truncateText(tool.description || '설명 없음')}
+                                        {truncateText(tool.function_data.description || '설명 없음')}
                                     </div>
 
                                     {/* 평점 표시 */}
@@ -490,11 +488,6 @@ const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTa
                                             <IoCalendar className={styles.metaIcon} />
                                             {formatDate(tool.created_at)}
                                         </div>
-                                        {tool.is_template && (
-                                            <span className={styles.templateBadge}>
-                                                템플릿
-                                            </span>
-                                        )}
                                         {tool.user_id && tool.username && (
                                             <div className={styles.metaItem}>
                                                 <IoPerson className={styles.metaIcon} />
@@ -502,9 +495,9 @@ const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTa
                                             </div>
                                         )}
                                     </div>
-                                    {tool.tags && tool.tags.length > 0 && (
+                                    {tool.metadata.tags && tool.metadata.tags.length > 0 && (
                                         <div className={styles.tags}>
-                                            {tool.tags.map((tag, index) => (
+                                            {tool.metadata.tags.map((tag: string, index: number) => (
                                                 <span key={index} className={styles.tag}>
                                                     {tag}
                                                 </span>
@@ -516,7 +509,7 @@ const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTa
                                 <div className={styles.cardFooter}>
                                     <div className={styles.cardInfo}>
                                         <div className={styles.infoItem}>
-                                            <span>파라미터: {tool.parameter_count || 0}</span>
+                                            <span>메서드: {tool.function_data.api_method}</span>
                                         </div>
                                     </div>
                                     <div className={styles.cardActions}>
