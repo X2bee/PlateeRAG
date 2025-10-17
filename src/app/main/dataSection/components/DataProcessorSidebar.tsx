@@ -11,11 +11,13 @@ import {
     IoChevronBack,
     IoWaterOutline,
     IoGitBranch,
+    IoServer
 } from 'react-icons/io5';
 import { MdDataset } from 'react-icons/md';
 import { showErrorToastKo, showSuccessToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { removeDataset, uploadLocalDataset, exportDatasetAsCSV, exportDatasetAsParquet, getDatasetStatistics, removeNullRows } from '@/app/_common/api/dataManagerAPI';
 import styles from '@/app/main/dataSection/assets/DataProcessorSidebar.module.scss';
+import { DatabaseConnectionModal } from './modals';
 
 interface DataTableInfo {
     success: boolean;
@@ -55,10 +57,11 @@ interface DataProcessorSidebarProps {
     onColumnCalculationModal?: () => void;
     onDatasetCallbackModal?: () => void;
     onVersionHistoryModal?: () => void;  // 추가
+    onDatabaseLoadModal?: () => void;  // 추가
 }
 
 type CategoryType = 'load' | 'analyze' | 'edit' | 'save';
-type ActionType = 'huggingface' | 'file-upload' | 'basic-stats' | 'edit-columns' | 'add-columns' | 'drop-columns' | 'clean-data' | 'export-csv' | 'export-parquet' | 'change-column-data' | 'column-operation' | 'remove-all-null-rows' | 'remove-specific-column-null-rows' | 'copy-specific-column' | 'column-format-string' | 'column-calculation' | 'upload-to-huggingface' | 'upload-to-mlflow' | 'rename-column' | 'dataset-callback' | 'version-history' | null;
+type ActionType = 'huggingface' | 'file-upload' | 'basic-stats' | 'edit-columns' | 'add-columns' | 'drop-columns' | 'clean-data' | 'export-csv' | 'export-parquet' | 'change-column-data' | 'column-operation' | 'remove-all-null-rows' | 'remove-specific-column-null-rows' | 'copy-specific-column' | 'column-format-string' | 'column-calculation' | 'upload-to-huggingface' | 'upload-to-mlflow' | 'rename-column' | 'dataset-callback' | 'version-history' | 'database-load' | null;
 
 const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
     managerId,
@@ -80,6 +83,7 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
     onColumnCalculationModal,
     onDatasetCallbackModal,
     onVersionHistoryModal,  // 추가
+    onDatabaseLoadModal,  // 추가
 }) => {
     const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null);
     const [selectedAction, setSelectedAction] = useState<ActionType>(null);
@@ -128,6 +132,12 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
                         title: '파일 업로드',
                         icon: IoCloudUpload,
                         description: '로컬 파일에서 데이터셋 업로드'
+                    },
+                    {
+                        id: 'database-load' as ActionType,  // 추가
+                        title: '데이터베이스에서 로드',
+                        icon: IoServer,  // react-icons/io5에서 import 필요
+                        description: 'PostgreSQL, MySQL, SQLite 등에서 데이터 가져오기'
                     }
                 ];
             case 'analyze':
@@ -663,6 +673,11 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
             case 'version-history':
                 if (onVersionHistoryModal) {
                     onVersionHistoryModal();
+                }
+                break;
+            case 'database-load':  // 추가
+                if (onDatabaseLoadModal) {
+                    onDatabaseLoadModal();
                 }
                 break;
             default:
