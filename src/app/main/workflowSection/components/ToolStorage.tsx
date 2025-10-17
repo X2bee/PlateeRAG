@@ -20,7 +20,13 @@ import ToolStorageUpload from '@/app/main/workflowSection/components/ToolStorage
 import ToolStorageDetailModal from '@/app/main/workflowSection/components/ToolStorageDetailModal';
 import ToolStore from '@/app/main/workflowSection/components/ToolStore';
 import { listTools, testTool } from '@/app/_common/api/toolsAPI';
-import { showErrorToastKo, showSuccessToastKo } from '@/app/_common/utils/toastUtilsKo';
+import {
+    showErrorToastKo,
+    showSuccessToastKo,
+    showDeleteConfirmToastKo,
+    showDeleteSuccessToastKo,
+    showDeleteErrorToastKo
+} from '@/app/_common/utils/toastUtilsKo';
 import { devLog } from '@/app/_common/utils/logger';
 
 const ToolStorage: React.FC = () => {
@@ -36,11 +42,7 @@ const ToolStorage: React.FC = () => {
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [testingToolId, setTestingToolId] = useState<number | null>(null);
     const [editingTool, setEditingTool] = useState<any | null>(null);
-    const [activeTab, setActiveTab] = useState<'storage' | 'store'>('storage');
-
-    // 스토어 관련 state
-    const [storeSearchTerm, setStoreSearchTerm] = useState('');
-    const [storeFilterMode, setStoreFilterMode] = useState<'all' | 'my' | 'template' | 'shared'>('all');
+    const [activeTab, setActiveTab] = useState<'storage' | 'store'>('storage' as 'storage' | 'store');
 
     const fetchTools = async () => {
         try {
@@ -164,29 +166,39 @@ const ToolStorage: React.FC = () => {
             return;
         }
 
-        // 삭제 확인
-        if (!confirm(`정말로 "${tool.function_name}" 도구를 삭제하시겠습니까?`)) {
-            return;
-        }
+        // Toast를 통한 삭제 확인
+        showDeleteConfirmToastKo({
+            title: '도구 삭제 확인',
+            message: `'${tool.function_name}' 도구를 정말로 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`,
+            itemName: tool.function_name,
+            onConfirm: async () => {
+                try {
+                    devLog.log('Deleting tool:', { function_id: tool.function_id });
 
-        try {
-            devLog.log('Deleting tool:', { function_id: tool.function_id });
+                    const { deleteTool } = await import('@/app/_common/api/toolsAPI');
+                    await deleteTool(tool.function_id);
 
-            const { deleteTool } = await import('@/app/_common/api/toolsAPI');
-            await deleteTool(tool.function_id);
+                    showDeleteSuccessToastKo({
+                        itemName: tool.function_name,
+                        itemType: '도구',
+                    });
 
-            showSuccessToastKo('도구가 성공적으로 삭제되었습니다.');
-
-            // 삭제 후 도구 목록 새로고침
-            await fetchTools();
-        } catch (error) {
-            devLog.error('Failed to delete tool:', error);
-            showErrorToastKo(
-                `도구 삭제 실패: ${error instanceof Error ? error.message : 'Unknown error'}`
-            );
-        } finally {
-            setOpenDropdown(null);
-        }
+                    // 삭제 후 도구 목록 새로고침
+                    await fetchTools();
+                } catch (error) {
+                    devLog.error('Failed to delete tool:', error);
+                    showDeleteErrorToastKo({
+                        itemName: tool.function_name,
+                        itemType: '도구',
+                        error: error instanceof Error ? error : 'Unknown error',
+                    });
+                } finally {
+                    setOpenDropdown(null);
+                }
+            },
+            confirmText: '삭제',
+            cancelText: '취소',
+        });
     };
 
     // 도구 필터링
@@ -278,8 +290,8 @@ const ToolStorage: React.FC = () => {
                                 저장소
                             </button>
                             <button
-                                onClick={() => setActiveTab('store')}
-                                className={`${styles.filterButton} ${activeTab === 'store' ? styles.active : ''}`}
+                                onClick={() => setActiveTab('store' as 'storage' | 'store')}
+                                className={`${styles.filterButton} ${(activeTab as 'storage' | 'store') === 'store' ? styles.active : ''}`}
                             >
                                 스토어
                             </button>
