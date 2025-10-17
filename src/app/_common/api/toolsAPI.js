@@ -382,6 +382,60 @@ export const downloadToolFromStore = async (storeToolId, functionUploadId) => {
     }
 };
 
+/**
+ * Tool Store의 도구에 평점을 부여합니다.
+ * @param {string} storeToolId - 스토어 도구 ID (store_tool_id)
+ * @param {number} userId - 도구 소유자의 사용자 ID
+ * @param {string} functionUploadId - 도구 업로드 ID (function_upload_id)
+ * @param {number} rating - 평점 (1-5)
+ * @returns {Promise<Object>} API 응답 객체를 포함하는 프로미스
+ * @returns {boolean} result.success - 평가 성공 여부
+ * @returns {string} result.message - 성공 메시지
+ * @returns {number} result.rating - 부여한 평점
+ * @returns {number} result.average_rating - 평균 평점
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const rateToolStore = async (storeToolId, userId, functionUploadId, rating) => {
+    try {
+        devLog.log('RateToolStore called with:');
+        devLog.log('- storeToolId:', storeToolId);
+        devLog.log('- userId:', userId);
+        devLog.log('- functionUploadId:', functionUploadId);
+        devLog.log('- rating:', rating);
+
+        if (rating < 1 || rating > 5) {
+            throw new Error('Rating must be between 1 and 5');
+        }
+
+        const url = new URL(`${API_BASE_URL}/api/tools/store/rating/${encodeURIComponent(storeToolId)}`);
+        url.searchParams.append('user_id', userId.toString());
+        url.searchParams.append('function_upload_id', functionUploadId);
+        url.searchParams.append('rating', rating.toString());
+
+        const response = await apiClient(url.toString(), {
+            method: 'POST',
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.detail || `HTTP error! status: ${response.status}`,
+            );
+        }
+
+        devLog.log('Tool rated successfully:', result);
+        return result;
+    } catch (error) {
+        devLog.error('Failed to rate tool:', error);
+        devLog.error('Store tool ID that caused error:', storeToolId);
+        devLog.error('UserId that caused error:', userId);
+        devLog.error('FunctionUploadId that caused error:', functionUploadId);
+        devLog.error('Rating that caused error:', rating);
+        throw error;
+    }
+};
+
 // ==================== API Test (CORS Proxy) ====================
 
 /**

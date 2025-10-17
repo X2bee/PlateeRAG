@@ -28,7 +28,8 @@ import UploadButton from '@/app/_common/icons/upload';
 import {
     listToolStore,
     deleteToolFromStore,
-    downloadToolFromStore
+    downloadToolFromStore,
+    rateToolStore
 } from '@/app/_common/api/toolsAPI';
 import ToolStoreDetailModal from './tools/ToolStoreDetailModal';
 import ToolStoreUploadModal from './tools/ToolStoreUploadModal';
@@ -322,9 +323,24 @@ const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTa
         try {
             setLoading(true);
 
-            // TODO: rateToolStore API 구현 필요
-            showErrorToastKo('평가 기능이 아직 구현되지 않았습니다.');
-            devLog.warn('Tool rating feature not implemented yet');
+            // tool.user_id가 없으면 에러
+            if (!tool.user_id) {
+                showErrorToastKo('도구 소유자 정보를 찾을 수 없습니다.');
+                return;
+            }
+
+            await rateToolStore(
+                String(tool.id),
+                tool.user_id,
+                tool.function_upload_id,
+                rating
+            );
+
+            showSuccessToastKo(`${rating}점으로 평가되었습니다!`);
+            devLog.info(`Rated tool: ${tool.function_data.function_name} with ${rating} stars`);
+
+            // 도구 목록 새로고침
+            await loadTools();
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : '도구 평가에 실패했습니다.';
             devLog.error('Failed to rate tool:', err);
