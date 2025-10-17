@@ -404,11 +404,7 @@ const ToolStorage: React.FC = () => {
                                                         </button>
                                                         <button
                                                             className={`${styles.dropdownItem} ${styles.danger}`}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                // TODO: 삭제 구현
-                                                                setOpenDropdown(null);
-                                                            }}
+                                                            onClick={(e) => handleDeleteTool(tool, e)}
                                                         >
                                                             <FiTrash2 />
                                                             <span>삭제</span>

@@ -223,7 +223,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
             return testResult?.error || null;
         }
 
-        let displayData = testResult.data?.response || testResult.data;
+        const displayData = testResult.data?.response || testResult.data;
 
         // 필터가 활성화되어 있으면 필터링 적용
         if (formData.response_filter && displayData) {
@@ -246,7 +246,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
 
                 // 필터 필드 적용 (경로 설정 여부와 무관하게)
                 if (formData.response_filter_field && formData.response_filter_field.trim()) {
-                    const fields = formData.response_filter_field.split(',').map(f => f.trim()).filter(f => f);
+                    const fields = formData.response_filter_field.split(',').map((f: string) => f.trim()).filter((f: string) => f);
 
                     if (fields.length > 0) {
                         // 배열인 경우
@@ -254,7 +254,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                             const filteredList = extractedData.map((item: any) => {
                                 if (typeof item === 'object' && item !== null) {
                                     const filteredItem: any = {};
-                                    fields.forEach(field => {
+                                    fields.forEach((field: string) => {
                                         if (field in item) {
                                             filteredItem[field] = item[field];
                                         }
@@ -268,7 +268,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                         // 단일 객체인 경우
                         else if (typeof extractedData === 'object' && extractedData !== null) {
                             const filteredItem: any = {};
-                            fields.forEach(field => {
+                            fields.forEach((field: string) => {
                                 if (field in extractedData) {
                                     filteredItem[field] = extractedData[field];
                                 }
