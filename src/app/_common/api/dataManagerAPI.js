@@ -1806,3 +1806,544 @@ export const switchDatasetVersion = async (managerId, versionNumber) => {
         throw error;
     }
 };
+// dataManagerAPI.js 파일에 추가
+
+/**
+ * ============================================
+ * 데이터베이스 연결 및 로드 API 함수들
+ * ============================================
+ */
+
+/**
+ * 연결 URL 파싱
+ * @param {string} url - 데이터베이스 연결 URL
+ * @returns {Object} 파싱된 DB 설정
+ */
+export const parseConnectionUrl = (url) => {
+    try {
+        // JDBC URL 처리
+        let cleanUrl = url;
+        if (url.startsWith('jdbc:')) {
+            cleanUrl = url.replace('jdbc:', '');
+        }
+        
+        const urlObj = new URL(cleanUrl);
+        
+        // DB 타입 결정
+        let dbType = urlObj.protocol.replace(':', '');
+        if (dbType.includes('postgresql') || dbType === 'postgres') {
+            dbType = 'postgresql';
+        } else if (dbType.includes('mysql')) {
+            dbType = 'mysql';
+        } else if (dbType.includes('sqlite')) {
+            dbType = 'sqlite';
+        }
+        
+        const config = {
+            db_type: dbType
+        };
+        
+        // SQLite 처리
+        if (dbType === 'sqlite') {
+            config.database = urlObj.pathname.substring(1); // '/' 제거
+        } else {
+            // PostgreSQL, MySQL 처리
+            config.host = urlObj.hostname;
+            config.port = urlObj.port ? parseInt(urlObj.port) : getDefaultDatabasePort(dbType);
+            config.username = urlObj.username || '';
+            config.password = urlObj.password || '';
+            
+            // 데이터베이스명 추출 (경로에서 / 제거, 쿼리 파라미터 제거)
+            let database = urlObj.pathname.substring(1);
+            if (database.includes('?')) {
+                database = database.split('?')[0];
+            }
+            config.database = database;
+        }
+        
+        devLog.info('URL 파싱 성공:', config);
+        return config;
+    } catch (error) {
+        devLog.error('URL 파싱 실패:', error);
+        throw new Error(`URL 파싱 실패: ${error.message}`);
+    }
+};
+
+/**
+ * DB 설정을 연결 URL로 변환
+ * @param {Object} dbConfig - DB 설정
+ * @param {boolean} includePassword - 비밀번호 포함 여부
+ * @returns {string} 연결 URL
+ */
+export const dbConfigToUrl = (dbConfig, includePassword = false) => {
+    if (!dbConfig || !dbConfig.db_type) {
+        throw new Error('DB 설정이 필요합니다.');
+    }
+    
+    if (dbConfig.db_type === 'sqlite') {
+        if (!dbConfig.database) {
+            throw new Error('SQLite 데이터베이스 경로가 필요합니다.');
+        }
+        return `sqlite:///${dbConfig.database}`;
+    }
+    
+    // ✅ username 필수 체크
+    if (!dbConfig.username || dbConfig.username.trim() === '') {
+        throw new Error('사용자명이 필요합니다.');
+    }
+    
+    // ✅ password 필수 체크 (includePassword가 true일 때만)
+    if (includePassword && (!dbConfig.password || dbConfig.password.trim() === '')) {
+        throw new Error('비밀번호가 필요합니다.');
+    }
+    
+    const protocol = dbConfig.db_type === 'mysql' ? 'mysql+pymysql' : dbConfig.db_type;
+    const host = dbConfig.host || 'localhost';
+    const port = dbConfig.port || getDefaultDatabasePort(dbConfig.db_type);
+    const username = dbConfig.username;
+    const password = includePassword ? dbConfig.password : '****';
+    const database = dbConfig.database || '';
+    
+    console.log(`${protocol}://${username}:${password}@${host}:${port}/${database}`)
+    return `${protocol}://${username}:${password}@${host}:${port}/${database}`;
+};
+
+/**
+ * 데이터베이스 타입별 기본 포트 반환
+ * @param {string} dbType - DB 타입
+ * @returns {number} 기본 포트 번호
+ */
+export const getDefaultDatabasePort = (dbType) => {
+    const defaultPorts = {
+        postgresql: 5432,
+        mysql: 3306,
+        sqlite: null
+    };
+    return defaultPorts[dbType] || 5432;
+};
+
+/**
+ * 데이터베이스 설정 유효성 검사
+ * @param {Object} dbConfig - 검증할 DB 설정
+ * @returns {Object} 검증 결과 { valid: boolean, errors: string[] }
+ */
+export const validateDatabaseConfig = (dbConfig) => {
+    const errors = [];
+
+    if (!dbConfig || typeof dbConfig !== 'object') {
+        errors.push('데이터베이스 설정 객체가 필요합니다.');
+        return { valid: false, errors };
+    }
+
+    if (!dbConfig.db_type) {
+        errors.push('DB 타입이 필요합니다.');
+    } else if (!['postgresql', 'mysql', 'sqlite'].includes(dbConfig.db_type)) {
+        errors.push('지원되지 않는 DB 타입입니다. (postgresql, mysql, sqlite만 지원)');
+    }
+
+    if (!dbConfig.database || dbConfig.database.trim() === '') {
+        errors.push('데이터베이스명이 필요합니다.');
+    }
+
+    // SQLite가 아닌 경우 추가 검증
+    if (dbConfig.db_type && dbConfig.db_type !== 'sqlite') {
+        if (!dbConfig.host || dbConfig.host.trim() === '') {
+            errors.push('호스트 주소가 필요합니다.');
+        }
+        if (!dbConfig.username || dbConfig.username.trim() === '') {
+            errors.push('사용자명이 필요합니다.');
+        }
+        if (!dbConfig.password || dbConfig.password.trim() === '') {
+            errors.push('비밀번호가 필요합니다.');
+        }
+    }
+
+    return {
+        valid: errors.length === 0,
+        errors
+    };
+};
+
+/**
+ * 데이터베이스 연결 테스트 (URL 지원)
+ * @param {Object|null} dbConfig - 데이터베이스 연결 설정 (개별 설정 모드)
+ * @param {string|null} connectionUrl - 연결 URL (URL 모드)
+ * @returns {Promise<Object>} 연결 테스트 결과
+ */
+export const testDatabaseConnection = async (dbConfig = null, connectionUrl = null) => {
+    try {
+        if (!dbConfig && !connectionUrl) {
+            throw new Error('db_config 또는 connection_url 중 하나가 필요합니다.');
+        }
+
+        const requestBody = {};
+        
+        if (connectionUrl) {
+            requestBody.connection_url = connectionUrl;
+        } else if (dbConfig) {
+            requestBody.db_config = dbConfig;
+        }
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/db/test-connection`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `DB 연결 테스트 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Database connection test successful:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to test database connection:', error);
+        throw error;
+    }
+};
+
+/**
+ * 데이터베이스 스키마 목록 조회 (URL 지원)
+ */
+export const listDatabaseSchemas = async (dbConfig = null, connectionUrl = null) => {
+    try {
+        if (!dbConfig && !connectionUrl) {
+            throw new Error('db_config 또는 connection_url 중 하나가 필요합니다.');
+        }
+
+        const requestBody = {};
+        
+        if (connectionUrl) {
+            requestBody.connection_url = connectionUrl;
+        } else {
+            requestBody.db_config = dbConfig;
+        }
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/db/list-schemas`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `스키마 목록 조회 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Database schemas fetched:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch database schemas:', error);
+        throw error;
+    }
+};
+
+/**
+ * 데이터베이스 테이블 목록 조회 (URL 지원)
+ */
+export const listDatabaseTables = async (dbConfig = null, connectionUrl = null, schema = null) => {
+    try {
+        if (!dbConfig && !connectionUrl) {
+            throw new Error('db_config 또는 connection_url 중 하나가 필요합니다.');
+        }
+
+        const requestBody = {};
+        
+        if (connectionUrl) {
+            requestBody.connection_url = connectionUrl;
+        } else {
+            requestBody.db_config = dbConfig;
+        }
+        
+        if (schema) {
+            requestBody.schema = schema;
+        }
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/db/list-tables`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `테이블 목록 조회 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Database tables fetched:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch database tables:', error);
+        throw error;
+    }
+};
+
+/**
+ * 데이터베이스 테이블 미리보기 (URL 지원)
+ */
+export const previewDatabaseTable = async (dbConfig = null, connectionUrl = null, tableName, schema = null, limit = 10) => {
+    try {
+        if (!dbConfig && !connectionUrl) {
+            throw new Error('db_config 또는 connection_url 중 하나가 필요합니다.');
+        }
+        if (!tableName) {
+            throw new Error('테이블명이 필요합니다.');
+        }
+
+        const requestBody = {
+            table_name: tableName,
+            limit: limit
+        };
+        
+        if (connectionUrl) {
+            requestBody.connection_url = connectionUrl;
+        } else {
+            requestBody.db_config = dbConfig;
+        }
+        
+        if (schema) {
+            requestBody.schema = schema;
+        }
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/db/preview-table`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `테이블 미리보기 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info(`Database table preview fetched for ${tableName}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error(`Failed to preview database table ${tableName}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * SQL 쿼리 유효성 검증 (URL 지원)
+ */
+export const validateSqlQuery = async (dbConfig = null, connectionUrl = null, query) => {
+    try {
+        if (!dbConfig && !connectionUrl) {
+            throw new Error('db_config 또는 connection_url 중 하나가 필요합니다.');
+        }
+        if (!query || typeof query !== 'string' || query.trim() === '') {
+            throw new Error('SQL 쿼리가 필요합니다.');
+        }
+
+        const requestBody = {
+            query: query.trim()
+        };
+        
+        if (connectionUrl) {
+            requestBody.connection_url = connectionUrl;
+        } else {
+            requestBody.db_config = dbConfig;
+        }
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/db/validate-query`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `쿼리 검증 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info('SQL query validation result:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to validate SQL query:', error);
+        throw error;
+    }
+};
+
+/**
+ * 데이터베이스에서 데이터셋 로드 (통합 - URL 또는 설정 지원)
+ * @param {string} managerId - 매니저 ID
+ * @param {Object|null} dbConfig - 데이터베이스 연결 설정
+ * @param {string|null} connectionUrl - 연결 URL
+ * @param {string} loadMode - 로드 모드 ('table' | 'query')
+ * @param {string} [tableName] - 테이블명 (table 모드)
+ * @param {string} [query] - SQL 쿼리 (query 모드)
+ * @param {string} [schema] - 스키마명 (선택사항)
+ * @param {number} [chunkSize] - 청크 크기 (선택사항)
+ * @returns {Promise<Object>} 데이터셋 로드 결과
+ */
+export const loadDatasetFromDatabase = async (
+    managerId,
+    dbConfig = null,
+    connectionUrl = null,
+    loadMode,
+    tableName = null,
+    query = null,
+    schema = null,
+    chunkSize = null
+) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID가 필요합니다.');
+        }
+        if (!dbConfig && !connectionUrl) {
+            throw new Error('db_config 또는 connection_url 중 하나가 필요합니다.');
+        }
+        if (loadMode !== 'table' && loadMode !== 'query') {
+            throw new Error('loadMode는 "table" 또는 "query"여야 합니다.');
+        }
+        if (loadMode === 'table' && !tableName) {
+            throw new Error('table 모드에서는 tableName이 필요합니다.');
+        }
+        if (loadMode === 'query' && !query) {
+            throw new Error('query 모드에서는 query가 필요합니다.');
+        }
+
+        const requestBody = {
+            manager_id: managerId
+        };
+
+        // URL 또는 설정 추가
+        if (connectionUrl) {
+            requestBody.connection_url = connectionUrl;
+        } else {
+            requestBody.db_config = dbConfig;
+        }
+
+        // 로드 모드별 파라미터
+        if (loadMode === 'table') {
+            requestBody.table_name = tableName;
+            if (schema) {
+                requestBody.schema = schema;
+            }
+        } else {
+            requestBody.query = query;
+        }
+
+        // 선택적 파라미터
+        if (chunkSize && typeof chunkSize === 'number' && chunkSize > 0) {
+            requestBody.chunk_size = chunkSize;
+        }
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/db/load-dataset`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `DB 데이터셋 로드 실패: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        devLog.info(`Dataset loaded from database for manager ${managerId}:`, data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to load dataset from database:', error);
+        throw error;
+    }
+};
+
+/**
+ * DB 연결 설정을 로컬 스토리지에 저장 (비밀번호 제외)
+ * @param {string} name - 설정 이름
+ * @param {Object} dbConfig - DB 설정 (비밀번호 제외)
+ */
+export const saveDatabaseConfigToLocal = (name, dbConfig) => {
+    try {
+        const savedConfigs = JSON.parse(localStorage.getItem('db_configs') || '[]');
+        
+        // 비밀번호 제거
+        const { password, ...configWithoutPassword } = dbConfig;
+        
+        const newConfig = {
+            name,
+            config: configWithoutPassword,
+            savedAt: new Date().toISOString()
+        };
+
+        // 같은 이름이 있으면 업데이트
+        const existingIndex = savedConfigs.findIndex(c => c.name === name);
+        if (existingIndex >= 0) {
+            savedConfigs[existingIndex] = newConfig;
+        } else {
+            savedConfigs.push(newConfig);
+        }
+
+        localStorage.setItem('db_configs', JSON.stringify(savedConfigs));
+        devLog.info(`Database config '${name}' saved to local storage`);
+    } catch (error) {
+        devLog.error(`Failed to save database config to local storage:`, error);
+    }
+};
+
+/**
+ * 로컬 스토리지에서 저장된 DB 설정 목록 가져오기
+ * @returns {Array} 저장된 DB 설정 목록
+ */
+export const getSavedDatabaseConfigs = () => {
+    try {
+        return JSON.parse(localStorage.getItem('db_configs') || '[]');
+    } catch (error) {
+        devLog.error('Failed to get saved database configs:', error);
+        return [];
+    }
+};
+
+/**
+ * 로컬 스토리지에서 특정 DB 설정 삭제
+ * @param {string} name - 설정 이름
+ */
+export const deleteSavedDatabaseConfig = (name) => {
+    try {
+        const savedConfigs = JSON.parse(localStorage.getItem('db_configs') || '[]');
+        const filtered = savedConfigs.filter(c => c.name !== name);
+        localStorage.setItem('db_configs', JSON.stringify(filtered));
+        devLog.info(`Database config '${name}' deleted from local storage`);
+    } catch (error) {
+        devLog.error(`Failed to delete database config from local storage:`, error);
+    }
+};
+
+/**
+ * DB 연결 설정 포맷팅 (표시용)
+ * @param {Object} dbConfig - DB 설정
+ * @returns {string} 포맷팅된 연결 문자열
+ */
+export const formatDatabaseConnectionString = (dbConfig) => {
+    if (!dbConfig) return '';
+
+    if (dbConfig.db_type === 'sqlite') {
+        return `sqlite:///${dbConfig.database}`;
+    }
+
+    const host = dbConfig.host || 'localhost';
+    const port = dbConfig.port || (dbConfig.db_type === 'mysql' ? 3306 : 5432);
+    const username = dbConfig.username || 'user';
+
+    return `${dbConfig.db_type}://${username}@${host}:${port}/${dbConfig.database}`;
+};
