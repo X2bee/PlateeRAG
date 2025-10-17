@@ -1,9 +1,23 @@
 /* ==========================================================================
-   1. Theme Variables
+   1. Theme Variables - 컴포넌트 스코프로 이동
    ========================================================================== */
 
-   :root {
-    // Colors
+/* ==========================================================================
+   2. Modal Layout & Overlay
+   ========================================================================== */
+
+   .dialogOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.uploadModal {
+    // CSS 변수를 이 컴포넌트 스코프에 정의
     --color-primary: #2563eb;
     --color-primary-hover: #1d4ed8;
     --color-text-primary: #1f2937;
@@ -16,28 +30,11 @@
     --color-background-light-hover: #e5e7eb;
     --color-danger: #dc2626;
     --color-focus-ring: rgba(37, 99, 235, 0.2);
-
-    // Sizing & Spacing
     --border-radius: 6px;
     --padding-md: 1.5rem;
     --padding-sm: 0.75rem;
-}
 
-/* ==========================================================================
-   2. Modal Layout & Overlay
-   ========================================================================== */
-
-.dialogOverlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-}
-
-.uploadModal {
+    // 기존 스타일
     background: var(--color-background);
     border-radius: calc(var(--border-radius) + 2px);
     max-width: 600px;
@@ -47,7 +44,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    height: auto; /* 👈 추가 */
+    height: auto;
 }
 
 /* ==========================================================================
@@ -103,8 +100,8 @@
     flex: 1;
     overflow-y: auto;
     padding: var(--padding-md);
-    min-height: 0; /* 👈 이것도 유지 */
-    max-height: calc(90vh - 140px); /* 👈 추가 - 헤더와 푸터 높이를 고려 */
+    min-height: 0;
+    max-height: calc(90vh - 140px);
 
     .uploadFormGroup {
         margin-bottom: 1.25rem;
@@ -118,6 +115,7 @@
         font-size: 0.875rem;
     }
 }
+
 /* ==========================================================================
    5. Form Elements (Inputs, Checkboxes, etc.)
    ========================================================================== */
@@ -222,7 +220,7 @@
     .advancedOptions {
         margin-top: 1rem;
         padding: 1rem;
-        background: #f8fafc; // A slightly off-white for contrast
+        background: #f8fafc;
         border-radius: var(--border-radius);
         border: 1px solid var(--color-border-light);
 
