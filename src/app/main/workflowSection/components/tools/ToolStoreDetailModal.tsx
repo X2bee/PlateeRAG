@@ -36,10 +36,10 @@ interface Tool {
         response_filter_field: string;
         status: string;
     };
-    metadata: {
-        description: string;
-        tags: string[];
-        original_function_id: string;
+    metadata?: {
+        description?: string;
+        tags?: string[];
+        original_function_id?: string;
     };
     rating_count: number;
     rating_sum: number;
@@ -302,7 +302,7 @@ const ToolStoreDetailModal: React.FC<ToolStoreDetailModalProps> = ({ tool, isOpe
                     </div>
 
                     {/* Tags */}
-                    {tool.metadata.tags && tool.metadata.tags.length > 0 && (
+                    {tool.metadata?.tags && tool.metadata.tags.length > 0 && (
                         <div className={styles.section}>
                             <h3 className={styles.sectionTitle}>
                                 <FiTag />

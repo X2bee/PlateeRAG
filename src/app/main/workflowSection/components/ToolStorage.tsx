@@ -256,6 +256,7 @@ const ToolStorage: React.FC = () => {
                 <ToolStore
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
+                    onStorageRefresh={fetchTools}
                 />
             </div>
         );

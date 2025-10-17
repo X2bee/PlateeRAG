@@ -55,10 +55,10 @@ interface Tool {
         response_filter_field: string;
         status: string;
     };
-    metadata: {
-        description: string;
-        tags: string[];
-        original_function_id: string;
+    metadata?: {
+        description?: string;
+        tags?: string[];
+        original_function_id?: string;
     };
     rating_count: number;
     rating_sum: number;
@@ -78,9 +78,10 @@ interface ToolStoreProps {
     className?: string;
     activeTab: 'storage' | 'store';
     onTabChange: (tab: 'storage' | 'store') => void;
+    onStorageRefresh?: () => void | Promise<void>;
 }
 
-const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTab, onTabChange }) => {
+const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTab, onTabChange, onStorageRefresh }) => {
     // 상태 관리
     const [tools, setTools] = useState<Tool[]>([]);
     const [loading, setLoading] = useState(true);
@@ -129,7 +130,7 @@ const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTa
                 tool.function_upload_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 tool.function_data.function_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 tool.function_data.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (tool.metadata.tags && tool.metadata.tags.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase())));
+                (tool.metadata?.tags && tool.metadata.tags.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase())));
 
             // 필터 모드에 따른 필터링
             let matchesFilter = true;
@@ -166,7 +167,14 @@ const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTa
             showSuccessToastKo(`'${result.function_name}' 도구가 성공적으로 다운로드되었습니다!`);
             devLog.info(`Downloaded tool from modal: ${result.function_name} (${result.function_id})`);
 
+            // Tool Store 목록 새로고침
             await loadTools();
+
+            // Tool Storage 목록도 새로고침
+            if (onStorageRefresh) {
+                await onStorageRefresh();
+                devLog.info('Tool Storage refreshed after download');
+            }
 
             setIsModalOpen(false);
             setSelectedTool(null);
@@ -196,8 +204,14 @@ const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTa
                     showSuccessToastKo(`'${result.function_name}' 도구가 성공적으로 다운로드되었습니다!`);
                     devLog.info(`Downloaded tool: ${result.function_name} (${result.function_id})`);
 
-                    // 도구 목록 새로고침
+                    // Tool Store 목록 새로고침
                     await loadTools();
+
+                    // Tool Storage 목록도 새로고침
+                    if (onStorageRefresh) {
+                        await onStorageRefresh();
+                        devLog.info('Tool Storage refreshed after download');
+                    }
                 } catch (err) {
                     const errorMessage = err instanceof Error ? err.message : '도구 다운로드에 실패했습니다.';
                     devLog.error('Failed to download tool:', err);
@@ -495,7 +509,7 @@ const ToolStore: React.FC<ToolStoreProps> = ({ onToolSelect, className, activeTa
                                             </div>
                                         )}
                                     </div>
-                                    {tool.metadata.tags && tool.metadata.tags.length > 0 && (
+                                    {tool.metadata?.tags && tool.metadata.tags.length > 0 && (
                                         <div className={styles.tags}>
                                             {tool.metadata.tags.map((tag: string, index: number) => (
                                                 <span key={index} className={styles.tag}>
