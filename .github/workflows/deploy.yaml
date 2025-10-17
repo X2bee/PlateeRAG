@@ -1,31 +1,73 @@
-name: Deploy Front
+name: Build & Deploy Frontend (GitOps)
 
 on:
   push:
-    branches: [ deploy ]
+    branches: [feature/k3s-1]
+
+env:
+  IMAGE_NAME: xgen-backend/web
+  INFRA_REPO: X2bee/k3s-pipeline
+  OVERLAY_PATH: apps/frontend/overlays/dev
+  BASE_PATH: apps/frontend/base
 
 jobs:
-  deploy:
-    runs-on: self-hosted
-    steps:
-      - name: Pull latest code
-        run: |
-          cd /home/plateerag
-          git pull origin deploy
-          echo "✅ Pulled latest source code."
-      
-      - name: Create .env file
-        run: |
-          cd /home/plateerag
-          
-          echo "NEXT_PUBLIC_BACKEND_HOST=${{ secrets.NEXT_PUBLIC_BACKEND_HOST }}" > .env
-          echo "NEXT_PUBLIC_METRICS_HOST=${{ secrets.NEXT_PUBLIC_METRICS_HOST }}" >> .env
+  build-push-update:
+    runs-on: ubuntu-latest
 
-      - name: Install dependencies & Restart server
+    permissions:
+      contents: write # infra repo에 커밋
+      packages: write
+
+    steps:
+      - name: Checkout app source
+        uses: actions/checkout@v4
+
+      - name: Docker login (Nexus)
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.NEXUS_REGISTRY }}
+          username: ${{ secrets.NEXUS_USERNAME }}
+          password: ${{ secrets.NEXUS_PASSWORD }}
+
+      - name: Set image tag
+        id: vars
         run: |
-          cd /home/plateerag
-          npm install
-          npm run build
-          npm run build:embed
-          pm2 reload frontend
-          echo "🚀 Frontend server restarted."
+          SHORT_SHA=${GITHUB_SHA::7}
+          echo "TAG=sha-${SHORT_SHA}" >> $GITHUB_OUTPUT
+
+      - name: Build & Push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.NEXUS_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.TAG }}
+            ${{ secrets.NEXUS_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          build-args: |
+            NEXT_PUBLIC_BACKEND_HOST=${{ secrets.NEXT_PUBLIC_BACKEND_HOST }}
+            NEXT_PUBLIC_METRICS_HOST=${{ secrets.NEXT_PUBLIC_METRICS_HOST }}
+
+      - name: Checkout infra repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.PIPELINE_REPO }}
+          token: ${{ secrets.PIPELINE_REPO_PAT }} # repo:scope PAT
+          path: infra
+
+      - name: Install kustomize
+        uses: imranismail/setup-kustomize@v2
+
+      - name: Update image tag in kustomize
+        working-directory: infra/${{ env.BASE_PATH }}
+        run: |
+          kustomize edit set image ${{ secrets.NEXUS_REGISTRY }}/${{ env.IMAGE_NAME }}=${{ secrets.NEXUS_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.TAG }}
+          cat kustomization.yaml
+
+      - name: Commit & push to infra repo
+        working-directory: infra
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "frontend: update image to ${{ steps.vars.outputs.TAG }}"
+          git push origin main
