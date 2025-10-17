@@ -89,9 +89,6 @@ export const saveTool = async (functionName, content, userId = null) => {
 
         const response = await apiClient(`${API_BASE_URL}/api/tools/storage/save`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify(requestBody),
         });
 
@@ -161,9 +158,6 @@ export const updateTool = async (toolId, functionId, updateData) => {
 
         const response = await apiClient(url.toString(), {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify(updateData),
         });
 
@@ -268,22 +262,22 @@ export const listToolStoreDetail = async () => {
 
 /**
  * 도구를 Tool Store에 업로드합니다.
- * @param {string} functionId - 도구 ID
+ * @param {number} toolId - 도구 DB ID (필수)
  * @param {Object} uploadData - 업로드 데이터 (UploadToolStoreRequest)
- * @param {string} uploadData.function_upload_id - 업로드할 툴의 고유 ID (필수)
+ * @param {string} uploadData.function_upload_id - 업로드할 툴의 DB ID (필수, 문자열로 전달)
  * @param {string} uploadData.description - 툴 설명 (옵션)
  * @param {Array<string>} uploadData.tags - 툴 태그 배열 (옵션)
  * @param {Object} uploadData.metadata - 추가 메타데이터 (옵션)
  * @returns {Promise<Object>} API 응답 객체를 포함하는 프로미스
  * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
  */
-export const uploadToolToStore = async (functionId, uploadData) => {
+export const uploadToolToStore = async (toolId, uploadData) => {
     try {
         devLog.log('UploadToolToStore called with:');
-        devLog.log('- functionId:', functionId);
+        devLog.log('- toolId:', toolId);
         devLog.log('- uploadData:', uploadData);
 
-        const response = await apiClient(`${API_BASE_URL}/api/tools/store/upload/${encodeURIComponent(functionId)}`, {
+        const response = await apiClient(`${API_BASE_URL}/api/tools/store/upload`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -303,7 +297,7 @@ export const uploadToolToStore = async (functionId, uploadData) => {
         return result;
     } catch (error) {
         devLog.error('Failed to upload tool to store:', error);
-        devLog.error('FunctionId that caused error:', functionId);
+        devLog.error('ToolId that caused error:', toolId);
         throw error;
     }
 };
@@ -352,9 +346,6 @@ export const updateToolStore = async (functionUploadId, updateData) => {
 
         const response = await apiClient(`${API_BASE_URL}/api/tools/store/update/${encodeURIComponent(functionUploadId)}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify(updateData),
         });
 
@@ -483,9 +474,6 @@ export const testApiEndpoint = async (testRequest) => {
 
         const response = await apiClient(`${API_BASE_URL}/api/tools/storage/api-test`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify({
                 api_url: testRequest.api_url,
                 api_method: testRequest.api_method || 'GET',
@@ -544,9 +532,6 @@ export const testTool = async (toolId, functionId) => {
 
         const response = await apiClient(url.toString(), {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
         });
 
         if (!response.ok) {

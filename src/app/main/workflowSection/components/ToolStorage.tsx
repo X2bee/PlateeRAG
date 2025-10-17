@@ -18,6 +18,7 @@ import RefreshButton from '@/app/_common/icons/refresh';
 import UploadButton from '@/app/_common/icons/upload';
 import ToolStorageUpload from '@/app/main/workflowSection/components/ToolStorageUpload';
 import ToolStorageDetailModal from '@/app/main/workflowSection/components/ToolStorageDetailModal';
+import ToolStore from '@/app/main/workflowSection/components/ToolStore';
 import { listTools, testTool } from '@/app/_common/api/toolsAPI';
 import { showErrorToastKo, showSuccessToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { devLog } from '@/app/_common/utils/logger';
@@ -35,6 +36,11 @@ const ToolStorage: React.FC = () => {
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [testingToolId, setTestingToolId] = useState<number | null>(null);
     const [editingTool, setEditingTool] = useState<any | null>(null);
+    const [activeTab, setActiveTab] = useState<'storage' | 'store'>('storage');
+
+    // 스토어 관련 state
+    const [storeSearchTerm, setStoreSearchTerm] = useState('');
+    const [storeFilterMode, setStoreFilterMode] = useState<'all' | 'my' | 'template' | 'shared'>('all');
 
     const fetchTools = async () => {
         try {
@@ -243,12 +249,42 @@ const ToolStorage: React.FC = () => {
         );
     }
 
+    // 스토어 탭이 활성화된 경우 ToolStore 컴포넌트 렌더링
+    if (activeTab === 'store') {
+        return (
+            <div className={styles.container}>
+                <ToolStore
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                />
+            </div>
+        );
+    }
+
+    // 저장소 탭 (기본)
     return (
         <div className={styles.container}>
             {/* Header with Filters */}
             <div className={styles.header}>
                 <div className={styles.headerActions}>
                     <div className={styles.filters}>
+                        {/* 저장소/스토어 탭 */}
+                        <div className={styles.filterGroup}>
+                            <button
+                                onClick={() => setActiveTab('storage')}
+                                className={`${styles.filterButton} ${activeTab === 'storage' ? styles.active : ''}`}
+                            >
+                                저장소
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('store')}
+                                className={`${styles.filterButton} ${activeTab === 'store' ? styles.active : ''}`}
+                            >
+                                스토어
+                            </button>
+                        </div>
+
+                        {/* 활성/비활성 필터 */}
                         <div className={styles.filterGroup}>
                             {['all', 'active', 'unactive'].map(
                                 (filterType) => (
@@ -283,20 +319,21 @@ const ToolStorage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Loading State */}
-            {loading && (
-                <div className={styles.loadingState}>
-                    <p>도구를 불러오는 중...</p>
-                </div>
-            )}
+            {/* 저장소 콘텐츠 */}
+                    {/* Loading State */}
+                    {loading && (
+                        <div className={styles.loadingState}>
+                            <p>도구를 불러오는 중...</p>
+                        </div>
+                    )}
 
-            {/* Error State */}
-            {error && (
-                <div className={styles.errorState}>
-                    <p>{error}</p>
-                    <button onClick={fetchTools}>다시 시도</button>
-                </div>
-            )}
+                    {/* Error State */}
+                    {error && (
+                        <div className={styles.errorState}>
+                            <p>{error}</p>
+                            <button onClick={fetchTools}>다시 시도</button>
+                        </div>
+                    )}
 
             {/* Tools Grid */}
             {!loading && !error && (
@@ -421,7 +458,7 @@ const ToolStorage: React.FC = () => {
                 </div>
             )}
 
-            {!loading && !error && filteredTools.length === 0 && (
+                        {!loading && !error && filteredTools.length === 0 && (
                 <div className={styles.emptyState}>
                     <FiFolder className={styles.emptyIcon} />
                     <h3>도구가 없습니다</h3>

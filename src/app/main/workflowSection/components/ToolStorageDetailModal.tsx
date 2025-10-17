@@ -217,9 +217,25 @@ const ToolStorageDetailModal: React.FC<ToolStorageDetailModalProps> = ({
                                 <span>API Header</span>
                             </div>
                             <pre className={styles.codeContent}>
-                                {tool.api_header && Object.keys(tool.api_header).length > 0
-                                    ? JSON.stringify(tool.api_header, null, 2)
-                                    : '{\n  // 헤더 없음\n}'}
+                                {(() => {
+                                    if (!tool.api_header) return '{\n  // 헤더 없음\n}';
+
+                                    try {
+                                        // api_header가 문자열인 경우 파싱
+                                        const parsedHeader = typeof tool.api_header === 'string'
+                                            ? JSON.parse(tool.api_header)
+                                            : tool.api_header;
+
+                                        return Object.keys(parsedHeader).length > 0
+                                            ? JSON.stringify(parsedHeader, null, 2)
+                                            : '{\n  // 헤더 없음\n}';
+                                    } catch (e) {
+                                        // 파싱 실패 시 원본 표시
+                                        return typeof tool.api_header === 'string'
+                                            ? tool.api_header
+                                            : JSON.stringify(tool.api_header, null, 2);
+                                    }
+                                })()}
                             </pre>
                         </div>
 
@@ -230,9 +246,25 @@ const ToolStorageDetailModal: React.FC<ToolStorageDetailModalProps> = ({
                                 <span>API Body</span>
                             </div>
                             <pre className={styles.codeContent}>
-                                {tool.api_body && Object.keys(tool.api_body).length > 0
-                                    ? JSON.stringify(tool.api_body, null, 2)
-                                    : '{\n  // 바디 없음\n}'}
+                                {(() => {
+                                    if (!tool.api_body) return '{\n  // 바디 없음\n}';
+
+                                    try {
+                                        // api_body가 문자열인 경우 파싱
+                                        const parsedBody = typeof tool.api_body === 'string'
+                                            ? JSON.parse(tool.api_body)
+                                            : tool.api_body;
+
+                                        return Object.keys(parsedBody).length > 0
+                                            ? JSON.stringify(parsedBody, null, 2)
+                                            : '{\n  // 바디 없음\n}';
+                                    } catch (e) {
+                                        // 파싱 실패 시 원본 표시
+                                        return typeof tool.api_body === 'string'
+                                            ? tool.api_body
+                                            : JSON.stringify(tool.api_body, null, 2);
+                                    }
+                                })()}
                             </pre>
                         </div>
                     </div>

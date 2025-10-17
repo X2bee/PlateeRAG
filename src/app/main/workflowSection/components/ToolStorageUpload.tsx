@@ -22,9 +22,10 @@ interface HeaderParam {
 interface BodyParam {
     id: string;
     key: string;
-    value: string;
-    type: 'string' | 'number' | 'boolean' | 'object' | 'array';
-    description?: string;
+    type: 'string' | 'number' | 'integer' | 'boolean' | 'object' | 'array' | 'null';
+    description: string;
+    required: boolean;
+    enum?: string;
 }
 
 const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode = false, initialData = null }) => {
@@ -36,7 +37,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
         function_name: initialData?.function_name || '',
         function_id: initialData?.function_id || '',
         description: initialData?.description || '',
-        api_url: initialData?.api_endpoint || '',
+        api_url: initialData?.api_url || '',
         api_method: initialData?.api_method || 'GET',
         api_timeout: initialData?.api_timeout || 30,
         response_filter: initialData?.response_filter || false,
@@ -46,12 +47,14 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
 
     // Header 파라미터 초기화
     const initializeHeaderParams = (): HeaderParam[] => {
-        if (!initialData?.api_headers) return [];
+        if (!initialData?.api_header) return [];
 
         try {
-            const headers = typeof initialData.api_headers === 'string'
-                ? JSON.parse(initialData.api_headers)
-                : initialData.api_headers;
+            const headers = typeof initialData.api_header === 'string'
+                ? JSON.parse(initialData.api_header)
+                : initialData.api_header;
+
+            if (!headers || typeof headers !== 'object') return [];
 
             return Object.entries(headers).map(([key, value], index) => ({
                 id: `header_${Date.now()}_${index}`,
@@ -60,7 +63,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                 isPreset: false
             }));
         } catch (error) {
-            devLog.error('Failed to parse api_headers:', error);
+            devLog.error('Failed to parse api_header:', error);
             return [];
         }
     };
@@ -74,26 +77,20 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                 ? JSON.parse(initialData.api_body)
                 : initialData.api_body;
 
-            return Object.entries(body).map(([key, value], index) => {
-                const valueType = typeof value;
-                let paramType: 'string' | 'number' | 'boolean' | 'object' | 'array' = 'string';
+            if (!body || typeof body !== 'object') return [];
 
-                if (Array.isArray(value)) {
-                    paramType = 'array';
-                } else if (valueType === 'object' && value !== null) {
-                    paramType = 'object';
-                } else if (valueType === 'number') {
-                    paramType = 'number';
-                } else if (valueType === 'boolean') {
-                    paramType = 'boolean';
-                }
+            // properties와 required 구조 체크
+            const properties = body.properties || body;
+            const requiredFields = body.required || [];
 
+            return Object.entries(properties).map(([key, value]: [string, any], index) => {
                 return {
                     id: `body_${Date.now()}_${index}`,
                     key,
-                    value: typeof value === 'object' ? JSON.stringify(value) : String(value),
-                    type: paramType,
-                    description: ''
+                    type: value.type || 'string',
+                    description: value.description || '',
+                    required: requiredFields.includes(key),
+                    enum: value.enum ? (Array.isArray(value.enum) ? value.enum.join(', ') : String(value.enum)) : ''
                 };
             });
         } catch (error) {
@@ -150,9 +147,10 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
         const newParam: BodyParam = {
             id: `body_${Date.now()}`,
             key: '',
-            value: '',
             type: 'string',
-            description: ''
+            description: '',
+            required: false,
+            enum: ''
         };
         setBodyParams([...bodyParams, newParam]);
         // Body 파라미터가 변경되면 테스트 상태 초기화
@@ -162,9 +160,15 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
     };
 
     const updateBodyParam = (id: string, field: keyof BodyParam, value: string) => {
-        setBodyParams(bodyParams.map(param =>
-            param.id === id ? { ...param, [field]: value } : param
-        ));
+        setBodyParams(bodyParams.map(param => {
+            if (param.id === id) {
+                if (field === 'required') {
+                    return { ...param, [field]: value === 'true' };
+                }
+                return { ...param, [field]: value };
+            }
+            return param;
+        }));
         // Body 파라미터가 변경되면 테스트 상태 초기화
         setApiTested(false);
         setApiTestSuccess(false);
@@ -194,27 +198,30 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
         const bodyObj: Record<string, any> = {};
         bodyParams.forEach(param => {
             if (param.key) {
-                let parsedValue: any = param.value;
-                switch (param.type) {
-                    case 'number':
-                        parsedValue = parseFloat(param.value) || 0;
-                        break;
-                    case 'boolean':
-                        parsedValue = param.value === 'true';
-                        break;
-                    case 'object':
-                    case 'array':
-                        try {
-                            parsedValue = JSON.parse(param.value);
-                        } catch (e) {
-                            parsedValue = param.value;
-                        }
-                        break;
+                const paramSchema: any = {
+                    type: param.type,
+                    description: param.description
+                };
+
+                // enum이 있으면 추가
+                if (param.enum && param.enum.trim()) {
+                    paramSchema.enum = param.enum.split(',').map((v: string) => v.trim()).filter((v: string) => v);
                 }
-                bodyObj[param.key] = parsedValue;
+
+                // required 정보는 별도로 관리 (OpenAI function calling 스키마 형식)
+                bodyObj[param.key] = paramSchema;
             }
         });
-        return bodyObj;
+
+        // required 필드 목록 생성
+        const requiredFields = bodyParams
+            .filter(param => param.required && param.key)
+            .map(param => param.key);
+
+        return {
+            properties: bodyObj,
+            required: requiredFields.length > 0 ? requiredFields : undefined
+        };
     };
 
     // 테스트 결과에 필터 적용하여 표시용 데이터 생성
@@ -867,10 +874,10 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                     <div className={styles.apiParamsSection}>
                         <div className={styles.apiParamsHeader}>
                             <div className={styles.fieldLabel}>
-                                API Body
+                                API Body Parameter Schema
                             </div>
                             <div className={styles.fieldDescription}>
-                                API 요청 본문에 포함할 데이터를 설정하세요.
+                                AI가 이 도구를 사용하기 위한 파라미터 스키마를 정의하세요.
                             </div>
                         </div>
 
@@ -883,7 +890,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                                             <input
                                                 type="text"
                                                 className={styles.paramKeyInput}
-                                                placeholder="Key *"
+                                                placeholder="Parameter Name *"
                                                 value={param.key}
                                                 onChange={(e) => updateBodyParam(param.id, 'key', e.target.value)}
                                                 disabled={loading}
@@ -897,28 +904,40 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                                             >
                                                 <option value="string">String</option>
                                                 <option value="number">Number</option>
+                                                <option value="integer">Integer</option>
                                                 <option value="boolean">Boolean</option>
-                                                <option value="object">Object</option>
                                                 <option value="array">Array</option>
+                                                <option value="object">Object</option>
+                                                <option value="null">Null</option>
                                             </select>
 
                                             <input
                                                 type="text"
-                                                className={styles.paramValueInput}
-                                                placeholder="Value *"
-                                                value={param.value}
-                                                onChange={(e) => updateBodyParam(param.id, 'value', e.target.value)}
+                                                className={styles.paramDescInput}
+                                                placeholder="Description *"
+                                                value={param.description}
+                                                onChange={(e) => updateBodyParam(param.id, 'description', e.target.value)}
                                                 disabled={loading}
                                             />
 
                                             <input
                                                 type="text"
-                                                className={styles.paramDescInput}
-                                                placeholder="Description (optional)"
-                                                value={param.description || ''}
-                                                onChange={(e) => updateBodyParam(param.id, 'description', e.target.value)}
+                                                className={styles.paramValueInput}
+                                                placeholder="Enum (comma-separated, optional)"
+                                                value={param.enum || ''}
+                                                onChange={(e) => updateBodyParam(param.id, 'enum', e.target.value)}
                                                 disabled={loading}
                                             />
+
+                                            <label className={styles.checkboxLabel} style={{ minWidth: '80px' }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={param.required}
+                                                    onChange={(e) => updateBodyParam(param.id, 'required', e.target.checked ? 'true' : 'false')}
+                                                    disabled={loading}
+                                                />
+                                                <span>Required</span>
+                                            </label>
 
                                             <button
                                                 className={styles.paramRemoveButton}
