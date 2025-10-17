@@ -90,7 +90,7 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
 
     const availableUserSectionOptions = [
         // Workflow
-        "canvas", "workflows", "documents", "prompt-store", "workflow-store",
+        "canvas", "workflows", "tool-storage", "documents", "prompt-store",
         // Data Management
         "data-station", "data-storage",
         // LLM-Models
@@ -137,10 +137,10 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
     const userSectionNameMapping: { [key: string]: string } = {
         // Workflow
         "canvas": "워크플로우 캔버스",
-        "workflows": "완성된 워크플로우",
+        "workflows": "워크플로우 관리",
         "documents": "문서 관리",
         "prompt-store": "Prompt 스토어",
-        "workflow-store": "Workflow 스토어",
+        "tool-storage": "도구 관리",
         // Data Management
         "data-station": "데이터 스테이션",
         "data-storage": "데이터셋 허브",
