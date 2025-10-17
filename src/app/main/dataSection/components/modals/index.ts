@@ -14,3 +14,5 @@ export { ColumnFormatModal } from './ColumnFormatModal';
 export { ColumnCalculationModal } from './ColumnCalculationModal';
 export { DatasetCallbackModal } from './DatasetCallbackModal';
 export { MLflowUploadModal } from './MLflowUploadModal';
+export { default as VersionHistoryModal } from './VersionHistoryModal'; // 추가
+export { default as DatasetVersionSwitchModal } from './DatasetVersionSwitchModal'; // 추가

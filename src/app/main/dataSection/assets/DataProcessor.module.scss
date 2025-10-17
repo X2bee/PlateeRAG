@@ -429,3 +429,93 @@
         transform: scale(1.2);
     }
 }
+
+.headerInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    h2 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0;
+    }
+
+    .headerMeta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+
+        p {
+            font-size: 13px;
+            color: #888;
+            margin: 0;
+        }
+
+        .versionControls {
+            display: flex;
+            align-items: center;
+            gap: 10px; // 두 버튼 사이 간격
+        }
+
+        .datasetVersionBadge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 6px 14px; // switchVersionButton와 동일한 padding
+            border-radius: 8px; // switchVersionButton와 동일한 border-radius
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+            height: 32px; // 명시적 높이 지정
+
+            svg {
+                font-size: 14px;
+            }
+        }
+    }
+}
+
+
+.switchVersionButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    height: 32px; // 명시적 높이 지정
+
+    svg {
+        transition: transform 0.3s ease;
+        flex-shrink: 0; // 아이콘 크기 고정
+    }
+
+    span {
+        white-space: nowrap; // 텍스트 줄바꿈 방지
+    }
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        
+        svg {
+            transform: scale(1.1);
+        }
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}
