@@ -303,6 +303,10 @@
     line-height: 1.6;
     margin: 0 0 1rem 0;
     font-size: 0.925rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
 }
 
 .workflowError {

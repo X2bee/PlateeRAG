@@ -17,6 +17,10 @@ import styles from '@/app/main/workflowSection/assets/ToolStorage.module.scss';
 import RefreshButton from '@/app/_common/icons/refresh';
 import UploadButton from '@/app/_common/icons/upload';
 import ToolStorageUpload from '@/app/main/workflowSection/components/ToolStorageUpload';
+import ToolStorageDetailModal from '@/app/main/workflowSection/components/ToolStorageDetailModal';
+import { listTools } from '@/app/_common/api/toolsAPI';
+import { showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
+import { devLog } from '@/app/_common/utils/logger';
 
 const ToolStorage: React.FC = () => {
     const [tools, setTools] = useState<any[]>([]);
@@ -27,20 +31,24 @@ const ToolStorage: React.FC = () => {
     >('all');
     const [openDropdown, setOpenDropdown] = useState<number | null>(null);
     const [viewMode, setViewMode] = useState<'storage' | 'upload'>('storage');
+    const [selectedTool, setSelectedTool] = useState<any | null>(null);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
     const fetchTools = async () => {
         try {
             setLoading(true);
             setError(null);
-            // TODO: API 호출 구현
-            // const toolsData = await fetchToolsAPI();
-            // setTools(toolsData);
 
-            // 임시 데이터
-            setTools([]);
+            devLog.log('Fetching tools from API...');
+            const toolsData = await listTools();
+            devLog.log('Tools fetched successfully:', toolsData);
+
+            setTools(toolsData);
         } catch (error) {
-            console.error('Failed to fetch tools:', error);
-            setError('도구를 불러오는데 실패했습니다.');
+            devLog.error('Failed to fetch tools:', error);
+            const errorMessage = error instanceof Error ? error.message : '도구를 불러오는데 실패했습니다.';
+            setError(errorMessage);
+            showErrorToastKo(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -82,6 +90,18 @@ const ToolStorage: React.FC = () => {
         fetchTools();
     };
 
+    // 도구 상세 모달 열기
+    const handleToolClick = (tool: any) => {
+        setSelectedTool(tool);
+        setIsDetailModalOpen(true);
+    };
+
+    // 도구 상세 모달 닫기
+    const handleCloseDetailModal = () => {
+        setIsDetailModalOpen(false);
+        setSelectedTool(null);
+    };
+
     // 도구 필터링
     const getFilteredTools = () => {
         if (filter === 'all') {
@@ -89,7 +109,7 @@ const ToolStorage: React.FC = () => {
         } else if (filter === 'active') {
             return tools.filter(tool => tool.status === 'active');
         } else if (filter === 'unactive') {
-            return tools.filter(tool => tool.status === 'unactive');
+            return tools.filter(tool => tool.status === 'inactive');
         }
         return tools;
     };
@@ -104,7 +124,7 @@ const ToolStorage: React.FC = () => {
                 return styles.statusDraft;
             case 'archived':
                 return styles.statusArchived;
-            case 'unactive':
+            case 'inactive':
                 return styles.statusUnactive;
             default:
                 return styles.statusActive;
@@ -119,8 +139,8 @@ const ToolStorage: React.FC = () => {
                 return '초안';
             case 'archived':
                 return '보관됨';
-            case 'unactive':
-                return '관리자 비활성';
+            case 'inactive':
+                return '비활성';
             default:
                 return '활성';
         }
@@ -191,8 +211,10 @@ const ToolStorage: React.FC = () => {
                 <div className={styles.workflowsGrid}>
                     {filteredTools.map((tool) => (
                         <div
-                            key={tool.key_value}
-                            className={`${styles.workflowCard} ${openDropdown === tool.key_value ? styles.cardActive : ''}`}
+                            key={tool.id}
+                            className={`${styles.workflowCard} ${openDropdown === tool.id ? styles.cardActive : ''}`}
+                            onClick={() => handleToolClick(tool)}
+                            style={{ cursor: 'pointer' }}
                         >
                             <div className={styles.cardHeader}>
                                 <div className={styles.workflowIcon}>
@@ -213,32 +235,25 @@ const ToolStorage: React.FC = () => {
                             </div>
 
                             <div className={styles.cardContent}>
-                                <h3 className={styles.workflowName} title={tool.name}>
-                                    {tool.name}
+                                <h3 className={styles.workflowName} title={tool.function_name}>
+                                    {tool.function_name}
                                 </h3>
                                 {tool.description && (
                                     <p className={styles.workflowDescription}>
                                         {tool.description}
                                     </p>
                                 )}
-                                {tool.error && (
-                                    <p className={styles.workflowError}>
-                                        오류: {tool.error}
-                                    </p>
-                                )}
 
                                 <div className={styles.workflowMeta}>
                                     <div className={styles.metaItem}>
                                         <FiUser />
-                                        <span title={tool.author}>{tool.author}</span>
+                                        <span title={tool.full_name || tool.username}>{tool.full_name || tool.username}</span>
                                     </div>
-                                    {tool.lastModified && (
+                                    {tool.updated_at && (
                                         <div className={styles.metaItem}>
                                             <FiClock />
-                                            <span title={new Date(tool.lastModified).toLocaleDateString('ko-KR')}>
-                                                {new Date(
-                                                    tool.lastModified,
-                                                ).toLocaleDateString('ko-KR')}
+                                            <span title={new Date(tool.updated_at).toLocaleString('ko-KR')}>
+                                                {new Date(tool.updated_at).toLocaleDateString('ko-KR')}
                                             </span>
                                         </div>
                                     )}
@@ -252,9 +267,9 @@ const ToolStorage: React.FC = () => {
                             </div>
 
                             <div className={styles.cardActions}>
-                                {tool.status === 'unactive' ? (
+                                {tool.status === 'inactive' ? (
                                     <div className={styles.unactiveMessage}>
-                                        관리자가 비활성화한 도구입니다. 사용할 수 없습니다.
+                                        비활성화된 도구입니다. 사용할 수 없습니다.
                                     </div>
                                 ) : (
                                     <>
@@ -291,20 +306,20 @@ const ToolStorage: React.FC = () => {
                                             </button>
                                         </div>
                                         <div className={styles.actionsRight}>
-                                            <div className={`${styles.dropdownContainer} ${openDropdown === tool.key_value ? styles.dropdownActive : ''}`}>
+                                            <div className={`${styles.dropdownContainer} ${openDropdown === tool.id ? styles.dropdownActive : ''}`}>
                                                 <button
                                                     className={styles.actionButton}
                                                     title="더보기"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        if (tool.key_value !== undefined) {
-                                                            toggleDropdown(tool.key_value);
+                                                        if (tool.id !== undefined) {
+                                                            toggleDropdown(tool.id);
                                                         }
                                                     }}
                                                 >
                                                     <FiMoreVertical />
                                                 </button>
-                                                {tool.key_value !== undefined && openDropdown === tool.key_value && (
+                                                {tool.id !== undefined && openDropdown === tool.id && (
                                                     <div className={styles.dropdownMenu}>
                                                         <button
                                                             className={styles.dropdownItem}
@@ -361,6 +376,13 @@ const ToolStorage: React.FC = () => {
                     </p>
                 </div>
             )}
+
+            {/* Detail Modal */}
+            <ToolStorageDetailModal
+                tool={selectedTool}
+                isOpen={isDetailModalOpen}
+                onClose={handleCloseDetailModal}
+            />
         </div>
     );
 };

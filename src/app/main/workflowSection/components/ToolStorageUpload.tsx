@@ -38,7 +38,6 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
         response_filter: false,
         response_filter_path: '',
         response_filter_field: '',
-        status: 'active',
     });
 
     const [headerParams, setHeaderParams] = useState<HeaderParam[]>([]);
@@ -46,6 +45,8 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
     const [metadata, setMetadata] = useState('{}');
     const [testResult, setTestResult] = useState<{ success: boolean; data: any; error?: string } | null>(null);
     const [testing, setTesting] = useState(false);
+    const [apiTested, setApiTested] = useState(false); // API 테스트 여부
+    const [apiTestSuccess, setApiTestSuccess] = useState(false); // API 테스트 성공 여부
 
     // Header 관리 함수
     const addHeaderParam = () => {
@@ -56,16 +57,28 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
             isPreset: false
         };
         setHeaderParams([...headerParams, newParam]);
+        // Header 파라미터가 변경되면 테스트 상태 초기화
+        setApiTested(false);
+        setApiTestSuccess(false);
+        setTestResult(null);
     };
 
     const updateHeaderParam = (id: string, field: keyof HeaderParam, value: string) => {
         setHeaderParams(headerParams.map(param =>
             param.id === id ? { ...param, [field]: value } : param
         ));
+        // Header 파라미터가 변경되면 테스트 상태 초기화
+        setApiTested(false);
+        setApiTestSuccess(false);
+        setTestResult(null);
     };
 
     const removeHeaderParam = (id: string) => {
         setHeaderParams(headerParams.filter(param => param.id !== id));
+        // Header 파라미터가 변경되면 테스트 상태 초기화
+        setApiTested(false);
+        setApiTestSuccess(false);
+        setTestResult(null);
     };
 
     // Body 관리 함수
@@ -78,16 +91,28 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
             description: ''
         };
         setBodyParams([...bodyParams, newParam]);
+        // Body 파라미터가 변경되면 테스트 상태 초기화
+        setApiTested(false);
+        setApiTestSuccess(false);
+        setTestResult(null);
     };
 
     const updateBodyParam = (id: string, field: keyof BodyParam, value: string) => {
         setBodyParams(bodyParams.map(param =>
             param.id === id ? { ...param, [field]: value } : param
         ));
+        // Body 파라미터가 변경되면 테스트 상태 초기화
+        setApiTested(false);
+        setApiTestSuccess(false);
+        setTestResult(null);
     };
 
     const removeBodyParam = (id: string) => {
         setBodyParams(bodyParams.filter(param => param.id !== id));
+        // Body 파라미터가 변경되면 테스트 상태 초기화
+        setApiTested(false);
+        setApiTestSuccess(false);
+        setTestResult(null);
     };
 
     // Header/Body를 JSON으로 변환
@@ -128,6 +153,76 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
         return bodyObj;
     };
 
+    // 테스트 결과에 필터 적용하여 표시용 데이터 생성
+    const getFilteredTestResult = () => {
+        if (!testResult || !testResult.success) {
+            return testResult?.error || null;
+        }
+
+        let displayData = testResult.data?.response || testResult.data;
+
+        // 필터가 활성화되어 있으면 필터링 적용
+        if (formData.response_filter && displayData) {
+            try {
+                let extractedData = displayData;
+
+                // 필터 경로가 설정되어 있으면 경로로 데이터 추출
+                if (formData.response_filter_path && formData.response_filter_path.trim()) {
+                    const pathKeys = formData.response_filter_path.split('.');
+
+                    for (const key of pathKeys) {
+                        if (extractedData && typeof extractedData === 'object' && key in extractedData) {
+                            extractedData = extractedData[key];
+                        } else {
+                            // 경로를 찾지 못하면 원본 반환
+                            return displayData;
+                        }
+                    }
+                }
+
+                // 필터 필드 적용 (경로 설정 여부와 무관하게)
+                if (formData.response_filter_field && formData.response_filter_field.trim()) {
+                    const fields = formData.response_filter_field.split(',').map(f => f.trim()).filter(f => f);
+
+                    if (fields.length > 0) {
+                        // 배열인 경우
+                        if (Array.isArray(extractedData)) {
+                            const filteredList = extractedData.map((item: any) => {
+                                if (typeof item === 'object' && item !== null) {
+                                    const filteredItem: any = {};
+                                    fields.forEach(field => {
+                                        if (field in item) {
+                                            filteredItem[field] = item[field];
+                                        }
+                                    });
+                                    return filteredItem;
+                                }
+                                return item;
+                            });
+                            return filteredList;
+                        }
+                        // 단일 객체인 경우
+                        else if (typeof extractedData === 'object' && extractedData !== null) {
+                            const filteredItem: any = {};
+                            fields.forEach(field => {
+                                if (field in extractedData) {
+                                    filteredItem[field] = extractedData[field];
+                                }
+                            });
+                            return filteredItem;
+                        }
+                    }
+                }
+
+                return extractedData;
+            } catch (filterError) {
+                devLog.error('Error applying response filter for display:', filterError);
+            }
+        }
+
+        return displayData;
+    };
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
 
@@ -147,6 +242,13 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
                 ...prev,
                 [name]: value
             }));
+        }
+
+        // API 관련 필드가 변경되면 테스트 상태 초기화
+        if (['api_url', 'api_method', 'api_timeout'].includes(name)) {
+            setApiTested(false);
+            setApiTestSuccess(false);
+            setTestResult(null);
         }
     };
 
@@ -187,6 +289,10 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
                 error: result.error
             });
 
+            // API 테스트 상태 업데이트
+            setApiTested(true);
+            setApiTestSuccess(result.success || false);
+
             if (result.success) {
                 showSuccessToastKo('API 테스트 성공');
             } else if (result.error) {
@@ -204,6 +310,11 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
                 data: null,
                 error: errorMessage
             });
+
+            // API 테스트 상태 업데이트 (실패)
+            setApiTested(true);
+            setApiTestSuccess(false);
+
             showErrorToastKo('API 테스트 실패: ' + errorMessage);
         } finally {
             setTesting(false);
@@ -256,7 +367,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
                 response_filter: formData.response_filter,
                 response_filter_path: formData.response_filter_path,
                 response_filter_field: formData.response_filter_field,
-                status: formData.status,
+                status: apiTestSuccess ? 'active' : 'inactive',
                 metadata: parsedMetadata,
             };
 
@@ -293,14 +404,19 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
                 </button>
                 <h2 className={styles.title}>새 도구 만들기</h2>
                 <div className={styles.headerActions}>
-                    <button
-                        className={styles.saveButton}
-                        onClick={handleSave}
-                        disabled={loading}
-                    >
-                        <FiSave />
-                        <span>{loading ? '저장 중...' : '저장'}</span>
-                    </button>
+                    <div className={styles.saveButtonWrapper}>
+                        <button
+                            className={styles.saveButton}
+                            onClick={handleSave}
+                            disabled={loading || !apiTested}
+                        >
+                            <FiSave />
+                            <span>{loading ? '저장 중...' : '저장'}</span>
+                        </button>
+                        {!apiTested && (
+                            <span className={styles.tooltipText}>API 테스트가 필요합니다</span>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -394,21 +510,17 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
                                 상태
                             </div>
                             <div className={styles.fieldDescription}>
-                                도구의 활성화 상태를 선택하세요.
+                                API 테스트 결과에 따라 자동으로 설정됩니다.
                             </div>
                         </div>
                         <div className={styles.fieldInput}>
-                            <select
-                                id="status"
-                                name="status"
-                                value={formData.status}
-                                onChange={handleInputChange}
-                                className={styles.select}
-                                disabled={loading}
-                            >
-                                <option value="active">활성</option>
-                                <option value="inactive">비활성</option>
-                            </select>
+                            <div className={styles.statusDisplay}>
+                                {apiTestSuccess ? (
+                                    <span className={styles.statusActive}>활성</span>
+                                ) : (
+                                    <span className={styles.statusInactive}>비활성</span>
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -768,6 +880,89 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
                         </div>
                     </div>
 
+                    {/* 응답 필터 섹션 */}
+                    <div className={styles.apiParamsSection}>
+                        <div className={styles.apiParamsHeader}>
+                            <div className={styles.fieldLabel}>
+                                응답 필터
+                            </div>
+                            <div className={styles.fieldDescription}>
+                                API 응답에서 특정 데이터만 추출하려면 활성화하세요.
+                            </div>
+                        </div>
+
+                        <div className={styles.formRow}>
+                            <div>
+                                <div className={styles.fieldLabel}>
+                                    응답 필터 사용
+                                </div>
+                            </div>
+                            <div className={styles.fieldInput}>
+                                <label className={styles.checkboxLabel}>
+                                    <input
+                                        type="checkbox"
+                                        name="response_filter"
+                                        checked={formData.response_filter}
+                                        onChange={handleInputChange}
+                                        className={styles.checkbox}
+                                        disabled={loading}
+                                    />
+                                    <span>필터 활성화</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        {formData.response_filter && (
+                            <>
+                                <div className={styles.formRow}>
+                                    <div>
+                                        <div className={styles.fieldLabel}>
+                                            필터 경로
+                                        </div>
+                                        <div className={styles.fieldDescription}>
+                                            응답 객체에서 데이터를 추출할 경로를 지정하세요. <br></br>(예: data.results)
+                                        </div>
+                                    </div>
+                                    <div className={styles.fieldInput}>
+                                        <input
+                                            type="text"
+                                            id="response_filter_path"
+                                            name="response_filter_path"
+                                            value={formData.response_filter_path}
+                                            onChange={handleInputChange}
+                                            className={styles.input}
+                                            placeholder="data.weather.current"
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className={styles.formRow}>
+                                    <div>
+                                        <div className={styles.fieldLabel}>
+                                            필터 필드
+                                        </div>
+                                        <div className={styles.fieldDescription}>
+                                            추출한 데이터에서 특정 필드만 사용하려면 필드명을 입력하세요(여러개인 경우 , 로 구분).
+                                        </div>
+                                    </div>
+                                    <div className={styles.fieldInput}>
+                                        <input
+                                            type="text"
+                                            id="response_filter_field"
+                                            name="response_filter_field"
+                                            value={formData.response_filter_field}
+                                            onChange={handleInputChange}
+                                            className={styles.input}
+                                            placeholder="temperature"
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+
                     {/* 테스트 결과 섹션 */}
                     {testResult && (
                         <div className={styles.testResultSection}>
@@ -785,7 +980,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
                                 <pre className={styles.testResultCode}>
                                     {testResult.error
                                         ? testResult.error
-                                        : JSON.stringify(testResult.data?.response || testResult.data, null, 2)
+                                        : JSON.stringify(getFilteredTestResult(), null, 2)
                                     }
                                 </pre>
                             </div>
@@ -796,87 +991,6 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
 
                     {/* 추가 설정 탭 */}
                     {activeTab === 'additional' && (
-                        <>
-                        <div className={styles.formGroup}>
-                            <div className={styles.configHeader}>
-                                <label>응답 필터</label>
-                            </div>
-
-                    <div className={styles.formRow}>
-                        <div>
-                            <div className={styles.fieldLabel}>
-                                응답 필터 사용
-                            </div>
-                            <div className={styles.fieldDescription}>
-                                API 응답에서 특정 데이터만 추출하려면 활성화하세요.
-                            </div>
-                        </div>
-                        <div className={styles.fieldInput}>
-                            <label className={styles.checkboxLabel}>
-                                <input
-                                    type="checkbox"
-                                    name="response_filter"
-                                    checked={formData.response_filter}
-                                    onChange={handleInputChange}
-                                    className={styles.checkbox}
-                                    disabled={loading}
-                                />
-                                <span>필터 활성화</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    {formData.response_filter && (
-                        <>
-                            <div className={styles.formRow}>
-                                <div>
-                                    <div className={styles.fieldLabel}>
-                                        필터 경로
-                                    </div>
-                                    <div className={styles.fieldDescription}>
-                                        응답 객체에서 데이터를 추출할 경로를 지정하세요. (예: data.results)
-                                    </div>
-                                </div>
-                                <div className={styles.fieldInput}>
-                                    <input
-                                        type="text"
-                                        id="response_filter_path"
-                                        name="response_filter_path"
-                                        value={formData.response_filter_path}
-                                        onChange={handleInputChange}
-                                        className={styles.input}
-                                        placeholder="data.weather.current"
-                                        disabled={loading}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className={styles.formRow}>
-                                <div>
-                                    <div className={styles.fieldLabel}>
-                                        필터 필드
-                                    </div>
-                                    <div className={styles.fieldDescription}>
-                                        추출한 데이터에서 특정 필드만 사용하려면 필드명을 입력하세요.
-                                    </div>
-                                </div>
-                                <div className={styles.fieldInput}>
-                                    <input
-                                        type="text"
-                                        id="response_filter_field"
-                                        name="response_filter_field"
-                                        value={formData.response_filter_field}
-                                        onChange={handleInputChange}
-                                        className={styles.input}
-                                        placeholder="temperature"
-                                        disabled={loading}
-                                    />
-                                </div>
-                            </div>
-                        </>
-                    )}
-                        </div>
-
                         <div className={styles.formGroup}>
                             <div className={styles.configHeader}>
                                 <label>메타데이터</label>
@@ -905,7 +1019,6 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack }) => {
                         </div>
                     </div>
                         </div>
-                        </>
                     )}
                 </div>
             </div>
