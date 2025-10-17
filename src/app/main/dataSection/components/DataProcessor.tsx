@@ -7,7 +7,7 @@ import {
     IoLayers,
 } from 'react-icons/io5';
 import { MdOutlineMore } from "react-icons/md";
-import { ColumnInfoModal, DatasetVersionSwitchModal,  DownloadDialog, StatisticsModal, ColumnDeleteModal, ColumnValueReplaceModal, ColumnOperationModal, SpecificColumnNullRemoveModal, HuggingFaceUploadModal, MLflowUploadModal, ColumnCopyModal, ColumnRenameModal, ColumnFormatModal, ColumnCalculationModal, DatasetCallbackModal, VersionHistoryModal } from './modals';
+import { ColumnInfoModal, DatasetVersionSwitchModal,  DownloadDialog,DatabaseConnectionModal, StatisticsModal, ColumnDeleteModal, ColumnValueReplaceModal, ColumnOperationModal, SpecificColumnNullRemoveModal, HuggingFaceUploadModal, MLflowUploadModal, ColumnCopyModal, ColumnRenameModal, ColumnFormatModal, ColumnCalculationModal, DatasetCallbackModal, VersionHistoryModal } from './modals';
 import DataProcessorSidebar from './DataProcessorSidebar';
 import { downloadDataset, getDatasetSample, dropDatasetColumns, replaceColumnValues, applyColumnOperation, removeNullRows, uploadToHuggingFace, uploadToMLflow, copyDatasetColumn, renameDatasetColumn, formatDatasetColumns, calculateDatasetColumns, executeDatasetCallback } from '@/app/_common/api/dataManagerAPI';
 import { showSuccessToastKo, showErrorToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
@@ -78,6 +78,7 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
         is_new_version: boolean;
     } | null>(null);
     const [versionSwitchModalOpen, setVersionSwitchModalOpen] = useState(false);
+    const [databaseLoadModalOpen, setDatabaseLoadModalOpen] = useState(false);
 
     // 데이터 로드
     useEffect(() => {
@@ -144,6 +145,19 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
     const handleCloseColumnOperationModal = () => {
         setColumnOperationModalOpen(false);
     };
+
+    const handleOpenDatabaseLoadModal = () => {
+        setDatabaseLoadModalOpen(true);
+    };
+
+    const handleCloseDatabaseLoadModal = () => {
+        setDatabaseLoadModalOpen(false);
+    };
+
+    const handleDatabaseLoadSuccess = () => {
+        loadDataTableInfo(); // 데이터 다시 로드
+    };
+
 
     const handleReplaceColumnValues = async (columnName: string, oldValue: string, newValue: string) => {
         try {
@@ -673,6 +687,7 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                     onColumnFormatModal={handleOpenColumnFormatModal}
                     onColumnCalculationModal={handleOpenColumnCalculationModal}
                     onDatasetCallbackModal={handleOpenDatasetCallbackModal}
+                    onDatabaseLoadModal={handleOpenDatabaseLoadModal}  // 추가
                 />
             </div>
 
@@ -773,6 +788,12 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                 onSwitch={() => {
                     loadDataTableInfo();
                 }}
+            />
+            <DatabaseConnectionModal
+                isOpen={databaseLoadModalOpen}
+                managerId={managerId}
+                onClose={handleCloseDatabaseLoadModal}
+                onLoadSuccess={handleDatabaseLoadSuccess}
             />
         </div>
     );
