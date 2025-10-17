@@ -18,8 +18,8 @@ import RefreshButton from '@/app/_common/icons/refresh';
 import UploadButton from '@/app/_common/icons/upload';
 import ToolStorageUpload from '@/app/main/workflowSection/components/ToolStorageUpload';
 import ToolStorageDetailModal from '@/app/main/workflowSection/components/ToolStorageDetailModal';
-import { listTools } from '@/app/_common/api/toolsAPI';
-import { showErrorToastKo } from '@/app/_common/utils/toastUtilsKo';
+import { listTools, testTool } from '@/app/_common/api/toolsAPI';
+import { showErrorToastKo, showSuccessToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { devLog } from '@/app/_common/utils/logger';
 
 const ToolStorage: React.FC = () => {
@@ -33,6 +33,7 @@ const ToolStorage: React.FC = () => {
     const [viewMode, setViewMode] = useState<'storage' | 'upload'>('storage');
     const [selectedTool, setSelectedTool] = useState<any | null>(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [testingToolId, setTestingToolId] = useState<number | null>(null);
 
     const fetchTools = async () => {
         try {
@@ -100,6 +101,42 @@ const ToolStorage: React.FC = () => {
     const handleCloseDetailModal = () => {
         setIsDetailModalOpen(false);
         setSelectedTool(null);
+    };
+
+    // 도구 테스트
+    const handleTestTool = async (tool: any, e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        if (!tool.id || !tool.function_id) {
+            showErrorToastKo('도구 정보가 올바르지 않습니다.');
+            return;
+        }
+
+        setTestingToolId(tool.id);
+
+        try {
+            devLog.log('Testing tool:', { id: tool.id, function_id: tool.function_id });
+
+            const result: any = await testTool(tool.id, tool.function_id);
+
+            devLog.log('Tool test result:', result);
+
+            if (result.success) {
+                showSuccessToastKo(`도구 테스트 성공! 상태: ${result.tool_status === 'active' ? '활성' : '비활성'}`);
+            } else {
+                showErrorToastKo(`도구 테스트 실패! 상태: ${result.tool_status === 'active' ? '활성' : '비활성'}`);
+            }
+
+            // 테스트 후 도구 목록 새로고침
+            await fetchTools();
+        } catch (error) {
+            devLog.error('Failed to test tool:', error);
+            showErrorToastKo(
+                `도구 테스트 실패: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
+        } finally {
+            setTestingToolId(null);
+        }
     };
 
     // 도구 필터링
@@ -276,33 +313,15 @@ const ToolStorage: React.FC = () => {
                                         <div className={styles.actionsLeft}>
                                             <button
                                                 className={styles.actionButton}
-                                                title="사용"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    // TODO: 도구 사용 구현
-                                                }}
+                                                title="테스트"
+                                                onClick={(e) => handleTestTool(tool, e)}
+                                                disabled={testingToolId === tool.id}
                                             >
-                                                <FiPlay />
-                                            </button>
-                                            <button
-                                                className={styles.actionButton}
-                                                title="편집"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    // TODO: 도구 편집 구현
-                                                }}
-                                            >
-                                                <FiEdit />
-                                            </button>
-                                            <button
-                                                className={styles.actionButton}
-                                                title="복사"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    // TODO: 도구 복사 구현
-                                                }}
-                                            >
-                                                <FiCopy />
+                                                {testingToolId === tool.id ? (
+                                                    <FiClock className={styles.spinning} />
+                                                ) : (
+                                                    <FiPlay />
+                                                )}
                                             </button>
                                         </div>
                                         <div className={styles.actionsRight}>
@@ -321,29 +340,6 @@ const ToolStorage: React.FC = () => {
                                                 </button>
                                                 {tool.id !== undefined && openDropdown === tool.id && (
                                                     <div className={styles.dropdownMenu}>
-                                                        <button
-                                                            className={styles.dropdownItem}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                // TODO: 설정 구현
-                                                                setOpenDropdown(null);
-                                                            }}
-                                                        >
-                                                            <FiSettings />
-                                                            <span>설정</span>
-                                                        </button>
-                                                        <button
-                                                            className={styles.dropdownItem}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                // TODO: 버전 히스토리 구현
-                                                                setOpenDropdown(null);
-                                                            }}
-                                                        >
-                                                            <FiGitBranch />
-                                                            <span>버전 히스토리</span>
-                                                        </button>
-                                                        <div className={styles.dropdownDivider} />
                                                         <button
                                                             className={`${styles.dropdownItem} ${styles.danger}`}
                                                             onClick={(e) => {

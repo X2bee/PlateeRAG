@@ -510,3 +510,59 @@ export const testApiEndpoint = async (testRequest) => {
         throw error;
     }
 };
+
+/**
+ * 도구를 테스트하고 결과에 따라 status를 업데이트합니다.
+ * 성공 시 status를 'active'로, 실패 시 'inactive'로 변경합니다.
+ *
+ * @param {number} toolId - 도구 ID
+ * @param {string} functionId - 도구 function ID
+ * @returns {Promise<Object>} API 테스트 결과 및 업데이트된 status 정보
+ * @returns {boolean} result.success - 테스트 성공 여부
+ * @returns {string} result.tool_status - 업데이트된 도구 상태 (active/inactive)
+ * @returns {string} result.function_id - 도구 function ID
+ * @returns {string} result.function_name - 도구 이름
+ * @returns {Object|null} result.data - 응답 데이터 (성공 시)
+ * @returns {string|undefined} result.error - 오류 메시지 (실패 시)
+ * @throws {Error} API 요청이 실패하면 에러를 발생시킵니다.
+ */
+export const testTool = async (toolId, functionId) => {
+    try {
+        devLog.log('TestTool called with:');
+        devLog.log('- toolId:', toolId);
+        devLog.log('- functionId:', functionId);
+
+        const url = new URL(`${API_BASE_URL}/api/tools/storage/tool-test`);
+        url.searchParams.append('tool_id', toolId.toString());
+        url.searchParams.append('function_id', functionId);
+
+        const response = await apiClient(url.toString(), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(
+                errorData.detail || `HTTP error! status: ${response.status}`,
+            );
+        }
+
+        const result = await response.json();
+
+        devLog.log('Tool test completed:', {
+            success: result.success,
+            tool_status: result.tool_status,
+            function_id: result.function_id
+        });
+
+        return result;
+    } catch (error) {
+        devLog.error('Failed to test tool:', error);
+        devLog.error('ToolId that caused error:', toolId);
+        devLog.error('FunctionId that caused error:', functionId);
+        throw error;
+    }
+};
