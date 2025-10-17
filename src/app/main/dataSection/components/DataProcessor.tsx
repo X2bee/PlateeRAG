@@ -4,9 +4,10 @@ import React, { useState, useEffect } from 'react';
 import {
     IoArrowBack,
     IoRefresh,
+    IoLayers,
 } from 'react-icons/io5';
 import { MdOutlineMore } from "react-icons/md";
-import { ColumnInfoModal, DownloadDialog, StatisticsModal, ColumnDeleteModal, ColumnValueReplaceModal, ColumnOperationModal, SpecificColumnNullRemoveModal, HuggingFaceUploadModal, MLflowUploadModal, ColumnCopyModal, ColumnRenameModal, ColumnFormatModal, ColumnCalculationModal, DatasetCallbackModal } from './modals';
+import { ColumnInfoModal, DatasetVersionSwitchModal,  DownloadDialog, StatisticsModal, ColumnDeleteModal, ColumnValueReplaceModal, ColumnOperationModal, SpecificColumnNullRemoveModal, HuggingFaceUploadModal, MLflowUploadModal, ColumnCopyModal, ColumnRenameModal, ColumnFormatModal, ColumnCalculationModal, DatasetCallbackModal, VersionHistoryModal } from './modals';
 import DataProcessorSidebar from './DataProcessorSidebar';
 import { downloadDataset, getDatasetSample, dropDatasetColumns, replaceColumnValues, applyColumnOperation, removeNullRows, uploadToHuggingFace, uploadToMLflow, copyDatasetColumn, renameDatasetColumn, formatDatasetColumns, calculateDatasetColumns, executeDatasetCallback } from '@/app/_common/api/dataManagerAPI';
 import { showSuccessToastKo, showErrorToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
@@ -70,6 +71,13 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
     const [columnCalculationModalOpen, setColumnCalculationModalOpen] = useState(false);
     const [datasetCallbackModalOpen, setDatasetCallbackModalOpen] = useState(false);
     const [mlflowUploadModalOpen, setMlflowUploadModalOpen] = useState(false);
+    const [versionHistoryModalOpen, setVersionHistoryModalOpen] = useState(false);
+    const [datasetLoadInfo, setDatasetLoadInfo] = useState<{
+        load_count: number;
+        dataset_id: string;
+        is_new_version: boolean;
+    } | null>(null);
+    const [versionSwitchModalOpen, setVersionSwitchModalOpen] = useState(false);
 
     // 데이터 로드
     useEffect(() => {
@@ -83,12 +91,18 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
         try {
             const data = await getDatasetSample(managerId, 10) as DataTableInfo;
             setDataTableInfo(data);
+            
+            // 버전 정보가 있다면 저장
+            if ((data as any).version_info) {
+                setDatasetLoadInfo((data as any).version_info);
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : '데이터 테이블 정보 로드 중 오류가 발생했습니다');
         } finally {
             setLoading(false);
         }
     };
+
 
     const handleStatisticsModal = (statistics: any, loading: boolean) => {
         setStatisticsData(statistics);
@@ -413,6 +427,19 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
         });
     };
 
+    const handleOpenVersionHistoryModal = () => {
+        setVersionHistoryModalOpen(true);
+    };
+    
+    const handleCloseVersionHistoryModal = () => {
+        setVersionHistoryModalOpen(false);
+    };
+    
+    const handleVersionRollback = () => {
+        // 롤백 후 데이터 다시 로드
+        loadDataTableInfo();
+    };
+    
     const handleDropColumn = async (columnName: string) => {
         showDeleteConfirmToastKo({
             title: '컬럼 삭제',
@@ -439,12 +466,14 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
             confirmText: '삭제',
             cancelText: '취소'
         });
-    };    const handleDownloadDataset = async () => {
+    };    
+
+    const handleDownloadDataset = async () => {
         if (!downloadDialog.repoId.trim()) {
             showErrorToastKo('Repository ID를 입력해주세요.');
             return;
         }
-
+    
         setDownloading(true);
         try {
             const result = await downloadDataset(
@@ -452,12 +481,22 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                 downloadDialog.repoId.trim(),
                 downloadDialog.filename.trim() || undefined,
                 downloadDialog.split.trim() || undefined
-            );
-
-            showSuccessToastKo('데이터셋이 성공적으로 다운로드되고 적재되었습니다!');
+            ) as any;
+    
+            // 버전 정보 포함된 성공 메시지
+            if (result.version_info) {
+                const versionMsg = result.version_info.is_new_version 
+                    ? `데이터셋이 v${result.version_info.load_count}로 재업로드되었습니다!`
+                    : `데이터셋이 성공적으로 다운로드되고 적재되었습니다! (v${result.version_info.load_count})`;
+                showSuccessToastKo(versionMsg);
+                
+                // 버전 정보 저장
+                setDatasetLoadInfo(result.version_info);
+            } else {
+                showSuccessToastKo('데이터셋이 성공적으로 다운로드되고 적재되었습니다!');
+            }
+            
             setDownloadDialog({ isOpen: false, repoId: '', filename: '', split: '' });
-
-            // 데이터 다시 로드
             loadDataTableInfo();
         } catch (error) {
             console.error('Dataset download failed:', error);
@@ -505,19 +544,40 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                     </button>
                     <div className={styles.headerInfo}>
                         <h2>데이터 프로세서</h2>
-                        <p>Manager ID: {managerId} | User ID: {userId}</p>
+                        <div className={styles.headerMeta}>
+                            <p>Manager ID: {managerId} | User ID: {userId}</p>
+                            {datasetLoadInfo && datasetLoadInfo.load_count > 0 && (
+                                <div className={styles.versionControls}>
+                                    <div className={styles.datasetVersionBadge}>
+                                        <IoLayers />
+                                        <span>
+                                            데이터셋 버전: v{datasetLoadInfo.load_count}
+                                            {datasetLoadInfo.is_new_version && ' (재업로드됨)'}
+                                        </span>
+                                    </div>
+                                    {datasetLoadInfo.load_count > 1 && (
+                                        <button
+                                            onClick={() => setVersionSwitchModalOpen(true)}
+                                            className={styles.switchVersionButton}
+                                            title="버전 선택"
+                                        >
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2"/>
+                                                <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2"/>
+                                                <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2"/>
+                                            </svg>
+                                            <span>버전 변경</span>
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
-                <button
-                    onClick={handleRefresh}
-                    className={styles.refreshButton}
-                    title="새로고침"
-                >
-                    <IoRefresh />
-                </button>
             </div>
 
             <div className={styles.content}>
+
                 {/* 가운데 - Data Table 샘플 보기 영역 */}
                 <div className={styles.dataSection}>
                     <div className={styles.dataCard}>
@@ -607,6 +667,7 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                     onSpecificColumnNullRemoveModal={handleOpenSpecificColumnNullRemoveModal}
                     onHuggingFaceUploadModal={() => setHuggingFaceUploadModalOpen(true)}
                     onMLflowUploadModal={() => setMlflowUploadModalOpen(true)}  // 새로 추가
+                    onVersionHistoryModal={handleOpenVersionHistoryModal}  // 추가
                     onColumnCopyModal={handleOpenColumnCopyModal}
                     onColumnRenameModal={handleOpenColumnRenameModal}
                     onColumnFormatModal={handleOpenColumnFormatModal}
@@ -698,6 +759,20 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                 isOpen={mlflowUploadModalOpen}
                 onClose={() => setMlflowUploadModalOpen(false)}
                 onUpload={handleUploadToMLflow}
+            />
+            <VersionHistoryModal
+                isOpen={versionHistoryModalOpen}
+                managerId={managerId}
+                onClose={handleCloseVersionHistoryModal}
+                onRollback={handleVersionRollback}
+            />
+            <DatasetVersionSwitchModal
+                isOpen={versionSwitchModalOpen}
+                managerId={managerId}
+                onClose={() => setVersionSwitchModalOpen(false)}
+                onSwitch={() => {
+                    loadDataTableInfo();
+                }}
             />
         </div>
     );
