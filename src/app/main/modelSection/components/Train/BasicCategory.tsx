@@ -44,7 +44,7 @@ const BasicCategory: React.FC<BasicCategoryProps> = ({
                 {/* 기본 설정 */}
                 <div className={styles.formGroup}>
                     <div className={styles.configHeader}>
-                        <label>기본 설정</label>
+                        <h3>기본 설정</h3>
                     </div>
                     <div className={styles.formGrid} style={{ gridTemplateColumns: '1fr 1fr' }}>
                         <div className={styles.formField}>

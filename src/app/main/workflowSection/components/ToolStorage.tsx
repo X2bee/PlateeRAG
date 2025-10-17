@@ -249,19 +249,6 @@ const ToolStorage: React.FC = () => {
         );
     }
 
-    // 스토어 탭이 활성화된 경우 ToolStore 컴포넌트 렌더링
-    if (activeTab === 'store') {
-        return (
-            <div className={styles.container}>
-                <ToolStore
-                    activeTab={activeTab}
-                    onTabChange={setActiveTab}
-                />
-            </div>
-        );
-    }
-
-    // 저장소 탭 (기본)
     return (
         <div className={styles.container}>
             {/* Header with Filters */}
@@ -284,42 +271,58 @@ const ToolStorage: React.FC = () => {
                             </button>
                         </div>
 
-                        {/* 활성/비활성 필터 */}
-                        <div className={styles.filterGroup}>
-                            {['all', 'active', 'unactive'].map(
-                                (filterType) => (
-                                    <button
-                                        key={filterType}
-                                        onClick={() => setFilter(filterType as any)}
-                                        className={`${styles.filterButton} ${filter === filterType ? styles.active : ''}`}
-                                    >
-                                        {filterType === 'all'
-                                            ? '전체'
-                                            : filterType === 'active'
-                                              ? '활성'
-                                              : '비활성'}
-                                    </button>
-                                ),
-                            )}
-                        </div>
+                        {/* 활성/비활성 필터 - 저장소 탭에서만 표시 */}
+                        {activeTab === 'storage' && (
+                            <div className={styles.filterGroup}>
+                                {['all', 'active', 'unactive'].map(
+                                    (filterType) => (
+                                        <button
+                                            key={filterType}
+                                            onClick={() => setFilter(filterType as any)}
+                                            className={`${styles.filterButton} ${filter === filterType ? styles.active : ''}`}
+                                        >
+                                            {filterType === 'all'
+                                                ? '전체'
+                                                : filterType === 'active'
+                                                  ? '활성'
+                                                  : '비활성'}
+                                        </button>
+                                    ),
+                                )}
+                            </div>
+                        )}
                     </div>
 
-                    <UploadButton
-                        onClick={handleUploadClick}
-                        disabled={loading}
-                        title="도구 업로드"
-                    />
+                    {activeTab === 'storage' && (
+                        <>
+                            <UploadButton
+                                onClick={handleUploadClick}
+                                disabled={loading}
+                                title="도구 업로드"
+                            />
 
-                    <RefreshButton
-                        onClick={fetchTools}
-                        loading={loading}
-                        disabled={loading}
-                        title="새로고침"
-                    />
+                            <RefreshButton
+                                onClick={fetchTools}
+                                loading={loading}
+                                disabled={loading}
+                                title="새로고침"
+                            />
+                        </>
+                    )}
                 </div>
             </div>
 
-            {/* 저장소 콘텐츠 */}
+            {/* 스토어 탭 콘텐츠 */}
+            {activeTab === 'store' && (
+                <ToolStore
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                />
+            )}
+
+            {/* 저장소 탭 콘텐츠 */}
+            {activeTab === 'storage' && (
+                <>
                     {/* Loading State */}
                     {loading && (
                         <div className={styles.loadingState}>
@@ -335,145 +338,147 @@ const ToolStorage: React.FC = () => {
                         </div>
                     )}
 
-            {/* Tools Grid */}
-            {!loading && !error && (
-                <div className={styles.workflowsGrid}>
-                    {filteredTools.map((tool) => (
-                        <div
-                            key={tool.id}
-                            className={`${styles.workflowCard} ${openDropdown === tool.id ? styles.cardActive : ''}`}
-                            onClick={() => handleToolClick(tool)}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            <div className={styles.cardHeader}>
-                                <div className={styles.workflowIcon}>
-                                    <FiFolder />
-                                </div>
-                                <div className={styles.statusContainer}>
-                                    <div
-                                        className={`${styles.status} ${getStatusColor(tool.status)}`}
-                                    >
-                                        {getStatusText(tool.status)}
-                                    </div>
-                                    <div
-                                        className={`${styles.shareStatus} ${tool.is_shared ? styles.statusShared : styles.statusPersonal}`}
-                                    >
-                                        {tool.is_shared ? '공유' : '개인'}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className={styles.cardContent}>
-                                <h3 className={styles.workflowName} title={tool.function_name}>
-                                    {tool.function_name}
-                                </h3>
-                                {tool.description && (
-                                    <p className={styles.workflowDescription}>
-                                        {tool.description}
-                                    </p>
-                                )}
-
-                                <div className={styles.workflowMeta}>
-                                    <div className={styles.metaItem}>
-                                        <FiUser />
-                                        <span title={tool.full_name || tool.username}>{tool.full_name || tool.username}</span>
-                                    </div>
-                                    {tool.updated_at && (
-                                        <div className={styles.metaItem}>
-                                            <FiClock />
-                                            <span title={new Date(tool.updated_at).toLocaleString('ko-KR')}>
-                                                {new Date(tool.updated_at).toLocaleDateString('ko-KR')}
-                                            </span>
+                    {/* Tools Grid */}
+                    {!loading && !error && (
+                        <div className={styles.workflowsGrid}>
+                            {filteredTools.map((tool) => (
+                                <div
+                                    key={tool.id}
+                                    className={`${styles.workflowCard} ${openDropdown === tool.id ? styles.cardActive : ''}`}
+                                    onClick={() => handleToolClick(tool)}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <div className={styles.cardHeader}>
+                                        <div className={styles.workflowIcon}>
+                                            <FiFolder />
                                         </div>
-                                    )}
-                                    {tool.share_group && (
-                                        <div className={styles.metaItem}>
-                                            <FiUsers />
-                                            <span title={`조직: ${tool.share_group}`}>조직: {tool.share_group}</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className={styles.cardActions}>
-                                {tool.status === 'inactive' ? (
-                                    <div className={styles.unactiveMessage}>
-                                        비활성화된 도구입니다. 사용할 수 없습니다.
-                                    </div>
-                                ) : (
-                                    <>
-                                        <div className={styles.actionsLeft}>
-                                            <button
-                                                className={styles.actionButton}
-                                                title="테스트"
-                                                onClick={(e) => handleTestTool(tool, e)}
-                                                disabled={testingToolId === tool.id}
+                                        <div className={styles.statusContainer}>
+                                            <div
+                                                className={`${styles.status} ${getStatusColor(tool.status)}`}
                                             >
-                                                {testingToolId === tool.id ? (
-                                                    <FiClock className={styles.spinning} />
-                                                ) : (
-                                                    <FiPlay />
-                                                )}
-                                            </button>
-                                        </div>
-                                        <div className={styles.actionsRight}>
-                                            <div className={`${styles.dropdownContainer} ${openDropdown === tool.id ? styles.dropdownActive : ''}`}>
-                                                <button
-                                                    className={styles.actionButton}
-                                                    title="더보기"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (tool.id !== undefined) {
-                                                            toggleDropdown(tool.id);
-                                                        }
-                                                    }}
-                                                >
-                                                    <FiMoreVertical />
-                                                </button>
-                                                {tool.id !== undefined && openDropdown === tool.id && (
-                                                    <div className={styles.dropdownMenu}>
-                                                        <button
-                                                            className={styles.dropdownItem}
-                                                            onClick={(e) => handleEditTool(tool, e)}
-                                                        >
-                                                            <FiEdit />
-                                                            <span>수정</span>
-                                                        </button>
-                                                        <button
-                                                            className={`${styles.dropdownItem} ${styles.danger}`}
-                                                            onClick={(e) => handleDeleteTool(tool, e)}
-                                                        >
-                                                            <FiTrash2 />
-                                                            <span>삭제</span>
-                                                        </button>
-                                                    </div>
-                                                )}
+                                                {getStatusText(tool.status)}
+                                            </div>
+                                            <div
+                                                className={`${styles.shareStatus} ${tool.is_shared ? styles.statusShared : styles.statusPersonal}`}
+                                            >
+                                                {tool.is_shared ? '공유' : '개인'}
                                             </div>
                                         </div>
-                                    </>
-                                )}
-                            </div>
+                                    </div>
+
+                                    <div className={styles.cardContent}>
+                                        <h3 className={styles.workflowName} title={tool.function_name}>
+                                            {tool.function_name}
+                                        </h3>
+                                        {tool.description && (
+                                            <p className={styles.workflowDescription}>
+                                                {tool.description}
+                                            </p>
+                                        )}
+
+                                        <div className={styles.workflowMeta}>
+                                            <div className={styles.metaItem}>
+                                                <FiUser />
+                                                <span title={tool.full_name || tool.username}>{tool.full_name || tool.username}</span>
+                                            </div>
+                                            {tool.updated_at && (
+                                                <div className={styles.metaItem}>
+                                                    <FiClock />
+                                                    <span title={new Date(tool.updated_at).toLocaleString('ko-KR')}>
+                                                        {new Date(tool.updated_at).toLocaleDateString('ko-KR')}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {tool.share_group && (
+                                                <div className={styles.metaItem}>
+                                                    <FiUsers />
+                                                    <span title={`조직: ${tool.share_group}`}>조직: {tool.share_group}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.cardActions}>
+                                        {tool.status === 'inactive' ? (
+                                            <div className={styles.unactiveMessage}>
+                                                비활성화된 도구입니다. 사용할 수 없습니다.
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className={styles.actionsLeft}>
+                                                    <button
+                                                        className={styles.actionButton}
+                                                        title="테스트"
+                                                        onClick={(e) => handleTestTool(tool, e)}
+                                                        disabled={testingToolId === tool.id}
+                                                    >
+                                                        {testingToolId === tool.id ? (
+                                                            <FiClock className={styles.spinning} />
+                                                        ) : (
+                                                            <FiPlay />
+                                                        )}
+                                                    </button>
+                                                </div>
+                                                <div className={styles.actionsRight}>
+                                                    <div className={`${styles.dropdownContainer} ${openDropdown === tool.id ? styles.dropdownActive : ''}`}>
+                                                        <button
+                                                            className={styles.actionButton}
+                                                            title="더보기"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (tool.id !== undefined) {
+                                                                    toggleDropdown(tool.id);
+                                                                }
+                                                            }}
+                                                        >
+                                                            <FiMoreVertical />
+                                                        </button>
+                                                        {tool.id !== undefined && openDropdown === tool.id && (
+                                                            <div className={styles.dropdownMenu}>
+                                                                <button
+                                                                    className={styles.dropdownItem}
+                                                                    onClick={(e) => handleEditTool(tool, e)}
+                                                                >
+                                                                    <FiEdit />
+                                                                    <span>수정</span>
+                                                                </button>
+                                                                <button
+                                                                    className={`${styles.dropdownItem} ${styles.danger}`}
+                                                                    onClick={(e) => handleDeleteTool(tool, e)}
+                                                                >
+                                                                    <FiTrash2 />
+                                                                    <span>삭제</span>
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
-            )}
+                    )}
 
-                        {!loading && !error && filteredTools.length === 0 && (
-                <div className={styles.emptyState}>
-                    <FiFolder className={styles.emptyIcon} />
-                    <h3>도구가 없습니다</h3>
-                    <p>
-                        아직 저장된 도구가 없습니다. 새로운 도구를 만들어보세요.
-                    </p>
-                </div>
-            )}
+                    {!loading && !error && filteredTools.length === 0 && (
+                        <div className={styles.emptyState}>
+                            <FiFolder className={styles.emptyIcon} />
+                            <h3>도구가 없습니다</h3>
+                            <p>
+                                아직 저장된 도구가 없습니다. 새로운 도구를 만들어보세요.
+                            </p>
+                        </div>
+                    )}
 
-            {/* Detail Modal */}
-            <ToolStorageDetailModal
-                tool={selectedTool}
-                isOpen={isDetailModalOpen}
-                onClose={handleCloseDetailModal}
-            />
+                    {/* Detail Modal */}
+                    <ToolStorageDetailModal
+                        tool={selectedTool}
+                        isOpen={isDetailModalOpen}
+                        onClose={handleCloseDetailModal}
+                    />
+                </>
+            )}
         </div>
     );
 };
