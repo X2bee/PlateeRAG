@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { showSuccessToastKo, showErrorToastKo, showLoadingToastKo, dismissToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { devLog } from '@/app/_common/utils/logger';
-import { getAvailableAgentNodes, getAgentNodeInfo, generateWorkflowWithAI } from '@/app/_common/api/workflow/autoWorkflowAPI';
+import { getAvailableAgentNodes, generateWorkflowWithAI } from '@/app/_common/api/workflow/autoWorkflowAPI';
 import { API_BASE_URL } from '@/app/config';
 import styles from './AutoWorkflowSidebar.module.scss';
 
@@ -219,7 +219,7 @@ const AutoWorkflowSidebar: React.FC<AutoWorkflowSidebarProps> = ({
         }
         
         // 워크플로우 이름이 비어있으면 기본값 'workflow'를 사용
-        let finalWorkflowName = workflowName && workflowName.trim() ? workflowName.trim() : 'workflow';
+        const finalWorkflowName = workflowName && workflowName.trim() ? workflowName.trim() : 'workflow';
         if (finalWorkflowName !== workflowName) {
             setWorkflowName(finalWorkflowName);
         }
@@ -378,7 +378,15 @@ const AutoWorkflowSidebar: React.FC<AutoWorkflowSidebarProps> = ({
                                         className={`${styles.agentNodeItem} ${
                                             selectedAgentNode?.id === node.id ? styles.selected : ''
                                         }`}
+                                        role="button"
+                                        tabIndex={0}
                                         onClick={() => handleAgentNodeSelect(node)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                handleAgentNodeSelect(node);
+                                            }
+                                        }}
                                     >
                                         <div className={styles.nodeHeader}>
                                             <h4>{node.nodeName}</h4>
