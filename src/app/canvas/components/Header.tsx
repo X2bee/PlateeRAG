@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, KeyboardEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '@/app/canvas/assets/Header.module.scss';
-import { LuPanelRightOpen, LuSave, LuCheck, LuX, LuPencil, LuFileText, LuArrowLeft, LuHistory, LuUsers } from "react-icons/lu";
+import { LuPanelRightOpen, LuSave, LuCheck, LuX, LuPencil, LuFileText, LuArrowLeft, LuHistory, LuUsers, LuBot } from "react-icons/lu";
 import { getWorkflowName, saveWorkflowName } from '@/app/_common/utils/workflowStorage';
 import { FiUpload, FiCopy } from 'react-icons/fi';
 import { BiCodeAlt } from "react-icons/bi";
@@ -29,6 +29,7 @@ interface HeaderProps {
     isOwner?: boolean;
     userId?: string;
     onLoadWorkflow?: (workflowData: any, workflowName?: string) => Promise<void>;
+    onAutoWorkflowClick?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -47,7 +48,8 @@ const Header: React.FC<HeaderProps> = ({
     isHistoryPanelOpen = false,
     isOwner = true,
     userId,
-    onLoadWorkflow
+    onLoadWorkflow,
+    onAutoWorkflowClick
 }) => {
     const [workflowName, setWorkflowName] = useState<string>('Workflow');
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -282,6 +284,15 @@ const Header: React.FC<HeaderProps> = ({
                             <span>배포 테스트</span>
                         </button>
                     )}
+                {onAutoWorkflowClick && (
+                    <button 
+                        onClick={onAutoWorkflowClick} 
+                        className={styles.menuButton} 
+                        title="자동 워크플로우 생성"
+                    >
+                        <LuBot />
+                    </button>
+                )}
                 <button onClick={onNewWorkflow} className={styles.menuButton} title="New Workflow">
                     <LuFileText />
                 </button>
