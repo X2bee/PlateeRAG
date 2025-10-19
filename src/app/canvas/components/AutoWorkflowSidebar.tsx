@@ -38,14 +38,14 @@ interface AutoWorkflowSidebarProps {
     isOpen: boolean;
     onClose: () => void;
     onLoadWorkflow: (workflowData: any) => void;
-    getCurrentViewportCenter?: () => { x: number; y: number };
+    getCanvasState?: () => any; // 현재 캔버스 상태를 가져오는 함수
 }
 
 const AutoWorkflowSidebar: React.FC<AutoWorkflowSidebarProps> = ({
     isOpen,
     onClose,
     onLoadWorkflow,
-    getCurrentViewportCenter
+    getCanvasState
 }) => {
     const [agentNodes, setAgentNodes] = useState<AgentNode[]>([]);
     const [selectedAgentNode, setSelectedAgentNode] = useState<AgentNode | null>(null);
@@ -187,8 +187,12 @@ const AutoWorkflowSidebar: React.FC<AutoWorkflowSidebarProps> = ({
             
             setAvailableModels(openaiModels);
             setSelectedModel("gpt-5-mini"); // 기본값으로 GPT-5 Mini 설정
+            // OpenAI Agent는 프론트에서 모델 정보를 표시하지 않으므로 이전 VLLM 정보 제거
+            setAgentModelInfo(null);
             devLog.log('OpenAI Agent 모델 옵션 설정:', openaiModels);
             devLog.log('기본 선택 모델: gpt-5-mini');
+            console.log('OpenAI Agent 모델 옵션 설정:', openaiModels);
+            console.log('기본 선택 모델: gpt-5-mini');
         } else {
             // VLLM Agent의 경우 기존 로직 사용 (fetchAgentModelInfo에서 처리)
             devLog.log('VLLM Agent 선택됨 - 기존 모델 정보 조회 로직 사용');
@@ -197,8 +201,8 @@ const AutoWorkflowSidebar: React.FC<AutoWorkflowSidebarProps> = ({
         
         // 기본 워크플로우 이름 생성
         if (!workflowName) {
-            const defaultName = `Auto_${agentNode.nodeName.replace(/\s+/g, '_')}_${Date.now()}`;
-            setWorkflowName(defaultName);
+            // 사용자가 입력하지 않으면 기본 이름을 단순히 'workflow'로 설정
+            setWorkflowName('workflow');
         }
     };
 
@@ -214,42 +218,92 @@ const AutoWorkflowSidebar: React.FC<AutoWorkflowSidebarProps> = ({
             return;
         }
         
-        if (!workflowName.trim()) {
-            showErrorToastKo('워크플로우 이름을 입력해주세요.');
-            return;
+        // 워크플로우 이름이 비어있으면 기본값 'workflow'를 사용
+        let finalWorkflowName = workflowName && workflowName.trim() ? workflowName.trim() : 'workflow';
+        if (finalWorkflowName !== workflowName) {
+            setWorkflowName(finalWorkflowName);
         }
 
         const toastId = showLoadingToastKo('워크플로우를 생성하고 있습니다...');
         setIsGenerating(true);
 
         try {
-            // 워크플로우 생성 시점에 실시간으로 뷰포트 중심 좌표 가져오기
-            const currentViewportCenter = getCurrentViewportCenter?.();
+            // 현재 캔버스 상태 가져오기
+            let canvasContext: any = {
+                purpose: '자동생성 워크플로우',
+                complexity: 'auto'
+            };
             
-            console.log('워크플로우 생성 시점의 뷰포트 중심:', currentViewportCenter);
+            if (getCanvasState) {
+                try {
+                    const currentCanvasState = getCanvasState();
+                    if (currentCanvasState) {
+                        // 현재 뷰포트의 중심 좌표 계산
+                        const view = currentCanvasState.view || { x: 0, y: 0, scale: 1 };
+                        const containerWidth = window.innerWidth;
+                        const containerHeight = window.innerHeight;
+                        
+                        // 뷰포트 중심의 월드 좌표 계산
+                        const viewportCenterX = (containerWidth / 2 - view.x) / view.scale;
+                        const viewportCenterY = (containerHeight / 2 - view.y) / view.scale;
+                        
+                        devLog.log('뷰포트 중심 좌표 계산:', {
+                            containerSize: { width: containerWidth, height: containerHeight },
+                            view: view,
+                            viewportCenter: { x: viewportCenterX, y: viewportCenterY }
+                        });
+                        
+                        canvasContext = {
+                            ...canvasContext,
+                            current_view: view,
+                            viewport_center: { x: viewportCenterX, y: viewportCenterY },
+                            existing_nodes: currentCanvasState.nodes || [],
+                            existing_edges: currentCanvasState.edges || []
+                        };
+                        devLog.log('현재 캔버스 상태를 컨텍스트에 포함:', {
+                            view: canvasContext.current_view,
+                            viewport_center: canvasContext.viewport_center,
+                            nodes_count: canvasContext.existing_nodes.length,
+                            edges_count: canvasContext.existing_edges.length
+                        });
+                        
+                        // 기존 노드들의 위치 정보도 로깅
+                        if (canvasContext.existing_nodes.length > 0) {
+                            const nodePositions = canvasContext.existing_nodes.map((node: any) => ({
+                                id: node.id,
+                                name: node.data?.nodeName || 'Unknown',
+                                position: node.position
+                            }));
+                            devLog.log('기존 노드 위치 정보:', nodePositions);
+                        }
+                    }
+                } catch (error) {
+                    devLog.warn('캔버스 상태 가져오기 실패:', error);
+                }
+            }
 
             const requestData: any = {
                 agent_node_id: selectedAgentNode.id,
                 user_requirements: userRequirements,
-                workflow_name: workflowName,
-                context: {
-                    purpose: '자동생성 워크플로우',
-                    complexity: 'auto'
-                }
+                workflow_name: finalWorkflowName,
+                context: canvasContext
             };
 
             // OpenAI Agent인 경우에만 선택된 모델 추가
+            console.log('모델 선택 체크:', {
+                selectedModel,
+                agentNodeId: selectedAgentNode.id,
+                isOpenAI: selectedAgentNode.id.toLowerCase().includes('openai')
+            });
+            
             if (selectedModel && selectedAgentNode.id.toLowerCase().includes('openai')) {
                 requestData.selected_model = selectedModel;
-                console.log('선택된 모델:', selectedModel);
-            }
-
-            // 뷰포트 좌표가 있는 경우에만 추가
-            if (currentViewportCenter?.x !== undefined) {
-                requestData.viewport_center_x = currentViewportCenter.x;
-            }
-            if (currentViewportCenter?.y !== undefined) {
-                requestData.viewport_center_y = currentViewportCenter.y;
+                console.log('선택된 모델을 요청에 추가:', selectedModel);
+            } else {
+                console.log('모델이 요청에 추가되지 않음:', {
+                    hasSelectedModel: !!selectedModel,
+                    isOpenAI: selectedAgentNode.id.toLowerCase().includes('openai')
+                });
             }
 
             console.log('백엔드로 전송할 요청 데이터:', requestData);
@@ -296,10 +350,7 @@ const AutoWorkflowSidebar: React.FC<AutoWorkflowSidebarProps> = ({
         <div className={styles.overlay}>
             <div ref={sidebarRef} className={styles.sidebar}>
                 <div className={styles.header}>
-                    <h2>
-                        <span style={{ marginRight: '8px' }}>🤖</span>
-                        자동 워크플로우 생성
-                    </h2>
+                    <h2>자동 워크플로우 생성</h2>
                     <button 
                         className={styles.closeButton}
                         onClick={onClose}
@@ -312,10 +363,7 @@ const AutoWorkflowSidebar: React.FC<AutoWorkflowSidebarProps> = ({
                 <div className={styles.content}>
                     {/* 1단계: Agent 노드 선택 */}
                     <div className={styles.section}>
-                        <h3>
-                            <span style={{ fontSize: '16px' }}>🤖</span>
-                            Agent 노드 선택
-                        </h3>
+                        <h3>Agent 노드 선택</h3>
                         <p className={styles.description}>
                             워크플로우의 핵심이 될 Agent 노드를 선택하세요.
                         </p>
@@ -361,10 +409,7 @@ const AutoWorkflowSidebar: React.FC<AutoWorkflowSidebarProps> = ({
                     {/* 모델 선택 (OpenAI Agent가 선택된 경우에만 표시) */}
                     {selectedAgentNode && availableModels.length > 0 && selectedAgentNode.id.toLowerCase().includes('openai') && (
                         <div className={styles.section}>
-                            <h3>
-                                <span style={{ fontSize: '16px' }}>🤖</span>
-                                모델 선택
-                            </h3>
+                            <h3>모델 선택</h3>
                             <p className={styles.description}>
                                 사용할 AI 모델을 선택하세요.
                             </p>
@@ -372,7 +417,10 @@ const AutoWorkflowSidebar: React.FC<AutoWorkflowSidebarProps> = ({
                             <select
                                 className={styles.modelSelect}
                                 value={selectedModel}
-                                onChange={(e) => setSelectedModel(e.target.value)}
+                                onChange={(e) => {
+                                    console.log('모델 선택 변경:', e.target.value);
+                                    setSelectedModel(e.target.value);
+                                }}
                             >
                                 {availableModels.map((model) => (
                                     <option key={model.value} value={model.value}>
@@ -385,10 +433,7 @@ const AutoWorkflowSidebar: React.FC<AutoWorkflowSidebarProps> = ({
 
                     {/* 2단계: 사용자 요구사항 입력 */}
                     <div className={styles.section}>
-                        <h3>
-                            <span style={{ fontSize: '16px' }}>📝</span>
-                            요구사항 입력
-                        </h3>
+                        <h3>요구사항 입력</h3>
                         <p className={styles.description}>
                             원하는 워크플로우의 기능을 자세히 설명해주세요.
                         </p>
@@ -404,10 +449,7 @@ const AutoWorkflowSidebar: React.FC<AutoWorkflowSidebarProps> = ({
 
                     {/* 3단계: 워크플로우 이름 설정 */}
                     <div className={styles.section}>
-                        <h3>
-                            <span style={{ fontSize: '16px' }}>📋</span>
-                            워크플로우 이름
-                        </h3>
+                        <h3>워크플로우 이름</h3>
                         <input
                             type="text"
                             className={styles.workflowNameInput}
@@ -420,10 +462,7 @@ const AutoWorkflowSidebar: React.FC<AutoWorkflowSidebarProps> = ({
                     {/* 선택된 Agent 노드 정보 */}
                     {selectedAgentNode && (
                         <div className={styles.section}>
-                            <h3>
-                                <span style={{ fontSize: '16px' }}>ℹ️</span>
-                                선택된 Agent 정보
-                            </h3>
+                        <h3>선택된 Agent 정보</h3>
                             <div className={styles.selectedAgentInfo}>
                                 <div className={styles.infoRow}>
                                     <span className={styles.label}>노드명:</span>
@@ -468,17 +507,7 @@ const AutoWorkflowSidebar: React.FC<AutoWorkflowSidebarProps> = ({
                             onClick={handleGenerateWorkflow}
                             disabled={!selectedAgentNode || !userRequirements.trim() || isGenerating}
                         >
-                            {isGenerating ? (
-                                <>
-                                    <span style={{ marginRight: '8px' }}>🔄</span>
-                                    생성 중...
-                                </>
-                            ) : (
-                                <>
-                                    <span style={{ marginRight: '8px' }}>🚀</span>
-                                    워크플로우 생성
-                                </>
-                            )}
+                            {isGenerating ? '생성 중...' : '워크플로우 생성'}
                         </button>
                         
                         {selectedAgentNode && (

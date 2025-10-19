@@ -591,12 +591,27 @@ function CanvasPageContent() {
         }
 
         try {
-            // 현재 뷰포트 위치 저장
-            const currentViewport = (canvasRef.current as any).getCurrentViewportCenter?.();
-            devLog.log('워크플로우 로드 전 뷰포트 위치:', currentViewport);
+            // 워크플로우 데이터 구조 로깅
+            devLog.log('로드할 워크플로우 데이터:', {
+                workflow_name: workflowData.workflow_name,
+                workflow_id: workflowData.workflow_id,
+                view: workflowData.view,
+                nodes_count: workflowData.nodes?.length || 0,
+                edges_count: workflowData.edges?.length || 0
+            });
             
-            // Canvas에 워크플로우 데이터 로드 (뷰포트 위치 유지)
-            (canvasRef.current as any).loadCanvasStateWithoutView(workflowData);
+            // 노드 위치 정보 로깅
+            if (workflowData.nodes && workflowData.nodes.length > 0) {
+                const nodePositions = workflowData.nodes.map((node: any) => ({
+                    id: node.id,
+                    name: node.data?.nodeName || 'Unknown',
+                    position: node.position
+                }));
+                devLog.log('생성된 노드 위치 정보:', nodePositions);
+            }
+            
+            // Canvas에 워크플로우 데이터 로드 (뷰포트 포함)
+            (canvasRef.current as any).loadCanvasState(workflowData);
             
             // 워크플로우 이름 설정
             setCurrentWorkflowName(workflowData.workflow_name || 'Generated_Workflow');
@@ -609,7 +624,6 @@ function CanvasPageContent() {
             clearHistory();
             
             devLog.log('자동생성된 워크플로우 로드 완료:', workflowData.workflow_name);
-            devLog.log('뷰포트 위치 유지됨:', (canvasRef.current as any).getCurrentViewportCenter?.());
             
         } catch (error) {
             devLog.error('워크플로우 로드 실패:', error);
@@ -1055,7 +1069,12 @@ function CanvasPageContent() {
                 isOpen={isAutoWorkflowSidebarOpen}
                 onClose={() => setIsAutoWorkflowSidebarOpen(false)}
                 onLoadWorkflow={handleLoadGeneratedWorkflow}
-                getCurrentViewportCenter={() => canvasRef.current?.getCurrentViewportCenter?.() || { x: 0, y: 0 }}
+                getCanvasState={() => {
+                    if (canvasRef.current) {
+                        return (canvasRef.current as any).getCanvasState();
+                    }
+                    return null;
+                }}
             />
             <HistoryPanel
                 history={history}

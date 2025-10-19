@@ -689,26 +689,6 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         updateNodeParameter: (nodeId: string, paramId: string, value: string | number | boolean, skipHistory?: boolean): void => {
             updateNodeParameter(nodeId, paramId, value, skipHistory);
         },
-        getCurrentViewportCenter: (): { x: number; y: number } => {
-            const container = containerRef.current;
-            if (!container) return { x: 0, y: 0 };
-            
-            const containerWidth = container.clientWidth;
-            const containerHeight = container.clientHeight;
-            
-            // 현재 사용자가 보고 있는 뷰포트의 중심을 월드 좌표로 변환
-            // view.x, view.y는 현재 뷰포트의 오프셋이고, view.scale은 줌 레벨
-            const viewportCenterX = (containerWidth / 2 - view.x) / view.scale;
-            const viewportCenterY = (containerHeight / 2 - view.y) / view.scale;
-            
-            console.log('Current viewport info:', {
-                containerSize: { width: containerWidth, height: containerHeight },
-                view: view,
-                calculatedCenter: { x: viewportCenterX, y: viewportCenterY }
-            });
-            
-            return { x: viewportCenterX, y: viewportCenterY };
-        }
     }));
 
     // Event listeners setup

@@ -36,15 +36,14 @@ export const getAgentNodeInfo = async (agentNodeId) => {
 // 이제 백엔드에서 처리하므로 프론트엔드 로직은 간소화됨
 
 /**
- * 워크플로우 자동생성 (사용자 요구사항 기반)
+ * 워크플로우 자동생성 (사용자 요구사항 기반) - 로드용
  * @param {Object} generationRequest - 생성 요청 데이터
  * @param {string} generationRequest.agent_node_id - Agent 노드 ID
  * @param {string} generationRequest.user_requirements - 사용자 요구사항
- * @param {string} generationRequest.workflow_name - 워크플로우 이름
- * @param {number} generationRequest.viewport_center_x - 뷰포트 중심 X 좌표
- * @param {number} generationRequest.viewport_center_y - 뷰포트 중심 Y 좌표
+ * @param {string} generationRequest.workflow_name - 워크플로우 이름 (선택사항)
+ * @param {string} generationRequest.selected_model - 선택된 모델 (선택사항)
  * @param {Object} generationRequest.context - 추가 컨텍스트
- * @returns {Promise<Object>} 생성된 워크플로우 데이터
+ * @returns {Promise<Object>} 생성된 워크플로우 데이터 (저장되지 않음, 로드용)
  */
 export const generateWorkflowWithAI = async (generationRequest) => {
     try {
@@ -63,8 +62,7 @@ export const generateWorkflowWithAI = async (generationRequest) => {
                 agent_node_id: generationRequest.agent_node_id,
                 user_requirements: generationRequest.user_requirements,
                 workflow_name: generationRequest.workflow_name,
-                viewport_center_x: generationRequest.viewport_center_x,
-                viewport_center_y: generationRequest.viewport_center_y,
+                selected_model: generationRequest.selected_model,
                 context: generationRequest.context || {}
             }),
         });
@@ -77,8 +75,6 @@ export const generateWorkflowWithAI = async (generationRequest) => {
 
         devLog.log('=== 백엔드 워크플로우 자동생성 성공 ===');
         devLog.log('생성 결과:', result);
-        devLog.log('워크플로우 이름:', result.workflow_name);
-        devLog.log('워크플로우 ID:', result.workflow_id);
         devLog.log('생성된 노드 수:', result.generated_nodes_count);
         devLog.log('생성된 엣지 수:', result.generated_edges_count);
         devLog.log('성공 메시지:', result.message);
@@ -87,8 +83,7 @@ export const generateWorkflowWithAI = async (generationRequest) => {
             success: result.success,
             message: result.message,
             workflow_data: result.workflow_data,
-            workflow_id: result.workflow_id,
-            workflow_name: result.workflow_name,
+            workflow_name: result.workflow_name, // 백엔드에서 생성된/지정된 워크플로우 이름 전달
             generated_nodes_count: result.generated_nodes_count,
             generated_edges_count: result.generated_edges_count
         };
@@ -98,35 +93,6 @@ export const generateWorkflowWithAI = async (generationRequest) => {
     }
 };
 
-/**
- * 생성된 워크플로우 로드
- * @param {string} workflowId - 워크플로우 ID
- * @returns {Promise<Object>} 워크플로우 데이터
- */
-export const loadGeneratedWorkflow = async (workflowId) => {
-    try {
-        devLog.log('생성된 워크플로우 로드:', workflowId);
-        
-        const response = await apiClient(`${API_BASE_URL}/api/workflow/auto-generation/load/${workflowId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.detail || `HTTP error! status: ${response.status}`);
-        }
-
-        devLog.log('생성된 워크플로우 로드 성공:', result);
-        return result;
-    } catch (error) {
-        devLog.error('생성된 워크플로우 로드 실패:', error);
-        throw error;
-    }
-};
 
 /**
  * 사용 가능한 Agent 노드 목록 조회
