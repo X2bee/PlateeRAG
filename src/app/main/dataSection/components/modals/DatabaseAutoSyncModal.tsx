@@ -188,49 +188,49 @@ const DatabaseAutoSyncModal: React.FC<DatabaseAutoSyncModalProps> = ({
 
     // 쿼리 유효성 검증
     const handleValidateQuery = async () => {
-        if (!syncConfig.query || syncConfig.query.trim() === '') {
-            showErrorToastKo('SQL 쿼리를 입력해주세요.');
-            return;
-        }
-
-        if (!connectionStatus?.success) {
-            showErrorToastKo('먼저 DB 연결을 테스트해주세요.');
-            return;
-        }
-
-        setQueryValidating(true);
-        setQueryValidationStatus(null);
-
-        try {
-            const result = await validateSqlQuery(dbConfig, null, syncConfig.query) as any;
-
-            if (result.valid) {
-                setQueryValidationStatus({
-                    validated: true,
-                    valid: true,
-                    message: `쿼리가 유효합니다! (예상 ${result.row_count || 0}개 행)`
-                });
-                showSuccessToastKo('쿼리가 유효합니다!');
-            } else {
+            if (!syncConfig.query || syncConfig.query.trim() === '') {
+                showErrorToastKo('SQL 쿼리를 입력해주세요.');
+                return;
+            }
+    
+            if (!connectionStatus?.success) {
+                showErrorToastKo('먼저 DB 연결을 테스트해주세요.');
+                return;
+            }
+    
+            setQueryValidating(true);
+            setQueryValidationStatus(null);
+    
+            try {
+                const result = await validateSqlQuery(dbConfig as any, null, syncConfig.query) as any;
+    
+                if (result.valid) {
+                    setQueryValidationStatus({
+                        validated: true,
+                        valid: true,
+                        message: `쿼리가 유효합니다! (예상 ${result.row_count || 0}개 행)`
+                    });
+                    showSuccessToastKo('쿼리가 유효합니다!');
+                } else {
+                    setQueryValidationStatus({
+                        validated: true,
+                        valid: false,
+                        message: result.error || '쿼리가 유효하지 않습니다.'
+                    });
+                    showErrorToastKo(result.error || '쿼리가 유효하지 않습니다.');
+                }
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
                 setQueryValidationStatus({
                     validated: true,
                     valid: false,
-                    message: result.error || '쿼리가 유효하지 않습니다.'
+                    message: errorMessage
                 });
-                showErrorToastKo(result.error || '쿼리가 유효하지 않습니다.');
+                showErrorToastKo(`쿼리 검증 실패: ${errorMessage}`);
+            } finally {
+                setQueryValidating(false);
             }
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-            setQueryValidationStatus({
-                validated: true,
-                valid: false,
-                message: errorMessage
-            });
-            showErrorToastKo(`쿼리 검증 실패: ${errorMessage}`);
-        } finally {
-            setQueryValidating(false);
-        }
-    };
+        };
 
     const resetModal = () => {
         setStep('config');
@@ -348,13 +348,13 @@ const DatabaseAutoSyncModal: React.FC<DatabaseAutoSyncModalProps> = ({
                 const loadMode = syncConfig.query ? 'query' : 'table';
                 const loadResult = await loadDatasetFromDatabase(
                     managerId,
-                    dbConfig,
+                    dbConfig as any,
                     null, // connectionUrl
                     loadMode,
-                    syncConfig.table_name || null,
-                    syncConfig.query || null,
-                    syncConfig.schema_name || null,
-                    syncConfig.chunk_size || null
+                    syncConfig.table_name || undefined,
+                    syncConfig.query || undefined,
+                    syncConfig.schema_name || undefined,
+                    syncConfig.chunk_size || undefined
                 ) as any;
 
                 if (loadResult.success) {
