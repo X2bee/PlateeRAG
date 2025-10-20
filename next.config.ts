@@ -18,12 +18,8 @@ const nextConfig: NextConfig = {
         }
         return [
             {
-                source: '/api/workflow/execute/based_id',
-                destination: `${BASE_URL}/api/workflow/execute/based_id`,
-            },
-            {
-                source: '/api/workflow/deploy/execute/based_id',
-                destination: `${BASE_URL}/api/workflow/deploy/execute/based_id`,
+                source: '/api/:path*',
+                destination: `${BASE_URL}/api/:path*`,
             },
         ];
     },

@@ -27,14 +27,13 @@ ARG NEXT_PUBLIC_BACKEND_HOST=http://localhost
 ARG NEXT_PUBLIC_BACKEND_PORT=8000
 ARG NEXT_PUBLIC_METRICS_HOST
 RUN if [ "${BUILD_ENV}" = "dev" ]; then \
-        BACKEND_HOST="https://k3s-api.x2bee.com"; \
-        BACKEND_PORT=""; \
+        echo "NEXT_PUBLIC_USE_PROXY=true" > .env; \
+        echo "NEXT_PUBLIC_BACKEND_HOST=http://k3s-api.x2bee.com" >> .env; \
     else \
-        BACKEND_HOST="${NEXT_PUBLIC_BACKEND_HOST}"; \
-        BACKEND_PORT="${NEXT_PUBLIC_BACKEND_PORT}"; \
+        echo "NEXT_PUBLIC_USE_PROXY=false" > .env; \
+        echo "NEXT_PUBLIC_BACKEND_HOST=${NEXT_PUBLIC_BACKEND_HOST}" >> .env; \
+        if [ -n "${NEXT_PUBLIC_BACKEND_PORT}" ]; then echo "NEXT_PUBLIC_BACKEND_PORT=${NEXT_PUBLIC_BACKEND_PORT}" >> .env; fi; \
     fi && \
-    echo "NEXT_PUBLIC_BACKEND_HOST=${BACKEND_HOST}" > .env && \
-    if [ -n "${BACKEND_PORT}" ]; then echo "NEXT_PUBLIC_BACKEND_PORT=${BACKEND_PORT}" >> .env; fi && \
     if [ -n "${NEXT_PUBLIC_METRICS_HOST}" ]; then echo "NEXT_PUBLIC_METRICS_HOST=${NEXT_PUBLIC_METRICS_HOST}" >> .env; fi
 
 # Install esbuild for Alpine specifically and build
