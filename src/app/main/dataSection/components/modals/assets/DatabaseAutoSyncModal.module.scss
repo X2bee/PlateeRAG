@@ -1,0 +1,671 @@
+.modalOverlay {
+    position: fixed;
+    inset: 0; /* top:0; right:0; bottom:0; left:0; */
+    background: rgba(0, 0, 0, 0.6); /* 조금 더 어둡게 해 가독성 확보 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 1rem; /* 모바일에서 가장자리 여백 확보 */
+    -webkit-overflow-scrolling: touch;
+  }
+  
+.modalContent {
+    background: #ffffff !important;  /* 명시적으로 흰색 배경 강제 */
+    background-color: #ffffff !important;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 700px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color, #e5e7eb);
+  
+    .headerTitle {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+  
+      svg {
+        font-size: 1.5rem;
+        color: var(--primary-color, #2563eb);
+      }
+  
+      h2 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary, #111827);
+      }
+    }
+  
+    .closeButton {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s;
+  
+      svg {
+        font-size: 1.25rem;
+        color: var(--text-secondary, #6b7280);
+      }
+  
+      &:hover {
+        background: var(--hover-bg, #f3f4f6);
+      }
+    }
+  }
+  
+
+.warningBanner {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: rgba(255, 193, 7, 0.08);
+    border-bottom: 1px solid rgba(255, 193, 7, 0.18);
+  
+    svg { font-size: 1.25rem; color: #ffc107; flex-shrink: 0; margin-top: 0.25rem; }
+    strong { display: block; margin-bottom: 0.25rem; color: #ffc107; }
+    p { margin: 0; font-size: 0.875rem; color: var(--text-secondary, #6b7280); }
+  }
+
+.progressBar {
+  display: flex;
+  align-items: center;
+  padding: 1.25rem 1.25rem 1rem;
+  gap: 0.5rem;
+
+  .progressStep {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+
+    .stepNumber {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-secondary, #ffffff);
+      border: 2px solid var(--border-color, #e5e7eb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--text-secondary, #6b7280);
+      transition: all 0.25s;
+    }
+
+    .stepLabel {
+      font-size: 0.75rem;
+      color: var(--text-secondary, #6b7280);
+      text-align: center;
+      transition: color 0.25s;
+    }
+
+    &.active {
+      .stepNumber { background: var(--primary-color, #2563eb); border-color: var(--primary-color, #2563eb); color: #fff; }
+      .stepLabel { color: var(--primary-color, #2563eb); font-weight: 600; }
+    }
+
+    &.completed {
+      .stepNumber { background: var(--success-color, #10b981); border-color: var(--success-color, #10b981); color: #fff; }
+      .stepLabel { color: var(--success-color, #10b981); }
+    }
+  }
+
+  .progressLine {
+    flex: 1;
+    height: 2px;
+    background: var(--border-color, #e5e7eb);
+    margin: 0 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.modalBody {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    background: #ffffff !important;  /* 여기도 명시적으로 */
+}
+
+  
+.configStep,
+.scheduleStep,
+.reviewStep { display: flex; flex-direction: column; gap: 1rem; }
+
+.savedConfigsToggle {
+    padding: 0.75rem 1rem;
+    background: var(--bg-secondary, #f8fafc);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--primary-color, #2563eb);
+    transition: all 0.2s;
+    &:hover { background: var(--hover-bg, #f1f5f9); }
+}
+
+.savedConfigsList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+
+    .savedConfigItem {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem;
+        background: var(--bg-primary);
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+
+        .configInfo {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+
+            strong {
+                font-size: 0.875rem;
+            }
+
+            span {
+                font-size: 0.75rem;
+                color: var(--text-secondary);
+            }
+        }
+
+        .loadButton {
+            padding: 0.5rem 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: opacity 0.2s;
+
+            &:hover {
+                opacity: 0.9;
+            }
+        }
+    }
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-primary);
+
+        .required {
+            color: var(--error-color);
+            margin-left: 0.25rem;
+        }
+    }
+
+    .input,
+    .select,
+    .textarea {
+        padding: 0.75rem;
+        background: var(--bg-secondary);  // 배경은 그대로 유지
+        border: 1px solid var(--border-color);  // 테두리도 그대로
+        border-radius: 8px;
+        font-size: 0.875rem;
+        color: var(--text-primary);
+        transition: all 0.2s;
+
+        &:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+        }
+
+        &::placeholder {
+            color: #9ca3af !important;  // placeholder만 옅은 회색
+            opacity: 1;
+        }
+    }
+
+    .textarea {
+        resize: vertical;
+        min-height: 80px;
+        font-family: 'Courier New', monospace;
+    }
+
+    .hint {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-top: -0.25rem;
+    }
+}
+
+.formRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.radioGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    .radioLabel {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        input[type="radio"] {
+            cursor: pointer;
+        }
+
+        svg {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+        }
+
+        span {
+            flex: 1;
+            font-size: 0.875rem;
+        }
+
+        &:has(input:checked) {
+            background: rgba(var(--primary-rgb), 0.1);
+            border-color: var(--primary-color);
+        }
+
+        &:hover {
+            border-color: var(--primary-color);
+        }
+    }
+}
+
+.divider {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    position: relative;
+    margin: 0.5rem 0;
+
+    &::before,
+    &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: calc(50% - 30px);
+        height: 1px;
+        background: var(--border-color);
+    }
+
+    &::before {
+        left: 0;
+    }
+
+    &::after {
+        right: 0;
+    }
+}
+
+.cronExamples {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    margin-top: 0.5rem;
+
+    strong {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.25rem;
+    }
+
+    .cronExampleButton {
+        padding: 0.5rem 0.75rem;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        text-align: left;
+        transition: all 0.2s;
+        display: flex;
+        gap: 0.5rem;
+
+        code {
+            color: var(--primary-color);
+            background: rgba(var(--primary-rgb), 0.1);
+            padding: 0.125rem 0.375rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            margin-left: auto;
+        }
+
+        &:hover {
+            background: var(--hover-bg);
+            border-color: var(--primary-color);
+        }
+    }
+}
+
+.optionsGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+
+    .checkboxLabel {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+
+        input[type="checkbox"] {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+
+        span {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+    }
+}
+
+.reviewStep {
+    h3 {
+        margin: 0 0 1.5rem 0;
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+
+    .reviewSection {
+        padding: 1rem;
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+
+        h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0 0 1rem 0;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--primary-color);
+
+            svg {
+                font-size: 1rem;
+            }
+        }
+
+        .reviewItem {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+
+            &:last-child {
+                border-bottom: none;
+                padding-bottom: 0;
+            }
+
+            span {
+                font-size: 0.875rem;
+                color: var(--text-secondary);
+            }
+
+            strong {
+                font-size: 0.875rem;
+                color: var(--text-primary);
+                text-align: right;
+                max-width: 60%;
+                word-break: break-word;
+            }
+        }
+    }
+}
+
+.modalFooter {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-color, #e5e7eb);
+    justify-content: flex-end;  // 추가: 버튼들을 오른쪽 정렬
+    align-items: center;  // 추가: 수직 중앙 정렬
+
+    button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: none;
+        white-space: nowrap;  // 추가: 텍스트 줄바꿈 방지
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+
+    .backButton {
+        background: #f3f4f6;  // 명시적 색상
+        color: #111827;
+        border: 1px solid #e5e7eb;
+        margin-right: auto;  // 왼쪽에 고정
+
+        &:hover:not(:disabled) {
+            background: #e5e7eb;
+        }
+    }
+
+    .cancelButton {
+        background: #f3f4f6;  // 명시적 색상
+        color: #111827;
+        border: 1px solid #e5e7eb;
+
+        &:hover:not(:disabled) {
+            background: #e5e7eb;
+        }
+    }
+
+    .nextButton,
+    .submitButton {
+        background: #2563eb !important;  // 명시적 파란색
+        color: white !important;
+        border: none !important;
+        // margin-left: auto; 제거!
+
+        &:hover:not(:disabled) {
+            background: #1d4ed8 !important;
+            opacity: 1;
+        }
+    }
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// 연결 테스트 버튼
+.testConnectionButton {
+    padding: 0.75rem 1rem;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+    width: 100%;
+
+    &:hover:not(:disabled) {
+        background: #059669;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    svg {
+        font-size: 1rem;
+    }
+}
+
+// 연결 성공 메시지
+.connectionSuccess {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 8px;
+    color: #059669;
+    font-size: 0.875rem;
+    margin-top: 0.75rem;
+    animation: slideIn 0.3s ease-out;
+
+    svg {
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    span {
+        flex: 1;
+        font-weight: 500;
+    }
+}
+
+// 연결 실패 메시지
+.connectionError {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.75rem;
+    animation: slideIn 0.3s ease-out;
+
+    svg {
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    span {
+        flex: 1;
+        font-weight: 500;
+    }
+}
+
+// 슬라이드 인 애니메이션
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// 기존 스타일에 추가
+
+.validateQueryButton {
+    margin-top: 8px;
+    padding: 8px 16px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+        background: #2563eb;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .spinning {
+        animation: spin 1s linear infinite;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

@@ -17,3 +17,4 @@ export { MLflowUploadModal } from './MLflowUploadModal';
 export { default as VersionHistoryModal } from './VersionHistoryModal'; // 추가
 export { default as DatasetVersionSwitchModal } from './DatasetVersionSwitchModal'; // 추가
 export { default as DatabaseConnectionModal } from './DatabaseConnectionModal';
+export { default as DatabaseAutoSyncModal } from './DatabaseAutoSyncModal';
