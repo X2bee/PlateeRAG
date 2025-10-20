@@ -688,7 +688,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         },
         updateNodeParameter: (nodeId: string, paramId: string, value: string | number | boolean, skipHistory?: boolean): void => {
             updateNodeParameter(nodeId, paramId, value, skipHistory);
-        }
+        },
     }));
 
     // Event listeners setup

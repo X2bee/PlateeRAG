@@ -11,13 +11,13 @@ import {
     IoChevronBack,
     IoWaterOutline,
     IoGitBranch,
-    IoServer
+    IoServer,
+    IoRefresh
 } from 'react-icons/io5';
 import { MdDataset } from 'react-icons/md';
 import { showErrorToastKo, showSuccessToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { removeDataset, uploadLocalDataset, exportDatasetAsCSV, exportDatasetAsParquet, getDatasetStatistics, removeNullRows } from '@/app/_common/api/dataManagerAPI';
 import styles from '@/app/main/dataSection/assets/DataProcessorSidebar.module.scss';
-import { DatabaseConnectionModal } from './modals';
 
 interface DataTableInfo {
     success: boolean;
@@ -58,10 +58,11 @@ interface DataProcessorSidebarProps {
     onDatasetCallbackModal?: () => void;
     onVersionHistoryModal?: () => void;  // 추가
     onDatabaseLoadModal?: () => void;  // 추가
+    onDatabaseAutoSyncModal?: () => void;  // 추가
 }
 
 type CategoryType = 'load' | 'analyze' | 'edit' | 'save';
-type ActionType = 'huggingface' | 'file-upload' | 'basic-stats' | 'edit-columns' | 'add-columns' | 'drop-columns' | 'clean-data' | 'export-csv' | 'export-parquet' | 'change-column-data' | 'column-operation' | 'remove-all-null-rows' | 'remove-specific-column-null-rows' | 'copy-specific-column' | 'column-format-string' | 'column-calculation' | 'upload-to-huggingface' | 'upload-to-mlflow' | 'rename-column' | 'dataset-callback' | 'version-history' | 'database-load' | null;
+type ActionType = 'huggingface' | 'file-upload' | 'basic-stats' | 'edit-columns' | 'add-columns' | 'drop-columns' | 'clean-data' | 'export-csv' | 'export-parquet' | 'change-column-data' | 'column-operation' | 'remove-all-null-rows' | 'remove-specific-column-null-rows' | 'copy-specific-column' | 'column-format-string' | 'column-calculation' | 'upload-to-huggingface' | 'upload-to-mlflow' | 'rename-column' | 'dataset-callback' | 'version-history' | 'database-load' | 'database-auto-sync' | null;
 
 const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
     managerId,
@@ -84,6 +85,7 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
     onDatasetCallbackModal,
     onVersionHistoryModal,  // 추가
     onDatabaseLoadModal,  // 추가
+    onDatabaseAutoSyncModal,
 }) => {
     const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null);
     const [selectedAction, setSelectedAction] = useState<ActionType>(null);
@@ -134,10 +136,16 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
                         description: '로컬 파일에서 데이터셋 업로드'
                     },
                     {
-                        id: 'database-load' as ActionType,  // 추가
+                        id: 'database-load' as ActionType,
                         title: '데이터베이스에서 로드',
-                        icon: IoServer,  // react-icons/io5에서 import 필요
+                        icon: IoServer,
                         description: 'PostgreSQL, MySQL, SQLite 등에서 데이터 가져오기'
+                    },
+                    {
+                        id: 'database-auto-sync' as ActionType,  // ✨ 추가
+                        title: 'DB 자동 동기화 설정',
+                        icon: IoRefresh,  // react-icons/io5에서 import 필요
+                        description: '주기적으로 데이터베이스에서 자동으로 데이터 가져오기'
                     }
                 ];
             case 'analyze':
@@ -678,6 +686,11 @@ const DataProcessorSidebar: React.FC<DataProcessorSidebarProps> = ({
             case 'database-load':  // 추가
                 if (onDatabaseLoadModal) {
                     onDatabaseLoadModal();
+                }
+                break;
+            case 'database-auto-sync':  // ✨ 추가
+                if (onDatabaseAutoSyncModal) {
+                    onDatabaseAutoSyncModal();
                 }
                 break;
             default:

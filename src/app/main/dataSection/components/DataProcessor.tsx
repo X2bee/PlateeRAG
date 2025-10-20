@@ -1,15 +1,47 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import {
-    IoArrowBack,
-    IoRefresh,
-    IoLayers,
+IoArrowBack,
+IoRefresh,
+IoLayers,
 } from 'react-icons/io5';
 import { MdOutlineMore } from "react-icons/md";
-import { ColumnInfoModal, DatasetVersionSwitchModal,  DownloadDialog,DatabaseConnectionModal, StatisticsModal, ColumnDeleteModal, ColumnValueReplaceModal, ColumnOperationModal, SpecificColumnNullRemoveModal, HuggingFaceUploadModal, MLflowUploadModal, ColumnCopyModal, ColumnRenameModal, ColumnFormatModal, ColumnCalculationModal, DatasetCallbackModal, VersionHistoryModal } from './modals';
+import {
+ColumnInfoModal,
+DatasetVersionSwitchModal,
+DownloadDialog,
+DatabaseConnectionModal,
+StatisticsModal,
+DatabaseAutoSyncModal,
+ColumnDeleteModal,
+ColumnValueReplaceModal,
+ColumnOperationModal,
+SpecificColumnNullRemoveModal,
+HuggingFaceUploadModal,
+MLflowUploadModal,
+ColumnCopyModal,
+ColumnRenameModal,
+ColumnFormatModal,
+ColumnCalculationModal,
+DatasetCallbackModal,
+VersionHistoryModal
+} from './modals';
 import DataProcessorSidebar from './DataProcessorSidebar';
-import { downloadDataset, getDatasetSample, dropDatasetColumns, replaceColumnValues, applyColumnOperation, removeNullRows, uploadToHuggingFace, uploadToMLflow, copyDatasetColumn, renameDatasetColumn, formatDatasetColumns, calculateDatasetColumns, executeDatasetCallback } from '@/app/_common/api/dataManagerAPI';
+import {
+downloadDataset,
+getDatasetSample,
+dropDatasetColumns,
+replaceColumnValues,
+applyColumnOperation,
+removeNullRows,
+uploadToHuggingFace,
+uploadToMLflow,
+copyDatasetColumn,
+renameDatasetColumn,
+formatDatasetColumns,
+calculateDatasetColumns,
+executeDatasetCallback
+} from '@/app/_common/api/dataManagerAPI';
 import { showSuccessToastKo, showErrorToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/main/dataSection/assets/DataProcessor.module.scss';
 
@@ -17,11 +49,11 @@ interface DataProcessorProps {
     managerId: string;
     userId: string;
     onBack: () => void;
-}
+    }
 
 interface DataTableRow {
     [key: string]: any;
-}
+    }
 
 interface DataTableInfo {
     success: boolean;
@@ -32,29 +64,29 @@ interface DataTableInfo {
     columns: string[];
     column_info: string | object;
     sampled_at: string;
-}
+    }
 
 interface DownloadDialogState {
     isOpen: boolean;
     repoId: string;
     filename: string;
     split: string;
-}
+    }
 
 const DataProcessor: React.FC<DataProcessorProps> = ({
     managerId,
     userId,
     onBack
-}) => {
+    }) => {
     const [dataTableInfo, setDataTableInfo] = useState<DataTableInfo | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [columnInfoModalOpen, setColumnInfoModalOpen] = useState(false);
     const [downloadDialog, setDownloadDialog] = useState<DownloadDialogState>({
-        isOpen: false,
-        repoId: '',
-        filename: '',
-        split: ''
+    isOpen: false,
+    repoId: '',
+    filename: '',
+    split: ''
     });
     const [downloading, setDownloading] = useState(false);
     const [statisticsModalOpen, setStatisticsModalOpen] = useState(false);
@@ -73,14 +105,15 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
     const [mlflowUploadModalOpen, setMlflowUploadModalOpen] = useState(false);
     const [versionHistoryModalOpen, setVersionHistoryModalOpen] = useState(false);
     const [datasetLoadInfo, setDatasetLoadInfo] = useState<{
-        load_count: number;
-        dataset_id: string;
-        is_new_version: boolean;
+    load_count: number;
+    dataset_id: string;
+    is_new_version: boolean;
     } | null>(null);
     const [versionSwitchModalOpen, setVersionSwitchModalOpen] = useState(false);
     const [databaseLoadModalOpen, setDatabaseLoadModalOpen] = useState(false);
+    const [databaseAutoSyncModalOpen, setDatabaseAutoSyncModalOpen] = useState(false);
 
-    // 데이터 로드
+        // 데이터 로드
     useEffect(() => {
         loadDataTableInfo();
     }, [managerId, userId]);
@@ -103,7 +136,6 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
             setLoading(false);
         }
     };
-
 
     const handleStatisticsModal = (statistics: any, loading: boolean) => {
         setStatisticsData(statistics);
@@ -158,6 +190,18 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
         loadDataTableInfo(); // 데이터 다시 로드
     };
 
+    // ✨ DB 자동 동기화 핸들러 추가
+    const handleOpenDatabaseAutoSyncModal = () => {
+        setDatabaseAutoSyncModalOpen(true);
+    };
+
+    const handleCloseDatabaseAutoSyncModal = () => {
+        setDatabaseAutoSyncModalOpen(false);
+    };
+
+    const handleDatabaseAutoSyncSuccess = () => {
+        loadDataTableInfo(); // 데이터 다시 로드
+    };
 
     const handleReplaceColumnValues = async (columnName: string, oldValue: string, newValue: string) => {
         try {
@@ -206,14 +250,14 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
     const handleUploadToMLflow = async (experimentName: string, datasetName: string, options: any) => {
         try {
             showSuccessToastKo('MLflow에 데이터셋을 업로드하는 중...');
-    
+
             const result = await uploadToMLflow(
                 managerId,
                 experimentName,
                 datasetName,
                 options
             ) as any;
-    
+
             if (result.success) {
                 showSuccessToastKo(
                     `데이터셋이 MLflow에 성공적으로 업로드되었습니다!\n` +
@@ -444,16 +488,16 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
     const handleOpenVersionHistoryModal = () => {
         setVersionHistoryModalOpen(true);
     };
-    
+
     const handleCloseVersionHistoryModal = () => {
         setVersionHistoryModalOpen(false);
     };
-    
+
     const handleVersionRollback = () => {
         // 롤백 후 데이터 다시 로드
         loadDataTableInfo();
     };
-    
+
     const handleDropColumn = async (columnName: string) => {
         showDeleteConfirmToastKo({
             title: '컬럼 삭제',
@@ -487,7 +531,7 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
             showErrorToastKo('Repository ID를 입력해주세요.');
             return;
         }
-    
+
         setDownloading(true);
         try {
             const result = await downloadDataset(
@@ -496,7 +540,7 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                 downloadDialog.filename.trim() || undefined,
                 downloadDialog.split.trim() || undefined
             ) as any;
-    
+
             // 버전 정보 포함된 성공 메시지
             if (result.version_info) {
                 const versionMsg = result.version_info.is_new_version 
@@ -591,7 +635,6 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
             </div>
 
             <div className={styles.content}>
-
                 {/* 가운데 - Data Table 샘플 보기 영역 */}
                 <div className={styles.dataSection}>
                     <div className={styles.dataCard}>
@@ -641,6 +684,7 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                                                             onClick={() => handleDropColumn(column)}
                                                             className={styles.dropButton}
                                                             title={`'${column}' 컬럼 삭제`}
+                                                            aria-label={`Delete column ${column}`}
                                                         >
                                                             ×
                                                         </button>
@@ -654,7 +698,7 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                                             <tr key={index}>
                                                 {dataTableInfo.columns.map((column, colIndex) => (
                                                     <td key={colIndex}>
-                                                        {String(row[column] || '')}
+                                                        {String(row[column] ?? '')}
                                                     </td>
                                                 ))}
                                             </tr>
@@ -680,14 +724,15 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                     onColumnOperationModal={handleOpenColumnOperationModal}
                     onSpecificColumnNullRemoveModal={handleOpenSpecificColumnNullRemoveModal}
                     onHuggingFaceUploadModal={() => setHuggingFaceUploadModalOpen(true)}
-                    onMLflowUploadModal={() => setMlflowUploadModalOpen(true)}  // 새로 추가
-                    onVersionHistoryModal={handleOpenVersionHistoryModal}  // 추가
+                    onMLflowUploadModal={() => setMlflowUploadModalOpen(true)}
+                    onVersionHistoryModal={handleOpenVersionHistoryModal}
                     onColumnCopyModal={handleOpenColumnCopyModal}
                     onColumnRenameModal={handleOpenColumnRenameModal}
                     onColumnFormatModal={handleOpenColumnFormatModal}
                     onColumnCalculationModal={handleOpenColumnCalculationModal}
                     onDatasetCallbackModal={handleOpenDatasetCallbackModal}
-                    onDatabaseLoadModal={handleOpenDatabaseLoadModal}  // 추가
+                    onDatabaseLoadModal={handleOpenDatabaseLoadModal}
+                    onDatabaseAutoSyncModal={handleOpenDatabaseAutoSyncModal}  // ✨ 추가
                 />
             </div>
 
@@ -794,6 +839,13 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                 managerId={managerId}
                 onClose={handleCloseDatabaseLoadModal}
                 onLoadSuccess={handleDatabaseLoadSuccess}
+            />
+            {/* ✨ DB 자동 동기화 모달 추가 */}
+            <DatabaseAutoSyncModal
+                isOpen={databaseAutoSyncModalOpen}
+                managerId={managerId}
+                onClose={handleCloseDatabaseAutoSyncModal}
+                onSuccess={handleDatabaseAutoSyncSuccess}
             />
         </div>
     );

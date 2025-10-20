@@ -2347,3 +2347,261 @@ export const formatDatabaseConnectionString = (dbConfig) => {
 
     return `${dbConfig.db_type}://${username}@${host}:${port}/${dbConfig.database}`;
 };
+
+/**
+
+DB 자동 동기화 추가
+@param {string} managerId - Manager ID
+@param {Object} dbConfig - DB 연결 설정
+@param {Object} syncConfig - 동기화 설정
+@returns {Promise<Object>} 동기화 추가 결과
+*/
+export const addDBAutoSync = async (managerId, dbConfig, syncConfig) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/sync/add`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                manager_id: managerId,
+                db_config: dbConfig,
+                sync_config: syncConfig,
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `DB 자동 동기화 추가 실패: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('DB auto-sync added successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to add DB auto-sync:', error);
+        throw error;
+    }
+};
+    
+/**
+
+DB 자동 동기화 제거
+@param {string} managerId - Manager ID
+@returns {Promise<Object>} 제거 결과
+*/
+export const removeDBAutoSync = async (managerId) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/sync/remove`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                manager_id: managerId
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || 'DB 자동 동기화 제거 실패');
+        }
+
+        const data = await response.json();
+        devLog.info('DB auto-sync removed successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to remove DB auto-sync:', error);
+        throw error;
+    }
+};
+
+    
+/**
+
+DB 자동 동기화 일시 중지
+@param {string} managerId - Manager ID
+@returns {Promise<Object>} 일시 중지 결과
+*/
+export const pauseDBAutoSync = async (managerId) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/sync/pause`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                manager_id: managerId
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || 'DB 자동 동기화 일시 중지 실패');
+        }
+
+        const data = await response.json();
+        devLog.info('DB auto-sync paused successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to pause DB auto-sync:', error);
+        throw error;
+    }
+};
+
+    
+/**
+
+DB 자동 동기화 재개
+@param {string} managerId - Manager ID
+@returns {Promise<Object>} 재개 결과
+*/
+export const resumeDBAutoSync = async (managerId) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/sync/resume`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                manager_id: managerId
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || 'DB 자동 동기화 재개 실패');
+        }
+
+        const data = await response.json();
+        devLog.info('DB auto-sync resumed successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to resume DB auto-sync:', error);
+        throw error;
+    }
+};
+
+    
+/**
+
+DB 동기화 상태 조회
+@param {string} managerId - Manager ID
+@returns {Promise<Object>} 동기화 상태
+*/
+export const getDBSyncStatus = async (managerId) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/sync/status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                manager_id: managerId
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || 'DB 동기화 상태 조회 실패');
+        }
+
+        const data = await response.json();
+        devLog.info('DB sync status retrieved successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to get DB sync status:', error);
+        throw error;
+    }
+};
+
+
+/**
+
+모든 DB 동기화 목록 조회
+@returns {Promise<Object>} 동기화 목록
+*/
+export const listAllDBSyncs = async () => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/sync/list`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || 'DB 동기화 목록 조회 실패');
+        }
+
+        const data = await response.json();
+        devLog.info('DB sync list retrieved successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to list DB syncs:', error);
+        throw error;
+    }
+};
+
+/**
+
+수동으로 즉시 동기화 실행
+@param {string} managerId - Manager ID
+@returns {Promise<Object>} 동기화 실행 결과
+*/
+export const triggerManualDBSync = async (managerId) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/sync/trigger`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                manager_id: managerId
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || '수동 동기화 실행 실패');
+        }
+
+        const data = await response.json();
+        devLog.info('Manual DB sync triggered successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to trigger manual DB sync:', error);
+        throw error;
+    }
+};
+    
+/**
+
+스케줄러 상태 확인
+@returns {Promise<Object>} 스케줄러 상태
+*/
+export const getDBSyncSchedulerHealth = async () => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/sync/health`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || '스케줄러 상태 조회 실패');
+        }
+
+        const data = await response.json();
+        devLog.info('Scheduler health retrieved successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to get scheduler health:', error);
+        throw error;
+    }
+};
+
+

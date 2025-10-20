@@ -6,6 +6,7 @@ import { useParameterEditing } from '../../hooks/useParameterEditing';
 import type { NodeParametersProps } from '../../types';
 import type { Parameter } from '@/app/canvas/types';
 import { SchemaProviderParameter } from '../parameters/specialized/SchemaProviderParameter';
+import { ExpandableParameter } from '../parameters/ExpandableParameter';
 
 export const SchemaProviderNodeParameters: React.FC<NodeParametersProps> = ({
     nodeId,
@@ -21,10 +22,64 @@ export const SchemaProviderNodeParameters: React.FC<NodeParametersProps> = ({
     onOpenNodeModal,
     showAdvanced,
     onToggleAdvanced
+    , currentNodes, currentEdges
 }) => {
     const [hoveredParam, setHoveredParam] = useState<string | null>(null);
 
-    const { basicParameters, advancedParameters, hasAdvancedParams } = separateParameters(parameters);
+    // Determine connected target node (e.g., API Calling Tool) to decide visibility of body-related params
+    let methodUpper: string | null = null;
+    try {
+        if (currentEdges && currentNodes) {
+            // find any edge that connects to this SchemaProvider node and locate the other node (API node)
+            const connectedEdge = currentEdges.find((edge: any) =>
+                (edge.source?.nodeId === nodeId) || (edge.target?.nodeId === nodeId)
+            );
+
+            if (connectedEdge) {
+                let otherNodeId = null;
+                if (connectedEdge.source?.nodeId === nodeId) otherNodeId = connectedEdge.target?.nodeId;
+                else if (connectedEdge.target?.nodeId === nodeId) otherNodeId = connectedEdge.source?.nodeId;
+
+                if (otherNodeId) {
+                    const otherNode = currentNodes.find((n: any) => n.id === otherNodeId);
+                    if (otherNode && otherNode.data && otherNode.data.parameters) {
+                        const methodParam = otherNode.data.parameters.find((p: any) => (p.id && ['method', 'http_method', 'api_method'].includes(String(p.id).toLowerCase())) || (p.name && String(p.name).toLowerCase().includes('method')));
+                        if (methodParam && methodParam.value !== undefined && methodParam.value !== null) {
+                            methodUpper = String(methodParam.value).toUpperCase();
+                        }
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        // ignore
+    }
+
+    // Determine explicit body_type parameter on this SchemaProvider node (JSON or FORM)
+    const bodyTypeParam = (parameters || []).find((p: Parameter) => p.id === 'body_type');
+    const bodyTypeValue = bodyTypeParam && bodyTypeParam.value ? String(bodyTypeParam.value).toUpperCase() : null;
+
+    // Filter parameters based on methodUpper and bodyTypeValue
+    const effectiveParameters = (parameters || []).filter((p: Parameter) => {
+        // Always hide legacy 'as_form' parameter if present
+        if (p.id === 'as_form') return false;
+        // If API method is GET, hide body helpers and body type selector
+        if (methodUpper === 'GET') {
+            if (p.id === 'request_body_editor' || p.id === 'request_body_note' || p.id === 'body_type' || p.id.endsWith('_body')) return false;
+        }
+
+        // If SchemaProvider is configured for FORM body, hide JSON editor and note
+        if (bodyTypeValue === 'FORM') {
+            if (p.id === 'request_body_editor' || p.id === 'request_body_note') return false;
+        }
+
+        // If SchemaProvider is configured for JSON body, hide as_form toggle
+        // no as_form handling here; body_type drives behavior
+
+        return true;
+    });
+
+    const { basicParameters, advancedParameters, hasAdvancedParams } = separateParameters(effectiveParameters);
     const paramEditingHook = useParameterEditing();
 
     // Handle custom parameter addition for SchemaProvider
@@ -141,6 +196,40 @@ export const SchemaProviderNodeParameters: React.FC<NodeParametersProps> = ({
                         onParameterDelete={handleDeleteParameter}
                         onClearSelection={onClearSelection}
                         onOpenNodeModal={onOpenNodeModal}
+                        isPreview={isPreview}
+                    />
+                </div>
+            );
+        }
+
+        // Expandable parameter (Request Body Editor) — show expand button/modal
+        if ((param as any).expandable || param.id === 'request_body_editor') {
+            return (
+                <div key={param.id} className={`${styles.param} param`}>
+                    <span className={`${styles.paramKey} ${param.required ? styles.required : ''}`}>
+                        {param.description && param.description.trim() !== '' && (
+                            <div
+                                className={styles.infoIcon}
+                                onMouseEnter={() => setHoveredParam(param.id)}
+                                onMouseLeave={() => setHoveredParam(null)}
+                            >
+                                ?
+                                {hoveredParam === param.id && (
+                                    <div className={styles.tooltip}>
+                                        {param.description}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        {param.name}
+                    </span>
+                    <ExpandableParameter
+                        id={param.id}
+                        parameter={param}
+                        nodeId={nodeId}
+                        onParameterChange={onParameterChange}
+                        onOpenModal={onOpenNodeModal}
+                        onClearSelection={onClearSelection}
                         isPreview={isPreview}
                     />
                 </div>
