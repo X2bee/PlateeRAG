@@ -2048,7 +2048,7 @@ export const listDatabaseSchemas = async (dbConfig = null, connectionUrl = null)
 /**
  * 데이터베이스 테이블 목록 조회 (URL 지원)
  */
-export const listDatabaseTables = async (dbConfig = null, connectionUrl = null, schema = null) => {
+export const listDatabaseTables = async (dbConfig = null, connectionUrl = null, dbSchema = null) => {  // ✅ schema → dbSchema
     try {
         if (!dbConfig && !connectionUrl) {
             throw new Error('db_config 또는 connection_url 중 하나가 필요합니다.');
@@ -2062,8 +2062,8 @@ export const listDatabaseTables = async (dbConfig = null, connectionUrl = null, 
             requestBody.db_config = dbConfig;
         }
         
-        if (schema) {
-            requestBody.schema = schema;
+        if (dbSchema) {  // ✅ schema → dbSchema
+            requestBody.db_schema = dbSchema;  // ✅ API 키도 db_schema로 전송
         }
 
         const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/db/list-tables`, {
@@ -2091,7 +2091,7 @@ export const listDatabaseTables = async (dbConfig = null, connectionUrl = null, 
 /**
  * 데이터베이스 테이블 미리보기 (URL 지원)
  */
-export const previewDatabaseTable = async (dbConfig = null, connectionUrl = null, tableName, schema = null, limit = 10) => {
+export const previewDatabaseTable = async (dbConfig = null, connectionUrl = null, tableName, dbSchema = null, limit = 10) => {  // ✅ schema → dbSchema
     try {
         if (!dbConfig && !connectionUrl) {
             throw new Error('db_config 또는 connection_url 중 하나가 필요합니다.');
@@ -2111,8 +2111,8 @@ export const previewDatabaseTable = async (dbConfig = null, connectionUrl = null
             requestBody.db_config = dbConfig;
         }
         
-        if (schema) {
-            requestBody.schema = schema;
+        if (dbSchema) {  // ✅ schema → dbSchema
+            requestBody.db_schema = dbSchema;  // ✅ API 키도 db_schema로 전송
         }
 
         const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/db/preview-table`, {
@@ -2136,7 +2136,6 @@ export const previewDatabaseTable = async (dbConfig = null, connectionUrl = null
         throw error;
     }
 };
-
 /**
  * SQL 쿼리 유효성 검증 (URL 지원)
  */
@@ -2189,7 +2188,7 @@ export const validateSqlQuery = async (dbConfig = null, connectionUrl = null, qu
  * @param {string} loadMode - 로드 모드 ('table' | 'query')
  * @param {string} [tableName] - 테이블명 (table 모드)
  * @param {string} [query] - SQL 쿼리 (query 모드)
- * @param {string} [schema] - 스키마명 (선택사항)
+ * @param {string} [schemaName] - 스키마명 (선택사항)  // ✅ schema_name → schemaName
  * @param {number} [chunkSize] - 청크 크기 (선택사항)
  * @returns {Promise<Object>} 데이터셋 로드 결과
  */
@@ -2200,7 +2199,7 @@ export const loadDatasetFromDatabase = async (
     loadMode,
     tableName = null,
     query = null,
-    schema = null,
+    schemaName = null,  // ✅ schema_name → schemaName
     chunkSize = null
 ) => {
     try {
@@ -2234,8 +2233,8 @@ export const loadDatasetFromDatabase = async (
         // 로드 모드별 파라미터
         if (loadMode === 'table') {
             requestBody.table_name = tableName;
-            if (schema) {
-                requestBody.schema = schema;
+            if (schemaName) {  // ✅ schema_name → schemaName
+                requestBody.schema_name = schemaName;  // ✅ API 키는 schema_name으로 유지
             }
         } else {
             requestBody.query = query;
