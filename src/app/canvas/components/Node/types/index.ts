@@ -126,6 +126,8 @@ export interface NodeParametersProps {
     onOpenNodeModal?: NodeProps['onOpenNodeModal'];
     showAdvanced: boolean;
     onToggleAdvanced: (e: React.MouseEvent) => void;
+    currentNodes?: any[];
+    currentEdges?: any[];
 }
 
 // ========== Hook Types ==========
