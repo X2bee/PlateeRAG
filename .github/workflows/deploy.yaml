@@ -44,7 +44,7 @@ jobs:
             ${{ secrets.NEXUS_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.TAG }}
             ${{ secrets.NEXUS_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           build-args: |
-            NEXT_PUBLIC_BACKEND_HOST=${{ secrets.NEXT_PUBLIC_BACKEND_HOST }}
+            BUILD_ENV=dev
             NEXT_PUBLIC_METRICS_HOST=${{ secrets.NEXT_PUBLIC_METRICS_HOST }}
 
       - name: Checkout infra repo
