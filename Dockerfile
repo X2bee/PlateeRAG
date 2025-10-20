@@ -22,12 +22,17 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Create .env file with build-time environment variables or defaults
+ARG BUILD_ENV=dev
 ARG NEXT_PUBLIC_BACKEND_HOST=http://localhost
 ARG NEXT_PUBLIC_BACKEND_PORT=8000
 ARG NEXT_PUBLIC_METRICS_HOST
-RUN echo "NEXT_PUBLIC_BACKEND_HOST=${NEXT_PUBLIC_BACKEND_HOST}" > .env && \
-    echo "NEXT_PUBLIC_BACKEND_PORT=${NEXT_PUBLIC_BACKEND_PORT}" >> .env && \
-    if [ -n "${NEXT_PUBLIC_METRICS_HOST}" ]; then echo "NEXT_PUBLIC_METRICS_HOST=${NEXT_PUBLIC_METRICS_HOST}" >> .env; fi
+RUN if [ "${BUILD_ENV}" = "dev" ]; then \
+        BACKEND_HOST="http://localhost"; \
+    else \
+        BACKEND_HOST="${NEXT_PUBLIC_BACKEND_HOST}"; \
+    fi && \
+    echo "NEXT_PUBLIC_BACKEND_HOST=${BACKEND_HOST}" > .env && \
+    echo "NEXT_PUBLIC_BACKEND_PORT=${NEXT_PUBLIC_BACKEND_PORT}" >> .env
 
 # Install esbuild for Alpine specifically and build
 RUN npm install esbuild@latest && \
