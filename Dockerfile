@@ -27,7 +27,7 @@ ARG NEXT_PUBLIC_BACKEND_HOST=http://localhost
 ARG NEXT_PUBLIC_BACKEND_PORT=8000
 ARG NEXT_PUBLIC_METRICS_HOST
 RUN if [ "${BUILD_ENV}" = "dev" ]; then \
-        BACKEND_HOST="http://localhost"; \
+        BACKEND_HOST="https://k3s-api.x2bee.com"; \
     else \
         BACKEND_HOST="${NEXT_PUBLIC_BACKEND_HOST}"; \
     fi && \
