@@ -1,9 +1,7 @@
 import React from 'react';
 import Node from '@/app/canvas/components/Node';
-import SchemaProviderNode from '@/app/canvas/components/SpecialNode/SchemaProviderNode';
-import RouterNode from '@/app/canvas/components/SpecialNode/RouterNode';
 import type { CanvasNode, NodeProps } from '@/app/canvas/types';
-import { isSchemaProviderNode, isRouterNode } from '../utils';
+import { findSpecialNode } from '@/app/canvas/components/SpecialNode/specialNode';
 import { devLog } from '@/app/_common/utils/logger';
 
 interface CanvasNodesProps {
@@ -27,6 +25,8 @@ interface CanvasNodesProps {
     onOutputAdd?: (nodeId: string, output: any) => void;
     onOutputDelete?: (nodeId: string, outputId: string) => void;
     onOutputNameChange?: (nodeId: string, outputId: string, newName: string) => void;
+    // AgentXgen specific props
+    onOutputsUpdate?: (nodeId: string, outputs: any[]) => void;
     currentEdges: any[];
     onToggleExpanded: (nodeId: string) => void;
 }
@@ -51,109 +51,66 @@ export const CanvasNodes: React.FC<CanvasNodesProps> = ({
     onOutputAdd,
     onOutputDelete,
     onOutputNameChange,
+    onOutputsUpdate,
     currentEdges,
     onToggleExpanded
 }) => {
     return (
         <>
             {nodes.map(node => {
-                const isSchemaProvider = isSchemaProviderNode(node.data);
-                const isRouter = isRouterNode(node.data);
+                const specialNodeConfig = findSpecialNode(node.data);
                 const isSelected = node.id === selectedNodeId;
                 const isSnapTargetInvalid = Boolean(snappedPortKey?.startsWith(node.id) && !isSnapTargetValid);
 
-                if (isSchemaProvider) {
-                    devLog.log(`Using SchemaProviderNode for: ${node.data.nodeName}`);
-                    return (
-                        <SchemaProviderNode
-                            key={node.id}
-                            id={node.id}
-                            data={node.data}
-                            position={node.position}
-                            onNodeMouseDown={onNodeMouseDown}
-                            isSelected={isSelected}
-                            onPortMouseDown={onPortMouseDown}
-                            onPortMouseUp={onPortMouseUp}
-                            registerPortRef={registerPortRef}
-                            snappedPortKey={snappedPortKey}
-                            onParameterChange={onParameterChange}
-                            onNodeNameChange={onNodeNameChange}
-                            onParameterNameChange={onParameterNameChange}
-                            onParameterAdd={onParameterAdd}
-                            onParameterDelete={onParameterDelete}
-                            isSnapTargetInvalid={isSnapTargetInvalid}
-                            onClearSelection={onClearSelection}
-                            onOpenNodeModal={onOpenNodeModal}
-                            onSynchronizeSchema={onSynchronizeSchema && ((portId: string) => onSynchronizeSchema(node.id, portId))}
-                            currentNodes={nodes}
-                            currentEdges={currentEdges}
-                            isExpanded={node.isExpanded !== undefined ? node.isExpanded : true}
-                            onToggleExpanded={onToggleExpanded}
-                        />
-                    );
+                // Common props for all nodes (key는 제외)
+                const commonProps = {
+                    id: node.id,
+                    data: node.data,
+                    position: node.position,
+                    onNodeMouseDown,
+                    isSelected,
+                    onPortMouseDown,
+                    onPortMouseUp,
+                    registerPortRef,
+                    snappedPortKey,
+                    onParameterChange,
+                    onNodeNameChange,
+                    onParameterNameChange,
+                    onParameterAdd,
+                    onParameterDelete,
+                    isSnapTargetInvalid,
+                    onClearSelection,
+                    onOpenNodeModal,
+                    onSynchronizeSchema: onSynchronizeSchema && ((portId: string) => onSynchronizeSchema(node.id, portId)),
+                    currentNodes: nodes,
+                    currentEdges,
+                    isExpanded: node.isExpanded !== undefined ? node.isExpanded : true,
+                    onToggleExpanded
+                };
+
+                // If it's a special node, render with special component
+                if (specialNodeConfig) {
+                    devLog.log(`Using ${specialNodeConfig.name} for: ${node.data.nodeName}`);
+                    const SpecialComponent = specialNodeConfig.component;
+
+                    // Add additional props if defined
+                    const additionalProps: any = {};
+                    specialNodeConfig.additionalProps?.forEach((propName: string) => {
+                        if (propName === 'onOutputAdd') additionalProps.onOutputAdd = onOutputAdd;
+                        if (propName === 'onOutputDelete') additionalProps.onOutputDelete = onOutputDelete;
+                        if (propName === 'onOutputNameChange') additionalProps.onOutputNameChange = onOutputNameChange;
+                    });
+
+                    // AgentXgen specific prop
+                    if (specialNodeConfig.name === 'AgentXgenNode') {
+                        additionalProps.onOutputsUpdate = onOutputsUpdate;
+                    }
+
+                    return <SpecialComponent key={node.id} {...commonProps} {...additionalProps} />;
                 }
 
-                if (isRouter) {
-                    devLog.log(`Using RouterNode for: ${node.data.nodeName}`);
-                    return (
-                        <RouterNode
-                            key={node.id}
-                            id={node.id}
-                            data={node.data}
-                            position={node.position}
-                            onNodeMouseDown={onNodeMouseDown}
-                            isSelected={isSelected}
-                            onPortMouseDown={onPortMouseDown}
-                            onPortMouseUp={onPortMouseUp}
-                            registerPortRef={registerPortRef}
-                            snappedPortKey={snappedPortKey}
-                            onParameterChange={onParameterChange}
-                            onNodeNameChange={onNodeNameChange}
-                            onParameterNameChange={onParameterNameChange}
-                            onParameterAdd={onParameterAdd}
-                            onParameterDelete={onParameterDelete}
-                            isSnapTargetInvalid={isSnapTargetInvalid}
-                            onClearSelection={onClearSelection}
-                            onOpenNodeModal={onOpenNodeModal}
-                            onSynchronizeSchema={onSynchronizeSchema && ((portId: string) => onSynchronizeSchema(node.id, portId))}
-                            currentNodes={nodes}
-                            currentEdges={currentEdges}
-                            onOutputAdd={onOutputAdd}
-                            onOutputDelete={onOutputDelete}
-                            onOutputNameChange={onOutputNameChange}
-                            isExpanded={node.isExpanded !== undefined ? node.isExpanded : true}
-                            onToggleExpanded={onToggleExpanded}
-                        />
-                    );
-                }
-
-                return (
-                    <Node
-                        key={node.id}
-                        id={node.id}
-                        data={node.data}
-                        position={node.position}
-                        onNodeMouseDown={onNodeMouseDown}
-                        isSelected={isSelected}
-                        onPortMouseDown={onPortMouseDown}
-                        onPortMouseUp={onPortMouseUp}
-                        registerPortRef={registerPortRef}
-                        snappedPortKey={snappedPortKey}
-                        onParameterChange={onParameterChange}
-                        onNodeNameChange={onNodeNameChange}
-                        onParameterNameChange={onParameterNameChange}
-                        onParameterAdd={onParameterAdd}
-                        onParameterDelete={onParameterDelete}
-                        isSnapTargetInvalid={isSnapTargetInvalid}
-                        onClearSelection={onClearSelection}
-                        onOpenNodeModal={onOpenNodeModal}
-                        onSynchronizeSchema={onSynchronizeSchema && ((portId: string) => onSynchronizeSchema(node.id, portId))}
-                        currentNodes={nodes}
-                        currentEdges={currentEdges}
-                        isExpanded={node.isExpanded !== undefined ? node.isExpanded : true}
-                        onToggleExpanded={onToggleExpanded}
-                    />
-                );
+                // Default node
+                return <Node key={node.id} {...commonProps} />;
             })}
         </>
     );

@@ -132,18 +132,6 @@ export const getMlModelSidebarItems = (): SidebarItem[] => [
         icon: React.createElement(FiUpload),
     },
     {
-        id: 'model-hub',
-        title: '모델 허브',
-        description: '저장된 모델을 확인하고 관리합니다',
-        icon: React.createElement(FiLayers),
-    },
-    {
-        id: 'model-inference',
-        title: '모델 추론',
-        description: '모델 메타데이터와 추론 콘솔',
-        icon: React.createElement(FiZap),
-    },
-    {
         id: 'ml-train',
         title: 'ML 모델 훈련',
         description: 'ML 모델 훈련',
@@ -155,6 +143,19 @@ export const getMlModelSidebarItems = (): SidebarItem[] => [
         description: 'ML 모델 훈련 파라미터 모니터링',
         icon: React.createElement(FiBarChart2),
     },
+    {
+        id: 'model-hub',
+        title: '모델 허브',
+        description: '저장된 모델을 확인하고 관리합니다',
+        icon: React.createElement(FiLayers),
+    },
+    {
+        id: 'model-inference',
+        title: '모델 헬스체크',
+        description: '모델 메타데이터와 헬스체크 콘솔',
+        icon: React.createElement(FiZap),
+    },
+    
 ];
 
 /**

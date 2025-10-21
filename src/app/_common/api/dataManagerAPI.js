@@ -2048,7 +2048,7 @@ export const listDatabaseSchemas = async (dbConfig = null, connectionUrl = null)
 /**
  * 데이터베이스 테이블 목록 조회 (URL 지원)
  */
-export const listDatabaseTables = async (dbConfig = null, connectionUrl = null, schema = null) => {
+export const listDatabaseTables = async (dbConfig = null, connectionUrl = null, dbSchema = null) => {  // ✅ schema → dbSchema
     try {
         if (!dbConfig && !connectionUrl) {
             throw new Error('db_config 또는 connection_url 중 하나가 필요합니다.');
@@ -2062,8 +2062,8 @@ export const listDatabaseTables = async (dbConfig = null, connectionUrl = null, 
             requestBody.db_config = dbConfig;
         }
         
-        if (schema) {
-            requestBody.schema = schema;
+        if (dbSchema) {  // ✅ schema → dbSchema
+            requestBody.db_schema = dbSchema;  // ✅ API 키도 db_schema로 전송
         }
 
         const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/db/list-tables`, {
@@ -2091,7 +2091,7 @@ export const listDatabaseTables = async (dbConfig = null, connectionUrl = null, 
 /**
  * 데이터베이스 테이블 미리보기 (URL 지원)
  */
-export const previewDatabaseTable = async (dbConfig = null, connectionUrl = null, tableName, schema = null, limit = 10) => {
+export const previewDatabaseTable = async (dbConfig = null, connectionUrl = null, tableName, dbSchema = null, limit = 10) => {  // ✅ schema → dbSchema
     try {
         if (!dbConfig && !connectionUrl) {
             throw new Error('db_config 또는 connection_url 중 하나가 필요합니다.');
@@ -2111,8 +2111,8 @@ export const previewDatabaseTable = async (dbConfig = null, connectionUrl = null
             requestBody.db_config = dbConfig;
         }
         
-        if (schema) {
-            requestBody.schema = schema;
+        if (dbSchema) {  // ✅ schema → dbSchema
+            requestBody.db_schema = dbSchema;  // ✅ API 키도 db_schema로 전송
         }
 
         const response = await apiClient(`${API_BASE_URL}/api/data-manager/processing/db/preview-table`, {
@@ -2136,7 +2136,6 @@ export const previewDatabaseTable = async (dbConfig = null, connectionUrl = null
         throw error;
     }
 };
-
 /**
  * SQL 쿼리 유효성 검증 (URL 지원)
  */
@@ -2189,7 +2188,7 @@ export const validateSqlQuery = async (dbConfig = null, connectionUrl = null, qu
  * @param {string} loadMode - 로드 모드 ('table' | 'query')
  * @param {string} [tableName] - 테이블명 (table 모드)
  * @param {string} [query] - SQL 쿼리 (query 모드)
- * @param {string} [schema] - 스키마명 (선택사항)
+ * @param {string} [schemaName] - 스키마명 (선택사항)  // ✅ schema_name → schemaName
  * @param {number} [chunkSize] - 청크 크기 (선택사항)
  * @returns {Promise<Object>} 데이터셋 로드 결과
  */
@@ -2200,7 +2199,7 @@ export const loadDatasetFromDatabase = async (
     loadMode,
     tableName = null,
     query = null,
-    schema = null,
+    schemaName = null,  // ✅ schema_name → schemaName
     chunkSize = null
 ) => {
     try {
@@ -2234,8 +2233,8 @@ export const loadDatasetFromDatabase = async (
         // 로드 모드별 파라미터
         if (loadMode === 'table') {
             requestBody.table_name = tableName;
-            if (schema) {
-                requestBody.schema = schema;
+            if (schemaName) {  // ✅ schema_name → schemaName
+                requestBody.schema_name = schemaName;  // ✅ API 키는 schema_name으로 유지
             }
         } else {
             requestBody.query = query;
@@ -2346,4 +2345,308 @@ export const formatDatabaseConnectionString = (dbConfig) => {
     const username = dbConfig.username || 'user';
 
     return `${dbConfig.db_type}://${username}@${host}:${port}/${dbConfig.database}`;
+};
+
+/**
+
+DB 자동 동기화 추가
+@param {string} managerId - Manager ID
+@param {Object} dbConfig - DB 연결 설정
+@param {Object} syncConfig - 동기화 설정
+@returns {Promise<Object>} 동기화 추가 결과
+*/
+export const addDBAutoSync = async (managerId, dbConfig, syncConfig) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/sync/add`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                manager_id: managerId,
+                db_config: dbConfig,
+                sync_config: syncConfig,
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || `DB 자동 동기화 추가 실패: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('DB auto-sync added successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to add DB auto-sync:', error);
+        throw error;
+    }
+};
+    
+/**
+
+DB 자동 동기화 제거
+@param {string} managerId - Manager ID
+@returns {Promise<Object>} 제거 결과
+*/
+export const removeDBAutoSync = async (managerId) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/sync/remove`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                manager_id: managerId
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || 'DB 자동 동기화 제거 실패');
+        }
+
+        const data = await response.json();
+        devLog.info('DB auto-sync removed successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to remove DB auto-sync:', error);
+        throw error;
+    }
+};
+
+    
+/**
+
+DB 자동 동기화 일시 중지
+@param {string} managerId - Manager ID
+@returns {Promise<Object>} 일시 중지 결과
+*/
+export const pauseDBAutoSync = async (managerId) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/sync/pause`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                manager_id: managerId
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || 'DB 자동 동기화 일시 중지 실패');
+        }
+
+        const data = await response.json();
+        devLog.info('DB auto-sync paused successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to pause DB auto-sync:', error);
+        throw error;
+    }
+};
+
+    
+/**
+
+DB 자동 동기화 재개
+@param {string} managerId - Manager ID
+@returns {Promise<Object>} 재개 결과
+*/
+export const resumeDBAutoSync = async (managerId) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/sync/resume`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                manager_id: managerId
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || 'DB 자동 동기화 재개 실패');
+        }
+
+        const data = await response.json();
+        devLog.info('DB auto-sync resumed successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to resume DB auto-sync:', error);
+        throw error;
+    }
+};
+
+    
+/**
+
+DB 동기화 상태 조회
+@param {string} managerId - Manager ID
+@returns {Promise<Object>} 동기화 상태
+*/
+export const getDBSyncStatus = async (managerId) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/sync/status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                manager_id: managerId
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || 'DB 동기화 상태 조회 실패');
+        }
+
+        const data = await response.json();
+        devLog.info('DB sync status retrieved successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to get DB sync status:', error);
+        throw error;
+    }
+};
+
+
+/**
+
+모든 DB 동기화 목록 조회
+@returns {Promise<Object>} 동기화 목록
+*/
+export const listAllDBSyncs = async () => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/sync/list`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || 'DB 동기화 목록 조회 실패');
+        }
+
+        const data = await response.json();
+        devLog.info('DB sync list retrieved successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to list DB syncs:', error);
+        throw error;
+    }
+};
+
+/**
+
+수동으로 즉시 동기화 실행
+@param {string} managerId - Manager ID
+@returns {Promise<Object>} 동기화 실행 결과
+*/
+export const triggerManualDBSync = async (managerId) => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/sync/trigger`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                manager_id: managerId
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || '수동 동기화 실행 실패');
+        }
+
+        const data = await response.json();
+        devLog.info('Manual DB sync triggered successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to trigger manual DB sync:', error);
+        throw error;
+    }
+};
+    
+/**
+
+스케줄러 상태 확인
+@returns {Promise<Object>} 스케줄러 상태
+*/
+export const getDBSyncSchedulerHealth = async () => {
+    try {
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/sync/health`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || '스케줄러 상태 조회 실패');
+        }
+
+        const data = await response.json();
+        devLog.info('Scheduler health retrieved successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to get scheduler health:', error);
+        throw error;
+    }
+};
+
+
+
+/**
+ * MLflow 설정 업데이트
+ * @param {string} managerId - 매니저 ID
+ * @param {boolean} mlflowEnabled - MLflow 활성화 여부
+ * @param {string} mlflowExperimentName - MLflow 실험 이름
+ * @param {string} mlflowTrackingUri - MLflow Tracking URI (선택)
+ * @returns {Promise<Object>} 업데이트 결과
+ */
+export const updateMLflowConfig = async (managerId, mlflowEnabled, mlflowExperimentName, mlflowTrackingUri = null) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID가 필요합니다.');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+            mlflow_enabled: mlflowEnabled,
+            mlflow_experiment_name: mlflowExperimentName
+        };
+
+        if (mlflowTrackingUri) {
+            requestBody.mlflow_tracking_uri = mlflowTrackingUri;
+        }
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/sync/update-mlflow-config`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || 'MLflow 설정 업데이트 실패');
+        }
+
+        const data = await response.json();
+        devLog.info('MLflow config updated successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to update MLflow config:', error);
+        throw error;
+    }
 };

@@ -1,3 +1,4 @@
+@use "sass:color";
 @use "@/app/_common/_variables" as *;
 
 // 컨테이너 및 레이아웃
@@ -304,7 +305,7 @@
                         color: $white;
 
                         &:hover:not(:disabled) {
-                            background: darken($primary-blue, 5%);
+                            background: color.adjust($primary-blue, $lightness: -5%);
                         }
 
                         &:disabled {

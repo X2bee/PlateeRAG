@@ -1,18 +1,18 @@
 import React, { memo, useState } from 'react';
 import styles from '@/app/canvas/assets/Node.module.scss';
 import type { NodeProps, Port } from '@/app/canvas/types';
-import { useNodeEditing } from '../Node/hooks/useNodeEditing';
+import { useNodeEditing } from '@/app/canvas/components/Node/hooks/useNodeEditing';
 import {
     hasInputsAndOutputs,
     getNodeContainerClasses,
     getNodeContainerStyles
-} from '../Node/utils/nodeUtils';
+} from '@/app/canvas/components/Node/utils/nodeUtils';
 
 // Components
-import { NodeHeader } from '../Node/components/NodeHeader';
-import { RouterNodePorts } from '../Node/components/RouterNodePorts';
-import { NodePortsCollapsed } from '../Node/components/NodePortsCollapsed';
-import { RouterNodeParameters } from '../Node/components/specialized/RouterNodeParameters';
+import { NodeHeader } from '@/app/canvas/components/Node/components/NodeHeader';
+import { RouterNodePorts } from '@/app/canvas/components/Node/components/RouterNodePorts';
+import { NodePortsCollapsed } from '@/app/canvas/components/Node/components/NodePortsCollapsed';
+import { RouterNodeParameters } from '@/app/canvas/components/Node/components/specialized/RouterNodeParameters';
 
 const RouterNode: React.FC<NodeProps & {
     onOutputAdd?: (nodeId: string, output: Port) => void;

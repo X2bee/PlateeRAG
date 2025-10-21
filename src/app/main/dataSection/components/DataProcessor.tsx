@@ -1,15 +1,54 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import {
     IoArrowBack,
     IoRefresh,
     IoLayers,
+    IoPause,
+    IoPlay,
+    IoSettings,
 } from 'react-icons/io5';
 import { MdOutlineMore } from "react-icons/md";
-import { ColumnInfoModal, DatasetVersionSwitchModal,  DownloadDialog,DatabaseConnectionModal, StatisticsModal, ColumnDeleteModal, ColumnValueReplaceModal, ColumnOperationModal, SpecificColumnNullRemoveModal, HuggingFaceUploadModal, MLflowUploadModal, ColumnCopyModal, ColumnRenameModal, ColumnFormatModal, ColumnCalculationModal, DatasetCallbackModal, VersionHistoryModal } from './modals';
+import {
+    ColumnInfoModal,
+    DatasetVersionSwitchModal,
+    DownloadDialog,
+    DatabaseConnectionModal,
+    StatisticsModal,
+    DatabaseAutoSyncModal,
+    ColumnDeleteModal,
+    ColumnValueReplaceModal,
+    ColumnOperationModal,
+    SpecificColumnNullRemoveModal,
+    HuggingFaceUploadModal,
+    MLflowUploadModal,
+    ColumnCopyModal,
+    ColumnRenameModal,
+    ColumnFormatModal,
+    ColumnCalculationModal,
+    DatasetCallbackModal,
+    VersionHistoryModal,
+    DatabaseSyncControlModal
+} from './modals';
 import DataProcessorSidebar from './DataProcessorSidebar';
-import { downloadDataset, getDatasetSample, dropDatasetColumns, replaceColumnValues, applyColumnOperation, removeNullRows, uploadToHuggingFace, uploadToMLflow, copyDatasetColumn, renameDatasetColumn, formatDatasetColumns, calculateDatasetColumns, executeDatasetCallback } from '@/app/_common/api/dataManagerAPI';
+import {
+    downloadDataset,
+    getDatasetSample,
+    dropDatasetColumns,
+    replaceColumnValues,
+    applyColumnOperation,
+    removeNullRows,
+    uploadToHuggingFace,
+    uploadToMLflow,
+    copyDatasetColumn,
+    renameDatasetColumn,
+    formatDatasetColumns,
+    calculateDatasetColumns,
+    executeDatasetCallback,
+    getDBSyncStatus,
+    pauseDBAutoSync,
+    resumeDBAutoSync,
+} from '@/app/_common/api/dataManagerAPI';
 import { showSuccessToastKo, showErrorToastKo, showDeleteConfirmToastKo } from '@/app/_common/utils/toastUtilsKo';
 import styles from '@/app/main/dataSection/assets/DataProcessor.module.scss';
 
@@ -17,11 +56,11 @@ interface DataProcessorProps {
     managerId: string;
     userId: string;
     onBack: () => void;
-}
+    }
 
 interface DataTableRow {
     [key: string]: any;
-}
+    }
 
 interface DataTableInfo {
     success: boolean;
@@ -32,29 +71,61 @@ interface DataTableInfo {
     columns: string[];
     column_info: string | object;
     sampled_at: string;
-}
+    }
 
 interface DownloadDialogState {
     isOpen: boolean;
     repoId: string;
     filename: string;
     split: string;
-}
+    }
 
+    interface DBSyncStatus {
+        sync_id: string;
+        manager_id: string;
+        enabled: boolean;
+        db_type: string;
+        db_host: string;
+        db_name: string;
+        db_username?: string;  // ✨ 추가
+        schedule_type: string;
+        schedule_description?: string;  // ✨ 추가
+        interval_minutes?: number;
+        cron_expression?: string;
+        query?: string;
+        table_name?: string;
+        schema_name?: string;  // ✨ 추가
+        chunk_size?: number;  // ✨ 추가
+        detect_changes?: boolean;  // ✨ 추가
+        last_sync?: string;
+        last_sync_status?: string;
+        last_error?: string;  // ✨ 추가
+        sync_count: number;
+        next_run_time?: string;
+        created_at?: string;  // ✨ 추가
+        updated_at?: string;  // ✨ 추가
+        last_sync_info?: {  // ✨ 추가
+            last_sync_at?: string;
+            last_sync_status?: string;
+            sync_count: number;
+            last_error?: string;
+        };
+    }
+    
 const DataProcessor: React.FC<DataProcessorProps> = ({
     managerId,
     userId,
     onBack
-}) => {
+    }) => {
     const [dataTableInfo, setDataTableInfo] = useState<DataTableInfo | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [columnInfoModalOpen, setColumnInfoModalOpen] = useState(false);
     const [downloadDialog, setDownloadDialog] = useState<DownloadDialogState>({
-        isOpen: false,
-        repoId: '',
-        filename: '',
-        split: ''
+    isOpen: false,
+    repoId: '',
+    filename: '',
+    split: ''
     });
     const [downloading, setDownloading] = useState(false);
     const [statisticsModalOpen, setStatisticsModalOpen] = useState(false);
@@ -73,17 +144,84 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
     const [mlflowUploadModalOpen, setMlflowUploadModalOpen] = useState(false);
     const [versionHistoryModalOpen, setVersionHistoryModalOpen] = useState(false);
     const [datasetLoadInfo, setDatasetLoadInfo] = useState<{
-        load_count: number;
-        dataset_id: string;
-        is_new_version: boolean;
+    load_count: number;
+    dataset_id: string;
+    is_new_version: boolean;
     } | null>(null);
     const [versionSwitchModalOpen, setVersionSwitchModalOpen] = useState(false);
     const [databaseLoadModalOpen, setDatabaseLoadModalOpen] = useState(false);
+    const [databaseAutoSyncModalOpen, setDatabaseAutoSyncModalOpen] = useState(false);
+    const [dbSyncStatus, setDbSyncStatus] = useState<DBSyncStatus | null>(null);
+    const [syncControlLoading, setSyncControlLoading] = useState(false);
+    const [databaseSyncControlModalOpen, setDatabaseSyncControlModalOpen] = useState(false);
 
-    // 데이터 로드
+        // 데이터 로드
     useEffect(() => {
         loadDataTableInfo();
     }, [managerId, userId]);
+
+    useEffect(() => {
+        if (managerId) {
+            checkDBSyncStatus();
+        }
+    }, [managerId]);
+
+    const checkDBSyncStatus = async () => {
+        try {
+            const response = await getDBSyncStatus(managerId) as any;
+            
+            // ✨ 응답 구조 변경 반영
+            if (response.success && response.status) {
+                setDbSyncStatus(response.status);
+            } else {
+                setDbSyncStatus(null);
+            }
+        } catch (error) {
+            // 동기화 설정이 없는 경우
+            setDbSyncStatus(null);
+        }
+    };
+
+    const handleToggleSync = async () => {
+        if (!dbSyncStatus) return;
+
+        setSyncControlLoading(true);
+        try {
+            let response;
+            if (dbSyncStatus.enabled) {
+                response = await pauseDBAutoSync(managerId) as any;
+                showSuccessToastKo('DB 자동 동기화가 일시 중지되었습니다.');
+            } else {
+                response = await resumeDBAutoSync(managerId) as any;
+                showSuccessToastKo('DB 자동 동기화가 재개되었습니다.');
+            }
+            
+            // ✨ 응답에서 직접 상태 업데이트
+            if (response.success && response.status) {
+                setDbSyncStatus(response.status);
+            } else {
+                // fallback: 전체 상태 다시 조회
+                await checkDBSyncStatus();
+            }
+        } catch (error) {
+            showErrorToastKo(`동기화 제어 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+            // 에러 발생 시에도 상태 갱신
+            await checkDBSyncStatus();
+        } finally {
+            setSyncControlLoading(false);
+        }
+    };
+
+
+    // ✨ 동기화 관리 모달 열기
+    const handleOpenSyncControlModal = () => {
+        setDatabaseSyncControlModalOpen(true);
+    };
+
+    const handleCloseSyncControlModal = () => {
+        setDatabaseSyncControlModalOpen(false);
+        checkDBSyncStatus(); // 모달 닫을 때 상태 갱신
+    };
 
     const loadDataTableInfo = async () => {
         setLoading(true);
@@ -103,7 +241,6 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
             setLoading(false);
         }
     };
-
 
     const handleStatisticsModal = (statistics: any, loading: boolean) => {
         setStatisticsData(statistics);
@@ -158,6 +295,18 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
         loadDataTableInfo(); // 데이터 다시 로드
     };
 
+    // ✨ DB 자동 동기화 핸들러 추가
+    const handleOpenDatabaseAutoSyncModal = () => {
+        setDatabaseAutoSyncModalOpen(true);
+    };
+
+    const handleCloseDatabaseAutoSyncModal = () => {
+        setDatabaseAutoSyncModalOpen(false);
+    };
+
+    const handleDatabaseAutoSyncSuccess = () => {
+        loadDataTableInfo(); // 데이터 다시 로드
+    };
 
     const handleReplaceColumnValues = async (columnName: string, oldValue: string, newValue: string) => {
         try {
@@ -206,14 +355,14 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
     const handleUploadToMLflow = async (experimentName: string, datasetName: string, options: any) => {
         try {
             showSuccessToastKo('MLflow에 데이터셋을 업로드하는 중...');
-    
+
             const result = await uploadToMLflow(
                 managerId,
                 experimentName,
                 datasetName,
                 options
             ) as any;
-    
+
             if (result.success) {
                 showSuccessToastKo(
                     `데이터셋이 MLflow에 성공적으로 업로드되었습니다!\n` +
@@ -444,16 +593,16 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
     const handleOpenVersionHistoryModal = () => {
         setVersionHistoryModalOpen(true);
     };
-    
+
     const handleCloseVersionHistoryModal = () => {
         setVersionHistoryModalOpen(false);
     };
-    
+
     const handleVersionRollback = () => {
         // 롤백 후 데이터 다시 로드
         loadDataTableInfo();
     };
-    
+
     const handleDropColumn = async (columnName: string) => {
         showDeleteConfirmToastKo({
             title: '컬럼 삭제',
@@ -487,7 +636,7 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
             showErrorToastKo('Repository ID를 입력해주세요.');
             return;
         }
-    
+
         setDownloading(true);
         try {
             const result = await downloadDataset(
@@ -496,7 +645,7 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                 downloadDialog.filename.trim() || undefined,
                 downloadDialog.split.trim() || undefined
             ) as any;
-    
+
             // 버전 정보 포함된 성공 메시지
             if (result.version_info) {
                 const versionMsg = result.version_info.is_new_version 
@@ -546,20 +695,74 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
 
     return (
         <div className={styles.container}>
-            {/* 헤더 */}
             <div className={styles.header}>
                 <div className={styles.headerLeft}>
-                    <button
-                        onClick={onBack}
-                        className={styles.backButton}
-                        title="뒤로가기"
-                    >
+                    <button onClick={onBack} className={styles.backButton} title="뒤로가기">
                         <IoArrowBack />
                     </button>
                     <div className={styles.headerInfo}>
                         <h2>데이터 프로세서</h2>
                         <div className={styles.headerMeta}>
                             <p>Manager ID: {managerId} | User ID: {userId}</p>
+                            
+                            {/* ✨ DB 동기화 상태 표시 개선 */}
+                            {dbSyncStatus && (
+                                <div className={styles.syncStatusBar}>
+                                    <div className={styles.syncInfo}>
+                                        <span className={`${styles.syncBadge} ${dbSyncStatus.enabled ? styles.syncActive : styles.syncPaused}`}>
+                                            {dbSyncStatus.enabled ? <IoPlay /> : <IoPause />}
+                                            {dbSyncStatus.enabled ? 'DB 자동 동기화 활성' : 'DB 자동 동기화 일시 중지'}
+                                        </span>
+                                        <span className={styles.syncDetails}>
+                                            {dbSyncStatus.db_type.toUpperCase()} • {dbSyncStatus.db_name}
+                                            {/* ✨ schedule_description 사용 */}
+                                            {dbSyncStatus.schedule_description 
+                                                ? ` • ${dbSyncStatus.schedule_description}`
+                                                : dbSyncStatus.schedule_type === 'interval' 
+                                                    ? ` • ${dbSyncStatus.interval_minutes}분마다`
+                                                    : ` • ${dbSyncStatus.cron_expression}`
+                                            }
+                                        </span>
+                                        {dbSyncStatus.next_run_time && dbSyncStatus.enabled && (
+                                            <span className={styles.nextRun}>
+                                                다음 실행: {new Date(dbSyncStatus.next_run_time).toLocaleString('ko-KR')}
+                                            </span>
+                                        )}
+                                        {/* ✨ 에러 표시 추가 */}
+                                        {dbSyncStatus.last_error && (
+                                            <span className={styles.lastError}>
+                                                ⚠️ 마지막 에러: {dbSyncStatus.last_error.substring(0, 50)}...
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className={styles.syncControls}>
+                                        <button
+                                            onClick={handleToggleSync}
+                                            disabled={syncControlLoading}
+                                            className={`${styles.syncToggleButton} ${dbSyncStatus.enabled ? styles.pauseButton : styles.playButton}`}
+                                            title={dbSyncStatus.enabled ? '일시 중지' : '재개'}
+                                        >
+                                            {syncControlLoading ? (
+                                                <IoRefresh className={styles.spinning} />
+                                            ) : dbSyncStatus.enabled ? (
+                                                <IoPause />
+                                            ) : (
+                                                <IoPlay />
+                                            )}
+                                        </button>
+                                        <button
+                                            onClick={handleOpenSyncControlModal}
+                                            className={styles.syncSettingsButton}
+                                            title="동기화 관리"
+                                        >
+                                            <IoSettings />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            
+                            {/* 데이터셋 버전 정보 */}
                             {datasetLoadInfo && datasetLoadInfo.load_count > 0 && (
                                 <div className={styles.versionControls}>
                                     <div className={styles.datasetVersionBadge}>
@@ -591,7 +794,6 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
             </div>
 
             <div className={styles.content}>
-
                 {/* 가운데 - Data Table 샘플 보기 영역 */}
                 <div className={styles.dataSection}>
                     <div className={styles.dataCard}>
@@ -641,6 +843,7 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                                                             onClick={() => handleDropColumn(column)}
                                                             className={styles.dropButton}
                                                             title={`'${column}' 컬럼 삭제`}
+                                                            aria-label={`Delete column ${column}`}
                                                         >
                                                             ×
                                                         </button>
@@ -654,7 +857,7 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                                             <tr key={index}>
                                                 {dataTableInfo.columns.map((column, colIndex) => (
                                                     <td key={colIndex}>
-                                                        {String(row[column] || '')}
+                                                        {String(row[column] ?? '')}
                                                     </td>
                                                 ))}
                                             </tr>
@@ -680,14 +883,16 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                     onColumnOperationModal={handleOpenColumnOperationModal}
                     onSpecificColumnNullRemoveModal={handleOpenSpecificColumnNullRemoveModal}
                     onHuggingFaceUploadModal={() => setHuggingFaceUploadModalOpen(true)}
-                    onMLflowUploadModal={() => setMlflowUploadModalOpen(true)}  // 새로 추가
-                    onVersionHistoryModal={handleOpenVersionHistoryModal}  // 추가
+                    onMLflowUploadModal={() => setMlflowUploadModalOpen(true)}
+                    onVersionHistoryModal={handleOpenVersionHistoryModal}
                     onColumnCopyModal={handleOpenColumnCopyModal}
                     onColumnRenameModal={handleOpenColumnRenameModal}
                     onColumnFormatModal={handleOpenColumnFormatModal}
                     onColumnCalculationModal={handleOpenColumnCalculationModal}
                     onDatasetCallbackModal={handleOpenDatasetCallbackModal}
-                    onDatabaseLoadModal={handleOpenDatabaseLoadModal}  // 추가
+                    onDatabaseLoadModal={handleOpenDatabaseLoadModal}
+                    onDatabaseAutoSyncModal={handleOpenDatabaseAutoSyncModal}  // ✨ 추가
+                    onDatabaseSyncControlModal={handleOpenSyncControlModal} // ✨ 추가
                 />
             </div>
 
@@ -795,8 +1000,23 @@ const DataProcessor: React.FC<DataProcessorProps> = ({
                 onClose={handleCloseDatabaseLoadModal}
                 onLoadSuccess={handleDatabaseLoadSuccess}
             />
+            {/* ✨ DB 자동 동기화 모달 추가 */}
+            <DatabaseAutoSyncModal
+                isOpen={databaseAutoSyncModalOpen}
+                managerId={managerId}
+                onClose={handleCloseDatabaseAutoSyncModal}
+                onSuccess={handleDatabaseAutoSyncSuccess}
+            />
+            <DatabaseSyncControlModal
+                isOpen={databaseSyncControlModalOpen}
+                managerId={managerId}
+                onClose={handleCloseSyncControlModal}
+                onSuccess={() => {
+                    checkDBSyncStatus();
+                    loadDataTableInfo();
+                }}
+            />
         </div>
     );
 };
-
 export default DataProcessor;
