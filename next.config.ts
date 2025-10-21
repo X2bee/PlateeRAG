@@ -17,7 +17,9 @@ const nextConfig: NextConfig = {
             BASE_URL = `${host_url}:${port}`;
         }
 
-        console.log(`Next.js proxy will forward /api/* to ${BASE_URL}/api/* (updated)`);
+        console.log(
+            `Next.js proxy will forward /api/* to ${BASE_URL}/api/* (updated)`,
+        );
 
         return [
             {
