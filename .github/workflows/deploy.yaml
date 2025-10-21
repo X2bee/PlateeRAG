@@ -43,9 +43,7 @@ jobs:
           tags: |
             ${{ secrets.NEXUS_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.TAG }}
             ${{ secrets.NEXUS_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          build-args: |
-            BUILD_ENV=dev
-            NEXT_PUBLIC_METRICS_HOST=${{ secrets.NEXT_PUBLIC_METRICS_HOST }}
+          # No build args needed - hardcoded in source
 
       - name: Checkout infra repo
         uses: actions/checkout@v4

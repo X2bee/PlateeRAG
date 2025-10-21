@@ -5,17 +5,8 @@ const nextConfig: NextConfig = {
         proxyTimeout: 600000,
     },
     async rewrites() {
-        const host_url =
-            process.env.NEXT_PUBLIC_BACKEND_HOST || 'http://localhost';
-        const port = process.env.NEXT_PUBLIC_BACKEND_PORT || null;
-
-        let BASE_URL = '';
-
-        if (!port) {
-            BASE_URL = host_url;
-        } else {
-            BASE_URL = `${host_url}:${port}`;
-        }
+        // Hardcoded for K8s deployment
+        const BASE_URL = 'http://dev-backend:80';
 
         console.log(
             `Next.js proxy configuration: forwarding /api/* to ${BASE_URL}/api/*`,

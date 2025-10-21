@@ -3,29 +3,12 @@
  */
 import { devLog } from '@/app/_common/utils/logger';
 
-const useProxy = process.env.NEXT_PUBLIC_USE_PROXY === 'true';
-const host_url = process.env.NEXT_PUBLIC_BACKEND_HOST || 'http://localhost';
-const port = process.env.NEXT_PUBLIC_BACKEND_PORT || null;
-const metrics = process.env.NEXT_PUBLIC_METRICS_HOST || '';
+// Hardcoded for K8s deployment - use proxy (relative URLs)
+const BASE_URL = '';
+const metrics = '';
 
 // 허용된 origin URL들을 설정
-const allowedOrigins = process.env.NEXT_PUBLIC_ALLOWED_ORIGINS
-    ? process.env.NEXT_PUBLIC_ALLOWED_ORIGINS.split(',').map(url => url.trim())
-    : ['http://localhost:3000', 'https://code-assistant.x2bee.com']; // 기본값
-
-let BASE_URL = '';
-
-if (useProxy) {
-    // Use relative URLs when proxy is enabled (for production deployment)
-    BASE_URL = '';
-} else {
-    // Use absolute URLs for development
-    if (!port) {
-        BASE_URL = host_url;
-    } else {
-        BASE_URL = `${host_url}:${port}`;
-    }
-}
+const allowedOrigins = ['http://localhost:3000', 'https://code-assistant.x2bee.com'];
 
 devLog.log(`Backend server running at ${BASE_URL}`);
 
