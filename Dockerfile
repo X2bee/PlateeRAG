@@ -1,51 +1,68 @@
-# syntax=docker/dockerfile:1
-FROM node:24.10.0-alpine3.22 AS deps
+# Let BASE_IMAGE be overridden at build time (mirrors, nexus proxy, etc.)
+ARG BASE_IMAGE=python:3.12-slim
+
+# ---- Base (shared) ----------------------------------------------------------
+FROM ${BASE_IMAGE} AS base
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    UV_SYSTEM_PYTHON=1
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl git \
+ && rm -rf /var/lib/apt/lists/*
+
+ENV VENV_PATH=/opt/venv
+ENV PATH="${VENV_PATH}/bin:${PATH}"
+
+# ---- Builder (compilers here only) ------------------------------------------
+FROM base AS builder
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential rustc cargo libpq-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+# install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV UV_BIN=/root/.local/bin/uv
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+# Copy dependency metadata first (better cache). Add uv.lock if you have it.
+COPY pyproject.toml ./
+# COPY uv.lock ./
 
-# Install dependencies with local packages available
-RUN --mount=type=cache,target=/root/.npm \
-    npm install --network-timeout 100000 || npm install
+# Create venv and install locked deps directly (no wheelhouse)
+RUN python -m venv ${VENV_PATH} \
+ && ${UV_BIN} lock \
+ && ${UV_BIN} sync --locked --python ${VENV_PATH}/bin/python
 
-# Build stage
-FROM node:24.10.0-alpine3.22 AS builder
+# If uvicorn isn’t listed in your pyproject’s runtime deps, keep this:
+RUN ${VENV_PATH}/bin/pip install --no-cache-dir "uvicorn[standard]>=0.30"
 
-ENV NODE_OPTIONS="--max-old-space-size=4096"
-
-WORKDIR /app
-
-# Copy everything from deps stage
-COPY --from=deps /app/node_modules ./node_modules
-
+# Now copy the application code
 COPY . .
 
-# No environment variables needed - hardcoded in source
+# ---- Runtime (tiny) ---------------------------------------------------------
+FROM ${BASE_IMAGE} AS runtime
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg espeak-ng libpq5 \
+ && rm -rf /var/lib/apt/lists/*
 
-# Install esbuild for Alpine specifically and build
-RUN npm install esbuild@latest && \
-    npm run build && \
-    npm run build:embed
-
-# Runner stage
-FROM node:24.10.0-alpine3.22 AS runner
-
-ENV NODE_OPTIONS="--max-old-space-size=4096"
-ENV HOST="0.0.0.0"
-ENV PORT=3000
-
+# Non-root user
+RUN addgroup --system --gid 1001 app && \
+    adduser  --system --uid 1001 --ingroup app --home /app app
 WORKDIR /app
 
-# Create non-root user for security
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+ENV VENV_PATH=/opt/venv
+ENV PATH="${VENV_PATH}/bin:${PATH}" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Copy everything from builder
-COPY --from=builder --chown=nextjs:nodejs /app .
+# Bring venv and app from builder
+COPY --from=builder ${VENV_PATH} ${VENV_PATH}
+COPY --from=builder /app /app
 
-USER nextjs
-
-EXPOSE 3000
-
-CMD ["npm", "run", "start"]
+EXPOSE 8000
+USER app
+CMD ["python","-m","uvicorn","main:app","--host","0.0.0.0","--port","8000"]
