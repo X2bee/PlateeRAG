@@ -539,3 +539,75 @@
         }
     }
 }
+
+// 기존 스타일 유지하고 아래 추가
+
+.statusContainer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.syncBadge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    
+    svg {
+        font-size: 0.875rem;
+    }
+    
+    &.syncActive {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        
+        svg {
+            animation: spin 2s linear infinite;
+        }
+    }
+    
+    &.syncPaused {
+        background: rgba(251, 191, 36, 0.2);
+        color: #fbbf24;
+    }
+}
+
+.syncInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.5rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 0.5rem;
+    
+    .syncLabel {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: rgba(255, 255, 255, 0.8);
+        
+        svg {
+            font-size: 1rem;
+            color: #3b82f6;
+        }
+    }
+    
+    .lastSyncTime {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.5);
+        margin-left: 1.5rem;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

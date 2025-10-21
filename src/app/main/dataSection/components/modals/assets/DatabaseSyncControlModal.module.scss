@@ -1,0 +1,420 @@
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modalContent {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 700px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    .headerTitle {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+
+        svg {
+            font-size: 1.5rem;
+            color: #3b82f6;
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #fff;
+            margin: 0;
+        }
+    }
+
+    .closeButton {
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        transition: all 0.2s;
+
+        svg {
+            font-size: 1.5rem;
+        }
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+    }
+}
+
+.modalBody {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.loadingState,
+.errorState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    gap: 1rem;
+
+    svg {
+        font-size: 3rem;
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    p {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1rem;
+    }
+}
+
+.statusBanner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+
+    svg {
+        font-size: 1.25rem;
+    }
+
+    &.active {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    &.paused {
+        background: rgba(251, 191, 36, 0.2);
+        color: #fbbf24;
+        border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+}
+
+.infoSection {
+    margin-bottom: 1.5rem;
+
+    h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 1rem;
+
+        svg {
+            font-size: 1.25rem;
+            color: #3b82f6;
+        }
+    }
+}
+
+.infoGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.infoItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    &.fullWidth {
+        grid-column: 1 / -1;
+    }
+
+    .label {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .value {
+        font-size: 0.875rem;
+        color: #fff;
+        font-weight: 500;
+
+        &.statusSuccess {
+            color: #22c55e;
+        }
+
+        &.statusError {
+            color: #ef4444;
+        }
+
+        &.statusNoChange {
+            color: #94a3b8;
+        }
+    }
+
+    .query {
+        font-size: 0.75rem;
+        padding: 0.5rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+        color: #94a3b8;
+        font-family: 'Courier New', monospace;
+        word-break: break-all;
+        white-space: pre-wrap;
+    }
+
+    .errorText {
+        color: #ef4444 !important;
+        font-family: 'Courier New', monospace;
+        font-size: 0.75rem;
+        word-break: break-word;
+        padding: 0.5rem;
+        background: rgba(239, 68, 68, 0.1);
+        border-radius: 4px;
+        border-left: 3px solid #ef4444;
+    }
+}
+
+.modalFooter {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.actionButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex: 1;
+
+    svg {
+        font-size: 1.125rem;
+    }
+
+    &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    &.playButton {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+
+        &:hover:not(:disabled) {
+            background: rgba(34, 197, 94, 0.3);
+        }
+    }
+
+    &.pauseButton {
+        background: rgba(251, 191, 36, 0.2);
+        color: #fbbf24;
+        border: 1px solid rgba(251, 191, 36, 0.3);
+
+        &:hover:not(:disabled) {
+            background: rgba(251, 191, 36, 0.3);
+        }
+    }
+
+    &.dangerButton {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+
+        &:hover:not(:disabled) {
+            background: rgba(239, 68, 68, 0.3);
+        }
+    }
+
+    &:not(.playButton):not(.pauseButton):not(.dangerButton) {
+        background: rgba(59, 130, 246, 0.2);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+
+        &:hover:not(:disabled) {
+            background: rgba(59, 130, 246, 0.3);
+        }
+    }
+}
+
+.closeFooterButton {
+    padding: 0.75rem 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+    }
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// 반응형
+@media (max-width: 768px) {
+    .modalContent {
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    .infoGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .modalFooter {
+        flex-wrap: wrap;
+    }
+
+    .actionButton {
+        min-width: calc(50% - 0.375rem);
+    }
+
+    .closeFooterButton {
+        width: 100%;
+    }
+}
+
+// 기존 스타일에 추가
+
+.mlflowToggleRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.mlflowToggleButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    svg {
+        font-size: 1.25rem;
+    }
+
+    &:hover:not(:disabled) {
+        transform: translateY(-2px);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    &.mlflowActive {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+
+        &:hover:not(:disabled) {
+            background: rgba(34, 197, 94, 0.3);
+        }
+    }
+
+    &.mlflowInactive {
+        background: rgba(148, 163, 184, 0.2);
+        color: #94a3b8;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+
+        &:hover:not(:disabled) {
+            background: rgba(148, 163, 184, 0.3);
+        }
+    }
+}
+
+.mlflowDisabledNote {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: rgba(251, 191, 36, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid #fbbf24;
+
+    svg {
+        font-size: 1.25rem;
+        color: #fbbf24;
+        flex-shrink: 0;
+        margin-top: 0.1rem;
+    }
+
+    span {
+        font-size: 0.875rem;
+        color: rgba(255, 255, 255, 0.8);
+        line-height: 1.5;
+    }
+}

@@ -669,3 +669,223 @@
         transform: rotate(360deg);
     }
 }
+
+// 기존 스타일에 추가
+.mlflowStep {
+    // form 요소들의 텍스트 색상
+    .formGroup {
+        label {
+            color: #000 !important;  // ✨ 검은색으로 변경
+            font-weight: 500;
+        }
+
+        input {
+            color: #000 !important;  // ✨ 입력 텍스트 검은색
+            background: #fff !important;  // ✨ 배경 흰색
+            
+            &::placeholder {
+                color: rgba(0, 0, 0, 0.4) !important;  // ✨ placeholder도 검은색 계열
+            }
+        }
+
+        .hint {
+            color: rgba(0, 0, 0, 0.6) !important;  // ✨ 힌트 텍스트 어두운 회색
+        }
+    }
+
+    .required {
+        color: #ef4444 !important;  // 필수 표시는 빨간색 유지
+    }
+
+    // ✨ 섹션 헤더 색상 추가
+    .sectionHeader {
+        h3 {
+            color: #000 !important;  // 제목 검은색
+        }
+
+        .sectionDescription {
+            color: #6b7280 !important;  // 설명 회색
+        }
+    }
+
+    // ✨ 토글 섹션 색상
+    .toggleSection {
+        .toggleLabel {
+            span {
+                color: #000 !important;  // 토글 텍스트 검은색
+            }
+        }
+    }
+}
+
+.sectionHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    svg {
+        font-size: 2rem;
+        color: #3b82f6;
+    }
+
+    h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #fff;
+        margin: 0;
+    }
+
+    .sectionDescription {
+        font-size: 0.875rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin: 0;
+    }
+}
+
+.toggleSection {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.toggleLabel {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    user-select: none;
+
+    span {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #000 !important;  // ✨ 검은색으로 변경
+    }
+}
+
+.toggleCheckbox {
+    display: none;
+}
+
+.toggleSwitch {
+    position: relative;
+    width: 50px;
+    height: 26px;
+    background: #d1d5db;  // ✨ 회색 배경으로 변경 (보이도록)
+    border-radius: 13px;
+    transition: background 0.3s;
+    flex-shrink: 0;  // ✨ 크기 고정
+
+    .toggleSlider {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 20px;
+        height: 20px;
+        background: #fff;
+        border-radius: 50%;
+        transition: transform 0.3s;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);  // ✨ 그림자 추가로 더 잘 보이게
+    }
+}
+
+.toggleCheckbox:checked + .toggleSwitch {
+    background: #3b82f6;
+
+    .toggleSlider {
+        transform: translateX(24px);
+    }
+}
+
+// ✨ MLflow 설정 섹션 내의 input, label, hint 색상 변경
+.mlflowStep {
+    // form 요소들의 텍스트 색상
+    .formGroup {
+        label {
+            color: #000 !important;  // ✨ 검은색으로 변경
+            font-weight: 500;
+        }
+
+        input {
+            color: #000 !important;  // ✨ 입력 텍스트 검은색
+            background: #fff !important;  // ✨ 배경 흰색
+            
+            &::placeholder {
+                color: rgba(0, 0, 0, 0.4) !important;  // ✨ placeholder도 검은색 계열
+            }
+        }
+
+        .hint {
+            color: rgba(0, 0, 0, 0.6) !important;  // ✨ 힌트 텍스트 어두운 회색
+        }
+    }
+
+    .required {
+        color: #ef4444 !important;  // 필수 표시는 빨간색 유지
+    }
+}
+
+.exampleBox {
+    padding: 1rem;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid #3b82f6;
+
+    h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #3b82f6;
+        margin: 0 0 0.75rem 0;
+    }
+
+    .exampleContent {
+        p {
+            font-size: 0.875rem;
+            color: #000 !important;  // ✨ 검은색으로 변경
+            margin: 0.5rem 0;
+
+            strong {
+                color: #000 !important;  // ✨ 검은색으로 변경
+            }
+        }
+
+        ul {
+            margin: 0.5rem 0 0 1.5rem;
+            padding: 0;
+            list-style: disc;
+
+            li {
+                font-size: 0.875rem;
+                color: #000 !important;  // ✨ 검은색으로 변경
+                margin: 0.25rem 0;
+                font-family: 'Courier New', monospace;
+            }
+        }
+    }
+}
+
+.infoBox {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: rgba(251, 191, 36, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid #fbbf24;
+
+    svg {
+        font-size: 1.5rem;
+        color: #fbbf24;
+        flex-shrink: 0;
+        margin-top: 0.1rem;
+    }
+
+    p {
+        font-size: 0.875rem;
+        color: #000 !important;  // ✨ 검은색으로 변경
+        margin: 0;
+        line-height: 1.5;
+    }
+}
