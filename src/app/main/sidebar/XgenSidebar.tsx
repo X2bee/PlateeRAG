@@ -51,7 +51,7 @@ const XgenSidebar: React.FC<XgenSidebarProps> = ({
             const workflowItems = ['canvas', 'workflows', 'tool-storage', 'documents', 'prompt-store'];
             const dataItems = ['data-station', 'data-storage'];
             const trainItems = ['train', 'train-monitor', 'eval', 'model-storage'];
-            const mlModelItems = ['model-upload', 'model-hub', 'model-inference','ml-train', 'ml-train-monitor'];
+            const mlModelItems = ['ml-train', 'ml-train-monitor', 'model-hub', 'model-inference',];
 
             if (chatItems.includes(view)) {
                 setIsChatExpanded(true);

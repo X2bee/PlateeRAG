@@ -25,7 +25,7 @@ const VIEW_CONFIG: Record<WorkspaceView, { title: string; description: string }>
         description: '업로드된 모델을 검색하고 메타데이터를 확인하거나 삭제할 수 있습니다.',
     },
     inference: {
-        title: '모델 추론 콘솔',
+        title: '모델 헬스체크',
         description: '선택한 모델로 입력 스키마에 맞춰 추론을 실행하고 결과를 검증하세요.',
     },
 };
