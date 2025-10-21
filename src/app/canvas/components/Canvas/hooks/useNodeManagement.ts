@@ -27,6 +27,8 @@ interface UseNodeManagementReturn {
     addOutput: (nodeId: string, newOutput: Port) => void;
     deleteOutput: (nodeId: string, outputId: string) => void;
     updateOutputName: (nodeId: string, outputId: string, newName: string) => void;
+    // AgentXgen specific functions
+    updateNodeOutputs: (nodeId: string, outputs: Port[]) => void;
 }
 
 export const useNodeManagement = ({ historyHelpers }: UseNodeManagementProps = {}): UseNodeManagementReturn => {
@@ -359,6 +361,32 @@ export const useNodeManagement = ({ historyHelpers }: UseNodeManagementProps = {
         });
     }, []);
 
+    // AgentXgen specific function - Update entire outputs array
+    const updateNodeOutputs = useCallback((nodeId: string, outputs: Port[]): void => {
+        setNodes(prevNodes => {
+            const targetNodeIndex = prevNodes.findIndex(node => node.id === nodeId);
+            if (targetNodeIndex === -1) {
+                return prevNodes;
+            }
+
+            const targetNode = prevNodes[targetNodeIndex];
+
+            const newNodes = [
+                ...prevNodes.slice(0, targetNodeIndex),
+                {
+                    ...targetNode,
+                    data: {
+                        ...targetNode.data,
+                        outputs
+                    }
+                },
+                ...prevNodes.slice(targetNodeIndex + 1)
+            ];
+
+            return newNodes;
+        });
+    }, []);
+
     return {
         nodes,
         setNodes,
@@ -374,6 +402,7 @@ export const useNodeManagement = ({ historyHelpers }: UseNodeManagementProps = {
         deleteParameter,
         addOutput,
         deleteOutput,
-        updateOutputName
+        updateOutputName,
+        updateNodeOutputs
     };
 };

@@ -1,6 +1,6 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useMemo, useEffect } from 'react';
 import styles from '@/app/canvas/assets/Node.module.scss';
-import type { NodeProps } from '@/app/canvas/types';
+import type { NodeProps, Port } from '@/app/canvas/types';
 import { useNodeEditing } from '@/app/canvas/components/Node/hooks/useNodeEditing';
 import {
     hasInputsAndOutputs,
@@ -12,9 +12,17 @@ import {
 import { NodeHeader } from '@/app/canvas/components/Node/components/NodeHeader';
 import { NodePorts } from '@/app/canvas/components/Node/components/NodePorts';
 import { NodePortsCollapsed } from '@/app/canvas/components/Node/components/NodePortsCollapsed';
-import { SchemaProviderNodeParameters } from '@/app/canvas/components/Node/components/specialized/SchemaProviderNodeParameters';
+import { NodeParameters } from '@/app/canvas/components/Node/components/NodeParameters';
 
-const SchemaProviderNode: React.FC<NodeProps> = ({
+/**
+ * Agent Xgen 전용 Special Node
+ * streaming 파라미터 값에 따라 output을 동적으로 변경합니다.
+ * - streaming = true: {"id": "stream", "name": "Stream", "type": "STREAM STR", "stream": true}
+ * - streaming = false: {"id": "result", "name": "Result", "type": "STR"}
+ */
+const AgentXgenNode: React.FC<NodeProps & {
+    onOutputsUpdate?: (nodeId: string, outputs: Port[]) => void;
+}> = ({
     id,
     data,
     position,
@@ -41,7 +49,8 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
     currentNodes = [],
     currentEdges = [],
     isExpanded = true,
-    onToggleExpanded
+    onToggleExpanded,
+    onOutputsUpdate
 }) => {
     const { nodeName, inputs, parameters, outputs, functionId } = data;
     const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
@@ -49,11 +58,47 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
     // Custom hooks
     const nodeEditingHook = useNodeEditing(nodeName);
 
+    // streaming 파라미터 값에 따라 outputs를 동적으로 생성
+    const dynamicOutputs = useMemo((): Port[] => {
+        // streaming 파라미터 찾기
+        const streamingParam = parameters?.find(p => p.id === 'streaming');
+        const isStreaming = streamingParam?.value ?? true; // 기본값 true
+
+        if (isStreaming) {
+            return [
+                {
+                    id: 'stream',
+                    name: 'Stream',
+                    type: 'STREAM STR',
+                    stream: true
+                }
+            ];
+        } else {
+            return [
+                {
+                    id: 'result',
+                    name: 'Result',
+                    type: 'STR'
+                }
+            ];
+        }
+    }, [parameters]);
+
+    // streaming 파라미터 변경 시 실제 노드 데이터의 outputs 업데이트
+    useEffect(() => {
+        // outputs가 실제로 변경되었는지 확인
+        const currentOutputId = outputs?.[0]?.id;
+        const newOutputId = dynamicOutputs[0]?.id;
+
+        if (currentOutputId !== newOutputId && onOutputsUpdate) {
+            onOutputsUpdate(id, dynamicOutputs);
+        }
+    }, [dynamicOutputs, outputs, id, onOutputsUpdate]);
+
     // Event handlers
     const handleMouseDown = (e: React.MouseEvent): void => {
         if (isPreview) return;
 
-        // Handle predicted node click
         if (isPredicted && onPredictedNodeClick) {
             e.stopPropagation();
             onPredictedNodeClick(data, position);
@@ -81,25 +126,24 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
         setShowAdvanced(prev => !prev);
     };
 
-    const handleToggleExpanded = (e: React.MouseEvent): void => {
-        e.stopPropagation();
-        if (onToggleExpanded) {
-            onToggleExpanded(id);
-        }
-    };
-
     const handleSynchronizeSchema = (portId: string): void => {
         if (!onSynchronizeSchema) return;
         onSynchronizeSchema(id, portId);
     };
 
-    // Utility calculations
-    const { hasIO } = hasInputsAndOutputs(inputs, outputs);
+    const handleToggleExpanded = (e: React.MouseEvent): void => {
+        if (onToggleExpanded) {
+            onToggleExpanded(id);
+        }
+    };
 
-    // Node container classes and styles
+    // Utility calculations
+    const { hasInputs, hasOutputs, hasIO } = hasInputsAndOutputs(inputs, dynamicOutputs);
+    const hasParams = parameters && parameters.length > 0;
+
+    // Compute node container classes and styles
     const nodeClasses = `${getNodeContainerClasses(isSelected, isPreview, isPredicted, styles)} ${!isExpanded ? styles.collapsed : ''}`;
     const nodeStyles = getNodeContainerStyles(position, isPredicted, predictedOpacity);
-
 
     return (
         <div
@@ -133,7 +177,7 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
                         <NodePorts
                             nodeId={id}
                             inputs={inputs}
-                            outputs={outputs}
+                            outputs={dynamicOutputs}
                             isPreview={isPreview}
                             isPredicted={isPredicted}
                             isSelected={isSelected}
@@ -149,15 +193,13 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
                     )}
 
                     {/* Parameters */}
-                    {!isPredicted && (
+                    {hasParams && !isPredicted && (
                         <>
                             {hasIO && <div className={styles.divider}></div>}
-                            <SchemaProviderNodeParameters
+                            <NodeParameters
                                 nodeId={id}
                                 nodeDataId={data.id}
                                 parameters={parameters}
-                                currentNodes={currentNodes}
-                                currentEdges={currentEdges}
                                 isPreview={isPreview}
                                 isPredicted={isPredicted}
                                 onParameterChange={onParameterChange}
@@ -178,7 +220,7 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
                         <NodePortsCollapsed
                             nodeId={id}
                             inputs={inputs}
-                            outputs={outputs}
+                            outputs={dynamicOutputs}
                             isPreview={isPreview}
                             isPredicted={isPredicted}
                             isSelected={isSelected}
@@ -187,6 +229,9 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
                             registerPortRef={registerPortRef}
                             snappedPortKey={snappedPortKey}
                             isSnapTargetInvalid={isSnapTargetInvalid}
+                            currentNodes={currentNodes}
+                            currentEdges={currentEdges}
+                            onSynchronizeSchema={handleSynchronizeSchema}
                         />
                     )}
                 </div>
@@ -195,4 +240,4 @@ const SchemaProviderNode: React.FC<NodeProps> = ({
     );
 };
 
-export default memo(SchemaProviderNode);
+export default memo(AgentXgenNode);
