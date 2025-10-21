@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
         }
 
         console.log(
-            `Next.js proxy will forward /api/* to ${BASE_URL}/api/* (updated)`,
+            `Next.js proxy configuration: forwarding /api/* to ${BASE_URL}/api/*`,
         );
 
         return [

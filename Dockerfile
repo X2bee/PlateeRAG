@@ -22,6 +22,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Create .env file with build-time environment variables or defaults
+# Updated for K8s deployment
 ARG BUILD_ENV=dev
 ARG NEXT_PUBLIC_BACKEND_HOST=http://localhost
 ARG NEXT_PUBLIC_BACKEND_PORT=8000
