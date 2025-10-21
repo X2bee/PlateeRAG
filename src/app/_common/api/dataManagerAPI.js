@@ -2604,3 +2604,49 @@ export const getDBSyncSchedulerHealth = async () => {
 };
 
 
+
+/**
+ * MLflow 설정 업데이트
+ * @param {string} managerId - 매니저 ID
+ * @param {boolean} mlflowEnabled - MLflow 활성화 여부
+ * @param {string} mlflowExperimentName - MLflow 실험 이름
+ * @param {string} mlflowTrackingUri - MLflow Tracking URI (선택)
+ * @returns {Promise<Object>} 업데이트 결과
+ */
+export const updateMLflowConfig = async (managerId, mlflowEnabled, mlflowExperimentName, mlflowTrackingUri = null) => {
+    try {
+        if (!managerId) {
+            throw new Error('Manager ID가 필요합니다.');
+        }
+
+        const requestBody = {
+            manager_id: managerId,
+            mlflow_enabled: mlflowEnabled,
+            mlflow_experiment_name: mlflowExperimentName
+        };
+
+        if (mlflowTrackingUri) {
+            requestBody.mlflow_tracking_uri = mlflowTrackingUri;
+        }
+
+        const response = await apiClient(`${API_BASE_URL}/api/data-manager/sync/update-mlflow-config`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || 'MLflow 설정 업데이트 실패');
+        }
+
+        const data = await response.json();
+        devLog.info('MLflow config updated successfully:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to update MLflow config:', error);
+        throw error;
+    }
+};

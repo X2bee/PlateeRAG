@@ -15,6 +15,7 @@ import {
     FiFolder,
     FiGitBranch,
     FiLayers,
+    FiRefreshCw,
 } from 'react-icons/fi';
 import RefreshButton from '@/app/_common/icons/refresh';
 import {
@@ -50,12 +51,18 @@ interface DataManager {
         dataset_percent: number;
         other_percent: number;
     };
-    // 버전 관리 필드
     current_version?: number;
     dataset_id?: string;
-    dataset_load_count?: number;  // 추가
+    dataset_load_count?: number;
     version_management_enabled?: boolean;
     status?: 'active' | 'inactive' | 'error';
+    // ✨ 동기화 상태 추가
+    sync_status?: {
+        has_sync: boolean;
+        enabled: boolean;
+        schedule_type?: string;
+        last_sync?: string;
+    };
 }
 
 interface DataManagerResponse {
@@ -180,7 +187,6 @@ const DataStation: React.FC = () => {
         return new Date(dateString).toLocaleString('ko-KR');
     };
 
-    // 데이터셋 버전 표시 헬퍼 함수
     const getDatasetVersionLabel = (loadCount?: number) => {
         if (!loadCount || loadCount === 0) return null;
         if (loadCount === 1) return 'v1 (초기)';
@@ -251,6 +257,15 @@ const DataStation: React.FC = () => {
                                     <span className={`${styles.status} ${getStatusColor(manager.status || 'inactive')}`}>
                                         {getStatusText(manager.status || 'inactive')}
                                     </span>
+                                    {/* ✨ 동기화 상태 배지 추가 */}
+                                    {manager.sync_status?.has_sync && (
+                                        <span 
+                                            className={`${styles.syncBadge} ${manager.sync_status.enabled ? styles.syncActive : styles.syncPaused}`}
+                                            title={manager.sync_status.enabled ? 'DB 자동 동기화 활성' : 'DB 자동 동기화 일시 중지'}
+                                        >
+                                            <FiRefreshCw />
+                                        </span>
+                                    )}
                                 </div>
                             </div>
 
@@ -258,6 +273,26 @@ const DataStation: React.FC = () => {
                                 <div className={styles.managerDescription}>
                                     <strong>ID:</strong> {manager.manager_id.slice(0, 20)}...
                                 </div>
+
+                                {/* ✨ 동기화 정보 표시 */}
+                                {manager.sync_status?.has_sync && (
+                                    <div className={styles.syncInfo}>
+                                        <span className={styles.syncLabel}>
+                                            <FiRefreshCw />
+                                            자동 동기화: {manager.sync_status.enabled ? '활성' : '일시 중지'}
+                                        </span>
+                                        {manager.sync_status.last_sync && (
+                                            <span className={styles.lastSyncTime}>
+                                                마지막: {new Date(manager.sync_status.last_sync).toLocaleString('ko-KR', {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
 
                                 {/* 데이터셋 로드 버전 정보 */}
                                 {manager.has_dataset && manager.dataset_load_count && manager.dataset_load_count > 0 && (
@@ -328,22 +363,22 @@ const DataStation: React.FC = () => {
                             </div>
 
                             <div className={styles.cardActions}>
-                            {(manager.is_active || manager.has_dataset) ? (
-                                <button
-                                    className={styles.actionButton}
-                                    onClick={() => handleUseManager(manager)}
-                                    title={manager.is_active ? "데이터 매니저 사용" : "저장소에서 로드 후 사용"}
-                                >
-                                    <FiPlay />
-                                    {!manager.is_active && manager.has_dataset && (
-                                        <span className={styles.loadIndicator}>📦</span>
-                                    )}
-                                </button>
-                            ) : (
-                                <div className={styles.inactiveMessage}>
-                                    사용 불가
-                                </div>
-                                    )}
+                                {(manager.is_active || manager.has_dataset) ? (
+                                    <button
+                                        className={styles.actionButton}
+                                        onClick={() => handleUseManager(manager)}
+                                        title={manager.is_active ? "데이터 매니저 사용" : "저장소에서 로드 후 사용"}
+                                    >
+                                        <FiPlay />
+                                        {!manager.is_active && manager.has_dataset && (
+                                            <span className={styles.loadIndicator}>📦</span>
+                                        )}
+                                    </button>
+                                ) : (
+                                    <div className={styles.inactiveMessage}>
+                                        사용 불가
+                                    </div>
+                                )}
 
                                 {user && String(manager.user_id) === String(user.user_id) && (
                                     <button
