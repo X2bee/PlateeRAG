@@ -519,3 +519,132 @@
         transform: translateY(0);
     }
 }
+
+// 기존 스타일에 추가
+
+.syncStatusBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    margin-top: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    .syncInfo {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        flex: 1;
+    }
+
+    .syncBadge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        width: fit-content;
+
+        svg {
+            font-size: 1rem;
+        }
+
+        &.syncActive {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        &.syncPaused {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+    }
+
+    .syncDetails {
+        font-size: 0.75rem;
+        color: #000000;
+    }
+
+    .nextRun {
+        font-size: 0.75rem;
+        color: #000000; // 또는 color: #1f2937; (약간 부드러운 검은색)
+        font-style: italic;
+    }
+
+    .syncControls {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .syncToggleButton,
+    .syncSettingsButton {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 1.25rem;
+
+        &:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+
+    .syncToggleButton {
+        &.pauseButton {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+
+            &:hover:not(:disabled) {
+                background: rgba(251, 191, 36, 0.3);
+            }
+        }
+
+        &.playButton {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+
+            &:hover:not(:disabled) {
+                background: rgba(34, 197, 94, 0.3);
+            }
+        }
+    }
+
+    .syncSettingsButton {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.7);
+
+        &:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+        }
+    }
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

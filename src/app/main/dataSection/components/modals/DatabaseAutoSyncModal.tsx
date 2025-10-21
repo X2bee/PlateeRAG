@@ -3,14 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import {
     FiX,
-    FiDatabase,
-    FiClock,
+    FiRefreshCw,
     FiCheck,
     FiAlertCircle,
+    FiClock,
+    FiDatabase,
+    FiPlay,
+    FiPause,
+    FiTrash2,
     FiLoader,
-    FiRefreshCw,
     FiCalendar,
     FiSearch,
+    FiActivity,  // ✨ 추가
 } from 'react-icons/fi';
 import {
     addDBAutoSync,
@@ -51,7 +55,12 @@ interface SyncConfig {
     chunk_size?: number;
     detect_changes: boolean;
     notification_enabled: boolean;
+    // ✨ MLflow 설정 추가
+    mlflow_enabled: boolean;
+    mlflow_experiment_name?: string;
+    mlflow_tracking_uri?: string;
 }
+
 
 const DatabaseAutoSyncModal: React.FC<DatabaseAutoSyncModalProps> = ({
     isOpen,
@@ -59,7 +68,7 @@ const DatabaseAutoSyncModal: React.FC<DatabaseAutoSyncModalProps> = ({
     onClose,
     onSuccess,
 }) => {
-    const [step, setStep] = useState<'config' | 'schedule' | 'review'>('config');
+    const [step, setStep] = useState<'config' | 'schedule' | 'mlflow' | 'review'>('config');  // ✨ mlflow 단계 추가
     const [connectionTesting, setConnectionTesting] = useState(false);
     const [connectionStatus, setConnectionStatus] = useState<{
         tested: boolean;
@@ -97,6 +106,10 @@ const DatabaseAutoSyncModal: React.FC<DatabaseAutoSyncModalProps> = ({
         chunk_size: undefined,
         detect_changes: true,
         notification_enabled: false,
+        // ✨ MLflow 기본값
+        mlflow_enabled: false,
+        mlflow_experiment_name: '',
+        mlflow_tracking_uri: '',
     });
 
     const [savedConfigs, setSavedConfigs] = useState<any[]>([]);
@@ -253,6 +266,10 @@ const DatabaseAutoSyncModal: React.FC<DatabaseAutoSyncModalProps> = ({
             chunk_size: undefined,
             detect_changes: true,
             notification_enabled: false,
+            // MLflow 기본값 추가
+            mlflow_enabled: false,
+            mlflow_experiment_name: '',
+            mlflow_tracking_uri: '',
         });
         setExistingSync(null);
         setConnectionStatus(null);
@@ -281,8 +298,6 @@ const DatabaseAutoSyncModal: React.FC<DatabaseAutoSyncModalProps> = ({
                     return;
                 }
             }
-            
-            // 연결 테스트 확인
             if (!connectionStatus?.success) {
                 showErrorToastKo('먼저 DB 연결 테스트를 완료해주세요.');
                 return;
@@ -306,11 +321,19 @@ const DatabaseAutoSyncModal: React.FC<DatabaseAutoSyncModalProps> = ({
                 showErrorToastKo('SQL 쿼리 또는 테이블명 중 하나는 필수입니다.');
                 return;
             }
-            
-            // 쿼리가 있는 경우 검증 확인
             if (syncConfig.query && syncConfig.query.trim() !== '') {
                 if (!queryValidationStatus?.valid) {
                     showErrorToastKo('SQL 쿼리 검증을 완료해주세요.');
+                    return;
+                }
+            }
+            
+            setStep('mlflow');  // ✨ MLflow 설정 단계로
+        } else if (step === 'mlflow') {
+            // ✨ MLflow 설정 검증
+            if (syncConfig.mlflow_enabled) {
+                if (!syncConfig.mlflow_experiment_name || syncConfig.mlflow_experiment_name.trim() === '') {
+                    showErrorToastKo('MLflow 실험 이름을 입력해주세요.');
                     return;
                 }
             }
@@ -322,8 +345,10 @@ const DatabaseAutoSyncModal: React.FC<DatabaseAutoSyncModalProps> = ({
     const handleBack = () => {
         if (step === 'schedule') {
             setStep('config');
-        } else if (step === 'review') {
+        } else if (step === 'mlflow') {
             setStep('schedule');
+        } else if (step === 'review') {
+            setStep('mlflow');
         }
     };
 
@@ -412,24 +437,31 @@ const DatabaseAutoSyncModal: React.FC<DatabaseAutoSyncModalProps> = ({
                     </div>
                 )}
 
-                {/* Progress */}
+                {/* Progress Bar - 4단계 */}
                 <div className={styles.progressBar}>
-                    <div className={`${styles.progressStep} ${step === 'config' ? styles.active : ''} ${['schedule','review'].includes(step) ? styles.completed : ''}`}>
+                    <div className={`${styles.progressStep} ${step === 'config' ? styles.active : ''} ${['schedule','mlflow','review'].includes(step) ? styles.completed : ''}`}>
                         <span className={styles.stepNumber}>1</span>
                         <span className={styles.stepLabel}>DB 설정</span>
                     </div>
 
                     <div className={styles.progressLine}></div>
 
-                    <div className={`${styles.progressStep} ${step === 'schedule' ? styles.active : ''} ${step === 'review' ? styles.completed : ''}`}>
+                    <div className={`${styles.progressStep} ${step === 'schedule' ? styles.active : ''} ${['mlflow','review'].includes(step) ? styles.completed : ''}`}>
                         <span className={styles.stepNumber}>2</span>
                         <span className={styles.stepLabel}>스케줄 설정</span>
                     </div>
 
                     <div className={styles.progressLine}></div>
 
-                    <div className={`${styles.progressStep} ${step === 'review' ? styles.active : ''}`}>
+                    <div className={`${styles.progressStep} ${step === 'mlflow' ? styles.active : ''} ${step === 'review' ? styles.completed : ''}`}>
                         <span className={styles.stepNumber}>3</span>
+                        <span className={styles.stepLabel}>MLflow 설정</span>
+                    </div>
+
+                    <div className={styles.progressLine}></div>
+
+                    <div className={`${styles.progressStep} ${step === 'review' ? styles.active : ''}`}>
+                        <span className={styles.stepNumber}>4</span>
                         <span className={styles.stepLabel}>최종 확인</span>
                     </div>
                 </div>
@@ -762,194 +794,321 @@ const DatabaseAutoSyncModal: React.FC<DatabaseAutoSyncModalProps> = ({
                                         className={styles.input}
                                     />
                                 </div>
-                            </div>
-
-                            <div className={styles.divider}>추가 옵션</div>
-
-                            {/* Chunk Size */}
-                            <div className={styles.formGroup}>
-                                <label>청크 크기 (선택)</label>
-                                <input
-                                    type="number"
-                                    min="100"
-                                    value={syncConfig.chunk_size || ''}
-                                    onChange={(e) => setSyncConfig({ ...syncConfig, chunk_size: parseInt(e.target.value) || undefined })}
-                                    placeholder="1000"
-                                    className={styles.input}
-                                />
-                                <span className={styles.hint}>대용량 데이터 처리시 청크 단위</span>
-                            </div>
-
-                            {/* Options */}
-                            <div className={styles.optionsGroup}>
-                                <label className={styles.checkboxLabel}>
-                                    <input
-                                        type="checkbox"
-                                        checked={syncConfig.detect_changes}
-                                        onChange={(e) => setSyncConfig({ ...syncConfig, detect_changes: e.target.checked })}
-                                    />
-                                    <span>변경사항만 감지하여 동기화</span>
-                                </label>
-                                <label className={styles.checkboxLabel}>
-                                    <input
-                                        type="checkbox"
-                                        checked={syncConfig.notification_enabled}
-                                        onChange={(e) => setSyncConfig({ ...syncConfig, notification_enabled: e.target.checked })}
-                                    />
-                                    <span>동기화 완료 시 알림</span>
-                                </label>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Step 3: Review */}
-                    {step === 'review' && (
-                        <div className={styles.reviewStep}>
-                            <h3>설정 최종 확인</h3>
-
-                            {/* DB Configuration Section */}
-                            <div className={styles.reviewSection}>
-                                <h4>
-                                    <FiDatabase />
-                                    데이터베이스 설정
-                                </h4>
-                                <div className={styles.reviewItem}>
-                                    <span>DB 타입</span>
-                                    <strong>{dbConfig.db_type.toUpperCase()}</strong>
                                 </div>
-                                {dbConfig.db_type !== 'sqlite' && (
-                                    <>
-                                        <div className={styles.reviewItem}>
-                                            <span>호스트</span>
-                                            <strong>{dbConfig.host}:{dbConfig.port}</strong>
+
+                                <div className={styles.divider}>추가 옵션</div>
+
+                                {/* Chunk Size */}
+                                <div className={styles.formGroup}>
+                                    <label>청크 크기 (선택)</label>
+                                    <input
+                                        type="number"
+                                        min="100"
+                                        value={syncConfig.chunk_size || ''}
+                                        onChange={(e) => setSyncConfig({ ...syncConfig, chunk_size: parseInt(e.target.value) || undefined })}
+                                        placeholder="1000"
+                                        className={styles.input}
+                                    />
+                                    <span className={styles.hint}>대용량 데이터 처리시 청크 단위</span>
+                                </div>
+
+                                {/* Options */}
+                                <div className={styles.optionsGroup}>
+                                    <label className={styles.checkboxLabel}>
+                                        <input
+                                            type="checkbox"
+                                            checked={syncConfig.detect_changes}
+                                            onChange={(e) => setSyncConfig({ ...syncConfig, detect_changes: e.target.checked })}
+                                        />
+                                        <span>변경사항만 감지하여 동기화</span>
+                                    </label>
+                                    <label className={styles.checkboxLabel}>
+                                        <input
+                                            type="checkbox"
+                                            checked={syncConfig.notification_enabled}
+                                            onChange={(e) => setSyncConfig({ ...syncConfig, notification_enabled: e.target.checked })}
+                                        />
+                                        <span>동기화 완료 시 알림</span>
+                                    </label>
+                                </div>
+                                </div>
+                                )}
+
+                                {/* Step 3: MLflow Configuration */}
+                                {step === 'mlflow' && (
+                                <div className={styles.mlflowStep}>
+                                <div className={styles.sectionHeader}>
+                                    <FiActivity />
+                                    <h3>MLflow 자동 업로드 설정</h3>
+                                    <p className={styles.sectionDescription}>
+                                        동기화 성공 시 자동으로 MLflow에 데이터셋을 업로드합니다
+                                    </p>
+                                </div>
+
+                                {/* MLflow 활성화 토글 */}
+                                <div className={styles.toggleSection}>
+                                    <label className={styles.toggleLabel}>
+                                        <input
+                                            type="checkbox"
+                                            checked={syncConfig.mlflow_enabled}
+                                            onChange={(e) => setSyncConfig({ ...syncConfig, mlflow_enabled: e.target.checked })}
+                                            className={styles.toggleCheckbox}
+                                        />
+                                        <div className={styles.toggleSwitch}>
+                                            <div className={styles.toggleSlider}></div>
                                         </div>
-                                        <div className={styles.reviewItem}>
-                                            <span>사용자명</span>
-                                            <strong>{dbConfig.username}</strong>
+                                        <span>MLflow 자동 업로드 활성화</span>
+                                    </label>
+                                </div>
+
+                                {/* MLflow 설정 (활성화 시에만 표시) */}
+                                {syncConfig.mlflow_enabled && (
+                                    <>
+                                        <div className={styles.formGroup}>
+                                            <label>
+                                                실험 이름 <span className={styles.required}>*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={syncConfig.mlflow_experiment_name || ''}
+                                                onChange={(e) => setSyncConfig({ ...syncConfig, mlflow_experiment_name: e.target.value })}
+                                                placeholder="my_experiment"
+                                                className={styles.input}
+                                            />
+                                            <span className={styles.hint}>
+                                                동기화마다 자동으로 버전이 증가합니다 (예: my_experiment_v1, my_experiment_v2...)
+                                            </span>
+                                        </div>
+
+                                        <div className={styles.formGroup}>
+                                            <label>MLflow Tracking URI (선택)</label>
+                                            <input
+                                                type="text"
+                                                value={syncConfig.mlflow_tracking_uri || ''}
+                                                onChange={(e) => setSyncConfig({ ...syncConfig, mlflow_tracking_uri: e.target.value })}
+                                                placeholder="https://mlflow.example.com"
+                                                className={styles.input}
+                                            />
+                                            <span className={styles.hint}>
+                                                비워두면 기본 MLflow 서버 사용
+                                            </span>
+                                        </div>
+
+                                        {/* 예시 표시 */}
+                                        <div className={styles.exampleBox}>
+                                            <h4>📊 업로드 예시</h4>
+                                            <div className={styles.exampleContent}>
+                                                <p><strong>실험 이름:</strong> {syncConfig.mlflow_experiment_name || 'my_experiment'}</p>
+                                                <p><strong>데이터셋 이름:</strong></p>
+                                                <ul>
+                                                    <li>1회차: {syncConfig.mlflow_experiment_name || 'my_experiment'}_v1</li>
+                                                    <li>2회차: {syncConfig.mlflow_experiment_name || 'my_experiment'}_v2</li>
+                                                    <li>3회차: {syncConfig.mlflow_experiment_name || 'my_experiment'}_v3</li>
+                                                    <li>...</li>
+                                                </ul>
+                                            </div>
                                         </div>
                                     </>
                                 )}
-                                <div className={styles.reviewItem}>
-                                    <span>데이터베이스</span>
-                                    <strong>{dbConfig.database}</strong>
-                                </div>
-                            </div>
 
-                            {/* Schedule Configuration Section */}
-                            <div className={styles.reviewSection}>
-                                <h4>
-                                    <FiClock />
-                                    스케줄 설정
-                                </h4>
-                                <div className={styles.reviewItem}>
-                                    <span>스케줄 타입</span>
-                                    <strong>
-                                        {syncConfig.schedule_type === 'interval' ? '주기적 간격' : 'Cron 표현식'}
-                                    </strong>
-                                </div>
-                                {syncConfig.schedule_type === 'interval' ? (
-                                    <div className={styles.reviewItem}>
-                                        <span>동기화 간격</span>
-                                        <strong>{syncConfig.interval_minutes}분마다</strong>
-                                    </div>
-                                ) : (
-                                    <div className={styles.reviewItem}>
-                                        <span>Cron 표현식</span>
-                                        <strong>{syncConfig.cron_expression}</strong>
+                                {/* MLflow 비활성화 시 안내 */}
+                                {!syncConfig.mlflow_enabled && (
+                                    <div className={styles.infoBox}>
+                                        <FiAlertCircle />
+                                        <p>
+                                            MLflow 자동 업로드가 비활성화되어 있습니다.
+                                            <br />
+                                            동기화된 데이터는 Manager에만 저장되며, MLflow에 자동으로 업로드되지 않습니다.
+                                        </p>
                                     </div>
                                 )}
-                                {syncConfig.query && (
+                                </div>
+                                )}
+
+                                {/* Step 4: Review */}
+                                {step === 'review' && (
+                                <div className={styles.reviewStep}>
+                                <h3>설정 최종 확인</h3>
+
+                                {/* DB Configuration Section */}
+                                <div className={styles.reviewSection}>
+                                    <h4>
+                                        <FiDatabase />
+                                        데이터베이스 설정
+                                    </h4>
                                     <div className={styles.reviewItem}>
-                                        <span>SQL 쿼리</span>
-                                        <strong style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
-                                            {syncConfig.query.length > 50 
-                                                ? syncConfig.query.substring(0, 50) + '...' 
-                                                : syncConfig.query}
+                                        <span>DB 타입</span>
+                                        <strong>{dbConfig.db_type.toUpperCase()}</strong>
+                                    </div>
+                                    {dbConfig.db_type !== 'sqlite' && (
+                                        <>
+                                            <div className={styles.reviewItem}>
+                                                <span>호스트</span>
+                                                <strong>{dbConfig.host}:{dbConfig.port}</strong>
+                                            </div>
+                                            <div className={styles.reviewItem}>
+                                                <span>사용자명</span>
+                                                <strong>{dbConfig.username}</strong>
+                                            </div>
+                                        </>
+                                    )}
+                                    <div className={styles.reviewItem}>
+                                        <span>데이터베이스</span>
+                                        <strong>{dbConfig.database}</strong>
+                                    </div>
+                                </div>
+
+                                {/* Schedule Configuration Section */}
+                                <div className={styles.reviewSection}>
+                                    <h4>
+                                        <FiClock />
+                                        스케줄 설정
+                                    </h4>
+                                    <div className={styles.reviewItem}>
+                                        <span>스케줄 타입</span>
+                                        <strong>
+                                            {syncConfig.schedule_type === 'interval' ? '주기적 간격' : 'Cron 표현식'}
                                         </strong>
                                     </div>
-                                )}
-                                {syncConfig.table_name && (
-                                    <>
+                                    {syncConfig.schedule_type === 'interval' ? (
                                         <div className={styles.reviewItem}>
-                                            <span>테이블명</span>
-                                            <strong>{syncConfig.table_name}</strong>
+                                            <span>동기화 간격</span>
+                                            <strong>{syncConfig.interval_minutes}분마다</strong>
                                         </div>
-                                        {syncConfig.schema_name && (
+                                    ) : (
+                                        <div className={styles.reviewItem}>
+                                            <span>Cron 표현식</span>
+                                            <strong>{syncConfig.cron_expression}</strong>
+                                        </div>
+                                    )}
+                                    {syncConfig.query && (
+                                        <div className={styles.reviewItem}>
+                                            <span>SQL 쿼리</span>
+                                            <strong style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                                                {syncConfig.query.length > 50 
+                                                    ? syncConfig.query.substring(0, 50) + '...' 
+                                                    : syncConfig.query}
+                                            </strong>
+                                        </div>
+                                    )}
+                                    {syncConfig.table_name && (
+                                        <>
                                             <div className={styles.reviewItem}>
-                                                <span>스키마명</span>
-                                                <strong>{syncConfig.schema_name}</strong>
+                                                <span>테이블명</span>
+                                                <strong>{syncConfig.table_name}</strong>
                                             </div>
-                                        )}
-                                    </>
-                                )}
-                                {syncConfig.chunk_size && (
+                                            {syncConfig.schema_name && (
+                                                <div className={styles.reviewItem}>
+                                                    <span>스키마명</span>
+                                                    <strong>{syncConfig.schema_name}</strong>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                    {syncConfig.chunk_size && (
+                                        <div className={styles.reviewItem}>
+                                            <span>청크 크기</span>
+                                            <strong>{syncConfig.chunk_size.toLocaleString()}</strong>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* MLflow Configuration Section */}
+                                <div className={styles.reviewSection}>
+                                    <h4>
+                                        <FiActivity />
+                                        MLflow 자동 업로드
+                                    </h4>
                                     <div className={styles.reviewItem}>
-                                        <span>청크 크기</span>
-                                        <strong>{syncConfig.chunk_size.toLocaleString()}</strong>
+                                        <span>MLflow 업로드</span>
+                                        <strong>{syncConfig.mlflow_enabled ? '활성화' : '비활성화'}</strong>
                                     </div>
+                                    {syncConfig.mlflow_enabled && (
+                                        <>
+                                            <div className={styles.reviewItem}>
+                                                <span>실험 이름</span>
+                                                <strong>{syncConfig.mlflow_experiment_name}</strong>
+                                            </div>
+                                            <div className={styles.reviewItem}>
+                                                <span>데이터셋 명명 규칙</span>
+                                                <strong>{syncConfig.mlflow_experiment_name}_v1, v2, v3...</strong>
+                                            </div>
+                                            {syncConfig.mlflow_tracking_uri && (
+                                                <div className={styles.reviewItem}>
+                                                    <span>Tracking URI</span>
+                                                    <strong>{syncConfig.mlflow_tracking_uri}</strong>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+
+                                {/* Options Section */}
+                                <div className={styles.reviewSection}>
+                                    <h4>
+                                        <FiCheck />
+                                        추가 옵션
+                                    </h4>
+                                    <div className={styles.reviewItem}>
+                                        <span>변경사항 감지</span>
+                                        <strong>{syncConfig.detect_changes ? '활성화' : '비활성화'}</strong>
+                                    </div>
+                                    <div className={styles.reviewItem}>
+                                        <span>알림</span>
+                                        <strong>{syncConfig.notification_enabled ? '활성화' : '비활성화'}</strong>
+                                    </div>
+                                </div>
+                                </div>
                                 )}
-                            </div>
-
-                            {/* Options Section */}
-                            <div className={styles.reviewSection}>
-                                <h4>
-                                    <FiCheck />
-                                    추가 옵션
-                                </h4>
-                                <div className={styles.reviewItem}>
-                                    <span>변경사항 감지</span>
-                                    <strong>{syncConfig.detect_changes ? '활성화' : '비활성화'}</strong>
                                 </div>
-                                <div className={styles.reviewItem}>
-                                    <span>알림</span>
-                                    <strong>{syncConfig.notification_enabled ? '활성화' : '비활성화'}</strong>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
 
-                {/* Footer */}
-                <div className={styles.modalFooter}>
-                    {step !== 'config' && (
-                        <button onClick={handleBack} className={styles.backButton} type="button">
-                            이전
-                        </button>
-                    )}
+                                {/* Footer */}
+                                <div className={styles.modalFooter}>
+                                {step !== 'config' && (
+                                <button onClick={handleBack} className={styles.backButton} type="button">
+                                이전
+                                </button>
+                                )}
 
-                    <button onClick={handleClose} className={styles.cancelButton} type="button">
-                        취소
-                    </button>
+                                <button onClick={handleClose} className={styles.cancelButton} type="button">
+                                취소
+                                </button>
 
-                    {step === 'config' && (
-                        <button onClick={handleNext} className={styles.nextButton} type="button">
-                            다음
-                        </button>
-                    )}
+                                {step === 'config' && (
+                                <button onClick={handleNext} className={styles.nextButton} type="button">
+                                다음
+                                </button>
+                                )}
 
-                    {step === 'schedule' && (
-                        <button onClick={handleNext} className={styles.nextButton} type="button">
-                            다음
-                        </button>
-                    )}
+                                {step === 'schedule' && (
+                                <button onClick={handleNext} className={styles.nextButton} type="button">
+                                다음
+                                </button>
+                                )}
 
-                    {step === 'review' && (
-                        <button
-                            onClick={handleSubmit}
-                            disabled={loading}
-                            className={styles.submitButton}
-                            type="button"
-                        >
-                            {loading ? (
-                                <>
-                                    <FiLoader className={styles.spinning} />
-                                    설정 중...
-                                </>
-                            ) : (
-                                <>
-                                    <FiCheck />
-                                    자동 동기화 설정
-                                </>
+                                {step === 'mlflow' && (
+                                <button onClick={handleNext} className={styles.nextButton} type="button">
+                                다음
+                                </button>
+                                )}
+
+                                {step === 'review' && (
+                                <button
+                                onClick={handleSubmit}
+                                disabled={loading}
+                                className={styles.submitButton}
+                                type="button"
+                                >
+                                {loading ? (
+                                    <>
+                                        <FiLoader className={styles.spinning} />
+                                        설정 중...
+                                    </>
+                                ) : (
+                                    <>
+                                        <FiCheck />
+                                        자동 동기화 설정
+                                    </>
                             )}
                         </button>
                     )}
