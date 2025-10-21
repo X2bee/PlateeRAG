@@ -19,7 +19,7 @@ import { NodeParameters } from '@/app/canvas/components/Node/components/NodePara
  * streaming 파라미터 값에 따라 output을 동적으로 변경합니다.
  * - streaming = true: {"id": "stream", "name": "Stream", "type": "STREAM STR", "stream": true}
  * - streaming = false: {"id": "result", "name": "Result", "type": "STR"}
- * 
+ *
  * 프로덕션 환경 호환성:
  * - useRef를 사용하여 onOutputsUpdate 함수의 최신 참조 유지
  * - streamingValue만 의존성으로 사용하여 불필요한 재렌더링 방지
@@ -59,7 +59,7 @@ const AgentXgenNode: React.FC<NodeProps & {
 }) => {
     const { nodeName, inputs, parameters, outputs, functionId } = data;
     const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
-    
+
     // Ref to store the latest onOutputsUpdate function
     const onOutputsUpdateRef = useRef(onOutputsUpdate);
     useEffect(() => {
@@ -108,11 +108,11 @@ const AgentXgenNode: React.FC<NodeProps & {
 
         // 현재 outputs와 새로운 outputs가 다를 때만 업데이트
         if (currentOutputId !== newOutputId) {
-            console.log('[AgentXgenNode] Updating outputs:', { 
-                nodeId: id, 
-                from: currentOutputId, 
+            console.log('[AgentXgenNode] Updating outputs:', {
+                nodeId: id,
+                from: currentOutputId,
                 to: newOutputId,
-                streaming: streamingValue 
+                streaming: streamingValue
             });
             updateFn(id, dynamicOutputs);
         }
