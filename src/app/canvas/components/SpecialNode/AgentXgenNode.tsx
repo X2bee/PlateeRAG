@@ -1,4 +1,4 @@
-import React, { memo, useState, useMemo, useEffect } from 'react';
+import React, { memo, useState, useMemo, useEffect, useRef } from 'react';
 import styles from '@/app/canvas/assets/Node.module.scss';
 import type { NodeProps, Port } from '@/app/canvas/types';
 import { useNodeEditing } from '@/app/canvas/components/Node/hooks/useNodeEditing';
@@ -19,6 +19,11 @@ import { NodeParameters } from '@/app/canvas/components/Node/components/NodePara
  * streaming 파라미터 값에 따라 output을 동적으로 변경합니다.
  * - streaming = true: {"id": "stream", "name": "Stream", "type": "STREAM STR", "stream": true}
  * - streaming = false: {"id": "result", "name": "Result", "type": "STR"}
+ *
+ * 프로덕션 환경 호환성:
+ * - useRef를 사용하여 onOutputsUpdate 함수의 최신 참조 유지
+ * - streamingValue만 의존성으로 사용하여 불필요한 재렌더링 방지
+ * - outputs 업데이트는 실제 값 변경 시에만 실행
  */
 const AgentXgenNode: React.FC<NodeProps & {
     onOutputsUpdate?: (nodeId: string, outputs: Port[]) => void;
@@ -55,16 +60,24 @@ const AgentXgenNode: React.FC<NodeProps & {
     const { nodeName, inputs, parameters, outputs, functionId } = data;
     const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
 
+    // Ref to store the latest onOutputsUpdate function
+    const onOutputsUpdateRef = useRef(onOutputsUpdate);
+    useEffect(() => {
+        onOutputsUpdateRef.current = onOutputsUpdate;
+    }, [onOutputsUpdate]);
+
     // Custom hooks
     const nodeEditingHook = useNodeEditing(nodeName);
 
+    // streaming 파라미터의 값만 추출 (안정적인 값 비교를 위해)
+    const streamingValue = useMemo(() => {
+        const streamingParam = parameters?.find(p => p.id === 'streaming');
+        return streamingParam?.value ?? true; // 기본값 true
+    }, [parameters]);
+
     // streaming 파라미터 값에 따라 outputs를 동적으로 생성
     const dynamicOutputs = useMemo((): Port[] => {
-        // streaming 파라미터 찾기
-        const streamingParam = parameters?.find(p => p.id === 'streaming');
-        const isStreaming = streamingParam?.value ?? true; // 기본값 true
-
-        if (isStreaming) {
+        if (streamingValue) {
             return [
                 {
                     id: 'stream',
@@ -82,18 +95,28 @@ const AgentXgenNode: React.FC<NodeProps & {
                 }
             ];
         }
-    }, [parameters]);
+    }, [streamingValue]);
 
     // streaming 파라미터 변경 시 실제 노드 데이터의 outputs 업데이트
     useEffect(() => {
+        const updateFn = onOutputsUpdateRef.current;
+        if (!updateFn) return;
+
         // outputs가 실제로 변경되었는지 확인
         const currentOutputId = outputs?.[0]?.id;
         const newOutputId = dynamicOutputs[0]?.id;
 
-        if (currentOutputId !== newOutputId && onOutputsUpdate) {
-            onOutputsUpdate(id, dynamicOutputs);
+        // 현재 outputs와 새로운 outputs가 다를 때만 업데이트
+        if (currentOutputId !== newOutputId) {
+            console.log('[AgentXgenNode] Updating outputs:', {
+                nodeId: id,
+                from: currentOutputId,
+                to: newOutputId,
+                streaming: streamingValue
+            });
+            updateFn(id, dynamicOutputs);
         }
-    }, [dynamicOutputs, outputs, id, onOutputsUpdate]);
+    }, [streamingValue, id, dynamicOutputs, outputs]);
 
     // Event handlers
     const handleMouseDown = (e: React.MouseEvent): void => {
