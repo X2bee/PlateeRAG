@@ -27,6 +27,7 @@ ARG BUILD_ENV=dev
 ARG NEXT_PUBLIC_BACKEND_HOST=http://localhost
 ARG NEXT_PUBLIC_BACKEND_PORT=8000
 ARG NEXT_PUBLIC_METRICS_HOST
+# Set environment variables for both build and runtime
 RUN if [ "${BUILD_ENV}" = "dev" ]; then \
         echo "NEXT_PUBLIC_USE_PROXY=true" > .env; \
         echo "NEXT_PUBLIC_BACKEND_HOST=http://dev-backend" >> .env; \
@@ -49,6 +50,12 @@ FROM node:24.10.0-alpine3.22 AS runner
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV HOST="0.0.0.0"
 ENV PORT=3000
+
+# Set runtime environment variables for K8s deployment
+ARG BUILD_ENV=dev
+ENV NEXT_PUBLIC_USE_PROXY=true
+ENV NEXT_PUBLIC_BACKEND_HOST=http://dev-backend
+ENV NEXT_PUBLIC_BACKEND_PORT=80
 
 WORKDIR /app
 
