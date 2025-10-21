@@ -125,8 +125,8 @@ export interface DataLakeFilter {
 export interface DataLakeStats {
   totalItems: number;
   totalSize: number;
-  itemsBySourceType: Record<DataSourceType, number>;
-  itemsByParsingMethod: Record<ParsingMethod, number>;
+  itemsBySourceType: Record<string, number>;
+  itemsByParsingMethod: Record<string, number>;
   recentItems: number;            // 최근 24시간 내 수집된 항목
 }
 

@@ -28,7 +28,11 @@ import {
   ParsingMethod,
   ParsedData
 } from './types/scraper.types';
-import { mockScraperAPI } from './mocks/scraper.mock';
+import {
+  fetchScrapedData,
+  fetchDataLakeStats,
+  parseDataItem
+} from '@/app/admin/api/dataScraper';
 
 interface DataLakeProps {
   onClose: () => void;
@@ -53,8 +57,8 @@ const DataLake: React.FC<DataLakeProps> = ({ onClose }) => {
       setLoading(true);
 
       const [dataItems, lakeStats] = await Promise.all([
-        mockScraperAPI.getScrapedData(),
-        mockScraperAPI.getDataLakeStats()
+        fetchScrapedData(),
+        fetchDataLakeStats()
       ]);
 
       setData(dataItems);
@@ -81,7 +85,7 @@ const DataLake: React.FC<DataLakeProps> = ({ onClose }) => {
       setParsing(true);
       setCurrentParsingMethod(method);
 
-      const result = await mockScraperAPI.parseData(selectedItem.id, method);
+      const result = await parseDataItem(selectedItem.id, method);
       setParsingResult(result);
 
       if (result.success) {
@@ -193,7 +197,7 @@ const DataLake: React.FC<DataLakeProps> = ({ onClose }) => {
               </div>
               <div className={styles.metadataItem}>
                 <span className={styles.metadataLabel}>크기:</span>
-                <span className={styles.metadataValue}>{formatSize(selectedItem.size)}</span>
+                <span className={styles.metadataValue}>{formatSize(selectedItem.size ?? 0)}</span>
               </div>
               <div className={styles.metadataItem}>
                 <span className={styles.metadataLabel}>파싱 방법:</span>

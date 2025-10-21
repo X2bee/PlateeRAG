@@ -28,7 +28,12 @@ import {
     showErrorToastKo
 } from '@/app/_common/utils/toastUtilsKo';
 import { ScraperConfig, ScraperStats } from './types/scraper.types';
-import { mockScraperAPI } from './mocks/scraper.mock';
+import {
+    fetchScrapers,
+    fetchScraperStats,
+    deleteScraper as deleteScraperApi,
+    runScraper as runScraperApi
+} from '@/app/admin/api/dataScraper';
 import AdminScraper from '@/app/admin/components/database/AdminScraper';
 import DataLake from '@/app/admin/components/database/DataLake';
 
@@ -51,18 +56,35 @@ const AdminDataScraper: React.FC = () => {
         try {
             setLoading(true);
 
-            const scrapersList = await mockScraperAPI.getScrapers();
+            const scrapersList = await fetchScrapers();
             setScrapers(scrapersList);
 
             // 각 스크래퍼의 통계 로드
             const statsPromises = scrapersList.map(scraper =>
-                mockScraperAPI.getScraperStats(scraper.id)
+                fetchScraperStats(scraper.id)
             );
             const statsResults = await Promise.all(statsPromises);
 
             const statsMap: Record<string, ScraperStats> = {};
             statsResults.forEach(stat => {
-                statsMap[stat.scraperId] = stat;
+                if (stat) {
+                    statsMap[stat.scraperId] = stat;
+                }
+            });
+
+            scrapersList.forEach(scraper => {
+                if (!statsMap[scraper.id]) {
+                    statsMap[scraper.id] = {
+                        scraperId: scraper.id,
+                        totalRuns: 0,
+                        successfulRuns: 0,
+                        failedRuns: 0,
+                        totalDataCollected: 0,
+                        totalDataSize: 0,
+                        lastRunAt: undefined,
+                        averageRunTime: 0
+                    };
+                }
             });
             setStats(statsMap);
 
@@ -86,7 +108,7 @@ const AdminDataScraper: React.FC = () => {
         }
 
         try {
-            await mockScraperAPI.deleteScraper(scraperId);
+            await deleteScraperApi(scraperId);
             showSuccessToastKo('스크래퍼가 삭제되었습니다.');
             setRefreshTrigger(prev => prev + 1);
         } catch (error) {
@@ -99,7 +121,7 @@ const AdminDataScraper: React.FC = () => {
     const handleRunScraper = async (scraperId: string) => {
         try {
             devLog.log('Running scraper:', scraperId);
-            const runLog = await mockScraperAPI.runScraper(scraperId);
+            const runLog = await runScraperApi(scraperId);
 
             if (runLog.status === 'completed') {
                 showSuccessToastKo(

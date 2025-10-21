@@ -25,7 +25,13 @@ import {
   ParsingMethod,
   RobotsCheckResult
 } from './types/scraper.types';
-import { mockScraperAPI } from './mocks/scraper.mock';
+import {
+  fetchScrapers,
+  createScraper as createScraperApi,
+  updateScraper as updateScraperApi,
+  checkRobotsTxt as checkRobotsTxtApi,
+  testScraper as testScraperApi
+} from '@/app/admin/api/dataScraper';
 
 interface AdminScraperProps {
   scraperId: string | null;
@@ -62,7 +68,7 @@ const AdminScraper: React.FC<AdminScraperProps> = ({ scraperId, onClose, onSave 
   const loadScraperData = async (id: string) => {
     try {
       setLoading(true);
-      const scrapers = await mockScraperAPI.getScrapers();
+      const scrapers = await fetchScrapers();
       const scraper = scrapers.find(s => s.id === id);
 
       if (scraper) {
@@ -95,7 +101,7 @@ const AdminScraper: React.FC<AdminScraperProps> = ({ scraperId, onClose, onSave 
       setCheckingRobots(true);
       setRobotsCheckResult(null);
 
-      const result = await mockScraperAPI.checkRobotsTxt(endpoint);
+      const result = await checkRobotsTxtApi(endpoint, userAgent);
       setRobotsCheckResult(result);
 
       if (result.allowed) {
@@ -139,12 +145,10 @@ const AdminScraper: React.FC<AdminScraperProps> = ({ scraperId, onClose, onSave 
       };
 
       if (scraperId) {
-        // 수정
-        await mockScraperAPI.updateScraper(scraperId, scraperData);
+        await updateScraperApi(scraperId, scraperData);
         showSuccessToastKo('스크래퍼가 수정되었습니다.');
       } else {
-        // 생성
-        await mockScraperAPI.createScraper(scraperData);
+        await createScraperApi(scraperData);
         showSuccessToastKo('스크래퍼가 생성되었습니다.');
       }
 
@@ -164,8 +168,18 @@ const AdminScraper: React.FC<AdminScraperProps> = ({ scraperId, onClose, onSave 
       return;
     }
 
-    showSuccessToastKo('테스트 스크래핑이 시작되었습니다. (Mock)');
-    devLog.log('Test scraping for:', endpoint);
+    if (!scraperId) {
+      showSuccessToastKo('설정을 저장한 후 테스트를 실행해주세요.');
+      return;
+    }
+
+    try {
+      await testScraperApi(scraperId);
+      showSuccessToastKo('테스트 스크래핑이 시작되었습니다.');
+    } catch (error) {
+      devLog.error('Failed to test scraper:', error);
+      showErrorToastKo('테스트 실행에 실패했습니다.');
+    }
   };
 
   if (loading) {
