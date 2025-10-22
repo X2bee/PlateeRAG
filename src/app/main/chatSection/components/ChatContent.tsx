@@ -184,7 +184,7 @@ return (
                     >
                         <LuWorkflow />
                         <h3>Workflow 선택</h3>
-                        <p>정해진 워크플로우로 시작하기</p>
+                        <p>워크플로우로 시작하기</p>
                     </button>
                     <button
                         className={styles.chatButton}
