@@ -1,3 +1,7 @@
+import { API_BASE_URL } from '@/app/config';
+import { getAuthCookie } from '@/app/_common/utils/cookieUtils';
+import { devLog } from '@/app/_common/utils/logger';
+
 type WorkflowMode = 'execute' | 'deploy';
 
 const MODE_PATHS: Record<WorkflowMode, string> = {
@@ -57,11 +61,37 @@ const isBrowser = () => typeof window !== 'undefined';
 
 const resolveWebSocketUrl = (mode: WorkflowMode, override?: string) => {
     if (override) return override;
+
     if (!isBrowser()) {
         throw new Error('WebSocket connections can only be initialised in the browser.');
     }
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    return `${protocol}://${window.location.host}${MODE_PATHS[mode]}`;
+
+    const accessToken = getAuthCookie('access_token');
+    const userId = getAuthCookie('user_id');
+
+    const applyAuthParams = (url: URL) => {
+        if (accessToken) {
+            url.searchParams.set('token', accessToken);
+        }
+        if (userId) {
+            url.searchParams.set('user_id', String(userId));
+        }
+    };
+
+    const baseTarget = API_BASE_URL || `${window.location.origin}`;
+
+    try {
+        const url = new URL(MODE_PATHS[mode], baseTarget.endsWith('/') ? baseTarget : `${baseTarget}/`);
+        url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+        applyAuthParams(url);
+        return url.toString();
+    } catch (error) {
+        devLog.error('[workflow-ws] Failed to construct WebSocket URL from API_BASE_URL', error);
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const fallbackUrl = new URL(`${protocol}://${window.location.host}${MODE_PATHS[mode]}`);
+        applyAuthParams(fallbackUrl);
+        return fallbackUrl.toString();
+    }
 };
 
 const defaultLogger = {

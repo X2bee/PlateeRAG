@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import type { Server as HttpServer } from 'http';
+import type { Socket } from 'net';
 import WebSocket from 'ws';
 import { devLog } from '@/app/_common/utils/logger';
 import { API_BASE_URL } from '@/app/config';
@@ -9,9 +11,16 @@ export const config = {
     },
 };
 
-const SUPPORTED_SUFFIXES = new Set(['execute/ws', 'deploy/ws']);
+const SUPPORTED_PATHS = new Set([
+    '/api/workflow/execute/ws',
+    '/api/workflow/deploy/ws',
+]);
 
-const proxyServer = new WebSocket.Server({ noServer: true });
+type SocketServerWithProxy = HttpServer & {
+    workflowWsProxy?: {
+        server: WebSocket.Server;
+    };
+};
 
 const parseCookies = (cookieHeader?: string) => {
     const cookies: Record<string, string> = {};
@@ -61,6 +70,8 @@ const bridgeSockets = (
     clientSocket.on('message', (data) => {
         if (backendSocket.readyState === WebSocket.OPEN) {
             backendSocket.send(data);
+        } else if (backendSocket.readyState === WebSocket.CONNECTING) {
+            backendSocket.once('open', () => backendSocket.send(data));
         }
     });
 
@@ -110,49 +121,75 @@ const establishProxy = (
     bridgeSockets(clientSocket, backendSocket);
 };
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.headers.upgrade !== 'websocket') {
-        res.status(400).json({ error: 'Expected WebSocket upgrade request' });
-        return;
+const ensureProxyServer = (server: SocketServerWithProxy) => {
+    if (server.workflowWsProxy) {
+        return server.workflowWsProxy.server;
     }
 
-    const segments = Array.isArray(req.query.ws)
-        ? req.query.ws
-        : typeof req.query.ws === 'string'
-            ? [req.query.ws]
-            : [];
+    const proxyServer = new WebSocket.Server({ noServer: true });
 
-    const suffix = segments.join('/');
+    server.on('upgrade', (request: any, socket: Socket, head: Buffer) => {
+        try {
+            const requestUrl = new URL(request.url ?? '', 'http://localhost');
+            const pathname = requestUrl.pathname;
 
-    if (!SUPPORTED_SUFFIXES.has(suffix)) {
-        res.status(404).json({ error: 'Unsupported WebSocket route' });
-        return;
-    }
+            if (!pathname || !SUPPORTED_PATHS.has(pathname)) {
+                return;
+            }
 
-    const cookies = parseCookies(req.headers.cookie);
-    const token = cookies['access_token'];
+            const cookies = parseCookies(request.headers.cookie);
+            const queryToken = requestUrl.searchParams.get('token') ?? undefined;
+            const queryUserId = requestUrl.searchParams.get('user_id') ?? undefined;
+            const token = queryToken || cookies['access_token'];
 
-    if (!token) {
-        res.status(401).json({ error: 'Missing access token cookie' });
-        return;
-    }
+            if (!token) {
+                socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+                socket.destroy();
+                return;
+            }
 
-    const userId = cookies['user_id'];
-    const requestUrl = new URL(req.url ?? '', 'http://localhost');
-    const targetPath = `/api/workflow/${suffix}`;
-    const backendUrl = resolveBackendWebSocketUrl(targetPath, requestUrl.search);
+            const backendUrl = resolveBackendWebSocketUrl(pathname, requestUrl.search);
+            const headers: Record<string, string> = {
+                Authorization: `Bearer ${token}`,
+            };
 
-    const headers: Record<string, string> = {
-        Authorization: `Bearer ${token}`,
-    };
+            const userIdHeader = queryUserId || cookies['user_id'];
+            if (userIdHeader) {
+                headers['X-User-ID'] = userIdHeader;
+            }
 
-    if (userId) {
-        headers['X-User-ID'] = userId;
-    }
+            devLog.log(`Proxying WebSocket to ${backendUrl}`);
 
-    devLog.log(`Proxying WebSocket to ${backendUrl}`);
-
-    proxyServer.handleUpgrade(req, req.socket as any, Buffer.alloc(0), (clientSocket) => {
-        establishProxy(clientSocket, backendUrl, headers);
+            proxyServer.handleUpgrade(request, socket, head, (clientSocket) => {
+                establishProxy(clientSocket, backendUrl, headers);
+            });
+        } catch (error) {
+            devLog.error('WebSocket proxy upgrade failed', error);
+            socket.write('HTTP/1.1 500 Internal Server Error\r\n\r\n');
+            socket.destroy();
+        }
     });
+
+    server.workflowWsProxy = { server: proxyServer };
+    return proxyServer;
+};
+
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+    const socketServer = res.socket?.server as SocketServerWithProxy | undefined;
+
+    if (!socketServer) {
+        res.status(500).json({ error: 'Socket server unavailable' });
+        return;
+    }
+
+    ensureProxyServer(socketServer);
+
+    // For HTTP requests hitting this route (non-upgrade), respond with 200.
+    if (req.headers.upgrade !== 'websocket') {
+        res.status(200).json({ status: 'ok' });
+        return;
+    }
+
+    // If an upgrade request slips through, it will be handled by the upgrade listener.
+    res.status(426).end();
 }
