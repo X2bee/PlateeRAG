@@ -355,46 +355,38 @@ const TrainPageContent: React.FC = () => {
     };
 
     return (
-        <div className={styles.container}>
-            <div className={styles.contentArea}>
-                <div className={styles.header}>
-                    <div className={styles.headerContent}>
-                        <h2>모델 훈련 설정</h2>
-                        <p>모델 훈련을 위한 파라미터를 설정하고 훈련을 시작하세요.</p>
-                    </div>
-                </div>
-
-                {/* 탭 네비게이션 */}
-                <div className={styles.tabNavigation}>
-                    <button
-                        className={`${styles.tabButton} ${activeTab === 'basic' ? styles.active : ''}`}
-                        onClick={() => setActiveTab('basic')}
-                    >
-                        <FiSettings />
-                        기본 설정
-                    </button>
-                    <button
-                        className={`${styles.tabButton} ${activeTab === 'model' ? styles.active : ''}`}
-                        onClick={() => setActiveTab('model')}
-                    >
-                        <FiBox />
-                        모델 설정
-                    </button>
-                    <button
-                        className={`${styles.tabButton} ${activeTab === 'data' ? styles.active : ''}`}
-                        onClick={() => setActiveTab('data')}
-                    >
-                        <FiDatabase />
-                        데이터 설정
-                    </button>
-                    <button
-                        className={`${styles.tabButton} ${activeTab === 'trainer' ? styles.active : ''}`}
-                        onClick={() => setActiveTab('trainer')}
-                    >
-                        <FiCpu />
-                        트레이너 설정
-                    </button>
-                </div>
+        <>
+            {/* 탭 네비게이션 */}
+            <div className={styles.tabNavigation}>
+                <button
+                    className={`${styles.tabButton} ${activeTab === 'basic' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('basic')}
+                >
+                    <FiSettings />
+                    기본 설정
+                </button>
+                <button
+                    className={`${styles.tabButton} ${activeTab === 'model' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('model')}
+                >
+                    <FiBox />
+                    모델 설정
+                </button>
+                <button
+                    className={`${styles.tabButton} ${activeTab === 'data' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('data')}
+                >
+                    <FiDatabase />
+                    데이터 설정
+                </button>
+                <button
+                    className={`${styles.tabButton} ${activeTab === 'trainer' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('trainer')}
+                >
+                    <FiCpu />
+                    트레이너 설정
+                </button>
+            </div>
 
                 {/* 탭 컨텐츠 */}
                 <div className={styles.configWrapper}>
@@ -443,8 +435,7 @@ const TrainPageContent: React.FC = () => {
                         </button>
                     </div>
                 </div>
-            </div>
-        </div>
+        </>
     );
 };
 

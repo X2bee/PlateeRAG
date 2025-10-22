@@ -12,7 +12,6 @@ import {
     FiChevronUp,
     FiChevronDown,
 } from 'react-icons/fi';
-import ContentArea from '@/app/main/workflowSection/components/ContentArea';
 import styles from '@/app/main/modelSection/assets/StoragePage.module.scss';
 import { getAllHuggingFaceResources } from '@/app/_common/api/huggingfaceAPI';
 import StorageModelInfoModal from './Storage/StorageModelInfoModal';
@@ -138,11 +137,7 @@ const StoragePageContent: React.FC = () => {
     };
 
     return (
-        <ContentArea
-            title="Hugging Face 모델 저장소"
-            description="Hugging Face에 저장된 모델을 확인하고 관리하세요."
-        >
-            <div className={styles.container}>
+        <>
             {/* Header with Sorting Controls and Actions */}
             <div className={styles.header}>
                 <div className={styles.headerLeft}>
@@ -268,7 +263,6 @@ const StoragePageContent: React.FC = () => {
                     </p>
                 </div>
             )}
-            </div>
 
             {/* Model Info Modal */}
             {selectedModel && (
@@ -278,7 +272,7 @@ const StoragePageContent: React.FC = () => {
                     onClose={handleCloseModal}
                 />
             )}
-        </ContentArea>
+        </>
     );
 };
 
