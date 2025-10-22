@@ -1,55 +1,6 @@
 @use "sass:color";
 @use "@/app/_common/_variables" as *;
 
-// Container
-.container {
-    margin: 0 auto;
-}
-
-// Content Area
-.contentArea {
-    background: $white;
-    border-radius: $radius-lg;
-    box-shadow: $shadow-sm;
-    padding: $spacing-xl;
-    min-height: calc(100vh - 4rem);
-    transition: margin-left 0.3s ease-in-out;
-}
-
-// Header
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 2rem;
-    gap: 2rem;
-
-    @media (max-width: 768px) {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 1rem;
-    }
-}
-
-.headerContent {
-    flex: 1;
-
-    h2 {
-        font-size: 1.875rem;
-        font-weight: 700;
-        color: $gray-900;
-        margin: 0 0 0.5rem 0;
-    }
-
-    p {
-        font-size: 1rem;
-        color: $gray-600;
-        margin: 0;
-        line-height: 1.5;
-    }
-}
-
 // Tab Navigation
 .tabNavigation {
     display: flex;
@@ -57,6 +8,7 @@
     border: 1px solid $gray-200;
     border-radius: 0.75rem 0.75rem 0 0;
     overflow: hidden;
+    margin-bottom: 0;
 }
 
 .tabButton {
