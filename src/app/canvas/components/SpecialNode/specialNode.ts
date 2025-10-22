@@ -10,7 +10,6 @@
 import React from 'react';
 import SchemaProviderNode from './SchemaProviderNode';
 import RouterNode from './RouterNode';
-import AgentXgenNode from './AgentXgenNode';
 import type { NodeProps } from '@/app/canvas/types';
 
 /**
@@ -57,16 +56,6 @@ export const SPECIAL_NODES: SpecialNodeConfig[] = [
         },
         additionalProps: ['onOutputAdd', 'onOutputDelete', 'onOutputNameChange']
     },
-    {
-        name: 'AgentXgenNode',
-        component: AgentXgenNode,
-        matcher: (nodeData) => {
-            return nodeData.id === 'agents/xgen' ||
-                   nodeData.nodeName === 'Agent Xgen';
-        },
-        additionalProps: [],
-        requiresSpecialHandling: true  // onOutputsUpdate 같은 특별한 처리가 필요함
-    }
 ];/**
  * 노드 데이터로부터 적절한 Special Node 설정을 찾습니다.
  * @param nodeData - 노드 데이터 객체

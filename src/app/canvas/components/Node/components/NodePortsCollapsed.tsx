@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import styles from '@/app/canvas/assets/Node.module.scss';
 import { generatePortKey } from '../utils/nodeUtils';
+import { filterPortsByDependency } from '../utils/portUtils';
 import type { NodePortsProps } from '../types';
 
 export const NodePortsCollapsed: React.FC<NodePortsProps> = ({
     nodeId,
     inputs,
     outputs,
+    parameters,
     isPreview = false,
     isPredicted = false,
     onPortMouseDown,
@@ -15,8 +17,12 @@ export const NodePortsCollapsed: React.FC<NodePortsProps> = ({
     snappedPortKey,
     isSnapTargetInvalid
 }) => {
-    const hasInputs = inputs && inputs.length > 0;
-    const hasOutputs = outputs && outputs.length > 0;
+    // Dependency를 고려하여 실제 렌더링할 포트만 필터링
+    const filteredInputs = useMemo(() => filterPortsByDependency(inputs, parameters), [inputs, parameters]);
+    const filteredOutputs = useMemo(() => filterPortsByDependency(outputs, parameters), [outputs, parameters]);
+
+    const hasInputs = filteredInputs && filteredInputs.length > 0;
+    const hasOutputs = filteredOutputs && filteredOutputs.length > 0;
 
     if (!hasInputs && !hasOutputs) {
         return null;
@@ -26,7 +32,7 @@ export const NodePortsCollapsed: React.FC<NodePortsProps> = ({
         <div className={styles.collapsedPorts}>
             {/* 입력 포트들 - 왼쪽 */}
             <div className={styles.collapsedInputs}>
-                {hasInputs && inputs?.map((input) => {
+                {hasInputs && filteredInputs?.map((input) => {
                     const portKey = generatePortKey(nodeId, input.id, 'input');
                     const isSnapping = snappedPortKey === portKey;
 
@@ -76,7 +82,7 @@ export const NodePortsCollapsed: React.FC<NodePortsProps> = ({
 
             {/* 출력 포트들 - 오른쪽 */}
             <div className={styles.collapsedOutputs}>
-                {hasOutputs && outputs?.map((output) => {
+                {hasOutputs && filteredOutputs?.map((output) => {
                     const portKey = generatePortKey(nodeId, output.id, 'output');
                     const isSnapping = snappedPortKey === portKey;
 

@@ -20,6 +20,8 @@ export interface Port {
     required?: boolean;
     multi?: boolean;
     stream?: boolean;
+    dependency?: string; // Parameter id to check
+    dependencyValue?: string | number | boolean; // Expected value
 }
 
 export interface ParameterOption {

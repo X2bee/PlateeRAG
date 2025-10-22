@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { LuDownload } from 'react-icons/lu';
 import styles from '@/app/canvas/assets/Node.module.scss';
 import { generatePortKey, getConnectedSchemaProvider } from '../utils/nodeUtils';
+import { filterPortsByDependency } from '../utils/portUtils';
 import type { NodePortsProps } from '../types';
 
 export const NodePorts: React.FC<NodePortsProps> = ({
     nodeId,
     inputs,
     outputs,
+    parameters,
     isPreview = false,
     isPredicted = false,
     isSelected,
@@ -20,8 +22,12 @@ export const NodePorts: React.FC<NodePortsProps> = ({
     currentEdges,
     onSynchronizeSchema
 }) => {
-    const hasInputs = inputs && inputs.length > 0;
-    const hasOutputs = outputs && outputs.length > 0;
+    // Dependency를 고려하여 실제 렌더링할 포트만 필터링
+    const filteredInputs = useMemo(() => filterPortsByDependency(inputs, parameters), [inputs, parameters]);
+    const filteredOutputs = useMemo(() => filterPortsByDependency(outputs, parameters), [outputs, parameters]);
+
+    const hasInputs = filteredInputs && filteredInputs.length > 0;
+    const hasOutputs = filteredOutputs && filteredOutputs.length > 0;
     const hasOnlyOutputs = hasOutputs && !hasInputs;
 
     const handleSynchronizeSchema = (portId: string) => {
@@ -38,7 +44,7 @@ export const NodePorts: React.FC<NodePortsProps> = ({
             {hasInputs && (
                 <div className={styles.column}>
                     <div className={styles.sectionHeader}>INPUT</div>
-                    {inputs.map(portData => {
+                    {filteredInputs.map(portData => {
                         const portKey = generatePortKey(nodeId, portData.id, 'input');
                         const isSnapping = snappedPortKey === portKey;
 
@@ -102,7 +108,7 @@ export const NodePorts: React.FC<NodePortsProps> = ({
             {hasOutputs && (
                 <div className={`${styles.column} ${styles.outputColumn} ${hasOnlyOutputs ? styles.fullWidth : ''}`}>
                     <div className={styles.sectionHeader}>OUTPUT</div>
-                    {outputs.map(portData => {
+                    {filteredOutputs.map(portData => {
                         const portClasses = [
                             styles.port,
                             styles.outputPort,

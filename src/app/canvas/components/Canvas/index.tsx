@@ -87,8 +87,7 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
         deleteParameter,
         addOutput,
         deleteOutput,
-        updateOutputName,
-        updateNodeOutputs
+        updateOutputName
     } = useNodeManagement({ historyHelpers });
 
     const {
@@ -757,7 +756,6 @@ const Canvas = forwardRef<CanvasRef, CanvasProps>(({
                     onOutputAdd={addOutput}
                     onOutputDelete={deleteOutput}
                     onOutputNameChange={updateOutputName}
-                    onOutputsUpdate={updateNodeOutputs}
                     onClearSelection={clearSelection}
                     onOpenNodeModal={onOpenNodeModal}
                     onSynchronizeSchema={handleSynchronizeSchema}

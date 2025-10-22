@@ -99,6 +99,7 @@ export interface NodePortsProps {
     nodeId: string;
     inputs?: any[];
     outputs?: any[];
+    parameters?: Parameter[]; // Port dependency 체크를 위해 필요
     isPreview?: boolean;
     isPredicted?: boolean;
     isSelected: boolean;
