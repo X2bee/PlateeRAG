@@ -24,7 +24,7 @@ XGEN is an innovative platform that allows you to build AI applications with a *
   <p><em>🖱️ Visually compose AI workflows with intuitive drag-and-drop interface</em></p>
 </div>
 
-- **LangChain Node Support**: Rich AI nodes including ChatOpenAI, ChatAnthropic, VectorStore
+- **LangChain Node Support**: Rich AI nodes including ChatOpenAI, ChatAnthropic, VectorStore.
 - **Drag & Drop**: Intuitive interface for workflow composition
 - **Real-time Connections**: Visual representation of data flow between nodes
 - **Auto Save**: Preserve work content with LocalStorage-based system
