@@ -159,6 +159,7 @@ const RouterNode: React.FC<NodeProps & {
                             nodeId={id}
                             inputs={inputs}
                             outputs={outputs}
+                            parameters={parameters}
                             isPreview={isPreview}
                             isPredicted={isPredicted}
                             isSelected={isSelected}
@@ -205,6 +206,7 @@ const RouterNode: React.FC<NodeProps & {
                             nodeId={id}
                             inputs={inputs}
                             outputs={outputs}
+                            parameters={parameters}
                             isPreview={isPreview}
                             isPredicted={isPredicted}
                             isSelected={isSelected}
