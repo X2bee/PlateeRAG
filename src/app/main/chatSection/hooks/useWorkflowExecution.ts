@@ -127,6 +127,9 @@ export const useWorkflowExecution = ({
                     interactionId,
                     selectedCollections: selectedCollection,
                     additional_params: getValidAdditionalParams(),
+                    onStart: () => {
+                        scrollToBottom();
+                    },
                     onData: (chunk: string) => {
                         setIOLogs((prev) =>
                             prev.map((log) =>

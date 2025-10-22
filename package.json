@@ -47,7 +47,8 @@
         "react-syntax-highlighter": "^15.6.1",
         "sass": "^1.89.2",
         "scss": "^0.2.4",
-        "typescript-eslint": "^8.37.0"
+        "typescript-eslint": "^8.37.0",
+        "ws": "^8.18.0"
     },
     "devDependencies": {
         "@next/eslint-plugin-next": "^15.4.1",

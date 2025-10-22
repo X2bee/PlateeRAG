@@ -2,6 +2,7 @@ import { apiClient } from "@/app/_common/api/helper/apiClient";
 import { API_BASE_URL } from '@/app/config.js';
 import { devLog } from "@/app/_common/utils/logger";
 import { excuteWorkflowRequest } from "./types";
+import { runWorkflowStream } from "@/app/_common/api/workflow/workflowWebsocketClient";
 
 /**
  * 랜덤 8자리 영어+숫자 문자열 생성
@@ -131,6 +132,7 @@ export const executeWorkflowByIdDeploy = async (
  * @param {function(string): void} params.onData - 데이터 조각(chunk)을 수신할 때마다 호출될 콜백.
  * @param {function(): void} params.onEnd - 스트림이 정상적으로 종료될 때 호출될 콜백.
  * @param {function(Error): void} params.onError - 오류 발생 시 호출될 콜백.
+ * @param {function(): void} [params.onStart] - 스트림 시작 이벤트 수신 시 호출될 콜백.
  */
 export const executeWorkflowByIdStreamDeploy = async ({
     workflowName,
@@ -143,84 +145,67 @@ export const executeWorkflowByIdStreamDeploy = async ({
     onData,
     onEnd,
     onError,
-}: { workflowName: string;
+    onStart,
+}: {
+    workflowName: string;
     workflowId: string;
     inputData: string;
     interactionId: string;
     selectedCollections: Array<string> | null;
     user_id?: number | string | null;
     additional_params?: Record<string, Record<string, any>> | null;
-    onData: (arg0: string) => void;
+    onData: (chunk: string) => void;
     onEnd: () => void;
-    onError: (arg0: Error) => void; }) => {
-    const requestBody: excuteWorkflowRequest = {
+    onError: (error: Error) => void;
+    onStart?: () => void;
+}) => {
+    const payload: excuteWorkflowRequest = {
         workflow_name: workflowName,
         workflow_id: workflowId,
         input_data: inputData || '',
-        interaction_id: generateRandomId(),
+        interaction_id: interactionId || generateRandomId(),
+        selected_collections: selectedCollections ?? null,
     };
 
-    try {
-        if (selectedCollections && Array.isArray(selectedCollections) && selectedCollections.length > 0) {
-            requestBody.selected_collections = selectedCollections;
-        }
-        if(user_id && user_id !== null && user_id !== undefined) {
-            requestBody.user_id = user_id;
-        }
-        // additional_params가 있으면 추가
-        if (additional_params && typeof additional_params === 'object') {
-            requestBody.additional_params = additional_params;
-        }
-        const response = await apiClient(`${API_BASE_URL}/api/workflow/deploy/execute/based_id/stream`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-        }
-
-        if (!response.body) {
-            throw new Error('Response body is null.');
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder('utf-8');
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-                onEnd();
-                break;
-            }
-
-            const chunk = decoder.decode(value);
-            const lines = chunk.split('\n\n');
-            for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                    const jsonData = line.substring(6);
-                    try {
-                        const parsedData = JSON.parse(jsonData);
-                        if (parsedData.type === 'data') {
-                            onData(parsedData.content);
-                        } else if (parsedData.type === 'end') {
-                            onEnd();
-                            return;
-                        } else if (parsedData.type === 'error') {
-                            throw new Error(parsedData.detail);
-                        }
-                    } catch (e) {
-                        devLog.error('Failed to parse stream data chunk:', jsonData, e);
-                    }
-                }
-            }
-        }
-    } catch (error) {
-        devLog.error('Failed to execute streaming workflow:', error);
-        onError(error as Error);
+    if (user_id !== null && user_id !== undefined) {
+        payload.user_id = user_id;
     }
+
+    if (additional_params && typeof additional_params === 'object') {
+        payload.additional_params = additional_params;
+    }
+
+    const normalizeContent = (content: unknown): string => {
+        if (content === null || content === undefined) return '';
+        if (typeof content === 'string') return content;
+        if (typeof content === 'object') return JSON.stringify(content);
+        return String(content);
+    };
+
+    return runWorkflowStream({
+        mode: 'deploy',
+        payload,
+        callbacks: {
+            onReady: (content) => devLog.log('Deploy workflow WS ready', content),
+            onStart: () => {
+                devLog.log('Deploy workflow WS start event received');
+                onStart?.();
+            },
+            onData: (content) => {
+                try {
+                    onData(normalizeContent(content));
+                } catch (err) {
+                    devLog.error('Deploy workflow WS onData handler error', err);
+                }
+            },
+            onEnd: () => {
+                devLog.log('Deploy workflow WS end event received');
+                onEnd();
+            },
+            onError: (error) => {
+                devLog.error('Deploy workflow WS error', error);
+                onError(error);
+            },
+        },
+    });
 };
