@@ -25,7 +25,7 @@ export const NodePorts: React.FC<NodePortsProps> = ({
     // Dependency를 고려하여 실제 렌더링할 포트만 필터링
     const filteredInputs = useMemo(() => filterPortsByDependency(inputs, parameters), [inputs, parameters]);
     const filteredOutputs = useMemo(() => filterPortsByDependency(outputs, parameters), [outputs, parameters]);
-    
+
     const hasInputs = filteredInputs && filteredInputs.length > 0;
     const hasOutputs = filteredOutputs && filteredOutputs.length > 0;
     const hasOnlyOutputs = hasOutputs && !hasInputs;
