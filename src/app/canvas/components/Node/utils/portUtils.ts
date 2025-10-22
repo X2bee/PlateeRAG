@@ -70,8 +70,8 @@ export const filterPortsByDependency = (
     parameters: Parameter[] | undefined
 ): Port[] => {
     if (!ports) return [];
-
+    
     const parameterValueMap = createParameterValueMap(parameters);
-
+    
     return ports.filter(port => isPortDependencySatisfied(port, parameterValueMap));
 };
