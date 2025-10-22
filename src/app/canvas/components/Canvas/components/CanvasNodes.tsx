@@ -25,8 +25,6 @@ interface CanvasNodesProps {
     onOutputAdd?: (nodeId: string, output: any) => void;
     onOutputDelete?: (nodeId: string, outputId: string) => void;
     onOutputNameChange?: (nodeId: string, outputId: string, newName: string) => void;
-    // AgentXgen specific props
-    onOutputsUpdate?: (nodeId: string, outputs: any[]) => void;
     currentEdges: any[];
     onToggleExpanded: (nodeId: string) => void;
 }
@@ -51,7 +49,6 @@ export const CanvasNodes: React.FC<CanvasNodesProps> = ({
     onOutputAdd,
     onOutputDelete,
     onOutputNameChange,
-    onOutputsUpdate,
     currentEdges,
     onToggleExpanded
 }) => {
@@ -100,11 +97,6 @@ export const CanvasNodes: React.FC<CanvasNodesProps> = ({
                         if (propName === 'onOutputDelete') additionalProps.onOutputDelete = onOutputDelete;
                         if (propName === 'onOutputNameChange') additionalProps.onOutputNameChange = onOutputNameChange;
                     });
-
-                    // AgentXgen specific prop
-                    if (specialNodeConfig.name === 'AgentXgenNode') {
-                        additionalProps.onOutputsUpdate = onOutputsUpdate;
-                    }
 
                     return <SpecialComponent key={node.id} {...commonProps} {...additionalProps} />;
                 }

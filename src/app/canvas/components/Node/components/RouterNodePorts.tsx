@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { LuDownload, LuPlus } from 'react-icons/lu';
 import styles from '@/app/canvas/assets/Node.module.scss';
 import { generatePortKey, getConnectedSchemaProvider } from '../utils/nodeUtils';
+import { filterPortsByDependency } from '../utils/portUtils';
 import type { NodePortsProps } from '../types';
 import type { Port } from '@/app/canvas/types';
 
@@ -15,6 +16,7 @@ export const RouterNodePorts: React.FC<RouterNodePortsProps> = ({
     nodeId,
     inputs,
     outputs,
+    parameters,
     isPreview = false,
     isPredicted = false,
     isSelected,
@@ -33,8 +35,12 @@ export const RouterNodePorts: React.FC<RouterNodePortsProps> = ({
     const [editingOutput, setEditingOutput] = useState<string | null>(null);
     const [editingOutputValue, setEditingOutputValue] = useState<string>('');
 
-    const hasInputs = inputs && inputs.length > 0;
-    const hasOutputs = outputs && outputs.length > 0;
+    // Filter ports based on parameter dependencies
+    const filteredInputs = useMemo(() => filterPortsByDependency(inputs, parameters), [inputs, parameters]);
+    const filteredOutputs = useMemo(() => filterPortsByDependency(outputs, parameters), [outputs, parameters]);
+
+    const hasInputs = filteredInputs && filteredInputs.length > 0;
+    const hasOutputs = filteredOutputs && filteredOutputs.length > 0;
     const hasOnlyOutputs = hasOutputs && !hasInputs;
 
     const handleSynchronizeSchema = (portId: string) => {
@@ -116,7 +122,7 @@ export const RouterNodePorts: React.FC<RouterNodePortsProps> = ({
             {hasInputs && (
                 <div className={styles.column}>
                     <div className={styles.sectionHeader}>INPUT</div>
-                    {inputs.map(portData => {
+                    {filteredInputs.map(portData => {
                         const portKey = generatePortKey(nodeId, portData.id, 'input');
                         const isSnapping = snappedPortKey === portKey;
 
@@ -220,7 +226,7 @@ export const RouterNodePorts: React.FC<RouterNodePortsProps> = ({
                             </button>
                         )}
                     </div>
-                    {hasOutputs ? outputs.map(portData => {
+                    {hasOutputs ? filteredOutputs.map(portData => {
                         const portClasses = [
                             styles.port,
                             styles.outputPort,
