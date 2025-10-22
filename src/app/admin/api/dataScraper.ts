@@ -98,6 +98,17 @@ export const checkRobotsTxt = async (
     return parseJson<RobotsCheckResult>(response);
 };
 
+const normalizeScraperStats = (raw: Record<string, any>): ScraperStats => ({
+    scraperId: raw.scraperId ?? raw.scraper_id ?? '',
+    totalRuns: raw.totalRuns ?? raw.total_runs ?? 0,
+    successfulRuns: raw.successfulRuns ?? raw.successful_runs ?? 0,
+    failedRuns: raw.failedRuns ?? raw.failed_runs ?? 0,
+    totalDataCollected: raw.totalDataCollected ?? raw.total_data_collected ?? 0,
+    totalDataSize: raw.totalDataSize ?? raw.total_data_size ?? 0,
+    lastRunAt: raw.lastRunAt ?? raw.last_run_at,
+    averageRunTime: raw.averageRunTime ?? raw.average_run_time
+});
+
 export const fetchScraperStats = async (scraperId: string): Promise<ScraperStats | null> => {
     const response = await apiClient(
         `${BASE_URL}/scrapers/${encodeURIComponent(scraperId)}/stats`
@@ -105,7 +116,8 @@ export const fetchScraperStats = async (scraperId: string): Promise<ScraperStats
     if (response.status === 404) {
         return null;
     }
-    return parseJson<ScraperStats>(response);
+    const raw = await parseJson<Record<string, any>>(response);
+    return normalizeScraperStats(raw);
 };
 
 export const fetchScraperSummary = async (): Promise<Record<string, any>> => {
@@ -124,7 +136,14 @@ export const fetchScrapedData = async (
 
 export const fetchDataLakeStats = async (): Promise<DataLakeStats> => {
     const response = await apiClient(`${BASE_URL}/datalake/stats`);
-    return parseJson<DataLakeStats>(response);
+    const raw = await parseJson<Record<string, any>>(response);
+    return {
+        totalItems: raw.totalItems ?? raw.total_items ?? 0,
+        totalSize: raw.totalSize ?? raw.total_size ?? 0,
+        itemsBySourceType: raw.itemsBySourceType ?? raw.items_by_source_type ?? {},
+        itemsByParsingMethod: raw.itemsByParsingMethod ?? raw.items_by_parsing_method ?? {},
+        recentItems: raw.recentItems ?? raw.recent_items ?? 0
+    };
 };
 
 export const parseDataItem = async (
@@ -138,5 +157,14 @@ export const parseDataItem = async (
             body: JSON.stringify({ method })
         }
     );
-    return parseJson<ParsedData>(response);
+    const raw = await parseJson<Record<string, any>>(response);
+    return {
+        success: Boolean(raw.success),
+        data: raw.data,
+        error: raw.error,
+        method: raw.method ?? raw.parsingMethod ?? method,
+        originalSize: raw.originalSize ?? raw.original_size ?? 0,
+        parsedSize: raw.parsedSize ?? raw.parsed_size ?? 0,
+        parseTime: raw.parseTime ?? raw.parse_time ?? 0
+    };
 };

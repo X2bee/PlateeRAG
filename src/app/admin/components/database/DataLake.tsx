@@ -324,21 +324,21 @@ const DataLake: React.FC<DataLakeProps> = ({ onClose }) => {
           <div className={styles.statCard}>
             <div className={styles.statIcon}><FiPackage size={28} /></div>
             <div className={styles.statContent}>
-              <div className={styles.statValue}>{stats.totalItems.toLocaleString()}</div>
+              <div className={styles.statValue}>{(stats.totalItems ?? 0).toLocaleString()}</div>
               <div className={styles.statLabel}>총 항목</div>
             </div>
           </div>
           <div className={styles.statCard}>
             <div className={styles.statIcon}><FiHardDrive size={28} /></div>
             <div className={styles.statContent}>
-              <div className={styles.statValue}>{formatSize(stats.totalSize)}</div>
+              <div className={styles.statValue}>{formatSize(stats.totalSize ?? 0)}</div>
               <div className={styles.statLabel}>총 크기</div>
             </div>
           </div>
           <div className={styles.statCard}>
             <div className={styles.statIcon}><FiPlusCircle size={28} /></div>
             <div className={styles.statContent}>
-              <div className={styles.statValue}>{stats.recentItems}</div>
+              <div className={styles.statValue}>{stats.recentItems ?? 0}</div>
               <div className={styles.statLabel}>최근 24시간</div>
             </div>
           </div>
