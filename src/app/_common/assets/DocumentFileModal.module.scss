@@ -1,38 +1,88 @@
 @use "sass:color";
 @use "@/app/_common/_variables" as *;
 
-// 최소화된 업로드 버튼
-.minimizedButton {
+// 최소화된 업로드 컨테이너 - 통합 리스트 형태
+.minimizedContainer {
     position: fixed;
-    top: 20px;
+    bottom: 20px;
     right: 20px;
-    background: $primary-blue;
-    color: $white;
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    box-shadow: 0 4px 12px rgba($primary-blue, 0.3);
+    background: $white;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     z-index: 1001;
-    transition: all 0.2s ease-in-out;
-    font-size: 0.875rem;
-    font-weight: 600;
+    overflow: hidden;
+    max-width: 280px;
+    border: 1px solid $gray-200;
 
-    &:hover {
-        background: color.adjust($primary-blue, $lightness: -7%);
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba($primary-blue, 0.4);
+    .minimizedHeader {
+        background: $primary-blue;
+        color: $white;
+        padding: 0.75rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+
+        .uploadIcon {
+            font-size: 1rem;
+            animation: pulse 2s infinite;
+        }
+
+        .headerText {
+            flex: 1;
+        }
     }
 
-    .uploadIcon {
-        font-size: 1rem;
-        animation: pulse 2s infinite;
+    .minimizedList {
+        max-height: 300px;
+        overflow-y: auto;
     }
 
-    .uploadText {
-        white-space: nowrap;
+    .minimizedItem {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        border-bottom: 1px solid $gray-100;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        &:hover {
+            background: $gray-50;
+        }
+
+        .itemIcon {
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .itemInfo {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.125rem;
+
+            .itemType {
+                font-size: 0.75rem;
+                font-weight: 600;
+                color: $primary-blue;
+                text-transform: uppercase;
+            }
+
+            .itemCollection {
+                font-size: 0.875rem;
+                color: $gray-700;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
     }
 }
 
@@ -42,6 +92,50 @@
     }
     50% {
         opacity: 0.7;
+    }
+}
+
+// 레거시 최소화 버튼 (하위 호환성)
+.minimizedButton {
+    position: fixed;
+    background: $primary-blue;
+    color: $white;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba($primary-blue, 0.3);
+    z-index: 1001;
+    transition: all 0.2s ease-in-out;
+    font-size: 0.875rem;
+    font-weight: 600;
+    max-width: 200px;
+
+    &:hover {
+        background: color.adjust($primary-blue, $lightness: -7%);
+        transform: translateY(-1px) translateX(-2px);
+        box-shadow: 0 6px 16px rgba($primary-blue, 0.4);
+    }
+
+    .uploadIcon {
+        font-size: 1rem;
+        animation: pulse 2s infinite;
+        align-self: center;
+    }
+
+    .uploadText {
+        white-space: normal;
+        text-align: center;
+        width: 100%;
+
+        small {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
     }
 }
 
@@ -315,6 +409,12 @@
             }
         }
 
+        .sessionInfo {
+            font-size: 0.7rem;
+            color: $gray-500;
+            font-family: monospace;
+        }
+
         .statusText {
             font-size: 0.875rem;
             font-weight: 600;
@@ -338,6 +438,35 @@
         flex-direction: column;
         gap: 0.5rem;
         align-items: flex-end;
+    }
+
+    .minimizedContainer {
+        bottom: 10px;
+        right: 10px;
+        max-width: 240px;
+
+        .minimizedHeader {
+            padding: 0.625rem 0.875rem;
+            font-size: 0.8125rem;
+        }
+
+        .minimizedItem {
+            padding: 0.625rem 0.875rem;
+
+            .itemIcon {
+                font-size: 1.125rem;
+            }
+
+            .itemInfo {
+                .itemType {
+                    font-size: 0.6875rem;
+                }
+
+                .itemCollection {
+                    font-size: 0.8125rem;
+                }
+            }
+        }
     }
 
     .minimizedButton {
