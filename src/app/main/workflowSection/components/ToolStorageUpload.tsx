@@ -49,6 +49,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
         body_type: initialData?.body_type || 'application/json', // application/json, application/xml, application/x-www-form-urlencoded, multipart/form-data, text/plain, text/html, text/csv, url-params
         is_query_string: initialData?.is_query_string || false,
         response_filter: initialData?.response_filter || false,
+        html_parser: initialData?.html_parser || false,
         response_filter_path: initialData?.response_filter_path || '',
         response_filter_field: initialData?.response_filter_field || '',
     });
@@ -361,11 +362,46 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                     const pathKeys = formData.response_filter_path.split('.');
 
                     for (const key of pathKeys) {
-                        if (extractedData && typeof extractedData === 'object' && key in extractedData) {
-                            extractedData = extractedData[key];
-                        } else {
-                            // 경로를 찾지 못하면 원본 반환
+                        if (!extractedData) {
                             return displayData;
+                        }
+
+                        // 배열 인덱스 처리: key[0], key[1] 등의 형식 지원
+                        const arrayMatch = key.match(/^(.+?)\[(\d+)\]$/);
+
+                        if (arrayMatch) {
+                            // 배열 접근: key[index] 형식
+                            const arrayKey = arrayMatch[1];
+                            const arrayIndex = parseInt(arrayMatch[2], 10);
+
+                            if (typeof extractedData === 'object' && arrayKey in extractedData) {
+                                extractedData = extractedData[arrayKey];
+                                if (Array.isArray(extractedData) && arrayIndex >= 0 && arrayIndex < extractedData.length) {
+                                    extractedData = extractedData[arrayIndex];
+                                } else {
+                                    // 배열이 아니거나 인덱스가 범위를 벗어나면 원본 반환
+                                    return displayData;
+                                }
+                            } else {
+                                // key를 찾지 못하면 원본 반환
+                                return displayData;
+                            }
+                        } else if (/^\d+$/.test(key)) {
+                            // 순수 숫자인 경우 (배열 인덱스만)
+                            const index = parseInt(key, 10);
+                            if (Array.isArray(extractedData) && index >= 0 && index < extractedData.length) {
+                                extractedData = extractedData[index];
+                            } else {
+                                return displayData;
+                            }
+                        } else {
+                            // 일반 객체 키 접근
+                            if (typeof extractedData === 'object' && key in extractedData) {
+                                extractedData = extractedData[key];
+                            } else {
+                                // 경로를 찾지 못하면 원본 반환
+                                return displayData;
+                            }
                         }
                     }
                 }
@@ -472,7 +508,8 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                 body: formData.api_method !== 'GET' ? body : undefined,
                 staticBody: formData.api_method !== 'GET' ? staticBody : undefined,
                 bodyType: formData.body_type,
-                isQueryString: formData.is_query_string
+                isQueryString: formData.is_query_string,
+                htmlParser: formData.html_parser
             });
 
             // 백엔드 프록시를 통해 API 테스트
@@ -484,6 +521,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                 static_body: staticBody,
                 body_type: formData.body_type,
                 is_query_string: formData.is_query_string,
+                html_parser: formData.html_parser,
                 api_timeout: formData.api_timeout || 30
             } as any);
 
@@ -575,6 +613,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                 api_timeout: formData.api_timeout,
                 is_query_string: formData.is_query_string,
                 response_filter: formData.response_filter,
+                html_parser: formData.html_parser,
                 response_filter_path: formData.response_filter_path,
                 response_filter_field: formData.response_filter_field,
                 status: apiTestSuccess ? 'active' : 'inactive',
@@ -1242,10 +1281,35 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                                 <div className={styles.formRow}>
                                     <div>
                                         <div className={styles.fieldLabel}>
+                                            HTML Parser 사용
+                                        </div>
+                                        <div className={styles.fieldDescription}>
+                                            HTML 응답을 파싱하여 텍스트만 추출합니다.
+                                        </div>
+                                    </div>
+                                    <div className={styles.fieldInput}>
+                                        <label className={styles.checkboxLabel}>
+                                            <input
+                                                type="checkbox"
+                                                name="html_parser"
+                                                checked={formData.html_parser}
+                                                onChange={handleInputChange}
+                                                className={styles.checkbox}
+                                                disabled={loading}
+                                            />
+                                            <span>HTML Parser 활성화</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div className={styles.formRow}>
+                                    <div>
+                                        <div className={styles.fieldLabel}>
                                             필터 경로
                                         </div>
                                         <div className={styles.fieldDescription}>
-                                            응답 객체에서 데이터를 추출할 경로를 지정하세요. <br></br>(예: data.results)
+                                            응답 객체에서 데이터를 추출할 경로를 지정하세요. <br></br>
+                                            (예: data.results, html.body.div[1], items[0].content)
                                         </div>
                                     </div>
                                     <div className={styles.fieldInput}>
@@ -1256,7 +1320,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                                             value={formData.response_filter_path}
                                             onChange={handleInputChange}
                                             className={styles.input}
-                                            placeholder="data.weather.current"
+                                            placeholder="data.weather.current 또는 html.body.div[1]"
                                             disabled={loading}
                                         />
                                     </div>
