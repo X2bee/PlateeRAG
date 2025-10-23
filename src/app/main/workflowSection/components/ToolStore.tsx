@@ -48,8 +48,10 @@ interface Tool {
         api_body: {
             properties: any;
         };
+        static_body?: any;
         api_url: string;
         api_method: string;
+        body_type?: string;
         api_timeout: number;
         response_filter: boolean;
         response_filter_path: string;

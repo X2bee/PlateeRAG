@@ -28,6 +28,12 @@ interface BodyParam {
     enum?: string;
 }
 
+interface StaticBodyParam {
+    id: string;
+    key: string;
+    value: string;
+}
+
 const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode = false, initialData = null }) => {
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<'basic' | 'api' | 'additional'>('basic');
@@ -40,6 +46,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
         api_url: initialData?.api_url || '',
         api_method: initialData?.api_method || 'GET',
         api_timeout: initialData?.api_timeout || 30,
+        body_type: initialData?.body_type || 'application/json', // application/json, application/xml, application/x-www-form-urlencoded, multipart/form-data, text/plain, text/html, text/csv, url-params
         response_filter: initialData?.response_filter || false,
         response_filter_path: initialData?.response_filter_path || '',
         response_filter_field: initialData?.response_filter_field || '',
@@ -99,8 +106,31 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
         }
     };
 
+    // 정적 Body 파라미터 초기화
+    const initializeStaticBodyParams = (): StaticBodyParam[] => {
+        if (!initialData?.static_body) return [];
+
+        try {
+            const staticBody = typeof initialData.static_body === 'string'
+                ? JSON.parse(initialData.static_body)
+                : initialData.static_body;
+
+            if (!staticBody || typeof staticBody !== 'object') return [];
+
+            return Object.entries(staticBody).map(([key, value], index) => ({
+                id: `static_body_${Date.now()}_${index}`,
+                key,
+                value: String(value)
+            }));
+        } catch (error) {
+            devLog.error('Failed to parse static_body:', error);
+            return [];
+        }
+    };
+
     const [headerParams, setHeaderParams] = useState<HeaderParam[]>(initializeHeaderParams());
     const [bodyParams, setBodyParams] = useState<BodyParam[]>(initializeBodyParams());
+    const [staticBodyParams, setStaticBodyParams] = useState<StaticBodyParam[]>(initializeStaticBodyParams());
     const [metadata, setMetadata] = useState(initialData?.metadata ? JSON.stringify(initialData.metadata, null, 2) : '{}');
     const [testResult, setTestResult] = useState<{ success: boolean; data: any; error?: string } | null>(
         initialData?.test_result || null
@@ -183,7 +213,51 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
         setTestResult(null);
     };
 
-    // Header/Body를 JSON으로 변환
+    // 정적 Body 관리 함수
+    const addStaticBodyParam = () => {
+        const newParam: StaticBodyParam = {
+            id: `static_body_${Date.now()}`,
+            key: '',
+            value: ''
+        };
+        setStaticBodyParams([...staticBodyParams, newParam]);
+        // 정적 Body 파라미터가 변경되면 테스트 상태 초기화
+        setApiTested(false);
+        setApiTestSuccess(false);
+        setTestResult(null);
+    };
+
+    const updateStaticBodyParam = (id: string, field: keyof StaticBodyParam, value: string) => {
+        setStaticBodyParams(staticBodyParams.map(param =>
+            param.id === id ? { ...param, [field]: value } : param
+        ));
+        // 정적 Body 파라미터가 변경되면 테스트 상태 초기화
+        setApiTested(false);
+        setApiTestSuccess(false);
+        setTestResult(null);
+    };
+
+    const removeStaticBodyParam = (id: string) => {
+        setStaticBodyParams(staticBodyParams.filter(param => param.id !== id));
+        // 정적 Body 파라미터가 변경되면 테스트 상태 초기화
+        setApiTested(false);
+        setApiTestSuccess(false);
+        setTestResult(null);
+    };
+
+    // Header/Body를 JSON으로 변환 (저장용 - Content-Type 제외)
+    const buildHeaderJSONForSave = () => {
+        const headerObj: Record<string, string> = {};
+        headerParams.forEach(param => {
+            if (param.key && param.value) {
+                headerObj[param.key] = param.value;
+            }
+        });
+        // Content-Type은 body_type에서 자동 생성되므로 저장하지 않음
+        return headerObj;
+    };
+
+    // Header/Body를 JSON으로 변환 (미리보기용 - Content-Type 포함)
     const buildHeaderJSON = () => {
         const headerObj: Record<string, string> = {};
         headerParams.forEach(param => {
@@ -191,6 +265,36 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                 headerObj[param.key] = param.value;
             }
         });
+
+        // Body Type에 따라 Content-Type 자동 추가 (GET이 아닐 때)
+        const method = formData.api_method?.toUpperCase();
+        if (formData.body_type && method && method !== 'GET') {
+            switch (formData.body_type) {
+                case 'application/json':
+                    headerObj['Content-Type'] = 'application/json';
+                    break;
+                case 'application/xml':
+                    headerObj['Content-Type'] = 'application/xml';
+                    break;
+                case 'application/x-www-form-urlencoded':
+                    headerObj['Content-Type'] = 'application/x-www-form-urlencoded';
+                    break;
+                case 'multipart/form-data':
+                    headerObj['Content-Type'] = 'multipart/form-data';
+                    break;
+                case 'text/plain':
+                    headerObj['Content-Type'] = 'text/plain';
+                    break;
+                case 'text/html':
+                    headerObj['Content-Type'] = 'text/html';
+                    break;
+                case 'text/csv':
+                    headerObj['Content-Type'] = 'text/csv';
+                    break;
+                // url-params는 Content-Type이 필요 없음
+            }
+        }
+
         return headerObj;
     };
 
@@ -222,6 +326,17 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
             properties: bodyObj,
             required: requiredFields.length > 0 ? requiredFields : undefined
         };
+    };
+
+    // 정적 Body를 JSON으로 변환
+    const buildStaticBodyJSON = () => {
+        const staticBodyObj: Record<string, string> = {};
+        staticBodyParams.forEach(param => {
+            if (param.key && param.value) {
+                staticBodyObj[param.key] = param.value;
+            }
+        });
+        return staticBodyObj;
     };
 
     // 테스트 결과에 필터 적용하여 표시용 데이터 생성
@@ -315,8 +430,17 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
             }));
         }
 
+        // API Method가 GET으로 변경되면 body_type을 null로 설정
+        if (name === 'api_method' && value === 'GET') {
+            setFormData(prev => ({
+                ...prev,
+                api_method: 'GET',
+                body_type: null as any
+            }));
+        }
+
         // API 관련 필드가 변경되면 테스트 상태 초기화
-        if (['api_url', 'api_method', 'api_timeout'].includes(name)) {
+        if (['api_url', 'api_method', 'api_timeout', 'body_type'].includes(name)) {
             setApiTested(false);
             setApiTestSuccess(false);
             setTestResult(null);
@@ -335,12 +459,15 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
         try {
             const headers = headerParams.length > 0 ? buildHeaderJSON() : {};
             const body = bodyParams.length > 0 ? buildBodyJSON() : {};
+            const staticBody = staticBodyParams.length > 0 ? buildStaticBodyJSON() : {};
 
             devLog.log('Testing API via backend proxy:', {
                 url: formData.api_url,
                 method: formData.api_method,
                 headers,
-                body: formData.api_method !== 'GET' ? body : undefined
+                body: formData.api_method !== 'GET' ? body : undefined,
+                staticBody: formData.api_method !== 'GET' ? staticBody : undefined,
+                bodyType: formData.body_type
             });
 
             // 백엔드 프록시를 통해 API 테스트
@@ -349,8 +476,10 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                 api_method: formData.api_method || 'GET',
                 api_headers: headers,
                 api_body: body,
+                static_body: staticBody,
+                body_type: formData.body_type,
                 api_timeout: formData.api_timeout || 30
-            });
+            } as any);
 
             devLog.log('API Test Result:', result);
 
@@ -413,8 +542,9 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
             setLoading(true);
 
             // JSON 파싱
-            const parsedApiHeader = buildHeaderJSON();
+            const parsedApiHeader = buildHeaderJSONForSave(); // Content-Type 제외
             const parsedApiBody = buildBodyJSON();
+            const parsedStaticBody = buildStaticBodyJSON();
             let parsedMetadata = {};
 
             try {
@@ -432,8 +562,10 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                 description: formData.description,
                 api_header: parsedApiHeader,
                 api_body: parsedApiBody,
+                static_body: parsedStaticBody,
                 api_url: formData.api_url,
                 api_method: formData.api_method,
+                body_type: formData.api_method === 'GET' ? null : formData.body_type,
                 api_timeout: formData.api_timeout,
                 response_filter: formData.response_filter,
                 response_filter_path: formData.response_filter_path,
@@ -716,6 +848,38 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                         </div>
                     </div>
 
+                    {formData.api_method !== 'GET' && (
+                        <div className={styles.formRow}>
+                            <div>
+                                <div className={styles.fieldLabel}>
+                                    Body Type
+                                </div>
+                                <div className={styles.fieldDescription}>
+                                    API 요청 Body의 형식을 선택하세요.
+                                </div>
+                            </div>
+                            <div className={styles.fieldInput}>
+                                <select
+                                    id="body_type"
+                                    name="body_type"
+                                    value={formData.body_type}
+                                    onChange={handleInputChange}
+                                    className={styles.select}
+                                    disabled={loading}
+                                >
+                                    <option value="application/json">JSON (application/json)</option>
+                                    <option value="application/xml">XML (application/xml)</option>
+                                    <option value="application/x-www-form-urlencoded">URL Encoded (application/x-www-form-urlencoded)</option>
+                                    <option value="multipart/form-data">Form Data (multipart/form-data)</option>
+                                    <option value="text/plain">Plain Text (text/plain)</option>
+                                    <option value="text/html">HTML (text/html)</option>
+                                    <option value="text/csv">CSV (text/csv)</option>
+                                    <option value="url-params">URL Parameters (Query String)</option>
+                                </select>
+                            </div>
+                        </div>
+                    )}
+
                     {/* API Header 섹션 */}
                     <div className={styles.apiParamsSection}>
                         <div className={styles.apiParamsHeader}>
@@ -754,7 +918,6 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                                                 }}
                                                 disabled={loading}
                                             >
-                                                <option value="Content-Type">Content-Type</option>
                                                 <option value="Accept">Accept</option>
                                                 <option value="Authorization">Authorization</option>
                                                 <option value="User-Agent">User-Agent</option>
@@ -778,23 +941,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                                             )}
 
                                             {/* Value 입력: Preset에 따라 Select 또는 Input */}
-                                            {param.isPreset && param.key === 'Content-Type' ? (
-                                                <select
-                                                    className={styles.paramValueInput}
-                                                    value={param.value}
-                                                    onChange={(e) => updateHeaderParam(param.id, 'value', e.target.value)}
-                                                    disabled={loading}
-                                                >
-                                                    <option value="">Select Content-Type</option>
-                                                    <option value="application/json">application/json</option>
-                                                    <option value="application/xml">application/xml</option>
-                                                    <option value="application/x-www-form-urlencoded">application/x-www-form-urlencoded</option>
-                                                    <option value="multipart/form-data">multipart/form-data</option>
-                                                    <option value="text/plain">text/plain</option>
-                                                    <option value="text/html">text/html</option>
-                                                    <option value="text/csv">text/csv</option>
-                                                </select>
-                                            ) : param.isPreset && param.key === 'Accept' ? (
+                                            {param.isPreset && param.key === 'Accept' ? (
                                                 <select
                                                     className={styles.paramValueInput}
                                                     value={param.value}
@@ -874,10 +1021,75 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                     <div className={styles.apiParamsSection}>
                         <div className={styles.apiParamsHeader}>
                             <div className={styles.fieldLabel}>
-                                API Body Parameter Schema
+                                Static Body Parameters (고정 파라미터)
                             </div>
                             <div className={styles.fieldDescription}>
-                                AI가 이 도구를 사용하기 위한 파라미터 스키마를 정의하세요.
+                                API 요청 시 항상 포함되어야 하는 고정 값들을 설정하세요. AI가 추가하는 동적 파라미터와 병합됩니다.
+                            </div>
+                        </div>
+
+                        <div className={styles.apiParamsContainer}>
+                            {/* 좌측 입력 패널 */}
+                            <div className={styles.apiParamsInput}>
+                                <div className={styles.paramsList}>
+                                    {staticBodyParams.map((param) => (
+                                        <div key={param.id} className={styles.paramItem}>
+                                            <input
+                                                type="text"
+                                                className={styles.paramKeyInput}
+                                                placeholder="Key *"
+                                                value={param.key}
+                                                onChange={(e) => updateStaticBodyParam(param.id, 'key', e.target.value)}
+                                                disabled={loading}
+                                            />
+
+                                            <input
+                                                type="text"
+                                                className={styles.paramValueInput}
+                                                placeholder="Value *"
+                                                value={param.value}
+                                                onChange={(e) => updateStaticBodyParam(param.id, 'value', e.target.value)}
+                                                disabled={loading}
+                                            />
+
+                                            <button
+                                                className={styles.paramRemoveButton}
+                                                onClick={() => removeStaticBodyParam(param.id)}
+                                                disabled={loading}
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <button
+                                    className={styles.addParamButton}
+                                    onClick={addStaticBodyParam}
+                                    disabled={loading}
+                                >
+                                    + Add Static Parameter
+                                </button>
+                            </div>
+
+                            {/* 우측 미리보기 패널 */}
+                            <div className={styles.apiParamsPreview}>
+                                <div className={styles.previewTitle}>Preview</div>
+                                <pre className={styles.previewCode}>
+                                    {JSON.stringify(buildStaticBodyJSON(), null, 2)}
+                                </pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* API Body Schema 섹션 */}
+                    <div className={styles.apiParamsSection}>
+                        <div className={styles.apiParamsHeader}>
+                            <div className={styles.fieldLabel}>
+                                API Body Parameter Schema (AI 동적 파라미터)
+                            </div>
+                            <div className={styles.fieldDescription}>
+                                AI가 이 도구를 사용하기 위한 파라미터 스키마를 정의하세요. 위의 고정 파라미터에 추가됩니다.
                             </div>
                         </div>
 
