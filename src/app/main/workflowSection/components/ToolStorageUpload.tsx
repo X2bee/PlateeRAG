@@ -47,6 +47,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
         api_method: initialData?.api_method || 'GET',
         api_timeout: initialData?.api_timeout || 30,
         body_type: initialData?.body_type || 'application/json', // application/json, application/xml, application/x-www-form-urlencoded, multipart/form-data, text/plain, text/html, text/csv, url-params
+        is_query_string: initialData?.is_query_string || false,
         response_filter: initialData?.response_filter || false,
         response_filter_path: initialData?.response_filter_path || '',
         response_filter_field: initialData?.response_filter_field || '',
@@ -467,7 +468,8 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                 headers,
                 body: formData.api_method !== 'GET' ? body : undefined,
                 staticBody: formData.api_method !== 'GET' ? staticBody : undefined,
-                bodyType: formData.body_type
+                bodyType: formData.body_type,
+                isQueryString: formData.is_query_string
             });
 
             // 백엔드 프록시를 통해 API 테스트
@@ -478,6 +480,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                 api_body: body,
                 static_body: staticBody,
                 body_type: formData.body_type,
+                is_query_string: formData.is_query_string,
                 api_timeout: formData.api_timeout || 30
             } as any);
 
@@ -567,6 +570,7 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                 api_method: formData.api_method,
                 body_type: formData.api_method === 'GET' ? null : formData.body_type,
                 api_timeout: formData.api_timeout,
+                is_query_string: formData.is_query_string,
                 response_filter: formData.response_filter,
                 response_filter_path: formData.response_filter_path,
                 response_filter_field: formData.response_filter_field,
@@ -793,6 +797,23 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
                                 placeholder="https://api.example.com/v1/weather"
                                 disabled={loading}
                             />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px' }}>
+                                <label className={styles.checkboxLabel}>
+                                    <input
+                                        type="checkbox"
+                                        name="is_query_string"
+                                        checked={formData.is_query_string}
+                                        onChange={handleInputChange}
+                                        disabled={loading}
+                                    />
+                                    <span>Query String 사용</span>
+                                </label>
+                                {formData.is_query_string && (
+                                    <span style={{ fontSize: '12px', color: '#666' }}>
+                                        Query String이 입력될 Place Holder를 다음과 같이 입력합니다. 예: https://example.com?age={'{age}'}&name={'{name}'}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
 

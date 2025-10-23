@@ -33,6 +33,7 @@ interface Tool {
         api_method: string;
         body_type?: string;
         api_timeout: number;
+        is_query_string?: boolean;
         response_filter: boolean;
         response_filter_path: string;
         response_filter_field: string;
