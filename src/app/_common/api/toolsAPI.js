@@ -64,6 +64,7 @@ export const listToolsDetail = async () => {
  * @param {string} content.api_method - API 메서드 (GET, POST 등)
  * @param {string} content.body_type - 바디 타입 (application/json, application/xml, application/x-www-form-urlencoded, multipart/form-data, text/plain, text/html, text/csv, url-params)
  * @param {number} content.api_timeout - API 타임아웃 (초)
+ * @param {boolean} content.is_query_string - Query String 사용 여부
  * @param {boolean} content.response_filter - 응답 필터 사용 여부
  * @param {string} content.response_filter_path - 응답 필터 경로
  * @param {string} content.response_filter_field - 응답 필터 필드
@@ -451,6 +452,7 @@ export const rateToolStore = async (storeToolId, userId, functionUploadId, ratin
  * @param {Object} testRequest.api_body - 요청 바디 스키마 (옵션)
  * @param {Object} testRequest.static_body - 정적 바디 파라미터 (옵션)
  * @param {string} testRequest.body_type - 바디 타입 (application/json, application/xml, application/x-www-form-urlencoded, multipart/form-data, text/plain, text/html, text/csv, url-params, 기본값: application/json)
+ * @param {boolean} testRequest.is_query_string - Query String 사용 여부 (옵션)
  * @param {number} testRequest.api_timeout - 타임아웃 (초, 기본값: 30)
  * @returns {Promise<Object>} API 테스트 결과를 포함하는 프로미스
  * @returns {boolean} result.success - 요청 성공 여부
@@ -472,6 +474,7 @@ export const testApiEndpoint = async (testRequest) => {
         devLog.log('- has_body:', !!testRequest.api_body && Object.keys(testRequest.api_body).length > 0);
         devLog.log('- has_static_body:', !!testRequest.static_body && Object.keys(testRequest.static_body).length > 0);
         devLog.log('- body_type:', testRequest.body_type);
+        devLog.log('- is_query_string:', testRequest.is_query_string);
 
         // 필수 필드 검증
         if (!testRequest.api_url || !testRequest.api_url.trim()) {
@@ -487,6 +490,7 @@ export const testApiEndpoint = async (testRequest) => {
                 api_body: testRequest.api_body || {},
                 static_body: testRequest.static_body || {},
                 body_type: testRequest.body_type || 'application/json',
+                is_query_string: testRequest.is_query_string || false,
                 api_timeout: testRequest.api_timeout || 30,
             }),
         });

@@ -31,6 +31,7 @@ interface ToolData {
     api_body: any;
     static_body?: any;
     body_type?: string;
+    is_query_string?: boolean;
     response_filter: boolean;
     response_filter_path: string;
     response_filter_field: string;
