@@ -5,12 +5,14 @@ import styles from '@/app/_common/assets/DocumentFileModal.module.scss';
 import { uploadDocument } from '@/app/_common/api/rag/retrievalAPI';
 import { getEmbeddingConfigStatus } from '@/app/_common/api/rag/embeddingAPI';
 import { useDocumentFileModal } from '@/app/_common/contexts/DocumentFileModalContext';
+import RepositoryUploadTab from './RepositoryUploadTab';
 
 interface UploadProgress {
     fileName: string;
     status: 'uploading' | 'success' | 'error';
     progress: number;
     error?: string;
+    completedAt?: number;  // 완료 시간 타임스탬프
 }
 
 interface EmbeddingConfig {
@@ -35,6 +37,7 @@ const GlobalDocumentFileModal: React.FC = () => {
         onUploadComplete
     } = useDocumentFileModal();
 
+    const [activeTab, setActiveTab] = useState<'file' | 'repository'>('file');
     const [chunkSize, setChunkSize] = useState(4000);
     const [overlapSize, setOverlapSize] = useState(1000);
     const [processType, setProcessType] = useState<string>('text');
@@ -67,10 +70,55 @@ const GlobalDocumentFileModal: React.FC = () => {
                     setOverlapSize(parsed.overlapSize || 1000);
                     setProcessType(parsed.processType || 'text');
                     setIsMinimized(parsed.isMinimized || false);
+                    const now = Date.now();
+                    const MAX_AGE = 10 * 60 * 1000; // 10분
 
-                    // 업로드 중인 항목이 있으면 loading 상태
-                    const hasUploading = parsed.uploadProgress.some((item: UploadProgress) => item.status === 'uploading');
-                    setLoading(hasUploading);
+
+                    // 저장된 시간이 10분 이상 지났으면 무시
+                    if (parsed.timestamp && (now - parsed.timestamp) > MAX_AGE) {
+                        console.log('Clearing old upload state (older than 10 minutes)');
+                        localStorage.removeItem(STORAGE_KEY);
+                        return;
+                    }
+
+                    // uploading 상태인데 completedAt이 없거나 5초 이상 지난 항목은 error로 변경
+                    const cleanedProgress = parsed.uploadProgress.map((item: UploadProgress) => {
+                        if (item.status === 'uploading') {
+                            // completedAt이 없으면 오래된 업로드로 간주
+                            if (!item.completedAt) {
+                                return {
+                                    ...item,
+                                    status: 'error' as const,
+                                    error: '업로드가 중단되었습니다',
+                                    completedAt: now
+                                };
+                            }
+                        }
+                        return item;
+                    });
+
+                    // 완료된 작업 중 5초 이상 지난 것은 제거
+                    const filteredProgress = cleanedProgress.filter((item: UploadProgress) => {
+                        if (item.status === 'uploading') return true;
+                        if (!item.completedAt) return true;
+                        return (now - item.completedAt) < 5000;
+                    });
+
+                    // 남은 항목이 있으면 복원
+                    if (filteredProgress.length > 0) {
+                        setUploadProgress(filteredProgress);
+                        setChunkSize(parsed.chunkSize || 4000);
+                        setOverlapSize(parsed.overlapSize || 1000);
+                        setProcessType(parsed.processType || 'default');
+                        setIsMinimized(parsed.isMinimized || false);
+
+                        // 실제 업로드 중인 항목이 있으면 loading 상태
+                        const hasUploading = filteredProgress.some((item: UploadProgress) => item.status === 'uploading');
+                        setLoading(hasUploading);
+                    } else {
+                        // 모든 항목이 필터링되었으면 localStorage 정리
+                        localStorage.removeItem(STORAGE_KEY);
+                    }
                 }
             } catch (error) {
                 console.error('Failed to restore upload state:', error);
@@ -129,6 +177,27 @@ const GlobalDocumentFileModal: React.FC = () => {
             localStorage.removeItem(STORAGE_KEY);
         }
     }, [uploadProgress, chunkSize, overlapSize, processType, isMinimized]);
+
+    // 완료된 업로드 작업 자동 정리 (5초 후)
+    useEffect(() => {
+        const cleanupInterval = setInterval(() => {
+            setUploadProgress(prev => {
+                const now = Date.now();
+                const CLEANUP_DELAY = 5000; // 5초
+
+                // 완료/에러 상태이고 5초 이상 경과한 작업 제거
+                const filtered = prev.filter(item => {
+                    if (item.status === 'uploading') return true;
+                    if (!item.completedAt) return true;
+                    return (now - item.completedAt) < CLEANUP_DELAY;
+                });
+
+                return filtered;
+            });
+        }, 1000); // 1초마다 체크
+
+        return () => clearInterval(cleanupInterval);
+    }, []);
 
     const handleClose = () => {
         // 업로드 중이면 최소화
@@ -222,7 +291,7 @@ const GlobalDocumentFileModal: React.FC = () => {
                         );
 
                         setUploadProgress(prev => prev.map((item, idx) =>
-                            idx === index ? { ...item, status: 'success' as const, progress: 100 } : item
+                            idx === index ? { ...item, status: 'success' as const, progress: 100, completedAt: Date.now() } : item
                         ));
 
                     } catch (error) {
@@ -231,7 +300,8 @@ const GlobalDocumentFileModal: React.FC = () => {
                                 ...item,
                                 status: 'error' as const,
                                 progress: 0,
-                                error: error instanceof Error ? error.message : '업로드 실패'
+                                error: error instanceof Error ? error.message : '업로드 실패',
+                                completedAt: Date.now()
                             } : item
                         ));
                         console.error(`Failed to upload file ${file.name}:`, error);
@@ -263,7 +333,7 @@ const GlobalDocumentFileModal: React.FC = () => {
                     );
 
                     setUploadProgress(prev => prev.map((item, index) =>
-                        index === 0 ? { ...item, status: 'success' as const, progress: 100 } : item
+                        index === 0 ? { ...item, status: 'success' as const, progress: 100, completedAt: Date.now() } : item
                     ));
 
                 } catch (err) {
@@ -272,7 +342,8 @@ const GlobalDocumentFileModal: React.FC = () => {
                             ...item,
                             status: 'error' as const,
                             progress: 0,
-                            error: '업로드 실패'
+                            error: '업로드 실패',
+                            completedAt: Date.now()
                         } : item
                     ));
                     console.error(`Failed to upload file ${file.name}:`, err);
@@ -354,18 +425,151 @@ const GlobalDocumentFileModal: React.FC = () => {
 
     if (!isOpen) return null;
 
+    const handleRepositoryUploadStart = () => {
+        setLoading(true);
+        setError(null);
+    };
+
+    const handleRepositoryUploadProgress = (progress: UploadProgress) => {
+        setUploadProgress([progress]);
+    };
+
+    const handleRepositoryUploadComplete = () => {
+        setLoading(false);
+        setIsCompleted(true);
+
+        // 업로드 완료 후 콜백 호출
+        setTimeout(() => {
+            if (onUploadComplete) {
+                onUploadComplete();
+            }
+        }, 0);
+
+        // 3초 후 자동 닫기
+        setTimeout(() => {
+            resetModal();
+            closeModal();
+        }, 3000);
+    };
+
+    const handleRepositoryError = (errorMessage: string) => {
+        setError(errorMessage);
+        setLoading(false);
+    };
+
     const modalContent = (
         <div className={styles.modalBackdrop} onClick={handleClose}>
             <div className={`${styles.modalContent} ${styles.wideModal}`} onClick={(e) => e.stopPropagation()}>
                 <div className={styles.modalHeader}>
-                    <h3>{isFolderUpload ? '폴더 업로드 설정' : '단일 파일 업로드 설정'}</h3>
-                    <div className={styles.collectionInfo}>
-                        <span>컬렉션: {selectedCollection?.collection_make_name}</span>
-                        <span>폴더 경로: {currentFolder?.full_path || `/${selectedCollection?.collection_make_name}`}</span>
+                    <div className={styles.headerTop}>
+                        <div className={styles.titleSection}>
+                            <h3>📤 문서 업로드</h3>
+                            <button
+                                className={styles.closeButton}
+                                onClick={handleClose}
+                                aria-label="닫기"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className={styles.collectionInfoCompact}>
+                            <div className={styles.infoItem}>
+                                <span className={styles.infoLabel}>컬렉션</span>
+                                <span className={styles.infoValue}>{selectedCollection?.collection_make_name}</span>
+                            </div>
+                            <div className={styles.infoDivider}>•</div>
+                            <div className={styles.infoItem}>
+                                <span className={styles.infoLabel}>폴더</span>
+                                <span className={styles.infoValue}>{currentFolder?.full_path || `/${selectedCollection?.collection_make_name}`}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className={styles.tabContainer}>
+                        <button
+                            className={`${styles.tab} ${activeTab === 'file' ? styles.active : ''}`}
+                            onClick={() => setActiveTab('file')}
+                        >
+                            <span className={styles.tabIcon}>📄</span>
+                            <span className={styles.tabLabel}>파일 업로드</span>
+                        </button>
+                        <button
+                            className={`${styles.tab} ${activeTab === 'repository' ? styles.active : ''}`}
+                            onClick={() => setActiveTab('repository')}
+                        >
+                            <span className={styles.tabIcon}>📦</span>
+                            <span className={styles.tabLabel}>GitLab 레포지토리</span>
+                        </button>
                     </div>
                 </div>
 
                 <div className={styles.modalBody}>
+                    {activeTab === 'repository' ? (
+                        /* 레포지토리 업로드 탭 */
+                        <div className={styles.fullPanel}>
+                            {error && <div className={styles.error}>{error}</div>}
+
+                            {/* 업로드 완료 메시지 */}
+                            {isCompleted && (
+                                <div className={styles.completedMessage}>
+                                    <span className={styles.completedIcon}>✅</span>
+                                    <span>업로드가 완료되었습니다! 3초 후에 자동으로 닫힙니다.</span>
+                                </div>
+                            )}
+
+                            {/* 업로드 진행 상태 */}
+                            {uploadProgress.length > 0 && (
+                                <div className={styles.uploadProgressContainer}>
+                                    <div className={styles.progressHeader}>
+                                        <h4>업로드 진행 상태</h4>
+                                    </div>
+                                    <div className={styles.progressList}>
+                                        {uploadProgress.map((item, index) => (
+                                            <div key={index} className={`${styles.progressItem} ${styles[item.status]}`}>
+                                                <div className={styles.fileInfo}>
+                                                    <span className={styles.fileName} title={item.fileName}>
+                                                        {item.fileName}
+                                                    </span>
+                                                    {item.status === 'uploading' && (
+                                                        <span className={styles.progressPercent}>
+                                                            {item.progress}%
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className={styles.progressStatus}>
+                                                    {item.status === 'uploading' && (
+                                                        <div className={styles.progressBar}>
+                                                            <div
+                                                                className={styles.progressFill}
+                                                                style={{ width: `${item.progress}%` }}
+                                                            ></div>
+                                                        </div>
+                                                    )}
+                                                    <span className={`${styles.statusText} ${styles[item.status]}`}>
+                                                        {item.status === 'uploading' && '📤 업로드 중...'}
+                                                        {item.status === 'success' && '✅ 완료'}
+                                                        {item.status === 'error' && `❌ ${item.error || '실패'}`}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <RepositoryUploadTab
+                                selectedCollection={selectedCollection}
+                                currentFolder={currentFolder}
+                                chunkSize={chunkSize}
+                                overlapSize={overlapSize}
+                                onUploadStart={handleRepositoryUploadStart}
+                                onUploadProgress={handleRepositoryUploadProgress}
+                                onUploadComplete={handleRepositoryUploadComplete}
+                                onError={handleRepositoryError}
+                            />
+                        </div>
+                    ) : (
+                        /* 파일 업로드 탭 */
+                        <>
                     {/* 왼쪽: Embedding 정보 */}
                     <div className={styles.leftPanel}>
                         <div className={styles.embeddingInfo}>
@@ -573,6 +777,8 @@ const GlobalDocumentFileModal: React.FC = () => {
                             </div>
                         </div>
                     </div>
+                    </>
+                    )}
                 </div>
 
                 <div className={styles.modalActions}>
@@ -583,13 +789,15 @@ const GlobalDocumentFileModal: React.FC = () => {
                     >
                         {loading && uploadProgress.some(item => item.status === 'uploading') ? '최소화' : '취소'}
                     </button>
-                    <button
-                        onClick={handleConfirmChunkSettings}
-                        className={`${styles.button} ${styles.primary}`}
-                        disabled={loading || (dimensionMismatch && !ignoreDimensionMismatch) || (modelMismatch && !ignoreModelMismatch) || !embeddingConfig?.client_available}
-                    >
-                        {loading ? '업로드 중...' : '설정 완료'}
-                    </button>
+                    {activeTab === 'file' && (
+                        <button
+                            onClick={handleConfirmChunkSettings}
+                            className={`${styles.button} ${styles.primary}`}
+                            disabled={loading || (dimensionMismatch && !ignoreDimensionMismatch) || (modelMismatch && !ignoreModelMismatch) || !embeddingConfig?.client_available}
+                        >
+                            {loading ? '업로드 중...' : '설정 완료'}
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
