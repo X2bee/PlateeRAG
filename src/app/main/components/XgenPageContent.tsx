@@ -140,7 +140,14 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
             case 'current-chat':
                 return <CurrentChatInterface />;
             case 'chat-history':
-                return <ChatHistory onSelectChat={handleChatSelect} />;
+                return (
+                    <ContentArea
+                        title="채팅 기록"
+                        description="이전 대화를 선택하여 계속하거나 새로운 창에서 열어보세요."
+                    >
+                        <ChatHistory onSelectChat={handleChatSelect} />
+                    </ContentArea>
+                );
 
             // 워크플로우 섹션
             case 'canvas':
@@ -191,13 +198,27 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
 
             // 모델 섹션
             case 'train':
-                return <TrainPageContent />;
+                return (
+                    <ContentArea
+                        title="모델 훈련 설정"
+                        description="모델 훈련을 위한 파라미터를 설정하고 훈련을 시작하세요."
+                    >
+                        <TrainPageContent />
+                    </ContentArea>
+                );
             case 'train-monitor':
                 return <MetricsPageContent />;
             case 'eval':
                 return <EvalPageContent />;
             case 'model-storage':
-                return <StoragePageContent />;
+                return (
+                    <ContentArea
+                        title="Hugging Face 모델 저장소"
+                        description="Hugging Face에 저장된 모델을 확인하고 관리하세요."
+                    >
+                        <StoragePageContent />
+                    </ContentArea>
+                );
 
             // ML 모델 섹션
             case 'model-upload':

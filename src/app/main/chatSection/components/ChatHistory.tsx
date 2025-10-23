@@ -243,140 +243,129 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ onSelectChat }) => {
 
     return (
         <>
-            <div className={styles.chatContainer}>
-                <div className={styles.workflowSection}>
-                    <div className={styles.container}>
-                        <div className={styles.header}>
-                            <div className={styles.headerInfo}>
-                                <h2>채팅 기록</h2>
-                                <p>이전 대화를 선택하여 계속하거나 새로운 창에서 열어보세요.</p>
-                            </div>
-
-                            <div className={styles.headerControls}>
-                                <div className={styles.filterTabs}>
-                                    <button
-                                        className={`${styles.filterTab} ${filterStatus === 'all' ? styles.active : ''}`}
-                                        onClick={() => setFilterStatus('all')}
-                                    >
-                                        전체 ({totalChatCount})
-                                    </button>
-                                    <button
-                                        className={`${styles.filterTab} ${filterStatus === 'active' ? styles.active : ''}`}
-                                        onClick={() => setFilterStatus('active')}
-                                    >
-                                        활성 ({activeChatCount})
-                                    </button>
-                                    <button
-                                        className={`${styles.filterTab} ${filterStatus === 'deleted' ? styles.active : ''}`}
-                                        onClick={() => setFilterStatus('deleted')}
-                                    >
-                                        사용불가 ({deletedChatCount})
-                                    </button>
-                                </div>
-
-                                <RefreshButton
-                                    onClick={loadChatHistory}
-                                    loading={loading}
-                                    disabled={loading}
-                                    title="새로고침"
-                                />
-                            </div>
-                        </div>
-
-                        <div className={styles.content}>
-                            {loading && (
-                                <div className={styles.loadingState}>
-                                    <div className={styles.loadingSpinner}></div>
-                                    <p>채팅 기록을 불러오는 중...</p>
-                                </div>
-                            )}
-
-                            {error && (
-                                <div className={styles.errorState}>
-                                    <p>{error}</p>
-                                    <button onClick={loadChatHistory} className={styles.retryButton}>
-                                        다시 시도
-                                    </button>
-                                </div>
-                            )}
-
-                            {!loading && !error && filteredChatList.length === 0 && (
-                                <div className={styles.emptyState}>
-                                    <FiMessageSquare className={styles.emptyIcon} />
-                                    {filterStatus === 'active' && (
-                                        <>
-                                            <h3>활성 채팅 기록이 없습니다</h3>
-                                            <p>사용 가능한 채팅 기록이 없습니다.</p>
-                                        </>
-                                    )}
-                                    {filterStatus === 'deleted' && (
-                                        <>
-                                            <h3>사용 불가능한 채팅 기록이 없습니다</h3>
-                                            <p>원본 워크플로우가 삭제된 채팅이 없습니다.</p>
-                                        </>
-                                    )}
-                                    {filterStatus === 'all' && (
-                                        <>
-                                            <h3>아직 채팅 기록이 없습니다</h3>
-                                            <p>새로운 대화를 시작해보세요!</p>
-                                        </>
-                                    )}
-                                </div>
-                            )}
-
-                            {!loading && !error && filteredChatList.length > 0 && (
-                                <div className={styles.chatGrid}>
-                                    {filteredChatList.map((chat) => (
-                                        <div key={chat.id} className={styles.chatCard}>
-                                            <div className={styles.cardHeader}>
-                                                <h3 className={`${styles.workflowName} ${chat.isWorkflowDeleted ? styles.deletedWorkflow : ''}`}>
-                                                    {truncateText(chat.metadata.placeholder || chat.workflow_name)}
-                                                    {chat.isWorkflowDeleted && (
-                                                        <span className={styles.deletedBadge}>원본 워크플로우 삭제됨</span>
-                                                    )}
-                                                </h3>
-                                                <span className={styles.chatDate}>
-                                                    {formatDate(chat.updated_at)}
-                                                </span>
-                                            </div>
-
-                                            <div className={styles.cardMeta}>
-                                                <div className={styles.metaItem}>
-                                                    <FiMessageSquare />
-                                                    <span>{chat.interaction_count}회 대화</span>
-                                                </div>
-                                                <div className={styles.metaItem}>
-                                                    <FiUser />
-                                                    <span className={styles.interactionId}>
-                                                        {chat.workflow_name === 'default_mode' ? '일반 채팅' : chat.workflow_name}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            <div className={styles.cardActions}>
-                                                <button
-                                                    onClick={() => handleDeleteChat(chat)}
-                                                    className={styles.selectButton}
-                                                >
-                                                    삭제
-                                                </button>
-                                                <button
-                                                    onClick={() => chat.isWorkflowDeleted ? handleViewChatHistory(chat) : handleContinueChat(chat)}
-                                                    className={`${styles.continueButton} ${chat.isWorkflowDeleted ? styles.viewHistoryButton : ''}`}
-                                                    title={chat.isWorkflowDeleted ? '채팅 기록 보기' : '대화 계속하기'}
-                                                >
-                                                    <FiPlay />
-                                                    {chat.isWorkflowDeleted ? '채팅 기록 보기' : '대화 계속하기'}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+            <div className={styles.header}>
+                <div className={styles.headerActions}>
+                    <div className={styles.filters}>
+                        <div className={styles.filterGroup}>
+                            <button
+                                className={`${styles.filterButton} ${filterStatus === 'all' ? styles.active : ''}`}
+                                onClick={() => setFilterStatus('all')}
+                            >
+                                전체 ({totalChatCount})
+                            </button>
+                            <button
+                                className={`${styles.filterButton} ${filterStatus === 'active' ? styles.active : ''}`}
+                                onClick={() => setFilterStatus('active')}
+                            >
+                                활성 ({activeChatCount})
+                            </button>
+                            <button
+                                className={`${styles.filterButton} ${filterStatus === 'deleted' ? styles.active : ''}`}
+                                onClick={() => setFilterStatus('deleted')}
+                            >
+                                사용불가 ({deletedChatCount})
+                            </button>
                         </div>
                     </div>
+
+                    <RefreshButton
+                        onClick={loadChatHistory}
+                        loading={loading}
+                        disabled={loading}
+                        title="새로고침"
+                    />
                 </div>
             </div>
+
+            {loading && (
+                <div className={styles.loadingState}>
+                    <div className={styles.loadingSpinner}></div>
+                    <p>채팅 기록을 불러오는 중...</p>
+                </div>
+            )}
+
+            {error && (
+                <div className={styles.errorState}>
+                    <p>{error}</p>
+                    <button onClick={loadChatHistory} className={styles.retryButton}>
+                        다시 시도
+                    </button>
+                </div>
+            )}
+
+            {!loading && !error && filteredChatList.length === 0 && (
+                <div className={styles.emptyState}>
+                    <FiMessageSquare className={styles.emptyIcon} />
+                    {filterStatus === 'active' && (
+                        <>
+                            <h3>활성 채팅 기록이 없습니다</h3>
+                            <p>사용 가능한 채팅 기록이 없습니다.</p>
+                        </>
+                    )}
+                    {filterStatus === 'deleted' && (
+                        <>
+                            <h3>사용 불가능한 채팅 기록이 없습니다</h3>
+                            <p>원본 워크플로우가 삭제된 채팅이 없습니다.</p>
+                        </>
+                    )}
+                    {filterStatus === 'all' && (
+                        <>
+                            <h3>아직 채팅 기록이 없습니다</h3>
+                            <p>새로운 대화를 시작해보세요!</p>
+                        </>
+                    )}
+                </div>
+            )}
+
+            {!loading && !error && filteredChatList.length > 0 && (
+                <div className={styles.chatGrid}>
+                    {filteredChatList.map((chat) => (
+                        <div key={chat.id} className={styles.chatCard}>
+                            <div className={styles.cardHeader}>
+                                <h3 className={`${styles.workflowName} ${chat.isWorkflowDeleted ? styles.deletedWorkflow : ''}`}>
+                                    {truncateText(chat.metadata.placeholder || chat.workflow_name)}
+                                    {chat.isWorkflowDeleted && (
+                                        <span className={styles.deletedBadge}>원본 워크플로우 삭제됨</span>
+                                    )}
+                                </h3>
+                                <span className={styles.chatDate}>
+                                    {formatDate(chat.updated_at)}
+                                </span>
+                            </div>
+
+                            <div className={styles.cardMeta}>
+                                <div className={styles.metaItem}>
+                                    <FiMessageSquare />
+                                    <span>{chat.interaction_count}회 대화</span>
+                                </div>
+                                <div className={styles.metaItem}>
+                                    <FiUser />
+                                    <span className={styles.interactionId}>
+                                        {chat.workflow_name === 'default_mode' ? '일반 채팅' : chat.workflow_name}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className={styles.cardActions}>
+                                <button
+                                    onClick={() => handleDeleteChat(chat)}
+                                    className={styles.selectButton}
+                                >
+                                    삭제
+                                </button>
+                                <button
+                                    onClick={() => chat.isWorkflowDeleted ? handleViewChatHistory(chat) : handleContinueChat(chat)}
+                                    className={`${styles.continueButton} ${chat.isWorkflowDeleted ? styles.viewHistoryButton : ''}`}
+                                    title={chat.isWorkflowDeleted ? '채팅 기록 보기' : '대화 계속하기'}
+                                >
+                                    <FiPlay />
+                                    {chat.isWorkflowDeleted ? '채팅 기록 보기' : '대화 계속하기'}
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* History Modal */}
             {selectedChatForHistory && (

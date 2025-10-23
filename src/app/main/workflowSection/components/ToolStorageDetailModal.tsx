@@ -29,6 +29,9 @@ interface ToolData {
     api_timeout: number;
     api_header: any;
     api_body: any;
+    static_body?: any;
+    body_type?: string;
+    is_query_string?: boolean;
     response_filter: boolean;
     response_filter_path: string;
     response_filter_field: string;
@@ -208,6 +211,12 @@ const ToolStorageDetailModal: React.FC<ToolStorageDetailModalProps> = ({
                                 <span className={styles.apiMetaLabel}>타임아웃</span>
                                 <span className={styles.apiMetaValue}>{tool.api_timeout}초</span>
                             </div>
+                            {tool.body_type && (
+                                <div className={styles.apiMetaItem}>
+                                    <span className={styles.apiMetaLabel}>Body Type</span>
+                                    <span className={styles.apiMetaValue}>{tool.body_type}</span>
+                                </div>
+                            )}
                         </div>
 
                         {/* API Header */}
@@ -243,7 +252,7 @@ const ToolStorageDetailModal: React.FC<ToolStorageDetailModalProps> = ({
                         <div className={styles.codeBlock}>
                             <div className={styles.codeHeader}>
                                 <FiCode />
-                                <span>API Body</span>
+                                <span>API Schema</span>
                             </div>
                             <pre className={styles.codeContent}>
                                 {(() => {
@@ -263,6 +272,35 @@ const ToolStorageDetailModal: React.FC<ToolStorageDetailModalProps> = ({
                                         return typeof tool.api_body === 'string'
                                             ? tool.api_body
                                             : JSON.stringify(tool.api_body, null, 2);
+                                    }
+                                })()}
+                            </pre>
+                        </div>
+
+                        {/* Static Body */}
+                        <div className={styles.codeBlock}>
+                            <div className={styles.codeHeader}>
+                                <FiCode />
+                                <span>API Static Body</span>
+                            </div>
+                            <pre className={styles.codeContent}>
+                                {(() => {
+                                    if (!tool.static_body) return '{\n  // 정적 바디 없음\n}';
+
+                                    try {
+                                        // static_body가 문자열인 경우 파싱
+                                        const parsedStaticBody = typeof tool.static_body === 'string'
+                                            ? JSON.parse(tool.static_body)
+                                            : tool.static_body;
+
+                                        return Object.keys(parsedStaticBody).length > 0
+                                            ? JSON.stringify(parsedStaticBody, null, 2)
+                                            : '{\n  // 정적 바디 없음\n}';
+                                    } catch (e) {
+                                        // 파싱 실패 시 원본 표시
+                                        return typeof tool.static_body === 'string'
+                                            ? tool.static_body
+                                            : JSON.stringify(tool.static_body, null, 2);
                                     }
                                 })()}
                             </pre>
