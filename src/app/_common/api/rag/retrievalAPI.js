@@ -238,6 +238,184 @@ export const getCollectionInfo = async (collectionName) => {
 // =============================================================================
 
 /**
+ * GitLab 레포지토리의 브랜치 목록을 조회하는 함수
+ * @param {string} gitlabUrl - GitLab 인스턴스 URL
+ * @param {string} gitlabToken - GitLab Personal Access Token
+ * @param {string} repositoryPath - 레포지토리 경로 (예: group/project)
+ * @returns {Promise<Array>} 브랜치 목록 [{ name, default, protected }]
+ */
+export const getRepositoryBranches = async (
+    gitlabUrl,
+    gitlabToken,
+    repositoryPath
+) => {
+    try {
+        const encodedPath = encodeURIComponent(repositoryPath);
+        const apiUrl = `${gitlabUrl}/api/v4/projects/${encodedPath}/repository/branches`;
+
+        const response = await fetch(apiUrl, {
+            headers: {
+                'PRIVATE-TOKEN': gitlabToken
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch branches: ${response.status}`);
+        }
+
+        const branches = await response.json();
+
+        // 브랜치를 기본 브랜치 우선으로 정렬
+        const sortedBranches = branches.sort((a, b) => {
+            if (a.default && !b.default) return -1;
+            if (!a.default && b.default) return 1;
+            return a.name.localeCompare(b.name);
+        });
+
+        devLog.info('Repository branches fetched:', {
+            repository: repositoryPath,
+            branchCount: sortedBranches.length
+        });
+
+        return sortedBranches.map(branch => ({
+            name: branch.name,
+            default: branch.default || false,
+            protected: branch.protected || false
+        }));
+    } catch (error) {
+        devLog.error('Failed to fetch repository branches:', error);
+        throw error;
+    }
+};
+
+/**
+ * GitLab 레포지토리를 업로드하고 처리하는 함수
+ * @param {string} gitlabUrl - GitLab 인스턴스 URL
+ * @param {string} gitlabToken - GitLab Personal Access Token
+ * @param {string} repositoryPath - 레포지토리 경로 (예: group/project)
+ * @param {string} branch - 브랜치 이름 (기본값: main)
+ * @param {string} collectionName - 대상 컬렉션 이름
+ * @param {number} chunkSize - 청크 크기 (기본값: 4000)
+ * @param {number} chunkOverlap - 청크 겹침 크기 (기본값: 1000)
+ * @param {Object} metadata - 문서 메타데이터 (선택사항)
+ * @param {boolean} enableAnnotation - LLM 기반 코드 주석 생성 여부 (기본값: false)
+ * @param {boolean} enableApiExtraction - API 엔드포인트 추출 여부 (기본값: false)
+ * @returns {Promise<Object>} 업로드 결과
+ */
+export const uploadRepository = async (
+    gitlabUrl,
+    gitlabToken,
+    repositoryPath,
+    branch = 'main',
+    collectionName,
+    chunkSize = 4000,
+    chunkOverlap = 1000,
+    metadata = null,
+    enableAnnotation = false,
+    enableApiExtraction = false
+) => {
+    try {
+        const formData = new FormData();
+        const userId = getUserId();
+
+        formData.append('gitlab_url', gitlabUrl);
+        formData.append('gitlab_token', gitlabToken);
+        formData.append('repository_path', repositoryPath);
+        formData.append('branch', branch);
+        formData.append('collection_name', collectionName);
+        formData.append('chunk_size', chunkSize.toString());
+        formData.append('chunk_overlap', chunkOverlap.toString());
+        formData.append('user_id', userId);
+        formData.append('enable_annotation', enableAnnotation.toString());
+        formData.append('enable_api_extraction', enableApiExtraction.toString());
+
+        // 메타데이터 추가
+        const enhancedMetadata = {
+            ...(metadata || {}),
+            source_type: 'gitlab_repository',
+            repository_path: repositoryPath,
+            branch: branch,
+            upload_timestamp: new Date().toISOString(),
+        };
+
+        formData.append('metadata', JSON.stringify(enhancedMetadata));
+
+        // AbortController로 타임아웃 설정 (30분)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1800000);
+
+        try {
+            const response = await fetch(
+                `${API_BASE_URL}/api/retrieval/documents/upload/repository`,
+                {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal
+                },
+            );
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                let errorMessage = `HTTP error! status: ${response.status}`;
+
+                try {
+                    const errorData = JSON.parse(errorText);
+                    if (errorData.detail) {
+                        errorMessage += `, detail: ${errorData.detail}`;
+                    }
+                } catch (e) {
+                    errorMessage += `, message: ${errorText}`;
+                }
+
+                throw new Error(errorMessage);
+            }
+
+            const data = await response.json();
+            devLog.info('Repository uploaded successfully:', {
+                repositoryPath: repositoryPath,
+                branch: branch,
+                collection: collectionName,
+                enableAnnotation: enableAnnotation,
+                enableApiExtraction: enableApiExtraction,
+                taskId: data.task_id,
+                documentId: data.document_id || 'unknown',
+            });
+            return data;
+        } catch (error) {
+            clearTimeout(timeoutId);
+
+            // AbortController로 인한 타임아웃인 경우
+            if (error.name === 'AbortError') {
+                devLog.error('Repository upload timeout (30 minutes):', {
+                    repositoryPath: repositoryPath,
+                    branch: branch,
+                    collection: collectionName,
+                });
+                throw new Error('Upload timeout: The repository upload took too long. Please try a smaller repository or check the server logs.');
+            }
+
+            devLog.error('Failed to upload repository:', {
+                repositoryPath: repositoryPath,
+                branch: branch,
+                collection: collectionName,
+                error: error.message,
+            });
+            throw error;
+        }
+    } catch (error) {
+        devLog.error('Failed to upload repository:', {
+            repositoryPath: repositoryPath,
+            branch: branch,
+            collection: collectionName,
+            error: error.message,
+        });
+        throw error;
+    }
+};
+
+/**
  * 문서를 업로드하고 처리하는 함수
  * @param {File} file - 업로드할 파일
  * @param {string} collectionName - 대상 컬렉션 이름
@@ -843,6 +1021,107 @@ export const updateChunkContent = async (
             chunkId,
             error: error.message,
         });
+        throw error;
+    }
+};
+
+// =============================================================================
+// Upload Progress Management
+// =============================================================================
+
+/**
+ * 특정 업로드 작업의 진행 상태를 조회하는 함수
+ * @param {string} taskId - 업로드 작업 ID
+ * @returns {Promise<Object>} 진행 상태 정보
+ */
+export const getUploadProgress = async (taskId) => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/upload/progress/${taskId}`,
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Upload progress fetched:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch upload progress:', error);
+        throw error;
+    }
+};
+
+/**
+ * 사용자의 모든 업로드 작업 목록을 조회하는 함수
+ * @returns {Promise<Object>} 업로드 작업 목록
+ */
+export const getUserUploadTasks = async () => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/upload/progress`,
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('User upload tasks fetched:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch user upload tasks:', error);
+        throw error;
+    }
+};
+
+/**
+ * 업로드 작업을 삭제하는 함수 (완료 또는 에러 상태만 삭제 가능)
+ * @param {string} taskId - 업로드 작업 ID
+ * @returns {Promise<Object>} 삭제 결과
+ */
+export const cancelUploadTask = async (taskId) => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/upload/progress/${taskId}/cancel`,
+            {
+                method: 'POST',
+            },
+        );
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP error! status: ${response.status}, ${errorText}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Upload task cancelled:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to cancel upload task:', error);
+        throw error;
+    }
+};
+
+export const deleteUploadTask = async (taskId) => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/upload/progress/${taskId}`,
+            {
+                method: 'DELETE',
+            },
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Upload task deleted:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to delete upload task:', error);
         throw error;
     }
 };
