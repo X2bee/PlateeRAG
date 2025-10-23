@@ -266,7 +266,6 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
                             type="button"
                         >
                             <FiSquare />
-                            <span>중단</span>
                         </button>
                     ) : (
                         <button

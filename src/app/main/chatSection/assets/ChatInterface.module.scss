@@ -615,7 +615,7 @@
     gap: 0.35rem;
 
     &:hover:not(.disabled) {
-        background: darken($primary-red, 5%);
+        background: color.adjust($primary-red, $lightness: 5%);
         box-shadow: 0 4px 12px rgba($primary-red, 0.3);
     }
 
