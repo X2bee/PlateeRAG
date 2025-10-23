@@ -37,7 +37,7 @@ const GlobalDocumentFileModal: React.FC = () => {
 
     const [chunkSize, setChunkSize] = useState(4000);
     const [overlapSize, setOverlapSize] = useState(1000);
-    const [processType, setProcessType] = useState<string>('default');
+    const [processType, setProcessType] = useState<string>('text');
     const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -65,7 +65,7 @@ const GlobalDocumentFileModal: React.FC = () => {
                     setUploadProgress(parsed.uploadProgress);
                     setChunkSize(parsed.chunkSize || 4000);
                     setOverlapSize(parsed.overlapSize || 1000);
-                    setProcessType(parsed.processType || 'default');
+                    setProcessType(parsed.processType || 'text');
                     setIsMinimized(parsed.isMinimized || false);
 
                     // 업로드 중인 항목이 있으면 loading 상태
@@ -144,7 +144,7 @@ const GlobalDocumentFileModal: React.FC = () => {
     const resetModal = () => {
         setChunkSize(4000);
         setOverlapSize(1000);
-        setProcessType('default');
+        setProcessType('text');
         setUploadProgress([]);
         setError(null);
         setIsMinimized(false);
@@ -557,7 +557,6 @@ const GlobalDocumentFileModal: React.FC = () => {
                                 onChange={(e) => setProcessType(e.target.value)}
                                 className={styles.selectInput}
                             >
-                                <option value="default">자동 선택 (기본값)</option>
                                 <option value="text">텍스트 추출 (PDF/DOCX 공통)</option>
                                 <option value="ocr">OCR 처리 (PDF/DOCX 공통)</option>
                                 <option value="html">HTML 변환 (DOCX 전용)</option>
