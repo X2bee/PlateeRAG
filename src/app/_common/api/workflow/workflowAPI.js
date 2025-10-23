@@ -631,8 +631,12 @@ export const executeWorkflowById = async (
  * @param {function(): void} params.onEnd - 스트림이 정상적으로 종료될 때 호출될 콜백.
  * @param {function(Error): void} params.onError - 오류 발생 시 호출될 콜백.
  * @param {function(): void} [params.onStart] - 스트림 시작 이벤트 수신 시 호출될 콜백.
+ * @param {string|null} [params.sessionId] - 기존 WebSocket 세션이 있다면 재사용할 세션 ID.
+ * @param {function(any): void} [params.onReady] - ready 이벤트를 수신했을 때 호출될 콜백.
+ * @param {function(string, any): void} [params.onSessionEstablished] - 세션 ID가 확정되었을 때 호출될 콜백.
+ * @returns {import('./workflowWebsocketClient').WorkflowStreamHandle} WebSocket 스트림 핸들
  */
-export const executeWorkflowByIdStream = async ({
+export const executeWorkflowByIdStream = ({
     workflowName,
     workflowId,
     inputData = '',
@@ -644,6 +648,9 @@ export const executeWorkflowByIdStream = async ({
     onEnd,
     onError,
     onStart,
+    sessionId = null,
+    onReady,
+    onSessionEstablished,
 }) => {
     const payload = {
         workflow_name: workflowName,
@@ -671,8 +678,16 @@ export const executeWorkflowByIdStream = async ({
     return runWorkflowStream({
         mode: 'execute',
         payload,
+        sessionId,
+        onSessionEstablished: (establishedSessionId, content) => {
+            devLog.log('Workflow WS session established', establishedSessionId);
+            onSessionEstablished?.(establishedSessionId, content);
+        },
         callbacks: {
-            onReady: (content) => devLog.log('Workflow WS ready', content),
+            onReady: (content) => {
+                devLog.log('Workflow WS ready', content);
+                onReady?.(content);
+            },
             onStart: () => {
                 devLog.log('Workflow WS start event received');
                 onStart?.();

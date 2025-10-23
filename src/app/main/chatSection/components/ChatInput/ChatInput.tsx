@@ -6,6 +6,7 @@ import {
     FiImage,
     FiMic,
     FiBookmark,
+    FiSquare,
 } from 'react-icons/fi';
 import styles from '../../assets/ChatInterface.module.scss';
 import { useInputHandling } from '../../hooks/useInputHandling';
@@ -24,6 +25,7 @@ interface STTSimpleStatusResponse {
 
 interface ChatInputProps {
     executing: boolean;
+    isStreaming: boolean;
     mode: string;
     loading: boolean;
     showAttachmentMenu: boolean;
@@ -33,6 +35,7 @@ interface ChatInputProps {
     onShiftEnter?: () => void;
     initialMessage?: string;
     onAudioUpload?: (audioBlob: Blob) => void;
+    onCancelStreaming: () => void;
 }
 
 interface ChatInputRef {
@@ -44,6 +47,7 @@ interface ChatInputRef {
 const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
     {
         executing,
+        isStreaming,
         mode,
         loading,
         showAttachmentMenu,
@@ -53,6 +57,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
         onShiftEnter,
         initialMessage,
         onAudioUpload,
+        onCancelStreaming,
     },
     ref
 ) => {
@@ -254,20 +259,36 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>((
                         )}
                     </div>
 
-                    <button
-                        onClick={() => {
-                            onSendMessage(inputHandling.inputMessage);
-                            inputHandling.setInputMessage('');
-                        }}
-                        disabled={executing || !inputHandling.inputMessage.trim()}
-                        className={`${styles.sendButton} ${executing || !inputHandling.inputMessage.trim() ? styles.disabled : ''}`}
-                    >
-                        {executing ? <div className={styles.miniSpinner}></div> : <FiSend />}
-                    </button>
+                    {isStreaming ? (
+                        <button
+                            onClick={onCancelStreaming}
+                            className={`${styles.sendButton} ${styles.stopButton}`}
+                            type="button"
+                        >
+                            <FiSquare />
+                            <span>중단</span>
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => {
+                                onSendMessage(inputHandling.inputMessage);
+                                inputHandling.setInputMessage('');
+                            }}
+                            disabled={executing || !inputHandling.inputMessage.trim()}
+                            className={`${styles.sendButton} ${executing || !inputHandling.inputMessage.trim() ? styles.disabled : ''}`}
+                            type="button"
+                        >
+                            {executing ? <div className={styles.miniSpinner}></div> : <FiSend />}
+                        </button>
+                    )}
                 </div>
             </div>
             {executing && (
-                mode === "new-default" ? (
+                isStreaming ? (
+                    <p className={styles.executingNote}>
+                        스트리밍 응답을 수신 중입니다. 필요하면 중단을 눌러주세요.
+                    </p>
+                ) : mode === "new-default" ? (
                     <p className={styles.executingNote}>
                         일반 채팅을 실행 중입니다...
                     </p>

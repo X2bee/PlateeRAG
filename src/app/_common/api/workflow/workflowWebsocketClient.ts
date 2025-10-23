@@ -38,6 +38,10 @@ export interface WorkflowWebSocketOptions {
      */
     urlOverride?: string;
     /**
+     * Existing session identifier to resume.
+     */
+    sessionId?: string;
+    /**
      * Automatically send the start payload once the socket is open. Defaults to true.
      */
     autoStart?: boolean;
@@ -49,6 +53,10 @@ export interface WorkflowWebSocketOptions {
         warn: (...args: any[]) => void;
         error: (...args: any[]) => void;
     };
+    /**
+     * Invoked when the server confirms or assigns a session identifier.
+     */
+    onSessionEstablished?: (sessionId: string, content: any) => void;
 }
 
 export interface WorkflowWebSocketHandle {
@@ -59,7 +67,7 @@ export interface WorkflowWebSocketHandle {
 
 const isBrowser = () => typeof window !== 'undefined';
 
-const resolveWebSocketUrl = (mode: WorkflowMode, override?: string) => {
+const resolveWebSocketUrl = (mode: WorkflowMode, override?: string, sessionId?: string | null) => {
     if (override) return override;
 
     if (!isBrowser()) {
@@ -75,6 +83,9 @@ const resolveWebSocketUrl = (mode: WorkflowMode, override?: string) => {
         }
         if (userId) {
             url.searchParams.set('user_id', String(userId));
+        }
+        if (sessionId) {
+            url.searchParams.set('session_id', sessionId);
         }
     };
 
@@ -113,10 +124,12 @@ export const connectWorkflowWebSocket = ({
     payload,
     callbacks = {},
     urlOverride,
+    sessionId,
     autoStart = true,
     logger = defaultLogger,
+    onSessionEstablished,
 }: WorkflowWebSocketOptions): WorkflowWebSocketHandle => {
-    const url = resolveWebSocketUrl(mode, urlOverride);
+    const url = resolveWebSocketUrl(mode, urlOverride, sessionId);
     const socket = new WebSocket(url);
 
     let closedByClient = false;
@@ -157,7 +170,22 @@ export const connectWorkflowWebSocket = ({
             const message = JSON.parse(event.data);
             switch (message.type) {
                 case 'ready':
-                    onReady?.(message.content);
+                    {
+                        const sessionInfo = message.content;
+                        const derivedSessionId =
+                            sessionInfo?.session_id ??
+                            sessionInfo?.sessionId ??
+                            message.session_id ??
+                            message.sessionId;
+                        if (derivedSessionId) {
+                            try {
+                                onSessionEstablished?.(derivedSessionId, sessionInfo);
+                            } catch (err) {
+                                logger.error('[workflow-ws] onSessionEstablished callback failed', err);
+                            }
+                        }
+                        onReady?.(sessionInfo);
+                    }
                     break;
                 case 'start':
                     onStart?.(message.content);
@@ -227,11 +255,19 @@ export const connectWorkflowWebSocket = ({
     };
 };
 
+export interface WorkflowStreamHandle {
+    promise: Promise<void>;
+    cancel: (reason?: string) => void;
+    getSocket: () => WebSocket | null;
+}
+
 export interface WorkflowStreamOptions {
     mode: WorkflowMode;
     payload: WorkflowStartPayload;
     callbacks: WorkflowWebSocketCallbacks;
     urlOverride?: string;
+    sessionId?: string | null;
+    onSessionEstablished?: (sessionId: string, content: any) => void;
     logger?: {
         log: (...args: any[]) => void;
         warn: (...args: any[]) => void;
@@ -244,13 +280,19 @@ export const runWorkflowStream = ({
     payload,
     callbacks,
     urlOverride,
+    sessionId,
+    onSessionEstablished,
     logger = defaultLogger,
-}: WorkflowStreamOptions): Promise<void> => {
-    return new Promise((resolve, reject) => {
-        let finished = false;
-        let endedByMessage = false;
-        let connection: WorkflowWebSocketHandle | null = null;
+}: WorkflowStreamOptions): WorkflowStreamHandle => {
+    let connection: WorkflowWebSocketHandle | null = null;
+    let finished = false;
+    let endedByMessage = false;
+    let cancelRequested = false;
+    let finalizeError:
+        | ((error: Error, raw?: any, closeCode?: number) => void)
+        | null = null;
 
+    const promise = new Promise<void>((resolve, reject) => {
         const finalizeSuccess = () => {
             if (finished) return;
             finished = true;
@@ -258,21 +300,27 @@ export const runWorkflowStream = ({
             resolve();
         };
 
-        const finalizeError = (error: Error, raw?: any) => {
+        finalizeError = (error: Error, raw?: any, closeCode: number = 1011) => {
             if (finished) return;
             finished = true;
-            let finalError = error;
-            if (callbacks.onError) {
+
+            let processedError = error;
+            if (!cancelRequested && callbacks.onError) {
                 try {
                     callbacks.onError(error, raw);
                 } catch (callbackError) {
                     if (callbackError instanceof Error) {
-                        finalError = callbackError;
+                        processedError = callbackError;
                     }
                 }
             }
-            connection?.close(1011, finalError.message);
-            reject(finalError);
+
+            const reason =
+                processedError?.message && processedError.message.length > 0
+                    ? processedError.message
+                    : 'Workflow stream terminated';
+            connection?.close(closeCode, reason);
+            reject(processedError);
         };
 
         try {
@@ -280,7 +328,9 @@ export const runWorkflowStream = ({
                 mode,
                 payload,
                 urlOverride,
+                sessionId: sessionId ?? undefined,
                 logger,
+                onSessionEstablished,
                 callbacks: {
                     ...callbacks,
                     onEnd: (content) => {
@@ -292,14 +342,16 @@ export const runWorkflowStream = ({
                                 callbackError instanceof Error
                                     ? callbackError
                                     : new Error('Workflow onEnd callback failed');
-                            finalizeError(error);
+                            finalizeError?.(error);
                             return;
                         }
                         finalizeSuccess();
                     },
                     onError: (error, raw) => {
                         logger.error('[workflow-ws] stream error', error);
-                        finalizeError(error, raw);
+                        const errInstance =
+                            error instanceof Error ? error : new Error(String(error));
+                        finalizeError?.(errInstance, raw);
                     },
                     onClose: (event) => {
                         callbacks.onClose?.(event);
@@ -310,14 +362,46 @@ export const runWorkflowStream = ({
                             const reason =
                                 event.reason ||
                                 `Workflow WebSocket closed unexpectedly (code ${event.code})`;
-                            finalizeError(new Error(reason));
+                            finalizeError?.(new Error(reason));
                         }
                     },
                 },
             });
         } catch (err) {
-            const error = err instanceof Error ? err : new Error('Failed to open workflow WebSocket');
-            finalizeError(error);
+            const error =
+                err instanceof Error ? err : new Error('Failed to open workflow WebSocket');
+            finalizeError?.(error);
         }
     });
+
+    const cancel = (reason?: string) => {
+        if (finished) return;
+        cancelRequested = true;
+        const socket = connection?.getSocket();
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            try {
+                socket.send(JSON.stringify({
+                    type: 'cancel',
+                    reason: reason || 'Client cancelled streaming',
+                    payload: {
+                        workflow_id: payload.workflow_id,
+                        workflow_name: payload.workflow_name,
+                        interaction_id: payload.interaction_id,
+                        session_id: sessionId ?? undefined,
+                    },
+                }));
+            } catch (sendError) {
+                logger.warn('[workflow-ws] failed to send cancel message', sendError);
+            }
+        }
+        const abortError = new Error(reason || 'Streaming cancelled by user');
+        (abortError as any).name = 'AbortError';
+        finalizeError?.(abortError, undefined, 4000);
+    };
+
+    return {
+        promise,
+        cancel,
+        getSocket: () => connection?.getSocket() ?? null,
+    };
 };

@@ -158,7 +158,17 @@ const ensureProxyServer = (server: SocketServerWithProxy) => {
                 headers['X-User-ID'] = userIdHeader;
             }
 
-            devLog.log(`Proxying WebSocket to ${backendUrl}`);
+            let sanitizedTarget = backendUrl;
+            try {
+                const safeUrl = new URL(backendUrl);
+                if (safeUrl.searchParams.has('token')) {
+                    safeUrl.searchParams.set('token', '[redacted]');
+                }
+                sanitizedTarget = safeUrl.toString();
+            } catch (sanitizeError) {
+                devLog.warn('Failed to sanitize backend WebSocket URL for logging', sanitizeError);
+            }
+            devLog.log(`Proxying WebSocket to ${sanitizedTarget}`);
 
             proxyServer.handleUpgrade(request, socket, head, (clientSocket) => {
                 establishProxy(clientSocket, backendUrl, headers);

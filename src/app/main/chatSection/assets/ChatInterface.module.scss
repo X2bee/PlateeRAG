@@ -609,6 +609,25 @@
     }
 }
 
+.stopButton {
+    @extend .sendButton;
+    background: $primary-red;
+    gap: 0.35rem;
+
+    &:hover:not(.disabled) {
+        background: darken($primary-red, 5%);
+        box-shadow: 0 4px 12px rgba($primary-red, 0.3);
+    }
+
+    &:active:not(.disabled) {
+        transform: translateY(0);
+    }
+
+    span {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+}
 .miniSpinner {
     width: 16px;
     height: 16px;

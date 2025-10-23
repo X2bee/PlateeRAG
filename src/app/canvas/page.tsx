@@ -908,7 +908,7 @@ function CanvasPageContent() {
                 //         throw err;
                 //     }
                 // });
-                await executeWorkflowByIdStream({
+                const streamHandle = executeWorkflowByIdStream({
                     workflowName,
                     workflowId,
                     inputData: '',
@@ -924,6 +924,8 @@ function CanvasPageContent() {
                     },
                     onError: (err) => { throw err; },
                 });
+
+                await streamHandle.promise;
 
 
             } else {

@@ -133,8 +133,12 @@ export const executeWorkflowByIdDeploy = async (
  * @param {function(): void} params.onEnd - 스트림이 정상적으로 종료될 때 호출될 콜백.
  * @param {function(Error): void} params.onError - 오류 발생 시 호출될 콜백.
  * @param {function(): void} [params.onStart] - 스트림 시작 이벤트 수신 시 호출될 콜백.
+ * @param {string|null} [params.sessionId] - 기존 WebSocket 세션이 있다면 재사용할 세션 ID.
+ * @param {function(any): void} [params.onReady] - ready 이벤트를 수신했을 때 호출될 콜백.
+ * @param {function(string, any): void} [params.onSessionEstablished] - 세션 ID가 확정되었을 때 호출될 콜백.
+ * @returns {import('./workflowWebsocketClient').WorkflowStreamHandle} WebSocket 스트림 핸들
  */
-export const executeWorkflowByIdStreamDeploy = async ({
+export const executeWorkflowByIdStreamDeploy = ({
     workflowName,
     workflowId,
     inputData = '',
@@ -146,6 +150,9 @@ export const executeWorkflowByIdStreamDeploy = async ({
     onEnd,
     onError,
     onStart,
+    sessionId = null,
+    onReady,
+    onSessionEstablished,
 }: {
     workflowName: string;
     workflowId: string;
@@ -158,6 +165,9 @@ export const executeWorkflowByIdStreamDeploy = async ({
     onEnd: () => void;
     onError: (error: Error) => void;
     onStart?: () => void;
+    sessionId?: string | null;
+    onReady?: (content: any) => void;
+    onSessionEstablished?: (sessionId: string, content: any) => void;
 }) => {
     const payload: excuteWorkflowRequest = {
         workflow_name: workflowName,
@@ -185,8 +195,16 @@ export const executeWorkflowByIdStreamDeploy = async ({
     return runWorkflowStream({
         mode: 'deploy',
         payload,
+        sessionId,
+        onSessionEstablished: (establishedSessionId, content) => {
+            devLog.log('Deploy workflow WS session established', establishedSessionId);
+            onSessionEstablished?.(establishedSessionId, content);
+        },
         callbacks: {
-            onReady: (content) => devLog.log('Deploy workflow WS ready', content),
+            onReady: (content) => {
+                devLog.log('Deploy workflow WS ready', content);
+                onReady?.(content);
+            },
             onStart: () => {
                 devLog.log('Deploy workflow WS start event received');
                 onStart?.();

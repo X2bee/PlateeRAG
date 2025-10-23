@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { showLoadingToastKo, showErrorToastKo, dismissToastKo } from '@/app/_common/utils/toastUtilsKo';
 import { executeWorkflowById, executeWorkflowByIdStream } from '@/app/_common/api/workflow/workflowAPI';
 import { executeWorkflowByIdDeploy, executeWorkflowByIdStreamDeploy } from '@/app/_common/api/workflow/workflowDeployAPI';
@@ -7,6 +7,7 @@ import { isStreamingWorkflowFromWorkflow } from '@/app/_common/utils/isStreaming
 import { WorkflowData } from '@/app/canvas/types';
 import { IOLog } from '../components/types';
 import { devLog } from '@/app/_common/utils/logger';
+import type { WorkflowStreamHandle } from '@/app/_common/api/workflow/workflowWebsocketClient';
 
 interface UseWorkflowExecutionProps {
     workflow: any;
@@ -25,10 +26,12 @@ interface UseWorkflowExecutionProps {
 
 interface UseWorkflowExecutionReturn {
     executing: boolean;
+    streaming: boolean;
     error: string | null;
     pendingLogId: string | null;
     executeWorkflow: (messageOverride?: string, inputMessage?: string) => Promise<void>;
     executeWorkflowDeploy: (messageOverride?: string, inputMessage?: string) => Promise<void>;
+    cancelStreaming: () => void;
 }
 
 export const useWorkflowExecution = ({
@@ -42,8 +45,48 @@ export const useWorkflowExecution = ({
     scrollToBottom
 }: UseWorkflowExecutionProps): UseWorkflowExecutionReturn => {
     const [executing, setExecuting] = useState(false);
+    const [streaming, setStreaming] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [pendingLogId, setPendingLogId] = useState<string | null>(null);
+    const sessionIdRef = useRef<string | null>(null);
+    const activeStreamHandleRef = useRef<WorkflowStreamHandle | null>(null);
+    const sessionStorageKey = useMemo(() => {
+        const workflowId = workflow?.id || workflow?.workflow_id || 'default';
+        return `workflow_session:${workflowId}`;
+    }, [workflow]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        try {
+            const storedSessionId = sessionStorage.getItem(sessionStorageKey);
+            if (storedSessionId) {
+                sessionIdRef.current = storedSessionId;
+                devLog.log(`Restored workflow WebSocket session: ${storedSessionId}`);
+            }
+        } catch (restoreError) {
+            devLog.warn('Failed to restore workflow session ID from sessionStorage', restoreError);
+        }
+    }, [sessionStorageKey]);
+
+    const persistSessionId = useCallback((nextSessionId: string) => {
+        if (!nextSessionId) return;
+        sessionIdRef.current = nextSessionId;
+        if (typeof window === 'undefined') return;
+        try {
+            sessionStorage.setItem(sessionStorageKey, nextSessionId);
+            devLog.log(`Persisted workflow WebSocket session: ${nextSessionId}`);
+        } catch (persistError) {
+            devLog.error('Failed to persist workflow session ID', persistError);
+        }
+    }, [sessionStorageKey]);
+
+    const cancelStreaming = useCallback(() => {
+        const handle = activeStreamHandleRef.current;
+        if (handle) {
+            activeStreamHandleRef.current = null;
+            handle.cancel('사용자가 스트리밍을 중단했습니다.');
+        }
+    }, []);
 
     // 공통 실행 로직
     const executeWorkflowCommon = useCallback(async (
@@ -79,6 +122,9 @@ export const useWorkflowExecution = ({
                 updated_at: new Date().toISOString(),
             },
         ]);
+
+        let streamHandle: WorkflowStreamHandle | null = null;
+        let startedStreaming = false;
 
         try {
             let isStreaming: boolean;
@@ -119,6 +165,18 @@ export const useWorkflowExecution = ({
                 throw new Error("채팅 세션 정보가 유효하지 않습니다.");
             }
 
+            if (!sessionIdRef.current && typeof window !== 'undefined') {
+                try {
+                    const storedSessionId = sessionStorage.getItem(sessionStorageKey);
+                    if (storedSessionId) {
+                        sessionIdRef.current = storedSessionId;
+                        devLog.log(`Reloaded workflow WebSocket session before execution: ${storedSessionId}`);
+                    }
+                } catch (restoreError) {
+                    devLog.warn('Failed to reload workflow session ID before execution', restoreError);
+                }
+            }
+
             if (isStreaming) {
                 const streamParams = {
                     workflowName,
@@ -142,19 +200,32 @@ export const useWorkflowExecution = ({
                     },
                     onEnd: () => setPendingLogId(null),
                     onError: (err: Error) => { throw err; },
+                    sessionId: sessionIdRef.current,
+                    onSessionEstablished: (nextSessionId: string) => {
+                        persistSessionId(nextSessionId);
+                    },
                 };
 
                 if (isDeploy) {
-                    await executeWorkflowByIdStreamDeploy({
+                    streamHandle = executeWorkflowByIdStreamDeploy({
                         ...streamParams,
                         user_id: user_id,
                     });
                 } else {
-                    await executeWorkflowByIdStream({
+                    streamHandle = executeWorkflowByIdStream({
                         ...streamParams,
                         user_id: user_id ? Number(user_id) : null,
                     });
                 }
+
+                if (!streamHandle) {
+                    throw new Error('스트리밍 핸들을 생성하지 못했습니다.');
+                }
+
+                startedStreaming = true;
+                setStreaming(true);
+                activeStreamHandleRef.current = streamHandle;
+                await streamHandle.promise;
             } else {
                 let result: any;
                 if (isDeploy) {
@@ -194,17 +265,32 @@ export const useWorkflowExecution = ({
                 setPendingLogId(null);
             }
         } catch (err: any) {
-            setIOLogs((prev) =>
-                prev.map((log) =>
-                    String(log.log_id) === tempId
-                        ? { ...log, output_data: err.message || '메시지 처리 중 오류 발생' }
-                        : log
-                )
-            );
-            setPendingLogId(null);
-            showErrorToastKo(err.message || '메시지 처리 중 오류가 발생했습니다.');
+            if (err && typeof err === 'object' && err.name === 'AbortError') {
+                devLog.log('Workflow execution cancelled by user.');
+                setIOLogs((prev) =>
+                    prev.filter((log) => String(log.log_id) !== tempId)
+                );
+                setPendingLogId(null);
+                setError(null);
+            } else {
+                setIOLogs((prev) =>
+                    prev.map((log) =>
+                        String(log.log_id) === tempId
+                            ? { ...log, output_data: err?.message || '메시지 처리 중 오류 발생' }
+                            : log
+                    )
+                );
+                setPendingLogId(null);
+                const errorMessage = err?.message || '메시지 처리 중 오류가 발생했습니다.';
+                setError(errorMessage);
+                showErrorToastKo(errorMessage);
+            }
         } finally {
             dismissToastKo();
+            if (startedStreaming) {
+                activeStreamHandleRef.current = null;
+                setStreaming(false);
+            }
             setExecuting(false);
             // 실행 완료 후 스크롤은 ChatInterface에서 처리
         }
@@ -217,7 +303,9 @@ export const useWorkflowExecution = ({
         getValidAdditionalParams,
         user_id,
         setIOLogs,
-        scrollToBottom
+        scrollToBottom,
+        persistSessionId,
+        sessionStorageKey
     ]);
 
     const executeWorkflow = useCallback(async (messageOverride?: string, inputMessage?: string) => {
@@ -230,9 +318,11 @@ export const useWorkflowExecution = ({
 
     return {
         executing,
+        streaming,
         error,
         pendingLogId,
         executeWorkflow,
-        executeWorkflowDeploy
+        executeWorkflowDeploy,
+        cancelStreaming
     };
 };

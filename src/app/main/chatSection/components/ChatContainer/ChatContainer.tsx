@@ -27,6 +27,7 @@ interface ChatContainerProps {
     ioLogs: IOLog[];
     workflow: any;
     executing: boolean;
+    streaming: boolean;
     setInputMessage: (message: string) => void;
     messagesRef: React.RefObject<HTMLDivElement | null>;
     pendingLogId: string | null;
@@ -45,6 +46,7 @@ interface ChatContainerProps {
     onSendMessage: (message: string) => void;
     onShiftEnter?: () => void;
     initialMessage?: string;
+    onCancelStreaming: () => void;
     
     // PDF Viewer props
     currentSourceInfo: SourceInfo | null;
@@ -75,6 +77,7 @@ const ChatContainer = forwardRef<ChatContainerRef, ChatContainerProps>((
         ioLogs,
         workflow,
         executing,
+        streaming,
         setInputMessage,
         messagesRef,
         pendingLogId,
@@ -89,6 +92,7 @@ const ChatContainer = forwardRef<ChatContainerRef, ChatContainerProps>((
         onSendMessage,
         onShiftEnter,
         initialMessage,
+        onCancelStreaming,
         currentSourceInfo,
         user_id,
         onPDFViewerClose,
@@ -153,6 +157,7 @@ const ChatContainer = forwardRef<ChatContainerRef, ChatContainerProps>((
                 <ChatInput
                     ref={chatInputRef}
                     executing={executing}
+                    isStreaming={streaming}
                     mode={mode}
                     loading={loading}
                     showAttachmentMenu={showAttachmentMenu}
@@ -161,6 +166,7 @@ const ChatContainer = forwardRef<ChatContainerRef, ChatContainerProps>((
                     onSendMessage={onSendMessage}
                     onShiftEnter={onShiftEnter}
                     initialMessage={initialMessage}
+                    onCancelStreaming={onCancelStreaming}
                 />
             )}
 
@@ -170,6 +176,7 @@ const ChatContainer = forwardRef<ChatContainerRef, ChatContainerProps>((
                     <ChatInput
                         ref={chatInputRef}
                         executing={executing}
+                        isStreaming={streaming}
                         mode={mode}
                         loading={loading}
                         showAttachmentMenu={false}
@@ -178,6 +185,7 @@ const ChatContainer = forwardRef<ChatContainerRef, ChatContainerProps>((
                         onSendMessage={onSendMessage}
                         onShiftEnter={onShiftEnter}
                         initialMessage={initialMessage}
+                        onCancelStreaming={onCancelStreaming}
                     />
                 </div>
             )}

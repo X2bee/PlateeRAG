@@ -408,6 +408,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
         ioLogs,
         workflow,
         executing: workflowExecution.executing,
+        streaming: workflowExecution.streaming,
         setInputMessage: (message: string) => {
             chatContainerRef.current?.setInputMessage(message);
         },
@@ -429,6 +430,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
         onPDFViewerClose: handlePDFViewerClose,
         error: workflowExecution.error,
         hideInputUI, // 새로 추가된 prop 전달
+        onCancelStreaming: workflowExecution.cancelStreaming,
     }), [
         state.ui.showPDFViewer,
         state.ui.loading,
@@ -441,6 +443,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
         ioLogs,
         workflow,
         workflowExecution.executing,
+        workflowExecution.streaming,
         workflowExecution.pendingLogId,
         workflowExecution.error,
         messagesRef,
@@ -457,6 +460,7 @@ const ChatInterface: React.FC<NewChatInterfaceProps> = React.memo(({
         user_id,
         handlePDFViewerClose,
         hideInputUI, // dependency에도 추가
+        workflowExecution.cancelStreaming,
     ]);
 
     const collectionModalProps = useMemo(() => ({
