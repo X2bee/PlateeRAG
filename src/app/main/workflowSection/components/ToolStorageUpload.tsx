@@ -64,12 +64,15 @@ const ToolStorageUpload: React.FC<ToolStorageUploadProps> = ({ onBack, editMode 
 
             if (!headers || typeof headers !== 'object') return [];
 
-            return Object.entries(headers).map(([key, value], index) => ({
-                id: `header_${Date.now()}_${index}`,
-                key,
-                value: String(value),
-                isPreset: false
-            }));
+            // Content-Type은 body_type에서 자동 생성되므로 무시
+            return Object.entries(headers)
+                .filter(([key]) => key.toLowerCase() !== 'content-type')
+                .map(([key, value], index) => ({
+                    id: `header_${Date.now()}_${index}`,
+                    key,
+                    value: String(value),
+                    isPreset: false
+                }));
         } catch (error) {
             devLog.error('Failed to parse api_header:', error);
             return [];
