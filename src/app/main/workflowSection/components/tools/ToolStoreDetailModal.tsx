@@ -205,8 +205,15 @@ const ToolStoreDetailModal: React.FC<ToolStoreDetailModalProps> = ({ tool, isOpe
                             <div className={styles.apiUrlValue}>{tool.function_data.api_url}</div>
                         </div>
 
-                        {/* API Method & Timeout */}
-                        <div className={styles.apiMetaGrid}>
+                        {/* API Method & Timeout & Body Type */}
+                        <div
+                            className={styles.apiMetaGrid}
+                            style={{
+                                display: 'grid',
+                                gridTemplateColumns: tool.function_data.body_type ? '1fr 1fr 2fr' : '1fr 1fr',
+                                gap: '16px'
+                            }}
+                        >
                             <div className={styles.apiMetaItem}>
                                 <span className={styles.apiMetaLabel}>HTTP 메서드</span>
                                 <span className={styles.apiMetaValue}>{tool.function_data.api_method}</span>
