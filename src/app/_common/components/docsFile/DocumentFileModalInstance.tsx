@@ -848,7 +848,7 @@ const DocumentFileModalInstance: React.FC<DocumentFileModalInstanceProps> = ({
                 <div className={styles.modalHeader}>
                     <div className={styles.headerTop}>
                         <div className={styles.titleSection}>
-                            <h3>📤 문서 업로드</h3>
+                            <h3>문서 업로드</h3>
                         </div>
                         <div className={styles.collectionInfoCompact}>
                             <div className={styles.infoItem}>
@@ -867,14 +867,12 @@ const DocumentFileModalInstance: React.FC<DocumentFileModalInstanceProps> = ({
                             className={`${styles.tab} ${activeTab === 'file' ? styles.active : ''}`}
                             onClick={() => setActiveTab('file')}
                         >
-                            <span className={styles.tabIcon}>📄</span>
                             <span className={styles.tabLabel}>파일 업로드</span>
                         </button>
                         <button
                             className={`${styles.tab} ${activeTab === 'repository' ? styles.active : ''}`}
                             onClick={() => setActiveTab('repository')}
                         >
-                            <span className={styles.tabIcon}>📦</span>
                             <span className={styles.tabLabel}>GitLab 레포지토리</span>
                         </button>
                     </div>

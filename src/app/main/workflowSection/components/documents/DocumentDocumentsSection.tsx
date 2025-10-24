@@ -191,7 +191,7 @@ const DocumentDocumentsSection: React.FC<DocumentDocumentsSectionProps> = ({
                                         </div>
 
                                         <div className={styles.cardContent}>
-                                            <h3 className={styles.collectionName}>{doc.file_name}</h3>
+                                            <h3 className={styles.collectionName} title={doc.file_name}>{doc.file_name}</h3>
                                             <div className={styles.collectionMeta}>
                                                 <div className={styles.metaItem}>
                                                     <FiBarChart />
