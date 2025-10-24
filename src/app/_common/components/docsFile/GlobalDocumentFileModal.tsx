@@ -11,6 +11,8 @@ const GlobalDocumentFileModal: React.FC = () => {
         closeModal,
         minimizeModal,
         restoreModal,
+        collapseModal,
+        expandModal,
         focusSession,
         focusedSessionId,
         setOnUploadStart,
@@ -20,8 +22,11 @@ const GlobalDocumentFileModal: React.FC = () => {
     // 모든 세션을 배열로 변환
     const allSessions = Array.from(sessions.values());
 
-    // 최소화된 세션들
-    const minimizedSessions = allSessions.filter(session => session.isMinimized);
+    // 최소화된 세션들 (접히지 않은 것들만)
+    const minimizedSessions = allSessions.filter(session => session.isMinimized && !session.isCollapsed);
+
+    // 완전히 접힌 세션들
+    const collapsedSessions = allSessions.filter(session => session.isMinimized && session.isCollapsed);
 
     // 각 세션에 업로드 시작 콜백 설정
     React.useEffect(() => {
@@ -34,6 +39,27 @@ const GlobalDocumentFileModal: React.FC = () => {
         });
     }, [allSessions.length, setOnUploadStart, setCurrentUploadingFiles]);
 
+    // 완전히 접힌 아이콘 렌더링
+    const renderCollapsedIcon = () => {
+        if (collapsedSessions.length === 0) return null;
+
+        return (
+            <div
+                className={styles.collapsedIcon}
+                onClick={() => {
+                    // 모든 접힌 세션을 펼치기
+                    collapsedSessions.forEach(session => expandModal(session.sessionId));
+                }}
+                title={`업로드 중 (${collapsedSessions.length}개)`}
+            >
+                <span className={styles.uploadIconCollapsed}>📤</span>
+                {collapsedSessions.length > 1 && (
+                    <span className={styles.badge}>{collapsedSessions.length}</span>
+                )}
+            </div>
+        );
+    };
+
     // 최소화 버튼 렌더링 - 통합된 리스트 형태
     const renderMinimizedButtons = () => {
         if (minimizedSessions.length === 0) return null;
@@ -43,6 +69,17 @@ const GlobalDocumentFileModal: React.FC = () => {
                 <div className={styles.minimizedHeader}>
                     <span className={styles.uploadIcon}>📤</span>
                     <span className={styles.headerText}>업로드 중 ({minimizedSessions.length})</span>
+                    <button
+                        className={styles.collapseButton}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            // 모든 최소화된 세션을 접기
+                            minimizedSessions.forEach(session => collapseModal(session.sessionId));
+                        }}
+                        title="접기"
+                    >
+                        ▼
+                    </button>
                 </div>
                 <div className={styles.minimizedList}>
                     {minimizedSessions.map((session) => (
@@ -84,6 +121,7 @@ const GlobalDocumentFileModal: React.FC = () => {
 
     return (
         <>
+            {renderCollapsedIcon()}
             {renderMinimizedButtons()}
             {/* 모든 세션을 렌더링하되, 최소화된 것은 display:none으로 숨김 */}
             {allSessions.map((session, index) =>

@@ -41,6 +41,7 @@ export interface ModalSession {
     currentFolder: Folder | null;
     isFolderUpload: boolean;
     isMinimized: boolean;
+    isCollapsed: boolean; // 완전히 접힌 상태 (아이콘만 표시)
     onUploadComplete?: () => void;
     onUploadStart?: (files: string[]) => void; // 업로드 시작 시 파일 정보 전달
     createdAt: number;
@@ -53,6 +54,8 @@ interface DocumentFileModalContextType {
     closeModal: (sessionId: string) => void;
     minimizeModal: (sessionId: string) => void;
     restoreModal: (sessionId: string) => void;
+    collapseModal: (sessionId: string) => void; // 완전히 접기
+    expandModal: (sessionId: string) => void; // 펼치기 (최소화 상태로)
     setOnUploadComplete: (sessionId: string, callback: () => void) => void;
     setOnUploadStart: (sessionId: string, callback: (files: string[]) => void) => void;
     setCurrentUploadingFiles: (sessionId: string, files: string[]) => void;
@@ -101,6 +104,7 @@ export const DocumentFileModalProvider: React.FC<{ children: ReactNode }> = ({ c
                 currentFolder: session.currentFolder,
                 isFolderUpload: session.isFolderUpload,
                 isMinimized: session.isMinimized,
+                isCollapsed: session.isCollapsed || false,
                 createdAt: session.createdAt,
                 currentUploadingFiles: session.currentUploadingFiles,
                 // onUploadComplete, onUploadStart는 함수이므로 저장하지 않음
@@ -123,6 +127,7 @@ export const DocumentFileModalProvider: React.FC<{ children: ReactNode }> = ({ c
             currentFolder: currentFolder || null,
             isFolderUpload,
             isMinimized: false,
+            isCollapsed: false,
             createdAt: Date.now(),
         };
 
@@ -177,11 +182,33 @@ export const DocumentFileModalProvider: React.FC<{ children: ReactNode }> = ({ c
             const updated = new Map(prev);
             const session = updated.get(sessionId);
             if (session) {
-                updated.set(sessionId, { ...session, isMinimized: false });
+                updated.set(sessionId, { ...session, isMinimized: false, isCollapsed: false });
             }
             return updated;
         });
         setFocusedSessionId(sessionId);
+    }, []);
+
+    const collapseModal = useCallback((sessionId: string) => {
+        setSessions(prev => {
+            const updated = new Map(prev);
+            const session = updated.get(sessionId);
+            if (session) {
+                updated.set(sessionId, { ...session, isCollapsed: true });
+            }
+            return updated;
+        });
+    }, []);
+
+    const expandModal = useCallback((sessionId: string) => {
+        setSessions(prev => {
+            const updated = new Map(prev);
+            const session = updated.get(sessionId);
+            if (session) {
+                updated.set(sessionId, { ...session, isCollapsed: false });
+            }
+            return updated;
+        });
     }, []);
 
     const setOnUploadComplete = useCallback((sessionId: string, callback: () => void) => {
@@ -229,6 +256,8 @@ export const DocumentFileModalProvider: React.FC<{ children: ReactNode }> = ({ c
                 closeModal,
                 minimizeModal,
                 restoreModal,
+                collapseModal,
+                expandModal,
                 setOnUploadComplete,
                 setOnUploadStart,
                 setCurrentUploadingFiles,
