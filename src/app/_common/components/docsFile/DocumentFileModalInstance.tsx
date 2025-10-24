@@ -9,6 +9,7 @@ import {
 } from '@/app/_common/api/rag/retrievalAPI';
 import { getEmbeddingConfigStatus } from '@/app/_common/api/rag/embeddingAPI';
 import { ModalSession } from '@/app/_common/contexts/DocumentFileModalContext';
+import RepositoryUploadTab from './RepositoryUploadTab';
 
 interface UploadProgress {
     fileName: string;
@@ -77,6 +78,7 @@ const DocumentFileModalInstance: React.FC<DocumentFileModalInstanceProps> = ({
 }) => {
     const { sessionId, collection: selectedCollection, currentFolder, isFolderUpload, onUploadComplete } = modalSession;
 
+    const [activeTab, setActiveTab] = useState<'file' | 'repository'>('file');
     const [chunkSize, setChunkSize] = useState(4000);
     const [overlapSize, setOverlapSize] = useState(1000);
     const [processType, setProcessType] = useState<string>('text');
@@ -796,6 +798,39 @@ const DocumentFileModalInstance: React.FC<DocumentFileModalInstanceProps> = ({
         };
     };
 
+    // Repository upload handlers
+    const handleRepositoryUploadStart = () => {
+        setLoading(true);
+        setError(null);
+    };
+
+    const handleRepositoryUploadProgress = (progress: UploadProgress) => {
+        setUploadProgress([progress]);
+    };
+
+    const handleRepositoryUploadComplete = () => {
+        setLoading(false);
+        setIsCompleted(true);
+
+        // 업로드 완료 후 콜백 호출
+        setTimeout(() => {
+            if (onUploadComplete) {
+                onUploadComplete();
+            }
+        }, 0);
+
+        // 3초 후 자동 닫기
+        setTimeout(() => {
+            resetModal();
+            onClose();
+        }, 3000);
+    };
+
+    const handleRepositoryError = (errorMessage: string) => {
+        setError(errorMessage);
+        setLoading(false);
+    };
+
     return (
         <div
             className={styles.modalBackdrop}
@@ -811,14 +846,152 @@ const DocumentFileModalInstance: React.FC<DocumentFileModalInstanceProps> = ({
                 style={getModalStyle()}
             >
                 <div className={styles.modalHeader}>
-                    <h3>{isFolderUpload ? '폴더 업로드 설정' : '단일 파일 업로드 설정'}</h3>
-                    <div className={styles.collectionInfo}>
-                        <span>컬렉션: {selectedCollection?.collection_make_name}</span>
-                        <span>폴더 경로: {currentFolder?.full_path || `/${selectedCollection?.collection_make_name}`}</span>
+                    <div className={styles.headerTop}>
+                        <div className={styles.titleSection}>
+                            <h3>📤 문서 업로드</h3>
+                        </div>
+                        <div className={styles.collectionInfoCompact}>
+                            <div className={styles.infoItem}>
+                                <span className={styles.infoLabel}>컬렉션</span>
+                                <span className={styles.infoValue}>{selectedCollection?.collection_make_name}</span>
+                            </div>
+                            <div className={styles.infoDivider}>•</div>
+                            <div className={styles.infoItem}>
+                                <span className={styles.infoLabel}>폴더</span>
+                                <span className={styles.infoValue}>{currentFolder?.full_path || `/${selectedCollection?.collection_make_name}`}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className={styles.tabContainer}>
+                        <button
+                            className={`${styles.tab} ${activeTab === 'file' ? styles.active : ''}`}
+                            onClick={() => setActiveTab('file')}
+                        >
+                            <span className={styles.tabIcon}>📄</span>
+                            <span className={styles.tabLabel}>파일 업로드</span>
+                        </button>
+                        <button
+                            className={`${styles.tab} ${activeTab === 'repository' ? styles.active : ''}`}
+                            onClick={() => setActiveTab('repository')}
+                        >
+                            <span className={styles.tabIcon}>📦</span>
+                            <span className={styles.tabLabel}>GitLab 레포지토리</span>
+                        </button>
                     </div>
                 </div>
 
                 <div className={styles.modalBody}>
+                    {activeTab === 'repository' ? (
+                        /* 레포지토리 업로드 탭 */
+                        <div className={styles.fullPanel}>
+                            {error && <div className={styles.error}>{error}</div>}
+
+                            {/* 업로드 완료 메시지 */}
+                            {isCompleted && (
+                                <div className={styles.completedMessage}>
+                                    {uploadProgress.every(item => item.status === 'success') ? (
+                                        <>
+                                            <span className={styles.completedIcon}>✅</span>
+                                            <span>업로드가 완료되었습니다! 3초 후에 자동으로 닫힙니다.</span>
+                                        </>
+                                    ) : uploadProgress.every(item => item.status === 'error') ? (
+                                        <>
+                                            <span className={styles.completedIcon}>❌</span>
+                                            <span>모든 파일 업로드가 실패했습니다. 3초 후에 자동으로 닫힙니다.</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className={styles.completedIcon}>⚠️</span>
+                                            <span>업로드가 완료되었습니다 (일부 실패). 3초 후에 자동으로 닫힙니다.</span>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* 업로드 진행 상태 - uploadProgress가 있으면 표시 (복원된 상태 포함) */}
+                            {uploadProgress.length > 0 && (
+                                <div className={styles.uploadProgressContainer}>
+                                    <div className={styles.progressHeader}>
+                                        <h4>업로드 진행 상태</h4>
+                                        <div className={styles.progressSummary}>
+                                            <span className={styles.totalCount}>
+                                                총 {uploadProgress.length}개 파일
+                                            </span>
+                                            <span className={styles.successCount}>
+                                                성공: {uploadProgress.filter(item => item.status === 'success').length}
+                                            </span>
+                                            <span className={styles.errorCount}>
+                                                실패: {uploadProgress.filter(item => item.status === 'error').length}
+                                            </span>
+                                            <span className={styles.uploadingCount}>
+                                                진행 중: {uploadProgress.filter(item => item.status === 'uploading').length}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className={styles.progressList}>
+                                        {uploadProgress.map((item, index) => (
+                                            <div key={index} className={`${styles.progressItem} ${styles[item.status]}`}>
+                                                <div className={styles.fileInfo}>
+                                                    <span className={styles.fileName} title={item.fileName}>
+                                                        {item.fileName}
+                                                    </span>
+                                                    {item.status === 'uploading' && (
+                                                        <span className={styles.progressPercent}>
+                                                            {item.currentStage === 'calculating' && !item.totalChunks && '청크 수 계산 중...'}
+                                                            {item.currentStage === 'calculating' && item.totalChunks && `총 ${item.totalChunks}개 청크 처리 중...`}
+                                                            {item.currentStage === 'llm_processing' && `LLM 메타데이터 생성 중 (${item.llmProcessedChunks || 0}/${item.totalChunks})`}
+                                                            {item.currentStage === 'embedding' && `임베딩 처리 중 (${item.processedChunks || 0}/${item.totalChunks})`}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className={styles.progressStatus}>
+                                                    {item.status === 'uploading' && item.totalChunks && (
+                                                        <>
+                                                            <div className={styles.progressBar}>
+                                                                <div
+                                                                    className={styles.progressFill}
+                                                                    style={{
+                                                                        width: item.currentStage === 'llm_processing'
+                                                                            ? `${(item.llmProcessedChunks || 0) / item.totalChunks * 100}%`
+                                                                            : item.currentStage === 'embedding'
+                                                                            ? `${(item.processedChunks || 0) / item.totalChunks * 100}%`
+                                                                            : '0%'
+                                                                    }}
+                                                                ></div>
+                                                            </div>
+                                                            {item.session && (
+                                                                <span className={styles.sessionInfo} title={item.session}>
+                                                                    세션: {item.session.substring(0, 8)}...
+                                                                </span>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                    <span className={`${styles.statusText} ${styles[item.status]}`}>
+                                                        {item.status === 'uploading' && '📤 업로드 중...'}
+                                                        {item.status === 'success' && '✅ 완료'}
+                                                        {item.status === 'error' && `❌ ${item.error || '실패'}`}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <RepositoryUploadTab
+                                selectedCollection={selectedCollection}
+                                currentFolder={currentFolder}
+                                chunkSize={chunkSize}
+                                overlapSize={overlapSize}
+                                onUploadStart={handleRepositoryUploadStart}
+                                onUploadProgress={handleRepositoryUploadProgress}
+                                onUploadComplete={handleRepositoryUploadComplete}
+                                onError={handleRepositoryError}
+                            />
+                        </div>
+                    ) : (
+                        /* 파일 업로드 탭 */
+                        <>
                     {/* 왼쪽: Embedding 정보 */}
                     <div className={styles.leftPanel}>
                         <div className={styles.embeddingInfo}>
@@ -1056,22 +1229,27 @@ const DocumentFileModalInstance: React.FC<DocumentFileModalInstanceProps> = ({
                             </div>
                         </div>
                     </div>
+                    </>
+                    )}
                 </div>
 
                 <div className={styles.modalActions}>
                     <button
                         onClick={handleClose}
                         className={`${styles.button} ${styles.secondary}`}
+                        disabled={loading}
                     >
                         {loading && uploadProgress.some(item => item.status === 'uploading') ? '최소화' : '닫기'}
                     </button>
-                    <button
-                        onClick={handleConfirmChunkSettings}
-                        className={`${styles.button} ${styles.primary}`}
-                        disabled={loading || (dimensionMismatch && !ignoreDimensionMismatch) || (modelMismatch && !ignoreModelMismatch) || !embeddingConfig?.client_available}
-                    >
-                        {loading ? '업로드 중...' : '설정 완료'}
-                    </button>
+                    {activeTab === 'file' && (
+                        <button
+                            onClick={handleConfirmChunkSettings}
+                            className={`${styles.button} ${styles.primary}`}
+                            disabled={loading || (dimensionMismatch && !ignoreDimensionMismatch) || (modelMismatch && !ignoreModelMismatch) || !embeddingConfig?.client_available}
+                        >
+                            {loading ? '업로드 중...' : '설정 완료'}
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
