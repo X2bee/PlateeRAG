@@ -1,38 +1,163 @@
 @use "sass:color";
 @use "@/app/_common/_variables" as *;
 
-// 최소화된 업로드 버튼
-.minimizedButton {
+// 최소화된 업로드 컨테이너 - 통합 리스트 형태
+.minimizedContainer {
     position: fixed;
-    top: 20px;
+    bottom: 20px;
     right: 20px;
+    background: $white;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    overflow: hidden;
+    max-width: 320px;
+    min-width: 280px;
+    border: 1px solid $gray-200;
+
+    .minimizedHeader {
+        background: $primary-blue;
+        color: $white;
+        padding: 0.75rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+
+        .uploadIcon {
+            font-size: 1rem;
+            animation: pulse 2s infinite;
+        }
+
+        .headerText {
+            flex: 1;
+        }
+
+        .collapseButton {
+            background: none;
+            border: none;
+            color: $white;
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            transition: background 0.2s ease;
+            opacity: 0.8;
+
+            &:hover {
+                background: rgba($white, 0.2);
+                opacity: 1;
+            }
+        }
+    }
+
+    .minimizedList {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .minimizedItem {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        border-bottom: 1px solid $gray-100;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        &:hover {
+            background: $gray-50;
+        }
+
+        .itemIcon {
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .itemInfo {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.125rem;
+
+            .itemType {
+                font-size: 0.75rem;
+                font-weight: 600;
+                color: $primary-blue;
+                text-transform: uppercase;
+            }
+
+            .itemName {
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: $gray-900;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 200px;
+            }
+
+            .itemCollection {
+                font-size: 0.75rem;
+                color: $gray-600;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+    }
+}
+
+// 완전히 접힌 아이콘 스타일
+.collapsedIcon {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
     background: $primary-blue;
-    color: $white;
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    cursor: pointer;
+    border-radius: 50%;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    box-shadow: 0 4px 12px rgba($primary-blue, 0.3);
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     z-index: 1001;
-    transition: all 0.2s ease-in-out;
-    font-size: 0.875rem;
-    font-weight: 600;
+    transition: all 0.2s ease;
+    border: 3px solid $white;
 
     &:hover {
-        background: color.adjust($primary-blue, $lightness: -7%);
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba($primary-blue, 0.4);
+        transform: scale(1.05);
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
     }
 
-    .uploadIcon {
-        font-size: 1rem;
+    .uploadIconCollapsed {
+        font-size: 1.5rem;
         animation: pulse 2s infinite;
+        color: $white;
     }
 
-    .uploadText {
-        white-space: nowrap;
+    .badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #ef4444;
+        color: $white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: 2px solid $white;
     }
 }
 
@@ -42,6 +167,50 @@
     }
     50% {
         opacity: 0.7;
+    }
+}
+
+// 레거시 최소화 버튼 (하위 호환성)
+.minimizedButton {
+    position: fixed;
+    background: $primary-blue;
+    color: $white;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba($primary-blue, 0.3);
+    z-index: 1001;
+    transition: all 0.2s ease-in-out;
+    font-size: 0.875rem;
+    font-weight: 600;
+    max-width: 200px;
+
+    &:hover {
+        background: color.adjust($primary-blue, $lightness: -7%);
+        transform: translateY(-1px) translateX(-2px);
+        box-shadow: 0 6px 16px rgba($primary-blue, 0.4);
+    }
+
+    .uploadIcon {
+        font-size: 1rem;
+        animation: pulse 2s infinite;
+        align-self: center;
+    }
+
+    .uploadText {
+        white-space: normal;
+        text-align: center;
+        width: 100%;
+
+        small {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
     }
 }
 
@@ -114,6 +283,27 @@
         border-color: $gray-300;
         &:hover:not(:disabled) {
             background-color: $gray-50;
+        }
+    }
+
+    &.danger {
+        background: linear-gradient(135deg, rgba($primary-red, 0.08) 0%, rgba($primary-red, 0.12) 100%);
+        color: $primary-red;
+        border: 1.5px solid rgba($primary-red, 0.35);
+        font-weight: 600;
+        box-shadow: 0 1px 3px rgba($primary-red, 0.1);
+
+        &:hover:not(:disabled) {
+            background: linear-gradient(135deg, $primary-red 0%, color.adjust($primary-red, $lightness: -8%) 100%);
+            color: $white;
+            border-color: $primary-red;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba($primary-red, 0.35);
+        }
+
+        &:active:not(:disabled) {
+            transform: translateY(0) scale(0.98);
+            box-shadow: 0 2px 6px rgba($primary-red, 0.3);
         }
     }
 }
@@ -315,6 +505,12 @@
             }
         }
 
+        .sessionInfo {
+            font-size: 0.7rem;
+            color: $gray-500;
+            font-family: monospace;
+        }
+
         .statusText {
             font-size: 0.875rem;
             font-weight: 600;
@@ -340,6 +536,63 @@
         align-items: flex-end;
     }
 
+    .collapsedIcon {
+        bottom: 10px;
+        right: 10px;
+        width: 50px;
+        height: 50px;
+
+        .uploadIconCollapsed {
+            font-size: 1.25rem;
+        }
+
+        .badge {
+            width: 20px;
+            height: 20px;
+            font-size: 0.6875rem;
+        }
+    }
+
+    .minimizedContainer {
+        bottom: 10px;
+        right: 10px;
+        max-width: 280px;
+        min-width: 240px;
+
+        .minimizedHeader {
+            padding: 0.625rem 0.875rem;
+            font-size: 0.8125rem;
+
+            .collapseButton {
+                font-size: 0.6875rem;
+                padding: 0.1875rem;
+            }
+        }
+
+        .minimizedItem {
+            padding: 0.625rem 0.875rem;
+
+            .itemIcon {
+                font-size: 1.125rem;
+            }
+
+            .itemInfo {
+                .itemType {
+                    font-size: 0.6875rem;
+                }
+
+                .itemName {
+                    font-size: 0.8125rem;
+                    max-width: 160px;
+                }
+
+                .itemCollection {
+                    font-size: 0.75rem;
+                }
+            }
+        }
+    }
+
     .minimizedButton {
         top: 10px;
         right: 10px;
@@ -359,26 +612,20 @@
 }
 
 .modalHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    border-bottom: 1px solid $border-color;
-    padding-bottom: 1rem;
+    margin-bottom: 0;
+    background: linear-gradient(135deg, rgba($primary-blue, 0.05) 0%, rgba($primary-blue, 0.02) 100%);
+    padding: 1.5rem;
+    border-radius: 0.75rem 0.75rem 0 0;
+    margin: -2rem -2rem 1.5rem -2rem;
 
     h3 {
         margin: 0;
         color: $text-primary;
         font-size: 1.5rem;
         font-weight: 700;
-    }
-
-    .collectionInfo {
-        color: $text-secondary;
         display: flex;
-        flex-direction: column;
-        font-size: 0.875rem;
-        font-weight: 500;
+        align-items: center;
+        gap: 0.5rem;
     }
 }
 
@@ -498,14 +745,31 @@
 
     .checkboxLabel {
         display: flex;
-        align-items: center;
-        gap: 0.5rem;
+        align-items: flex-start;
+        gap: 0.625rem;
         color: $text-primary;
         font-weight: 500;
         cursor: pointer;
+        line-height: 1.5;
 
         input[type="checkbox"] {
             margin: 0;
+            margin-top: 0.125rem;
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            cursor: pointer;
+            accent-color: $primary-blue;
+
+            &:hover {
+                outline: 2px solid rgba($primary-blue, 0.2);
+                outline-offset: 2px;
+            }
+        }
+
+        span {
+            flex: 1;
+            user-select: none;
         }
     }
 }
@@ -519,5 +783,291 @@
         color: $text-primary;
         font-size: 1.125rem;
         font-weight: 600;
+    }
+}
+
+// 탭 스타일
+.headerTop {
+    margin-bottom: 1rem;
+}
+
+.titleSection {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.closeButton {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: $text-secondary;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    line-height: 1;
+    transition: all 0.2s ease-in-out;
+    border-radius: 0.25rem;
+
+    &:hover {
+        color: $primary-red;
+        background: rgba($primary-red, 0.1);
+    }
+}
+
+.collectionInfoCompact {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: rgba($white, 0.7);
+    border-radius: 0.5rem;
+    border: 1px solid rgba($border-color, 0.5);
+}
+
+.infoItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.infoLabel {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: $text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.infoValue {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $text-primary;
+}
+
+.infoDivider {
+    color: $border-color;
+    font-weight: bold;
+}
+
+.tabContainer {
+    display: flex;
+    gap: 0;
+    margin: 1rem -1.5rem 0 -1.5rem;
+    border-bottom: 2px solid $border-color;
+    padding: 0 1.5rem;
+}
+
+.tab {
+    padding: 0.875rem 1.75rem;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: $text-secondary;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    bottom: -2px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &:hover {
+        color: $primary-blue;
+        background: rgba($primary-blue, 0.05);
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+
+    &.active {
+        color: $primary-blue;
+        border-bottom-color: $primary-blue;
+        background: rgba($primary-blue, 0.03);
+        border-radius: 0.5rem 0.5rem 0 0;
+
+        .tabIcon {
+            transform: scale(1.1);
+        }
+    }
+}
+
+.tabIcon {
+    font-size: 1.125rem;
+    transition: transform 0.2s ease-in-out;
+}
+
+.tabLabel {
+    font-weight: 600;
+}
+
+.fullPanel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+// 레포지토리 탭 스타일
+.repositoryTab {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.repositoryForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.inputWithButton {
+    display: flex;
+    gap: 0.5rem;
+
+    input {
+        flex: 1;
+    }
+
+    button {
+        white-space: nowrap;
+    }
+}
+
+.checkboxGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: $background-light;
+    border-radius: 0.5rem;
+    border: 1px solid $border-color;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        background: rgba($primary-blue, 0.03);
+        border-color: rgba($primary-blue, 0.3);
+    }
+}
+
+.uploadButtonContainer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid $border-color;
+
+    button {
+        width: 100%;
+        font-size: 1rem;
+        padding: 0.875rem 1.5rem;
+    }
+}
+
+.uploadingButtonGroup {
+    display: flex;
+    gap: 0.75rem;
+    width: 100%;
+    align-items: stretch;
+}
+
+.uploadingButton {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    position: relative;
+    font-size: 1rem;
+    padding: 0.875rem 1.5rem;
+
+    .uploadingIcon {
+        font-size: 1.25rem;
+        animation: bounce 1s infinite;
+    }
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+.cancelButton {
+    min-width: 100px;
+    max-width: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.9375rem;
+    padding: 0.875rem 1rem;
+    font-weight: 600;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba($white, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.4s ease, height 0.4s ease;
+    }
+
+    &:hover:not(:disabled)::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    span:first-child {
+        font-size: 1.125rem;
+        font-weight: 700;
+        line-height: 1;
+        position: relative;
+        z-index: 1;
+    }
+
+    span:last-child {
+        position: relative;
+        z-index: 1;
+    }
+
+    &:active:not(:disabled) {
+        transform: scale(0.95);
+    }
+}
+
+.infoSection {
+    background: rgba($primary-blue, 0.05);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba($primary-blue, 0.2);
+
+    h4 {
+        margin: 0 0 0.75rem 0;
+        color: $primary-blue;
+        font-size: 0.9375rem;
+        font-weight: 600;
+    }
+
+    ul {
+        margin: 0;
+        padding-left: 1.25rem;
+
+        li {
+            color: $text-secondary;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            margin-bottom: 0.25rem;
+        }
     }
 }

@@ -238,12 +238,218 @@ export const getCollectionInfo = async (collectionName) => {
 // =============================================================================
 
 /**
- * 문서를 업로드하고 처리하는 함수
+ * 세션 ID 생성 함수 (UUID v4)
+ * 모달 세션과 SSE 업로드 세션에서 공통으로 사용
+ * @returns {string} 생성된 세션 ID
+ */
+export const generateSessionId = () => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+};
+
+/**
+ * SSE를 통한 문서 업로드 및 처리 함수
  * @param {File} file - 업로드할 파일
  * @param {string} collectionName - 대상 컬렉션 이름
  * @param {number} chunkSize - 청크 크기 (기본값: 1000)
  * @param {number} chunkOverlap - 청크 겹침 크기 (기본값: 200)
  * @param {Object} metadata - 문서 메타데이터 (선택사항)
+ * @param {string} processType - 처리 타입 (기본값: 'default')
+ * @param {Function} onProgress - 진행 상황 콜백 함수
+ * @param {string} session - 세션 ID (선택사항, 없으면 자동 생성)
+ * @returns {Promise<{session: string, eventSource: EventSource}>} 세션 정보 및 EventSource
+ */
+export const uploadDocumentSSE = async (
+    file,
+    collectionName,
+    chunkSize = 1000,
+    chunkOverlap = 200,
+    metadata = null,
+    processType = 'default',
+    onProgress = null,
+    session = null
+) => {
+    const userId = getUserId();
+    // 외부에서 session이 제공되지 않으면 새로 생성
+    const sessionId = session || generateSessionId();
+    const originalFileName = file.name;
+
+    // 디버깅: session 파라미터 확인
+    devLog.info('uploadDocumentSSE called with session:', {
+        providedSession: session,
+        finalSessionId: sessionId,
+        fileName: originalFileName
+    });
+
+    // 폴더 구조 정보 추출
+    let folderPath = '';
+    let relativePath = originalFileName;
+
+    if (file.webkitRelativePath) {
+        relativePath = file.webkitRelativePath;
+        const lastSlashIndex = relativePath.lastIndexOf('/');
+        if (lastSlashIndex !== -1) {
+            folderPath = relativePath.substring(0, lastSlashIndex);
+        }
+    }
+
+    // 메타데이터에 폴더 구조 정보 포함
+    const enhancedMetadata = {
+        ...(metadata || {}),
+        original_file_name: originalFileName,
+        relative_path: relativePath,
+        folder_path: folderPath,
+        upload_timestamp: new Date().toISOString(),
+        file_size: file.size,
+        file_type: file.type || 'application/octet-stream',
+        process_type: processType,
+    };
+
+    // FormData 생성
+    const formData = new FormData();
+    formData.append('file', file, originalFileName);
+    formData.append('collection_name', collectionName);
+    formData.append('chunk_size', chunkSize.toString());
+    formData.append('chunk_overlap', chunkOverlap.toString());
+    formData.append('user_id', userId);
+    formData.append('session', sessionId);
+    formData.append('process_type', processType);
+    formData.append('metadata', JSON.stringify(enhancedMetadata));
+
+    return new Promise((resolve, reject) => {
+        // 타임아웃 설정 (10분)
+        const timeout = setTimeout(() => {
+            devLog.error('SSE upload timeout:', {
+                fileName: originalFileName,
+                session: sessionId
+            });
+            reject(new Error('업로드 시간이 초과되었습니다 (10분)'));
+        }, 10 * 60 * 1000);
+
+        // FormData를 먼저 POST 요청으로 보내고 SSE 연결 시작
+        fetch(`${API_BASE_URL}/api/retrieval/documents/upload-sse`, {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => {
+            if (!response.ok) {
+                clearTimeout(timeout);
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // SSE 스트림 읽기
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let hasReceivedEvents = false;
+
+            const processStream = async () => {
+                try {
+                    while (true) {
+                        const { done, value } = await reader.read();
+
+                        if (done) {
+                            clearTimeout(timeout);
+                            // 스트림이 완료되었는데 complete 이벤트를 받지 못한 경우
+                            if (!hasReceivedEvents) {
+                                devLog.error('SSE stream closed without complete event:', {
+                                    fileName: originalFileName,
+                                    session: sessionId
+                                });
+                                reject(new Error('업로드가 비정상적으로 종료되었습니다'));
+                            }
+                            break;
+                        }
+
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n\n');
+
+                        // 마지막 불완전한 줄은 buffer에 남김
+                        buffer = lines.pop() || '';
+
+                        for (const line of lines) {
+                            if (line.startsWith('data: ')) {
+                                try {
+                                    const eventData = JSON.parse(line.slice(6));
+
+                                    // 세션 확인
+                                    if (eventData.session !== sessionId) {
+                                        continue;
+                                    }
+
+                                    hasReceivedEvents = true;
+                                    devLog.info('SSE Event received:', eventData);
+
+                                    // 진행 상황 콜백 호출
+                                    if (onProgress) {
+                                        onProgress(eventData);
+                                    }
+
+                                    // 이벤트 타입별 처리
+                                    if (eventData.event === 'complete') {
+                                        clearTimeout(timeout);
+                                        devLog.info('Document upload completed (SSE):', {
+                                            fileName: originalFileName,
+                                            session: sessionId,
+                                            result: eventData.result
+                                        });
+                                        resolve({
+                                            session: sessionId,
+                                            result: eventData.result,
+                                            success: true
+                                        });
+                                        reader.cancel();
+                                        return;
+                                    } else if (eventData.event === 'error') {
+                                        clearTimeout(timeout);
+                                        devLog.error('Document upload failed (SSE):', {
+                                            fileName: originalFileName,
+                                            session: sessionId,
+                                            error: eventData.message
+                                        });
+                                        reject(new Error(eventData.message || 'Upload failed'));
+                                        reader.cancel();
+                                        return;
+                                    }
+                                } catch (parseError) {
+                                    devLog.error('Failed to parse SSE event:', parseError);
+                                }
+                            }
+                        }
+                    }
+                } catch (error) {
+                    clearTimeout(timeout);
+                    devLog.error('SSE stream error:', error);
+                    reject(error);
+                }
+            };
+
+            processStream();
+        })
+        .catch(error => {
+            clearTimeout(timeout);
+            devLog.error('Failed to start SSE upload:', {
+                fileName: originalFileName,
+                session: sessionId,
+                error: error.message
+            });
+            reject(error);
+        });
+    });
+};
+
+/**
+ * 문서를 업로드하고 처리하는 함수 (레거시 - 논SSE 방식)
+ * @param {File} file - 업로드할 파일
+ * @param {string} collectionName - 대상 컬렉션 이름
+ * @param {number} chunkSize - 청크 크기 (기본값: 1000)
+ * @param {number} chunkOverlap - 청크 겹침 크기 (기본값: 200)
+ * @param {Object} metadata - 문서 메타데이터 (선택사항)
+ * @param {string} processType - 처리 타입 (기본값: 'default')
+ * @param {AbortController} abortController - 업로드 취소를 위한 컨트롤러 (선택사항)
  * @returns {Promise<Object>} 업로드 결과
  */
 export const uploadDocument = async (
@@ -252,8 +458,12 @@ export const uploadDocument = async (
     chunkSize = 1000,
     chunkOverlap = 200,
     metadata = null,
-    processType = 'default'
+    processType = 'default',
+    abortController = null
  ) => {
+    // 외부에서 제공된 컨트롤러가 없으면 새로 생성
+    const controller = abortController || new AbortController();
+
     try {
         const formData = new FormData();
         const userId = getUserId();
@@ -278,7 +488,7 @@ export const uploadDocument = async (
         formData.append('chunk_size', chunkSize.toString());
         formData.append('chunk_overlap', chunkOverlap.toString());
         formData.append('user_id', userId);
-        formData.append('process_type', processType); // process_type 추가
+        formData.append('process_type', processType);
 
         // 메타데이터에 폴더 구조 정보 포함
         const enhancedMetadata = {
@@ -289,13 +499,15 @@ export const uploadDocument = async (
             upload_timestamp: new Date().toISOString(),
             file_size: file.size,
             file_type: file.type || 'application/octet-stream',
-            process_type: processType, // 메타데이터에도 포함
+            process_type: processType,
         };
 
         formData.append('metadata', JSON.stringify(enhancedMetadata));
 
-        // 업로드 진행률 추적을 위한 AbortController
-        const controller = new AbortController();
+        // 타임아웃 설정 (10분)
+        const timeoutId = setTimeout(() => {
+            controller.abort();
+        }, 600000);
 
         const response = await fetch(
             `${API_BASE_URL}/api/retrieval/documents/upload`,
@@ -303,12 +515,16 @@ export const uploadDocument = async (
                 method: 'POST',
                 body: formData,
                 signal: controller.signal,
-                // 타임아웃 설정 (10분)
-                timeout: 5400000,
             },
         );
 
+        // 타임아웃 클리어
+        clearTimeout(timeoutId);
+
         if (!response.ok) {
+            // 응답이 실패하면 즉시 연결 종료
+            controller.abort();
+
             const errorText = await response.text();
             let errorMessage = `HTTP error! status: ${response.status}`;
 
@@ -329,17 +545,21 @@ export const uploadDocument = async (
             fileName: originalFileName,
             relativePath: relativePath,
             collection: collectionName,
-            processType: processType, // 로그에도 추가
+            processType: processType,
             documentId: data.document_id || 'unknown',
         });
         return data;
     } catch (error) {
+        // 에러 발생 시 명시적으로 연결 종료
+        controller.abort();
+
         devLog.error('Failed to upload document:', {
             fileName: file.name,
             relativePath: file.webkitRelativePath || file.name,
             collection: collectionName,
-            processType: processType, // 에러 로그에도 추가
+            processType: processType,
             error: error.message,
+            isAborted: error.name === 'AbortError',
         });
         throw error;
     }
@@ -843,6 +1063,425 @@ export const updateChunkContent = async (
             chunkId,
             error: error.message,
         });
+        throw error;
+    }
+};
+
+// =============================================================================
+// SSE Session Management
+// =============================================================================
+
+/**
+ * 모든 SSE 세션 정보 조회
+ * @returns {Promise<Object>} 세션 정보
+ */
+export const getSessionsInfo = async () => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/sessions/info`,
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Sessions info fetched:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch sessions info:', error);
+        throw error;
+    }
+};
+
+/**
+ * 특정 세션 상태 조회
+ * @param {string} sessionId - 세션 ID
+ * @returns {Promise<Object>} 세션 상태
+ */
+export const getSessionStatus = async (sessionId) => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/sessions/${sessionId}/status`,
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Session status fetched:', { sessionId, data });
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch session status:', { sessionId, error: error.message });
+        throw error;
+    }
+};
+
+/**
+ * 진행 중인 세션 취소
+ * @param {string} sessionId - 세션 ID
+ * @returns {Promise<Object>} 취소 결과
+ */
+export const cancelSession = async (sessionId) => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/sessions/${sessionId}/cancel`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Session cancelled:', { sessionId, data });
+        return data;
+    } catch (error) {
+        devLog.error('Failed to cancel session:', { sessionId, error: error.message });
+        throw error;
+    }
+};
+
+/**
+ * 세션 삭제
+ * @param {string} sessionId - 세션 ID
+ * @returns {Promise<Object>} 삭제 결과
+ */
+export const deleteSession = async (sessionId) => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/sessions/${sessionId}`,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Session deleted:', { sessionId, data });
+        return data;
+    } catch (error) {
+        devLog.error('Failed to delete session:', { sessionId, error: error.message });
+        throw error;
+    }
+};
+
+/**
+ * 만료된 세션 수동 정리
+ * @returns {Promise<Object>} 정리 결과
+ */
+export const cleanupExpiredSessions = async () => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/sessions/cleanup`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Expired sessions cleaned up:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to cleanup expired sessions:', error);
+        throw error;
+    }
+};
+
+/**
+ * GitLab 레포지토리의 브랜치 목록을 조회하는 함수
+ * @param {string} gitlabUrl - GitLab 인스턴스 URL
+ * @param {string} gitlabToken - GitLab Personal Access Token
+ * @param {string} repositoryPath - 레포지토리 경로 (예: group/project)
+ * @returns {Promise<Array>} 브랜치 목록 [{ name, default, protected }]
+ */
+export const getRepositoryBranches = async (
+    gitlabUrl,
+    gitlabToken,
+    repositoryPath
+) => {
+    try {
+        const encodedPath = encodeURIComponent(repositoryPath);
+        const apiUrl = `${gitlabUrl}/api/v4/projects/${encodedPath}/repository/branches`;
+
+        const response = await fetch(apiUrl, {
+            headers: {
+                'PRIVATE-TOKEN': gitlabToken
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch branches: ${response.status}`);
+        }
+
+        const branches = await response.json();
+
+        // 브랜치를 기본 브랜치 우선으로 정렬
+        const sortedBranches = branches.sort((a, b) => {
+            if (a.default && !b.default) return -1;
+            if (!a.default && b.default) return 1;
+            return a.name.localeCompare(b.name);
+        });
+
+        devLog.info('Repository branches fetched:', {
+            repository: repositoryPath,
+            branchCount: sortedBranches.length
+        });
+
+        return sortedBranches.map(branch => ({
+            name: branch.name,
+            default: branch.default || false,
+            protected: branch.protected || false
+        }));
+    } catch (error) {
+        devLog.error('Failed to fetch repository branches:', error);
+        throw error;
+    }
+};
+
+/**
+ * GitLab 레포지토리를 업로드하고 처리하는 함수
+ * @param {string} gitlabUrl - GitLab 인스턴스 URL
+ * @param {string} gitlabToken - GitLab Personal Access Token
+ * @param {string} repositoryPath - 레포지토리 경로 (예: group/project)
+ * @param {string} branch - 브랜치 이름 (기본값: main)
+ * @param {string} collectionName - 대상 컬렉션 이름
+ * @param {number} chunkSize - 청크 크기 (기본값: 4000)
+ * @param {number} chunkOverlap - 청크 겹침 크기 (기본값: 1000)
+ * @param {Object} metadata - 문서 메타데이터 (선택사항)
+ * @param {boolean} enableAnnotation - LLM 기반 코드 주석 생성 여부 (기본값: false)
+ * @param {boolean} enableApiExtraction - API 엔드포인트 추출 여부 (기본값: false)
+ * @returns {Promise<Object>} 업로드 결과
+ */
+export const uploadRepository = async (
+    gitlabUrl,
+    gitlabToken,
+    repositoryPath,
+    branch = 'main',
+    collectionName,
+    chunkSize = 4000,
+    chunkOverlap = 1000,
+    metadata = null,
+    enableAnnotation = false,
+    enableApiExtraction = false
+) => {
+    try {
+        const formData = new FormData();
+        const userId = getUserId();
+
+        formData.append('gitlab_url', gitlabUrl);
+        formData.append('gitlab_token', gitlabToken);
+        formData.append('repository_path', repositoryPath);
+        formData.append('branch', branch);
+        formData.append('collection_name', collectionName);
+        formData.append('chunk_size', chunkSize.toString());
+        formData.append('chunk_overlap', chunkOverlap.toString());
+        formData.append('user_id', userId);
+        formData.append('enable_annotation', enableAnnotation.toString());
+        formData.append('enable_api_extraction', enableApiExtraction.toString());
+
+        // 메타데이터 추가
+        const enhancedMetadata = {
+            ...(metadata || {}),
+            source_type: 'gitlab_repository',
+            repository_path: repositoryPath,
+            branch: branch,
+            upload_timestamp: new Date().toISOString(),
+        };
+
+        formData.append('metadata', JSON.stringify(enhancedMetadata));
+
+        // AbortController로 타임아웃 설정 (30분)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1800000);
+
+        try {
+            const response = await fetch(
+                `${API_BASE_URL}/api/retrieval/documents/upload/repository`,
+                {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal
+                },
+            );
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                let errorMessage = `HTTP error! status: ${response.status}`;
+
+                try {
+                    const errorData = JSON.parse(errorText);
+                    if (errorData.detail) {
+                        errorMessage += `, detail: ${errorData.detail}`;
+                    }
+                } catch (e) {
+                    errorMessage += `, message: ${errorText}`;
+                }
+
+                throw new Error(errorMessage);
+            }
+
+            const data = await response.json();
+            devLog.info('Repository uploaded successfully:', {
+                repositoryPath: repositoryPath,
+                branch: branch,
+                collection: collectionName,
+                enableAnnotation: enableAnnotation,
+                enableApiExtraction: enableApiExtraction,
+                taskId: data.task_id,
+                documentId: data.document_id || 'unknown',
+            });
+            return data;
+        } catch (error) {
+            clearTimeout(timeoutId);
+
+            // AbortController로 인한 타임아웃인 경우
+            if (error.name === 'AbortError') {
+                devLog.error('Repository upload timeout (30 minutes):', {
+                    repositoryPath: repositoryPath,
+                    branch: branch,
+                    collection: collectionName,
+                });
+                throw new Error('Upload timeout: The repository upload took too long. Please try a smaller repository or check the server logs.');
+            }
+
+            devLog.error('Failed to upload repository:', {
+                repositoryPath: repositoryPath,
+                branch: branch,
+                collection: collectionName,
+                error: error.message,
+            });
+            throw error;
+        }
+    } catch (error) {
+        devLog.error('Failed to upload repository:', {
+            repositoryPath: repositoryPath,
+            branch: branch,
+            collection: collectionName,
+            error: error.message,
+        });
+        throw error;
+    }
+};
+
+// =============================================================================
+// Upload Progress Management
+// =============================================================================
+
+/**
+ * 특정 업로드 작업의 진행 상태를 조회하는 함수
+ * @param {string} taskId - 업로드 작업 ID
+ * @returns {Promise<Object>} 진행 상태 정보
+ */
+export const getUploadProgress = async (taskId) => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/upload/progress/${taskId}`,
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Upload progress fetched:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch upload progress:', error);
+        throw error;
+    }
+};
+
+/**
+ * 사용자의 모든 업로드 작업 목록을 조회하는 함수
+ * @returns {Promise<Object>} 업로드 작업 목록
+ */
+export const getUserUploadTasks = async () => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/upload/progress`,
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('User upload tasks fetched:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to fetch user upload tasks:', error);
+        throw error;
+    }
+};
+
+/**
+ * 업로드 작업을 삭제하는 함수 (완료 또는 에러 상태만 삭제 가능)
+ * @param {string} taskId - 업로드 작업 ID
+ * @returns {Promise<Object>} 삭제 결과
+ */
+export const cancelUploadTask = async (taskId) => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/upload/progress/${taskId}/cancel`,
+            {
+                method: 'POST',
+            },
+        );
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP error! status: ${response.status}, ${errorText}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Upload task cancelled:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to cancel upload task:', error);
+        throw error;
+    }
+};
+
+export const deleteUploadTask = async (taskId) => {
+    try {
+        const response = await apiClient(
+            `${API_BASE_URL}/api/retrieval/upload/progress/${taskId}`,
+            {
+                method: 'DELETE',
+            },
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        devLog.info('Upload task deleted:', data);
+        return data;
+    } catch (error) {
+        devLog.error('Failed to delete upload task:', error);
         throw error;
     }
 };

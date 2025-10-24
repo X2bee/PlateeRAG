@@ -25,6 +25,7 @@ import {
     getAllDocumentDetailEdges,
     deleteCollection,
     remakeCollection,
+    generateSessionId,
 } from '@/app/_common/api/rag/retrievalAPI';
 import { getEmbeddingConfigStatus } from '@/app/_common/api/rag/embeddingAPI';
 import { handleDeleteFolderRequest } from '@/app/main/workflowSection/components/documents/DocumentDirectory';
@@ -62,7 +63,7 @@ interface EmbeddingConfig {
 }
 const Documents: React.FC = () => {
     const { user } = useAuth();
-    const { openModal, setOnUploadComplete } = useDocumentFileModal();
+    const { openModal, setOnUploadComplete: setModalOnUploadComplete } = useDocumentFileModal();
     const [viewMode, setViewMode] = useState<ViewMode>('collections');
     const [previousViewMode, setPreviousViewMode] = useState<ViewMode>('documents');
     const [collectionFilter, setCollectionFilter] = useState<CollectionFilter>('all');
@@ -125,15 +126,7 @@ const Documents: React.FC = () => {
         loadCollections();
     }, []);
 
-    // 모달 재열기 이벤트 리스너
-    useEffect(() => {
-        // 업로드 완료 콜백 설정
-        setOnUploadComplete(() => {
-            if (selectedCollection) {
-                loadDocumentsInCollection(selectedCollection.collection_name);
-            }
-        });
-    }, [selectedCollection]);
+    // 모달 재열기 이벤트 리스너 - 이제 사용하지 않음 (각 세션별로 콜백 설정)
 
     const loadCollections = async () => {
         try {
@@ -573,16 +566,32 @@ const Documents: React.FC = () => {
         }
     };
 
-    // 파일 업로드 처리 (전역 모달 사용)
+    // 파일 업로드 처리 (전역 모달 사용) - 다중 세션 지원
+    // session ID를 먼저 생성하고 모달과 업로드에서 공통으로 사용
     const handleSingleFileUpload = () => {
         if (selectedCollection) {
-            openModal(selectedCollection, false, currentFolder);
+            const sessionId = generateSessionId();
+            console.log('🎯 Generated sessionId for single file upload:', sessionId);
+            openModal(sessionId, selectedCollection, false, currentFolder);
+            // 각 세션마다 업로드 완료 콜백 설정
+            setModalOnUploadComplete(sessionId, () => {
+                if (selectedCollection) {
+                    loadDocumentsInCollection(selectedCollection.collection_name);
+                }
+            });
         }
     };
 
     const handleFolderUpload = () => {
         if (selectedCollection) {
-            openModal(selectedCollection, true, currentFolder);
+            const sessionId = generateSessionId();
+            openModal(sessionId, selectedCollection, true, currentFolder);
+            // 각 세션마다 업로드 완료 콜백 설정
+            setModalOnUploadComplete(sessionId, () => {
+                if (selectedCollection) {
+                    loadDocumentsInCollection(selectedCollection.collection_name);
+                }
+            });
         }
     };
 
