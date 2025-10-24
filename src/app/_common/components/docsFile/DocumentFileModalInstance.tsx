@@ -509,13 +509,19 @@ const DocumentFileModalInstance: React.FC<DocumentFileModalInstanceProps> = ({
             fileName: file.name,
             status: 'uploading',
             currentStage: 'calculating',
-            totalChunks: 0,
+            totalChunks: undefined,
             processedChunks: 0
         }));
 
         setUploadProgress(initialProgress);
         setLoading(true);
         setError(null);
+
+        // 업로드 시작 시 파일 이름들을 컨텍스트에 전달
+        const fileNames = fileArray.map(file => file.name);
+        if (modalSession.onUploadStart) {
+            modalSession.onUploadStart(fileNames);
+        }
 
         // 세션 맵 초기화
         const newSessions = new Map<string, { reader: ReadableStreamDefaultReader, controller: AbortController }>();
@@ -567,7 +573,20 @@ const DocumentFileModalInstance: React.FC<DocumentFileModalInstanceProps> = ({
                                 if (idx === index && item.session === uploadSessionId) {
                                     switch (eventData.event) {
                                         case 'start':
-                                            return { ...item, session: uploadSessionId, currentStage: 'calculating' };
+                                            return {
+                                                ...item,
+                                                session: uploadSessionId,
+                                                // start 이벤트에 total_chunks가 있다면 미리 설정
+                                                totalChunks: eventData.total_chunks || item.totalChunks,
+                                                currentStage: 'calculating'
+                                            };
+                                        case 'processing_start':
+                                            return {
+                                                ...item,
+                                                // processing_start 이벤트에서도 total_chunks 정보 활용
+                                                totalChunks: eventData.total_chunks || item.totalChunks,
+                                                currentStage: 'calculating'
+                                            };
                                         case 'total_chunks':
                                             return { ...item, totalChunks: eventData.total_chunks, currentStage: 'calculating' };
                                         case 'llm_metadata_start':
@@ -575,13 +594,16 @@ const DocumentFileModalInstance: React.FC<DocumentFileModalInstanceProps> = ({
                                                 ...item,
                                                 llmMetadataProcessing: true,
                                                 llmProcessedChunks: 0,
-                                                totalChunks: eventData.total_chunks,
+                                                // llm_metadata_start에서도 total_chunks 정보를 받아오므로 이를 활용
+                                                totalChunks: eventData.total_chunks || item.totalChunks,
                                                 currentStage: 'llm_processing'
                                             };
                                         case 'llm_chunk_processed':
                                             return {
                                                 ...item,
                                                 llmProcessedChunks: (item.llmProcessedChunks || 0) + 1,
+                                                // llm_chunk_processed 이벤트에도 total_chunks가 있으면 활용
+                                                totalChunks: eventData.total_chunks || item.totalChunks,
                                                 currentStage: 'llm_processing'
                                             };
                                         case 'llm_metadata_complete':
@@ -600,6 +622,8 @@ const DocumentFileModalInstance: React.FC<DocumentFileModalInstanceProps> = ({
                                             return {
                                                 ...item,
                                                 processedChunks: (item.processedChunks || 0) + 1,
+                                                // chunk_processed 이벤트에도 total_chunks가 있으면 활용
+                                                totalChunks: eventData.total_chunks || item.totalChunks,
                                                 currentStage: 'embedding'
                                             };
                                         default:
@@ -738,6 +762,11 @@ const DocumentFileModalInstance: React.FC<DocumentFileModalInstanceProps> = ({
 
                     setIsCompleted(true);
 
+                    // 업로드 완료 시 현재 업로드 파일 정보 정리
+                    if (modalSession.onUploadStart) {
+                        modalSession.onUploadStart([]);
+                    }
+
                     // 성공한 항목이 있으면 콜백 호출 (문서 목록 갱신)
                     if (hasSuccess) {
                         setTimeout(() => {
@@ -799,9 +828,14 @@ const DocumentFileModalInstance: React.FC<DocumentFileModalInstanceProps> = ({
     };
 
     // Repository upload handlers
-    const handleRepositoryUploadStart = () => {
+    const handleRepositoryUploadStart = (repositoryName?: string) => {
         setLoading(true);
         setError(null);
+
+        // 레포지토리 업로드 시작 시 레포지토리 이름을 컨텍스트에 전달
+        if (repositoryName && modalSession.onUploadStart) {
+            modalSession.onUploadStart([repositoryName]);
+        }
     };
 
     const handleRepositoryUploadProgress = (progress: UploadProgress) => {
@@ -811,6 +845,11 @@ const DocumentFileModalInstance: React.FC<DocumentFileModalInstanceProps> = ({
     const handleRepositoryUploadComplete = () => {
         setLoading(false);
         setIsCompleted(true);
+
+        // 업로드 완료 시 현재 업로드 파일 정보 정리
+        if (modalSession.onUploadStart) {
+            modalSession.onUploadStart([]);
+        }
 
         // 업로드 완료 후 콜백 호출
         setTimeout(() => {
@@ -935,24 +974,26 @@ const DocumentFileModalInstance: React.FC<DocumentFileModalInstanceProps> = ({
                                                     </span>
                                                     {item.status === 'uploading' && (
                                                         <span className={styles.progressPercent}>
-                                                            {item.currentStage === 'calculating' && !item.totalChunks && '청크 수 계산 중...'}
-                                                            {item.currentStage === 'calculating' && item.totalChunks && `총 ${item.totalChunks}개 청크 처리 중...`}
-                                                            {item.currentStage === 'llm_processing' && `LLM 메타데이터 생성 중 (${item.llmProcessedChunks || 0}/${item.totalChunks})`}
-                                                            {item.currentStage === 'embedding' && `임베딩 처리 중 (${item.processedChunks || 0}/${item.totalChunks})`}
+                                                            {item.currentStage === 'calculating' && (!item.totalChunks || item.totalChunks === 0) && '청크 수 계산 중...'}
+                                                            {item.currentStage === 'calculating' && item.totalChunks && item.totalChunks > 0 && `총 ${item.totalChunks}개 청크 처리 중...`}
+                                                            {item.currentStage === 'llm_processing' && item.totalChunks && item.totalChunks > 0 && `LLM 메타데이터 생성 중 (${item.llmProcessedChunks || 0}/${item.totalChunks})`}
+                                                            {item.currentStage === 'llm_processing' && (!item.totalChunks || item.totalChunks === 0) && `LLM 메타데이터 생성 중...`}
+                                                            {item.currentStage === 'embedding' && item.totalChunks && item.totalChunks > 0 && `임베딩 처리 중 (${item.processedChunks || 0}/${item.totalChunks})`}
+                                                            {item.currentStage === 'embedding' && (!item.totalChunks || item.totalChunks === 0) && `임베딩 처리 중...`}
                                                         </span>
                                                     )}
                                                 </div>
                                                 <div className={styles.progressStatus}>
-                                                    {item.status === 'uploading' && item.totalChunks && (
+                                                    {item.status === 'uploading' && item.totalChunks && item.totalChunks > 0 && (
                                                         <>
                                                             <div className={styles.progressBar}>
                                                                 <div
                                                                     className={styles.progressFill}
                                                                     style={{
                                                                         width: item.currentStage === 'llm_processing'
-                                                                            ? `${(item.llmProcessedChunks || 0) / item.totalChunks * 100}%`
+                                                                            ? `${Math.round((item.llmProcessedChunks || 0) / item.totalChunks * 100)}%`
                                                                             : item.currentStage === 'embedding'
-                                                                            ? `${(item.processedChunks || 0) / item.totalChunks * 100}%`
+                                                                            ? `${Math.round((item.processedChunks || 0) / item.totalChunks * 100)}%`
                                                                             : '0%'
                                                                     }}
                                                                 ></div>
@@ -1138,24 +1179,26 @@ const DocumentFileModalInstance: React.FC<DocumentFileModalInstanceProps> = ({
                                                 </span>
                                                 {item.status === 'uploading' && (
                                                     <span className={styles.progressPercent}>
-                                                        {item.currentStage === 'calculating' && !item.totalChunks && '청크 수 계산 중...'}
-                                                        {item.currentStage === 'calculating' && item.totalChunks && `총 ${item.totalChunks}개 청크 처리 중...`}
-                                                        {item.currentStage === 'llm_processing' && `LLM 메타데이터 생성 중 (${item.llmProcessedChunks || 0}/${item.totalChunks})`}
-                                                        {item.currentStage === 'embedding' && `임베딩 처리 중 (${item.processedChunks || 0}/${item.totalChunks})`}
+                                                        {item.currentStage === 'calculating' && (!item.totalChunks || item.totalChunks === 0) && '청크 수 계산 중...'}
+                                                        {item.currentStage === 'calculating' && item.totalChunks && item.totalChunks > 0 && `총 ${item.totalChunks}개 청크 처리 중...`}
+                                                        {item.currentStage === 'llm_processing' && item.totalChunks && item.totalChunks > 0 && `LLM 메타데이터 생성 중 (${item.llmProcessedChunks || 0}/${item.totalChunks})`}
+                                                        {item.currentStage === 'llm_processing' && (!item.totalChunks || item.totalChunks === 0) && `LLM 메타데이터 생성 중...`}
+                                                        {item.currentStage === 'embedding' && item.totalChunks && item.totalChunks > 0 && `임베딩 처리 중 (${item.processedChunks || 0}/${item.totalChunks})`}
+                                                        {item.currentStage === 'embedding' && (!item.totalChunks || item.totalChunks === 0) && `임베딩 처리 중...`}
                                                     </span>
                                                 )}
                                             </div>
                                             <div className={styles.progressStatus}>
-                                                {item.status === 'uploading' && item.totalChunks && (
+                                                {item.status === 'uploading' && item.totalChunks && item.totalChunks > 0 && (
                                                     <>
                                                         <div className={styles.progressBar}>
                                                             <div
                                                                 className={styles.progressFill}
                                                                 style={{
                                                                     width: item.currentStage === 'llm_processing'
-                                                                        ? `${(item.llmProcessedChunks || 0) / item.totalChunks * 100}%`
+                                                                        ? `${Math.round((item.llmProcessedChunks || 0) / item.totalChunks * 100)}%`
                                                                         : item.currentStage === 'embedding'
-                                                                        ? `${(item.processedChunks || 0) / item.totalChunks * 100}%`
+                                                                        ? `${Math.round((item.processedChunks || 0) / item.totalChunks * 100)}%`
                                                                         : '0%'
                                                                 }}
                                                             ></div>

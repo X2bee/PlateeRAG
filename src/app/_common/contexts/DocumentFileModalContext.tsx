@@ -42,7 +42,9 @@ export interface ModalSession {
     isFolderUpload: boolean;
     isMinimized: boolean;
     onUploadComplete?: () => void;
+    onUploadStart?: (files: string[]) => void; // 업로드 시작 시 파일 정보 전달
     createdAt: number;
+    currentUploadingFiles?: string[]; // 현재 업로드 중인 파일 이름들
 }
 
 interface DocumentFileModalContextType {
@@ -52,6 +54,8 @@ interface DocumentFileModalContextType {
     minimizeModal: (sessionId: string) => void;
     restoreModal: (sessionId: string) => void;
     setOnUploadComplete: (sessionId: string, callback: () => void) => void;
+    setOnUploadStart: (sessionId: string, callback: (files: string[]) => void) => void;
+    setCurrentUploadingFiles: (sessionId: string, files: string[]) => void;
     focusSession: (sessionId: string) => void;
     focusedSessionId: string | null;
 }
@@ -90,7 +94,7 @@ export const DocumentFileModalProvider: React.FC<{ children: ReactNode }> = ({ c
         if (!isClient) return;
 
         try {
-            // Map을 배열로 변환하여 저장 (onUploadComplete 콜백은 제외)
+            // Map을 배열로 변환하여 저장 (onUploadComplete, onUploadStart 콜백은 제외)
             const sessionsArray = Array.from(sessions.values()).map(session => ({
                 sessionId: session.sessionId,
                 collection: session.collection,
@@ -98,7 +102,8 @@ export const DocumentFileModalProvider: React.FC<{ children: ReactNode }> = ({ c
                 isFolderUpload: session.isFolderUpload,
                 isMinimized: session.isMinimized,
                 createdAt: session.createdAt,
-                // onUploadComplete는 함수이므로 저장하지 않음
+                currentUploadingFiles: session.currentUploadingFiles,
+                // onUploadComplete, onUploadStart는 함수이므로 저장하지 않음
             }));
 
             if (sessionsArray.length > 0) {
@@ -190,6 +195,28 @@ export const DocumentFileModalProvider: React.FC<{ children: ReactNode }> = ({ c
         });
     }, []);
 
+    const setOnUploadStart = useCallback((sessionId: string, callback: (files: string[]) => void) => {
+        setSessions(prev => {
+            const updated = new Map(prev);
+            const session = updated.get(sessionId);
+            if (session) {
+                updated.set(sessionId, { ...session, onUploadStart: callback });
+            }
+            return updated;
+        });
+    }, []);
+
+    const setCurrentUploadingFiles = useCallback((sessionId: string, files: string[]) => {
+        setSessions(prev => {
+            const updated = new Map(prev);
+            const session = updated.get(sessionId);
+            if (session) {
+                updated.set(sessionId, { ...session, currentUploadingFiles: files });
+            }
+            return updated;
+        });
+    }, []);
+
     const focusSession = useCallback((sessionId: string) => {
         setFocusedSessionId(sessionId);
     }, []);
@@ -203,6 +230,8 @@ export const DocumentFileModalProvider: React.FC<{ children: ReactNode }> = ({ c
                 minimizeModal,
                 restoreModal,
                 setOnUploadComplete,
+                setOnUploadStart,
+                setCurrentUploadingFiles,
                 focusSession,
                 focusedSessionId,
             }}

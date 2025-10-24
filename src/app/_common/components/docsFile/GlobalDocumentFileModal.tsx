@@ -13,6 +13,8 @@ const GlobalDocumentFileModal: React.FC = () => {
         restoreModal,
         focusSession,
         focusedSessionId,
+        setOnUploadStart,
+        setCurrentUploadingFiles,
     } = useDocumentFileModal();
 
     // 모든 세션을 배열로 변환
@@ -20,6 +22,17 @@ const GlobalDocumentFileModal: React.FC = () => {
 
     // 최소화된 세션들
     const minimizedSessions = allSessions.filter(session => session.isMinimized);
+
+    // 각 세션에 업로드 시작 콜백 설정
+    React.useEffect(() => {
+        allSessions.forEach(session => {
+            if (!session.onUploadStart) {
+                setOnUploadStart(session.sessionId, (files: string[]) => {
+                    setCurrentUploadingFiles(session.sessionId, files);
+                });
+            }
+        });
+    }, [allSessions.length, setOnUploadStart, setCurrentUploadingFiles]);
 
     // 최소화 버튼 렌더링 - 통합된 리스트 형태
     const renderMinimizedButtons = () => {
@@ -45,8 +58,16 @@ const GlobalDocumentFileModal: React.FC = () => {
                                 <span className={styles.itemType}>
                                     {session.isFolderUpload ? '폴더' : '파일'}
                                 </span>
+                                <span className={styles.itemName} title={session.currentUploadingFiles?.join(', ') || session.collection.collection_make_name}>
+                                    {session.currentUploadingFiles && session.currentUploadingFiles.length > 0
+                                        ? session.currentUploadingFiles.length > 1
+                                            ? `${session.currentUploadingFiles[0]} 외 ${session.currentUploadingFiles.length - 1}개`
+                                            : session.currentUploadingFiles[0]
+                                        : session.collection.collection_make_name
+                                    }
+                                </span>
                                 <span className={styles.itemCollection}>
-                                    {session.collection.collection_make_name}
+                                    → {session.collection.collection_make_name}
                                 </span>
                             </div>
                         </div>

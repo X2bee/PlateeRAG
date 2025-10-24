@@ -26,7 +26,7 @@ interface RepositoryUploadTabProps {
     currentFolder: any;
     chunkSize: number;
     overlapSize: number;
-    onUploadStart: () => void;
+    onUploadStart: (repositoryName?: string) => void;
     onUploadProgress: (progress: UploadProgress) => void;
     onUploadComplete: () => void;
     onError: (error: string) => void;
@@ -204,10 +204,10 @@ const RepositoryUploadTab: React.FC<RepositoryUploadTabProps> = ({
         }
 
         setUploading(true);
-        onUploadStart();
 
         // 진행 상태 초기화
         const repoName = repositoryPath.split('/').pop() || repositoryPath;
+        onUploadStart(`${repoName} (${branch})`);
         onUploadProgress({
             fileName: `${repoName} (${branch})`,
             status: 'uploading',
