@@ -210,6 +210,27 @@
             background-color: $gray-50;
         }
     }
+
+    &.danger {
+        background: linear-gradient(135deg, rgba($primary-red, 0.08) 0%, rgba($primary-red, 0.12) 100%);
+        color: $primary-red;
+        border: 1.5px solid rgba($primary-red, 0.35);
+        font-weight: 600;
+        box-shadow: 0 1px 3px rgba($primary-red, 0.1);
+
+        &:hover:not(:disabled) {
+            background: linear-gradient(135deg, $primary-red 0%, color.adjust($primary-red, $lightness: -8%) 100%);
+            color: $white;
+            border-color: $primary-red;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba($primary-red, 0.35);
+        }
+
+        &:active:not(:disabled) {
+            transform: translateY(0) scale(0.98);
+            box-shadow: 0 2px 6px rgba($primary-red, 0.3);
+        }
+    }
 }
 
 .error {
@@ -488,26 +509,20 @@
 }
 
 .modalHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    border-bottom: 1px solid $border-color;
-    padding-bottom: 1rem;
+    margin-bottom: 0;
+    background: linear-gradient(135deg, rgba($primary-blue, 0.05) 0%, rgba($primary-blue, 0.02) 100%);
+    padding: 1.5rem;
+    border-radius: 0.75rem 0.75rem 0 0;
+    margin: -2rem -2rem 1.5rem -2rem;
 
     h3 {
         margin: 0;
         color: $text-primary;
         font-size: 1.5rem;
         font-weight: 700;
-    }
-
-    .collectionInfo {
-        color: $text-secondary;
         display: flex;
-        flex-direction: column;
-        font-size: 0.875rem;
-        font-weight: 500;
+        align-items: center;
+        gap: 0.5rem;
     }
 }
 
@@ -627,14 +642,31 @@
 
     .checkboxLabel {
         display: flex;
-        align-items: center;
-        gap: 0.5rem;
+        align-items: flex-start;
+        gap: 0.625rem;
         color: $text-primary;
         font-weight: 500;
         cursor: pointer;
+        line-height: 1.5;
 
         input[type="checkbox"] {
             margin: 0;
+            margin-top: 0.125rem;
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            cursor: pointer;
+            accent-color: $primary-blue;
+
+            &:hover {
+                outline: 2px solid rgba($primary-blue, 0.2);
+                outline-offset: 2px;
+            }
+        }
+
+        span {
+            flex: 1;
+            user-select: none;
         }
     }
 }
@@ -648,5 +680,291 @@
         color: $text-primary;
         font-size: 1.125rem;
         font-weight: 600;
+    }
+}
+
+// 탭 스타일
+.headerTop {
+    margin-bottom: 1rem;
+}
+
+.titleSection {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.closeButton {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: $text-secondary;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    line-height: 1;
+    transition: all 0.2s ease-in-out;
+    border-radius: 0.25rem;
+
+    &:hover {
+        color: $primary-red;
+        background: rgba($primary-red, 0.1);
+    }
+}
+
+.collectionInfoCompact {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: rgba($white, 0.7);
+    border-radius: 0.5rem;
+    border: 1px solid rgba($border-color, 0.5);
+}
+
+.infoItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.infoLabel {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: $text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.infoValue {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $text-primary;
+}
+
+.infoDivider {
+    color: $border-color;
+    font-weight: bold;
+}
+
+.tabContainer {
+    display: flex;
+    gap: 0;
+    margin: 1rem -1.5rem 0 -1.5rem;
+    border-bottom: 2px solid $border-color;
+    padding: 0 1.5rem;
+}
+
+.tab {
+    padding: 0.875rem 1.75rem;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: $text-secondary;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    bottom: -2px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &:hover {
+        color: $primary-blue;
+        background: rgba($primary-blue, 0.05);
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+
+    &.active {
+        color: $primary-blue;
+        border-bottom-color: $primary-blue;
+        background: rgba($primary-blue, 0.03);
+        border-radius: 0.5rem 0.5rem 0 0;
+
+        .tabIcon {
+            transform: scale(1.1);
+        }
+    }
+}
+
+.tabIcon {
+    font-size: 1.125rem;
+    transition: transform 0.2s ease-in-out;
+}
+
+.tabLabel {
+    font-weight: 600;
+}
+
+.fullPanel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+// 레포지토리 탭 스타일
+.repositoryTab {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.repositoryForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.inputWithButton {
+    display: flex;
+    gap: 0.5rem;
+
+    input {
+        flex: 1;
+    }
+
+    button {
+        white-space: nowrap;
+    }
+}
+
+.checkboxGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: $background-light;
+    border-radius: 0.5rem;
+    border: 1px solid $border-color;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        background: rgba($primary-blue, 0.03);
+        border-color: rgba($primary-blue, 0.3);
+    }
+}
+
+.uploadButtonContainer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid $border-color;
+
+    button {
+        width: 100%;
+        font-size: 1rem;
+        padding: 0.875rem 1.5rem;
+    }
+}
+
+.uploadingButtonGroup {
+    display: flex;
+    gap: 0.75rem;
+    width: 100%;
+    align-items: stretch;
+}
+
+.uploadingButton {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    position: relative;
+    font-size: 1rem;
+    padding: 0.875rem 1.5rem;
+
+    .uploadingIcon {
+        font-size: 1.25rem;
+        animation: bounce 1s infinite;
+    }
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+.cancelButton {
+    min-width: 100px;
+    max-width: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.9375rem;
+    padding: 0.875rem 1rem;
+    font-weight: 600;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba($white, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.4s ease, height 0.4s ease;
+    }
+
+    &:hover:not(:disabled)::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    span:first-child {
+        font-size: 1.125rem;
+        font-weight: 700;
+        line-height: 1;
+        position: relative;
+        z-index: 1;
+    }
+
+    span:last-child {
+        position: relative;
+        z-index: 1;
+    }
+
+    &:active:not(:disabled) {
+        transform: scale(0.95);
+    }
+}
+
+.infoSection {
+    background: rgba($primary-blue, 0.05);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba($primary-blue, 0.2);
+
+    h4 {
+        margin: 0 0 0.75rem 0;
+        color: $primary-blue;
+        font-size: 0.9375rem;
+        font-weight: 600;
+    }
+
+    ul {
+        margin: 0;
+        padding-left: 1.25rem;
+
+        li {
+            color: $text-secondary;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            margin-bottom: 0.25rem;
+        }
     }
 }
