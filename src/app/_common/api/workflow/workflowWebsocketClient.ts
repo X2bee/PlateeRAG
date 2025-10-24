@@ -1,6 +1,8 @@
 import { API_BASE_URL } from '@/app/config';
 import { getAuthCookie } from '@/app/_common/utils/cookieUtils';
 import { devLog } from '@/app/_common/utils/logger';
+import { LocalMcpBridge } from '@/app/_common/mcp/localMcpBridge';
+import { getLocalMcpBridgeConfig } from '@/app/_common/mcp/localMcpRegistry';
 
 type WorkflowMode = 'execute' | 'deploy';
 
@@ -131,6 +133,18 @@ export const connectWorkflowWebSocket = ({
 }: WorkflowWebSocketOptions): WorkflowWebSocketHandle => {
     const url = resolveWebSocketUrl(mode, urlOverride, sessionId);
     const socket = new WebSocket(url);
+    const { servers: registeredMcpServers, callLocalMcp } = getLocalMcpBridgeConfig();
+    const advertisedServers = registeredMcpServers.map(({ name, description, meta }) => ({
+        name,
+        description,
+        meta,
+    }));
+    const mcpBridge = new LocalMcpBridge({
+        socket,
+        logger,
+        servers: advertisedServers,
+        callLocalMcp,
+    });
 
     let closedByClient = false;
 
@@ -168,6 +182,11 @@ export const connectWorkflowWebSocket = ({
     const handleMessage = (event: MessageEvent) => {
         try {
             const message = JSON.parse(event.data);
+
+            if (mcpBridge.handleServerMessage(message)) {
+                return;
+            }
+
             switch (message.type) {
                 case 'ready':
                     {
@@ -184,6 +203,7 @@ export const connectWorkflowWebSocket = ({
                                 logger.error('[workflow-ws] onSessionEstablished callback failed', err);
                             }
                         }
+                        mcpBridge.handleReady();
                         onReady?.(sessionInfo);
                     }
                     break;
@@ -220,6 +240,7 @@ export const connectWorkflowWebSocket = ({
 
     const handleClose = (event: CloseEvent) => {
         logger.log(`[workflow-ws] socket closed (code: ${event.code}, reason: ${event.reason || 'n/a'})`);
+        mcpBridge.teardown('WebSocket closed');
         teardown();
         onClose?.(event);
         if (!closedByClient && event.code !== 1000) {
@@ -237,6 +258,7 @@ export const connectWorkflowWebSocket = ({
             return;
         }
         closedByClient = true;
+        mcpBridge.teardown(reason || 'Client closed connection');
         socket.close(code, reason);
     };
 

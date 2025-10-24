@@ -9,8 +9,6 @@ import {
     FiClock,
     FiUsers,
     FiSettings,
-    FiCopy,
-    FiGitBranch,
     FiMoreVertical,
 } from 'react-icons/fi';
 import styles from '@/app/main/workflowSection/assets/ToolStorage.module.scss';
@@ -19,6 +17,7 @@ import UploadButton from '@/app/_common/icons/upload';
 import ToolStorageUpload from '@/app/main/workflowSection/components/ToolStorageUpload';
 import ToolStorageDetailModal from '@/app/main/workflowSection/components/ToolStorageDetailModal';
 import ToolStore from '@/app/main/workflowSection/components/ToolStore';
+import LocalMcpSettingsModal from '@/app/main/workflowSection/components/LocalMcpSettingsModal';
 import { listTools, testTool } from '@/app/_common/api/toolsAPI';
 import {
     showErrorToastKo,
@@ -43,6 +42,7 @@ const ToolStorage: React.FC = () => {
     const [testingToolId, setTestingToolId] = useState<number | null>(null);
     const [editingTool, setEditingTool] = useState<any | null>(null);
     const [activeTab, setActiveTab] = useState<'storage' | 'store'>('storage' as 'storage' | 'store');
+    const [isMcpSettingsOpen, setIsMcpSettingsOpen] = useState(false);
 
     const fetchTools = async () => {
         try {
@@ -113,6 +113,13 @@ const ToolStorage: React.FC = () => {
     const handleToolClick = (tool: any) => {
         setSelectedTool(tool);
         setIsDetailModalOpen(true);
+    };
+
+    const handleToolCardKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, tool: any) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            handleToolClick(tool);
+        }
     };
 
     // 도구 상세 모달 닫기
@@ -323,6 +330,15 @@ const ToolStorage: React.FC = () => {
                         title="도구 업로드"
                     />
 
+                    <button
+                        type="button"
+                        className={styles.settingsButton}
+                        onClick={() => setIsMcpSettingsOpen(true)}
+                    >
+                        <FiSettings />
+                        MCP 설정
+                    </button>
+
                     <RefreshButton
                         onClick={fetchTools}
                         loading={loading}
@@ -356,6 +372,10 @@ const ToolStorage: React.FC = () => {
                             key={tool.id}
                             className={`${styles.workflowCard} ${openDropdown === tool.id ? styles.cardActive : ''}`}
                             onClick={() => handleToolClick(tool)}
+                            onKeyDown={(event) => handleToolCardKeyDown(event, tool)}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`${tool.function_name || '도구'} 상세 보기`}
                             style={{ cursor: 'pointer' }}
                         >
                             <div className={styles.cardHeader}>
@@ -486,6 +506,14 @@ const ToolStorage: React.FC = () => {
                 tool={selectedTool}
                 isOpen={isDetailModalOpen}
                 onClose={handleCloseDetailModal}
+            />
+
+            <LocalMcpSettingsModal
+                isOpen={isMcpSettingsOpen}
+                onClose={() => setIsMcpSettingsOpen(false)}
+                onServersChange={(updatedServers) => {
+                    devLog.log('로컬 MCP 서버 목록이 업데이트되었습니다.', updatedServers);
+                }}
             />
         </div>
     );

@@ -1,0 +1,458 @@
+@use "sass:color";
+@use "@/app/_common/_variables" as *;
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(12, 18, 28, 0.55);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.modalContainer {
+    width: min(100%, 980px);
+    background: $white;
+    border-radius: 1rem;
+    box-shadow: 0 30px 80px rgba(15, 23, 42, 0.25);
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 4rem);
+    overflow: hidden;
+}
+
+.modalHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid $gray-200;
+
+    h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: $gray-900;
+    }
+
+    p {
+        margin: 0.5rem 0 0;
+        color: $gray-600;
+        font-size: 0.95rem;
+    }
+}
+
+.modalBody {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 2rem;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.sidebarHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: $gray-800;
+    }
+}
+
+.textButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: transparent;
+    border: none;
+    color: $primary-blue;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+
+    &:hover {
+        color: color.adjust($primary-blue, $lightness: -8%);
+    }
+}
+
+.serverList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.serverItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem;
+    border: 1px solid $gray-200;
+    border-radius: 0.75rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: $white;
+
+    &:hover {
+        border-color: rgba($primary-blue, 0.4);
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+    }
+
+    &.active {
+        border-color: $primary-blue;
+        box-shadow: 0 8px 20px rgba($primary-blue, 0.15);
+    }
+}
+
+.serverInfo {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    flex: 1;
+    gap: 0.25rem;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.serverNameRow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.serverName {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: $gray-900;
+}
+
+.serverEndpoint {
+    font-size: 0.85rem;
+    color: $gray-600;
+    word-break: break-all;
+}
+
+.serverDescription {
+    font-size: 0.8rem;
+    color: $gray-500;
+}
+
+.defaultBadge {
+    background: rgba($primary-blue, 0.12);
+    color: $primary-blue;
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.serverActions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.iconButton,
+.iconButtonDanger {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0.35rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    color: $gray-500;
+    transition: background 0.2s ease, color 0.2s ease;
+
+    svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.iconButton:hover,
+.iconButton:focus-visible {
+    background: $gray-100;
+    color: $gray-800;
+}
+
+.iconButtonDanger {
+    color: $gray-500;
+
+    &:hover,
+    &:focus-visible {
+        color: $primary-red;
+        background: rgba($primary-red, 0.12);
+    }
+}
+
+.emptyState {
+    padding: 1rem;
+    border-radius: 0.75rem;
+    border: 1px dashed $gray-300;
+
+    p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: $gray-600;
+        text-align: center;
+    }
+}
+
+.formSection {
+    background: rgba($gray-100, 0.6);
+    border: 1px solid $gray-200;
+    border-radius: 1rem;
+    padding: 1.5rem;
+}
+
+.formHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+
+    h3 {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: $gray-900;
+    }
+}
+
+.editingBadge {
+    background: rgba($primary-blue, 0.12);
+    color: $primary-blue;
+    border-radius: 0.75rem;
+    padding: 0.15rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.formGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.formField,
+.formFieldWide {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+
+    span {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: $gray-700;
+    }
+
+    input,
+    textarea {
+        width: 100%;
+        border: 1px solid $gray-300;
+        border-radius: 0.6rem;
+        padding: 0.65rem 0.8rem;
+        font-size: 0.9rem;
+        background: $white;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+        &:focus {
+            outline: none;
+            border-color: $primary-blue;
+            box-shadow: 0 0 0 3px rgba($primary-blue, 0.15);
+        }
+    }
+}
+
+.formFieldWide {
+    grid-column: span 2;
+
+    textarea {
+        resize: vertical;
+    }
+}
+
+.headersSection {
+    background: $white;
+    border-radius: 0.75rem;
+    border: 1px solid $gray-200;
+    padding: 1.25rem;
+}
+
+.sectionTitle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+
+    h4 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: $gray-800;
+    }
+}
+
+.helperText {
+    margin: 0;
+    font-size: 0.85rem;
+    color: $gray-600;
+}
+
+.headersList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.headerRow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+    gap: 0.75rem;
+
+    input {
+        border: 1px solid $gray-300;
+        border-radius: 0.6rem;
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+
+        &:focus {
+            outline: none;
+            border-color: $primary-blue;
+            box-shadow: 0 0 0 3px rgba($primary-blue, 0.15);
+        }
+    }
+}
+
+.modalFooter {
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.secondaryButton,
+.primaryButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 0.65rem;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+
+    svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.secondaryButton {
+    background: $white;
+    border: 1px solid $gray-300;
+    color: $gray-700;
+
+    &:hover {
+        background: $gray-100;
+    }
+}
+
+.primaryButton {
+    background: $primary-blue;
+    color: $white;
+    box-shadow: 0 10px 25px rgba($primary-blue, 0.25);
+
+    &:hover {
+        background: color.adjust($primary-blue, $lightness: -5%);
+        box-shadow: 0 12px 30px rgba($primary-blue, 0.3);
+        transform: translateY(-1px);
+    }
+
+    &:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+}
+
+.footerActions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+@media (max-width: 1024px) {
+    .modalBody {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        flex-direction: row;
+        overflow-x: auto;
+    }
+
+    .serverList {
+        flex-direction: row;
+        gap: 1rem;
+    }
+
+    .serverItem {
+        min-width: 260px;
+    }
+}
+
+@media (max-width: 768px) {
+    .modalOverlay {
+        padding: 1rem;
+    }
+
+    .modalContainer {
+        max-height: calc(100vh - 2rem);
+    }
+
+    .formGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .formFieldWide {
+        grid-column: span 1;
+    }
+
+    .modalFooter {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .footerActions {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

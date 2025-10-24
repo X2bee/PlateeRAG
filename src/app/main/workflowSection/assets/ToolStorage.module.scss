@@ -96,6 +96,32 @@
     }
 }
 
+.settingsButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 0.95rem;
+    border-radius: 0.6rem;
+    border: 1px solid $gray-300;
+    background: $white;
+    color: $gray-700;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    &:hover {
+        background: $primary-blue;
+        border-color: $primary-blue;
+        color: $white;
+        box-shadow: 0 8px 18px rgba($primary-blue, 0.2);
+    }
+}
+
 // 스피닝 애니메이션
 .spinning {
     animation: spin 1s linear infinite;
