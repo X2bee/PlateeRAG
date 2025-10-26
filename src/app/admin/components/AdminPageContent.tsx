@@ -231,7 +231,7 @@ const AdminPageContent: React.FC = () => {
             case 'system-config':
                 return (
                     <AdminContentArea
-                        title="시스템 설정"
+                        title="시스템 세부 설정"
                         description="전역 시스템 설정 및 환경변수를 관리하세요."
                     >
                         <AdminConfigViewer />
@@ -240,7 +240,7 @@ const AdminPageContent: React.FC = () => {
             case 'system-settings':
                 return (
                     <AdminContentArea
-                        title="시스템 세부 설정"
+                        title="시스템 설정"
                         description="LLM, 데이터베이스, 벡터DB 등 시스템 구성 요소들을 상세하게 설정하세요."
                     >
                         <AdminSettings />
