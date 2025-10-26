@@ -338,16 +338,6 @@ const MLTrainPage: React.FC = () => {
     return (
         <div className={styles.container}>
             <div className={styles.contentArea}>
-                <div className={styles.header}>
-                    <div className={styles.headerContent}>
-                        <h2>머신러닝 모델 학습</h2>
-                        <p>
-                            HuggingFace 데이터셋을 사용하여 분류/회귀 모델을 학습하고 MLflow로 관리합니다.
-                            하이퍼파라미터 최적화(HPO)를 통해 더 높은 성능을 얻을 수 있습니다.
-                        </p>
-                    </div>
-                </div>
-
                 <div className={styles.tabNavigation}>
                     {tabs.map((tab) => (
                         <button

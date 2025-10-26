@@ -151,10 +151,7 @@ const DataStorage: React.FC = () => {
     };
 
     return (
-        <ContentArea
-            title="Hugging Face 데이터셋 저장소"
-            description="Hugging Face에 저장된 데이터셋을 확인하고 관리하세요."
-        >
+        <div>
             <div className={styles.container}>
             {/* Header with Sorting Controls and Actions */}
             <div className={styles.header}>
@@ -291,7 +288,7 @@ const DataStorage: React.FC = () => {
                     onClose={handleCloseModal}
                 />
             )}
-        </ContentArea>
+        </div>
     );
 };
 

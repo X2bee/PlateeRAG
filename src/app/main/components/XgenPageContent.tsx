@@ -138,11 +138,18 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
             case 'new-chat':
                 return <ChatContent onChatStarted={handleChatStarted} />;
             case 'current-chat':
-                return <CurrentChatInterface />;
+                return ( 
+                    <ContentArea
+                    title="현재 채팅"
+                    description="현재 채팅을 이어나가 보세요."
+                    >       
+                        <CurrentChatInterface />;
+                    </ContentArea>
+                );
             case 'chat-history':
                 return (
                     <ContentArea
-                        title="채팅 기록"
+                        title="기존 채팅 불러오기"
                         description="이전 대화를 선택하여 계속하거나 새로운 창에서 열어보세요."
                     >
                         <ChatHistory onSelectChat={handleChatSelect} />
@@ -162,7 +169,7 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
             case 'workflows':
                 return (
                     <ContentArea
-                        title="완성된 워크플로우"
+                        title="워크플로우 관리"
                         description="저장된 워크플로우를 확인하고 관리하세요."
                     >
                         <CompletedWorkflows />
@@ -171,7 +178,7 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
             case 'documents':
                 return (
                     <ContentArea
-                        title="문서"
+                        title="문서 관리"
                         description="문서 저장소"
                     >
                         <Documents />
@@ -180,7 +187,7 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
             case 'tool-storage':
                 return (
                     <ContentArea
-                        title="도구 저장소"
+                        title="도구 관리"
                         description="도구를 탐색하고 관리하세요."
                     >
                         <ToolStorage />
@@ -200,27 +207,39 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
             case 'train':
                 return (
                     <ContentArea
-                        title="모델 훈련 설정"
+                        title="모델 훈련"
                         description="모델 훈련을 위한 파라미터를 설정하고 훈련을 시작하세요."
                     >
                         <TrainPageContent />
                     </ContentArea>
                 );
             case 'train-monitor':
-                return <MetricsPageContent />;
+                return (
+                    <ContentArea
+                    title="모델 훈련 모니터"
+                    description="모델 훈련을 위한 파라미터를 설정하고 훈련을 시작하세요."
+                        >
+                        <MetricsPageContent />
+                    </ContentArea>);
             case 'eval':
-                return <EvalPageContent />;
+                return (
+                    <ContentArea
+                        title="모델 평가"
+                        description="학습된 모델을 평가해보세요."
+                    >
+                        <EvalPageContent />
+                    </ContentArea>
+                );
+            // ML 모델 섹션
             case 'model-storage':
                 return (
                     <ContentArea
-                        title="Hugging Face 모델 저장소"
-                        description="Hugging Face에 저장된 모델을 확인하고 관리하세요."
+                        title="모델 허브"
+                        description="저장된 모델을 확인하고 관리하세요."
                     >
                         <StoragePageContent />
                     </ContentArea>
                 );
-
-            // ML 모델 섹션
             case 'model-upload':
             case 'model-hub':
             case 'model-inference': {
@@ -249,11 +268,29 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
                     </ContentArea>
                 );
             case 'data-storage':
-                return <DataStorage />;
+                return (
+                    <ContentArea
+                        title="데이터셋 허브"
+                        description="머신러닝을 위한 데이터를 확인하고 관리하세요."
+                    >
+                        <DataStorage />
+                    </ContentArea> );
             case 'ml-train':
-                return <MLTrainPage />;
+                return (
+                    <ContentArea
+                        title="ML 모델 훈련"
+                        description="원하는 머신러닝 모델을 학습하세요."
+                    >
+                        <MLTrainPage />
+                    </ContentArea> );
             case 'ml-train-monitor':
-                return <MetricsPageContent />;
+                return (
+                    <ContentArea
+                    title="ML 모델 훈련 모니터 및 저장소"
+                    description="학습 중인 머신러닝 모델을 실시간으로 모니터링하고 결과를 확인하세요."
+                    >
+                        <MetricsPageContent />
+                    </ContentArea> );
 
             // 기본값
             default:
