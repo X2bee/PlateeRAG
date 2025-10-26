@@ -30,9 +30,9 @@ $white: #ffffff;
   padding: 1rem;
   transition: all 0.5s ease;
   overflow: hidden;
-  height: 100vh;
-  max-height: 100vh;
-  
+  height: calc(100vh - 200px);
+  min-height: 600px;
+
   .container {
     width: 100%;
     max-width: 1200px;

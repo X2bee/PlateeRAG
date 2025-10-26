@@ -21,7 +21,7 @@ const ContentArea: React.FC<ContentAreaProps> = ({
                     <div className={styles.headerButtons}>{headerButtons}</div>
                 )}
             </header>
-            <div>{children}</div>
+            <div className={styles.contentBody}>{children}</div>
         </div>
     );
 };
