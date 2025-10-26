@@ -86,6 +86,12 @@
     }
 }
 
+.contentBody {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
 // Exec-Monitor Integration
 // 통합 화면 스타일은 기존 contentArea를 상속받아 사용
 
