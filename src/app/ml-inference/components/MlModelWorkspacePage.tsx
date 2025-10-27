@@ -32,9 +32,10 @@ const VIEW_CONFIG: Record<WorkspaceView, { title: string; description: string }>
 
 interface MlModelWorkspacePageProps {
     view: WorkspaceView;
+    admin?: boolean;
 }
 
-const MlModelWorkspacePage: React.FC<MlModelWorkspacePageProps> = ({ view }) => {
+const MlModelWorkspacePage: React.FC<MlModelWorkspacePageProps> = ({ view, admin }) => {
     const { title, description } = VIEW_CONFIG[view];
     const headerButtons = (view === 'hub' || view === 'inference') ? null : <MlModelHeaderActions />;
 

@@ -86,6 +86,8 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
         "security-settings", "audit-logs", "error-logs",
         // MCP
         "mcp-market", "mcp-station",
+        // ML 
+        "ml-model-control",
     ];
 
     const availableUserSectionOptions = [
@@ -131,6 +133,9 @@ const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
         // MCP
         "mcp-market": "MCP마켓",
         "mcp-station": "MCP스테이션",
+        // ML 
+        "ml-model-control" : "머신러닝 모델 관리",
+        //"ml-model-healthcheck" : "머신러닝 모델 헬스체크"
     };
 
     // 유저 섹션 이름 한국어 매핑
