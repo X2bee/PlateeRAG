@@ -138,13 +138,8 @@ const XgenPageContent: React.FC<XgenPageContentProps> = ({
             case 'new-chat':
                 return <ChatContent onChatStarted={handleChatStarted} />;
             case 'current-chat':
-                return ( 
-                    <ContentArea
-                    title="현재 채팅"
-                    description="현재 채팅을 이어나가 보세요."
-                    >       
-                        <CurrentChatInterface />;
-                    </ContentArea>
+                return (
+                    <CurrentChatInterface />
                 );
             case 'chat-history':
                 return (
