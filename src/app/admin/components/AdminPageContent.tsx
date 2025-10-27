@@ -27,6 +27,8 @@ import MCPStation from '@/app/admin/components/mcp/MCPStation';
 import AdminNodeManage from '@/app/admin/components/workflows/AdminNodeManage';
 import AdminPromptStore from '@/app/admin/components/workflows/AdminPromptStore/AdminPromptStore';
 import AdminWorkflowStore from '@/app/admin/components/workflows/AdminWorkflowStore';
+import { MlModelWorkspaceProvider } from '@/app/ml-inference/components/MlModelWorkspaceContext';
+import MlModelWorkspacePage from '@/app/ml-inference/components/MlModelWorkspacePage';
 import {
     getUserSidebarItems,
     getWorkflowSidebarItems,
@@ -36,6 +38,7 @@ import {
     getSecuritySidebarItems,
     getMCPSidebarItems,
     createAdminItemClickHandler,
+    getMLSidebarItems,
 } from '@/app/admin/components/adminSidebarConfig';
 import styles from '@/app/admin/assets/AdminPage.module.scss';
 
@@ -117,6 +120,7 @@ const AdminPageContent: React.FC = () => {
     const dataItems = filterItemsByPermission(getDataSidebarItems());
     const securityItems = filterItemsByPermission(getSecuritySidebarItems());
     const mcpItems = filterItemsByPermission(getMCPSidebarItems());
+    const MLItems = filterItemsByPermission(getMLSidebarItems())
 
     // 아이템 클릭 핸들러
     const handleItemClick = createAdminItemClickHandler(router);
@@ -155,6 +159,8 @@ const AdminPageContent: React.FC = () => {
             'security-settings', 'audit-logs', 'error-logs',
             // MCP Items
             'mcp-market', 'mcp-station',
+            // ML Items
+            'ml-model-control', //'ml-model-healthcheck'
         ];
         return validSections.includes(section);
     };
@@ -409,6 +415,17 @@ const AdminPageContent: React.FC = () => {
                         <MCPStation />
                     </AdminContentArea>
                 );
+            case 'ml-model-control':
+                return (
+                    <AdminContentArea
+                        title="머신러닝 모델 관리"
+                        description="배포된 머신러닝 모델을 버전을 관리합니다."
+                    >
+                        <MlModelWorkspaceProvider admin={true}>
+                            <MlModelWorkspacePage view='inference' admin={true}/>
+                        </MlModelWorkspaceProvider>
+                    </AdminContentArea>
+                );
             default:
                 return (
                     <AdminContentArea
@@ -435,6 +452,7 @@ const AdminPageContent: React.FC = () => {
                     dataItems={dataItems}
                     securityItems={securityItems}
                     mcpItems={mcpItems}
+                    MLItems={MLItems}
                     activeItem={activeSection}
                     onItemClick={(itemId: string) => setActiveSection(itemId)}
                     initialUserExpanded={['users', 'user-create', 'group-permissions'].includes(activeSection)}
@@ -444,6 +462,7 @@ const AdminPageContent: React.FC = () => {
                     initialDataExpanded={['database', 'data-scraper', 'storage', 'backup'].includes(activeSection)}
                     initialSecurityExpanded={['security-settings', 'audit-logs', 'error-logs', 'access-logs'].includes(activeSection)}
                     initialMCPExpanded={['mcp-market', 'mcp-station'].includes(activeSection)}
+                    initialMLExpanded={['ml-model-control'].includes(activeSection)}
                 />
                 {!isSidebarOpen && (
                     <motion.button
