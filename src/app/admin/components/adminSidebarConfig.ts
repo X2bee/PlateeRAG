@@ -20,6 +20,7 @@ import {
     FiPieChart,
     FiGrid,
     FiLayers,
+    FiCpu,
 } from 'react-icons/fi';
 import { AdminSidebarItem } from '@/app/admin/components/types';
 
@@ -199,6 +200,17 @@ export const getMCPSidebarItems = (): AdminSidebarItem[] => [
         title: 'MCP Station',
         description: '활성화된 MCP 세션 관리 및 모니터링',
         icon: React.createElement(FiServer),
+    },
+];
+
+export const getMLItems = ['ml-model-control'];
+
+export const getMLSidebarItems = (): AdminSidebarItem[] => [
+    {
+        id: 'ml-model-control',
+        title: '머신러닝 모델 관리',
+        description: '배포된 ML 모델 관리',
+        icon: React.createElement(FiCpu),
     },
 ];
 

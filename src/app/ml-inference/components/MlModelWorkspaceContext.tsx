@@ -126,6 +126,7 @@ interface DeleteState {
 }
 
 interface MlModelWorkspaceContextValue {
+    admin: boolean;
     baseUrl: string;
     uploadEndpoint: string;
     inferenceEndpoint: string;
@@ -164,7 +165,12 @@ export const useMlModelWorkspace = () => {
     return context;
 };
 
-export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+interface MlModelWorkspaceProviderProps {
+    admin?: boolean;
+    children?: React.ReactNode;
+}
+
+export const MlModelWorkspaceProvider: React.FC<MlModelWorkspaceProviderProps> = ({ admin = false, children }) => {
     const baseUrl = API_BASE_URL ?? '';
     const uploadEndpoint = useMemo(() => joinUrl(baseUrl, '/api/models/upload'), [baseUrl]);
     const inferenceEndpoint = useMemo(() => joinUrl(baseUrl, '/api/models/infer'), [baseUrl]);
@@ -245,7 +251,12 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
         setSyncError(null);
 
         try {
-            const response = await apiClient(joinUrl(baseUrl, '/api/models?limit=100&offset=0'), {
+            const queryParams = new URLSearchParams({
+                limit: '100',
+                offset: '0',
+                admin: admin.toString(),
+            });
+            const response = await apiClient(joinUrl(baseUrl, `/api/models?${queryParams.toString()}`), {
                 method: 'GET',
             });
 
@@ -282,7 +293,7 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
         } finally {
             setIsLoadingList(false);
         }
-    }, [baseUrl, mapListItemToRegisteredModel]);
+    }, [admin, baseUrl, mapListItemToRegisteredModel]);
 
     const fetchModelDetail = useCallback(async (modelId: number, options?: { silent?: boolean }) => {
         if (!options?.silent) {
@@ -534,6 +545,7 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
     }, [fetchModelDetail, selectedModelId]);
 
     const contextValue = useMemo<MlModelWorkspaceContextValue>(() => ({
+        admin,
         baseUrl,
         uploadEndpoint,
         inferenceEndpoint,
@@ -561,6 +573,7 @@ export const MlModelWorkspaceProvider: React.FC<React.PropsWithChildren> = ({ ch
         syncMessage,
         syncError,
     }), [
+        admin,
         baseUrl,
         uploadEndpoint,
         inferenceEndpoint,
