@@ -59,45 +59,28 @@ export const processInlineMarkdownWithCitations = (
 
     // Citation을 찾기 위한 더 안전한 접근법 - 단순화
     const findCitations = (inputText: string): Array<{ start: number, end: number, content: string }> => {
-
-        // LaTeX가 포함된 텍스트에서는 Citation 전처리를 최소화
-        let preprocessedText = inputText;
-
-        // LaTeX 영역이 아닌 곳에서만 전처리 수행
-        if (!hasLatex(inputText)) {
-            // 이중 중괄호를 단일 중괄호로 변환
-            preprocessedText = preprocessedText.replace(/\{\{/g, '{').replace(/\}\}/g, '}');
-            // }}}] 같은 패턴을 }}] 로 정리
-            preprocessedText = preprocessedText.replace(/\}\}\}/g, '}}');
-            // 숫자 필드 뒤의 잘못된 따옴표 제거
-            preprocessedText = preprocessedText.replace(/(\d)"\s*([,}])/g, '$1$2');
-            // 문자열 필드에서 중복 따옴표 정리
-            preprocessedText = preprocessedText.replace(/"""([^"]*?)"/g, '"$1"'); // 3개 따옴표 -> 1개
-            preprocessedText = preprocessedText.replace(/""([^"]*?)"/g, '"$1"');  // 2개 따옴표 -> 1개
-        }
-
         const citations: Array<{ start: number, end: number, content: string }> = [];
-        let i = 0;
+        let searchIndex = 0;
 
-        while (i < preprocessedText.length) {
+        while (searchIndex < inputText.length) {
             // [Cite. 패턴 찾기
-            const citeStart = preprocessedText.indexOf('[Cite.', i);
+            const citeStart = inputText.indexOf('[Cite.', searchIndex);
             if (citeStart === -1) break;
 
             // { 또는 {{ 찾기
             let braceStart = -1;
-            for (let j = citeStart + 6; j < preprocessedText.length; j++) {
-                if (preprocessedText[j] === '{') {
+            for (let j = citeStart + 6; j < inputText.length; j++) {
+                if (inputText[j] === '{') {
                     braceStart = j;
                     break;
-                } else if (preprocessedText[j] !== ' ' && preprocessedText[j] !== '\t') {
+                } else if (inputText[j] !== ' ' && inputText[j] !== '\t') {
                     // 공백이 아닌 다른 문자가 나오면 유효하지 않은 citation
                     break;
                 }
             }
 
             if (braceStart === -1) {
-                i = citeStart + 6;
+                searchIndex = citeStart + 6;
                 continue;
             }
 
@@ -107,8 +90,8 @@ export const processInlineMarkdownWithCitations = (
             let inString = false;
             let escaped = false;
 
-            for (let j = braceStart + 1; j < preprocessedText.length; j++) {
-                const char = preprocessedText[j];
+            for (let j = braceStart + 1; j < inputText.length; j++) {
+                const char = inputText[j];
 
                 // 이전 문자가 백슬래시인 경우 현재 문자는 이스케이프됨
                 if (escaped) {
@@ -145,11 +128,11 @@ export const processInlineMarkdownWithCitations = (
             if (braceEnd !== -1) {
                 // 닫는 ] 찾기 (선택적) - 백슬래시는 텍스트 끝까지 포함
                 let finalEnd = braceEnd + 1;
-                while (finalEnd < preprocessedText.length &&
-                    (preprocessedText[finalEnd] === ' ' || preprocessedText[finalEnd] === '\t' ||
-                        preprocessedText[finalEnd] === ']' || preprocessedText[finalEnd] === '.' ||
-                        preprocessedText[finalEnd] === '\\')) {
-                    if (preprocessedText[finalEnd] === ']') {
+                while (finalEnd < inputText.length &&
+                    (inputText[finalEnd] === ' ' || inputText[finalEnd] === '\t' ||
+                        inputText[finalEnd] === ']' || inputText[finalEnd] === '.' ||
+                        inputText[finalEnd] === '\\')) {
+                    if (inputText[finalEnd] === ']') {
                         finalEnd++;
                         break;
                     }
@@ -157,11 +140,11 @@ export const processInlineMarkdownWithCitations = (
                 }
 
                 // 텍스트 끝에 백슬래시가 있는 경우 포함
-                if (finalEnd === preprocessedText.length && preprocessedText.endsWith('\\')) {
+                if (finalEnd === inputText.length && inputText.endsWith('\\')) {
                     // 백슬래시까지 포함
                 }
 
-                const citationContent = preprocessedText.slice(citeStart, finalEnd);
+                const citationContent = inputText.slice(citeStart, finalEnd);
 
                 citations.push({
                     start: citeStart,
@@ -169,9 +152,9 @@ export const processInlineMarkdownWithCitations = (
                     content: citationContent
                 });
 
-                i = finalEnd;
+                searchIndex = finalEnd;
             } else {
-                i = citeStart + 6;
+                searchIndex = citeStart + 6;
             }
         }
 
