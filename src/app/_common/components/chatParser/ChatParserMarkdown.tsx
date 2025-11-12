@@ -6,6 +6,17 @@ import { hasLatex, processLatexInText } from '@/app/_common/components/chatParse
 import { processInlineMarkdownWithCitations } from '@/app/_common/components/chatParser/ChatParserCite';
 
 /**
+ * 비표준 파이프 문자를 표준 Markdown 파이프(|)로 정규화
+ * U+2223 (DIVIDES), U+2502 (BOX DRAWINGS LIGHT VERTICAL) 등을 ASCII 파이프로 변환
+ */
+export const normalizeTableSeparators = (text: string): string => {
+    return text
+        .replace(/\u2223/g, '|')  // ∣ (DIVIDES) → |
+        .replace(/\u2502/g, '|')  // │ (BOX DRAWINGS LIGHT VERTICAL) → |
+        .replace(/\uFF5C/g, '|'); // ｜ (FULLWIDTH VERTICAL LINE) → |
+};
+
+/**
  * 테이블 구분자 라인인지 확인하는 헬퍼 함수
  * (예: |:---|:---:|---:|)
  */
@@ -333,23 +344,28 @@ export const parseSimpleMarkdown = (
     }
 
     for (let i = 0; i < processedLines.length; i++) {
-        const line = processedLines[i];
+        const line = normalizeTableSeparators(processedLines[i]);
         const key = `${startKey}-block-${i}`;
 
         // --- 테이블 파싱 로직 (추가된 부분) ---
         const isTableLine = (str: string) => str.trim().includes('|');
         const isTableSeparator = (str: string) => /^\s*\|?(\s*:?-+:?\s*\|)+(\s*:?-+:?\s*\|?)\s*$/.test(str.trim());
 
-        const nextLine = processedLines[i + 1];
+        const nextLine = processedLines[i + 1] ? normalizeTableSeparators(processedLines[i + 1]) : undefined;
         if (isTableLine(line) && nextLine && isTableSeparator(nextLine)) {
             const headerLine = line;
             const separatorLine = nextLine;
             const bodyLines = [];
 
             let tableEndIndex = i + 2;
-            while (tableEndIndex < processedLines.length && isTableLine(processedLines[tableEndIndex]) && !isTableSeparator(processedLines[tableEndIndex])) {
-                bodyLines.push(processedLines[tableEndIndex]);
-                tableEndIndex++;
+            while (tableEndIndex < processedLines.length) {
+                const normalizedLine = normalizeTableSeparators(processedLines[tableEndIndex]);
+                if (isTableLine(normalizedLine) && !isTableSeparator(normalizedLine)) {
+                    bodyLines.push(normalizedLine);
+                    tableEndIndex++;
+                } else {
+                    break;
+                }
             }
 
             // 정렬 처리 (이제 separatorLine은 항상 정의되어 있음)
