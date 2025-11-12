@@ -25,8 +25,7 @@ import {
     findTodoDetailsBlocks
 } from '@/app/_common/components/chatParser/ChatParserTodoDetails';
 import {
-    parseSimpleMarkdown,
-    normalizeTableSeparators
+    parseSimpleMarkdown
 } from '@/app/_common/components/chatParser/ChatParserMarkdown';
 import { parseCitation } from '@/app/_common/components/chatParser/ChatParserCite';
 import { convertToString, needsConversion } from '@/app/_common/components/chatParser/ChatParserNonStr';
@@ -90,9 +89,6 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
     if (!processedContent || processedContent.trim() === '') {
         return null;
     }
-
-    // 비표준 파이프 문자를 표준 Markdown 파이프로 정규화
-    processedContent = normalizeTableSeparators(processedContent);
 
     if (isUserMessage) {
         return (

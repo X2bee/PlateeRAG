@@ -139,7 +139,8 @@ export const findLatexBlocks = (text: string): LatexBlockInfo[] => {
 
     // 정규식을 사용한 더 정확한 LaTeX 블록 찾기
     const blockRegex = /\$\$([\s\S]*?)\$\$/g;
-    const inlineRegex = /(?<!\$)\$(?!\$)([^$\n]+)\$(?!\$)/g;
+    // 인라인 수식: $ 바로 뒤에 숫자가 오는 경우는 제외 (달러 금액 표시)
+    const inlineRegex = /(?<!\$)\$(?!\$)(?!\d)([^$\n]+)\$(?!\$)/g;
 
     let match;
     const allMatches: Array<{ start: number, end: number, content: string, isBlock: boolean }> = [];
@@ -421,10 +422,13 @@ export const processLatexInText = (
  * 텍스트에 LaTeX가 포함되어 있는지 확인하는 헬퍼 함수
  */
 export const hasLatex = (text: string): boolean => {
-    // 블록 수식 ($$...$$) 또는 인라인 수식 ($...$) 패턴 확인
-    // 멀티라인을 고려하여 dotAll 플래그 사용
+    // 블록 수식 ($$...$$) 패턴 확인
     const blockMathRegex = /\$\$[\s\S]*?\$\$/;
-    const inlineMathRegex = /(?<!\$)\$(?!\$)[^$\n]*\$(?!\$)/;
+
+    // 인라인 수식 ($...$) 패턴 확인
+    // 단, 달러 금액($250, $40 등)은 제외
+    // $ 바로 뒤에 숫자가 오는 경우는 LaTeX가 아닌 통화 기호로 간주
+    const inlineMathRegex = /(?<!\$)\$(?!\$)(?!\d)[^$\n]+\$(?!\$)/;
 
     return blockMathRegex.test(text) || inlineMathRegex.test(text);
 };

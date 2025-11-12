@@ -17,7 +17,6 @@ export const normalizeTableSeparators = (text: string): string => {
         .replace(/\uFF5C/g, '|')  // ｜ (FULLWIDTH VERTICAL LINE) → |
         .replace(/｜/g, '|')      // ｜ (FULLWIDTH VERTICAL LINE) → |
         .replace(/│/g, '|')       // │ (BOX DRAWINGS) → |
-        .replace(/\u007C/g, '|')  // | (VERTICAL LINE, 정규화) → |
         .replace(/\u01C0/g, '|')  // ǀ (LATIN LETTER DENTAL CLICK) → |
         .replace(/\u05C0/g, '|')  // ׀ (HEBREW PUNCTUATION PASEQ) → |
         .replace(/\u2758/g, '|')  // ❘ (LIGHT VERTICAL BAR) → |
