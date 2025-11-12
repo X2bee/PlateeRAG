@@ -11,9 +11,18 @@ import { processInlineMarkdownWithCitations } from '@/app/_common/components/cha
  */
 export const normalizeTableSeparators = (text: string): string => {
     return text
+        .replace(/∣/g, '|')       // ∣ (U+2223 DIVIDES) → |
         .replace(/\u2223/g, '|')  // ∣ (DIVIDES) → |
         .replace(/\u2502/g, '|')  // │ (BOX DRAWINGS LIGHT VERTICAL) → |
-        .replace(/\uFF5C/g, '|'); // ｜ (FULLWIDTH VERTICAL LINE) → |
+        .replace(/\uFF5C/g, '|')  // ｜ (FULLWIDTH VERTICAL LINE) → |
+        .replace(/｜/g, '|')      // ｜ (FULLWIDTH VERTICAL LINE) → |
+        .replace(/│/g, '|')       // │ (BOX DRAWINGS) → |
+        .replace(/\u007C/g, '|')  // | (VERTICAL LINE, 정규화) → |
+        .replace(/\u01C0/g, '|')  // ǀ (LATIN LETTER DENTAL CLICK) → |
+        .replace(/\u05C0/g, '|')  // ׀ (HEBREW PUNCTUATION PASEQ) → |
+        .replace(/\u2758/g, '|')  // ❘ (LIGHT VERTICAL BAR) → |
+        .replace(/\u2759/g, '|')  // ❙ (MEDIUM VERTICAL BAR) → |
+        .replace(/\u275A/g, '|'); // ❚ (HEAVY VERTICAL BAR) → |
 };
 
 /**
@@ -319,13 +328,16 @@ export const parseSimpleMarkdown = (
 ): React.ReactNode[] => {
     if (!text.trim()) return [];
 
+    // 비표준 파이프 문자를 먼저 정규화
+    const normalizedText = normalizeTableSeparators(text);
+
     // LaTeX가 포함된 경우 전체 텍스트를 LaTeX 처리기로 넘김 (라인 분할하지 않음)
-    if (hasLatex(text)) {
-        return processLatexInText(text, `${startKey}-latex`, isStreaming, onHeightChange);
+    if (hasLatex(normalizedText)) {
+        return processLatexInText(normalizedText, `${startKey}-latex`, isStreaming, onHeightChange);
     }
 
     const elements: React.ReactNode[] = [];
-    const lines = text.split('\n');
+    const lines = normalizedText.split('\n');
 
     // 연속된 빈 줄을 하나로 축소하여 처리
     const processedLines: string[] = [];
@@ -344,14 +356,14 @@ export const parseSimpleMarkdown = (
     }
 
     for (let i = 0; i < processedLines.length; i++) {
-        const line = normalizeTableSeparators(processedLines[i]);
+        const line = processedLines[i];
         const key = `${startKey}-block-${i}`;
 
         // --- 테이블 파싱 로직 (추가된 부분) ---
         const isTableLine = (str: string) => str.trim().includes('|');
         const isTableSeparator = (str: string) => /^\s*\|?(\s*:?-+:?\s*\|)+(\s*:?-+:?\s*\|?)\s*$/.test(str.trim());
 
-        const nextLine = processedLines[i + 1] ? normalizeTableSeparators(processedLines[i + 1]) : undefined;
+        const nextLine = processedLines[i + 1] ? processedLines[i + 1] : undefined;
         if (isTableLine(line) && nextLine && isTableSeparator(nextLine)) {
             const headerLine = line;
             const separatorLine = nextLine;
@@ -359,9 +371,9 @@ export const parseSimpleMarkdown = (
 
             let tableEndIndex = i + 2;
             while (tableEndIndex < processedLines.length) {
-                const normalizedLine = normalizeTableSeparators(processedLines[tableEndIndex]);
-                if (isTableLine(normalizedLine) && !isTableSeparator(normalizedLine)) {
-                    bodyLines.push(normalizedLine);
+                const currentLine = processedLines[tableEndIndex];
+                if (isTableLine(currentLine) && !isTableSeparator(currentLine)) {
+                    bodyLines.push(currentLine);
                     tableEndIndex++;
                 } else {
                     break;

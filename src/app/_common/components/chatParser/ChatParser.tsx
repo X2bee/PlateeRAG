@@ -25,7 +25,8 @@ import {
     findTodoDetailsBlocks
 } from '@/app/_common/components/chatParser/ChatParserTodoDetails';
 import {
-    parseSimpleMarkdown
+    parseSimpleMarkdown,
+    normalizeTableSeparators
 } from '@/app/_common/components/chatParser/ChatParserMarkdown';
 import { parseCitation } from '@/app/_common/components/chatParser/ChatParserCite';
 import { convertToString, needsConversion } from '@/app/_common/components/chatParser/ChatParserNonStr';
@@ -50,7 +51,7 @@ interface MessageRendererProps {
     className?: string;
     onViewSource?: (sourceInfo: SourceInfo) => void;
     onHeightChange?: () => void;
-    mode?: "existing" | "new-workflow" | "new-default" | "deploy";
+    mode?: "existing" | "new-workflow" | "new-default" | "deploy" | "embed";
     messageId?: string; // 메시지 고유 식별자 추가
     timestamp?: number; // 메시지 생성 시간 추가
     showEditButton?: boolean; // 편집 버튼 표시 여부
@@ -140,13 +141,14 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
 /**
  * 컨텐츠를 React 엘리먼트로 파싱
  */
-const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo: SourceInfo) => void, onHeightChange?: () => void, mode?: "existing" | "new-workflow" | "new-default" | "deploy"): React.ReactNode[] => {
+const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo: SourceInfo) => void, onHeightChange?: () => void, mode?: "existing" | "new-workflow" | "new-default" | "deploy" | "embed"): React.ReactNode[] => {
     // 이 시점에서 content는 이미 MessageRenderer에서 문자열로 변환되었음
     if (!content) {
         return [];
     }
 
-    let processed = content;
+    // 비표준 파이프 문자를 먼저 정규화
+    let processed = normalizeTableSeparators(content);
 
     // 스트림 모드 감지를 위한 헬퍼 함수
     const detectStreaming = (text: string, textStartIndex: number, totalLength: number): boolean => {
