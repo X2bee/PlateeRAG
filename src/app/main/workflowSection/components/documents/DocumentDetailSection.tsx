@@ -184,18 +184,8 @@ const DocumentDetailSection: React.FC<DocumentDetailSectionProps> = ({
                                             </div>
                                         ) : (
                                             <button
-                                                onClick={() => {
-                                                    if (!needsRemake) {
-                                                        handleEditClick(chunk.chunk_id, chunk.chunk_text || '');
-                                                    }
-                                                }}
-                                                disabled={needsRemake}
-                                                className={`${styles.button} ${styles.edit} ${needsRemake ? styles.disabled : ''}`}
-                                                data-tooltip={needsRemake ? '컬렉션 임베딩이 일치하지 않아 Remake를 먼저 수행해야 합니다.' : ''}
-                                                style={{
-                                                    cursor: needsRemake ? 'not-allowed' : 'pointer',
-                                                    opacity: needsRemake ? 0.6 : 1
-                                                }}
+                                                onClick={() => handleEditClick(chunk.chunk_id, chunk.chunk_text || '')}
+                                                className={`${styles.button} ${styles.edit}`}
                                             >
                                                 업데이트
                                             </button>
