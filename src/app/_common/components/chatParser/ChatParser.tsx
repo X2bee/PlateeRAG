@@ -91,6 +91,9 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
         return null;
     }
 
+    // 비표준 파이프 문자를 표준 Markdown 파이프로 정규화
+    processedContent = normalizeTableSeparators(processedContent);
+
     if (isUserMessage) {
         return (
             <div className={`${styles.markdownContent} ${className}`}>
@@ -142,13 +145,12 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
  * 컨텐츠를 React 엘리먼트로 파싱
  */
 const parseContentToReactElements = (content: string, onViewSource?: (sourceInfo: SourceInfo) => void, onHeightChange?: () => void, mode?: "existing" | "new-workflow" | "new-default" | "deploy" | "embed"): React.ReactNode[] => {
-    // 이 시점에서 content는 이미 MessageRenderer에서 문자열로 변환되었음
+    // 이 시점에서 content는 이미 MessageRenderer에서 문자열로 변환되고 정규화되었음
     if (!content) {
         return [];
     }
 
-    // 비표준 파이프 문자를 먼저 정규화
-    let processed = normalizeTableSeparators(content);
+    let processed = content;
 
     // 스트림 모드 감지를 위한 헬퍼 함수
     const detectStreaming = (text: string, textStartIndex: number, totalLength: number): boolean => {
