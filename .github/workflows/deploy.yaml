@@ -3,6 +3,7 @@ name: Deploy Front
 on:
   push:
     branches: [ deploy ]
+  workflow_dispatch:
 
 jobs:
   deploy:
