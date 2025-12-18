@@ -4,17 +4,14 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_BACKEND_HOST: ${NEXT_PUBLIC_BACKEND_HOST:-http://host.docker.internal}
-        NEXT_PUBLIC_BACKEND_PORT: ${NEXT_PUBLIC_BACKEND_PORT:-8023}
-        NEXT_PUBLIC_METRICS_HOST: ${NEXT_PUBLIC_METRICS_HOST:-}
+        NEXT_PUBLIC_BACKEND_HOST: ${NEXT_PUBLIC_BACKEND_HOST}
+        NEXT_PUBLIC_BACKEND_PORT: ${NEXT_PUBLIC_BACKEND_PORT}
+        NEXT_PUBLIC_METRICS_HOST: ${NEXT_PUBLIC_METRICS_HOST}
     container_name: plateerag_frontend
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
-    environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_BACKEND_HOST=${NEXT_PUBLIC_BACKEND_HOST:-http://host.docker.internal}
-      - NEXT_PUBLIC_BACKEND_PORT=${NEXT_PUBLIC_BACKEND_PORT:-8023}
-      - NEXT_PUBLIC_METRICS_HOST=${NEXT_PUBLIC_METRICS_HOST:-}
+    env_file:
+      - .env
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
