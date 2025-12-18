@@ -11,8 +11,8 @@ RUN npm ci
 COPY . .
 
 # Build arguments for environment variables (needed at build time for Next.js)
-ARG NEXT_PUBLIC_BACKEND_HOST=http://host.docker.internal
-ARG NEXT_PUBLIC_BACKEND_PORT=8023
+ARG NEXT_PUBLIC_BACKEND_HOST
+ARG NEXT_PUBLIC_BACKEND_PORT
 ARG NEXT_PUBLIC_METRICS_HOST
 
 # Set environment variables for build
@@ -37,8 +37,9 @@ RUN adduser --system --uid 1001 nextjs
 
 # Copy necessary files from builder
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
 
 # Set correct permissions
 RUN chown -R nextjs:nodejs /app
@@ -49,4 +50,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+CMD ["npm", "start"]
